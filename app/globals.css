@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Maison Palettia — Design Tokens
+   Single source of truth. Change values here to re-skin the entire site.
+   ========================================================================== */
+
+@theme static {
+  /* --- Brand palette (raw values — do not use directly in components) ----- */
+  --color-brand-lilac: #9059a4; /* Deep Lilac */
+  --color-brand-sage: #d1e7be; /* Light Sage */
+  --color-brand-cream: #efe2ca; /* White Rock */
+  --color-brand-terracotta: #d97757; /* Warm Terracotta */
+  --color-brand-lavender: #c4b5fd; /* Soft Lavender */
+  --color-brand-charcoal: #2d3748; /* Charcoal Slate */
+
+  /* --- Semantic colour tokens (use these in components) ------------------ */
+  --color-primary: var(--color-brand-lilac);
+  --color-sage: var(--color-brand-sage);
+  --color-cream: var(--color-brand-cream);
+  --color-terracotta: var(--color-brand-terracotta);
+  --color-lavender: var(--color-brand-lavender);
+  --color-text: var(--color-brand-charcoal);
+
+  --color-surface: #fffdf9; /* page background — warm off-white */
+  --color-surface-alt: var(--color-brand-cream);
+  --color-muted: #6b7280; /* secondary copy */
+  --color-line: #e6ddd0; /* hairline borders */
+
+  /* --- Typography -------------------------------------------------------- */
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  /* Display face. The licensed "Hapsha Sophia Script" file is not yet in the
+     project — see public/fonts/README.md. The inner fallback keeps the whole
+     declaration valid while --font-hapsha is undefined; once the font is wired
+     up in lib/fonts.ts it takes over automatically.
+     Tailwind generates the `font-display` utility from this token. */
+  --font-display: var(--font-hapsha, "Snell Roundhand"), "Brush Script MT", cursive;
+
+  --tracking-display: -0.01em;
+  --tracking-eyebrow: 0.18em;
+
+  /* --- Spacing rhythm (section-level) ------------------------------------ */
+  --spacing-section: 6rem;
+  --spacing-section-lg: 9rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-gutter-lg: 3rem;
+
+  /* --- Layout ------------------------------------------------------------ */
+  --container-site: 90rem; /* 1440px — generous editorial width */
+  --container-reading: 42rem; /* comfortable measure for long-form text */
+
+  /* --- Radius ------------------------------------------------------------ */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.5rem;
+  --radius-pill: 999px;
+
+  /* --- Motion ------------------------------------------------------------ */
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 200ms;
+  --duration-base: 400ms;
+  --duration-slow: 800ms;
+
+  /* --- Breakpoints ------------------------------------------------------- */
+  --breakpoint-xs: 26rem; /* 416px  */
+  --breakpoint-sm: 40rem; /* 640px  */
+  --breakpoint-md: 48rem; /* 768px  */
+  --breakpoint-lg: 64rem; /* 1024px */
+  --breakpoint-xl: 80rem; /* 1280px */
+  --breakpoint-2xl: 96rem; /* 1536px */
+}
+
+/* ==========================================================================
+   Base layer
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-feature-settings: "kern";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Headings inherit the sans stack; the display face is opt-in via .font-display */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+    letter-spacing: var(--tracking-display);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Visible, on-brand focus ring for every interactive element */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: var(--color-lavender);
+    color: var(--color-text);
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+/* Skip link — visible only when focused */
+@utility skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform var(--duration-fast) var(--ease-soft);
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   Reduced motion — honoured globally and by the Framer Motion helpers
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
