@@ -3,6 +3,33 @@
 /* ==========================================================================
    Maison Palettia — Design Tokens
    Single source of truth. Change values here to re-skin the entire site.
+
+   THE COLOUR RULE
+   Roughly four fifths of any screen should be calm ground — White Rock, Light
+   Sage, or the warm off-white the page sits on — carrying Charcoal Slate type.
+   The remaining fifth is where Deep Lilac, Warm Terracotta and Soft Lavender
+   are allowed to speak. No section uses the whole palette at once; a section
+   that needs three accents is a section that has not decided what it is about.
+
+   THE HOMEPAGE GROUND RHYTHM
+   Sections do not alternate between two colours — they are cast, so that quiet
+   ones make room for loud ones. Read top to bottom:
+
+     Hero ................. Charcoal field, moving image
+     Brand introduction ... White Rock            warm welcome
+     Upcoming workshops ... off-white             quiet, legible
+     Editorial spread ..... Charcoal, full bleed  a pause
+     The experience ....... White Rock            warm
+     Creative experiences . Light Sage            the structural brand field
+     Editorial spread ..... White Rock, full bleed
+     Just added ........... off-white             quiet
+     Maison philosophy .... DEEP LILAC            the focal moment of the page
+     Plan your visit ...... White Rock            the warm exhale after it
+     Footer ............... White Rock
+
+   Deep Lilac carries exactly one full field on the page, and the header bar.
+   That is what keeps it a focal colour rather than a background. Anything that
+   changes this rhythm should change it here first.
    ========================================================================== */
 
 @theme static {
@@ -24,8 +51,13 @@
 
   --color-surface: #fffdf9; /* page background — warm off-white */
   --color-surface-alt: var(--color-brand-cream);
-  --color-muted: #6b7280; /* secondary copy */
-  --color-line: #e6ddd0; /* hairline borders */
+  /* Secondary copy. Mixed down from Charcoal Slate toward White Rock rather
+     than picked as a grey of its own: the palette has one text colour, and
+     everything quieter than body copy is that colour with the warmth of the
+     page left in it. A neutral grey chosen independently reads cold against
+     these surfaces and stops tracking the brand if Charcoal Slate ever moves. */
+  --color-muted: color-mix(in oklab, var(--color-brand-charcoal) 70%, var(--color-brand-cream));
+  --color-line: #e6ddd0; /* hairline borders — White Rock, darkened */
 
   /* --- Typography -------------------------------------------------------- */
   --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
@@ -35,6 +67,10 @@
      up in lib/fonts.ts it takes over automatically.
      Tailwind generates the `font-display` utility from this token. */
   --font-display: var(--font-hapsha, "Snell Roundhand"), "Brush Script MT", cursive;
+  /* Wordmark face for the hero's "MAISON PALETTIA" — a client-supplied
+     display serif, distinct from the script used for signature accents.
+     Tailwind generates the `font-wordmark` utility from this token. */
+  --font-wordmark: var(--font-qarine), Georgia, "Times New Roman", serif;
 
   --tracking-display: -0.01em;
   --tracking-eyebrow: 0.18em;
@@ -42,8 +78,17 @@
   /* --- Spacing rhythm (section-level) ------------------------------------ */
   --spacing-section: 6rem;
   --spacing-section-lg: 9rem;
-  --spacing-gutter: 1.5rem;
-  --spacing-gutter-lg: 3rem;
+  /* The page gutter — the only thing holding content off the screen edge, and
+     the single source of truth for it. Sections that bleed a photograph to the
+     edge cancel this exact value (`-mx-gutter`), so the two can never drift.
+
+     Proportional rather than stepped, after objectandarchive.com: 2% of the
+     viewport, which is 29px at 1440 and 38px at 1920. The floor keeps the
+     phone usable, where a bare 2% would be 8px — the reference reaches the
+     same place by switching to 3% below its tablet breakpoint, but a single
+     `max()` never shrinks as the screen grows, which their stepped pair does
+     between 834px and 1024px. */
+  --spacing-gutter: max(1.25rem, 2vw);
 
   /* --- Layout ------------------------------------------------------------ */
   /* Header height. The hero pulls itself up by exactly this much so the bar
@@ -51,7 +96,11 @@
   --spacing-header: 4rem; /* 64px */
   --spacing-header-lg: 4.5rem; /* 72px */
 
-  --container-site: 90rem; /* 1440px — generous editorial width */
+  /* No longer applied to the page container: the layout runs full-bleed and is
+     held in only by --spacing-gutter, the way the reference does it. Kept for
+     anything that wants the old editorial ceiling, and as the one line to put
+     back on Container if wide displays ever need a stop. */
+  --container-site: 90rem; /* 1440px */
   --container-reading: 42rem; /* comfortable measure for long-form text */
 
   /* --- Radius ------------------------------------------------------------ */
@@ -60,6 +109,23 @@
   --radius-md: 0.875rem;
   --radius-lg: 1.5rem;
   --radius-pill: 999px;
+
+  /* --- Borders ------------------------------------------------------------
+     One hairline, one colour. Hierarchy on this site is made with space,
+     ground colour and type — a border is only ever there to state where a
+     measure begins or ends, so there is a single weight and no scale of them.
+     Sections that sit on a saturated ground draw their own rule from the
+     inverted ink instead (see `--color-line` above for the light-ground one). */
+  --border-hairline: 1px;
+
+  /* --- Shadows ------------------------------------------------------------
+     Deliberately one token, and it is close to nothing. Depth here comes from
+     warm ground against warm ground, not from elevation; the only sanctioned
+     use is a panel that genuinely floats over content it must be readable
+     against, such as the mobile navigation. Anything that merely wants to look
+     separated should take a ground or a hairline instead. */
+  --shadow-veil: 0 1px 2px -1px color-mix(in oklab, var(--color-brand-charcoal) 12%, transparent),
+    0 8px 24px -12px color-mix(in oklab, var(--color-brand-charcoal) 18%, transparent);
 
   /* --- Motion ------------------------------------------------------------ */
   --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
@@ -129,6 +195,29 @@
    Utilities
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   The arch — the Maison's entrance, reduced to a crown on a photograph.
+
+   An ellipse rather than a semicircle, and stated in percentages so it holds
+   its proportion at any size: the horizontal radius is half the plate's width,
+   the vertical only a fifth of its height. A true semicircular dome would cut
+   the top fifth of every picture off and read as a decorative shape hung over
+   the page; this reads as a doorway the photograph is seen through, which is
+   the reference the client actually gave.
+
+   Use it on the element that carries `overflow: hidden`, and use it rarely —
+   twice on the homepage. The motif is a language, not a texture: an arch in
+   every section stops meaning anything, and stops looking like architecture.
+
+   `--arch-rise` is the one knob. Lower it for a shallower crown on a plate
+   that is already tall, raise it toward 32% for a squat one. Past that the
+   curve starts eating the subject rather than framing it.
+   -------------------------------------------------------------------------- */
+
+@utility arch {
+  border-radius: 50% 50% 0 0 / var(--arch-rise, 20%) var(--arch-rise, 20%) 0 0;
+}
+
 /* Skip link — visible only when focused */
 @utility skip-link {
   position: absolute;
@@ -141,6 +230,31 @@
   &:focus-visible {
     transform: translateY(0);
   }
+}
+
+/* --------------------------------------------------------------------------
+   Smoothed scrolling — see components/motion/SmoothScroll.tsx.
+
+   Lenis puts these two classes on <html> itself while it is running, so both
+   rules are scoped to it being active. That matters for the first: the base
+   layer asks for `scroll-behavior: smooth`, which is right when the browser is
+   doing the scrolling and is a fight when Lenis is. This hands the job over
+   only while Lenis has it, and hands it straight back — to a reader who has
+   asked for reduced motion, or to a page with no JavaScript — untouched.
+   -------------------------------------------------------------------------- */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+html.lenis {
+  scroll-behavior: auto !important;
+}
+
+/* Lenis sets this while scrolling is locked, e.g. behind a modal. */
+html.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 /* ==========================================================================

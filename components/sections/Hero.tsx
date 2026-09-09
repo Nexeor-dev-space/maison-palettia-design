@@ -5,12 +5,29 @@ import { HeroVisual } from "@/components/sections/HeroVisual";
 /**
  * Shared between the two halves of the wordmark.
  *
- * Sized in viewport width so it always reaches for the full width of the
- * frame, but capped against viewport height as well — without that guard a
- * phone held in landscape gets two lines of type taller than the hero itself.
+ * Set in Qarine — the client-supplied display serif, not the sans used
+ * everywhere else on the page — so the brand name reads as a headline rather
+ * than as UI type. Qarine's caps already carry generous, flared spacing of
+ * their own; the tracking here is a fraction of what the previous sans
+ * treatment needed; anything wider starts separating the letter pairs into
+ * unrelated marks instead of a word.
+ *
+ * Sized in viewport width so it reaches the gutter at every width — the
+ * wordmark is meant to run the frame, not to sit in the middle of it. The
+ * numbers are solved rather than guessed: the type's width is linear in its
+ * size, so each was derived from a measured render and then checked against
+ * the narrow end of its own breakpoint, where the fit is tightest. One line
+ * at `lg`, two below it, which is why the `lg` value is so much smaller.
+ *
+ * Each is capped against viewport height as well. Without that guard a short
+ * window — a phone held in landscape, a laptop with a tall browser chrome —
+ * gets a wordmark taller than the hero it sits in. The cap does bite in the
+ * tablet range on a short window, where the wordmark is two lines and simply
+ * cannot reach the gutter without taking half the frame; there the height
+ * wins, and it should.
  */
 const WORDMARK =
-  "text-[min(16.5vw,20vh)] font-light uppercase leading-[0.92] tracking-[0.05em] md:text-[min(11vw,19vh)] lg:text-[min(9.2vw,21vh)] lg:leading-[0.86]";
+  "font-wordmark text-[min(21.5vw,20vh)] font-normal uppercase leading-[0.92] tracking-[0.015em] md:text-[min(23.5vw,23vh)] lg:text-[min(12.8vw,26vh)] lg:leading-[0.9]";
 
 /**
  * Homepage hero.
@@ -25,6 +42,11 @@ const WORDMARK =
  * statement is handed to the image field so it stays centred on the one panel
  * that moves, whichever shape that panel takes.
  *
+ * The section is sticky rather than static: it holds at the top of the
+ * viewport while the page below rises over it and covers it. That needs a
+ * definite height (`h-svh`, not `min-h`) and a wrapper on the page tall
+ * enough to give sticky somewhere to travel — see app/page.tsx.
+ *
  * Server component. The image field, the video and every animation live in the
  * client components it composes.
  */
@@ -32,7 +54,7 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative isolate -mt-header flex min-h-svh flex-col justify-end overflow-hidden bg-text [--color-focus:var(--color-cream)] md:-mt-header-lg"
+      className="sticky top-0 z-0 isolate -mt-header flex h-svh flex-col justify-end overflow-hidden bg-text [--color-focus:var(--color-cream)] md:-mt-header-lg"
     >
       <HeroVisual className="absolute inset-0" statement={<Statement />} />
 
@@ -54,7 +76,7 @@ export function Hero() {
       {/* The h1 — the statement over the wheel is supporting copy, not the heading. */}
       <h1
         id="hero-heading"
-        className="relative flex flex-col items-center px-5 pb-5 text-cream lg:flex-row lg:justify-center lg:gap-[3.2vw] lg:px-8 lg:pb-6"
+        className="relative flex flex-col items-center px-gutter pb-5 text-cream lg:flex-row lg:justify-center lg:gap-[3.2vw] lg:pb-6"
       >
         <MaskedText delay={0.5} className={WORDMARK}>
           Maison
@@ -81,7 +103,13 @@ function Statement() {
         <span className="block text-[clamp(1.05rem,1.7vw,1.6rem)] font-light uppercase leading-none tracking-eyebrow">
           Create
         </span>{" "}
-        <span className="mt-2 block font-display text-[clamp(2.75rem,min(5.6vw,13vh),5rem)] leading-[1.05] tracking-normal">
+        {/*
+          Light Sage rather than the cream the rest of the hero is set in —
+          the one place the brand colour itself appears over the artwork.
+          Taken from the token, not the hex: --color-sage is #d1e7be, and
+          re-skinning the palette should carry this with it.
+        */}
+        <span className="mt-2 block font-display text-[clamp(2.75rem,min(5.6vw,13vh),5rem)] leading-[1.05] tracking-normal text-sage">
           freely
         </span>
       </p>

@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { montserrat } from "@/lib/fonts";
+import { SmoothScroll } from "@/components/motion/SmoothScroll";
+import { montserrat, qarine } from "@/lib/fonts";
 import { defaultMetadata } from "@/lib/seo";
 
 import "./globals.css";
@@ -16,7 +17,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={montserrat.variable}>
+    <html lang="en" className={`${montserrat.variable} ${qarine.variable}`}>
       <head>
         {/*
           Scroll-triggered reveals render at opacity 0 until JavaScript runs.
@@ -28,6 +29,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body className="flex min-h-dvh flex-col">
+        {/*
+          Renders nothing; it hands the page's scrolling to Lenis so the wheel
+          eases rather than steps. Everything scroll-driven on the site is
+          timed against it. Mounted here rather than per-page because it is the
+          document that scrolls, and it takes itself back out for a reader who
+          has asked for reduced motion.
+        */}
+        <SmoothScroll />
         <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-sm text-white">
           Skip to content
         </a>

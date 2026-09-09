@@ -1,4 +1,5 @@
 import { Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 
 /**
  * Primary UI + editorial face. Used for navigation, headings, body copy,
@@ -9,6 +10,20 @@ export const montserrat = Montserrat({
   display: "swap",
   variable: "--font-montserrat",
   weight: ["300", "400", "500", "600", "700"],
+});
+
+/**
+ * Wordmark face: "Qarine".
+ *
+ * Client-supplied, single Regular weight. Used only for the homepage hero's
+ * "MAISON PALETTIA" — the one place the brand name is set as a headline
+ * rather than as UI text (the header keeps the logo artwork; body copy stays
+ * on Montserrat).
+ */
+export const qarine = localFont({
+  src: [{ path: "../public/fonts/Qarine.otf", weight: "400", style: "normal" }],
+  display: "swap",
+  variable: "--font-qarine",
 });
 
 /**

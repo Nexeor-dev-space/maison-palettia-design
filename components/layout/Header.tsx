@@ -106,7 +106,7 @@ export function Header() {
                       // 4.5:1 needed for body-size text — so the links stay
                       // white (5.1:1) and mark hover/active with a sage rule
                       // rather than a colour change.
-                      "text-sm tracking-wide text-white transition-colors duration-200",
+                      "text-sm font-medium tracking-wide text-white transition-colors duration-200",
                       "decoration-sage underline-offset-[6px] hover:underline",
                       isActive(item.href) && "underline",
                     )}
@@ -138,7 +138,7 @@ export function Header() {
           {/* Wrapped rather than given `hidden`: that would collide with the
               button's own display utility and lose on source order. */}
           <div className="hidden sm:block">
-            <ButtonLink href={PRIMARY_CTA.href} size="sm" variant="sage">
+            <ButtonLink href={PRIMARY_CTA.href} size="sm" shape="square" variant="sage">
               {PRIMARY_CTA.label}
             </ButtonLink>
           </div>
@@ -149,7 +149,7 @@ export function Header() {
       <div
         id="mobile-navigation"
         hidden={!isMenuOpen}
-        className="border-t border-line bg-surface shadow-sm xl:hidden"
+        className="border-t border-line bg-surface shadow-veil xl:hidden"
       >
         <nav aria-label="Primary mobile">
           <Container as="ul" className="flex flex-col gap-1 py-6">
@@ -160,7 +160,7 @@ export function Header() {
                   onClick={closeMenu}
                   aria-current={isActive(item.href) ? "page" : undefined}
                   className={cn(
-                    "block rounded-sm py-3 text-lg transition-colors duration-200 hover:text-primary",
+                    "block rounded-sm py-3 text-lg font-medium transition-colors duration-200 hover:text-primary",
                     isActive(item.href) ? "text-primary" : "text-text",
                   )}
                 >
@@ -172,6 +172,7 @@ export function Header() {
               <ButtonLink
                 href={PRIMARY_CTA.href}
                 onClick={closeMenu}
+                shape="square"
                 variant="sage"
                 className="w-full"
               >

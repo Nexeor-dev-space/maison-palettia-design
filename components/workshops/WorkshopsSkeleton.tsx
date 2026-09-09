@@ -22,7 +22,7 @@ export function WorkshopsSkeleton() {
   return (
     <div aria-hidden className="mt-16 animate-pulse md:mt-24 lg:mt-28">
       <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-        <div className="col-span-12 -mx-6 md:-mx-10 lg:col-span-8 lg:-ml-16 lg:mr-0">
+        <div className="col-span-12 -mx-gutter lg:col-span-8 lg:-ml-gutter lg:mr-0">
           <Block className="aspect-[4/3] sm:aspect-[3/2]" />
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { useRef, type ElementType, type ReactNode } from "react";
+import { useCallback, useRef, type ElementType, type ReactNode } from "react";
 
 import { useIsInStagger } from "@/components/motion/StaggerContext";
 import { VIEWPORT, variants, type VariantName } from "@/lib/motion";
@@ -34,9 +34,35 @@ export function Reveal({
 }: RevealProps) {
   const prefersReducedMotion = useReducedMotion();
   const isInStagger = useIsInStagger();
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, VIEWPORT);
   const MotionTag = motion[as as keyof typeof motion] as typeof motion.div;
+
+  /*
+    Which element the scroll observer watches.
+
+    Normally the animated element itself — but `maskUp` hides a line by sliding
+    it clean out of the `overflow: hidden` parent that masks it, and an element
+    clipped entirely away has no intersection with the viewport at all. Watch
+    it and the browser answers "never on screen", so the reveal never starts,
+    so the line never comes back: a standalone masked line stays invisible for
+    good. (A masked line inside a <Stagger> escapes this by accident — the
+    Stagger owns the trigger, and its own element is not the clipped one.)
+
+    So for that variant the mask is watched instead. It sits exactly where the
+    line will land and is never transformed, which makes it the more accurate
+    thing to measure anyway.
+  */
+  const watchesMask = variant === "maskUp";
+  const observed = useRef<Element | null>(null);
+  const attachRef = useCallback(
+    (node: HTMLElement | null) => {
+      // A callback ref is assigned during commit, before the effect inside
+      // useInView runs — so `observed.current` is already set when the
+      // observer is created.
+      observed.current = watchesMask ? (node?.parentElement ?? node) : node;
+    },
+    [watchesMask],
+  );
+  const isInView = useInView(observed, VIEWPORT);
 
   // Inside a Stagger the parent owns initial/animate; declaring them here would
   // make each child animate independently and defeat the sequencing.
@@ -60,7 +86,7 @@ export function Reveal({
 
   return (
     <MotionTag
-      ref={ref}
+      ref={attachRef}
       data-reveal=""
       className={className}
       variants={variants[variant]}
