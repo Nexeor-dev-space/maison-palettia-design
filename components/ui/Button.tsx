@@ -3,8 +3,8 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
-type ButtonSize = "sm" | "md";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "inverse" | "inverseGhost" | "sage";
+type ButtonSize = "sm" | "md" | "lg";
 
 interface StyleProps {
   variant?: ButtonVariant;
@@ -21,11 +21,21 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary: "bg-primary text-white hover:bg-primary/90",
   secondary: "bg-transparent text-text ring-1 ring-inset ring-line hover:bg-cream",
   ghost: "bg-transparent text-text hover:text-primary",
+  /**
+   * For a saturated or dark ground, where `primary` would vanish. Colours are
+   * swapped here rather than passed in through `className`, which would
+   * collide with the variant's own colour utilities and lose on source order.
+   */
+  inverse: "bg-cream text-text hover:bg-white",
+  inverseGhost: "bg-transparent text-white hover:text-cream",
+  /** Light Sage fill, for a warmer action on a dark or photographic ground. */
+  sage: "bg-sage text-text hover:bg-sage/85",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
   sm: "px-4 py-2 text-sm",
   md: "px-6 py-3 text-sm tracking-wide",
+  lg: "px-8 py-4 text-sm tracking-wide",
 };
 
 function buttonClasses({ variant = "primary", size = "md", className }: StyleProps) {

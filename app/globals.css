@@ -46,6 +46,11 @@
   --spacing-gutter-lg: 3rem;
 
   /* --- Layout ------------------------------------------------------------ */
+  /* Header height. The hero pulls itself up by exactly this much so the bar
+     sits over the artwork rather than above it — change it in one place. */
+  --spacing-header: 4rem; /* 64px */
+  --spacing-header-lg: 4.5rem; /* 72px */
+
   --container-site: 90rem; /* 1440px — generous editorial width */
   --container-reading: 42rem; /* comfortable measure for long-form text */
 
@@ -106,9 +111,10 @@
     text-wrap: pretty;
   }
 
-  /* Visible, on-brand focus ring for every interactive element */
+  /* Visible, on-brand focus ring for every interactive element. Sections on a
+     saturated ground set --color-focus so the ring never disappears into it. */
   :focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-focus, var(--color-primary));
     outline-offset: 3px;
     border-radius: var(--radius-xs);
   }
