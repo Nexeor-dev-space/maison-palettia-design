@@ -16,8 +16,7 @@ import type { Workshop } from "@/types";
  */
 const FEATURE_LINK =
   "transition-colors duration-300 ease-soft hover:text-primary " +
-  "after:absolute after:inset-y-0 after:-left-6 after:-right-6 " +
-  "md:after:-left-10 md:after:-right-10 lg:after:-left-16 lg:after:right-0";
+  "after:absolute after:inset-y-0 after:-left-gutter after:-right-gutter lg:after:right-0";
 
 /**
  * The anchor of the collection — one workshop given the room of a plate on a
@@ -36,7 +35,7 @@ const FEATURE_LINK =
 export function WorkshopFeature({ workshop }: { workshop: Workshop }) {
   return (
     <article className="group relative grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-      <figure className="col-span-12 -mx-6 md:-mx-10 lg:col-span-8 lg:-ml-16 lg:mr-0">
+      <figure className="col-span-12 -mx-gutter lg:col-span-8 lg:-ml-gutter lg:mr-0">
         <WorkshopPhoto
           image={workshop.image}
           aspect="aspect-[4/3] sm:aspect-[3/2]"
@@ -52,8 +51,11 @@ export function WorkshopFeature({ workshop }: { workshop: Workshop }) {
               01
             </span>
             <span aria-hidden className="h-px w-8 shrink-0 bg-terracotta" />
-            <span className="font-display text-[1.4rem] leading-none tracking-normal text-primary">
-              featured
+            {/* Set in caps rather than the script face: the script is reserved
+                for the three display moments on the homepage, and a listing
+                badge is not one of them. */}
+            <span className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-primary">
+              Featured
             </span>
           </p>
 

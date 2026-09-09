@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
+import { Signature } from "@/components/ui/Signature";
 import { BRAND_INTRO_IMAGE } from "@/lib/constants";
 
 /**
@@ -72,14 +73,20 @@ export function BrandIntro() {
             </h2>
 
             {/*
-              The one flourish in the section, and it is a signature rather
-              than a heading — the script face is used at a size where it reads
-              as a hand-written note under the statement, and nowhere else.
+              The one flourish in the section — a note under the statement
+              rather than a heading over it, set on the staircase's next step
+              in so it continues the indent instead of restarting it.
+
+              It was the script face until the brand pass. The script is the
+              brand's rarest gesture and it had spread to every section on the
+              page; it now appears three times in total, and this is not one of
+              them. Deep Lilac, letterspaced wide, reads as signage — which is
+              the register the client's own wayfinding uses.
             */}
             <Reveal variant="fadeIn" delay={0.35}>
-              <p className="mt-6 font-display text-[1.75rem] leading-none tracking-normal text-primary md:ml-[32%] md:mt-7 md:text-[2rem] lg:ml-[38%] lg:text-[2.25rem]">
+              <Signature ground="warm" className="mt-7 md:ml-[32%] md:mt-8 lg:ml-[38%]">
                 made by hand
-              </p>
+              </Signature>
             </Reveal>
 
             <Reveal delay={0.1}>
@@ -109,8 +116,15 @@ export function BrandIntro() {
           </div>
 
           {/* --- Photograph: cols 8–12, lifted above the label -------------- */}
-          <figure className="col-span-12 -mr-6 ml-10 mt-14 md:col-span-5 md:col-start-8 md:-mr-10 md:ml-0 md:-mt-2 lg:col-span-5 lg:mr-0 lg:-mt-16">
-            <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-alt md:aspect-[2/3] lg:aspect-[4/5]">
+          <figure className="col-span-12 -mr-gutter ml-10 mt-14 md:col-span-5 md:col-start-8 md:ml-0 md:-mt-2 lg:col-span-5 lg:mr-0 lg:-mt-16">
+            {/*
+              Crowned with the Maison's entrance arch — the first of exactly
+              two on the site (the other opens the creative strands). It is an
+              ellipse a fifth of the plate's height rather than a semicircular
+              dome, so the photograph is seen through a doorway rather than cut
+              into a shape; see the `arch` utility in globals.css.
+            */}
+            <div className="arch relative aspect-[4/5] w-full overflow-hidden bg-surface-alt md:aspect-[2/3] lg:aspect-[4/5]">
               <Reveal variant="imageReveal" className="absolute inset-0">
                 <Image
                   src={BRAND_INTRO_IMAGE.src}
@@ -124,7 +138,7 @@ export function BrandIntro() {
             </div>
 
             <Reveal variant="fadeIn" delay={0.25}>
-              <figcaption className="mt-4 flex items-center gap-3 pr-6 text-[0.65rem] uppercase tracking-eyebrow text-text/75 xs:text-[0.7rem] md:pr-10 lg:pr-0">
+              <figcaption className="mt-4 flex items-center gap-3 pr-gutter text-[0.65rem] uppercase tracking-eyebrow text-text/75 xs:text-[0.7rem] lg:pr-0">
                 <span aria-hidden className="h-px w-5 shrink-0 bg-text/25" />
                 Throwing on the wheel
               </figcaption>

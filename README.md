@@ -37,13 +37,14 @@ components/
   workshops/         workshop presentation, shared by homepage and listing
 lib/
   constants.ts       site identity, navigation, contact, social
+  disciplines.ts     the creative strands (the CMS seam)
   fonts.ts           Montserrat + the Hapsha Sophia Script hook-up
   motion.ts          shared motion variants and easing
   seo.ts             metadata defaults + buildMetadata() helper
   utils.ts           cn, formatDate, slugify
   workshops.ts       workshop content + formatting (the CMS seam)
 types/               shared TypeScript types
-public/images/       brand · hero · workshops · gallery · blog
+public/images/       brand · hero · workshops · creative · experience · gallery · blog
 ```
 
 ## Design tokens
@@ -66,7 +67,19 @@ Raw brand palette → semantic tokens:
 To re-skin the site, change the `--color-brand-*` values only — the semantic
 tokens point at them, and every Tailwind utility follows.
 
-Layout: `--container-site` is 90rem (1440px) via `max-w-site`;
+Layout: the page runs **full-bleed** and is held off the screen edge only by
+`--spacing-gutter`, which is `max(1.25rem, 2vw)` — 20px on a phone, 29px at
+1440, 38px at 1920. There is no centred ceiling, so the measure keeps growing
+with the display instead of parking at 1440 and letting the margins swell.
+
+That token is the single source of truth for the gutter. `<Container>` applies
+it as `px-gutter`; anything that has to line up with it — a photograph bleeding
+to the edge, a strip that rebuilds the inset for itself — uses the same token
+(`-mx-gutter`, `pl-gutter`) rather than restating the numbers, so the two can
+never drift.
+
+`--container-site` (90rem) is no longer applied by default; it is kept as the
+one line to put back on `<Container>` if wide displays ever need a stop.
 `--container-reading` (42rem) via `max-w-reading` keeps long-form copy legible.
 
 ## Typography

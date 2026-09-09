@@ -89,3 +89,131 @@ export interface Workshop {
   excerpt: string;
   image: ImageAsset;
 }
+
+/**
+ * One creative strand — a way of making, rather than a scheduled session.
+ *
+ * Disciplines are the doors into the programme; a {@link Workshop} is one date
+ * behind one of them. `slug` is the join between the two: it is written to be
+ * the value a workshop's `category` will eventually carry, so the homepage can
+ * start linking into a filtered listing without any of this changing shape.
+ */
+export interface Discipline {
+  /** Lower-case identifier, e.g. "paint". The future workshop filter value. */
+  slug: string;
+  /** Set in caps by the design; stored in its natural case. */
+  name: string;
+  /** One sentence. This is a door, not a description of a course. */
+  description: string;
+  /**
+   * Where the strand leads. A plain path today because the workshop listing
+   * cannot filter yet, and a query string it would ignore is worse than none;
+   * once it can, this becomes `/workshops?discipline=<slug>` and only the
+   * content changes.
+   */
+  href: string;
+  image: ImageAsset;
+}
+
+/**
+ * One entry in the "Just Added" collection — a recent piece, session or studio
+ * detail, shown as an image with a line of metadata under it.
+ *
+ * Deliberately thinner than `Workshop`: this is a glimpse, not a listing.
+ * There is no price, no availability and no schedule, because nothing here is
+ * being sold — the collection exists to show what the studio has been making.
+ */
+export interface RecentItem {
+  /** URL segment, and the React key for the item. */
+  slug: string;
+  /** Short — two or three words. It is read at caption size. */
+  title: string;
+  /** One line of context, e.g. "Wheel-throwing" or "Watercolour". */
+  subtitle: string;
+  /**
+   * Editorial date, already formatted for display, e.g. "Oct 2026". Optional:
+   * the CMS supplies it, and the caption simply omits the line until it does.
+   * Kept as a preformatted string rather than an ISO timestamp because the
+   * studio dates these by month, not by instant.
+   */
+  date?: string;
+  /** Where the item leads. */
+  href: string;
+  image: ImageAsset;
+  /**
+   * The crop this photograph is shown in. The collection varies its
+   * proportions on purpose, so the shape belongs to the item rather than to
+   * its position in the row.
+   */
+  shape: "portrait" | "landscape" | "square";
+}
+
+/**
+ * One full-bleed editorial panel — a pause in the page rather than a section
+ * of content. The artwork is the subject; the words are a caption on it.
+ *
+ * Shaped for a CMS, so this holds only what the studio would write or swap.
+ * Where a panel sits on the page, how its type is placed and how the artwork
+ * is scrimmed are art direction and stay in the component.
+ */
+export interface EditorialPanel {
+  /** Small label above the statement, e.g. "MOOD > MOVEMENT". */
+  eyebrow: string;
+  /**
+   * The statement, one entry per line. Authored rather than wrapped: these
+   * are three short sentences and the break belongs between them, not
+   * wherever the measure happens to run out. Narrow screens ignore the array
+   * and let the sentences flow — see the component.
+   */
+  statement: string[];
+  linkLabel: string;
+  linkHref: string;
+  /** Position in the run of panels, e.g. "01 / 02". */
+  index: string;
+  image: ImageAsset;
+}
+
+/**
+ * One step of the invitation that closes the homepage: choose, book, make.
+ *
+ * Three fields and no icon, because the hierarchy is typographic — a numeral
+ * set large and soft, a name set small and hard, a single line under it. The
+ * numeral is stored rather than derived from the array index: it is printed
+ * copy ("01", not `1`), and the studio should be able to renumber or reorder
+ * the run without the component deciding what a step is called.
+ */
+export interface VisitStep {
+  /** The printed numeral, e.g. "01". Decorative — the list carries the order. */
+  number: string;
+  /** Set in caps by the design; stored in its natural case. */
+  name: string;
+  /** One short sentence. Any longer and the band stops reading as a footnote. */
+  detail: string;
+}
+
+/**
+ * The closing invitation (homepage section 09) — everything the section says,
+ * and nowhere else.
+ *
+ * Shaped for a CMS: only what the studio would write or re-point lives here.
+ * Both calls to action are {@link NavItem}s so the destination is data rather
+ * than a path spelled out inside the component — when the site grows a real
+ * experiences listing, the invitation follows it by editing one field.
+ */
+export interface VisitInvitation {
+  eyebrow: string;
+  /**
+   * The invitation itself, one entry per line. Authored rather than wrapped:
+   * the break between the lines is composition, not somewhere the measure
+   * happened to run out.
+   */
+  title: readonly string[];
+  /** The script aside. Optional — leave it out and the section sets none. */
+  signature?: string;
+  description: string;
+  /** The one dominant action on the page. */
+  primaryCta: NavItem;
+  /** Kept visually subordinate, and omitted entirely if there is nothing to add. */
+  secondaryCta?: NavItem;
+  steps: readonly VisitStep[];
+}
