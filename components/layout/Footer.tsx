@@ -18,7 +18,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Wordmark />
+            <Wordmark className="text-text hover:text-primary" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">{SITE.tagline}</p>
           </div>
 

@@ -1,9 +1,20 @@
-import { PagePlaceholder } from "@/components/layout/PagePlaceholder";
+import { BrandIntro } from "@/components/sections/BrandIntro";
+import { Experience } from "@/components/sections/Experience";
+import { Hero } from "@/components/sections/Hero";
+import { UpcomingWorkshops } from "@/components/sections/UpcomingWorkshops";
 
 /**
  * Homepage. Metadata comes from the site defaults in lib/seo.ts.
- * The hero and content sections are built in Phases 3 and 4.
+ * The story runs hero → brand introduction → workshops → the experience;
+ * sections below are built one at a time from Phase 4 onward.
  */
 export default function HomePage() {
-  return <PagePlaceholder title="Maison Palettia" phase="Phases 3 and 4" />;
+  return (
+    <>
+      <Hero />
+      <BrandIntro />
+      <UpcomingWorkshops />
+      <Experience />
+    </>
+  );
 }
