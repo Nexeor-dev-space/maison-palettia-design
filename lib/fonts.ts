@@ -27,19 +27,20 @@ export const qarine = localFont({
 });
 
 /**
- * Display / wordmark face: "Hapsha Sophia Script".
+ * Display face: "Hapsha Sophia Script" — the brand's own script.
  *
- * The licensed font file is not in the repository yet. Once it is added to
- * `public/fonts/`, uncomment the block below and add `hapsha.variable` to the
- * <html> className in app/layout.tsx. Nothing else needs to change — the
- * `--font-display` token in globals.css already points at `--font-hapsha`
- * and falls back to a generic script face until then.
+ * The `--font-display` token in globals.css has always pointed here, falling
+ * back to Snell Roundhand while the licensed file was missing; supplying it
+ * switches every `font-display` on the site from the stand-in to the real
+ * face at once. That was the documented intent — see public/fonts/README.md,
+ * which says in as many words not to ship the fallback.
  *
- * import localFont from "next/font/local";
- *
- * export const hapsha = localFont({
- *   src: [{ path: "../public/fonts/HapshaSophiaScript.woff2", weight: "400", style: "normal" }],
- *   display: "swap",
- *   variable: "--font-hapsha",
- * });
+ * Loaded from the .otf as supplied. A .woff2 would be roughly half the bytes
+ * over the wire and is worth generating before launch, but the difference is
+ * about 20KB on a face that is only used at display size.
  */
+export const hapsha = localFont({
+  src: [{ path: "../public/fonts/HapshaSophiaScript_01.otf", weight: "400", style: "normal" }],
+  display: "swap",
+  variable: "--font-hapsha",
+});

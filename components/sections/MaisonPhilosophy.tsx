@@ -7,14 +7,29 @@ import { MAISON_PHILOSOPHY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /**
- * The statement's type. Sized per breakpoint rather than with one viewport
- * clamp: the two lines sit in different column spans, and "FELT DEEPLY." —
- * the wider of them, and the one that steps across the measure — is what sets
- * the ceiling. It has to hold on one line at every width.
+ * The statement's type. Stepped per breakpoint up to `xl`, then handed over to
+ * the viewport.
+ *
+ * The steps exist because the two lines sit in different column spans, and
+ * "FELT DEEPLY." — the wider of them, and the one that steps across the
+ * measure — sets the ceiling; it has to hold on one line at every width.
+ *
+ * Past `xl` it has to scale rather than stop. The page carries no ceiling any
+ * more, so the measure keeps widening with the display; a fixed 5rem cap left
+ * this section as a small composition marooned on an ever-larger field of
+ * lilac, which is the one thing an empty ground cannot survive. 6.2vw picks up
+ * exactly where the 5rem step left off at 1280 — 79px against 80 — so the
+ * handover is invisible, and the cap stops it running away on a wall display.
+ *
+ * 6.8vw is set against the first line, which is the wider of the two: "MADE
+ * SLOWLY." measures 7.55em against "FELT DEEPLY."'s 6.56em, so line one is
+ * what runs out of column first. It clears its seven-column cell with about
+ * 6% to spare at every width from `xl` up.
  */
 const STATEMENT =
   "block font-light uppercase leading-[0.95] tracking-[-0.02em] text-cream " +
-  "text-[2.35rem] xs:text-[2.6rem] sm:text-[3.25rem] md:text-[3.5rem] lg:text-[3.75rem] xl:text-[5rem]";
+  "text-[2.35rem] xs:text-[2.6rem] sm:text-[3.25rem] md:text-[3.5rem] lg:text-[3.75rem] " +
+  "xl:text-[min(6.8vw,9.5rem)]";
 
 /**
  * Homepage section 08 — the Maison philosophy.
@@ -32,11 +47,19 @@ const STATEMENT =
  * warm neutral or sage, which is what makes this field land when it arrives.
  *
  * The composition is a step. The first line of the statement starts at the
- * left edge of the measure; the second crosses to column five and everything
+ * left edge of the measure; the second crosses to column six and everything
  * after it — the paragraph, the signature — hangs from that same line. So the
  * eye reads down and to the right on a diagonal, and the section still has
  * only two vertical edges, which is what keeps the emptiness around them
  * reading as intended rather than as a gap someone forgot to fill.
+ *
+ * Column six, not five. The two lines are not the same width — the second is
+ * about a column narrower than the first — so stepping it only to five left it
+ * finishing a quarter of the measure short of the right edge, and the rule
+ * above, which does run the full width, made that shortfall read as a gap
+ * rather than as air. Starting it a column later brings its end to within
+ * about a tenth of the edge, and the diagonal gets steeper, which is the thing
+ * the step was for.
  *
  * No photograph. The brief allows one; the section is stronger without,
  * because the silence is the point and an image would fill it.
@@ -99,7 +122,7 @@ export function MaisonPhilosophy() {
           */}{" "}
           <StatementLine
             delay={0.12}
-            className="col-span-12 -mt-[0.12em] lg:col-span-8 lg:col-start-5"
+            className="col-span-12 -mt-[0.12em] lg:col-span-7 lg:col-start-6"
           >
             {title[1]}
           </StatementLine>
@@ -107,9 +130,15 @@ export function MaisonPhilosophy() {
 
         {/* The story, hanging from the line the statement stepped to. */}
         <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
-          <div className="col-span-12 mt-16 md:mt-20 lg:col-span-6 lg:col-start-5 lg:mt-24">
+          <div className="col-span-12 mt-16 md:mt-20 lg:col-span-7 lg:col-start-6 lg:mt-24">
             <Reveal delay={0.28}>
-              <p className="max-w-[30rem] text-[0.95rem] leading-[1.85] text-surface md:text-base">
+              {/*
+                The measure opens up a little on a wide display so the
+                paragraph is not a postage stamp beside a 120px statement.
+                Only a little: 34rem is around 72 characters, which is the top
+                of what stays comfortable to read.
+              */}
+              <p className="max-w-[30rem] text-[0.95rem] leading-[1.85] text-surface md:text-base xl:max-w-[34rem]">
                 {description}
               </p>
             </Reveal>

@@ -27,9 +27,11 @@
      Plan your visit ...... White Rock            the warm exhale after it
      Footer ............... White Rock
 
-   Deep Lilac carries exactly one full field on the page, and the header bar.
-   That is what keeps it a focal colour rather than a background. Anything that
-   changes this rhythm should change it here first.
+   Deep Lilac carries exactly one full field on the page and nothing else.
+   That is what keeps it a focal colour rather than a background. The header
+   bar is not part of this rhythm at all — it sits on Ink, its own near-black,
+   so that it reads as a masthead over whatever section is passing under it.
+   Anything that changes this rhythm should change it here first.
    ========================================================================== */
 
 @theme static {
@@ -40,6 +42,7 @@
   --color-brand-terracotta: #d97757; /* Warm Terracotta */
   --color-brand-lavender: #c4b5fd; /* Soft Lavender */
   --color-brand-charcoal: #2d3748; /* Charcoal Slate */
+  --color-brand-ink: #231f20; /* Ink — near-black, warm */
 
   /* --- Semantic colour tokens (use these in components) ------------------ */
   --color-primary: var(--color-brand-lilac);
@@ -59,6 +62,15 @@
   --color-muted: color-mix(in oklab, var(--color-brand-charcoal) 70%, var(--color-brand-cream));
   --color-line: #e6ddd0; /* hairline borders — White Rock, darkened */
 
+  /* The navigation's ground, and the two surfaces that hang off it — the
+     workshops dropdown and the mobile panel. Held apart from `--color-text`
+     rather than sharing it, because the bar and the page's ink stopped being
+     the same decision the moment the bar took a colour of its own: the footer
+     and the hero's charcoal field still track Charcoal Slate, and moving one
+     should not move the other. Near-black and slightly warm, it reads as a
+     masthead rather than as another of the page's fields. */
+  --color-nav: var(--color-brand-ink);
+
   /* --- Typography -------------------------------------------------------- */
   --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   /* Display face. The licensed "Hapsha Sophia Script" file is not yet in the
@@ -67,6 +79,21 @@
      up in lib/fonts.ts it takes over automatically.
      Tailwind generates the `font-display` utility from this token. */
   --font-display: var(--font-hapsha, "Snell Roundhand"), "Brush Script MT", cursive;
+  /* The hero's "freely", and only that word.
+     ---------------------------------------------------------------------
+     This is the stand-in `--font-display` used to resolve to while the
+     licensed script was missing, kept deliberately for one word at the
+     client's request: the brand script now sets every other flourish on the
+     site, and the hero keeps the copperplate it was designed against.
+
+     WARNING — not a bundled face. Snell Roundhand ships with macOS and
+     nothing else. A visitor on Windows gets Brush Script MT, on Android or
+     Linux whatever the system calls `cursive`, and none of them look like
+     the intended word. Everything else on this site is served from
+     public/fonts and renders identically everywhere; this one does not.
+     Licensing a copperplate and bundling it would settle it properly, at
+     which point this token points there and the warning goes away. */
+  --font-flourish: "Snell Roundhand", "Brush Script MT", cursive;
   /* Wordmark face for the hero's "MAISON PALETTIA" — a client-supplied
      display serif, distinct from the script used for signature accents.
      Tailwind generates the `font-wordmark` utility from this token. */
@@ -252,9 +279,28 @@ html.lenis {
   scroll-behavior: auto !important;
 }
 
-/* Lenis sets this while scrolling is locked, e.g. behind a modal. */
+/* --------------------------------------------------------------------------
+   Lenis sets `lenis-stopped` on <html> while scrolling is held, which the
+   mobile menu now does — see lib/scroll.ts.
+
+   This rule used to be `overflow: hidden`, and it must not be. `overflow`
+   anything but `visible` on the root makes <html> its own scroll container,
+   and every `position: sticky` descendant then measures against a box that is
+   never scrolled: the header unsticks and rides 400px off the top of the
+   screen the moment you open the menu anywhere but the top of the page,
+   taking the close button with it. The hero and the strand index stick too.
+   Measured, not assumed — the header's own rect reads top: -400 with the rule
+   on and top: 0 with it off, at the same scroll position.
+
+   The hold itself does not need this rule and never did. It is two things
+   that both work: `body { overflow: hidden }`, set by the bar, which the
+   browser propagates to the viewport without disturbing sticky; and Lenis
+   itself, which calls preventDefault() on every gesture it sees while it is
+   stopped. What is left here is the part that is purely additive — no
+   pull-to-refresh, and no scroll chaining out of whatever is on top.
+   -------------------------------------------------------------------------- */
 html.lenis.lenis-stopped {
-  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* ==========================================================================

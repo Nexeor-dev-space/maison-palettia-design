@@ -10,6 +10,17 @@ interface MaskedTextProps {
   children: ReactNode;
   /** Seconds to wait before the line starts rising. */
   delay?: number;
+  /**
+   * Bottom padding on the mask, as a `pb-*` utility.
+   *
+   * It has to clear the ink that falls below the baseline, and how much that
+   * is belongs to the face rather than to this component: the sans default
+   * here needs a hair, and the brand script drops almost a quarter of an em
+   * below the baseline on a capital M. A prop rather than something merged in
+   * through `className`, because `cn` only concatenates — two competing `pb-*`
+   * utilities would be settled by their order in the generated stylesheet.
+   */
+  maskPadding?: string;
   className?: string;
 }
 
@@ -20,7 +31,12 @@ interface MaskedTextProps {
  * The outer span owns the mask and the bottom padding that stops descenders
  * being clipped; the inner span is the thing that moves.
  */
-export function MaskedText({ children, delay = 0, className }: MaskedTextProps) {
+export function MaskedText({
+  children,
+  delay = 0,
+  maskPadding = "pb-[0.12em]",
+  className,
+}: MaskedTextProps) {
   const prefersReducedMotion = useReducedMotion();
 
   // Reduced motion holds the same markup and starts the line already in place
@@ -28,7 +44,7 @@ export function MaskedText({ children, delay = 0, className }: MaskedTextProps) 
   // renders the line masked, and hydration would not clear that inline
   // transform from a plain element — see the note in <Reveal>.
   return (
-    <span className="block overflow-hidden pb-[0.12em]">
+    <span className={cn("block overflow-hidden", maskPadding)}>
       <motion.span
         data-reveal=""
         className={cn("block", className)}

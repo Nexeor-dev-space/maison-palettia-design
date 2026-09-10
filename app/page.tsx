@@ -6,14 +6,15 @@ import { Hero } from "@/components/sections/Hero";
 import { JustAdded } from "@/components/sections/JustAdded";
 import { MaisonPhilosophy } from "@/components/sections/MaisonPhilosophy";
 import { PlanYourVisit } from "@/components/sections/PlanYourVisit";
+import { Testimonials } from "@/components/sections/Testimonials";
 import { UpcomingWorkshops } from "@/components/sections/UpcomingWorkshops";
 import { EDITORIAL_PANELS } from "@/lib/constants";
 
 /**
  * Homepage. Metadata comes from the site defaults in lib/seo.ts.
  * The story runs hero → brand introduction → workshops → the experience →
- * the creative strands → just added → the philosophy, and closes on the
- * invitation to visit. Sections are built one at a time from Phase 4 onward.
+ * the creative strands → just added → what guests say → the philosophy, and
+ * closes on the invitation to visit. Sections are built one at a time from Phase 4 onward.
  */
 export default function HomePage() {
   return (
@@ -57,7 +58,17 @@ export default function HomePage() {
         workshops listing, one deep in the second half, far enough apart that
         neither reads as the other's twin.
       */}
-      <EditorialStatement panel={EDITORIAL_PANELS.making} spread="field" />
+      {/*
+        Set as a `foot` spread, not the `field` one it was built for. That
+        spread lays charcoal type straight on the picture with a light wash,
+        and it needs a pale, quiet photograph to do it. The client's shelved
+        pots are neither: measured, charcoal came out at 1.0-1.8:1 against
+        them, and the cream wash heavy enough to fix that erased the
+        photograph. Under the dark scrim with cream type every element clears
+        its bar — worst 4.5:1 — at half the overlay, so the pots stay visible.
+        See the note on the plate in lib/constants.ts.
+      */}
+      <EditorialStatement panel={EDITORIAL_PANELS.making} spread="foot" />
 
       {/*
         TODO: the featured story (section 06) belongs between the creative
@@ -66,6 +77,16 @@ export default function HomePage() {
         in above once it lands.
       */}
       <JustAdded />
+
+      {/*
+        The guests speak here rather than after the philosophy, which would put
+        them between the argument and the invitation — and those two are a call
+        and its answer that nothing should come between. This is also the last
+        moment on the page that is still about the studio; everything after it
+        is about the reader.
+      */}
+      <Testimonials />
+
       <MaisonPhilosophy />
 
       {/*

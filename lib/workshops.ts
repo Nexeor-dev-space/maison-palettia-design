@@ -49,8 +49,8 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     excerpt:
       "Centre the clay, open the form and draw your first vessel up under your hands. An unhurried morning at the wheel, from wet lump to finished shape.",
     image: {
-      src: "/images/workshops/throwing-on-the-wheel.jpg",
-      alt: "Clay-covered hands drawing the neck of a vessel upward on a turning potter's wheel, glazed cups on studio shelves behind.",
+      src: "/images/experience/pottery.jpg",
+      alt: "Two clay-slicked hands opening the centre of a small pot on the wheel, seen from directly above.",
     },
   },
   {
@@ -65,8 +65,13 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     status: "open",
     excerpt: "Loose washes, soft pigment and slow layers — an afternoon of colour worked from a single stem.",
     image: {
-      src: "/images/workshops/watercolour-in-progress.jpg",
-      alt: "A watercolour in progress: a crimson bloom bleeding into soft blue and yellow washes.",
+      src: "/images/workshops/watercolour-street.jpg",
+      alt: "A watercolour of a cobbled hillside street — whitewashed houses under terracotta roofs, geraniums at a shuttered window, and a castle wall rising above the trees.",
+      // The plate is 4:5 and the painting is taller than that, so `cover` takes
+      // about a tenth off the height. Held a little high: the loss is spent on
+      // the empty cobbles along the foot rather than on the roofline and the
+      // castle, which is where the painting's detail is.
+      position: "50% 45%",
     },
   },
   {

@@ -51,8 +51,24 @@ const SPREADS = {
    * the measure, with the upper two thirds left to the painting. The folio
    * sits opposite the link on the same band, the way a page number does.
    *
-   * The scrim rises from the foot only, and is out entirely by three quarters
-   * of the way up — it exists to hold the caption, not to darken the picture.
+   * The scrim rises from the foot only, and is out well before the top — it
+   * exists to hold the caption, not to darken the picture.
+   *
+   * It was carried at 62/26 while the artwork behind it was a smooth
+   * watercolour wash, where a light scrim was all a caption needed. The
+   * client's mural replaced it, and a mural is the opposite kind of picture:
+   * painted flowers over brick, busy edge to edge, with light petals and dark
+   * stems inside the space of a single word. Averaged it looked fine; sampled
+   * locally across the caption band it was not — 31% of that band sat under
+   * 4.5:1 for cream type and 5% under 3:1, which is legible in places and
+   * broken in others.
+   *
+   * These numbers are the lightest that fix it. At this strength, and on the
+   * crop the panel is set to, the statement and the link clear their bars
+   * across their whole area; the eyebrow still has about 7% of its own under
+   * 4.5:1, because it sits highest in the block where the scrim has nearly
+   * gone, and closing that last 7% means darkening half the panel. See the
+   * note on the plate in lib/constants.ts.
    */
   foot: {
     section: "min-h-[max(34rem,80svh)] md:min-h-[88vh] lg:min-h-[94vh]",
@@ -63,7 +79,7 @@ const SPREADS = {
     rule: "bg-sage",
     edge: "border-cream/45 group-hover:border-cream",
     arrow: "text-sage",
-    scrim: "bg-gradient-to-t from-text/62 via-text/26 via-40% to-transparent to-72%",
+    scrim: "bg-gradient-to-t from-text/85 via-text/68 via-50% to-transparent to-86%",
     folioAtHead: false,
   },
   /**
@@ -73,13 +89,24 @@ const SPREADS = {
    * folio goes up beside it, at the opposite end of the panel from the first
    * spread's.
    *
-   * No scrim anywhere, at any width, which is the whole reason this spread
-   * exists: the photograph is a wall of soft light with the flowers low in the
-   * frame, so the caption is laid on the wall — where it already has seven or
-   * eight stops — and nothing is put over the picture at all. The flowers are
-   * also why it is at the head and not the middle. The wall runs out a little
-   * past half way at every shape of window, and a caption centred in the frame
-   * drops its last line onto dried petals.
+   * The scrim descends from the head, and it is cream rather than charcoal —
+   * this spread lightens where the other one darkens, which is what keeps the
+   * pair reading as one system inverted rather than as the same treatment
+   * twice. It clears entirely by three fifths of the way down, so the lower
+   * half of the picture is untouched.
+   *
+   * It carried no scrim at all while the plate was a wall of soft light with
+   * the flowers low in the frame; the caption was laid straight on the wall,
+   * where it already had seven or eight stops. The client's shelved pots
+   * replaced it, and that picture has no quiet field anywhere in it — charcoal
+   * type measured 1.0 to 1.8:1 against it, unreadable at every crop tried,
+   * with 70 to 100% of each element under its bar. These figures are the
+   * lightest that clear every bar with the caption where it sits: nothing
+   * under 5.3:1 anywhere in it.
+   *
+   * The caption stays at the head rather than the middle for the same reason
+   * it always did — the scrim is strongest there, and a caption centred in the
+   * frame would drop its last line into the shelves.
    */
   field: {
     section: "min-h-[max(32rem,78svh)] md:min-h-[78vh] lg:min-h-[84vh]",
@@ -96,7 +123,53 @@ const SPREADS = {
     rule: "bg-terracotta",
     edge: "border-terracotta/50 group-hover:border-terracotta",
     arrow: "text-terracotta",
-    scrim: "",
+    /*
+      A wash of the page's own paper, falling from the head — the inverse of
+      the other spread's, and for the inverse reason. The ink here is charcoal,
+      so the ground has to be lifted rather than dropped, and it is lifted with
+      White Rock rather than with white: it is the colour the rest of the page
+      is printed on, and over a warm stoneware still life it reads as the
+      picture being lit rather than veiled.
+
+      This spread carried no overlay at all until the plate behind it changed.
+      That was right for the photograph it was drawn against — a wall of soft
+      light with the subject low in the frame, which left the whole head of the
+      picture open for a caption. Every plate since has filled the frame, and
+      charcoal laid straight onto the drying-pots photograph measures 1.0:1 at
+      its worst under the statement, with 85% of the link's own ink under
+      4.5:1. Something has to lift it.
+
+      Stops are measured on the composite, against the caption's letterforms
+      rather than the blocks holding them. That distinction is what keeps the
+      wash short: the statement's box runs the full width of the measure but
+      its ink stops at 59% of the frame, and sampling boxes instead had the
+      wash reaching the foot of the panel and flattening the photograph into a
+      sheet of cream.
+
+      Only the stop positions move between the two shapes the panel takes, and
+      they have to. On a phone the panel is a tall slice and the caption spans
+      it almost edge to edge, with the link sitting 64% of the way down; on a
+      desktop window the caption is a column in the top half and the same line
+      lands at 54%. A single pair of stops cannot serve both — the desktop
+      pair, short enough to spare the picture, left 78% of the link's ink under
+      4.5:1 on a phone.
+
+      It falls from the head at both, rather than running left to right on
+      desktop where the caption is a left-hand column. A sideways wash keeps
+      more of the photograph — the pots and the raking light are on the right —
+      but it leaves the folio stranded outside it, and the folio measured
+      1.0:1 there against a dark pot with no objectPosition able to help: the
+      whole right edge of this picture is dark, the best crop reaching 2.3:1.
+      Falling from the head covers the folio and the caption in one gesture and
+      leaves the bottom third of the photograph at full strength.
+
+      Nothing falls under its bar at 390, 1440 or 1990. The worst point
+      anywhere is the link at 5.0:1 against 4.5; the statement holds 6.7:1
+      against the 3:1 display type owes, and the folio 9.4:1.
+    */
+    scrim:
+      "bg-gradient-to-b from-surface-alt/92 via-surface-alt/84 via-68% to-transparent to-84% " +
+      "md:via-50% md:to-66%",
     folioAtHead: true,
   },
 } as const;

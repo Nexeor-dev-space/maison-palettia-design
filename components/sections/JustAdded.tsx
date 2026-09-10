@@ -34,21 +34,32 @@ const HEADING_LINE =
  * within a few pixels of the screen edge, which reads as a row that happens to
  * end there rather than one that carries on. Each step leaves at least a
  * visible sliver of the following item at its narrowest width.
+ *
+ * The `lg` and `xl` steps were raised by about half again: at the original
+ * widths the photographs were smaller on a large monitor than on a tablet,
+ * because the `md` step is a share of a narrower screen. They now step up
+ * across the whole range instead of dipping in the middle — a landscape frame
+ * measures 450px at 1023 and 420 at 1024, where it used to fall to 307.
+ *
+ * The ceiling is the source files, not the layout. The photographs are
+ * 1400–1500px on their long edge, which covers a 700px frame at 2× and no
+ * more; the widths here stop well inside that, and any further growth needs
+ * bigger originals rather than bigger numbers.
  */
 const SHAPE: Record<RecentItem["shape"], { aspect: string; width: string; drop: string }> = {
   portrait: {
     aspect: "aspect-[4/5]",
-    width: "w-[62vw] sm:w-[36vw] md:w-[34vw] lg:w-[24vw] xl:w-[20rem]",
+    width: "w-[62vw] sm:w-[36vw] md:w-[34vw] lg:w-[33vw] xl:w-[28rem]",
     drop: "",
   },
   landscape: {
     aspect: "aspect-[3/2]",
-    width: "w-[76vw] sm:w-[46vw] md:w-[44vw] lg:w-[30vw] xl:w-[26rem]",
+    width: "w-[76vw] sm:w-[46vw] md:w-[44vw] lg:w-[41vw] xl:w-[36rem]",
     drop: "mt-10 sm:mt-16 lg:mt-20",
   },
   square: {
     aspect: "aspect-square",
-    width: "w-[68vw] sm:w-[40vw] md:w-[38vw] lg:w-[27vw] xl:w-[22.5rem]",
+    width: "w-[68vw] sm:w-[40vw] md:w-[38vw] lg:w-[37vw] xl:w-[31rem]",
     drop: "mt-5 sm:mt-8 lg:mt-10",
   },
 };
@@ -208,7 +219,7 @@ function CollectionItem({ item, index }: { item: RecentItem; index: number }) {
             here is below the fold, so nothing is given priority and the images
             further along the row are only fetched as they are scrolled to.
           */
-          sizes="(min-width: 1280px) 26rem, (min-width: 1024px) 30vw, (min-width: 768px) 44vw, (min-width: 640px) 46vw, 76vw"
+          sizes="(min-width: 1280px) 36rem, (min-width: 1024px) 41vw, (min-width: 768px) 44vw, (min-width: 640px) 46vw, 76vw"
           style={{ objectPosition: item.image.position }}
           className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.035]"
         />

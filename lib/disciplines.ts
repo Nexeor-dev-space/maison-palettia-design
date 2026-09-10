@@ -27,12 +27,21 @@ import type { Discipline } from "@/types";
 
      TODO(client): this section needs a real shoot more than any other on the
      page. Four strands need four distinct visual identities, and the project
-     holds three source images between them: CRAFT is a detail of the same
-     vessel the workshops section shows whole, and SHAPE and CREATE are two
-     regions of the same eight-second clip — the wheel and the shelf behind it.
-     Paint being made, textiles, tools, more than one pair of hands, and a room
-     with people in it are all missing, and no amount of re-cropping will
-     supply them.
+     held three source images between them. That is now fixed for three of the
+     four: PAINT, SHAPE and CRAFT are real process photographs of people
+     making things.
+
+     All four ship as squares. The originals are portrait (about 2:3) and the
+     frames that render them run from 0.95:1 — the desktop arch, which is
+     taller than it is wide despite the 42vw hint on it — out to 3:2 on a
+     phone. A square is the one master that survives that whole range on a
+     centre crop, and it keeps two thirds of the original height where a
+     landscape cut kept half. The full-resolution files are at
+     assets/creative-masters/, outside public/ so they are retained without
+     being deployed; recrop from there rather than from these.
+
+     CREATE is the one still to fix, and it is now wrong rather than merely
+     thin; see the note on it below.
    ========================================================================== */
 const PLACEHOLDER_DISCIPLINES: Discipline[] = [
   {
@@ -41,8 +50,8 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
     name: "Paint",
     description: "Colour, expression and imagination.",
     image: {
-      src: "/images/creative/colour-in-layers.jpg",
-      alt: "Watercolour laid wet on wet — yellows and greens rising through blue-violet washes, a crimson bloom at the top edge, the grain of the paper showing through.",
+      src: "/images/creative/painting.jpg",
+      alt: "A painter at an easel, brush in hand, working into a canvas of coral and blush roses among deep teal leaves, a loaded palette at the edge of the frame.",
     },
   },
   {
@@ -51,8 +60,8 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
     name: "Shape",
     description: "Get hands-on with clay and form.",
     image: {
-      src: "/images/creative/form-on-the-wheel.jpg",
-      alt: "Two clay-covered hands steadying the wide, freshly opened belly of a vessel as the wheel turns beneath it.",
+      src: "/images/creative/pottery.jpg",
+      alt: "Two clay-covered hands drawing the wall of a cylinder upward on the wheel, the rim rising between their fingers.",
     },
   },
   {
@@ -61,8 +70,8 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
     name: "Craft",
     description: "Make something thoughtful by hand.",
     image: {
-      src: "/images/creative/carved-glaze.jpg",
-      alt: "A band of hand-carved scrollwork running across a stoneware vessel, the relief pooled with sage, teal and ochre glaze.",
+      src: "/images/creative/craft.jpg",
+      alt: "Two hands turning a small ceramic pot while a fine brush lays a block of yellow into a design of pastel blue, lilac, mint and coral.",
     },
   },
   {
@@ -71,8 +80,17 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
     name: "Create",
     description: "Experiment, discover and make it your own.",
     image: {
-      src: "/images/creative/finished-on-the-shelf.jpg",
-      alt: "Hand-thrown cups glazed in slate blue and cream, lined up on a studio shelf against a painted brick wall.",
+      /*
+        TODO(client): this one is off-message and should be reshot. The other
+        three show someone making something; this shows a hand holding a
+        finished, shop-bought cork coaster on a souvenir stall, with rows more
+        behind it and the word PORTUGAL printed in the corner of the design.
+        Under a strand that reads "experiment, discover and make it your own"
+        it says the opposite — bought, not made — and it carries another
+        country's tourist branding onto a Dubai studio's homepage.
+      */
+      src: "/images/creative/create.jpg",
+      alt: "A hand holding up a square cork-backed coaster printed with a patchwork of blue and ochre tile patterns and a row of fish, more of them laid out behind.",
     },
   },
 ];
