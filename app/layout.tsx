@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import { Footer } from "@/components/layout/Footer";
+import { FooterReveal } from "@/components/layout/FooterReveal";
 import { Header } from "@/components/layout/Header";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { hapsha, montserrat, qarine } from "@/lib/fonts";
@@ -41,10 +42,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Header />
-        <main id="main" className="flex-1">
+        {/*
+          The two halves of the footer reveal; see <FooterReveal> for the whole
+          mechanism.
+
+          `bg-surface` is not decoration — it is the lid. The footer is pinned
+          behind this element, and a transparent main would show it through
+          every seam in the page.
+
+          The bottom margin is the footer's own measured height, which is the
+          distance the page has to travel before its foot clears the footer and
+          uncovers it. It falls back to `0px` until the measurement lands, so
+          the layout is unchanged without JavaScript.
+        */}
+        <main
+          id="main"
+          className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface"
+        >
           {children}
         </main>
-        <Footer />
+
+        <FooterReveal>
+          <Footer />
+        </FooterReveal>
       </body>
     </html>
   );

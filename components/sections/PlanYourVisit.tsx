@@ -12,16 +12,32 @@ import type { NavItem, VisitStep } from "@/types";
  * The invitation's type. Sized per breakpoint rather than with one viewport
  * clamp, because the line sits in a full-width well on a phone and a
  * seven-column one from `lg` up — two different measures, not one that scales.
- * "SOMETHING" is the widest of the three lines and sets the ceiling; it has to
- * hold on one line at every width, without hyphenation.
+ * "COME MAKE" is the widest of the three lines by a hair — 699px against
+ * "SOMETHING"'s 689 at a 1990 window — and is what sets the ceiling. All three
+ * have to hold on one line at every width, without hyphenation.
  *
  * Deliberately a step below the philosophy statement above it. That section is
  * the crescendo of the page and keeps the largest type on it; this one is the
- * quiet word afterwards, and the scale has to say which is which.
+ * quiet word afterwards, and the scale has to say which is which. At 1990 that
+ * is 115px against the philosophy's 135px — close enough to read as the same
+ * voice, far enough apart to read as the quieter half of it.
+ *
+ * Past `xl` it hands over to the viewport, because the page carries no ceiling
+ * any more and the measure keeps widening with the display. At a fixed 4rem
+ * the widest line held 400px of ink in a 935px column on a 1990 window, which
+ * is what made the section read as mostly empty: the invitation was not small,
+ * it had simply stopped growing while the room around it did not. 5.8vw picks
+ * up where the 4rem step left off, and the cap stops it on a wall display.
+ *
+ * The gain is vertical as much as horizontal. Three lines at 115px stand about
+ * 145px taller than three at 64px, which is most of the 301px hole that used
+ * to sit between the signature and the foot band — the left column was short
+ * against the right, and the hole was the difference.
  */
 const INVITATION_LINE =
   "block font-light uppercase leading-[0.96] tracking-[-0.02em] " +
-  "text-[2rem] xs:text-[2.3rem] sm:text-[2.75rem] md:text-[3rem] lg:text-[3.4rem] xl:text-[4rem]";
+  "text-[2rem] xs:text-[2.3rem] sm:text-[2.75rem] md:text-[3rem] lg:text-[3.4rem] " +
+  "xl:text-[min(5.8vw,7rem)]";
 
 /**
  * Where each step hangs, written out per step rather than derived.
@@ -167,7 +183,14 @@ export function PlanYourVisit() {
           */}
           <div className="col-span-12 mt-14 md:col-span-8 md:col-start-5 md:mt-16 lg:col-span-5 lg:col-start-8 lg:mt-20">
             <Reveal delay={0.15}>
-              <p className="max-w-[26rem] text-[0.95rem] leading-[1.85] text-text/80 md:text-base lg:max-w-none">
+              {/*
+                A measure, not the full column. `lg:max-w-none` let this run
+                the width of its five columns, which on a 1990 window is 772px
+                — about 96 characters a line, well past where a line stops
+                being comfortable to track. It is capped rather than the column
+                narrowed, so the links and the address below keep their width.
+              */}
+              <p className="max-w-[26rem] text-[0.95rem] leading-[1.85] text-text/80 md:text-base lg:max-w-[34rem]">
                 {description}
               </p>
             </Reveal>
@@ -267,7 +290,7 @@ function Steps({ steps }: { steps: readonly VisitStep[] }) {
             */}
             <p
               aria-hidden
-              className="text-[2.4rem] font-light leading-none tracking-[-0.02em] text-primary/80 md:text-[2.6rem] lg:text-[3rem]"
+              className="text-[2.4rem] font-light leading-none tracking-[-0.02em] text-primary/80 md:text-[2.6rem] lg:text-[3rem] xl:text-[3.6rem]"
             >
               {step.number}
             </p>
@@ -276,7 +299,7 @@ function Steps({ steps }: { steps: readonly VisitStep[] }) {
               {step.name}
             </h3>
 
-            <p className="mt-3 max-w-[20rem] text-[0.85rem] leading-[1.75] text-text/85 md:mt-4">
+            <p className="mt-3 max-w-[20rem] text-[0.85rem] leading-[1.75] text-text/85 md:mt-4 xl:max-w-[24rem]">
               {step.detail}
             </p>
           </Reveal>

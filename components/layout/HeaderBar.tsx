@@ -11,6 +11,7 @@ import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { DARK_HERO_ROUTES, MAIN_NAV, WORKSHOPS_HREF } from "@/lib/constants";
+import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 import type { Discipline } from "@/types";
 
@@ -61,7 +62,13 @@ export function HeaderBar({ disciplines }: { disciplines: Discipline[] }) {
     };
   }, []);
 
-  // Escape closes the overlay; lock the page behind it while it is open.
+  // Escape closes the overlay; hold the page behind it while it is open.
+  //
+  // Two locks, because the page has two things that scroll it. The body rule
+  // is for the browser; `pauseScroller` is for Lenis, which drives the scroll
+  // position itself and would otherwise carry on moving the page underneath a
+  // rule it never reads. See lib/scroll.ts — and note that the overlay carries
+  // `data-lenis-prevent` so the menu itself stays scrollable through both.
   useEffect(() => {
     if (!isMenuOpen) return;
 
@@ -70,11 +77,16 @@ export function HeaderBar({ disciplines }: { disciplines: Discipline[] }) {
     };
 
     document.addEventListener("keydown", onKeyDown);
+    // Restored rather than blanked: this is a shared inline style, and the
+    // next thing to lock the page should get back what it had, not "".
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    pauseScroller();
 
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
+      resumeScroller();
     };
   }, [isMenuOpen]);
 
@@ -95,7 +107,7 @@ export function HeaderBar({ disciplines }: { disciplines: Discipline[] }) {
         // would vanish.
         "sticky top-0 z-50 transition-colors duration-500",
         "ease-[cubic-bezier(0.4,0,0.2,1)] [--color-focus:var(--color-cream)]",
-        isSolid ? "bg-text" : "bg-transparent",
+        isSolid ? "bg-nav" : "bg-transparent",
       )}
     >
       <Container

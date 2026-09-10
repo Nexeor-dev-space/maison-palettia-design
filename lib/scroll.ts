@@ -16,6 +16,8 @@
 /** The slice of Lenis this file needs; avoids importing the library here. */
 interface Scroller {
   scrollTo(target: number, options?: { duration?: number }): void;
+  stop(): void;
+  start(): void;
 }
 
 let scroller: Scroller | null = null;
@@ -42,4 +44,31 @@ export function scrollToTop(): void {
   }
 
   window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+}
+
+/**
+ * Hold and release the page behind a full-screen overlay.
+ *
+ * `document.body { overflow: hidden }` is the usual lock and it is not enough
+ * here, for two reasons. Lenis listens for wheel and touch on the window with
+ * `passive: false` and moves the page itself, so a lock the browser honours is
+ * a lock Lenis can still scroll straight past; and on iOS Safari the body rule
+ * has never reliably held the document in the first place. Stopping Lenis
+ * closes both: while it is stopped it calls `preventDefault()` on every scroll
+ * gesture it sees, and it puts `lenis-stopped` on <html>, which globals.css
+ * already answers with `overflow: hidden`.
+ *
+ * Anything scrollable *inside* the overlay must carry `data-lenis-prevent`, or
+ * it is caught by the same net — Lenis checks that attribute before it checks
+ * whether it is stopped, which is exactly the escape hatch a modal needs.
+ *
+ * Both are no-ops when Lenis is not running (reduced motion, or no JavaScript),
+ * where the browser's own scrolling and the body rule are all there is.
+ */
+export function pauseScroller(): void {
+  scroller?.stop();
+}
+
+export function resumeScroller(): void {
+  scroller?.start();
 }

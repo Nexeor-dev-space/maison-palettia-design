@@ -116,7 +116,15 @@ export function BrandIntro() {
           </div>
 
           {/* --- Photograph: cols 8–12, lifted above the label -------------- */}
-          <figure className="col-span-12 -mr-gutter ml-10 mt-14 md:col-span-5 md:col-start-8 md:ml-0 md:-mt-2 lg:col-span-5 lg:mr-0 lg:-mt-16">
+          {/*
+            The plate stays inside the measure at every width. It used to run
+            off the right gutter below `lg` while keeping a left indent, which
+            is a bleed on one side only — and on a phone that reads as the
+            photograph falling off the screen rather than as a crop, because
+            nothing else in the column goes near that edge. The indent stays;
+            it is the bleed that went.
+          */}
+          <figure className="col-span-12 ml-10 mt-14 md:col-span-5 md:col-start-8 md:ml-0 md:-mt-2 lg:col-span-5 lg:-mt-16">
             {/*
               Crowned with the Maison's entrance arch — the first of exactly
               two on the site (the other opens the creative strands). It is an
@@ -130,7 +138,7 @@ export function BrandIntro() {
                   src={BRAND_INTRO_IMAGE.src}
                   alt={BRAND_INTRO_IMAGE.alt}
                   fill
-                  sizes="(min-width: 1024px) 41vw, (min-width: 768px) 45vw, 90vw"
+                  sizes="(min-width: 1024px) 41vw, (min-width: 768px) 38vw, 80vw"
                   style={{ objectPosition: BRAND_INTRO_IMAGE.position }}
                   className="object-cover"
                 />
@@ -138,7 +146,7 @@ export function BrandIntro() {
             </div>
 
             <Reveal variant="fadeIn" delay={0.25}>
-              <figcaption className="mt-4 flex items-center gap-3 pr-gutter text-[0.65rem] uppercase tracking-eyebrow text-text/75 xs:text-[0.7rem] lg:pr-0">
+              <figcaption className="mt-4 flex items-center gap-3 text-[0.65rem] uppercase tracking-eyebrow text-text/75 xs:text-[0.7rem]">
                 <span aria-hidden className="h-px w-5 shrink-0 bg-text/25" />
                 Throwing on the wheel
               </figcaption>

@@ -33,6 +33,10 @@ interface MobileNavProps {
  * The panel takes the charcoal ground so the bar above it does not change
  * colour when it opens; the two read as one field. Scroll locking and the
  * Escape key are owned by the bar, which is where the open state lives.
+ *
+ * It is taller than the screen on a phone — four pictures, the action and six
+ * links — so it is its own scroll container, and that is the part that has to
+ * be said out loud to two different systems. See the attributes on the panel.
  */
 export function MobileNav({
   id,
@@ -55,7 +59,27 @@ export function MobileNav({
     <div
       id={id}
       hidden={!isOpen}
-      className="fixed inset-x-0 bottom-0 top-header overflow-y-auto bg-text md:top-header-lg lg:hidden"
+      /*
+        Lenis listens for wheel and touch on the window with `passive: false`
+        and calls `preventDefault()` on anything it decides to handle — which
+        includes every wheel gesture made inside this panel. The browser then
+        never scrolls the panel and Lenis scrolls the page behind it instead,
+        so the menu simply does not move: proven here, not guessed at, by
+        dispatching a wheel event inside the open overlay and reading
+        `defaultPrevented === true` back off it. `data-lenis-prevent` is the
+        documented way out — Lenis walks the event's composed path for it and
+        bails before it does anything else, including before it checks whether
+        it has been stopped, which is what lets this panel keep scrolling while
+        the page behind it is held. (`allowNestedScroll` would do the same for
+        every nested scroller on the site; this is the only one that needs it.)
+
+        `overscroll-contain` is the second half. Without it, a gesture that
+        carries on past the top or bottom of this list chains out into the
+        document — on a phone that is the difference between a menu that stops
+        at its ends and one that hands the whole gesture to the page.
+      */
+      data-lenis-prevent
+      className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-nav md:top-header-lg lg:hidden"
     >
       <div className="px-gutter pb-16 pt-10">
         {/* 01 — what you could do here. */}

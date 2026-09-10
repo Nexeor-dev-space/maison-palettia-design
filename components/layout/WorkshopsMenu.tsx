@@ -107,7 +107,7 @@ export function WorkshopsMenu({
       <div
         id={menuId}
         hidden={!isOpen}
-        className="absolute inset-x-0 top-full border-t border-white/10 bg-text"
+        className="absolute inset-x-0 top-full border-t border-white/10 bg-nav"
       >
         <div className="mx-auto w-full px-gutter py-12 lg:py-14">
           <ul className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4 lg:gap-x-10">

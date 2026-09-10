@@ -61,16 +61,40 @@ export function Hero() {
       {/*
         Contrast in two soft passes rather than one flat overlay: a wash at the
         head so the navigation keeps its footing over pale clay, and a rise
-        from the foot so the wordmark lands on something. Both are far weaker
-        than a scrim — the paintwork and the glaze still read through them.
+        from the foot so the wordmark lands on something. Both are gradients,
+        not scrims — the paintwork and the glaze still read through them.
       */}
       <div
         aria-hidden
         className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-text/68 via-text/26 to-transparent md:h-52"
       />
+      {/*
+        The rise the wordmark sits on, and the one piece of the hero that has
+        to be solved rather than judged: the type is cream, it runs the full
+        width, and it therefore has to clear 3:1 over whichever of the three
+        panels happens to be palest.
+
+        The middle stop is what does the work — the letters live between 74px
+        and 242px off the foot, which is the second half of this band, so the
+        stop at 50% is very nearly the value under the caps. It was 30%, tuned
+        when all three panels were dark. Against the object panel's clay, which
+        sits at 0.63 relative luminance after its White Rock wash, 30% left
+        48% of the wordmark's pixels under 3:1 and the top of the caps at 1.65
+        — the word dissolved into the pot. 60% clears every pixel of the
+        wordmark on all three panels, worst 3.2 on a wide screen and 3.2 on a
+        phone, where the stacked layout puts the whole wordmark on that one
+        panel.
+
+        It is not free: the foot of the painting and the lower third of the
+        wheel go about 13% darker. That is the cheaper side of the trade, and
+        the old value was already failing — the vase it replaced measured 14%
+        of the wordmark under 3:1 at this size. Anything laid over this field
+        wants re-measuring, not re-eyeballing; the panels differ by a factor of
+        four in luminance and an average across them hides it.
+      */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-text/80 via-text/30 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-text/92 via-text/60 to-transparent"
       />
 
       {/* The h1 — the statement over the wheel is supporting copy, not the heading. */}

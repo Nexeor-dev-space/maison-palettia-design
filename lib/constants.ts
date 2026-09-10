@@ -134,8 +134,13 @@ export const HERO_TRIPTYCH: {
   ceramic: HeroPanel;
 } = {
   painting: {
-    src: "/images/hero/img-2.jpg",
-    alt: "A watercolour study of red blooms rising through washes of blue and green.",
+    // Client artwork. It replaces a watercolour of blooms and is a squarer
+    // plate than that one — 2810x3548 against 5426x8000 — so the crop was
+    // re-checked at each breakpoint rather than inherited. The panel's own
+    // shape is what moves, not the picture: a wide band on a phone, a tall
+    // slice at desktop.
+    src: "/images/hero/i-1.jpg",
+    alt: "An oil landscape worked in heavy impasto: slender trees on a hillside meadow, flowering shrubs below them, and banked clouds over distant hills.",
     position: "50% 46%",
   },
   making: {
@@ -150,9 +155,16 @@ export const HERO_TRIPTYCH: {
     poster: "/images/hero/making-poster.jpg",
   },
   ceramic: {
-    src: "/images/hero/img-1.jpg",
-    alt: "A hand-glazed stoneware vase holding pale lilies, on a wooden table.",
-    position: "50% 58%",
+    // 2000px web encode of assets/hero-masters/stacked-cups.jpg (3744px, 1.8MB).
+    // The panel is never wider than ~34vw, so 2000px still covers a 4K display
+    // at 2x, and the file lands at 311KB against the 3.6MB the painting beside
+    // it is still carrying as an unresized master.
+    src: "/images/hero/i-3.jpg",
+    alt: "Four hand-built cups, unglazed, nested at angles in a leaning stack on pale plaster.",
+    // The centre of the stack, on both axes: the panel is a tall slot at `lg`
+    // and cuts the sides, and a wide band on a phone where it cuts the top and
+    // foot instead, so the crop has to hold from the middle either way.
+    position: "48% 50%",
   },
 };
 
@@ -307,23 +319,23 @@ export const EDITORIAL_PANELS: {
     linkHref: "/workshops",
     index: "02 / 02",
     image: {
-      // Freshly thrown, unfired jugs and cups drying in low raking light,
-      // supplied by the client. It replaces a still life of sculptural
-      // stoneware on a pale table.
+      // A storeroom wall of finished terracotta — floor-to-ceiling steel
+      // racking packed with jugs, urns and water pots, supplied by the client.
+      // Cut from assets/editorial-masters/shelved-pots.jpg.
       //
-      // It is a busier picture than the one it replaces and a much less even
-      // one: sampled across the whole frame, charcoal laid straight onto it
-      // runs from 11.5:1 on the lit sand down to 0.7:1 in the shadow between
-      // two pots, and a good part of the caption's own half of the frame sits
-      // under 3:1. The spread's White Rock wash is what carries it — the
-      // figures under `position` are measured on the composite, not on the
-      // photograph.
-      src: "/images/editorial/modd-background.jpg",
-      alt: "A group of freshly thrown, unfired jugs and cups drying on sand in low raking light, their throwing rings and long shadows catching the sun.",
-      // The scrim above does the reading; this only has to place the shelves.
-      // A little below centre keeps a full band of pots across the foot and
-      // pushes the ceiling out of frame.
-      position: "50% 30%",
+      // The hardest plate this panel has carried. It has no quiet passage at
+      // all: every square inch is a pot against a shelf edge, so local
+      // contrast is high everywhere and there is no crop that opens a field
+      // for the caption the way the original still life did. The White Rock
+      // wash below is doing all of the work, and its stops are re-measured
+      // against this photograph rather than inherited.
+      src: "/images/editorial/shelved-pots.jpg",
+      alt: "Floor-to-ceiling steel shelving packed with terracotta pottery — rows of jugs, urns and water pots in orange, buff and cream, a few glazed in green and red.",
+      // Held just above centre. The racking runs the full height, so this is
+      // not choosing a subject so much as choosing which shelf edge lands
+      // behind the statement; a little high keeps the busiest, darkest row of
+      // dark-glazed pots down at the foot and out from under the caption.
+      position: "50% 42%",
     },
   },
 };
