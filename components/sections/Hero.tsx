@@ -76,7 +76,7 @@ export function Hero() {
       {/* The h1 — the statement over the wheel is supporting copy, not the heading. */}
       <h1
         id="hero-heading"
-        className="relative flex flex-col items-center px-gutter pb-5 text-cream lg:flex-row lg:justify-center lg:gap-[3.2vw] lg:pb-6"
+        className="relative flex flex-col items-center px-gutter pb-5 text-cream md:flex-row md:justify-center md:gap-[4vw] lg:pb-6"
       >
         <MaskedText delay={0.5} className={WORDMARK}>
           Maison
@@ -109,7 +109,13 @@ function Statement() {
           Taken from the token, not the hex: --color-sage is #d1e7be, and
           re-skinning the palette should carry this with it.
         */}
-        <span className="mt-2 block font-display text-[clamp(2.75rem,min(5.6vw,13vh),5rem)] leading-[1.05] tracking-normal text-sage">
+        {/*
+          `font-flourish`, not the brand script the rest of the site's
+          flourishes take: this word keeps the copperplate the hero was
+          designed against. See the token in globals.css — it is a system face
+          and does not render the same off macOS.
+        */}
+        <span className="mt-2 block font-flourish text-[clamp(2.75rem,min(5.6vw,13vh),5rem)] leading-[1.05] tracking-normal text-sage">
           freely
         </span>
       </p>

@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
-import { PLAN_YOUR_VISIT } from "@/lib/constants";
+import { CONTACT, PLAN_YOUR_VISIT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { NavItem, VisitStep } from "@/types";
 
@@ -26,35 +26,31 @@ const INVITATION_LINE =
 /**
  * Where each step hangs, written out per step rather than derived.
  *
- * Two things are happening. Each step starts lower than the last, so the run
- * reads as a path walked rather than as three panels in a row — and that
- * stagger is the whole reason the band is not a set of cards, because there is
- * no border, no ground and no box anywhere in it and nothing shares a top
- * edge. Then at `xl`, where there is finally room, the steps narrow to three
- * columns and the gaps between them widen as they descend: one empty column
- * after the first, two after the second.
+ * The three used to descend, each starting lower than the last, so the run
+ * read as a path walked; at `xl` they also narrowed to three columns with the
+ * gaps widening as they fell. On a wide screen that put the last step at
+ * column ten with a seven-hundred-pixel hole in front of it, and left three
+ * one-line entries scattered across a band three hundred pixels deep. The
+ * stagger was there to stop the run reading as a row of cards. It is not what
+ * was doing that work — there is no border, no ground and no box anywhere in
+ * the band, and the rule the whole run hangs from is what makes it an index
+ * rather than three panels.
  *
- * The last step still finishes on column twelve. The invitation above it is
- * anchored to both edges of the measure — statement hard left, action hard
- * right — and letting the foot of the section trail off short of the same line
- * would leave the corner reading as a gap rather than as air.
- *
- * Spelled out per entry, including the stacked margins, so no class depends on
- * how Tailwind happens to order a `first:` variant against a breakpoint one. A
- * fourth step would cycle back to column one and start a second row, which
- * extends the hang rather than breaking it.
+ * So they share a top edge now and take an even third of the measure each.
+ * A fourth step wraps to a second row, which extends the run rather than
+ * breaking it.
  *
  * Every breakpoint that sets a span restates its start, and it has to. Tailwind
  * compiles `col-span-*` to the `grid-column` shorthand, which resets
- * `grid-column-start` along with everything else in it — so an `xl:` span lands
- * after every `md:` rule in the stylesheet and quietly throws that breakpoint's
- * start away, leaving the step to be auto-placed against whatever sits before
- * it. A start is only safe on the breakpoint that last set the span.
+ * `grid-column-start` along with everything else in it — so a later span lands
+ * after every earlier rule in the stylesheet and quietly throws that
+ * breakpoint's start away, leaving the step to be auto-placed against whatever
+ * sits before it. A start is only safe on the breakpoint that last set the span.
  */
 const STEP_PLACEMENT = [
-  "col-span-12 md:col-span-4 md:col-start-1 xl:col-span-3 xl:col-start-1",
-  "col-span-12 mt-12 md:col-span-4 md:col-start-5 md:mt-10 lg:mt-14 xl:col-span-3 xl:col-start-5",
-  "col-span-12 mt-12 md:col-span-4 md:col-start-9 md:mt-20 lg:mt-28 xl:col-span-3 xl:col-start-10",
+  "col-span-12 md:col-span-4 md:col-start-1",
+  "col-span-12 mt-10 md:col-span-4 md:col-start-5 md:mt-0",
+  "col-span-12 mt-10 md:col-span-4 md:col-start-9 md:mt-0",
 ];
 
 /**
@@ -102,7 +98,7 @@ export function PlanYourVisit() {
   return (
     <section
       aria-labelledby="plan-your-visit-heading"
-      className="bg-cream py-[6rem] md:py-section-lg lg:py-[10rem]"
+      className="bg-cream py-[5.5rem] md:py-section lg:py-section-lg"
     >
       <Container>
         {/*
@@ -117,9 +113,9 @@ export function PlanYourVisit() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-12 gap-x-6 md:mt-20 lg:mt-24 lg:gap-x-10">
+        <div className="mt-12 grid grid-cols-12 gap-x-6 md:mt-16 lg:mt-20 lg:gap-x-10">
           {/* ---------- The invitation, anchored to the left edge ---------- */}
-          <div className="col-span-12 lg:col-span-7">
+          <div className="col-span-12 lg:col-span-6">
             <h2 id="plan-your-visit-heading">
               {/*
                 One trigger, three lines, each rising from behind its own mask.
@@ -152,7 +148,7 @@ export function PlanYourVisit() {
             */}
             {signature ? (
               <Reveal variant="fadeIn" delay={0.5}>
-                <p className="ml-1 mt-8 font-display text-[1.75rem] leading-none tracking-normal text-primary md:ml-[14%] md:mt-9 md:text-[2rem] lg:ml-[20%] lg:text-[2.25rem]">
+                <p className="ml-1 mt-8 font-display text-[1.75rem] leading-none tracking-normal text-primary md:ml-[10%] md:mt-9 md:text-[2rem] lg:ml-[12%] lg:text-[2.25rem]">
                   {signature}
                 </p>
               </Reveal>
@@ -169,7 +165,7 @@ export function PlanYourVisit() {
             taller. The margin puts the description against the statement's
             last line and keeps it there.
           */}
-          <div className="col-span-12 mt-14 md:col-span-8 md:col-start-5 md:mt-16 lg:col-span-4 lg:col-start-9 lg:mt-28 xl:mt-36">
+          <div className="col-span-12 mt-14 md:col-span-8 md:col-start-5 md:mt-16 lg:col-span-5 lg:col-start-8 lg:mt-20">
             <Reveal delay={0.15}>
               <p className="max-w-[26rem] text-[0.95rem] leading-[1.85] text-text/80 md:text-base lg:max-w-none">
                 {description}
@@ -189,6 +185,33 @@ export function PlanYourVisit() {
                 </div>
               </Reveal>
             ) : null}
+
+            {/*
+              Where the studio is. The section is called Plan Your Visit and
+              never said — which is both the plainest thing a visitor wants
+              here and the reason the column had nothing holding its foot. It
+              reads {@link CONTACT}, so it fills itself in as the client
+              supplies an email and a phone number rather than needing to be
+              written again.
+            */}
+            <Reveal variant="fadeIn" delay={0.54}>
+              <address className="mt-12 border-t border-text/15 pt-7 not-italic md:mt-14">
+                <span className="block text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/70">
+                  The Studio
+                </span>
+                <span className="mt-3 block text-[0.9rem] leading-[1.8] text-text/85">
+                  {CONTACT.addressLines.join(", ")}
+                </span>
+                {CONTACT.email ? (
+                  <a
+                    href={`mailto:${CONTACT.email}`}
+                    className="mt-2 inline-block text-[0.9rem] text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
+                  >
+                    {CONTACT.email}
+                  </a>
+                ) : null}
+              </address>
+            </Reveal>
           </div>
         </div>
 
@@ -225,7 +248,7 @@ function Steps({ steps }: { steps: readonly VisitStep[] }) {
   if (steps.length === 0) return null;
 
   return (
-    <div className="mt-24 border-t border-text/15 pt-12 md:mt-32 md:pt-16 lg:mt-40">
+    <div className="mt-20 border-t border-text/15 pt-12 md:mt-24 md:pt-14 lg:mt-28">
       <Stagger as="ol" className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
         {steps.map((step, i) => (
           <Reveal

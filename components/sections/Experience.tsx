@@ -42,7 +42,7 @@ const PLATE_HEIGHT = "md:aspect-auto md:h-[42vw] md:max-h-[46rem]";
  * composes.
  */
 export function Experience() {
-  const { studio, making, pigment } = EXPERIENCE_IMAGES;
+  const { studio, painting, glaze } = EXPERIENCE_IMAGES;
 
   return (
     <section
@@ -121,14 +121,14 @@ export function Experience() {
         */}
         <div className="mt-20 grid grid-cols-12 items-start gap-x-6 md:mt-24 lg:mt-28 lg:gap-x-10">
           <Plate
-            image={making}
+            image={painting}
             shape={`${PLATE_HEIGHT} aspect-[4/5]`}
             sizes="(min-width: 64rem) 39vw, (min-width: 48rem) 38vw, calc(100vw - 3rem)"
             className="col-span-9 md:col-span-5 lg:col-span-5"
           />
 
           <Plate
-            image={pigment}
+            image={glaze}
             shape={`${PLATE_HEIGHT} aspect-square`}
             sizes="(min-width: 64rem) 55vw, (min-width: 48rem) 54vw, calc(100vw - 3rem)"
             className="col-span-12 mt-12 md:col-span-7 md:col-start-6 md:mt-0 lg:col-span-7 lg:col-start-6"

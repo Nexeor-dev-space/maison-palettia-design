@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { montserrat, qarine } from "@/lib/fonts";
+import { hapsha, montserrat, qarine } from "@/lib/fonts";
 import { defaultMetadata } from "@/lib/seo";
 
 import "./globals.css";
@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${qarine.variable}`}>
+    <html lang="en" className={`${montserrat.variable} ${qarine.variable} ${hapsha.variable}`}>
       <head>
         {/*
           Scroll-triggered reveals render at opacity 0 until JavaScript runs.

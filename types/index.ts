@@ -217,3 +217,23 @@ export interface VisitInvitation {
   secondaryCta?: NavItem;
   steps: readonly VisitStep[];
 }
+
+/**
+ * One thing a guest said about the Maison.
+ *
+ * Thin on purpose. There is no rating, no avatar and no date, because none of
+ * those make a quote more true — and a five-star row would turn a page about
+ * making things into a review widget.
+ */
+export interface Testimonial {
+  /** Stable key, and the id the tab controls point at. */
+  id: string;
+  /** One or two sentences. Anything longer stops being a quote and becomes a story. */
+  quote: string;
+  /**
+   * Who said it. A real, attributable name once the studio has permission to
+   * print one; until then the workshop they came to, which claims nothing
+   * about a person who has not agreed to be quoted.
+   */
+  attribution: string;
+}

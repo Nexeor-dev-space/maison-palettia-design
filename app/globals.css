@@ -67,6 +67,21 @@
      up in lib/fonts.ts it takes over automatically.
      Tailwind generates the `font-display` utility from this token. */
   --font-display: var(--font-hapsha, "Snell Roundhand"), "Brush Script MT", cursive;
+  /* The hero's "freely", and only that word.
+     ---------------------------------------------------------------------
+     This is the stand-in `--font-display` used to resolve to while the
+     licensed script was missing, kept deliberately for one word at the
+     client's request: the brand script now sets every other flourish on the
+     site, and the hero keeps the copperplate it was designed against.
+
+     WARNING — not a bundled face. Snell Roundhand ships with macOS and
+     nothing else. A visitor on Windows gets Brush Script MT, on Android or
+     Linux whatever the system calls `cursive`, and none of them look like
+     the intended word. Everything else on this site is served from
+     public/fonts and renders identically everywhere; this one does not.
+     Licensing a copperplate and bundling it would settle it properly, at
+     which point this token points there and the warning goes away. */
+  --font-flourish: "Snell Roundhand", "Brush Script MT", cursive;
   /* Wordmark face for the hero's "MAISON PALETTIA" — a client-supplied
      display serif, distinct from the script used for signature accents.
      Tailwind generates the `font-wordmark` utility from this token. */

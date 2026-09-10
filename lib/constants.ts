@@ -18,15 +18,30 @@ export const SITE = {
   url: "https://www.maisonpalettia.com",
 } as const;
 
-/** Primary navigation. Keep this list short — it is the whole site map. */
+/**
+ * Primary navigation, ordered by what a visitor came for rather than
+ * alphabetically or by how the site was built.
+ *
+ * Workshops leads. Almost everyone arriving is deciding whether to book a
+ * session, and the header used to open with About — a page about the studio,
+ * ahead of the page that says what you can actually do there. The rest follow
+ * in descending order of how often they answer a question someone has before
+ * booking.
+ *
+ * {@link WORKSHOPS_HREF} marks the entry the header opens as a menu, so the
+ * two never drift apart.
+ */
 export const MAIN_NAV: NavItem[] = [
-  { label: "About", href: "/about" },
   { label: "Workshops", href: "/workshops" },
   { label: "Gallery", href: "/gallery" },
+  { label: "About", href: "/about" },
   { label: "Journal", href: "/blog" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ];
+
+/** The nav entry that opens the creative-strands menu instead of navigating. */
+export const WORKSHOPS_HREF = "/workshops";
 
 /**
  * Routes whose hero is a saturated colour field. The header inverts to a light
@@ -35,7 +50,14 @@ export const MAIN_NAV: NavItem[] = [
  */
 export const DARK_HERO_ROUTES: readonly string[] = ["/"];
 
-/** The single primary call to action, reused in the header and footer. */
+/**
+ * The single primary call to action, reused in the header and footer.
+ *
+ * It points at the workshop listing because that is where booking begins and
+ * there is no booking route yet — the listing is a placeholder awaiting Phase
+ * 5. TODO(client): when a real booking or session-detail flow exists, change
+ * this one href and every surface that offers the action follows.
+ */
 export const PRIMARY_CTA = {
   label: "Book a Workshop",
   href: "/workshops",
@@ -150,15 +172,15 @@ export const SOCIAL_LINKS: SocialLink[] = [
 /**
  * Brand introduction (homepage section 02).
  *
- * A still lifted from the master wheel footage at public/videos/bg-video.mp4
- * rather than a second shoot: the hero shows the wheel turning, and this holds
- * one moment of it still — the same hands, the same clay, read slowly. Cropped
- * to a 4:5 plate at 1600px, which is the largest it is ever rendered.
+ * Client photography, and the first place on the page where the hands are
+ * somebody's rather than a frame lifted from the hero's footage. Portrait at
+ * 1000x1500, which is a 2:3 plate; the section renders it at 4:5 on a phone
+ * and at desktop, so the crop takes its loss off the top and foot.
  */
 export const BRAND_INTRO_IMAGE: HeroPanel = {
-  src: "/images/about/hands-at-the-wheel.jpg",
-  alt: "Two clay-covered hands cradling a stoneware vessel as it turns on the potter's wheel.",
-  position: "50% 42%",
+  src: "/images/about/about-img.jpg",
+  alt: "Two clay-covered hands drawing a tall, narrow vessel upward on the potter's wheel, wet slip running back down the wheel head.",
+  position: "50% 45%",
 };
 
 /** A photograph together with the small wall label that sits under it. */
@@ -183,26 +205,33 @@ export interface CaptionedImage extends HeroPanel {
  */
 export const EXPERIENCE_IMAGES: {
   studio: CaptionedImage;
-  making: CaptionedImage;
-  pigment: CaptionedImage;
+  painting: CaptionedImage;
+  glaze: CaptionedImage;
 } = {
   studio: {
-    src: "/images/experience/studio-shelf.jpg",
-    alt: "Hand-thrown, blue-glazed cups on a studio shelf against a painted brick wall, a clay-covered forearm in the foreground.",
-    position: "50% 50%",
+    src: "/images/experience/finished-shelf.jpg",
+    alt: "Three shelves of hand-thrown pottery against a white studio wall — rows of pale, unglazed bowls, cups and vases, with a few glazed pieces among them.",
+    /*
+      Held a little above centre. The plate is a 2:1 band and the photograph is
+      3:2, so a quarter of its height is cropped away; centred, that takes the
+      tops off the glazed gourds on the top shelf, which are the only strong
+      colour in the frame. Lifting the crop keeps them and spends the loss on
+      the empty wall along the foot instead.
+    */
+    position: "50% 44%",
     caption: "Finished pieces, studio shelf",
   },
-  making: {
-    src: "/images/experience/pressing-the-wall.jpg",
-    alt: "Clay-slick fingers pressing into the wall of a vessel as it turns, throwing rings running across the wet surface.",
+  painting: {
+    src: "/images/experience/painting.jpg",
+    alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
     position: "50% 50%",
-    caption: "Pressing the wall out",
+    caption: "Brush to canvas",
   },
-  pigment: {
-    src: "/images/experience/pigment-on-paper.jpg",
-    alt: "A close view of watercolour pigment bleeding into the grain of the paper, red blooms over washes of blue and green.",
+  glaze: {
+    src: "/images/experience/glaze.jpg",
+    alt: "A maker in a work apron lifting a wave-edged dish glazed in deep blue, one hand in a kiln glove.",
     position: "50% 50%",
-    caption: "Pigment, still wet",
+    caption: "Glazed and fired",
   },
 };
 
@@ -243,27 +272,28 @@ export const EDITORIAL_PANELS: {
     linkHref: "/about",
     index: "01 / 02",
     image: {
-      // The foot of the watercolour used in the hero, enlarged well past the
-      // point where it reads as a picture of flowers: what is left is wash,
-      // pigment and the grain of the paper. Cut inside the sheet's unpainted
-      // margins, which would otherwise show as a pale strip down one edge of
-      // the window.
+      // A mural painted across the side of a brick building, supplied by the
+      // client. It replaces a close crop of the hero's watercolour, and it is
+      // a different kind of picture: where that was a smooth tonal field with
+      // a dark two thirds to sit a caption on, this is dense and even —
+      // painted flowers at architectural scale over warm brickwork, busy from
+      // edge to edge with no quiet passage anywhere in it.
       //
-      // The region is chosen for its tonal split rather than its subject. A
-      // settled blue field fills the left two thirds and the luminous middle
-      // of the painting comes in at the right, which is what lets a caption
-      // of three long lines sit on the picture in cream with nothing over it
-      // but the foot scrim. A wider cut of the same painting was tried first
-      // and the pale centre ran straight through the second line of the
-      // statement at every crop.
-      src: "/images/editorial/wash-and-light.jpg",
-      alt: "A watercolour seen close: deep blue and violet washes sinking into the grain of the paper, a pale bloom of light breaking in at one side.",
-      // The horizontal figure only bites on a screen narrower than the plate
-      // — a phone, where the crop is a tall slice rather than a wide one — and
-      // there it holds that slice inside the blue instead of centring it on
-      // the join between the blue and the light. A desktop window is wider
-      // than the plate and shows its full width, so it ignores this.
-      position: "35% 50%",
+      // The foot scrim is what makes it work, and it was measured rather than
+      // assumed. Against the caption band the picture averages a mid warm
+      // grey; under the scrim's own gradient that lands cream type at about
+      // 6.6:1 where the scrim is strongest, 5.4:1 through the middle of the
+      // band and 4.7:1 at its weakest — clear of 4.5:1 for the small type at
+      // every point, and far clear of the 3:1 the statement owes.
+      src: "/images/editorial/mural-on-brick.jpg",
+      alt: "A mural covering the side of a brick building: blue and violet flowers, seed heads and a fallen branch painted at architectural scale, growing around the windows.",
+      // The vertical figure is the one in play on a desktop window, which is
+      // wider than the plate and so crops it top and bottom; 15% holds the
+      // crop high, where the caption band came out a third of a stop darker
+      // than it does over the foot of the mural. The horizontal figure only
+      // bites on a phone, where the crop is a tall slice instead, and there
+      // it keeps that slice off the busiest column of windows.
+      position: "30% 15%",
     },
   },
   making: {
@@ -277,27 +307,23 @@ export const EDITORIAL_PANELS: {
     linkHref: "/workshops",
     index: "02 / 02",
     image: {
-      // The still life from the hero, opened out: the hero shows it as a
-      // narrow vertical slice, and this takes the whole width of the sheet so
-      // the wall the flowers stand against becomes most of the picture.
+      // Freshly thrown, unfired jugs and cups drying in low raking light,
+      // supplied by the client. It replaces a still life of sculptural
+      // stoneware on a pale table.
       //
-      // It is the one asset in the project with a large, even, quiet field in
-      // it, which is what a caption of three long lines needs and what none of
-      // the wheel footage has — every frame of that is a bright vessel against
-      // a busy shelf, and cream type laid on it fails at every crop. Being
-      // pale is the point here rather than a problem: the panel is set in
-      // charcoal and takes no overlay at all, so the photograph is the only
-      // thing in the frame.
-      src: "/images/editorial/lilies-and-glaze.jpg",
-      alt: "Lilies going over — pink and cream, some already dried to paper — in a hand-glazed stoneware vase, against a wall of soft light.",
-      // Two independent figures, because only one of them is ever in play.
-      // A window wider than the plate crops it top and bottom, and the
-      // vertical figure holds the picture high so the flowers drop into the
-      // lower right and the open wall runs across the middle where the
-      // caption sits. A window narrower than it — a phone — crops left and
-      // right instead, and the horizontal figure keeps that slice over the
-      // wall rather than centring it on the flowers.
-      position: "18% 34%",
+      // It is a busier picture than the one it replaces and a much less even
+      // one: sampled across the whole frame, charcoal laid straight onto it
+      // runs from 11.5:1 on the lit sand down to 0.7:1 in the shadow between
+      // two pots, and a good part of the caption's own half of the frame sits
+      // under 3:1. The spread's White Rock wash is what carries it — the
+      // figures under `position` are measured on the composite, not on the
+      // photograph.
+      src: "/images/editorial/modd-background.jpg",
+      alt: "A group of freshly thrown, unfired jugs and cups drying on sand in low raking light, their throwing rings and long shadows catching the sun.",
+      // The scrim above does the reading; this only has to place the shelves.
+      // A little below centre keeps a full band of pots across the foot and
+      // pushes the ceiling out of frame.
+      position: "50% 30%",
     },
   },
 };
@@ -375,4 +401,38 @@ export const PLAN_YOUR_VISIT: VisitInvitation = {
     { number: "02", name: "Book", detail: "Pick a date and reserve your seat." },
     { number: "03", name: "Make", detail: "Arrive, settle in, and begin." },
   ],
+};
+
+/**
+ * The ground behind the guest quotes — the studio at the width of the window,
+ * running.
+ *
+ * Client-supplied footage rather than a still: thirty-eight seconds of a pot
+ * being opened and drawn up, which is the one thing on the page that shows the
+ * making actually taking time. A quote about a first afternoon at the wheel
+ * sits better on the wheel turning than on a photograph of it stopped.
+ *
+ * The master at public/videos/testimonial-bg.mp4 is 4K, 24 Mbps and 116 MB —
+ * two orders of magnitude too heavy to put behind a section — so it stays in
+ * the repository as the source of truth and this 1600px H.264 derivative
+ * (~4 MB, no audio, faststart) is what ships. Re-run the encode if the master
+ * changes; the recipe is in the same shape as bg-video-web.mp4 above.
+ *
+ * TODO(client): still no guests in frame. This is the one section whose
+ * subject is the people who came, and every asset in the project shows either
+ * an object or one anonymous pair of hands.
+ */
+export const TESTIMONIALS_GROUND: HeroPanel = {
+  src: "/videos/testimonial-bg-web.mp4",
+  alt: "The studio: clay-covered hands opening and drawing up a small vessel on the potter's wheel.",
+  /*
+    Centred. The footage is 16:9 and the section is wider than that at every
+    desktop shape, so `cover` crops it top and bottom there and this has no
+    effect at all — it is here for narrow screens, where the crop goes the
+    other way. The wheel sits centre-left in frame and the hands work across
+    the middle, so dead centre is the half worth keeping on a phone.
+  */
+  position: "50% 50%",
+  /* First frame. Holds the section while the file buffers. */
+  poster: "/images/testimonials/room-poster.jpg",
 };

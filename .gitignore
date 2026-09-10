@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Video masters. The web derivatives beside them are what ship; the masters are
+# the source of truth and stay on disk. testimonial-bg.mp4 is 111 MiB, over
+# GitHub's 100 MiB hard limit, so committing it makes the branch unpushable.
+# Keep masters in shared storage (or Git LFS) rather than in history.
+/public/videos/testimonial-bg.mp4

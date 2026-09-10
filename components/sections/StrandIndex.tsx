@@ -156,13 +156,30 @@ interface StrandProps {
 /**
  * One entry in the index.
  *
- * The active state is carried by the numeral turning Deep Lilac and by the
- * rule drawing across the row, not by fading the others out. Dimming is the
- * obvious way to do this and it is unusable: the name is the link, and
- * charcoal faint enough to read as "off" against Light Sage falls under the
- * contrast a link owes. The inactive name is held at 70% — measured at 3.9:1,
- * clear of the 3:1 large text is owed — and the difference is made with
- * colour and a line instead.
+ * The active state is carried by a band of Soft Lavender laid across the row,
+ * with the rule drawing over its head and the name coming up to full strength
+ * inside it.
+ *
+ * The band is doing a specific job, and it is not decoration. The photograph
+ * beside the list belongs to exactly one of these rows and there is nothing
+ * else on screen to say which — an earlier version marked the active row with
+ * a coloured numeral and thirty per cent of opacity on the name, and at arm's
+ * length the two rows looked identical, so the window read as a picture that
+ * happened to be there rather than as this row's picture. A field of colour is
+ * the one signal large enough to be seen at the same time as the thing it is
+ * pointing at.
+ *
+ * Dimming the others instead is the obvious alternative and it is unusable:
+ * the name is the link, and charcoal faint enough to read as "off" against
+ * Light Sage falls under the contrast a link owes. The inactive name is held
+ * at 70% — measured at 3.9:1, clear of the 3:1 large text is owed — and the
+ * work is done by the band instead.
+ *
+ * Ink on the band is charcoal throughout, at 7.4:1. Deep Lilac is the
+ * section's accent everywhere else and it cannot come along here: on Soft
+ * Lavender it measures 2.7:1, under the 3:1 even a graphical mark owes. The
+ * lilac keeps the hairline at the top of the row, where it is a mark rather
+ * than something being read, and clears 3:1 against the band at full strength.
  */
 function Strand({ discipline, index, isActive, onPreview, ref }: StrandProps) {
   return (
@@ -195,7 +212,33 @@ function Strand({ discipline, index, isActive, onPreview, ref }: StrandProps) {
         }}
         onFocus={() => onPreview(true)}
         onBlur={() => onPreview(false)}
-        className="group relative border-t border-text/20 py-10 md:py-12 lg:py-14"
+        className={cn(
+          "group relative border-t border-text/20 py-10 md:py-12 lg:py-14",
+          /*
+            The row is widened past the measure and pulled back by the same
+            amount, so the type stays exactly where it was and everything that
+            spans the row — the hairline above it, the rule that draws over
+            that hairline, and the band itself — comes out one width.
+
+            That is the whole reason the band is the row's own background here
+            rather than a layer floating behind it. As a layer it could bleed
+            on its own, and it did: the colour ran a clean sixteen pixels wider
+            than the two rules at the top of it, which at a glance read as a
+            misaligned box rather than as a band.
+
+            The bleed is small on purpose — it is air between the colour's edge
+            and the word, not a gesture. An earlier version bled it by the
+            width of the page gutter, which at the common desktop widths put
+            the edge a pixel off the screen and made it look like a deliberate
+            full-bleed band, then sat it a hundred pixels inside the screen the
+            moment the measure hit its cap and the container began centring.
+          */
+          "-mx-3 px-3 lg:-mx-4 lg:px-4",
+          // Fades rather than wipes. The rule at the top wipes, and two
+          // different gestures on the same edge at once read as a glitch.
+          "transition-colors duration-500 ease-soft",
+          isActive && "bg-lavender/60",
+        )}
       >
         {/*
           The active rule, drawn over the hairline rather than replacing it, so
@@ -220,7 +263,10 @@ function Strand({ discipline, index, isActive, onPreview, ref }: StrandProps) {
           <p
             className={cn(
               "text-[0.62rem] font-medium uppercase tracking-eyebrow transition-colors duration-500 ease-soft",
-              isActive ? "text-primary" : "text-text/85",
+              // Charcoal on the band. Lilac at eleven pixels measures 2.7:1
+              // there and 3.8:1 on the bare sage — under the 4.5:1 text this
+              // size owes on either ground.
+              isActive ? "text-text" : "text-text/85",
             )}
           >
             {String(index).padStart(2, "0")}

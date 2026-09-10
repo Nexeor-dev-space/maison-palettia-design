@@ -49,8 +49,8 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     excerpt:
       "Centre the clay, open the form and draw your first vessel up under your hands. An unhurried morning at the wheel, from wet lump to finished shape.",
     image: {
-      src: "/images/workshops/throwing-on-the-wheel.jpg",
-      alt: "Clay-covered hands drawing the neck of a vessel upward on a turning potter's wheel, glazed cups on studio shelves behind.",
+      src: "/images/experience/pottery.jpg",
+      alt: "Two clay-slicked hands opening the centre of a small pot on the wheel, seen from directly above.",
     },
   },
   {

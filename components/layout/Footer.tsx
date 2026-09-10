@@ -8,19 +8,29 @@ import { CONTACT, FOOTER_NAV, LEGAL_NAV, SITE, SOCIAL_LINKS } from "@/lib/consta
 import type { NavGroup } from "@/types";
 
 /**
- * The wordmark, set to run the measure exactly as the hero's does.
+ * The wordmark, set to run the measure as the hero's does.
  *
- * The page opens on this mark in cream over charcoal and closes on it in Deep
- * Lilac over Light Sage — the same words, the same face, at the same width, so
- * the site reads as one room entered and left rather than as a masthead and a
- * utility strip. The sizes are the hero's, solved the same way: the type's
- * width is linear in its size, so each was derived from a measured render and
- * checked at the narrow end of its own breakpoint. One line from `lg`, two
- * below it, which is why the `lg` value is so much smaller.
+ * The page opens on the name and closes on it, at the same width both times,
+ * so the site reads as one room entered and left rather than as a masthead
+ * and a utility strip. The two are set in different faces on purpose: Qarine
+ * caps at the top, Hapsha Sophia Script here. This is the only place on the
+ * site the brand script is given the name at size, and holding it back to the
+ * last thing on the page is what keeps it from becoming the site's default
+ * voice — the hero is the announcement and this is the signature under it.
+ *
+ * Mixed case and unspaced because the face requires it. A connecting script
+ * stops connecting the moment it is set in capitals, and runs well over twice
+ * as wide besides — 13.4em against 5.8em for the same fifteen characters — so
+ * caps would force the type down to a third of the size to fit the measure.
+ *
+ * The figures are the hero's, minus its viewport-height ceilings: nothing here
+ * is bound to the fold, so the mark simply takes the measure. They are sized
+ * for the script's own metrics and do not transfer to Qarine — see the hero's
+ * own set, which are solved separately.
  */
 const WORDMARK =
-  "font-wordmark font-normal uppercase leading-[0.92] tracking-[0.015em] " +
-  "text-[21.5vw] md:text-[23.5vw] lg:text-[12.8vw] lg:leading-[0.9]";
+  "font-display font-normal leading-[1.06] tracking-normal " +
+  "text-[29vw] md:text-[15vw] lg:text-[15.6vw]";
 
 /**
  * Global site footer — the last room.
@@ -79,7 +89,7 @@ export function Footer() {
           {/* 01 — the mark, and the first thing under the arch. */}
           <Reveal>
             <p
-              className={`${WORDMARK} flex flex-col items-center text-primary lg:flex-row lg:justify-center lg:gap-[3.2vw]`}
+              className={`${WORDMARK} flex flex-col items-center text-primary md:flex-row md:justify-center md:gap-[4vw]`}
             >
               {/*
                 Not a heading: the document already has one wordmark in its
