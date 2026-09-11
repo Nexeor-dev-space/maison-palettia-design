@@ -46,7 +46,7 @@ import type { Discipline } from "@/types";
 const PLACEHOLDER_DISCIPLINES: Discipline[] = [
   {
     slug: "paint",
-    href: "/workshops",
+    href: "/events",
     name: "Paint",
     description: "Colour, expression and imagination.",
     image: {
@@ -56,7 +56,7 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
   },
   {
     slug: "shape",
-    href: "/workshops",
+    href: "/events",
     name: "Shape",
     description: "Get hands-on with clay and form.",
     image: {
@@ -66,7 +66,7 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
   },
   {
     slug: "craft",
-    href: "/workshops",
+    href: "/events",
     name: "Craft",
     description: "Make something thoughtful by hand.",
     image: {
@@ -76,7 +76,7 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
   },
   {
     slug: "create",
-    href: "/workshops",
+    href: "/events",
     name: "Create",
     description: "Experiment, discover and make it your own.",
     image: {

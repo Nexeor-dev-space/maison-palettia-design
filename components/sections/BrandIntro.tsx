@@ -98,7 +98,7 @@ export function BrandIntro() {
                 </p>
 
                 <Link
-                  href="/workshops"
+                  href="/events"
                   className="group mt-9 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text md:mt-10"
                 >
                   <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
