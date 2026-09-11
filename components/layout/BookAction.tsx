@@ -32,13 +32,16 @@ interface BookActionProps {
  * of the 4.5:1 a label this size owes. The arrow keeps its drift so the hover
  * answers with movement as well as tone.
  *
- * SIZING IS LOAD-BEARING. The bar sets its own height — `h-14 md:h-16` once
- * the page is scrolled, `h-header md:h-header-lg` before that — so this can
- * never push the bar taller, but it can overflow it. The tightest case is the
- * scrolled bar at `sm`, where 56px is all there is and the action is already
- * visible. At these paddings the button measures about 35px, which leaves
- * roughly 10px of air top and bottom. Do not add vertical padding here without
- * re-measuring against that 56px.
+ * SIZING IS LOAD-BEARING. The bar sets its own height — see the four header
+ * tokens in globals.css — so this can never push the bar taller, but it can
+ * overflow it. The tightest case is the settled bar at `sm`, which is 72px.
+ * At these paddings the button measures about 45px, leaving roughly 13px of
+ * air top and bottom. Do not add vertical padding here without re-measuring
+ * against that 72px.
+ *
+ * It grew with the bar. At 35px in a 64px header it was a control in a strip;
+ * the same button in a 104px one would have been a control adrift in a field,
+ * which is the failure mode of simply making a header taller.
  */
 export function BookAction({ onNavigate, size = "bar", className }: BookActionProps) {
   const bar = size === "bar";
@@ -51,7 +54,13 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
         "group inline-flex items-center justify-center gap-2.5 font-medium uppercase tracking-eyebrow",
         "bg-sage text-text",
         "transition-colors duration-300 ease-soft hover:bg-sage/85",
-        bar ? "px-5 py-3 text-[0.68rem] leading-none" : "px-6 py-4 text-xs leading-none",
+        // Narrower flanks between 1024 and 1280, where the bar is at its
+        // tightest: that is the band in which the inline nav exists and the
+        // mark is centred, so the actions are held to exactly half of what the
+        // mark and the gaps leave over. Measured there with a booking held,
+        // the cluster overran that share by about 6px; these eight pixels are
+        // most of what buys it back. See the right track in <HeaderBar>.
+        bar ? "px-5 py-4 text-[0.7rem] leading-none lg:px-4 xl:px-6" : "px-6 py-4 text-xs leading-none",
         className,
       )}
     >

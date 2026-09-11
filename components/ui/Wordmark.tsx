@@ -44,7 +44,15 @@ export function Wordmark({ className, variant = "text" }: WordmarkProps) {
           width={LOGO.width}
           height={LOGO.height}
           priority
-          className="h-10 w-auto md:h-12"
+          /*
+            Sized against the bar rather than against itself. The bar rests at
+            80px on a phone and 104px on a desktop, and a mark that stays at 40
+            in either is a logo floating in a header instead of the thing the
+            header is built around — roughly half the height at each step is
+            what makes it read as the anchor. The aspect is the file's own;
+            only the height is set.
+          */
+          className="h-11 w-auto md:h-14"
         />
       </Link>
     );

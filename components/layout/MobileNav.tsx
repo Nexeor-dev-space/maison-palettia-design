@@ -5,11 +5,27 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import { BookAction } from "@/components/layout/BookAction";
-import { cn } from "@/lib/utils";
+import { NavLabel } from "@/components/layout/NavLabel";
 import type { Discipline, NavItem } from "@/types";
+
+/**
+ * How far apart the pieces of the menu arrive, in seconds, and the longest any
+ * of them waits.
+ *
+ * Short on both counts. A menu is a thing someone opened because they want to
+ * be somewhere else, so the sequence has to be over before it is noticed as a
+ * sequence — the last link is in place a third of a second after the first.
+ */
+const STEP = 0.045;
+const CAP = 0.32;
+
+/** The delay for the nth thing down the panel, in CSS-ready form. */
+const riseDelay = (index: number) => ({ animationDelay: `${Math.min(index * STEP, CAP)}s` });
 
 interface MobileNavProps {
   id: string;
+  /** Changes on each open, and keys the panel so the reveal replays. */
+  openCount: number;
   isOpen: boolean;
   onClose: () => void;
   items: NavItem[];
@@ -40,6 +56,7 @@ interface MobileNavProps {
  */
 export function MobileNav({
   id,
+  openCount,
   isOpen,
   onClose,
   items,
@@ -81,12 +98,13 @@ export function MobileNav({
       data-lenis-prevent
       className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-nav md:top-header-lg lg:hidden"
     >
-      <div className="px-gutter pb-16 pt-10">
+      {/* Keyed so the reveal below runs again every time the menu is opened. */}
+      <div key={openCount} className="px-gutter pb-16 pt-10">
         {/* 01 — what you could do here. */}
         <nav aria-label="Creative strands">
           <ul className="grid grid-cols-2 gap-x-4 gap-y-8">
-            {disciplines.map((strand) => (
-              <li key={strand.slug}>
+            {disciplines.map((strand, i) => (
+              <li key={strand.slug} className="animate-rise" style={riseDelay(i)}>
                 <Link href={strand.href} onClick={onClose} className="group block">
                   <div className="relative aspect-[5/4] w-full overflow-hidden bg-white/5">
                     <Image
@@ -107,26 +125,41 @@ export function MobileNav({
         </nav>
 
         {/* 02 — the action, given a rule of its own so it is not one of a list. */}
-        <div className="mt-12 border-y border-white/15 py-7">
+        <div
+          className="mt-12 animate-rise border-y border-white/15 py-7"
+          style={riseDelay(disciplines.length)}
+        >
           <BookAction size="panel" onNavigate={onClose} />
         </div>
 
         {/* 03 — the rest of the site. */}
         <nav aria-label="Primary" className="mt-10">
           <ul className="flex flex-col">
-            {items.map((item) => (
-              <li key={item.href}>
+            {items.map((item, i) => (
+              <li
+                key={item.href}
+                className="animate-rise"
+                style={riseDelay(disciplines.length + 1 + i)}
+              >
+                {/*
+                  The same device the desktop bar uses — see <NavLabel> — kept
+                  in step for a reason beyond consistency: the sage this used
+                  to switch the text to on the current-page state measured
+                  3.84:1 during the bar's stretch on Deep Lilac, at this size
+                  and weight (light, not bold, so the 22px does not earn the
+                  large-text exemption) — under the 4.5:1 running text owes.
+                  The drawn rule is a graphical mark rather than text and
+                  clears 3:1 comfortably against either ground, so it carries
+                  hover and current-page alone; the label stays white
+                  throughout regardless of which ground the bar is on.
+                */}
                 <Link
                   href={item.href}
                   onClick={onClose}
                   aria-current={isActive(item.href) ? "page" : undefined}
-                  className={cn(
-                    "block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em]",
-                    "transition-colors duration-300 ease-soft hover:text-sage",
-                    isActive(item.href) ? "text-sage" : "text-white",
-                  )}
+                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-white"
                 >
-                  {item.label}
+                  <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                 </Link>
               </li>
             ))}

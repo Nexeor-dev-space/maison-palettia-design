@@ -4,6 +4,25 @@ export interface NavItem {
   href: string;
   /** Set for links that leave the site so the UI can flag them. */
   external?: boolean;
+  /**
+   * Kept out of the desktop bar, but present everywhere the whole site map is
+   * offered — the mobile menu and the footer.
+   *
+   * One list rather than two, because two drift. The bar has room for about
+   * five or six entries before it crowds the action at its end, and the one
+   * that earns the cut is the entry a visitor reaches for last and can always
+   * find at the foot of the page.
+   */
+  secondary?: boolean;
+  /**
+   * Opens the creative-strands menu instead of navigating.
+   *
+   * A flag rather than a match on `href`, because "Workshops" and "Sessions"
+   * deliberately share a destination — one asks what you could make, the other
+   * when you could make it — and matching on the path would hang a menu off
+   * both of them.
+   */
+  megamenu?: boolean;
 }
 
 /** A grouped column of links in the footer. */
@@ -64,6 +83,31 @@ export interface Price {
 export type WorkshopStatus = "open" | "waitlist" | "fully-booked";
 
 /**
+ * Where a session happens.
+ *
+ * The studio does not have one address — it sets up in malls, on fixed dates,
+ * at fixed times. That makes the mall a deciding fact rather than a footnote:
+ * someone scanning the schedule is matching three things against their own
+ * week, and "can I get there" is one of them.
+ *
+ * Optional, and that is deliberate. The field did not exist before this and
+ * nothing in the project can supply it yet, so every component that reads it
+ * omits the location entirely rather than printing a gap — a session with no
+ * venue on file simply shows none. Adding the shape is what lets the studio
+ * start filling it in; it is not a claim that the data is there.
+ *
+ * Split into parts rather than kept as one string so the listing can set the
+ * mall loud and the city quiet, and so a filter by mall costs a component
+ * change rather than a migration.
+ */
+export interface Venue {
+  /** The mall, as it is signposted, e.g. "The Dubai Mall". */
+  name: string;
+  /** The city or district under it, e.g. "Downtown Dubai". */
+  locality: string;
+}
+
+/**
  * One scheduled workshop session.
  *
  * Shaped for a CMS: every field is data the studio would edit, nothing here
@@ -81,6 +125,8 @@ export interface Workshop {
   /** ISO 8601 with the studio's offset, e.g. "2026-10-03T10:00:00+04:00". */
   startsAt: string;
   durationMinutes: number;
+  /** Which mall this date runs at. Optional — see {@link Venue}. */
+  venue?: Venue;
   price: Price;
   seatsTotal: number;
   seatsAvailable: number;
@@ -88,6 +134,17 @@ export interface Workshop {
   /** One or two sentences. Long-form copy belongs on the detail page. */
   excerpt: string;
   image: ImageAsset;
+  /**
+   * Further photographs of this event, for the visual section on its page.
+   *
+   * Optional, and empty everywhere today. The event page renders the section
+   * only when there is something in it rather than showing an empty heading or
+   * padding it out with pictures of a different event — which is what "gallery"
+   * would otherwise quietly become.
+   *
+   * TODO(client): supply two or three per event from the studio shoot.
+   */
+  gallery?: ImageAsset[];
 }
 
 /**

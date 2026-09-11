@@ -28,20 +28,44 @@ export const SITE = {
  * in descending order of how often they answer a question someone has before
  * booking.
  *
- * {@link WORKSHOPS_HREF} marks the entry the header opens as a menu, so the
- * two never drift apart.
+ * `megamenu: true` marks the entry the header opens as a panel rather than
+ * navigating, so the two never drift apart — it is a flag rather than a match
+ * on the path, because Workshops and Sessions deliberately share one.
  */
 export const MAIN_NAV: NavItem[] = [
-  { label: "Workshops", href: "/workshops" },
-  { label: "Gallery", href: "/gallery" },
+  /*
+    Three entries, and the cut is still the point.
+
+    It was seven — Workshops, Sessions, Gallery, About, Journal, FAQ, Contact —
+    which is a site map rather than a navigation. Workshops and Sessions were
+    two words for one page and are now one: Events, carrying the strands menu.
+    Gallery had no content behind it (public/images/gallery holds a .gitkeep),
+    so a page existed only to give the link somewhere to go. Journal and FAQ
+    are worth reading and are not what anyone arrives for; both keep their
+    routes and move to the footer.
+
+    Events leads rather than About. The studio's business is a table in a mall
+    on a fixed date, the first slot is the strongest one a bar has, and a
+    visitor who wants the story will find it in the second.
+
+    Contact rejoined the bar itself rather than staying `secondary` (mobile
+    and the footer only) once it had a real page behind it — the two go
+    together: a link worth promoting to the front row is a link worth someone
+    finding something at the other end of.
+  */
+  { label: "Events", href: "/events", megamenu: true },
   { label: "About", href: "/about" },
-  { label: "Journal", href: "/blog" },
-  { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ];
 
-/** The nav entry that opens the creative-strands menu instead of navigating. */
-export const WORKSHOPS_HREF = "/workshops";
+/**
+ * The programme's route.
+ *
+ * Kept as a constant because several surfaces point at it — the mobile menu's
+ * schedule link, the strands menu's way out, the primary action — and a path
+ * spelled out in four places is a path that eventually disagrees with itself.
+ */
+export const WORKSHOPS_HREF = "/events";
 
 /**
  * Routes whose hero is a saturated colour field. The header inverts to a light
@@ -59,8 +83,8 @@ export const DARK_HERO_ROUTES: readonly string[] = ["/"];
  * this one href and every surface that offers the action follows.
  */
 export const PRIMARY_CTA = {
-  label: "Book a Workshop",
-  href: "/workshops",
+  label: "Book an event",
+  href: "/events",
 } as const;
 
 /**
@@ -87,7 +111,7 @@ export const FOOTER_NAV: NavGroup[] = [
   {
     title: "Create",
     items: [
-      { label: "Workshops", href: "/workshops" },
+      { label: "Events", href: "/events" },
       { label: "Gallery", href: "/gallery" },
     ],
   },
@@ -316,7 +340,7 @@ export const EDITORIAL_PANELS: {
     // yet, and the listing is the nearest true thing — the same substitution
     // PLAN_YOUR_VISIT already makes for "Explore Experiences". Re-point this
     // one field when the route lands; nothing else knows the path.
-    linkHref: "/workshops",
+    linkHref: "/events",
     index: "02 / 02",
     image: {
       // A storeroom wall of finished terracotta — floor-to-ceiling steel
@@ -406,7 +430,7 @@ export const PLAN_YOUR_VISIT: VisitInvitation = {
   signature: "see you at the maison",
   description:
     "Choose an experience, find a date that suits you, and give yourself an afternoon in the studio.",
-  primaryCta: { label: "Explore Experiences", href: "/workshops" },
+  primaryCta: { label: "Explore events", href: "/events" },
   secondaryCta: { label: "Contact the Maison", href: "/contact" },
   steps: [
     { number: "01", name: "Choose", detail: "Find the experience that feels right." },

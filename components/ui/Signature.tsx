@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
  * Which ground the signature is set on. The tone picks the ink, because on
  * this palette the ink is not a free choice — see the contract below.
  */
-type SignatureGround = "warm" | "sage" | "lilac";
+type SignatureGround = "warm" | "sage" | "lilac" | "ink";
 
 /**
  * Ink per ground, and the reason it is not a prop the caller passes freely.
@@ -30,6 +30,17 @@ const GROUNDS: Record<SignatureGround, string> = {
   sage: "text-primary",
   /** Deep Lilac: Light Sage, the pairing off the Maison's own packaging. */
   lilac: "text-sage",
+  /**
+   * Ink: Light Sage, at 12.33:1 — and it is the one ground on this palette
+   * where a signature is not scraping its bar.
+   *
+   * Every pairing above sits between 3.8 and 4:1, which is why the component
+   * refuses to render below 24px. This one clears the 4.5:1 that body copy
+   * owes four times over. The constraint stays anyway: the size is what makes
+   * a signature a signature, and one ground earning slack is not a reason to
+   * let the other three be set small.
+   */
+  ink: "text-sage",
 };
 
 /**

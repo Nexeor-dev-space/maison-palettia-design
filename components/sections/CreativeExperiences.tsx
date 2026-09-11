@@ -70,7 +70,7 @@ export async function CreativeExperiences() {
         <div className="grid grid-cols-12 gap-x-6 lg:gap-x-12">
           <Reveal variant="fadeIn" className="col-span-12 mt-12 lg:col-span-7 lg:mt-16">
             <Link
-              href="/workshops"
+              href="/events"
               className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
             >
               <span className="border-b border-primary/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">

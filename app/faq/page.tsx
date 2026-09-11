@@ -4,7 +4,7 @@ import { buildMetadata } from "@/lib/seo";
 // TODO(content): final SEO title and description pending client copy.
 export const metadata = buildMetadata({
   title: "FAQ",
-  description: "Answers to common questions about Maison Palettia workshops.",
+  description: "Answers to common questions about Maison Palettia events.",
   path: "/faq",
 });
 

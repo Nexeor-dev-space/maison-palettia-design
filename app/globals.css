@@ -67,9 +67,20 @@
      rather than sharing it, because the bar and the page's ink stopped being
      the same decision the moment the bar took a colour of its own: the footer
      and the hero's charcoal field still track Charcoal Slate, and moving one
-     should not move the other. Near-black and slightly warm, it reads as a
-     masthead rather than as another of the page's fields. */
-  --color-nav: var(--color-brand-ink);
+     should not move the other.
+
+     Deep Lilac: the brand's own colour, taken straight from the palette
+     rather than restated as a hex, so the bar moves with the brand if the
+     brand ever moves. It was near-black Ink before this, and #8f59a4 — a hair
+     off Deep Lilac — for a stretch before that.
+
+     Against this ground full white clears 4.5:1 at 5.06:1, but the faded
+     whites do not, and they were calibrated on the near-black. Anything on
+     these three surfaces that has to be *read* is therefore set in full white
+     or in Light Sage at display size; the /45 and fainter values are rules,
+     dividers and icon strokes, which owe 3:1 as graphical objects rather than
+     4.5:1 as text. Re-measure before promoting any of them back to copy. */
+  --color-nav: var(--color-brand-lilac);
 
   /* --- Typography -------------------------------------------------------- */
   --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
@@ -120,8 +131,26 @@
   /* --- Layout ------------------------------------------------------------ */
   /* Header height. The hero pulls itself up by exactly this much so the bar
      sits over the artwork rather than above it — change it in one place. */
-  --spacing-header: 4rem; /* 64px */
-  --spacing-header-lg: 4.5rem; /* 72px */
+  /* The bar's two heights, at rest and once the page is moving.
+     ---------------------------------------------------------------------
+     Four numbers rather than two, because the bar changes height on scroll
+     and the overlay it drops has to know both. Every consumer reads these:
+     the hero pulls itself up by the resting height so the bar sits over the
+     artwork, and the mobile panel hangs from it.
+
+     The resting pair is generous on purpose. At 64/72 the bar was the client's
+     one note on the header — "height seems too small" — and it was right: a
+     logo, six links and a filled action inside 64px leaves nothing any room,
+     and the old scrolled state took it down to 56, which made the page feel
+     like it was closing up as you read. The mark is the anchor here and it
+     needs the air to be one.
+
+     The scrolled pair is a refinement, not a collapse. 16px comes off, which
+     is enough to register as the bar settling and not enough to crush it. */
+  --spacing-header: 5rem; /* 80px — phone and tablet, at rest */
+  --spacing-header-lg: 6.5rem; /* 104px — desktop, at rest */
+  --spacing-header-set: 4.5rem; /* 72px — phone and tablet, scrolled */
+  --spacing-header-set-lg: 5.5rem; /* 88px — desktop, scrolled */
 
   /* No longer applied to the page container: the layout runs full-bleed and is
      held in only by --spacing-gutter, the way the reference does it. Kept for
@@ -155,6 +184,30 @@
     0 8px 24px -12px color-mix(in oklab, var(--color-brand-charcoal) 18%, transparent);
 
   /* --- Motion ------------------------------------------------------------ */
+  /* The one keyframed animation on the site.
+     ---------------------------------------------------------------------
+     Everything else that moves is either a transition or is driven by Framer
+     Motion from a scroll position. The mobile menu cannot use either: it is
+     revealed by a state change rather than by scrolling, and the panel it
+     lives in is `display: none` until it opens, which is precisely the case a
+     CSS transition cannot animate out of. A keyframe runs on the frame the
+     element appears, which is what this needs.
+
+     Reduced motion is handled in the media query at the foot of this file —
+     duration and delay are both cut there, so a staggered list simply arrives. */
+  --animate-rise: rise 0.5s var(--ease-editorial) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --duration-fast: 200ms;
@@ -317,7 +370,12 @@ html.lenis.lenis-stopped {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    /* Without this a staggered list still arrives one item at a time — the
+       movement is gone but the waiting is not, which is the half of the
+       effect a reader asking for less motion actually notices. */
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
 }
