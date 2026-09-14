@@ -24,7 +24,7 @@ export function BasketLink() {
   return (
     <Link
       href="/checkout"
-      className="group inline-flex items-center gap-2.5 text-[0.68rem] font-medium uppercase tracking-eyebrow text-white"
+      className="group inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-white"
     >
       <span className="border-b border-white/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-white">
         Booking
@@ -35,7 +35,9 @@ export function BasketLink() {
       */}
       <span className="rounded-pill bg-white/15 px-2 py-0.5 tabular-nums">
         {places}
-        <span className="sr-only"> {places === 1 ? "place held" : "places held"}</span>
+        {/* "Places" would be wrong the moment a pass is in the basket, which
+            holds no place until it is redeemed. This counts both. */}
+        <span className="sr-only"> in your booking</span>
       </span>
     </Link>
   );

@@ -1,6 +1,8 @@
 import type {
   ContactDetails,
   EditorialPanel,
+  FaqItem,
+  ImageAsset,
   NavGroup,
   NavItem,
   SocialLink,
@@ -52,10 +54,15 @@ export const MAIN_NAV: NavItem[] = [
     and the footer only) once it had a real page behind it — the two go
     together: a link worth promoting to the front row is a link worth someone
     finding something at the other end of.
+
+    It is marked `utility` rather than dropped back out: on the desktop bar it
+    sits with search on the right, because reaching the studio is a different
+    kind of errand from choosing where to go in the programme. The mobile menu
+    and the footer render this list in order and are unaffected.
   */
   { label: "Events", href: "/events", megamenu: true },
   { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: "Contact", href: "/contact", utility: true },
 ];
 
 /**
@@ -112,6 +119,11 @@ export const FOOTER_NAV: NavGroup[] = [
     title: "Create",
     items: [
       { label: "Events", href: "/events" },
+      /* Grown, per the rule above: /loyalty is a route that exists now. It is
+         deliberately not promoted into MAIN_NAV — that list is three entries
+         by design and changing it is a navigation decision, not a side effect
+         of building a page. */
+      { label: "Passes", href: "/loyalty" },
       { label: "Gallery", href: "/gallery" },
     ],
   },
@@ -119,6 +131,7 @@ export const FOOTER_NAV: NavGroup[] = [
     title: "Visit",
     items: [
       { label: "Contact", href: "/contact" },
+      { label: "Check a booking", href: "/booking-status" },
       { label: "FAQ", href: "/faq" },
     ],
   },
@@ -130,8 +143,23 @@ export const FOOTER_NAV: NavGroup[] = [
  * footer is where they belong; build them, or empty this array, before launch.
  */
 export const LEGAL_NAV: NavItem[] = [
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms & Conditions", href: "/terms" },
+  /*
+    EMPTY ON PURPOSE, AND TEMPORARILY.
+
+    This held "Privacy Policy" → /privacy and "Terms & Conditions" → /terms.
+    Neither route exists: both answered 404 from every page on the site, which
+    is the worst kind of broken link — it sits in the footer of a checkout,
+    where a customer looks for exactly these two documents before deciding
+    whether to trust a payment form.
+
+    Removing the links rather than stubbing the pages is the smaller change,
+    and an absent link is honest where a link to nothing is not. The footer
+    leaves the copyright line on its own and needs no other change.
+
+    TODO(client): a business taking bookings and payments needs both documents.
+    Write them, add the two routes, and restore these entries — the footer will
+    render them again with no further edit.
+  */
 ];
 
 /**
@@ -168,7 +196,8 @@ export const HERO_TRIPTYCH: {
     position: "50% 46%",
   },
   making: {
-    // Web encode of the master at public/videos/bg-video.mp4. The master is a
+    // Web encode of the master at assets/video-masters/bg-video.mp4 — outside
+    // public/ so it is retained without being served. The master is a
     // 4K, 27 Mbps, 30 MB file — an order of magnitude too heavy to sit in the
     // first paint of the homepage — so it stays in the repository as the
     // source of truth and this 1000px H.264 derivative (~2.4 MB, no audio,
@@ -197,6 +226,37 @@ export const CONTACT: ContactDetails = {
   addressLines: ["Dubai", "United Arab Emirates"],
   email: null,
   phone: null,
+};
+
+/**
+ * The floating WhatsApp widget's destination, and nothing else.
+ *
+ * Deliberately its own constant rather than a field on {@link CONTACT}: that
+ * shape is the studio's published contact details, read by the footer, the
+ * contact page and the invitation, and a chat handle is a different kind of
+ * thing with a different lifecycle. Keeping it separate also means the widget
+ * can be switched on or off without touching anything that renders an address.
+ *
+ * HOW TO TURN IT ON. Put the number here in full international form, digits
+ * only — country code first, no `+`, no spaces, no dashes. A UAE mobile looks
+ * like "9715XXXXXXXX". That is the whole change; <WhatsAppWidget> renders
+ * itself the moment this is not null.
+ *
+ * WHY IT IS NULL. There is no WhatsApp number anywhere in this project —
+ * `CONTACT.phone` is null too — and a floating button that opens a chat with
+ * nobody is worse than no button. The widget renders nothing until this is
+ * set, which is the same rule the footer already applies to social links.
+ *
+ * TODO(client): supply the studio's WhatsApp business number.
+ */
+export const WHATSAPP: {
+  /** Digits only, country code first. `null` hides the widget entirely. */
+  number: string | null;
+  /** Prefilled first message. Optional; the chat opens empty without it. */
+  greeting: string | null;
+} = {
+  number: null,
+  greeting: "Hello! I would like to ask about an upcoming event.",
 };
 
 /** TODO(client): awaiting live social profile URLs. */
@@ -229,7 +289,7 @@ export interface CaptionedImage extends HeroPanel {
  *
  * Three scales, three subjects: the room, the making, the material. All three
  * are cut from assets already in the project rather than shot separately —
- * the first two from the master wheel footage at public/videos/bg-video.mp4
+ * the first two from the master wheel footage at assets/video-masters/bg-video.mp4
  * (its background carries the only studio atmosphere the project holds), the
  * third from the watercolour used in the hero.
  *
@@ -384,6 +444,57 @@ export const EDITORIAL_PANELS: {
  * (the brand introduction) and "take it home" (the experience) for the same
  * reason.
  */
+/**
+ * Homepage section 04 — how a booking actually works.
+ *
+ * The one thing the site never said out loud. Maison Palettia does not have a
+ * studio you can walk into: it sets up at a mall on a fixed date, and the
+ * whole transaction is "find the date, keep a place, turn up". A visitor who
+ * has not worked that out is not undecided about booking — they do not know
+ * what they would be booking, which is a different and much worse problem.
+ *
+ * Four steps because that is how many there are, not because four is a tidy
+ * number for a row. Nothing here is invented: each line describes something
+ * the site already does — the listing at /events, the booking flow off an
+ * event page, the venue carried on every session, and the event itself.
+ *
+ * Kept as data so the section renders one component four times rather than
+ * four near-identical blocks, and so the wording is edited in one place.
+ */
+export const HOW_IT_WORKS: readonly { title: string; body: string }[] = [
+  {
+    title: "Choose",
+    body: "Look through what is coming up and find a date that suits you.",
+  },
+  {
+    title: "Book",
+    body: "Keep your place in a couple of minutes. No account needed.",
+  },
+  {
+    title: "Come by",
+    body: "Find us at the mall at your time. Everything is set up and waiting.",
+  },
+  {
+    title: "Create",
+    body: "Make something with your hands, and take it home with you.",
+  },
+];
+
+/**
+ * Homepage section 06 — the About teaser.
+ *
+ * A doorway, not a summary. The full story is at /about and this exists only
+ * to say there is one; the moment it grows into an argument it becomes the
+ * second philosophy section the homepage just had removed.
+ */
+export const ABOUT_TEASER = {
+  eyebrow: "The Maison",
+  title: ["A room, a table,", "and time to use them."],
+  body:
+    "Maison Palettia is a creative space where art, craft and community come together — a place to slow down and make something with your hands.",
+  cta: "Our story",
+} as const;
+
 export const MAISON_PHILOSOPHY: {
   eyebrow: string;
   /** One entry per line. The break is composition, not a wrap. */
@@ -448,7 +559,7 @@ export const PLAN_YOUR_VISIT: VisitInvitation = {
  * making actually taking time. A quote about a first afternoon at the wheel
  * sits better on the wheel turning than on a photograph of it stopped.
  *
- * The master at public/videos/testimonial-bg.mp4 is 4K, 24 Mbps and 116 MB —
+ * The master at assets/video-masters/testimonial-bg.mp4 is 4K, 24 Mbps and 116 MB —
  * two orders of magnitude too heavy to put behind a section — so it stays in
  * the repository as the source of truth and this 1600px H.264 derivative
  * (~4 MB, no audio, faststart) is what ships. Re-run the encode if the master
@@ -472,3 +583,78 @@ export const TESTIMONIALS_GROUND: HeroPanel = {
   /* First frame. Holds the section while the file buffers. */
   poster: "/images/testimonials/room-poster.jpg",
 };
+
+/* ==========================================================================
+   Homepage gallery.
+
+   Existing photographs, all of them already in the repository and already
+   optimised — nothing was added or re-encoded for this. They are process
+   shots rather than shelves of finished work, because the section's job is to
+   let someone picture themselves at the table: hands in the clay, a brush
+   half-way through a bloom, a studio with its shelves behind.
+
+   The finished-work strip that used to sit on the homepage is a different
+   thing and now lives on /about. This is not that renamed.
+
+   TODO(client): four is thin for a gallery and these are the only process
+   photographs in the project that are both on-message and light enough to put
+   on the homepage. The studio shoot should replace all four.
+   ========================================================================== */
+export const GALLERY_IMAGES: ImageAsset[] = [
+  {
+    src: "/images/workshops/throwing-on-the-wheel.jpg",
+    alt: "Two clay-slicked hands steadying a wide-shouldered pot turning on the wheel, studio shelves of pale blue mugs behind.",
+  },
+  {
+    src: "/images/experience/pressing-the-wall.jpg",
+    alt: "Fingers drawing the wall of a tall pot upward on the wheel, wet clay running over the knuckles.",
+  },
+  {
+    src: "/images/workshops/watercolour-in-progress.jpg",
+    alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
+  },
+  {
+    src: "/images/experience/studio-shelf.jpg",
+    alt: "A maker's clay-covered forearm at the wheel, with shelves of blue-glazed mugs against whitewashed brick behind.",
+  },
+];
+
+/* ==========================================================================
+   The questions that stand between someone and a booking.
+
+   Short on purpose, and every answer here is one the site can already stand
+   behind: two of them describe how the programme works and point at the data
+   the event pages already carry, and one describes the route someone is
+   already on.
+
+   TODO(client): the answers a studio normally needs and this one has not
+   written down — minimum age, whether children can attend, accessibility at
+   each mall, what happens if you cannot make it, and whether pieces are fired
+   and collected later. None are invented here. Each is worth adding, and /faq
+   is the route for the long version.
+   ========================================================================== */
+export const HOMEPAGE_FAQ: FaqItem[] = [
+  {
+    question: "Where do the events happen?",
+    answer:
+      "Maison Palettia has no studio door of its own — we set up inside a mall for the day. Every event on the programme names its mall and the area it is in, so you know where you are going before you book.",
+  },
+  {
+    question: "How long does an event run?",
+    answer:
+      "Each one runs to a fixed start and finish time rather than a drop-in window. Both times, and the length of the event, are on its page.",
+  },
+  {
+    question: "Do I need to bring anything?",
+    answer:
+      // TODO(client): confirm. This is the line the events page and the About
+      // page already use, and it is the one claim here about what the studio
+      // supplies rather than about how the programme is organised.
+      "Everything is provided. Bring nothing but yourself.",
+  },
+  {
+    question: "How do I book a place?",
+    answer:
+      "Choose a date from the programme, open it, and keep your place from that page. Each event shows how many places are left before you start.",
+  },
+];

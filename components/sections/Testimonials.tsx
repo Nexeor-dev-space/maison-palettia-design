@@ -5,6 +5,20 @@ import { Container } from "@/components/ui/Container";
 import { TESTIMONIALS_GROUND } from "@/lib/constants";
 import { getTestimonials } from "@/lib/testimonials";
 
+/*
+  PARKED — not mounted anywhere right now.
+
+  Removed from the homepage in the commercial restructure, and not because
+  anything is wrong with it. lib/testimonials.ts holds invented quotes and says
+  so in capitals at the top of the file: nobody said those things, and a
+  fabricated endorsement is the one placeholder on this site that is a
+  liability rather than a convenience.
+
+  Keep this. The section is finished and the data seam behind it is real — put
+  it back on the homepage or on /about the moment `getTestimonials()` returns
+  quotes the studio actually collected, with permission.
+*/
+
 /**
  * Homepage section — in their words.
  *
@@ -91,7 +105,7 @@ export async function Testimonials() {
           <div className="bg-surface px-7 py-10 sm:px-12 sm:py-14 lg:px-16 lg:py-16">
             <h2
               id="testimonials-heading"
-              className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text"
+              className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text"
             >
               <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
               In their words

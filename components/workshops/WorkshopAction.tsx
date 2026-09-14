@@ -26,7 +26,7 @@ export function WorkshopAction({ label, tone = "quiet", className }: WorkshopAct
     <span
       aria-hidden
       className={cn(
-        "flex w-fit items-center gap-3 text-[0.72rem] font-semibold uppercase tracking-eyebrow",
+        "flex w-fit items-center gap-3 text-action font-semibold uppercase tracking-eyebrow",
         primary ? "text-primary" : "text-text",
         className,
       )}

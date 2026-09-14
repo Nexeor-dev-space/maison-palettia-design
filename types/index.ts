@@ -23,6 +23,17 @@ export interface NavItem {
    * both of them.
    */
   megamenu?: boolean;
+  /**
+   * Sits with the bar's utilities on the right rather than in the primary
+   * navigation on the left.
+   *
+   * Presentation only, and only on the desktop bar: the mobile menu and the
+   * footer still render the entry in document order with everything else, so
+   * there is still one list and it still cannot drift. Contact is the entry
+   * this exists for — it is a way to reach the studio rather than a place in
+   * the programme, and it belongs beside search for the same reason.
+   */
+  utility?: boolean;
 }
 
 /** A grouped column of links in the footer. */
@@ -293,4 +304,50 @@ export interface Testimonial {
    * about a person who has not agreed to be quoted.
    */
   attribution: string;
+}
+
+/**
+ * One question on the homepage's FAQ.
+ *
+ * A shape, not an architecture: there is no FAQ CMS and this phase does not
+ * build one. The homepage carries the few questions that stand between someone
+ * and a booking; anything longer belongs on /faq when that route is written.
+ */
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+/**
+ * One loyalty pass, as the studio would sell it.
+ *
+ * A pass is bought rather than booked, and that is the whole of the difference
+ * from a {@link Workshop}: it carries a number of sessions and a validity, and
+ * it is redeemed later against dates in the programme. There is no `startsAt`,
+ * no {@link Venue} and no seat count here, because a pass is not a place at a
+ * table on a particular Saturday.
+ *
+ * Shaped for a CMS, like everything else the studio would edit. `price` is
+ * optional on purpose: a pass that has been written but not yet priced is a
+ * real state of the data, and the page shows it as not yet on sale rather than
+ * printing a number nobody has set. `sessions` and `validity` are optional for
+ * the same reason — both are omitted rather than guessed at.
+ */
+export interface Pass {
+  /** Stable identifier, and the React key. */
+  slug: string;
+  /** Set in caps by the design; stored in its natural case. */
+  name: string;
+  /** One sentence. The benefits carry the detail. */
+  description: string;
+  /** Absent until the studio sets one — see above. */
+  price?: Price;
+  /** Short lines, three or four at most. Never paragraphs. */
+  benefits: readonly string[];
+  /** How many sessions the pass carries. Omitted when it is not counted that way. */
+  sessions?: number;
+  /** Printed copy, e.g. "12 months from purchase". Omitted when unset. */
+  validity?: string;
+  /** A plate beside the entry. Optional — the row sets none without it. */
+  image?: ImageAsset;
 }

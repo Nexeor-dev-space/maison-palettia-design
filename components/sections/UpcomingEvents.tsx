@@ -5,7 +5,13 @@ import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import { Signature } from "@/components/ui/Signature";
 import { WorkshopFeature } from "@/components/workshops/WorkshopFeature";
-import { getUpcomingWorkshops } from "@/lib/workshops";
+import {
+  formatPrice,
+  getUpcomingWorkshops,
+  isFullyBooked,
+  sessionDateParts,
+  spotsLabel,
+} from "@/lib/workshops";
 import type { Workshop } from "@/types";
 
 /**
@@ -54,7 +60,7 @@ const ordinal = (n: number) => String(n).padStart(2, "0");
  * it. Awaiting costs nothing while the data is local, and the trade is worth
  * making again deliberately when a real CMS call is on the other side.
  */
-export async function UpcomingWorkshops() {
+export async function UpcomingEvents() {
   const workshops = await getUpcomingWorkshops();
 
   return (
@@ -63,7 +69,7 @@ export async function UpcomingWorkshops() {
       className="bg-surface py-[5.5rem] md:py-section lg:py-section-lg"
     >
       <Container>
-        <SectionHead count={workshops.length} />
+        <SectionHead workshops={workshops} />
         <Schedule workshops={workshops} />
       </Container>
     </section>
@@ -71,55 +77,165 @@ export async function UpcomingWorkshops() {
 }
 
 /**
- * Label and heading left, the line that explains the model right — the same
- * spread the other section heads on the page use, so this reads as one of
- * them rather than as an advertisement dropped into the middle.
+ * The section head, pitched to sell.
+ *
+ * WHAT CHANGED AND WHY. This read "Upcoming events / Find your next creative
+ * event." over a paragraph describing the model — accurate, and the register
+ * of a programme note rather than of the one section on the homepage with
+ * something to sell. The client asked for it to work harder commercially, so
+ * it now leads with the action and the reward ("Book your place. / Take
+ * something home."), states the three numbers a buyer actually weighs, and
+ * carries a filled call to action instead of leaving the section's only
+ * affordance to a line of underlined type at the foot of the list.
+ *
+ * EVERY NUMBER IS READ OFF THE DATA. The count, the price, the date and the
+ * seats are computed from the sessions below, so the strip cannot say anything
+ * the schedule does not. Nothing here invents scarcity: the seat line is the
+ * same `spotsLabel` the listing and the event page use, which says "left" only
+ * once a date is genuinely down to its last few and "available" otherwise.
+ *
+ * SOLD-OUT DATES ARE EXCLUDED FROM THE PITCH. "From AED 240" quoted off a date
+ * nobody can book is the oldest trick in the listing business and it is not
+ * one this studio should run — the price, the date and the seats all come from
+ * the soonest session a visitor could actually take.
  */
-function SectionHead({ count }: { count: number }) {
+function SectionHead({ workshops }: { workshops: Workshop[] }) {
+  const count = workshops.length;
+  const bookable = workshops.filter((workshop) => !isFullyBooked(workshop));
+  // Soonest first, so the head of the bookable list is the next real date.
+  const next = bookable[0];
+  const cheapest = bookable.reduce<Workshop | null>(
+    (low, workshop) => (!low || workshop.price.amount < low.price.amount ? workshop : low),
+    null,
+  );
+
   return (
-    <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-      <div className="col-span-12 md:col-span-6 lg:col-span-7">
-        <Reveal>
-          <p className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text">
-            <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-            Upcoming events
+    <div>
+      <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
+        <div className="col-span-12 md:col-span-6 lg:col-span-7">
+          <Reveal>
+            <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
+              <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
+              {/* "Now booking" is a state, not a boast — and it is only true
+                  while something can be booked. */}
+              {bookable.length > 0
+                ? `Now booking · ${count} ${count === 1 ? "date" : "dates"}`
+                : "Upcoming events"}
+            </p>
+          </Reveal>
+
+          <h2 id="upcoming-events-heading" className="mt-8 md:mt-11 lg:mt-14">
+            {/*
+              Two lines, one trigger, each rising from behind its own mask —
+              the same device as the brand statement, at a smaller scale. The
+              explicit space keeps the accessible name reading as a sentence.
+
+              The action first and the reward second, which is the order a
+              headline sells in. Both stay short enough to hold one line at
+              every width: a wrap inside a masked line would double its height
+              and break the run against the line beneath it.
+            */}
+            <Stagger>
+              <HeadingLine>Book your place.</HeadingLine>{" "}
+              <HeadingLine>Take something home.</HeadingLine>
+            </Stagger>
+          </h2>
+        </div>
+
+        <Reveal
+          delay={0.2}
+          className="col-span-12 mt-8 md:col-span-5 md:col-start-8 md:mt-0 md:pb-2 lg:col-span-4 lg:col-start-9"
+        >
+          <p className="max-w-[26rem] text-body leading-[1.85] text-text/80">
+            Hands-on creative events at selected malls, on scheduled dates and at fixed times.
+            Every material provided — bring nothing but yourself.
+          </p>
+          {/*
+            The objection this section actually has to answer. Both halves are
+            plainly true: checkout is guest-only with four fields, and there is
+            no account to make anywhere on the site.
+          */}
+          <p className="mt-5 max-w-[26rem] text-body font-medium leading-[1.85] text-text">
+            No account needed — booking takes two minutes.
           </p>
         </Reveal>
-
-        <h2 id="upcoming-events-heading" className="mt-8 md:mt-11 lg:mt-14">
-          {/*
-            Two lines, one trigger, each rising from behind its own mask — the
-            same device as the brand statement, at a smaller scale. The
-            explicit space keeps the accessible name reading as a sentence.
-
-            "Find your next creative session" over the warmer alternatives:
-            this is the one section on the homepage with something to sell, and
-            the heading should name the thing on offer rather than describe a
-            feeling. It is still an invitation — it just tells you what you are
-            being invited to.
-          */}
-          <Stagger>
-            <HeadingLine>Find your next</HeadingLine> <HeadingLine>creative event.</HeadingLine>
-          </Stagger>
-        </h2>
       </div>
 
-      <Reveal
-        delay={0.2}
-        className="col-span-12 mt-8 md:col-span-5 md:col-start-8 md:mt-0 md:pb-2 lg:col-span-4 lg:col-start-9"
-      >
-        <p className="max-w-[26rem] text-[0.95rem] leading-[1.85] text-text/80">
-          Join us for hands-on creative events at selected malls, on scheduled dates and at
-          fixed times. Everything is provided — bring nothing but yourself.
-        </p>
-        {count > 0 ? (
-          // A count, not a claim. The one number in the header, and it is
-          // simply true — which is the register the whole section holds.
-          <p className="mt-6 text-[0.68rem] font-medium uppercase tracking-eyebrow text-text/75">
-            {count} {count === 1 ? "event" : "events"} scheduled
-          </p>
-        ) : null}
-      </Reveal>
+      {next && cheapest ? <BookingStrip next={next} cheapest={cheapest} /> : null}
+    </div>
+  );
+}
+
+/**
+ * The three numbers, and the action.
+ *
+ * A price, a date and a seat count — the whole of what someone weighs before
+ * deciding to look closer, gathered above the list instead of made them hunt
+ * for it across three blocks.
+ *
+ * The figures stay in Charcoal Slate rather than taking the accent. Warm
+ * Terracotta measures 3.07:1 on this ground, under the 4.5:1 body-sized text
+ * owes, and urgency that only exists for readers who can see a colour is not
+ * urgency. The words carry it: "3 spots left" is doing the work, not the ink.
+ */
+function BookingStrip({ next, cheapest }: { next: Workshop; cheapest: Workshop }) {
+  const { weekday, day, month } = sessionDateParts(next.startsAt);
+
+  return (
+    <Reveal variant="fadeIn" delay={0.3}>
+      <div className="mt-11 flex flex-col gap-8 border-t border-line pt-8 md:mt-14 md:flex-row md:items-end md:justify-between md:gap-10">
+        <dl className="grid grid-cols-2 gap-x-8 gap-y-7 sm:grid-cols-3 md:gap-x-12 lg:gap-x-16">
+          <Stat term="From">
+            {formatPrice(cheapest.price)}
+            <span className="mt-1 block text-fine font-normal text-text/75">per person</span>
+          </Stat>
+          <Stat term="Next date">
+            <time dateTime={next.startsAt}>
+              {weekday} {day} {month}
+            </time>
+            {next.venue ? (
+              <span className="mt-1 block text-fine font-normal text-text/75">
+                {next.venue.name}
+              </span>
+            ) : null}
+          </Stat>
+          <Stat term="Places">
+            {spotsLabel(next)}
+            <span className="mt-1 block text-fine font-normal text-text/75">on the next date</span>
+          </Stat>
+        </dl>
+
+        {/*
+          The one filled control on the homepage, and the point of the change:
+          the section's only affordance used to be a line of underlined type
+          after the whole list, which is a way out of a section rather than a
+          way into a booking. Deep Lilac with white on it clears 5.06:1 — the
+          same button the booking flow ends on, so this is the site's own
+          language spoken louder rather than a new one.
+        */}
+        <Link
+          href="/events"
+          className="group inline-flex w-full shrink-0 items-center justify-center gap-2.5 bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow text-white transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
+        >
+          Book a place
+          <span
+            aria-hidden
+            className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+          >
+            &#8594;
+          </span>
+        </Link>
+      </div>
+    </Reveal>
+  );
+}
+
+/** One figure in the strip: a quiet label over a value set at lead size. */
+function Stat({ term, children }: { term: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <dt className="text-label font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
+      <dd className="mt-2 text-lead font-medium leading-snug text-text">{children}</dd>
     </div>
   );
 }
@@ -233,7 +349,7 @@ function NoSessions() {
       <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em] md:text-[1.75rem]">
         The next dates are being set.
       </p>
-      <p className="mt-5 max-w-[32rem] text-[0.95rem] leading-[1.85] text-text/75">
+      <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">
         New events are announced as each mall is confirmed. The full programme stays open to
         browse in the meantime.
       </p>
@@ -251,7 +367,7 @@ function ViewAllLink({ className }: { className?: string }) {
     <div className={className}>
       <Link
         href="/events"
-        className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
+        className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
       >
         <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
           See all upcoming events

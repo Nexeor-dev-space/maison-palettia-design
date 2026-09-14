@@ -218,7 +218,7 @@ function SearchExperience({ onClose, workshops }: { onClose: () => void; worksho
   return (
     <>
       <div className="flex items-start justify-between gap-6">
-        <h2 id={headingId} className="text-[0.68rem] font-medium uppercase tracking-eyebrow text-white">
+        <h2 id={headingId} className="text-label font-medium uppercase tracking-eyebrow text-white">
           Search Maison Palettia
         </h2>
         <button
@@ -240,7 +240,7 @@ function SearchExperience({ onClose, workshops }: { onClose: () => void; worksho
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             aria-labelledby={headingId}
-            placeholder="Search events, workshops, and more"
+            placeholder="Search events by name, type or location"
             autoComplete="off"
             className="w-full bg-transparent text-xl font-light text-white placeholder:text-white/95 outline-none lg:text-lg"
           />
@@ -275,7 +275,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
 
   return (
     <div>
-      <p className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-white">
+      <p className="text-label font-medium uppercase tracking-eyebrow text-white">
         Popular searches
       </p>
       <ul className="mt-4 flex flex-wrap gap-2.5">
@@ -284,7 +284,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
             <button
               type="button"
               onClick={() => onPick(term)}
-              className="rounded-pill border border-white/20 px-4 py-2 text-[0.8rem] text-white transition-colors duration-200 ease-soft hover:border-sage hover:text-sage"
+              className="rounded-pill border border-white/20 px-4 py-2 text-fine text-white transition-colors duration-200 ease-soft hover:border-sage hover:text-sage"
             >
               {term}
             </button>
@@ -300,14 +300,14 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
 function NoResults({ onNavigate }: { onNavigate: () => void }) {
   return (
     <div>
-      <p className="text-[0.95rem] font-medium text-white">No events found</p>
-      <p className="mt-2 text-[0.85rem] text-white/95">
+      <p className="text-body font-medium text-white">No events found</p>
+      <p className="mt-2 text-fine text-white/95">
         Try searching for another event, location, or activity.
       </p>
       <Link
         href={WORKSHOPS_HREF}
         onClick={onNavigate}
-        className="group mt-6 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-sage"
+        className="group mt-6 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-sage"
       >
         <span className="border-b border-sage/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
           View all events
@@ -366,15 +366,15 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-white">
+        <p className="text-label font-medium uppercase tracking-eyebrow text-white">
           {workshop.category}
         </p>
-        <h3 className="mt-1 truncate text-[1rem] font-medium leading-snug text-white">
+        <h3 className="mt-1 truncate text-body font-medium leading-snug text-white">
           <Link href={workshopHref(workshop)} onClick={onNavigate} className="after:absolute after:inset-0">
             {workshop.title}
           </Link>
         </h3>
-        <p className="mt-1 truncate text-[0.8rem] text-white/95">
+        <p className="mt-1 truncate text-fine text-white/95">
           {formatWorkshopDate(workshop.startsAt)}
           <span aria-hidden className="px-1.5 text-white/80">
             &middot;
@@ -393,7 +393,7 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
 
       <span
         aria-hidden
-        className="hidden shrink-0 items-center gap-2 text-[0.62rem] font-medium uppercase tracking-eyebrow text-sage lg:flex"
+        className="hidden shrink-0 items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-sage lg:flex"
       >
         View event
         <span className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">

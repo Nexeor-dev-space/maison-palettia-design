@@ -40,8 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Video masters. The web derivatives beside them are what ship; the masters are
-# the source of truth and stay on disk. testimonial-bg.mp4 is 111 MiB, over
-# GitHub's 100 MiB hard limit, so committing it makes the branch unpushable.
-# Keep masters in shared storage (or Git LFS) rather than in history.
-/public/videos/testimonial-bg.mp4
+# Video masters now live in assets/video-masters/, outside public/, so they are
+# retained without being served — the same convention assets/creative-masters/
+# and assets/editorial-masters/ already follow. The web derivatives in
+# public/videos/ are what ship.
+#
+# testimonial-bg.mp4 stays ignored on top of that: it is 111 MiB, over GitHub's
+# 100 MiB hard limit, so committing it makes the branch unpushable. Keep it in
+# shared storage (or Git LFS) rather than in history.
+/assets/video-masters/testimonial-bg.mp4

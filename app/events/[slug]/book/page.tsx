@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return buildMetadata({
     title: workshop ? `Book — ${workshop.title}` : "Book an event",
     description: "Reserve your place at a Maison Palettia event.",
-    path: `/workshops/${slug}/book`,
+    path: `/events/${slug}/book`,
   });
 }
 
@@ -58,7 +58,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
       <Reveal>
         <Link
           href={workshopHref(workshop)}
-          className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
+          className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
         >
           <span
             aria-hidden
@@ -67,7 +67,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
             &#8592;
           </span>
           <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            Back to the session
+            Back to the event
           </span>
         </Link>
       </Reveal>
@@ -89,7 +89,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
             <h1 className="text-[1.75rem] font-light leading-[1.1] tracking-[-0.02em] md:text-[2.25rem]">
               Hold your place.
             </h1>
-            <p className="mt-5 max-w-[32rem] text-[0.95rem] leading-[1.85] text-text/80">
+            <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/80">
               Two minutes and you are booked. We only ask for what the studio needs on the day.
             </p>
           </Reveal>
@@ -127,10 +127,10 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
         </div>
 
         <div className="p-7 md:p-8">
-          <p className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75">
+          <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
             {workshop.category}
           </p>
-          <h2 className="mt-3 text-[1.2rem] font-medium leading-snug tracking-[-0.01em]">
+          <h2 className="mt-3 text-lead font-medium leading-snug tracking-[-0.01em]">
             {workshop.title}
           </h2>
 
@@ -138,7 +138,7 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
             {workshop.venue ? (
               <Row term="Where">
                 {workshop.venue.name}
-                <span className="mt-1 block text-[0.8rem] font-normal text-text/75">
+                <span className="mt-1 block text-fine font-normal text-text/75">
                   {workshop.venue.locality}
                 </span>
               </Row>
@@ -147,7 +147,7 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
               <time dateTime={workshop.startsAt}>
                 {weekday} {formatSessionDate(workshop.startsAt)}
               </time>
-              <span className="mt-1 block text-[0.8rem] font-normal text-text/75">
+              <span className="mt-1 block text-fine font-normal text-text/75">
                 <span className="tabular-nums">{start}</span>
                 <span aria-hidden> &ndash; </span>
                 <span className="sr-only">to</span>
@@ -160,7 +160,7 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
             </Row>
             <Row term="Price">
               {formatPrice(workshop.price)}
-              <span className="mt-1 block text-[0.8rem] font-normal text-text/75">per person</span>
+              <span className="mt-1 block text-fine font-normal text-text/75">per person</span>
             </Row>
           </dl>
         </div>
@@ -172,8 +172,8 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
 function Row({ term, children }: { term: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
-      <dd className="mt-2 text-[0.95rem] font-medium leading-snug text-text">{children}</dd>
+      <dt className="text-label font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
+      <dd className="mt-2 text-body font-medium leading-snug text-text">{children}</dd>
     </div>
   );
 }

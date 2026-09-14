@@ -2,9 +2,10 @@ import Link from "next/link";
 
 import { BackToTop } from "@/components/layout/BackToTop";
 import { Reveal } from "@/components/motion/Reveal";
+import { SocialIcons } from "@/components/layout/SocialIcons";
 import { Container } from "@/components/ui/Container";
 import { Signature } from "@/components/ui/Signature";
-import { CONTACT, FOOTER_NAV, LEGAL_NAV, SITE, SOCIAL_LINKS } from "@/lib/constants";
+import { CONTACT, FOOTER_NAV, LEGAL_NAV, SITE } from "@/lib/constants";
 import type { NavGroup } from "@/types";
 
 /**
@@ -42,7 +43,7 @@ import type { NavGroup } from "@/types";
  */
 const WORDMARK =
   "font-display font-normal leading-[1.06] tracking-normal " +
-  "text-[29vw] md:text-[min(15vw,17vh)] lg:text-[min(15.6vw,14rem,17vh)]";
+  "text-[20vw] md:text-[min(12.5vw,14vh)] lg:text-[min(12.5vw,11rem,14vh)]";
 
 /**
  * Global site footer — the last room.
@@ -96,16 +97,30 @@ export function Footer() {
         instead of stretching with the footer's contents.
       */}
       {/*
-        The arch takes a ceiling against the window for the same reason the
-        wordmark does — it is the tallest single thing here after the mark, and
-        the footer has to fit the screen it is pinned to.
+        DEEPER THAN IT WAS, because the client could not see it.
+
+        Measured before changing anything: at 1440px the arch rose 101px over
+        1440 of width — a 1:14 sweep, which is a very slightly bent line rather
+        than an arch. The colours are not the problem to solve here; sage
+        against the page's off-white measures 1.3:1, which is enough for a
+        shape this size, and the cream the corners reveal is 1.03:1 against the
+        sage on purpose so the curve reads as one clean edge rather than as a
+        band with its own outline.
+
+        What was missing was rise. These figures give roughly 1:9 on a desktop
+        and 1:6 on a phone, which is a curve you see rather than infer. It
+        costs about 60px on a desktop and 22px on a phone, and the spacing
+        below gives back several times that.
+
+        The ceiling against the window stays for the reason it always had: the
+        footer is pinned and has to fit the screen — see <FooterReveal>.
       */}
       <div
         aria-hidden
-        className="arch h-[min(7vw,8vh)] max-h-36 min-h-10 w-full bg-sage [--arch-rise:100%]"
+        className="arch h-[min(16vw,18vh)] max-h-52 min-h-16 w-full bg-sage [--arch-rise:100%]"
       />
 
-      <div className="bg-sage pb-10 pt-6 md:pb-12 md:pt-8 lg:pb-[min(3.5rem,5vh)]">
+      <div className="bg-sage pb-8 pt-4 md:pb-10 md:pt-5 lg:pb-[min(2.75rem,4vh)]">
         <Container>
           {/* 01 — the mark, and the first thing under the arch. */}
           <Reveal>
@@ -124,7 +139,7 @@ export function Footer() {
 
           {/* 01b — the farewell, in the Maison's signage voice. */}
           <Reveal variant="fadeIn" delay={0.15}>
-            <Signature ground="sage" className="mt-6 text-center md:mt-8">
+            <Signature ground="sage" className="mt-4 text-center md:mt-5">
               see you at the maison
             </Signature>
           </Reveal>
@@ -140,10 +155,10 @@ export function Footer() {
             dropping the landmark out of the accessibility tree, which is a bad
             trade for an alignment nothing else depends on.
           */}
-          <div className="mx-auto mt-12 grid max-w-site grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-4 md:mt-14 lg:mt-[min(4rem,5.5vh)] lg:gap-x-10">
+          <div className="mx-auto mt-9 grid max-w-site grid-cols-2 gap-x-6 gap-y-9 sm:grid-cols-4 md:mt-10 lg:mt-[min(2.75rem,4vh)] lg:gap-x-10">
             <nav
               aria-label="Footer"
-              className="col-span-2 grid grid-cols-2 gap-x-6 gap-y-12 sm:col-span-3 sm:grid-cols-3 lg:gap-x-10"
+              className="col-span-2 grid grid-cols-2 gap-x-6 gap-y-9 sm:col-span-3 sm:grid-cols-3 lg:gap-x-10"
             >
               {FOOTER_NAV.map((group) => (
                 <FooterGroup key={group.title} group={group} />
@@ -152,61 +167,66 @@ export function Footer() {
 
             <div className="col-span-2 sm:col-span-1">
               <GroupHeading>Connect</GroupHeading>
-              <ul className="mt-5 flex flex-col gap-3">
-                {SOCIAL_LINKS.map(({ label, href }) => (
-                  <li key={label}>
-                    {href ? (
-                      <a href={href} target="_blank" rel="noopener noreferrer" className={LINK}>
-                        <LinkLabel>{label}</LinkLabel>
-                      </a>
-                    ) : (
-                      // No href yet. Rendered as plain text rather than as a
-                      // dead link, so nothing looks clickable that is not.
-                      <span className="text-sm text-text/75">{label}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              {/*
+                Marks rather than words — see <SocialIcons>, which also holds
+                the rule for what happens to a platform that has no URL yet and
+                the pull-left that keeps the icons' 44px touch targets from
+                indenting the row past the columns beside it.
+              */}
+              {/*
+                Two columns on a phone, one from `sm`. The Connect block is the
+                only cell in the map that carries two unrelated things, and
+                stacking them made it the tallest row in the footer — 500px of
+                a 1081px footer at 360px wide, most of it this. Side by side
+                they cost one row instead of two, which is the difference
+                between considering the mobile hierarchy and just letting the
+                desktop one fall over.
+              */}
+              <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-1">
+                <SocialIcons />
 
-              <address className="mt-7 not-italic text-sm leading-[1.9] text-text/75">
-                {CONTACT.addressLines.map((line) => (
-                  <span key={line} className="block">
-                    {line}
-                  </span>
-                ))}
-                {CONTACT.email ? (
-                  <a href={`mailto:${CONTACT.email}`} className={`${LINK} mt-3`}>
-                    <LinkLabel>{CONTACT.email}</LinkLabel>
-                  </a>
-                ) : null}
-                {CONTACT.phone ? (
-                  <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className={LINK}>
-                    <LinkLabel>{CONTACT.phone}</LinkLabel>
-                  </a>
-                ) : null}
-              </address>
+                <address className="not-italic text-body leading-[1.85] text-text/75 sm:mt-2">
+                  {CONTACT.addressLines.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
+                  {CONTACT.email ? (
+                    <a href={`mailto:${CONTACT.email}`} className={`${LINK} mt-3`}>
+                      <LinkLabel>{CONTACT.email}</LinkLabel>
+                    </a>
+                  ) : null}
+                  {CONTACT.phone ? (
+                    <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className={LINK}>
+                      <LinkLabel>{CONTACT.phone}</LinkLabel>
+                    </a>
+                  ) : null}
+                </address>
+              </div>
             </div>
           </div>
 
           {/* 05 — the utility, floated at the foot of the measure. */}
           <Reveal variant="fadeIn">
-            <div className="mx-auto mt-12 flex max-w-site justify-start md:mt-14 md:justify-end">
+            <div className="mx-auto mt-8 flex max-w-site justify-start md:mt-9 md:justify-end">
               <BackToTop />
             </div>
           </Reveal>
 
           {/* 04 — the last line. */}
           <Reveal variant="fadeIn">
-            <div className="mx-auto mt-8 flex max-w-site flex-col gap-4 border-t border-text/20 pt-6 text-[0.68rem] uppercase tracking-eyebrow text-text/75 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto mt-6 flex max-w-site flex-col gap-3 border-t border-text/20 pt-5 text-fine uppercase tracking-[0.1em] text-text/75 sm:flex-row sm:items-center sm:justify-between">
               <p>
                 &copy; {year} {SITE.legalName}
               </p>
               <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">
                 {LEGAL_NAV.map((item) => (
                   <li key={item.href}>
+                    {/* Same invisible pad as the nav links above — these set a
+                        13px line box, the smallest targets on the site. */}
                     <Link
                       href={item.href}
-                      className="transition-colors duration-300 ease-soft hover:text-primary"
+                      className="relative inline-flex transition-colors duration-300 ease-soft hover:text-primary after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']"
                     >
                       {item.label}
                     </Link>
@@ -231,7 +251,7 @@ function FooterGroup({ group }: { group: NavGroup }) {
   return (
     <div>
       <GroupHeading>{group.title}</GroupHeading>
-      <ul className="mt-5 flex flex-col gap-3">
+      <ul className="mt-4 flex flex-col gap-2.5">
         {group.items.map((item) => (
           <li key={item.href}>
             <Link href={item.href} className={LINK}>
@@ -246,15 +266,30 @@ function FooterGroup({ group }: { group: NavGroup }) {
 
 function GroupHeading({ children }: { children: string }) {
   return (
-    <h2 className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+    <h2 className="text-fine font-medium uppercase tracking-[0.14em] text-text/75">
       {children}
     </h2>
   );
 }
 
 /** The row a footer link sits in. The rule lives on the label inside it. */
+/**
+ * A footer link, and the reason it carries an invisible pad.
+ *
+ * The text sets a 20px line box, and these are list items rather than links
+ * inside a sentence — so WCAG 2.5.8's 24x24 minimum applies to them with no
+ * inline exception to fall back on. Measured on a 360px phone, every link in
+ * this footer came in at 20px high.
+ *
+ * The fix is a pseudo-element rather than padding, because padding here would
+ * push the three columns apart and re-space a footer that is already tuned.
+ * `after:-inset-y-1.5` extends the hit area to 32px without moving a pixel of
+ * type; the rule under the label stays where it was. Nothing is drawn — the
+ * pseudo-element has no background.
+ */
 const LINK =
-  "group inline-flex text-sm text-text transition-colors duration-300 ease-soft hover:text-primary";
+  "group relative inline-flex text-body text-text transition-colors duration-300 ease-soft " +
+  "hover:text-primary after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']";
 
 /**
  * A link's text, with the rule that draws itself on hover.

@@ -12,7 +12,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Contact",
   description:
-    "Ask the Maison about an event, a booking or working together — or find an upcoming session and keep a place.",
+    "Ask the Maison about an event, a booking or working together — or find an upcoming event and keep a place.",
   path: "/contact",
 });
 
@@ -56,7 +56,7 @@ function Invitation() {
   return (
     <Container as="section" aria-labelledby="contact-intro" className="pt-[4rem] md:pt-[6rem] lg:pt-[7rem]">
       <Reveal>
-        <p className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text">
+        <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
           <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
           Contact
         </p>
@@ -77,7 +77,7 @@ function Invitation() {
       */}
       <div className="mt-12 grid grid-cols-12 gap-x-6 md:mt-16 lg:gap-x-10">
         <Reveal delay={0.15} className="col-span-12 md:col-span-7 md:col-start-6 lg:col-span-6 lg:col-start-7">
-          <p className="text-[1.15rem] font-light leading-[1.7] text-text md:text-[1.35rem]">
+          <p className="text-lead font-light leading-[1.7] text-text md:text-[1.35rem]">
             Whether it is a question about an upcoming event, a place you would like to keep, or
             something you would like to make with us — write to the Maison and we will take it
             from there.
@@ -140,7 +140,7 @@ function Enquiry() {
             >
               Write to us
             </h2>
-            <p className="mt-5 max-w-[30rem] text-[0.95rem] leading-[1.85] text-muted">
+            <p className="mt-5 max-w-[30rem] text-body leading-[1.85] text-muted">
               A few lines is plenty. Tell us what you are after and we will come back to you.
             </p>
           </Reveal>
@@ -194,7 +194,7 @@ function Details() {
               */}
               <Link
                 href="/events"
-                className="mt-4 inline-block border-b border-terracotta/50 pb-1 text-[0.8rem] transition-colors duration-300 ease-soft hover:border-terracotta"
+                className="mt-4 inline-block border-b border-terracotta/50 pb-1 text-fine transition-colors duration-300 ease-soft hover:border-terracotta"
               >
                 Venues are listed with each event
               </Link>
@@ -251,8 +251,8 @@ function Details() {
 function Block({ term, children }: { term: string; children: React.ReactNode }) {
   return (
     <div className="border-b border-line py-7">
-      <dt className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
-      <dd className="mt-3 text-[0.95rem] leading-[1.8] text-text">{children}</dd>
+      <dt className="text-label font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
+      <dd className="mt-3 text-body leading-[1.8] text-text">{children}</dd>
     </div>
   );
 }
@@ -275,7 +275,7 @@ function EventsCta() {
         <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
           <div className="col-span-12 lg:col-span-7">
             <Reveal>
-              <p className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-cream/75">
+              <p className="text-label font-medium uppercase tracking-eyebrow text-cream/75">
                 Looking for an event?
               </p>
               <h2
@@ -290,14 +290,14 @@ function EventsCta() {
 
           <div className="col-span-12 mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0">
             <Reveal delay={0.15}>
-              <p className="max-w-[24rem] text-[0.95rem] leading-[1.85] text-cream/80">
-                Every session lists its venue, its times and what you will make. If you already
+              <p className="max-w-[24rem] text-body leading-[1.85] text-cream/80">
+                Every event lists its venue, its times and what you will make. If you already
                 know what you are after, it is quicker than writing to us.
               </p>
 
               <Link
                 href="/events"
-                className="group mt-9 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-cream"
+                className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-cream"
               >
                 <span className="border-b border-sage/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
                   Explore upcoming events

@@ -146,7 +146,7 @@ export function WorkshopsMenu({
         aria-expanded={isOpen}
         aria-controls={menuId}
         onClick={() => (isOpen ? closeNow() : openNow())}
-        className={cn(linkClassName, "cursor-pointer")}
+        className={cn(linkClassName, "cursor-pointer items-center")}
       >
         {/*
           The rule is drawn while the menu is open as well as on the current
@@ -155,6 +155,29 @@ export function WorkshopsMenu({
           down reads as the panel belonging to nothing.
         */}
         <NavLabel isActive={isActive || isOpen}>{label}</NavLabel>
+        {/*
+          The one thing that says this entry has something behind it.
+
+          Without it the trigger is a word that happens to open a panel when a
+          pointer crosses it, which a visitor only discovers by accident and a
+          touch visitor never discovers at all. `aria-hidden` because
+          `aria-expanded` on the button already says the same thing properly;
+          this is the visual half.
+
+          A 7px mark rather than a chevron glyph from the icon set: at this
+          size a drawn triangle sits on the baseline predictably, and the row
+          is small enough that a stroked chevron reads as fuzz.
+        */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 8 5"
+          className={cn(
+            "ml-2 h-[5px] w-2 shrink-0 fill-current transition-transform duration-300 ease-soft",
+            isOpen && "rotate-180",
+          )}
+        >
+          <path d="M0 0h8L4 5z" />
+        </svg>
       </button>
 
       {/*
@@ -212,7 +235,7 @@ export function WorkshopsMenu({
                     is worth the extra margin regardless of which ground ends
                     up live next.
                   */}
-                  <p className="mt-2 text-[0.8rem] leading-relaxed text-white/95">
+                  <p className="mt-2 text-fine leading-relaxed text-white/95">
                     {strand.description}
                   </p>
                 </Link>
@@ -228,7 +251,7 @@ export function WorkshopsMenu({
           <Link
             href={href}
             onClick={closeNow}
-            className="group mt-12 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-white"
+            className="group mt-12 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-white"
           >
             <span className="border-b border-sage/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
               See every upcoming event

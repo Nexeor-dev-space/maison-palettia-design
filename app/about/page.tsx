@@ -3,9 +3,11 @@ import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
+import { EditorialStatement } from "@/components/sections/EditorialStatement";
+import { JustAdded } from "@/components/sections/JustAdded";
 import { Container } from "@/components/ui/Container";
 import { Signature } from "@/components/ui/Signature";
-import { BRAND_INTRO_IMAGE, EXPERIENCE_IMAGES, MAISON_PHILOSOPHY } from "@/lib/constants";
+import { BRAND_INTRO_IMAGE, EDITORIAL_PANELS, EXPERIENCE_IMAGES, MAISON_PHILOSOPHY } from "@/lib/constants";
 import { getDisciplines } from "@/lib/disciplines";
 import { buildMetadata } from "@/lib/seo";
 import type { Discipline } from "@/types";
@@ -24,9 +26,18 @@ const STATEMENT_LINE =
 /**
  * About — the story, told the way the rest of the site talks.
  *
- * This was a scaffold. It is now five movements: a statement, the Maison's own
- * philosophy against a photograph, the four things you can actually make here,
- * a visual aside, and the way through to the programme.
+ * This was a scaffold, then five movements, and is now eight: a statement, the
+ * Maison's own philosophy against a photograph, an editorial spread, the four
+ * things you can actually make here, a visual aside, a second spread, what has
+ * come out of the room lately, and the way through to the programme.
+ *
+ * IT GREW BECAUSE THE HOMEPAGE SHRANK. The homepage was carrying four
+ * sections of brand storytelling between a visitor and a date they could
+ * book. Three of those were duplicates of what this page already said — the
+ * philosophy from the same constant, the strands from the same source — so
+ * they were simply dropped there; the two editorial spreads and the
+ * just-added strip are real content with nowhere else to be, and they are
+ * here. The homepage introduces, this page explains, /events converts.
  *
  * EVERY WORD ON THIS PAGE ALREADY EXISTED. The statement and the paragraph are
  * the brand introduction's own copy, the philosophy block is
@@ -49,8 +60,35 @@ export default async function AboutPage() {
     <>
       <Introduction />
       <TheMaison />
+
+      {/*
+        The first of the two editorial spreads that used to break up the
+        homepage. They belong to the story rather than to the booking journey,
+        and this is the page that tells the story — see the note on the
+        homepage for the rest of that argument.
+      */}
+      <EditorialStatement panel={EDITORIAL_PANELS.movement} spread="foot" />
+
       <TheExperience disciplines={disciplines} />
       <VisualStory />
+
+      {/*
+        Set as a `foot` spread, not the `field` one it was built for. That
+        spread lays charcoal type straight on the picture with a light wash,
+        and it needs a pale, quiet photograph to do it. The client's shelved
+        pots are neither: measured, charcoal came out at 1.0-1.8:1 against
+        them, and the cream wash heavy enough to fix that erased the
+        photograph. Under the dark scrim with cream type every element clears
+        its bar — worst 4.5:1 — at half the overlay, so the pots stay visible.
+        See the note on the plate in lib/constants.ts.
+      */}
+      <EditorialStatement panel={EDITORIAL_PANELS.making} spread="foot" />
+
+      {/* What has come out of the room lately — the closest thing the site has
+          to behind-the-scenes, and squarely About's business rather than the
+          homepage's. */}
+      <JustAdded />
+
       <EventsCta />
     </>
   );
@@ -61,7 +99,7 @@ function Introduction() {
   return (
     <Container as="section" aria-labelledby="about-intro" className="pt-[4rem] md:pt-[6rem] lg:pt-[7rem]">
       <Reveal>
-        <p className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text">
+        <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
           <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
           About the Maison
         </p>
@@ -82,7 +120,7 @@ function Introduction() {
             second one here would leave the site with two answers to the same
             question.
           */}
-          <p className="text-[1.15rem] font-light leading-[1.7] text-text md:text-[1.35rem]">
+          <p className="text-lead font-light leading-[1.7] text-text md:text-[1.35rem]">
             Maison Palettia is a creative space where art, craft and community come together. A
             place to slow down, make something with your hands, and leave with an experience
             that stays with you.
@@ -131,7 +169,7 @@ function TheMaison() {
 
           <div className="col-span-12 py-12 md:py-16 lg:col-span-5 lg:col-start-8 lg:py-24">
             <Reveal>
-              <p className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+              <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
                 {MAISON_PHILOSOPHY.eyebrow}
               </p>
 
@@ -148,7 +186,7 @@ function TheMaison() {
             </Reveal>
 
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[32rem] text-[0.98rem] leading-[1.85] text-text/80">
+              <p className="mt-8 max-w-[32rem] text-body leading-[1.85] text-text/80">
                 {MAISON_PHILOSOPHY.description}
               </p>
               {/*
@@ -185,7 +223,7 @@ function TheExperience({ disciplines }: { disciplines: Discipline[] }) {
     <Container as="section" aria-labelledby="the-experience" className="mt-[5.5rem] md:mt-[8rem] lg:mt-[9rem]">
       <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
         <Reveal className="col-span-12 md:col-span-6">
-          <p className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+          <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
             What you&rsquo;ll do
           </p>
           <h2
@@ -197,7 +235,7 @@ function TheExperience({ disciplines }: { disciplines: Discipline[] }) {
         </Reveal>
 
         <Reveal delay={0.15} className="col-span-12 mt-6 md:col-span-5 md:col-start-8 md:mt-0">
-          <p className="max-w-[24rem] text-[0.95rem] leading-[1.85] text-text/80">
+          <p className="max-w-[24rem] text-body leading-[1.85] text-text/80">
             Every event begins with one of these. No experience is assumed and nothing needs
             bringing — the table is set when you arrive.
           </p>
@@ -225,15 +263,15 @@ function TheExperience({ disciplines }: { disciplines: Discipline[] }) {
                 />
               </div>
               <p className="mt-6 flex items-center gap-3">
-                <span className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75">
+                <span className="text-label font-medium uppercase tracking-eyebrow text-text/75">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span aria-hidden className="h-px w-5 shrink-0 bg-terracotta" />
               </p>
-              <h3 className="mt-4 text-[1.15rem] font-medium uppercase tracking-[0.04em]">
+              <h3 className="mt-4 text-lead font-medium uppercase tracking-[0.04em]">
                 {strand.name}
               </h3>
-              <p className="mt-3 max-w-[20rem] text-[0.9rem] leading-[1.8] text-text/80">
+              <p className="mt-3 max-w-[20rem] text-body leading-[1.8] text-text/80">
                 {strand.description}
               </p>
             </Reveal>
@@ -275,7 +313,7 @@ function VisualStory() {
 
         <div className="col-span-12 mt-10 lg:col-span-3 lg:col-start-10 lg:mt-28">
           <Reveal delay={0.15}>
-            <p className="text-[1.05rem] font-light leading-[1.7] text-text md:text-[1.15rem]">
+            <p className="text-lead font-light leading-[1.7] text-text md:text-lead">
               A room, a table, and everything already laid out.
             </p>
           </Reveal>
@@ -316,7 +354,7 @@ function EventsCta() {
         <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
           <div className="col-span-12 lg:col-span-7">
             <Reveal>
-              <p className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-cream/75">
+              <p className="text-label font-medium uppercase tracking-eyebrow text-cream/75">
                 The programme
               </p>
               <h2
@@ -331,14 +369,14 @@ function EventsCta() {
 
           <div className="col-span-12 mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0">
             <Reveal delay={0.15}>
-              <p className="max-w-[24rem] text-[0.95rem] leading-[1.85] text-cream/80">
+              <p className="max-w-[24rem] text-body leading-[1.85] text-cream/80">
                 We set up in a different mall each week and run at fixed times. Find a date that
                 suits you and keep a place.
               </p>
 
               <Link
                 href="/events"
-                className="group mt-9 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-cream"
+                className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-cream"
               >
                 <span className="border-b border-sage/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
                   Explore events

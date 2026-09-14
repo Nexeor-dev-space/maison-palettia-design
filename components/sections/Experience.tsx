@@ -57,7 +57,7 @@ export function Experience() {
             begins and ends before any content does, which is what lets the
             rows below read as placed rather than drifting.
           */}
-          <p className="border-t border-text/20 pt-5 text-xs font-medium uppercase tracking-eyebrow text-text">
+          <p className="border-t border-text/20 pt-5 text-action font-medium uppercase tracking-eyebrow text-text">
             The Maison Palettia Experience
           </p>
         </Reveal>
@@ -77,7 +77,7 @@ export function Experience() {
 
           <div className="col-span-12 mt-10 lg:col-span-5 lg:col-start-8 lg:mt-2">
             <Reveal delay={0.1}>
-              <p className="max-w-[34rem] text-[0.95rem] leading-[1.85] text-text/80 md:text-base">
+              <p className="max-w-[34rem] text-body leading-[1.85] text-text/80 md:text-base">
                 At Maison Palettia, the process matters as much as the finished piece.
                 Come slow down, experiment, get your hands dirty, and enjoy making
                 something of your own.
@@ -195,7 +195,7 @@ function Plate({ image, shape, sizes, className }: PlateProps) {
       </div>
 
       <Reveal variant="fadeIn" delay={0.2}>
-        <figcaption className="mt-4 flex items-center gap-3 text-[0.65rem] uppercase tracking-eyebrow text-text/75 xs:text-[0.7rem]">
+        <figcaption className="mt-4 flex items-center gap-3 text-label uppercase tracking-eyebrow text-text/75 xs:text-action">
           <span aria-hidden className="h-px w-5 shrink-0 bg-text/25" />
           {image.caption}
         </figcaption>
@@ -214,7 +214,7 @@ function Plate({ image, shape, sizes, className }: PlateProps) {
 function Annotation({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <Reveal className={className}>
-      <p className="text-[1.05rem] font-light uppercase leading-[1.3] tracking-[0.22em] text-text/80 md:text-[1.2rem] lg:text-[1.35rem]">
+      <p className="text-lead font-light uppercase leading-[1.3] tracking-[0.22em] text-text/80 lg:text-[1.35rem]">
         {children}
       </p>
     </Reveal>

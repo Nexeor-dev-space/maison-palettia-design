@@ -21,15 +21,21 @@ import type { Workshop } from "@/types";
 /**
  * The proportions the index cycles through.
  *
- * Three plates at three shapes, repeating. A catalogue that sets every
- * photograph in the same frame reads as a product grid however much air is put
- * around it; varying the crop is what makes a run of sessions read as a
- * collection that was arranged rather than generated. The cycle is driven by
- * position in the list rather than by anything in the data, because it is
- * composition — the studio should not have to think about it when adding a
- * date.
+ * Two plates at two shapes, repeating. A catalogue that sets every photograph
+ * in the same frame reads as a product grid however much air is put around it;
+ * varying the crop is what makes a run of sessions read as a collection that
+ * was arranged rather than generated. The cycle is driven by position in the
+ * list rather than by anything in the data, because it is composition — the
+ * studio should not have to think about it when adding a date.
+ *
+ * BOTH ARE LANDSCAPE, AND SHORTER THAN THEY WERE. The cycle used to include a
+ * 5:6 portrait, which at the seven columns this plate spans stood 948px tall
+ * on a 1440 window — one session filling a screen and a half, so scanning the
+ * programme meant scrolling past pictures rather than reading dates. 3:2 and
+ * 16:9 bring that to 527px and 444px. The variation survives; the wall of
+ * photograph does not.
  */
-const PLATES = ["aspect-[4/3]", "aspect-[5/6]", "aspect-[3/2]"] as const;
+const PLATES = ["aspect-[3/2]", "aspect-[16/9]"] as const;
 
 /**
  * One event in the index.
@@ -81,11 +87,11 @@ export function EventIndexEntry({ workshop, index }: { workshop: Workshop; index
         )}
       >
         <p className="flex items-center gap-3">
-          <span className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+          <span className="text-label font-medium uppercase tracking-eyebrow text-text/75">
             {ordinal}
           </span>
           <span aria-hidden className="h-px w-5 shrink-0 bg-terracotta" />
-          <span className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+          <span className="text-label font-medium uppercase tracking-eyebrow text-text/75">
             {workshop.category}
           </span>
         </p>
@@ -130,7 +136,7 @@ export function EventIndexEntry({ workshop, index }: { workshop: Workshop; index
           </Fact>
         </dl>
 
-        <p className="mt-7 flex items-center gap-2.5 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text">
+        <p className="mt-7 flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
           {isScarce(workshop) ? (
             <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-pill bg-terracotta" />
           ) : null}
@@ -143,7 +149,7 @@ export function EventIndexEntry({ workshop, index }: { workshop: Workshop; index
         */}
         <span
           aria-hidden
-          className="mt-7 flex w-fit items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-eyebrow text-primary"
+          className="mt-7 flex w-fit items-center gap-3 text-action font-semibold uppercase tracking-eyebrow text-primary"
         >
           <span className="border-b border-primary/40 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
             {closed ? "View event" : "View event"}
@@ -160,12 +166,12 @@ export function EventIndexEntry({ workshop, index }: { workshop: Workshop; index
 function Fact({ term, children }: { term: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
-      <dd className="mt-2 text-[0.95rem] font-medium leading-snug text-text">{children}</dd>
+      <dt className="text-label font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
+      <dd className="mt-2 text-body font-medium leading-snug text-text">{children}</dd>
     </div>
   );
 }
 
 function Sub({ children }: { children: React.ReactNode }) {
-  return <span className="mt-1.5 block text-[0.82rem] font-normal text-text/75">{children}</span>;
+  return <span className="mt-1.5 block text-fine font-normal text-text/75">{children}</span>;
 }

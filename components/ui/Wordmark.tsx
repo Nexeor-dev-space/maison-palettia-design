@@ -45,14 +45,21 @@ export function Wordmark({ className, variant = "text" }: WordmarkProps) {
           height={LOGO.height}
           priority
           /*
-            Sized against the bar rather than against itself. The bar rests at
-            80px on a phone and 104px on a desktop, and a mark that stays at 40
-            in either is a logo floating in a header instead of the thing the
-            header is built around — roughly half the height at each step is
-            what makes it read as the anchor. The aspect is the file's own;
-            only the height is set.
+            Sized against the bar rather than against itself, and re-struck
+            when the bar grew.
+
+            At 56px in a 104px bar the mark filled 54% of the row and left
+            24px of air above and below — which reads as compressed rather
+            than as prominent, and is a large part of why the header felt
+            small despite already being tall. The bar now rests at 120px on a
+            desktop and the mark takes 52 of it: 43%, with 34px of air on
+            each side. The mark is larger in absolute terms than it was and
+            the row around it is calmer, which is the whole trade.
+
+            The aspect is the file's own; only the height is set, so the
+            artwork cannot distort.
           */
-          className="h-11 w-auto md:h-14"
+          className="h-11 w-auto md:h-13"
         />
       </Link>
     );

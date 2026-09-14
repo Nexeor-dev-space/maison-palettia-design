@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
  * Placeholder for the collection while workshop data is in flight.
  *
  * Not mounted yet. The homepage awaits its workshops in place — see the note
- * in <UpcomingWorkshops> on why a <Suspense> boundary is the wrong trade while
+ * in <UpcomingEvents> on why a <Suspense> boundary is the wrong trade while
  * the data is local — so this is here for the two places that will need it:
  * that boundary, once the CMS call is real, and the workshop listing page.
  *

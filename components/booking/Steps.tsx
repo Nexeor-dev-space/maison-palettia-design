@@ -12,7 +12,10 @@ import { Reveal } from "@/components/motion/Reveal";
  * `generateStaticParams` and all — into the bundle of everything that uses it.
  */
 export function Steps({ current }: { current: 1 | 2 }) {
-  const steps = ["Your details", "Payment"] as const;
+  // "Confirm", not "Payment". The second step no longer has a payment form on
+  // it — see <Checkout> — and a step labelled Payment that never asks for a
+  // card is a promise the flow does not keep.
+  const steps = ["Your details", "Confirm"] as const;
 
   return (
     <Reveal variant="fadeIn">
@@ -33,8 +36,8 @@ export function Steps({ current }: { current: 1 | 2 }) {
                 aria-current={active ? "step" : undefined}
                 className={
                   active
-                    ? "border-b-2 border-primary pb-1.5 text-[0.62rem] font-semibold uppercase tracking-eyebrow text-text"
-                    : "pb-1.5 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/70"
+                    ? "border-b-2 border-primary pb-1.5 text-label font-semibold uppercase tracking-eyebrow text-text"
+                    : "pb-1.5 text-label font-medium uppercase tracking-eyebrow text-text/70"
                 }
               >
                 {String(n).padStart(2, "0")} &nbsp;{label}

@@ -57,10 +57,14 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
         // Narrower flanks between 1024 and 1280, where the bar is at its
         // tightest: that is the band in which the inline nav exists and the
         // mark is centred, so the actions are held to exactly half of what the
-        // mark and the gaps leave over. Measured there with a booking held,
-        // the cluster overran that share by about 6px; these eight pixels are
-        // most of what buys it back. See the right track in <HeaderBar>.
-        bar ? "px-5 py-4 text-[0.7rem] leading-none lg:px-4 xl:px-6" : "px-6 py-4 text-xs leading-none",
+        // mark and the gaps leave over.
+        //
+        // Re-measured after Phase 1's type scale, which took this label to a
+        // true 12px control size and added about 9px to the button. With a
+        // booking held at 1024 the cluster wanted 403.3px of a 402.6px track;
+        // twelve here, with twelve in the gaps, clears it. Re-measure at 1024
+        // with the basket showing before changing any of it.
+        bar ? "px-5 py-4 text-action leading-none lg:px-3 xl:px-6" : "px-6 py-4 text-action leading-none",
         className,
       )}
     >

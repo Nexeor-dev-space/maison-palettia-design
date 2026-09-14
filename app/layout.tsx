@@ -3,6 +3,8 @@ import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { FooterReveal } from "@/components/layout/FooterReveal";
 import { Header } from "@/components/layout/Header";
+import { RouteProgress } from "@/components/layout/RouteProgress";
+import { WhatsAppWidget } from "@/components/layout/WhatsAppWidget";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { hapsha, montserrat, qarine } from "@/lib/fonts";
 import { defaultMetadata } from "@/lib/seo";
@@ -42,6 +44,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Header />
+        {/* 2px pending bar for client-side navigation. See the component for
+            why this is not app/loading.tsx. */}
+        <RouteProgress />
         {/*
           The two halves of the footer reveal; see <FooterReveal> for the whole
           mechanism.
@@ -65,6 +70,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <FooterReveal>
           <Footer />
         </FooterReveal>
+
+        {/* Last in the body so it sits above the page without a stacking
+            context of its own; renders nothing until it has a number. */}
+        <WhatsAppWidget />
       </body>
     </html>
   );

@@ -25,8 +25,12 @@ export function BackToTop({ className }: BackToTopProps) {
       type="button"
       onClick={scrollToTop}
       className={cn(
-        "group inline-flex items-center gap-2.5 text-[0.68rem] font-medium uppercase tracking-eyebrow text-text",
+        "group relative inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text",
         "transition-colors duration-300 ease-soft hover:text-primary",
+        // The label is 11px and sets a 21px box. Extended to a comfortable
+        // target with a pseudo-element rather than padding, so the footer's
+        // baseline grid is untouched — same device as the links beside it.
+        "after:absolute after:inset-x-0 after:-inset-y-2 after:content-['']",
         className,
       )}
     >

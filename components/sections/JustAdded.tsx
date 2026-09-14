@@ -9,7 +9,10 @@ import { cn } from "@/lib/utils";
 import type { RecentItem } from "@/types";
 
 /**
- * The heading. A step below the workshops heading above it, because this
+ * The heading. "From the studio", not "Just added" — the section shows
+ * photographs of work around the Maison and leads to the gallery, so the
+ * ecommerce framing of a new-arrivals shelf described neither what it holds
+ * nor where it goes. A step below the workshops heading above it, because this
  * section is the lighter one — a shelf of recent things, not a programme.
  */
 const HEADING_LINE =
@@ -94,7 +97,7 @@ export async function JustAdded() {
 
   return (
     <section
-      aria-labelledby="just-added-heading"
+      aria-labelledby="from-the-studio-heading"
       className="bg-surface py-[5.5rem] md:py-section lg:py-section-lg"
     >
       <Container>
@@ -124,15 +127,15 @@ function SectionHead() {
     <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
       <div className="col-span-12 md:col-span-6 lg:col-span-7">
         <Reveal>
-          <p className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text">
+          <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
             <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
             Recently at the Maison
           </p>
         </Reveal>
 
-        <h2 id="just-added-heading" className="mt-8 md:mt-11 lg:mt-14">
+        <h2 id="from-the-studio-heading" className="mt-8 md:mt-11 lg:mt-14">
           <Stagger>
-            <HeadingLine>Just added</HeadingLine>
+            <HeadingLine>From the studio</HeadingLine>
           </Stagger>
         </h2>
       </div>
@@ -141,7 +144,7 @@ function SectionHead() {
         delay={0.2}
         className="col-span-12 mt-7 md:col-span-5 md:col-start-8 md:mt-0 md:pb-2 lg:col-span-4 lg:col-start-9"
       >
-        <p className="max-w-[24rem] text-[0.95rem] leading-[1.85] text-text/80">
+        <p className="max-w-[24rem] text-body leading-[1.85] text-text/80">
           Fresh moments, new pieces and small things happening around the studio.
         </p>
         <SeeAllLink className="mt-7" />
@@ -231,16 +234,16 @@ function CollectionItem({ item, index }: { item: RecentItem; index: number }) {
           place by saying how far along the row you are — which is the one
           thing a strip with no dots cannot otherwise tell you.
         */}
-        <span aria-hidden className="text-[0.65rem] tabular-nums text-text/40">
+        <span aria-hidden className="text-label tabular-nums text-text/40">
           {String(index).padStart(2, "0")}
         </span>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[0.95rem] font-medium leading-snug text-text transition-colors duration-300 ease-soft group-hover:text-primary">
+          <h3 className="truncate text-body font-medium leading-snug text-text transition-colors duration-300 ease-soft group-hover:text-primary">
             {item.title}
           </h3>
           {/* /60 measured 3.6:1 at this size — under the 4.5:1 body copy owes. */}
-          <p className="mt-1 text-[0.7rem] uppercase tracking-eyebrow text-text/80">
+          <p className="mt-1 text-action uppercase tracking-eyebrow text-text/80">
             {item.subtitle}
             {/* Rendered only once the CMS dates an item — see `RecentItem`. */}
             {item.date ? <span className="text-text/40"> · {item.date}</span> : null}
@@ -260,7 +263,7 @@ function SeeAllLink({ className }: { className?: string }) {
     <div className={className}>
       <Link
         href="/gallery"
-        className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
+        className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
       >
         <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
           See the collection

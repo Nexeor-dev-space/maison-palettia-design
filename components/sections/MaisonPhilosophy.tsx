@@ -6,6 +6,17 @@ import { Signature } from "@/components/ui/Signature";
 import { MAISON_PHILOSOPHY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
+/*
+  PARKED — not mounted anywhere right now.
+
+  It rendered MAISON_PHILOSOPHY, which is exactly what /about's own "The
+  Maison" section renders from the same constant: same eyebrow, same two-line
+  title, same paragraph, same script accent. The homepage was making the
+  argument a second time, so the homepage copy was dropped rather than this
+  file deleted — the composition here differs from About's and is worth
+  keeping if the two pages ever want different treatments of the same words.
+*/
+
 /**
  * The statement's type. Stepped per breakpoint up to `xl`, then handed over to
  * the viewport.
@@ -99,7 +110,7 @@ export function MaisonPhilosophy() {
           content does.
         */}
         <Reveal>
-          <p className="border-t border-sage/70 pt-5 text-xs font-medium uppercase tracking-eyebrow text-surface">
+          <p className="border-t border-sage/70 pt-5 text-action font-medium uppercase tracking-eyebrow text-surface">
             {eyebrow}
           </p>
         </Reveal>
@@ -138,7 +149,7 @@ export function MaisonPhilosophy() {
                 Only a little: 34rem is around 72 characters, which is the top
                 of what stays comfortable to read.
               */}
-              <p className="max-w-[30rem] text-[0.95rem] leading-[1.85] text-surface md:text-base xl:max-w-[34rem]">
+              <p className="max-w-[30rem] text-body leading-[1.85] text-surface md:text-base xl:max-w-[34rem]">
                 {description}
               </p>
             </Reveal>

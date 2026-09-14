@@ -15,11 +15,11 @@ import { cn } from "@/lib/utils";
  * what an input looks like is one form too many.
  */
 const FIELD =
-  "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-[0.95rem] text-text " +
+  "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-body text-text " +
   "placeholder:text-text/40 transition-colors duration-300 ease-soft " +
   "focus:border-primary focus:outline-none focus:ring-0";
 
-const LABEL = "block text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75";
+const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
 
 /**
  * The enquiry form.
@@ -137,7 +137,7 @@ export function ContactForm() {
             */}
             <span
               aria-hidden
-              className="pointer-events-none absolute bottom-4 right-1 text-[0.7rem] text-text/70"
+              className="pointer-events-none absolute bottom-4 right-1 text-action text-text/70"
             >
               &#9662;
             </span>
@@ -157,7 +157,7 @@ export function ContactForm() {
             className={cn(FIELD, "resize-y", errors.message && "border-terracotta")}
           />
           {errors.message ? (
-            <p id={`${ids}-message-error`} className="mt-2 text-[0.78rem] text-text">
+            <p id={`${ids}-message-error`} className="mt-2 text-fine text-text">
               {errors.message}
             </p>
           ) : null}
@@ -169,7 +169,7 @@ export function ContactForm() {
         disabled={submitting}
         className={cn(
           "group mt-12 inline-flex w-full items-center justify-center gap-2.5 px-8 py-5",
-          "text-[0.72rem] font-medium uppercase leading-none tracking-eyebrow",
+          "text-action font-medium uppercase leading-none tracking-eyebrow",
           "bg-primary text-white transition-colors duration-300 ease-soft",
           "hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
         )}
@@ -190,21 +190,21 @@ export function ContactForm() {
       */}
       {result?.status === "unconfigured" ? (
         <div role="status" className="mt-10 border-l-2 border-terracotta bg-cream/60 p-7 md:p-8">
-          <p className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text">
+          <p className="text-label font-medium uppercase tracking-eyebrow text-text">
             This message was not sent
           </p>
-          <p className="mt-4 max-w-[36rem] text-[0.9rem] leading-[1.8] text-text/80">
+          <p className="mt-4 max-w-[36rem] text-body leading-[1.8] text-text/80">
             The Maison has no inbox connected to this form yet, so nothing you have typed has
             been delivered anywhere and no one has been notified. Please do not treat this as
             received.
           </p>
-          <p className="mt-5 max-w-[36rem] text-[0.9rem] leading-[1.8] text-text/80">
+          <p className="mt-5 max-w-[36rem] text-body leading-[1.8] text-text/80">
             Every upcoming event is listed with its venue and its times, and places can be held
             from there.
           </p>
           <Link
             href="/events"
-            className="group mt-7 inline-flex items-center gap-3 text-[0.68rem] font-medium uppercase tracking-eyebrow text-text"
+            className="group mt-7 inline-flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text"
           >
             <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
               See upcoming events
@@ -258,7 +258,7 @@ function Field({
         className={cn(FIELD, error && "border-terracotta")}
       />
       {error ? (
-        <p id={`${id}-error`} className="mt-2 text-[0.78rem] text-text">
+        <p id={`${id}-error`} className="mt-2 text-fine text-text">
           {error}
         </p>
       ) : null}

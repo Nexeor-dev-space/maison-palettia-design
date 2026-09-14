@@ -131,11 +131,11 @@ export function WorkshopFeature({
       >
         <Reveal delay={0.1}>
           <p className="flex items-center gap-4">
-            <span className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text">
+            <span className="text-label font-medium uppercase tracking-eyebrow text-text">
               {index}
             </span>
             <span aria-hidden className="h-px w-8 shrink-0 bg-terracotta" />
-            <span className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+            <span className="text-label font-medium uppercase tracking-eyebrow text-text/75">
               {workshop.category}
             </span>
           </p>
@@ -155,10 +155,10 @@ export function WorkshopFeature({
           <div className="mt-9 border-t border-text/15 pt-8">
             {workshop.venue ? (
               <Field term="Where">
-                <span className="block text-[1.05rem] font-medium leading-snug text-text">
+                <span className="block text-lead font-medium leading-snug text-text">
                   {workshop.venue.name}
                 </span>
-                <span className="mt-1.5 block text-[0.85rem] text-text/75">
+                <span className="mt-1.5 block text-fine text-text/75">
                   {workshop.venue.locality}
                 </span>
               </Field>
@@ -168,11 +168,11 @@ export function WorkshopFeature({
               <Field term="Date">
                 <time
                   dateTime={workshop.startsAt}
-                  className="block text-[1.05rem] font-medium leading-snug text-text"
+                  className="block text-lead font-medium leading-snug text-text"
                 >
                   {formatSessionDate(workshop.startsAt)}
                 </time>
-                <span className="mt-1.5 block text-[0.85rem] text-text/75">
+                <span className="mt-1.5 block text-fine text-text/75">
                   <time dateTime={durationToIso(workshop.durationMinutes)}>
                     {formatDuration(workshop.durationMinutes)}
                   </time>
@@ -180,10 +180,10 @@ export function WorkshopFeature({
               </Field>
 
               <Field term="Price">
-                <span className="block text-[1.05rem] font-medium leading-snug text-text">
+                <span className="block text-lead font-medium leading-snug text-text">
                   {formatPrice(workshop.price)}
                 </span>
-                <span className="mt-1.5 block text-[0.85rem] text-text/75">per person</span>
+                <span className="mt-1.5 block text-fine text-text/75">per person</span>
               </Field>
             </div>
 
@@ -219,7 +219,7 @@ export function WorkshopFeature({
 
 function Term({ children }: { children: string }) {
   return (
-    <span className="block text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75">
+    <span className="block text-label font-medium uppercase tracking-eyebrow text-text/75">
       {children}
     </span>
   );
@@ -246,7 +246,7 @@ function Spots({ workshop, className }: { workshop: Workshop; className?: string
 
   return (
     <p
-      className={`flex items-center gap-2.5 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text ${className ?? ""}`}
+      className={`flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text ${className ?? ""}`}
     >
       {scarce ? (
         <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-pill bg-terracotta" />
@@ -279,8 +279,8 @@ function BookButton({
 }) {
   if (closed) {
     return (
-      <p className={`mt-8 text-[0.9rem] leading-[1.75] text-text/80 ${className ?? ""}`}>
-        This date is full — the next sessions are below.
+      <p className={`mt-8 text-body leading-[1.75] text-text/80 ${className ?? ""}`}>
+        This date is full — the next events are below.
       </p>
     );
   }
@@ -291,7 +291,7 @@ function BookButton({
     <Link
       href={bookSessionHref(workshop)}
       aria-label={`Book ${workshop.title}${where} on ${formatSessionDate(workshop.startsAt)}`}
-      className={`mt-8 inline-flex items-center justify-center gap-2.5 bg-primary px-8 py-4 text-[0.7rem] font-medium uppercase leading-none tracking-eyebrow text-white transition-colors duration-300 ease-soft hover:bg-primary/90 ${className ?? ""}`}
+      className={`mt-8 inline-flex items-center justify-center gap-2.5 bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-white transition-colors duration-300 ease-soft hover:bg-primary/90 ${className ?? ""}`}
     >
       Book event
       <span

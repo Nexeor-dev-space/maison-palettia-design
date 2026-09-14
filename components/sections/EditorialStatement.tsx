@@ -262,7 +262,7 @@ export function EditorialStatement({ panel, spread }: EditorialStatementProps) {
           <ScrollReveal className="w-full">
             <p
               className={cn(
-                "flex items-center gap-4 text-[0.65rem] font-medium uppercase tracking-eyebrow xs:text-[0.7rem] md:text-xs",
+                "flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow xs:text-action md:text-action",
                 s.text,
               )}
             >
@@ -277,7 +277,7 @@ export function EditorialStatement({ panel, spread }: EditorialStatementProps) {
             <Link
               href={linkHref}
               className={cn(
-                "group mt-9 inline-flex items-center gap-3 text-[0.7rem] font-medium uppercase tracking-eyebrow md:mt-11 md:text-xs",
+                "group mt-9 inline-flex items-center gap-3 text-action font-medium uppercase tracking-eyebrow md:mt-11 md:text-action",
                 s.text,
               )}
             >
@@ -338,7 +338,7 @@ function Statement({ lines }: { lines: string[] }) {
 function Folio({ children, className }: { children: string; className: string }) {
   return (
     <Reveal variant="fadeIn" className="self-end">
-      <p className={cn("text-[0.65rem] font-medium uppercase tracking-eyebrow", className)}>
+      <p className={cn("text-label font-medium uppercase tracking-eyebrow", className)}>
         {children}
       </p>
     </Reveal>

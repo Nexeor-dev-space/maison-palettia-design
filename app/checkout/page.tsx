@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Steps } from "@/components/booking/Steps";
 import { Checkout } from "@/components/booking/Checkout";
 import { Reveal } from "@/components/motion/Reveal";
+import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
 import { Container } from "@/components/ui/Container";
 import { buildMetadata } from "@/lib/seo";
 
@@ -31,7 +32,7 @@ export default function CheckoutPage() {
       <Reveal>
         <Link
           href="/events"
-          className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
+          className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
         >
           <span
             aria-hidden
@@ -40,7 +41,7 @@ export default function CheckoutPage() {
             &#8592;
           </span>
           <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            Back to sessions
+            Back to events
           </span>
         </Link>
       </Reveal>
@@ -54,6 +55,21 @@ export default function CheckoutPage() {
       </Reveal>
 
       <Checkout />
+
+      {/*
+        Reassurance and a way out, not a second action. Checkout already has
+        exactly one primary control and this must not argue with it, so there
+        is nothing here that books, pays or confirms — only the two questions
+        someone actually has at this moment, and where each is answered.
+      */}
+      <PageUtilityBar
+        note="Your place is held when you reserve it. Nothing is charged through this site yet."
+        links={[
+          { label: "Check a booking", href: "/booking-status" },
+          { label: "Questions", href: "/faq" },
+          { label: "Contact", href: "/contact" },
+        ]}
+      />
     </Container>
   );
 }

@@ -1,6 +1,9 @@
+import Link from "next/link";
+
 import { MaskedText } from "@/components/motion/MaskedText";
 import { Reveal } from "@/components/motion/Reveal";
 import { HeroVisual } from "@/components/sections/HeroVisual";
+import { WORKSHOPS_HREF } from "@/lib/constants";
 
 /**
  * Shared between the two halves of the wordmark.
@@ -115,7 +118,52 @@ export function Hero() {
           Palettia
         </MaskedText>
       </h1>
+
+      <ExploreEvents />
     </section>
+  );
+}
+
+/**
+ * The hero's one action.
+ *
+ * The hero had none at all. It is the first screen of a business whose whole
+ * proposition is a date in a diary, and it asked for nothing — a visitor who
+ * wanted to know what was on had to scroll past it and hope. One link, in the
+ * site's own quiet register rather than a filled button, because the hero is
+ * the brand's moment and a solid block of colour on top of the artwork would
+ * be the point at which this stops looking like a studio and starts looking
+ * like a landing page.
+ *
+ * It arrives after the wordmark has drawn itself (0.62s) and after the
+ * statement over the wheel (1.05s), so the sequence reads identity, voice,
+ * invitation rather than all three at once.
+ *
+ * Cream on the foot scrim, which is the same ink and the same ground the
+ * wordmark directly above it already clears at 3:1 — and this sits lower in
+ * the gradient, where the scrim is denser, so it has more margin than the
+ * type it follows rather than less.
+ */
+function ExploreEvents() {
+  return (
+    <div className="relative flex justify-center px-gutter pb-9 md:pb-11 lg:pb-12">
+      <Reveal delay={1.25} variant="fadeIn">
+        <Link
+          href={WORKSHOPS_HREF}
+          className="group -my-1.5 inline-flex items-center gap-3 py-1.5 text-action font-medium uppercase tracking-eyebrow text-cream md:text-action"
+        >
+          <span className="border-b border-sage/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
+            Explore events
+          </span>
+          <span
+            aria-hidden
+            className="text-sage transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+          >
+            &#8594;
+          </span>
+        </Link>
+      </Reveal>
+    </div>
   );
 }
 

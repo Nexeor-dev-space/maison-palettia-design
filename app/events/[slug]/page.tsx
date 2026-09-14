@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { EventBookingBar } from "@/components/booking/EventBookingBar";
+import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
@@ -76,13 +78,14 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
   if (!workshop) notFound();
 
   const related = await getRelatedWorkshops(slug);
+  const barTime = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
 
   return (
     <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
       <Reveal>
         <Link
           href="/events"
-          className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
+          className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
         >
           <span
             aria-hidden
@@ -99,11 +102,63 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
       <SessionHero workshop={workshop} />
       <About workshop={workshop} />
       <Gallery workshop={workshop} />
-      <ReadyToJoin workshop={workshop} />
       {related.length > 0 ? <MoreEvents sessions={related} /> : null}
+
+      {/*
+        The bar's own height, given back to the page. Without it the last
+        section sits under the bar for as long as the bar is up, which is the
+        whole way down the page.
+      */}
+      <div aria-hidden className="h-24 md:h-28" />
+
+      {/*
+        The end of the content. <EventBookingBar> watches this and stands down
+        when it arrives, so the bar is gone before the page starts uncovering
+        the fixed footer behind it — see <FooterReveal>.
+      */}
+      <div id={CONTENT_END} aria-hidden />
+
+      {/*
+        Placed after the sentinel on purpose: by the time this is on screen the
+        booking bar has already stood down, so the two can never be visible at
+        once and nothing here competes with the page's one primary action.
+        Every link is an existing route — see <PageUtilityBar>.
+      */}
+      <PageUtilityBar
+        note="Everything is provided, and no experience is needed. If something is unclear, ask before you book."
+        links={[
+          { label: "All events", href: "/events" },
+          { label: "Questions", href: "/faq" },
+          { label: "Contact", href: "/contact" },
+        ]}
+      />
+
+      {/*
+        Every value resolved here, on the server, and handed down as strings.
+        <EventBookingBar> is a client component and this module carries the
+        session catalogue as well as the helpers — importing it there to borrow
+        a formatter would ship the catalogue to the browser.
+      */}
+      <EventBookingBar
+        title={workshop.title}
+        bookingHref={bookingStepHref(workshop)}
+        startsAt={workshop.startsAt}
+        dateLabel={formatSessionDate(workshop.startsAt)}
+        startLabel={barTime.start}
+        endLabel={barTime.end}
+        venueName={workshop.venue?.name}
+        priceLabel={formatPrice(workshop.price)}
+        spotsLabel={spotsLabel(workshop)}
+        closed={isFullyBooked(workshop)}
+        scarce={isScarce(workshop)}
+        sentinelId={CONTENT_END}
+      />
     </Container>
   );
 }
+
+/** Ties the sentinel to the bar that observes it. */
+const CONTENT_END = "event-content-end";
 
 /**
  * The split that carries the decision: the making on one side, everything
@@ -116,7 +171,6 @@ export default async function SessionPage({ params }: { params: Promise<{ slug: 
 function SessionHero({ workshop }: { workshop: Workshop }) {
   const { weekday } = sessionDateParts(workshop.startsAt);
   const { start, end } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
-  const closed = isFullyBooked(workshop);
 
   return (
     <div className="mt-10 grid grid-cols-12 items-start gap-x-6 md:mt-14 lg:mt-16 lg:gap-x-10">
@@ -130,7 +184,7 @@ function SessionHero({ workshop }: { workshop: Workshop }) {
 
       <div className="col-span-12 mt-10 lg:col-span-5 lg:mt-0">
         <Reveal>
-          <p className="flex items-center gap-3 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+          <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text/75">
             <span aria-hidden className="h-px w-6 shrink-0 bg-terracotta" />
             {workshop.category}
           </p>
@@ -149,18 +203,39 @@ function SessionHero({ workshop }: { workshop: Workshop }) {
         </h1>
 
         <Reveal delay={0.15}>
-          <dl className="mt-9 grid grid-cols-2 gap-x-8 gap-y-7 border-t border-line pt-8">
+          {/*
+            When, first and largest. The order is the order someone decides in
+            — what it is, then whether they are free, then where it is and what
+            it costs — and it was not that before: the venue led, the date sat
+            in a column beside the price, and the time, which is the fact the
+            studio's whole model turns on, came after all of them.
+          */}
+          <div className="mt-9 border-t border-line pt-8">
+            <Term>When</Term>
+            <p className="mt-3 text-lead font-medium leading-snug text-text">
+              <time dateTime={workshop.startsAt}>{formatSessionDate(workshop.startsAt)}</time>
+              <Sub>{weekday}</Sub>
+            </p>
+            <p className="mt-4 flex items-center gap-4 text-[1.6rem] font-light leading-none tracking-[-0.01em] text-text md:text-[1.9rem]">
+              <span className="tabular-nums">{start}</span>
+              <span aria-hidden className="h-px w-6 shrink-0 bg-text/30" />
+              <span className="sr-only">to</span>
+              <span className="tabular-nums">{end}</span>
+            </p>
+            <p className="mt-3 text-fine text-text/75">
+              <time dateTime={durationToIso(workshop.durationMinutes)}>
+                {formatDuration(workshop.durationMinutes)}
+              </time>
+            </p>
+          </div>
+
+          <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-7 border-t border-line pt-8">
             {workshop.venue ? (
-              <Fact term="Where" wide>
+              <Fact term="Where">
                 {workshop.venue.name}
                 <Sub>{workshop.venue.locality}</Sub>
               </Fact>
             ) : null}
-
-            <Fact term="Date">
-              <time dateTime={workshop.startsAt}>{formatSessionDate(workshop.startsAt)}</time>
-              <Sub>{weekday}</Sub>
-            </Fact>
 
             <Fact term="Price">
               {formatPrice(workshop.price)}
@@ -169,85 +244,21 @@ function SessionHero({ workshop }: { workshop: Workshop }) {
           </dl>
 
           {/*
-            The fixed time, set larger than anything but the event's name.
-            The studio's whole model is a table in a mall between two specific
-            hours; this is the fact that says so.
+            Availability as the existing data states it, and only as it states
+            it. `spotsLabel` and `isScarce` are the listing's own reading of
+            `seatsAvailable`; nothing here counts down, and nothing is dressed
+            up as urgency the data does not support.
           */}
-          <div className="mt-8">
-            <Term>Time</Term>
-            <p className="mt-3 flex items-center gap-4 text-[1.6rem] font-light leading-none tracking-[-0.01em] text-text md:text-[1.9rem]">
-              <span className="tabular-nums">{start}</span>
-              <span aria-hidden className="h-px w-6 shrink-0 bg-text/30" />
-              <span className="sr-only">to</span>
-              <span className="tabular-nums">{end}</span>
-            </p>
-            <p className="mt-3 text-[0.85rem] text-text/75">
-              <time dateTime={durationToIso(workshop.durationMinutes)}>
-                {formatDuration(workshop.durationMinutes)}
-              </time>
-            </p>
-          </div>
-
-          <p className="mt-9 flex items-center gap-2.5 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text">
+          <p className="mt-8 flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
             {isScarce(workshop) ? (
               <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-pill bg-terracotta" />
             ) : null}
             {spotsLabel(workshop)}
           </p>
 
-          <BookCta workshop={workshop} closed={closed} />
         </Reveal>
       </div>
     </div>
-  );
-}
-
-/**
- * The action, and the only filled block on the page.
- *
- * A full session gets a sentence and a way onward instead of a disabled
- * button. An action that cannot be taken is worse than an honest line, and a
- * visitor believing they have booked a closed date is the one unacceptable
- * outcome on this page.
- */
-function BookCta({ workshop, closed }: { workshop: Workshop; closed: boolean }) {
-  if (closed) {
-    return (
-      <div className="mt-9 border-t border-line pt-8">
-        <p className="text-[0.95rem] leading-[1.8] text-text/80">
-          This date is full. The other events below still have places.
-        </p>
-        <Link
-          href="/events"
-          className="group mt-6 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
-        >
-          <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            See other dates
-          </span>
-          <span
-            aria-hidden
-            className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-          >
-            &#8594;
-          </span>
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      href={bookingStepHref(workshop)}
-      className="group/cta mt-9 inline-flex w-full items-center justify-center gap-2.5 bg-primary px-8 py-5 text-[0.72rem] font-medium uppercase leading-none tracking-eyebrow text-white transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
-    >
-      Book this event
-      <span
-        aria-hidden
-        className="transition-transform duration-500 ease-editorial motion-safe:group-hover/cta:translate-x-1"
-      >
-        &#8594;
-      </span>
-    </Link>
   );
 }
 
@@ -265,18 +276,18 @@ function About({ workshop }: { workshop: Workshop }) {
         <Reveal className="col-span-12 md:col-span-3">
           <h2
             id="about-event"
-            className="text-[0.68rem] font-medium uppercase tracking-eyebrow text-text/75"
+            className="text-label font-medium uppercase tracking-eyebrow text-text/75"
           >
             About the event
           </h2>
         </Reveal>
 
         <Reveal delay={0.1} className="col-span-12 mt-6 md:col-span-8 md:col-start-5 md:mt-0">
-          <p className="max-w-[40rem] text-[1.05rem] font-light leading-[1.75] text-text md:text-[1.15rem]">
+          <p className="max-w-[40rem] text-lead font-light leading-[1.75] text-text md:text-lead">
             {workshop.excerpt}
           </p>
           {workshop.venue ? (
-            <p className="mt-8 max-w-[40rem] text-[0.95rem] leading-[1.85] text-text/80">
+            <p className="mt-8 max-w-[40rem] text-body leading-[1.85] text-text/80">
               We set up at {workshop.venue.name} in {workshop.venue.locality}. Everything you
               need is on the table when you arrive.
             </p>
@@ -310,7 +321,7 @@ function Gallery({ workshop }: { workshop: Workshop }) {
         <Reveal>
           <h2
             id="event-gallery"
-            className="text-[0.68rem] font-medium uppercase tracking-eyebrow text-text/75"
+            className="text-label font-medium uppercase tracking-eyebrow text-text/75"
           >
             From the studio
           </h2>
@@ -337,75 +348,6 @@ function Gallery({ workshop }: { workshop: Workshop }) {
   );
 }
 
-/**
- * The closing invitation.
- *
- * The facts are settled by the time anyone reaches the foot of this page, so
- * the last thing on it is one question and one action. Charcoal and full
- * measure, matching the way the About page ends — the two pages close the same
- * way because they are asking for the same thing.
- *
- * A full event closes with the honest version instead: there is nothing to
- * join, and saying so is better than a button that cannot be pressed.
- */
-function ReadyToJoin({ workshop }: { workshop: Workshop }) {
-  const closed = isFullyBooked(workshop);
-
-  return (
-    <section aria-labelledby="ready-to-join" className="mt-20 md:mt-28 lg:mt-32">
-      <div className="-mx-gutter bg-text px-gutter py-14 text-cream md:py-20">
-        <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-7">
-            <h2
-              id="ready-to-join"
-              className="text-[1.75rem] font-light uppercase leading-[1.05] tracking-[-0.02em] md:text-[2.4rem]"
-            >
-              {closed ? "This one is full." : "Ready to join us?"}
-            </h2>
-            <p className="mt-6 max-w-[30rem] text-[0.95rem] leading-[1.85] text-cream/80">
-              {closed
-                ? "Every place at this date has gone. The rest of the programme is open."
-                : "Everything is provided. Bring nothing but yourself."}
-            </p>
-          </div>
-
-          <div className="col-span-12 mt-9 lg:col-span-4 lg:col-start-9 lg:mt-0">
-            {closed ? (
-              <Link
-                href="/events"
-                className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-cream"
-              >
-                <span className="border-b border-sage/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
-                  See every upcoming event
-                </span>
-                <span
-                  aria-hidden
-                  className="text-sage transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                >
-                  &#8594;
-                </span>
-              </Link>
-            ) : (
-              <Link
-                href={bookingStepHref(workshop)}
-                className="group inline-flex w-full items-center justify-center gap-2.5 bg-sage px-8 py-5 text-[0.72rem] font-medium uppercase leading-none tracking-eyebrow text-text transition-colors duration-300 ease-soft hover:bg-sage/85 sm:w-auto"
-              >
-                Book this event
-                <span
-                  aria-hidden
-                  className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                >
-                  &#8594;
-                </span>
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /** A restrained way onward — two other dates, not a second listing. */
 function MoreEvents({ sessions }: { sessions: Workshop[] }) {
   return (
@@ -414,7 +356,7 @@ function MoreEvents({ sessions }: { sessions: Workshop[] }) {
         <Reveal>
           <h2
             id="more-events"
-            className="text-[0.68rem] font-medium uppercase tracking-eyebrow text-text/75"
+            className="text-label font-medium uppercase tracking-eyebrow text-text/75"
           >
             More events
           </h2>
@@ -431,10 +373,10 @@ function MoreEvents({ sessions }: { sessions: Workshop[] }) {
                     aspect="aspect-[3/2]"
                     sizes="(min-width: 1024px) 40vw, (min-width: 768px) 46vw, 100vw"
                   />
-                  <p className="mt-5 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/75">
+                  <p className="mt-5 text-label font-medium uppercase tracking-eyebrow text-text/75">
                     {session.category}
                   </p>
-                  <h3 className="mt-2.5 text-[1.15rem] font-medium leading-snug tracking-[-0.01em]">
+                  <h3 className="mt-2.5 text-lead font-medium leading-snug tracking-[-0.01em]">
                     <Link
                       href={workshopHref(session)}
                       className="transition-colors duration-300 ease-soft after:absolute after:inset-0 hover:text-primary"
@@ -442,7 +384,7 @@ function MoreEvents({ sessions }: { sessions: Workshop[] }) {
                       {session.title}
                     </Link>
                   </h3>
-                  <p className="mt-2.5 text-[0.82rem] text-text/75">
+                  <p className="mt-2.5 text-fine text-text/75">
                     {session.venue ? `${session.venue.name} · ` : ""}
                     <time dateTime={session.startsAt}>
                       {formatSessionDate(session.startsAt)}
@@ -461,7 +403,7 @@ function MoreEvents({ sessions }: { sessions: Workshop[] }) {
 
 function Term({ children }: { children: string }) {
   return (
-    <span className="block text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/75">
+    <span className="block text-label font-medium uppercase tracking-eyebrow text-text/75">
       {children}
     </span>
   );
@@ -479,11 +421,11 @@ function Fact({
   return (
     <div className={wide ? "col-span-2" : undefined}>
       <Term>{term}</Term>
-      <div className="mt-3 text-[1.05rem] font-medium leading-snug text-text">{children}</div>
+      <div className="mt-3 text-lead font-medium leading-snug text-text">{children}</div>
     </div>
   );
 }
 
 function Sub({ children }: { children: React.ReactNode }) {
-  return <span className="mt-1.5 block text-[0.85rem] font-normal text-text/75">{children}</span>;
+  return <span className="mt-1.5 block text-fine font-normal text-text/75">{children}</span>;
 }
