@@ -106,9 +106,8 @@ const PLACEHOLDER_PASSES: Pass[] = [
     sessions: 10,
     validity: "12 months from purchase",
     benefits: [
-      "Ten sessions, used one at a time",
-      "Any strand, any date in the programme",
-      "Nothing to book until you are ready",
+      "Any strand — paint, shape or craft",
+      "Book each session as you go — no dates to choose now",
     ],
     image: {
       src: "/images/creative/craft.jpg",
