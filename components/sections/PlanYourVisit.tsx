@@ -123,7 +123,7 @@ export function PlanYourVisit() {
           is what keeps two quiet, typographic sections from reading as twins.
         */}
         <Reveal>
-          <p className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text">
+          <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
             <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
             {eyebrow}
           </p>
@@ -190,7 +190,7 @@ export function PlanYourVisit() {
                 being comfortable to track. It is capped rather than the column
                 narrowed, so the links and the address below keep their width.
               */}
-              <p className="max-w-[26rem] text-[0.95rem] leading-[1.85] text-text/80 md:text-base lg:max-w-[34rem]">
+              <p className="max-w-[26rem] text-body leading-[1.85] text-text/80 md:text-base lg:max-w-[34rem]">
                 {description}
               </p>
             </Reveal>
@@ -219,16 +219,16 @@ export function PlanYourVisit() {
             */}
             <Reveal variant="fadeIn" delay={0.54}>
               <address className="mt-12 border-t border-text/15 pt-7 not-italic md:mt-14">
-                <span className="block text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/70">
+                <span className="block text-label font-medium uppercase tracking-eyebrow text-text/70">
                   The Studio
                 </span>
-                <span className="mt-3 block text-[0.9rem] leading-[1.8] text-text/85">
+                <span className="mt-3 block text-body leading-[1.8] text-text/85">
                   {CONTACT.addressLines.join(", ")}
                 </span>
                 {CONTACT.email ? (
                   <a
                     href={`mailto:${CONTACT.email}`}
-                    className="mt-2 inline-block text-[0.9rem] text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
+                    className="mt-2 inline-block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
                   >
                     {CONTACT.email}
                   </a>
@@ -295,11 +295,11 @@ function Steps({ steps }: { steps: readonly VisitStep[] }) {
               {step.number}
             </p>
 
-            <h3 className="mt-5 text-[0.72rem] font-medium uppercase tracking-eyebrow text-text md:mt-6 md:text-[0.78rem]">
+            <h3 className="mt-5 text-action font-medium uppercase tracking-eyebrow text-text md:mt-6 md:text-fine">
               {step.name}
             </h3>
 
-            <p className="mt-3 max-w-[20rem] text-[0.85rem] leading-[1.75] text-text/85 md:mt-4 xl:max-w-[24rem]">
+            <p className="mt-3 max-w-[20rem] text-fine leading-[1.75] text-text/85 md:mt-4 xl:max-w-[24rem]">
               {step.detail}
             </p>
           </Reveal>
@@ -349,10 +349,14 @@ function InvitationLink({ item, tone }: InvitationLinkProps) {
       href={item.href}
       {...externalProps}
       className={cn(
-        "group inline-flex items-baseline gap-3 font-medium uppercase tracking-eyebrow",
+        // `-my-1.5 py-1.5` grows the tap target without moving the link: at this
+        // size the label sets a 23px box, under the 24px a standalone control
+        // owes, and the negative margin cancels the padding so the invitation's
+        // spacing is untouched. Same device as every other action on the site.
+        "group -my-1.5 inline-flex items-baseline gap-3 py-1.5 font-medium uppercase tracking-eyebrow",
         primary
-          ? "text-[0.85rem] text-text md:text-[0.95rem]"
-          : "text-[0.7rem] text-text/85 transition-colors duration-300 ease-soft hover:text-text",
+          ? "text-fine text-text md:text-body"
+          : "text-action text-text/85 transition-colors duration-300 ease-soft hover:text-text",
       )}
     >
       <span className={cn("relative", primary ? "pb-2.5" : "pb-1.5")}>

@@ -42,7 +42,7 @@ export function isWeekendWorkshop(workshop: Workshop): boolean {
  *
  * Title and category cover "event name" and "event type" from the brief in
  * one line each; the venue's two parts cover "location"; the excerpt is the
- * one open-ended field, and it is what lets a material or a mood — "clay",
+ * one open-ended field, and it is what lets a material or a mood — "pigment",
  * "loose washes" — stand in for a category name someone would not otherwise
  * think to type. Nothing here is invented for search: every field already
  * ships to the page a visitor would land on.

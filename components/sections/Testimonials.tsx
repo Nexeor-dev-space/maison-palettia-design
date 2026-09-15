@@ -1,9 +1,24 @@
+import Image from "next/image";
+
 import { Reveal } from "@/components/motion/Reveal";
-import { HeroVideo } from "@/components/sections/HeroVideo";
 import { TestimonialPanel } from "@/components/sections/TestimonialPanel";
 import { Container } from "@/components/ui/Container";
 import { TESTIMONIALS_GROUND } from "@/lib/constants";
 import { getTestimonials } from "@/lib/testimonials";
+
+/*
+  PARKED — not mounted anywhere right now.
+
+  Removed from the homepage in the commercial restructure, and not because
+  anything is wrong with it. lib/testimonials.ts holds invented quotes and says
+  so in capitals at the top of the file: nobody said those things, and a
+  fabricated endorsement is the one placeholder on this site that is a
+  liability rather than a convenience.
+
+  Keep this. The section is finished and the data seam behind it is real — put
+  it back on the homepage or on /about the moment `getTestimonials()` returns
+  quotes the studio actually collected, with permission.
+*/
 
 /**
  * Homepage section — in their words.
@@ -35,8 +50,8 @@ import { getTestimonials } from "@/lib/testimonials";
  * which is the correct order: a section of testimonials that opens with a
  * headline is a section about itself.
  *
- * Server component. The footage and the quotes are both client components;
- * see <HeroVideo> and <TestimonialPanel>.
+ * Server component. The ground is a plain <Image>; the quotes are a client
+ * component — see <TestimonialPanel>.
  */
 export async function Testimonials() {
   const testimonials = await getTestimonials();
@@ -52,22 +67,24 @@ export async function Testimonials() {
       className="relative isolate flex min-h-[max(36rem,78svh)] items-center overflow-hidden bg-text py-20 md:min-h-[80vh] md:py-24 lg:min-h-[84vh]"
     >
       {/*
-        The room, running. Held at the back of the section's own stacking
-        context, so the plate above it never needs a z-index of its own.
+        The ground. Held at the back of the section's own stacking context, so
+        the plate above it never needs a z-index of its own.
 
-        <HeroVideo> rather than a bare <video>: it is the component that knows
-        how to treat footage as scenery instead of as a media player — muted,
-        looping, no controls, out of the tab order, with the retry that covers
-        a browser refusing to start it unprompted, and stopped outright for a
-        reader who has asked for reduced motion, where the poster stands in as
-        the photograph this section used to carry.
+        A STILL, NOT FOOTAGE. This was <HeroVideo> running a silent loop of a
+        pot being drawn up on the wheel, and the client has taken the brand off
+        the wheel — the clip and its poster frame were both pottery, and the
+        project holds no other footage. An <Image> is what a background wants
+        anyway: no autoplay to retry, nothing to stop for a reader who has
+        asked for reduced motion, and 307KB where the clip was 4MB.
       */}
       <Reveal variant="imageReveal" className="absolute inset-0 -z-10">
-        <HeroVideo
+        <Image
           src={TESTIMONIALS_GROUND.src}
-          label={TESTIMONIALS_GROUND.alt}
-          position={TESTIMONIALS_GROUND.position}
-          poster={TESTIMONIALS_GROUND.poster}
+          alt={TESTIMONIALS_GROUND.alt}
+          fill
+          sizes="100vw"
+          style={{ objectPosition: TESTIMONIALS_GROUND.position }}
+          className="object-cover"
         />
       </Reveal>
 
@@ -75,8 +92,8 @@ export async function Testimonials() {
         A wash rather than a scrim. The plate is opaque and does not need the
         picture darkened to be legible — this is here so the two read as
         foreground and background rather than as two bright things competing,
-        and it is weak enough that the clay, the brick and the glazed cups all
-        still come through.
+        and it is weak enough that the painting underneath still comes
+        through.
       */}
       <div aria-hidden className="absolute inset-0 -z-10 bg-text/35" />
 
@@ -91,7 +108,7 @@ export async function Testimonials() {
           <div className="bg-surface px-7 py-10 sm:px-12 sm:py-14 lg:px-16 lg:py-16">
             <h2
               id="testimonials-heading"
-              className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text"
+              className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text"
             >
               <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
               In their words

@@ -7,31 +7,35 @@ import type { Discipline } from "@/types";
  * Everything reads these through {@link getDisciplines}, so replacing the
  * array below with a query is a change to one function body. The homepage
  * composition is art-directed rather than uniform, but it is not hard-wired to
- * four: the first entry opens the section and the rest cycle through a
- * repeating rhythm of shapes, so adding a fifth strand extends the hang
- * instead of breaking it.
+ * a count: the first entry opens the section and the rest cycle through a
+ * repeating rhythm of shapes, so adding a strand extends the hang instead of
+ * breaking it.
  */
 
 /* ==========================================================================
    TODO(client): PLACEHOLDER CONTENT — DEVELOPMENT ONLY.
 
-   These four strands are the conceptual directions supplied with the brief,
+   These strands are the conceptual directions supplied with the brief,
    not an approved list of what Maison Palettia teaches. Nothing here claims a
    class, a facility or a schedule; each one is a way of making, and the
    wording is deliberately kept to a single sentence so it states nothing that
    would need verifying. Replace with the studio's own strands before launch.
 
-   The photographs are stand-ins, cut from assets already in the project — the
-   watercolour and the glazed vessel from the hero, and two frames of the
-   master wheel footage.
+   The photographs are stand-ins, cut from assets already in the project.
+
+     THREE STRANDS, NOT FOUR. There was a fourth — SHAPE, "get hands-on with
+     clay and form", over a photograph of two hands throwing on the wheel —
+     and the client has taken the brand off the wheel. It is removed rather
+     than re-dressed: every other strand here is a way of working a surface,
+     and there is no approved activity that "shape" could honestly stand for.
+     PAINT and CRAFT are real process photographs of people making things, and
+     CRAFT is ceramic painting, which is approved and stays.
 
      TODO(client): this section needs a real shoot more than any other on the
-     page. Four strands need four distinct visual identities, and the project
-     held three source images between them. That is now fixed for three of the
-     four: PAINT, SHAPE and CRAFT are real process photographs of people
-     making things.
+     page. Three strands need three distinct visual identities and the pool is
+     thinner than it was.
 
-     All four ship as squares. The originals are portrait (about 2:3) and the
+     All three ship as squares. The originals are portrait (about 2:3) and the
      frames that render them run from 0.95:1 — the desktop arch, which is
      taller than it is wide despite the 42vw hint on it — out to 3:2 on a
      phone. A square is the one master that survives that whole range on a
@@ -40,8 +44,7 @@ import type { Discipline } from "@/types";
      assets/creative-masters/, outside public/ so they are retained without
      being deployed; recrop from there rather than from these.
 
-     CREATE is the one still to fix, and it is now wrong rather than merely
-     thin; see the note on it below.
+     CREATE is the one still to fix; see the note on it below.
    ========================================================================== */
 const PLACEHOLDER_DISCIPLINES: Discipline[] = [
   {
@@ -52,16 +55,6 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
     image: {
       src: "/images/creative/painting.jpg",
       alt: "A painter at an easel, brush in hand, working into a canvas of coral and blush roses among deep teal leaves, a loaded palette at the edge of the frame.",
-    },
-  },
-  {
-    slug: "shape",
-    href: "/events",
-    name: "Shape",
-    description: "Get hands-on with clay and form.",
-    image: {
-      src: "/images/creative/pottery.jpg",
-      alt: "Two clay-covered hands drawing the wall of a cylinder upward on the wheel, the rim rising between their fingers.",
     },
   },
   {
@@ -81,8 +74,8 @@ const PLACEHOLDER_DISCIPLINES: Discipline[] = [
     description: "Experiment, discover and make it your own.",
     image: {
       /*
-        TODO(client): this one is off-message and should be reshot. The other
-        three show someone making something; this shows a hand holding a
+        TODO(client): this one is off-message and should be reshot. The
+        other two show someone making something; this shows a hand holding a
         finished, shop-bought cork coaster on a souvenir stall, with rows more
         behind it and the word PORTUGAL printed in the corner of the design.
         Under a strand that reads "experiment, discover and make it your own"

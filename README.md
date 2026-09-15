@@ -1,7 +1,7 @@
 # Maison Palettia
 
 Website for **Maison Palettia Events L.L.C.**, Dubai — a premium creative
-lifestyle brand offering hands-on art, craft and pottery workshops.
+lifestyle brand offering hands-on art and craft workshops.
 
 ## Stack
 

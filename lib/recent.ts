@@ -16,16 +16,20 @@ import type { RecentItem } from "@/types";
    here asserts a date, a session, an artist or an availability, because none
    of that is known yet — see the note on `date` below.
 
-   The photographs are stand-ins, cropped for this section from the three
-   assets the project already holds (the master wheel footage and the two hero
-   stills). By this point in the page that pool is genuinely exhausted: eleven
-   crops of the same vessel, the same still life and the same painting are
-   already in use above this section, and a collection whose whole job is to
-   say "here is what is new" is the worst place to re-cut them.
+   The photographs are stand-ins cropped from assets the project already
+   holds, and the pool is genuinely exhausted: the same still life and the
+   same painting are already in use above this section, and a collection whose
+   whole job is to say "here is what is new" is the worst place to re-cut them.
+
+   FOUR ITEMS, NOT SIX. Two were photographs of the potter's wheel — "Slip &
+   Water" and "In the Making" — and the client has taken the brand off the
+   wheel, so they are gone rather than re-captioned. Nothing was substituted
+   in, because there is nothing left in the project to substitute. The strip
+   renders whatever it is given.
 
      TODO(client): this section needs its own shoot more than any other on the
-     page — recent finished pieces, glaze tests, work drying on the shelf,
-     hands mid-making. Six to eight frames, genuinely different subjects.
+     page — recent finished work, pieces in progress, hands mid-making. Six to
+     eight frames, genuinely different subjects.
    ========================================================================== */
 const PLACEHOLDER_ITEMS: RecentItem[] = [
   {
@@ -40,25 +44,14 @@ const PLACEHOLDER_ITEMS: RecentItem[] = [
     },
   },
   {
-    slug: "slip-and-water",
-    title: "Slip & Water",
-    subtitle: "At the wheel",
-    href: "/gallery",
-    shape: "landscape",
-    image: {
-      src: "/images/recent/slip-and-water.jpg",
-      alt: "The wheel head turning under a film of watery clay slip, the splash pan wet around it.",
-    },
-  },
-  {
     slug: "vessel-and-bloom",
     title: "Vessel & Bloom",
-    subtitle: "Glazed stoneware",
+    subtitle: "Painted ceramic",
     href: "/gallery",
     shape: "portrait",
     image: {
       src: "/images/recent/vessel-and-bloom.jpg",
-      alt: "A cream stoneware vase carved with blue and ochre scrollwork, spent lilies leaning from its neck.",
+      alt: "A cream ceramic vase painted with blue and ochre scrollwork, spent lilies leaning from its neck.",
     },
   },
   {
@@ -73,17 +66,6 @@ const PLACEHOLDER_ITEMS: RecentItem[] = [
     },
   },
   {
-    slug: "in-the-making",
-    title: "In the Making",
-    subtitle: "Wheel-throwing",
-    href: "/gallery",
-    shape: "portrait",
-    image: {
-      src: "/images/recent/in-the-making.jpg",
-      alt: "Both hands steadying a wide clay vessel as it turns, the studio shelves soft behind.",
-    },
-  },
-  {
     slug: "petals-fallen",
     title: "Petals, Fallen",
     subtitle: "Studio detail",
@@ -91,7 +73,7 @@ const PLACEHOLDER_ITEMS: RecentItem[] = [
     shape: "landscape",
     image: {
       src: "/images/recent/petals-fallen.jpg",
-      alt: "Two dropped petals resting on a dark wooden table beside the foot of a glazed vase.",
+      alt: "Two dropped petals resting on a dark wooden table beside the foot of a painted vase.",
     },
   },
 ];

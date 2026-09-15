@@ -25,8 +25,8 @@ import type { Workshop } from "@/types";
 function Spec({ term, children }: { term: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-text/70">{term}</dt>
-      <dd className="mt-2 text-[0.8rem] font-medium uppercase tracking-[0.09em] text-text">
+      <dt className="text-label font-medium uppercase tracking-eyebrow text-text/70">{term}</dt>
+      <dd className="mt-2 text-fine font-medium uppercase tracking-[0.09em] text-text">
         {children}
       </dd>
     </div>
@@ -60,7 +60,7 @@ export function WorkshopMetaLine({ workshop, className }: WorkshopMetaProps) {
   return (
     <p
       className={cn(
-        "flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.68rem] font-medium uppercase tracking-eyebrow text-text/70",
+        "flex flex-wrap items-center gap-x-2.5 gap-y-1 text-label font-medium uppercase tracking-eyebrow text-text/70",
         className,
       )}
     >
@@ -106,7 +106,7 @@ export function AvailabilityMarker({ workshop, className }: WorkshopMetaProps) {
         className={cn(
           // `flex w-fit`, not `inline-flex`: an inline-level box would sit on
           // the same line as the action below it and ignore its own margin.
-          "flex w-fit items-center rounded-pill px-3.5 py-1.5 text-[0.62rem] font-semibold uppercase tracking-eyebrow text-text",
+          "flex w-fit items-center rounded-pill px-3.5 py-1.5 text-label font-semibold uppercase tracking-eyebrow text-text",
           closed ? "bg-lavender/50" : "ring-1 ring-inset ring-line",
           className,
         )}
@@ -119,7 +119,7 @@ export function AvailabilityMarker({ workshop, className }: WorkshopMetaProps) {
   return (
     <p
       className={cn(
-        "flex items-center gap-2.5 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text",
+        "flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text",
         className,
       )}
     >

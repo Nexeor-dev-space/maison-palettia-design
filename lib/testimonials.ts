@@ -32,12 +32,6 @@ import type { Testimonial } from "@/types";
    ========================================================================== */
 const PLACEHOLDER_TESTIMONIALS: Testimonial[] = [
   {
-    id: "first-time-at-the-wheel",
-    quote:
-      "I had never touched a wheel before and nobody made me feel like a beginner. I left with a bowl that leans a little, and I like it more than anything I own.",
-    attribution: "Throwing on the Wheel",
-  },
-  {
     id: "two-hours-off-a-screen",
     quote:
       "It is the only two hours in my week where I am not looking at a screen. I did not expect a painting class to be the thing that fixed that.",
@@ -47,7 +41,7 @@ const PLACEHOLDER_TESTIMONIALS: Testimonial[] = [
     id: "an-afternoon-that-ran-long",
     quote:
       "I came in to make one thing and stayed until the light went. There is no rush in that room, which turns out to be the whole point.",
-    attribution: "Glaze & Finish",
+    attribution: "Ceramic Painting",
   },
 ];
 
@@ -60,8 +54,10 @@ const PLACEHOLDER_TESTIMONIALS: Testimonial[] = [
  *
  * Three is what the panel is composed for — enough that the section is a set
  * of voices rather than one endorsement, few enough that the controls stay a
- * line of small numerals. The section renders whatever it is given, and
- * nothing at all when it is given nothing.
+ * line of small numerals. It is carrying two: the third was attributed to
+ * "Throwing on the Wheel" and was about a first go at the wheel, and both the
+ * session and the subject are gone from the brand. The section renders
+ * whatever it is given, and nothing at all when it is given nothing.
  *
  * TODO(client): replace the body with the CMS query, filtered to quotes the
  * studio holds written permission to print.

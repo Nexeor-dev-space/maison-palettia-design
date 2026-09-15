@@ -36,7 +36,7 @@ const variantStyles: Record<ButtonVariant, string> = {
      takes white: White Rock on Deep Lilac measures 3.95:1, under the 4.5:1 a
      button label owes at this size, where white clears it at 5.1:1. The same
      measurement is why the header's navigation is white rather than cream. */
-  primary: "bg-primary text-white hover:bg-primary/90",
+  primary: "bg-primary text-on-dark hover:bg-primary/90",
   /* Charcoal Slate hairline and Charcoal Slate label, per the brand's
      secondary button. The ring was the pale White Rock line before, which read
      as a disabled control rather than as the quieter of two actions. */
@@ -48,7 +48,7 @@ const variantStyles: Record<ButtonVariant, string> = {
    * collide with the variant's own colour utilities and lose on source order.
    */
   inverse: "bg-cream text-text hover:bg-surface",
-  inverseGhost: "bg-transparent text-white hover:text-cream",
+  inverseGhost: "bg-transparent text-on-dark hover:text-cream",
   /** Light Sage fill, for a warmer action on a dark or photographic ground. */
   sage: "bg-sage text-text hover:bg-sage/85",
 };

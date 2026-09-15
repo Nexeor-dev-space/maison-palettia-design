@@ -3,8 +3,10 @@ import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { FooterReveal } from "@/components/layout/FooterReveal";
 import { Header } from "@/components/layout/Header";
+import { RouteProgress } from "@/components/layout/RouteProgress";
+import { WhatsAppWidget } from "@/components/layout/WhatsAppWidget";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { hapsha, montserrat, qarine } from "@/lib/fonts";
+import { hapsha, montserrat } from "@/lib/fonts";
 import { defaultMetadata } from "@/lib/seo";
 
 import "./globals.css";
@@ -12,13 +14,16 @@ import "./globals.css";
 export const metadata: Metadata = defaultMetadata;
 
 export const viewport: Viewport = {
-  themeColor: "#fffdf9",
+  // The page ground, resolved. `themeColor` cannot read a CSS custom property,
+  // so this is the one place a surface colour is repeated as a literal — it is
+  // White Rock at 14% over white, the same mix `--color-surface` declares.
+  themeColor: "#fdfbf8",
   colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${qarine.variable} ${hapsha.variable}`}>
+    <html lang="en" className={`${montserrat.variable} ${hapsha.variable}`}>
       <head>
         {/*
           Scroll-triggered reveals render at opacity 0 until JavaScript runs.
@@ -38,10 +43,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           has asked for reduced motion.
         */}
         <SmoothScroll />
-        <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-sm text-white">
+        <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-sm text-on-dark">
           Skip to content
         </a>
         <Header />
+        {/* 2px pending bar for client-side navigation. See the component for
+            why this is not app/loading.tsx. */}
+        <RouteProgress />
         {/*
           The two halves of the footer reveal; see <FooterReveal> for the whole
           mechanism.
@@ -65,6 +73,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <FooterReveal>
           <Footer />
         </FooterReveal>
+
+        {/* Last in the body so it sits above the page without a stacking
+            context of its own; renders nothing until it has a number. */}
+        <WhatsAppWidget />
       </body>
     </html>
   );

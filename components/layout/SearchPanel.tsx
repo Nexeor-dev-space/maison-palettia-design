@@ -160,7 +160,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       id={id}
       ref={panelRef}
       hidden={!isOpen}
-      className="absolute inset-x-0 top-full border-t border-white/10 bg-nav"
+      className="absolute inset-x-0 top-full border-t border-on-dark/10 bg-nav"
     >
       <div className="mx-auto w-full animate-rise px-gutter py-12 lg:py-14">
         <div className="mx-auto max-w-[36rem]">
@@ -218,31 +218,31 @@ function SearchExperience({ onClose, workshops }: { onClose: () => void; worksho
   return (
     <>
       <div className="flex items-start justify-between gap-6">
-        <h2 id={headingId} className="text-[0.68rem] font-medium uppercase tracking-eyebrow text-white">
+        <h2 id={headingId} className="text-label font-medium uppercase tracking-eyebrow text-on-dark">
           Search Maison Palettia
         </h2>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close search"
-          className="-mr-2 -mt-2 inline-flex size-11 shrink-0 items-center justify-center text-white transition-colors duration-200 hover:text-sage"
+          className="-mr-2 -mt-2 inline-flex size-11 shrink-0 items-center justify-center text-on-dark transition-colors duration-200 hover:text-sage"
         >
           <X size={22} aria-hidden />
         </button>
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 lg:mt-8" role="search">
-        <div className="flex items-center gap-3 border-b border-white/25 pb-3 transition-colors duration-300 ease-soft focus-within:border-sage">
-          <Search size={20} aria-hidden className="shrink-0 text-white/80" />
+        <div className="flex items-center gap-3 border-b border-on-dark/25 pb-3 transition-colors duration-300 ease-soft focus-within:border-sage">
+          <Search size={20} aria-hidden className="shrink-0 text-on-dark/80" />
           <input
             ref={inputRef}
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             aria-labelledby={headingId}
-            placeholder="Search events, workshops, and more"
+            placeholder="Search events by name, type or location"
             autoComplete="off"
-            className="w-full bg-transparent text-xl font-light text-white placeholder:text-white/95 outline-none lg:text-lg"
+            className="w-full bg-transparent text-xl font-light text-on-dark placeholder:text-on-dark/95 outline-none lg:text-lg"
           />
         </div>
       </form>
@@ -275,7 +275,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
 
   return (
     <div>
-      <p className="text-[0.62rem] font-medium uppercase tracking-eyebrow text-white">
+      <p className="text-label font-medium uppercase tracking-eyebrow text-on-dark">
         Popular searches
       </p>
       <ul className="mt-4 flex flex-wrap gap-2.5">
@@ -284,7 +284,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
             <button
               type="button"
               onClick={() => onPick(term)}
-              className="rounded-pill border border-white/20 px-4 py-2 text-[0.8rem] text-white transition-colors duration-200 ease-soft hover:border-sage hover:text-sage"
+              className="rounded-pill border border-on-dark/20 px-4 py-2 text-fine text-on-dark transition-colors duration-200 ease-soft hover:border-sage hover:text-sage"
             >
               {term}
             </button>
@@ -300,14 +300,14 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
 function NoResults({ onNavigate }: { onNavigate: () => void }) {
   return (
     <div>
-      <p className="text-[0.95rem] font-medium text-white">No events found</p>
-      <p className="mt-2 text-[0.85rem] text-white/95">
+      <p className="text-body font-medium text-on-dark">No events found</p>
+      <p className="mt-2 text-fine text-on-dark/95">
         Try searching for another event, location, or activity.
       </p>
       <Link
         href={WORKSHOPS_HREF}
         onClick={onNavigate}
-        className="group mt-6 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-sage"
+        className="group mt-6 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-sage"
       >
         <span className="border-b border-sage/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
           View all events
@@ -342,7 +342,7 @@ function ResultList({ workshops, onNavigate }: { workshops: Workshop[]; onNaviga
  * folded here into one compact line rather than a table, because a search
  * result is a pointer to the full page, not the page itself).
  *
- * `bg-white/10` behind the thumbnail rather than `<WorkshopPhoto>`'s own
+ * `bg-on-dark/10` behind the thumbnail rather than `<WorkshopPhoto>`'s own
  * `bg-surface-alt`: that component is tuned for the light grounds it
  * normally sits on, and its cream placeholder would read as a hole in this
  * panel's dark one. <WorkshopsMenu> hand-rolls its own thumbnails for the
@@ -354,7 +354,7 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
 
   return (
     <article className="group relative flex items-center gap-4">
-      <div className="relative aspect-square w-16 shrink-0 overflow-hidden bg-white/10 lg:w-[4.5rem]">
+      <div className="relative aspect-square w-16 shrink-0 overflow-hidden bg-on-dark/10 lg:w-[4.5rem]">
         <Image
           src={workshop.image.src}
           alt=""
@@ -366,23 +366,23 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-[0.6rem] font-medium uppercase tracking-eyebrow text-white">
+        <p className="text-label font-medium uppercase tracking-eyebrow text-on-dark">
           {workshop.category}
         </p>
-        <h3 className="mt-1 truncate text-[1rem] font-medium leading-snug text-white">
+        <h3 className="mt-1 truncate text-body font-medium leading-snug text-on-dark">
           <Link href={workshopHref(workshop)} onClick={onNavigate} className="after:absolute after:inset-0">
             {workshop.title}
           </Link>
         </h3>
-        <p className="mt-1 truncate text-[0.8rem] text-white/95">
+        <p className="mt-1 truncate text-fine text-on-dark/95">
           {formatWorkshopDate(workshop.startsAt)}
-          <span aria-hidden className="px-1.5 text-white/80">
+          <span aria-hidden className="px-1.5 text-on-dark/80">
             &middot;
           </span>
           <span className="tabular-nums">{start}</span>
           {workshop.venue ? (
             <>
-              <span aria-hidden className="px-1.5 text-white/80">
+              <span aria-hidden className="px-1.5 text-on-dark/80">
                 &middot;
               </span>
               {formatVenueLine(workshop.venue)}
@@ -393,7 +393,7 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
 
       <span
         aria-hidden
-        className="hidden shrink-0 items-center gap-2 text-[0.62rem] font-medium uppercase tracking-eyebrow text-sage lg:flex"
+        className="hidden shrink-0 items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-sage lg:flex"
       >
         View event
         <span className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">

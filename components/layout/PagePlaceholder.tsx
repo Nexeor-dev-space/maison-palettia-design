@@ -19,13 +19,13 @@ export function PagePlaceholder({ title, phase }: PagePlaceholderProps) {
     <Container as="section" className="py-section">
       <Stagger>
         <Reveal>
-          <p className="text-xs uppercase tracking-eyebrow text-muted">Maison Palettia</p>
+          <p className="text-action uppercase tracking-eyebrow text-muted">Maison Palettia</p>
         </Reveal>
         <Reveal variant="subtleReveal">
           <h1 className="mt-4 text-4xl md:text-6xl">{title}</h1>
         </Reveal>
         <Reveal>
-          <p className="mt-6 max-w-reading text-sm leading-relaxed text-muted">
+          <p className="mt-6 max-w-reading text-body leading-relaxed text-muted">
             Placeholder route. The design for this page arrives in {phase}.
           </p>
         </Reveal>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { BookAction } from "@/components/layout/BookAction";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
@@ -44,8 +43,21 @@ import type { Discipline, Workshop } from "@/types";
  * and <WorkshopsMenu>.
  */
 const NAV_LINK =
-  "group/nav inline-flex text-[0.9rem] font-medium tracking-[0.01em] text-white " +
+  "group/nav inline-flex text-body tracking-[0.01em] text-on-dark " +
   "transition-colors duration-300 ease-soft";
+
+/**
+ * Events carries the one piece of weight in the row; everything else is set
+ * regular.
+ *
+ * The client asked for Events to have priority without looking like a shop
+ * button, and weight is the quietest way a nav can say "start here" — it is
+ * the same typeface at the same size, so the row still reads as one object
+ * rather than as a link beside an advert. The chevron on the entry (see
+ * <WorkshopsMenu>) does the rest by showing there is more behind it.
+ */
+const NAV_WEIGHT_PRIMARY = "font-medium";
+const NAV_WEIGHT_REST = "font-normal";
 
 /**
  * The bar. Client component: it owns the scroll state and the mobile overlay.
@@ -105,6 +117,9 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const menuId = useId();
   const searchPanelId = useId();
   const searchTriggerRef = useRef<HTMLButtonElement>(null);
+  // Handed to <MobileNav> so closing the overlay returns focus here rather
+  // than dropping it at the top of the document.
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 8);
@@ -190,6 +205,11 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
+  // One source, split by role for the desktop bar only — the mobile menu and
+  // the footer still read MAIN_NAV whole and in order.
+  const primaryNav = MAIN_NAV.filter((item) => !item.secondary && !item.utility);
+  const utilityNav = MAIN_NAV.filter((item) => !item.secondary && item.utility);
+
   return (
     <header
       className={cn(
@@ -200,7 +220,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         // The hairline only exists once the bar has a ground of its own. Over
         // the hero there is nothing for it to divide, and a line ruled across
         // the artwork is exactly the hard separation the bar is avoiding.
-        isSolid ? "border-white/10 bg-nav" : "border-transparent bg-transparent",
+        isSolid ? "border-on-dark/10 bg-nav" : "border-transparent bg-transparent",
       )}
     >
       <Container
@@ -265,11 +285,12 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         >
           <ul className="flex items-stretch gap-7 xl:gap-10 2xl:gap-12">
             {/*
-              Secondary entries are dropped from the bar and kept in the mobile
-              menu and the footer — see `secondary` on NavItem. The bar is the
-              one place on the site with a hard width budget.
+              Two filters, two different jobs. `secondary` entries are dropped
+              from the bar entirely and kept in the mobile menu and the footer;
+              `utility` entries stay in the bar but belong with search on the
+              right. See both flags on NavItem.
             */}
-            {MAIN_NAV.filter((item) => !item.secondary).map((item) =>
+            {primaryNav.map((item) =>
               item.megamenu ? (
                 <li key={item.href} className="flex items-center">
                   <WorkshopsMenu
@@ -277,7 +298,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
                     href={item.href}
                     disciplines={disciplines}
                     isActive={isActive(item.href)}
-                    linkClassName={NAV_LINK}
+                    linkClassName={cn(NAV_LINK, NAV_WEIGHT_PRIMARY)}
                   />
                 </li>
               ) : (
@@ -285,7 +306,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
-                    className={NAV_LINK}
+                    className={cn(NAV_LINK, NAV_WEIGHT_REST)}
                   >
                     <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                   </Link>
@@ -307,26 +328,34 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           second set of markup to keep in step.
         */}
         <div className="col-start-1 flex items-center justify-start lg:col-start-2 lg:justify-center">
-          <Wordmark variant="logo" />
+          <Wordmark />
         </div>
 
         {/*
-          The right track: what to do.
+          The right track: how to reach us, and how to find something.
 
-          Tighter flanks between 1024 and 1280, where this row is at its most
-          crowded. True centring makes the two side tracks exactly equal, so
-          the right one gets (width − mark − gaps) / 2 whether or not it needs
-          it — and this is the side that does. The nav opposite asks for 231px
-          of its 402; this cluster, with a booking held, asked for more than
-          the track had.
+          THE WIDTH BUDGET IS FIXED HERE RATHER THAN TRIMMED AGAIN. True
+          centring forces both side tracks to exactly (width − mark − gaps)/2,
+          and every previous pass solved an overrun by shaving gaps and padding
+          off this side: at 1024 the nav opposite wanted 238px of its 403 while
+          this cluster wanted all of its own and then some. Two passes had
+          already taken 4px off a gap and 8px off the action's flanks, and
+          Phase 1's type scale ate both again.
 
-          Measured at 1024 with the basket showing, which is the widest this
-          ever gets: 104 + 77 + 188 and two 20px gaps came to 408.8 against a
-          402.6 track — a 6px overrun, taken out of the items themselves.
-          Four pixels off each gap here and eight off the action's flanks (see
-          <BookAction>) bring it to 392.8, which is about 10px clear.
+          The cause was that the bar carried two ways to do the same thing. The
+          booking action pointed at /events, which is exactly where the Events
+          entry on the other side of the mark goes — one row, one destination,
+          two controls, and the widest of them sitting on the tight side. It is
+          gone from the bar (it stays in the mobile menu, where it is the
+          panel's own primary action and there is room for it), and the budget
+          stopped being tight rather than being made to fit.
+
+          That also answers the brief on its own terms: the client asked for
+          Events to lead without the bar looking like a shop, and a header with
+          one solid block of colour in the corner is the single thing that most
+          made it look like one.
         */}
-        <div className="col-start-3 flex items-center justify-end gap-5 lg:gap-4 xl:gap-5">
+        <div className="col-start-3 flex items-center justify-end gap-5 lg:gap-7 xl:gap-9">
           {/*
             The way back into a booking in progress. It appears only once
             something is held, which is why it is not a permanent basket icon:
@@ -337,13 +366,9 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           */}
           <BasketLink />
 
-          {/*
-            Search, ahead of the booking action rather than after it. The
-            action is the strongest thing in the bar on purpose — the one
-            solid block of colour — and search sitting past it would read as
-            an afterthought tacked onto the end of the row rather than a
-            second way in, which is what it actually is.
-          */}
+          {/* Search leads the utilities: it is the fastest route to a date on
+              the whole site, and the only control here that does something
+              rather than going somewhere. */}
           <SearchTrigger
             ref={searchTriggerRef}
             isOpen={isSearchOpen}
@@ -351,13 +376,35 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
             panelId={searchPanelId}
           />
 
-          {/* Wrapped rather than given `hidden`: that would collide with the
-              action's own display utility and lose on source order. */}
-          <div className="hidden sm:block">
-            <BookAction />
-          </div>
+          {/*
+            Contact, set in the same type as the navigation opposite so the two
+            halves of the bar read as one row rather than as a nav and a
+            toolbar. Desktop only — on a phone it is in the menu with
+            everything else, and repeating it in a three-control bar would
+            crowd the one control that has to be easy to hit.
+          */}
+          {utilityNav.map((item) => (
+            /*
+              Wrapped rather than given `hidden` directly, because NAV_LINK
+              already carries `inline-flex`: two display utilities on one
+              element are settled by their order in the generated stylesheet
+              rather than by the order they are written, and `hidden` lost —
+              Contact rendered on a 360px phone beside the menu button. The
+              same trap is documented on the booking action this replaced.
+            */
+            <div key={item.href} className="hidden lg:block">
+              <Link
+                href={item.href}
+                aria-current={isActive(item.href) ? "page" : undefined}
+                className={cn(NAV_LINK, NAV_WEIGHT_REST)}
+              >
+                <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
+              </Link>
+            </div>
+          ))}
 
           <button
+            ref={menuTriggerRef}
             type="button"
             onClick={toggleMenu}
             aria-expanded={isMenuOpen}
@@ -372,6 +419,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
 
       <MobileNav
         id={menuId}
+        triggerRef={menuTriggerRef}
         openCount={openCount}
         isOpen={isMenuOpen}
         onClose={closeMenu}

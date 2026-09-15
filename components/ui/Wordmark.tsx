@@ -6,31 +6,31 @@ import { cn } from "@/lib/utils";
 
 interface WordmarkProps {
   className?: string;
-  /**
-   * "logo" renders the supplied artwork; "text" sets the brand name in the
-   * display face.
-   *
-   * The artwork is drawn in Light Sage on transparency, so it only reads on a
-   * dark or saturated ground — the header's Deep Lilac bar and the hero. Light
-   * surfaces (the footer) keep the text form until a dark-on-light cut of the
-   * logo is supplied.
-   */
-  variant?: "logo" | "text";
 }
 
 /** Intrinsic size of public/images/logo.png — kept here to reserve the space. */
 const LOGO = { src: "/images/logo.png", width: 1015, height: 438 } as const;
 
 /**
- * Brand mark, linking home.
+ * The brand mark, linking home. One form, because there is one logo.
+ *
+ * This component used to offer a second, "text" variant that set SITE.name in
+ * the brand script — a logo made out of type, which the guidelines do not
+ * allow. It is gone; the only Maison Palettia mark on this site is the
+ * supplied file.
+ *
+ * KNOWN CONSTRAINT: the artwork is Light Sage on transparency (sampled: 93% of
+ * its ink is #d1e7be), so it reads on a dark ground and disappears on a light
+ * one — against the footer's sage it measures 1.00:1. Until the client
+ * supplies a dark-on-light cut, this can only be used on Charcoal Slate,
+ * where it measures 9.07:1.
  *
  * The link carries the accessible name, so the image itself is decorative
  * (`alt=""`) — otherwise a screen reader announces the brand twice.
  */
-export function Wordmark({ className, variant = "text" }: WordmarkProps) {
-  if (variant === "logo") {
-    return (
-      <Link
+export function Wordmark({ className }: WordmarkProps) {
+  return (
+    <Link
         href="/"
         aria-label={`${SITE.name} — home`}
         className={cn(
@@ -38,37 +38,29 @@ export function Wordmark({ className, variant = "text" }: WordmarkProps) {
           className,
         )}
       >
-        <Image
-          src={LOGO.src}
-          alt=""
-          width={LOGO.width}
-          height={LOGO.height}
-          priority
-          /*
-            Sized against the bar rather than against itself. The bar rests at
-            80px on a phone and 104px on a desktop, and a mark that stays at 40
-            in either is a logo floating in a header instead of the thing the
-            header is built around — roughly half the height at each step is
-            what makes it read as the anchor. The aspect is the file's own;
-            only the height is set.
-          */
-          className="h-11 w-auto md:h-14"
-        />
-      </Link>
-    );
-  }
+      <Image
+        src={LOGO.src}
+        alt=""
+        width={LOGO.width}
+        height={LOGO.height}
+        priority
+        /*
+          Sized against the bar rather than against itself, and re-struck
+          when the bar grew.
 
-  return (
-    <Link
-      href="/"
-      aria-label={`${SITE.name} — home`}
-      className={cn(
-        // Colour is set by the caller.
-        "whitespace-nowrap font-display text-2xl font-normal leading-none tracking-normal transition-colors duration-200 md:text-3xl",
-        className,
-      )}
-    >
-      {SITE.name}
+          At 56px in a 104px bar the mark filled 54% of the row and left
+          24px of air above and below — which reads as compressed rather
+          than as prominent, and is a large part of why the header felt
+          small despite already being tall. The bar now rests at 120px on a
+          desktop and the mark takes 52 of it: 43%, with 34px of air on
+          each side. The mark is larger in absolute terms than it was and
+          the row around it is calmer, which is the whole trade.
+
+          The aspect is the file's own; only the height is set, so the
+          artwork cannot distort.
+        */
+        className="h-11 w-auto md:h-13"
+      />
     </Link>
   );
 }

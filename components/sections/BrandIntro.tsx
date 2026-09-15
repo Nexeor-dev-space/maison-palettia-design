@@ -21,10 +21,10 @@ const STATEMENT_LINE =
 /**
  * Homepage section 02 — brand introduction.
  *
- * The hero is a dark, moving triptych; this is the exhale after it. A warm
- * cream field, one still photograph, and three words. The argument carries
- * over rather than restarting: the hero shows the wheel turning, and the plate
- * here holds a single moment of the same clay still enough to look at.
+ * The hero is a dark, full-bleed photograph; this is the exhale after it. A
+ * warm cream field, one still photograph, and three words. The argument
+ * carries over rather than restarting: the hero shows a painter at her easel,
+ * and the plate here holds a single brushstroke of the same afternoon.
  *
  * The composition is a staircase. The label sits flush to the left edge of the
  * measure, the statement is indented from it, the paragraph indented again,
@@ -50,7 +50,7 @@ export function BrandIntro() {
           {/* --- Text column: cols 1–7, indenting further at each step ------ */}
           <div className="col-span-12 md:col-span-7">
             <Reveal>
-              <p className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text">
+              <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
                 <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
                 About Maison Palettia
               </p>
@@ -91,18 +91,26 @@ export function BrandIntro() {
 
             <Reveal delay={0.1}>
               <div className="ml-6 mt-12 max-w-[30rem] md:ml-[16%] md:mt-16 lg:ml-[24%] lg:mt-20">
-                <p className="text-[0.95rem] leading-[1.85] text-text/80 md:text-base">
+                <p className="text-body leading-[1.85] text-text/80 md:text-base">
                   Maison Palettia is a creative space where art, craft and community come
                   together. A place to slow down, make something with your hands, and leave
                   with an experience that stays with you.
                 </p>
 
+                {/*
+                  Points at /about, not at /events. This section answers "what
+                  is Maison Palettia" and the honest next step from that
+                  question is the rest of the answer — the events listing is
+                  the whole of the section directly below, and a second link to
+                  it here would be the page asking twice before it has shown
+                  anything.
+                */}
                 <Link
-                  href="/events"
-                  className="group mt-9 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text md:mt-10"
+                  href="/about"
+                  className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text md:mt-10"
                 >
                   <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-                    Explore the workshops
+                    About Maison Palettia
                   </span>
                   <span
                     aria-hidden
@@ -146,9 +154,9 @@ export function BrandIntro() {
             </div>
 
             <Reveal variant="fadeIn" delay={0.25}>
-              <figcaption className="mt-4 flex items-center gap-3 text-[0.65rem] uppercase tracking-eyebrow text-text/75 xs:text-[0.7rem]">
+              <figcaption className="mt-4 flex items-center gap-3 text-label uppercase tracking-eyebrow text-text/75 xs:text-action">
                 <span aria-hidden className="h-px w-5 shrink-0 bg-text/25" />
-                Throwing on the wheel
+                Brush to canvas
               </figcaption>
             </Reveal>
           </figure>

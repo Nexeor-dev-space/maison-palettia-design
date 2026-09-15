@@ -1,20 +1,43 @@
-import { BrandIntro } from "@/components/sections/BrandIntro";
+import { AboutTeaser } from "@/components/sections/AboutTeaser";
 import { CreativeExperiences } from "@/components/sections/CreativeExperiences";
-import { EditorialStatement } from "@/components/sections/EditorialStatement";
-import { Experience } from "@/components/sections/Experience";
+import { Gallery } from "@/components/sections/Gallery";
 import { Hero } from "@/components/sections/Hero";
-import { JustAdded } from "@/components/sections/JustAdded";
-import { MaisonPhilosophy } from "@/components/sections/MaisonPhilosophy";
+import { HomeFaq } from "@/components/sections/HomeFaq";
+import { HowItWorks } from "@/components/sections/HowItWorks";
+import { MallPartners } from "@/components/sections/MallPartners";
 import { PlanYourVisit } from "@/components/sections/PlanYourVisit";
 import { Testimonials } from "@/components/sections/Testimonials";
-import { UpcomingWorkshops } from "@/components/sections/UpcomingWorkshops";
-import { EDITORIAL_PANELS } from "@/lib/constants";
+import { UpcomingEvents } from "@/components/sections/UpcomingEvents";
 
 /**
  * Homepage. Metadata comes from the site defaults in lib/seo.ts.
- * The story runs hero → brand introduction → workshops → the experience →
- * the creative strands → just added → what guests say → the philosophy, and
- * closes on the invitation to visit. Sections are built one at a time from Phase 4 onward.
+ *
+ * THE PROGRAMME IS THE SECOND THING ON THE PAGE. That is the change this
+ * revision exists for. The sessions are the product — a place at a table in a
+ * mall on a fixed date — and every earlier arrangement of this page put at
+ * least one screen of brand writing between a visitor and a date they could
+ * book. The hero says what this is; the next thing it does is show what is on.
+ *
+ * The order after that is the shape of a decision rather than the shape of a
+ * story: see a date, understand what turning up involves, see what you would
+ * be making, see that there is a story, see what the room looks like, hear
+ * from someone who went, have the last question answered, and be asked.
+ *
+ * WHAT IS NOT HERE, AND WHY.
+ *
+ *   - The brand introduction. Its paragraph is the one sentence the studio has
+ *     written about itself, and /about's own introduction renders exactly that
+ *     paragraph. Two routes, one answer, read twice.
+ *   - The experience section. "What does it feel like" is a slow two-column
+ *     editorial read, and the creative strands below answer the more useful
+ *     version of the same question — what you would actually be doing — in a
+ *     third of the height.
+ *   - The philosophy, the two editorial spreads and the just-added strip,
+ *     moved to /about in the previous pass; see the note there.
+ *
+ * Both unmounted components are intact, not deleted. Nothing was removed to
+ * make this page shorter: everything cut is either a duplicate of /about or
+ * now lives on /about.
  */
 export default function HomePage() {
   return (
@@ -23,7 +46,7 @@ export default function HomePage() {
         The hero holds at the top of the viewport while the page rises over it
         — the sections below scroll up and cover it rather than pushing it out
         of the way.
-        
+
         Two things make that work. The hero is `sticky top-0`, and this
         wrapper is what gives sticky somewhere to travel: a sticky element
         stops holding once the foot of its containing block arrives, so the
@@ -31,68 +54,73 @@ export default function HomePage() {
         that do the covering sit in their own `relative z-10` layer, above the
         hero's `z-0`, and each carries an opaque ground of its own.
 
-        The wrapper deliberately stops before the last section. Once the hero
-        has been covered for two full sections there is nothing left to see,
-        and letting it scroll away frees the browser from compositing a
-        pinned, playing video for the rest of the page.
+        The wrapper deliberately stops after two sections. Once the hero has
+        been covered that far there is nothing left to see, and letting it
+        scroll away frees the browser from compositing a pinned, playing video
+        for the rest of the page.
       */}
       <div className="relative">
         <Hero />
 
         <div className="relative z-10">
-          <BrandIntro />
-          <UpcomingWorkshops />
+          <UpcomingEvents />
+
+          {/*
+            Directly under the listing, because the listing is what raises the
+            question this answers: a visitor has just seen three dates at three
+            malls and needs to know what turning up to one actually involves.
+          */}
+          <HowItWorks />
         </div>
       </div>
 
-      <EditorialStatement panel={EDITORIAL_PANELS.movement} spread="foot" />
-
-      <Experience />
+      {/* What you would be making — four strands, not a second listing. */}
       <CreativeExperiences />
 
-      {/*
-        The second panel breaks the longest run of content on the page —
-        experience, strands, what's just been added — rather than following the
-        first one. The featured story lands above it when it arrives, which is
-        the arrangement the two panels were composed for: one after the
-        workshops listing, one deep in the second half, far enough apart that
-        neither reads as the other's twin.
-      */}
-      {/*
-        Set as a `foot` spread, not the `field` one it was built for. That
-        spread lays charcoal type straight on the picture with a light wash,
-        and it needs a pale, quiet photograph to do it. The client's shelved
-        pots are neither: measured, charcoal came out at 1.0-1.8:1 against
-        them, and the cream wash heavy enough to fix that erased the
-        photograph. Under the dark scrim with cream type every element clears
-        its bar — worst 4.5:1 — at half the overlay, so the pots stay visible.
-        See the note on the plate in lib/constants.ts.
-      */}
-      <EditorialStatement panel={EDITORIAL_PANELS.making} spread="foot" />
+      {/* A doorway to the story rather than the story itself. */}
+      <AboutTeaser />
 
       {/*
-        TODO: the featured story (section 06) belongs between the creative
-        strands and "Just Added" — one experience given the whole page, which
-        is what makes the strip below it read as the lighter gesture. Slot it
-        in above once it lands.
+        Reassurance, not information. It sits here rather than near the top
+        because its job is to answer "what would this actually be like" for
+        someone already weighing a date — never to be something scrolled past
+        on the way to one.
       */}
-      <JustAdded />
+      <Gallery />
 
       {/*
-        The guests speak here rather than after the philosophy, which would put
-        them between the argument and the invitation — and those two are a call
-        and its answer that nothing should come between. This is also the last
-        moment on the page that is still about the studio; everything after it
-        is about the reader.
+        Where those rooms actually are, and why they are malls.
+
+        Here rather than higher up because it is credibility, not navigation:
+        the practical "which mall, which Saturday" question is answered by the
+        listing at the top of the page and by /events. This answers the one
+        underneath it — what kind of business this is — and it lands best after
+        someone has seen the programme, the making and the room, immediately
+        before the section where other people vouch for it.
+      */}
+      <MallPartners />
+
+      {/*
+        TODO(client): THE QUOTES IN THIS SECTION ARE INVENTED AND MUST NOT GO
+        LIVE. lib/testimonials.ts says so at the top of the file, in capitals.
+        The section is mounted because the client asked for it by name and this
+        is its place in the page; the component renders nothing at all when the
+        array is empty, so deleting the fabrications does not leave a hole.
+
+        Every other placeholder on this site is a date or a price. A made-up
+        endorsement is the one that is a liability rather than a convenience.
+        Replace these with real quotes, or empty the array, before launch.
       */}
       <Testimonials />
 
-      <MaisonPhilosophy />
+      {/* The last hesitations, answered in four lines. */}
+      <HomeFaq />
 
       {/*
-        The last section on the page, and the only one that asks for anything.
-        It stays last: the philosophy above it is the argument, and the
-        invitation only works as the thing said after it.
+        The last section, and the only one that asks for anything. It stays
+        last for the same reason it always did — everything above it has been
+        showing and explaining, and this is the one place the Maison speaks to
+        the visitor directly.
       */}
       <PlanYourVisit />
     </>

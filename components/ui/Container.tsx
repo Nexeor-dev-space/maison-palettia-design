@@ -1,16 +1,28 @@
-import type { ElementType, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
 type ContainerWidth = "site" | "reading";
 
-interface ContainerProps {
+/**
+ * `rest` is what makes `as="section"` worth anything.
+ *
+ * Every attribute other than these four used to be dropped on the floor —
+ * silently, because passing an unknown prop to a component is not a type
+ * error when the component declares no index signature. `aria-labelledby` was
+ * the casualty that mattered: four sections across the homepage, /about and
+ * /contact asked to be labelled by their own heading and none of them were,
+ * so a screen-reader user got an unnamed region each time. Spreading the rest
+ * onto the element fixes all of them at once and cannot regress, since
+ * anything passed now lands where it was always meant to.
+ */
+type ContainerProps = {
   children: ReactNode;
   /** "site" is the full 1440px editorial width; "reading" narrows long-form copy. */
   width?: ContainerWidth;
   as?: ElementType;
   className?: string;
-}
+} & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 
 const widths: Record<ContainerWidth, string> = {
   /*
@@ -38,9 +50,10 @@ export function Container({
   width = "site",
   as: Tag = "div",
   className,
+  ...rest
 }: ContainerProps) {
   return (
-    <Tag className={cn("mx-auto w-full px-gutter", widths[width], className)}>
+    <Tag className={cn("mx-auto w-full px-gutter", widths[width], className)} {...rest}>
       {children}
     </Tag>
   );

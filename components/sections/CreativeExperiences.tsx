@@ -7,6 +7,17 @@ import { Container } from "@/components/ui/Container";
 import { Signature } from "@/components/ui/Signature";
 import { getDisciplines } from "@/lib/disciplines";
 
+/*
+  PARKED — not mounted anywhere right now.
+
+  It read `getDisciplines()`, which is the same source /about's "Four ways in"
+  reads, so the four strands appeared twice on the site with the homepage copy
+  adding nothing the About page did not already say better. Dropped from the
+  homepage in the commercial restructure; kept here because <StrandIndex>'s
+  hover-linked composition is a different and more interesting treatment than
+  About's staggered row, and is worth reaching for again.
+*/
+
 /**
  * The section heading, in two masked lines.
  *
@@ -43,7 +54,7 @@ const HEADING_LINE =
  * the list.
  *
  * Awaited in place rather than suspended, for the reason set out in
- * <UpcomingWorkshops>: a boundary would strand a JavaScript-less visitor on
+ * <UpcomingEvents>: a boundary would strand a JavaScript-less visitor on
  * the fallback, and the root layout works hard to avoid exactly that.
  *
  * Server component; the index and every animation live in the client
@@ -71,7 +82,7 @@ export async function CreativeExperiences() {
           <Reveal variant="fadeIn" className="col-span-12 mt-12 lg:col-span-7 lg:mt-16">
             <Link
               href="/events"
-              className="group inline-flex items-center gap-3 text-xs font-medium uppercase tracking-eyebrow text-text"
+              className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
             >
               <span className="border-b border-primary/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
                 Explore all experiences
@@ -101,7 +112,7 @@ function SectionHead() {
     <div className="grid grid-cols-12 items-start gap-x-6 lg:gap-x-12">
       <div className="col-span-12 lg:col-span-7">
         <Reveal>
-          <p className="flex items-center gap-4 text-xs font-medium uppercase tracking-eyebrow text-text">
+          <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
             {/* Deep Lilac rather than the Terracotta the warm-ground sections
                 use: Terracotta on Light Sage measures 2.36:1, under the 3:1 a
                 graphical mark owes, where Deep Lilac clears it at 3.83:1. */}
@@ -130,8 +141,8 @@ function SectionHead() {
         </Reveal>
 
         <Reveal delay={0.15}>
-          <p className="mt-6 max-w-[26rem] text-[0.95rem] leading-[1.85] text-text/80 md:mt-7">
-            From colour and clay to hands-on making, discover experiences designed to bring
+          <p className="mt-6 max-w-[26rem] text-body leading-[1.85] text-text/80 md:mt-7">
+            From colour and pattern to hands-on making, discover experiences designed to bring
             your ideas to life.
           </p>
         </Reveal>

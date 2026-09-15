@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { BookAction } from "@/components/layout/BookAction";
 import { NavLabel } from "@/components/layout/NavLabel";
@@ -24,6 +24,8 @@ const riseDelay = (index: number) => ({ animationDelay: `${Math.min(index * STEP
 
 interface MobileNavProps {
   id: string;
+  /** Focused when the panel closes, so a keyboard lands back where it was. */
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
   /** Changes on each open, and keys the panel so the reveal replays. */
   openCount: number;
   isOpen: boolean;
@@ -56,6 +58,7 @@ interface MobileNavProps {
  */
 export function MobileNav({
   id,
+  triggerRef,
   openCount,
   isOpen,
   onClose,
@@ -63,6 +66,7 @@ export function MobileNav({
   disciplines,
   isActive,
 }: MobileNavProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
   // A route change from inside the overlay should close it. The links call
   // `onClose` directly, but a browser back/forward while it is open would
   // otherwise leave it covering the page it returned to.
@@ -71,6 +75,73 @@ export function MobileNav({
     window.addEventListener("popstate", onClose);
     return () => window.removeEventListener("popstate", onClose);
   }, [isOpen, onClose]);
+
+  /*
+    FOCUS, WHICH THIS PANEL PREVIOUSLY DID NOT HANDLE AT ALL.
+
+    The overlay covers the page but the page behind it stays in the tab order,
+    so a keyboard or screen-reader visitor opening the menu was left with focus
+    still on the trigger and a Tab key that walked straight past the menu into
+    content they could not see. Escape closed it and dropped focus to the
+    document.
+
+    Three things fix it, and all three are required together:
+
+      - focus moves into the panel when it opens, so the next Tab is inside it;
+      - Tab and Shift+Tab cycle within the panel while it is open;
+      - focus returns to the trigger when it closes, so nobody is dropped at
+        the top of the document.
+
+    The panel is `hidden` when closed, so its contents are out of the tab order
+    on their own — this only has to hold the boundary while it is open.
+  */
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!isOpen || !panel) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    // Captured now rather than read at cleanup: the trigger node is stable for
+    // the life of the bar, and reading a ref during teardown is the pattern
+    // the exhaustive-deps rule warns about.
+    const trigger = triggerRef.current;
+    const focusables = () =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null);
+
+    focusables()[0]?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const items = focusables();
+      if (items.length === 0) return;
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+
+      // Wrap at both ends, and pull focus back in if it has escaped the panel.
+      if (event.shiftKey && (active === first || !panel.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !panel.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      // Only take focus back if it is still somewhere in the panel; a link
+      // that navigated has already moved it somewhere more useful.
+      if (panel.contains(document.activeElement) || document.activeElement === previouslyFocused) {
+        trigger?.focus();
+      }
+    };
+  }, [isOpen, triggerRef]);
 
   return (
     <div
@@ -96,6 +167,8 @@ export function MobileNav({
         at its ends and one that hands the whole gesture to the page.
       */
       data-lenis-prevent
+      ref={panelRef}
+      aria-label="Site menu"
       className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-nav md:top-header-lg lg:hidden"
     >
       {/* Keyed so the reveal below runs again every time the menu is opened. */}
@@ -106,7 +179,7 @@ export function MobileNav({
             {disciplines.map((strand, i) => (
               <li key={strand.slug} className="animate-rise" style={riseDelay(i)}>
                 <Link href={strand.href} onClick={onClose} className="group block">
-                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-white/5">
+                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-on-dark/5">
                     <Image
                       src={strand.image.src}
                       alt=""
@@ -115,7 +188,7 @@ export function MobileNav({
                       className="object-cover"
                     />
                   </div>
-                  <p className="mt-3 text-[0.8rem] font-medium uppercase tracking-eyebrow text-white">
+                  <p className="mt-3 text-fine font-medium uppercase tracking-eyebrow text-on-dark">
                     {strand.name}
                   </p>
                 </Link>
@@ -126,7 +199,7 @@ export function MobileNav({
 
         {/* 02 — the action, given a rule of its own so it is not one of a list. */}
         <div
-          className="mt-12 animate-rise border-y border-white/15 py-7"
+          className="mt-12 animate-rise border-y border-on-dark/15 py-7"
           style={riseDelay(disciplines.length)}
         >
           <BookAction size="panel" onNavigate={onClose} />
@@ -157,7 +230,7 @@ export function MobileNav({
                   href={item.href}
                   onClick={onClose}
                   aria-current={isActive(item.href) ? "page" : undefined}
-                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-white"
+                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-on-dark"
                 >
                   <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                 </Link>

@@ -134,7 +134,7 @@ export function StrandIndex({ disciplines }: StrandIndexProps) {
             ))}
           </div>
 
-          <p className="mt-5 flex items-center gap-4 text-[0.62rem] font-medium uppercase tracking-eyebrow text-text/85">
+          <p className="mt-5 flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text/85">
             <span aria-hidden className="h-px w-6 shrink-0 bg-primary" />
             {String(active + 1).padStart(2, "0")} / {String(disciplines.length).padStart(2, "0")}
           </p>
@@ -262,7 +262,7 @@ function Strand({ discipline, index, isActive, onPreview, ref }: StrandProps) {
           */}
           <p
             className={cn(
-              "text-[0.62rem] font-medium uppercase tracking-eyebrow transition-colors duration-500 ease-soft",
+              "text-label font-medium uppercase tracking-eyebrow transition-colors duration-500 ease-soft",
               // Charcoal on the band. Lilac at eleven pixels measures 2.7:1
               // there and 3.8:1 on the bare sage — under the 4.5:1 text this
               // size owes on either ground.
@@ -313,7 +313,7 @@ function Strand({ discipline, index, isActive, onPreview, ref }: StrandProps) {
         </div>
 
         <Reveal delay={0.08}>
-          <p className="mt-7 max-w-[26rem] text-[0.95rem] leading-[1.8] text-text/80 md:mt-8">
+          <p className="mt-7 max-w-[26rem] text-body leading-[1.8] text-text/80 md:mt-8">
             {discipline.description}
           </p>
 
@@ -332,7 +332,7 @@ function Strand({ discipline, index, isActive, onPreview, ref }: StrandProps) {
           */}
           <span
             aria-hidden
-            className="mt-6 flex w-fit items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-eyebrow text-text"
+            className="mt-6 flex w-fit items-center gap-3 text-action font-semibold uppercase tracking-eyebrow text-text"
           >
             <span className="border-b border-primary/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary group-focus-within:border-primary">
               Explore {discipline.name}

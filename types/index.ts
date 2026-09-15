@@ -23,6 +23,17 @@ export interface NavItem {
    * both of them.
    */
   megamenu?: boolean;
+  /**
+   * Sits with the bar's utilities on the right rather than in the primary
+   * navigation on the left.
+   *
+   * Presentation only, and only on the desktop bar: the mobile menu and the
+   * footer still render the entry in document order with everything else, so
+   * there is still one list and it still cannot drift. Contact is the entry
+   * this exists for — it is a way to reach the studio rather than a place in
+   * the programme, and it belongs beside search for the same reason.
+   */
+  utility?: boolean;
 }
 
 /** A grouped column of links in the footer. */
@@ -185,7 +196,7 @@ export interface RecentItem {
   slug: string;
   /** Short — two or three words. It is read at caption size. */
   title: string;
-  /** One line of context, e.g. "Wheel-throwing" or "Watercolour". */
+  /** One line of context, e.g. "Painted ceramic" or "Watercolour". */
   subtitle: string;
   /**
    * Editorial date, already formatted for display, e.g. "Oct 2026". Optional:
@@ -293,4 +304,93 @@ export interface Testimonial {
    * about a person who has not agreed to be quoted.
    */
   attribution: string;
+}
+
+/**
+ * One question on the homepage's FAQ.
+ *
+ * A shape, not an architecture: there is no FAQ CMS and this phase does not
+ * build one. The homepage carries the few questions that stand between someone
+ * and a booking; anything longer belongs on /faq when that route is written.
+ */
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+/**
+ * One loyalty pass, as the studio would sell it.
+ *
+ * A pass is bought rather than booked, and that is the whole of the difference
+ * from a {@link Workshop}: it carries a number of sessions and a validity, and
+ * it is redeemed later against dates in the programme. There is no `startsAt`,
+ * no {@link Venue} and no seat count here, because a pass is not a place at a
+ * table on a particular Saturday.
+ *
+ * Shaped for a CMS, like everything else the studio would edit. `price` is
+ * optional on purpose: a pass that has been written but not yet priced is a
+ * real state of the data, and the page shows it as not yet on sale rather than
+ * printing a number nobody has set. `sessions` and `validity` are optional for
+ * the same reason — both are omitted rather than guessed at.
+ */
+export interface Pass {
+  /** Stable identifier, and the React key. */
+  slug: string;
+  /** Set in caps by the design; stored in its natural case. */
+  name: string;
+  /** One sentence. The benefits carry the detail. */
+  description: string;
+  /** Absent until the studio sets one — see above. */
+  price?: Price;
+  /** Short lines, three or four at most. Never paragraphs. */
+  benefits: readonly string[];
+  /** How many sessions the pass carries. Omitted when it is not counted that way. */
+  sessions?: number;
+  /** Printed copy, e.g. "12 months from purchase". Omitted when unset. */
+  validity?: string;
+  /** A plate beside the entry. Optional — the row sets none without it. */
+  image?: ImageAsset;
+}
+
+/**
+ * One shopping centre the Maison has an agreement with.
+ *
+ * Distinct from {@link Venue}, and the distinction matters. A `Venue` is where
+ * one session happens — it hangs off a {@link Workshop} and comes and goes with
+ * the schedule. This is a standing relationship with a place: the studio signs
+ * with a centre and then runs dates inside it, so the partnership outlives any
+ * particular Saturday and exists whether or not a date is currently on sale.
+ *
+ * Shaped so the list can grow without the component changing. Everything the
+ * studio cannot supply today is optional, and the section renders around what
+ * is missing rather than printing a gap — which is the whole reason `logo` and
+ * `image` are optional rather than pointed at a stand-in.
+ */
+export interface MallPartner {
+  /** Stable identifier, and the React key. */
+  slug: string;
+  /** The centre, as it is signposted, e.g. "Times Square Center". */
+  name: string;
+  /** The city or district under it, e.g. "Dubai". */
+  locality: string;
+  /**
+   * One line on what the place is. Short, and factual — this is a description
+   * of a destination, not a claim about the partnership.
+   */
+  descriptor: string;
+  /**
+   * A map or the centre's own page. Optional: an entry with no link simply
+   * shows none, which is better than a link that goes to the wrong door.
+   */
+  locationHref?: string;
+  /**
+   * The centre's own mark, as the centre supplies it.
+   *
+   * Optional and left empty until an approved asset arrives. Nothing here
+   * draws, traces or approximates a partner's identity: with no logo the entry
+   * sets the name as type, which is the honest version of the same thing.
+   */
+  logo?: ImageAsset;
+  /** A photograph of the destination. Absent until the client supplies one. */
+  image?: ImageAsset;
 }

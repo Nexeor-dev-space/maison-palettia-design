@@ -1,54 +1,35 @@
+import Image from "next/image";
+import Link from "next/link";
+
 import { MaskedText } from "@/components/motion/MaskedText";
 import { Reveal } from "@/components/motion/Reveal";
-import { HeroVisual } from "@/components/sections/HeroVisual";
+import { Container } from "@/components/ui/Container";
+import { HERO_IMAGE, WORKSHOPS_HREF } from "@/lib/constants";
 
 /**
- * Shared between the two halves of the wordmark.
+ * Homepage hero — one image, one moment, one statement.
  *
- * Set in Qarine — the client-supplied display serif, not the sans used
- * everywhere else on the page — so the brand name reads as a headline rather
- * than as UI type. Qarine's caps already carry generous, flared spacing of
- * their own; the tracking here is a fraction of what the previous sans
- * treatment needed; anything wider starts separating the letter pairs into
- * unrelated marks instead of a word.
+ * WHAT THIS REPLACES. The hero was a triptych: a painting, a looping video of
+ * a potter's wheel and a still of unglazed cups, each under its own brand
+ * wash, with the name typeset across all three. It was a constructed thing —
+ * three competing subjects and a collage seam down the middle — and its centre
+ * panel was the most prominent piece of pottery on a site that is no longer
+ * about pottery.
  *
- * Sized in viewport width so it reaches the gutter at every width — the
- * wordmark is meant to run the frame, not to sit in the middle of it. The
- * numbers are solved rather than guessed: the type's width is linear in its
- * size, so each was derived from a measured render and then checked against
- * the narrow end of its own breakpoint, where the fit is tightest. One line
- * at `lg`, two below it, which is why the `lg` value is so much smaller.
+ * In its place: one photograph, full bleed, of somebody painting. A hand, a
+ * brush, a loaded palette, a canvas of coral and teal. It is the opening image
+ * of a brand rather than a display of what the brand sells, which is the whole
+ * point of the change.
  *
- * Each is capped against viewport height as well. Without that guard a short
- * window — a phone held in landscape, a laptop with a tall browser chrome —
- * gets a wordmark taller than the hero it sits in. The cap does bite in the
- * tablet range on a short window, where the wordmark is two lines and simply
- * cannot reach the gutter without taking half the frame; there the height
- * wins, and it should.
- */
-const WORDMARK =
-  "font-wordmark text-[min(21.5vw,20vh)] font-normal uppercase leading-[0.92] tracking-[0.015em] md:text-[min(23.5vw,23vh)] lg:text-[min(12.8vw,26vh)] lg:leading-[0.9]";
-
-/**
- * Homepage hero.
+ * THE BLOCK IS BOTTOM-LEFT, NOT CENTRED, and that is not a style preference.
+ * The header's mark is centred and sits transparent over this image on the
+ * homepage; a centred hero mark would stack directly beneath it and read as
+ * the same logo printed twice. Anchoring low and left also leaves the painter
+ * and her canvas — the top two thirds — completely uncovered, which is what
+ * makes the photograph read as a photograph rather than as a backdrop.
  *
- * A triptych filling the viewport — a painting, the wheel turning, the fired
- * object — with the type laid over it rather than beside it. The sequence is
- * the argument: Maison Palettia is a place where things get made, not a shelf
- * of finished pots.
- *
- * Two lines of type and nothing else. The wordmark runs the width of the
- * frame along the foot, the way a title sits under a work in a gallery; the
- * statement is handed to the image field so it stays centred on the one panel
- * that moves, whichever shape that panel takes.
- *
- * The section is sticky rather than static: it holds at the top of the
- * viewport while the page below rises over it and covers it. That needs a
- * definite height (`h-svh`, not `min-h`) and a wrapper on the page tall
- * enough to give sticky somewhere to travel — see app/page.tsx.
- *
- * Server component. The image field, the video and every animation live in the
- * client components it composes.
+ * Still `sticky top-0 z-0`: app/page.tsx wraps this with the two sections that
+ * rise over and cover it, and that behaviour is not part of this redesign.
  */
 export function Hero() {
   return (
@@ -56,93 +37,135 @@ export function Hero() {
       aria-labelledby="hero-heading"
       className="sticky top-0 z-0 isolate -mt-header flex h-svh flex-col justify-end overflow-hidden bg-text [--color-focus:var(--color-cream)] md:-mt-header-lg"
     >
-      <HeroVisual className="absolute inset-0" statement={<Statement />} />
+      {/*
+        One image, and the page's LCP — `priority`, and `sizes="100vw"` because
+        it is full bleed at every width.
+      */}
+      <Image
+        src={HERO_IMAGE.src}
+        alt={HERO_IMAGE.alt}
+        fill
+        priority
+        sizes="100vw"
+        style={{ objectPosition: HERO_IMAGE.position }}
+        className="object-cover"
+      />
 
       {/*
-        Contrast in two soft passes rather than one flat overlay: a wash at the
-        head so the navigation keeps its footing over pale clay, and a rise
-        from the foot so the wordmark lands on something. Both are gradients,
-        not scrims — the paintwork and the glaze still read through them.
+        The head wash exists for the navigation, not for the hero. The bar is
+        transparent over this image on the homepage, and the top right of this
+        photograph — where Search and Contact sit — is a white wall behind a
+        bare easel. Solved the same way as the foot: the header's own rects at
+        each breakpoint, worst pixel under each. 17px White Rock links owe
+        4.5:1 and need 0.75 ink; the centred Light Sage mark owes 3:1 and needs
+        0.65; the phone's icon buttons need 0.61.
+
+        IT HAS TO PLATEAU, NOT RAMP. A wash that starts at its darkest and
+        fades immediately is already down to 0.47 by the bottom of the nav row
+        — which is what the previous one did, and why the right-hand links
+        failed at 1024 and 1440 on this image. So it holds flat past the nav
+        (two stops at the same alpha) and only then falls away. The fade is
+        long — 90px of hold and 134px of fall at desktop — so it reads as light
+        behind the bar rather than as a bar.
       */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-text/68 via-text/26 to-transparent md:h-52"
+        className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-text/70 via-text/70 via-45% to-transparent md:h-56 md:from-text/80 md:via-text/80 md:via-40%"
       />
+
       {/*
-        The rise the wordmark sits on, and the one piece of the hero that has
-        to be solved rather than judged: the type is cream, it runs the full
-        width, and it therefore has to clear 3:1 over whichever of the three
-        panels happens to be palest.
+        The foot rise the type sits on. Solved, not judged, and the numbers are
+        worth keeping because the photograph is a hard case: it runs from
+        near-black foliage to white canvas and pale rose petals, and the mark
+        is Light Sage while the type is White Rock — both light on light.
 
-        The middle stop is what does the work — the letters live between 74px
-        and 242px off the foot, which is the second half of this band, so the
-        stop at 50% is very nearly the value under the caps. It was 30%, tuned
-        when all three panels were dark. Against the object panel's clay, which
-        sits at 0.63 relative luminance after its White Rock wash, 30% left
-        48% of the wordmark's pixels under 3:1 and the top of the caps at 1.65
-        — the word dissolved into the pot. 60% clears every pixel of the
-        wordmark on all three panels, worst 3.2 on a wide screen and 3.2 on a
-        phone, where the stacked layout puts the whole wordmark on that one
-        panel.
+        Method: take the real bounding box of every element from the live DOM
+        at 360x640, 390x700, 768x900, 1024x768 and 1440x820, composite the
+        shipped crop underneath it, and for each box solve the smallest ink
+        alpha at which the WORST pixel in it still clears the bar — 3:1 for the
+        mark and for the heading (it is 36-52px, so large text), 4.5:1 for the
+        12px link. That came back at 0.47-0.58 under the mark and heading and
+        0.68 under the link, remarkably flat across all five.
 
-        It is not free: the foot of the painting and the lower third of the
-        wheel go about 13% darker. That is the cheaper side of the trade, and
-        the old value was already failing — the vase it replaced measured 14%
-        of the wordmark under 3:1 at this size. Anything laid over this field
-        wants re-measuring, not re-eyeballing; the panels differ by a factor of
-        four in luminance and an average across them hides it.
+        This gradient answers it with margin: 64% ink 36% of the way up a band
+        66% of the hero tall, 90% at the very foot. Worst case anywhere is the
+        heading at 1024, where the gradient supplies 0.70 against the 0.57 the
+        photograph demands.
+
+        It stays a foot rise rather than an overall overlay because the picture
+        has to survive. The ramp only passes 30% ink below 45% of the screen,
+        so the painter, her hand and the brush sit on untouched photograph, and
+        the darkening reaches full strength over the palette — which is the
+        darkest part of the frame anyway.
       */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-text/92 via-text/60 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[66%] bg-gradient-to-t from-text/90 via-text/64 via-36% to-transparent"
       />
 
-      {/* The h1 — the statement over the wheel is supporting copy, not the heading. */}
-      <h1
-        id="hero-heading"
-        className="relative flex flex-col items-center px-gutter pb-5 text-cream md:flex-row md:justify-center md:gap-[4vw] lg:pb-6"
-      >
-        <MaskedText delay={0.5} className={WORDMARK}>
-          Maison
-        </MaskedText>
-        {/*
-          An explicit space so the heading's accessible name is "Maison
-          Palettia" and not one run-on word — the two halves are block-level,
-          which gives no word boundary on its own. A white-space-only child of
-          a flex container is never rendered, so the layout is untouched.
-        */}{" "}
-        <MaskedText delay={0.62} className={WORDMARK}>
-          Palettia
-        </MaskedText>
-      </h1>
+      <Container className="relative pb-12 md:pb-16 lg:pb-20">
+        <div className="max-w-[46rem]">
+          {/*
+            The official asset, decorative here. The header already carries it
+            as the link home, so repeating that link would put one destination
+            in the tab order twice and announce the brand twice; the heading
+            below carries the meaning.
+          */}
+          <Reveal variant="fadeIn">
+            <Image
+              src="/images/logo.png"
+              alt=""
+              width={1015}
+              height={438}
+              priority
+              className="h-12 w-auto md:h-14 lg:h-16"
+            />
+          </Reveal>
+
+          <h1 id="hero-heading" className="mt-7 md:mt-9">
+            <MaskedText
+              delay={0.25}
+              className="block text-h1 font-light uppercase tracking-[-0.02em] text-cream"
+            >
+              Art, craft and community.
+            </MaskedText>
+          </h1>
+
+          <Reveal variant="fadeIn" delay={0.5}>
+            {/*
+              NO SUPPORTING PARAGRAPH. There was one — "a creative space where
+              art, craft and community come together" — and it was the heading
+              again with a subject and a verb attached: six of its ten words are
+              the headline. It also cost more than it looked like it cost. The
+              hero is a photograph of pale roses, and copy has to clear 4.5:1
+              over them; that sentence alone needed 80% ink under it, and it
+              pushed the block up to 47% of the screen at 1024, which put the
+              mark itself over bright canvas. Removing it is what lets the foot
+              rise stay a foot rise. One image, one statement, one door.
+            */}
+            {/*
+              One quiet way onward, and deliberately not an offer. The hero's
+              job is to introduce, so this is a door rather than a call to
+              action — no button, no filled block, the same ruled link the rest
+              of the site uses to say "there is more of this".
+            */}
+            <Link
+              href={WORKSHOPS_HREF}
+              className="group mt-8 inline-flex items-center gap-3 text-action font-medium uppercase tracking-eyebrow text-cream md:mt-10"
+            >
+              <span className="border-b border-cream/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-cream">
+                Explore events
+              </span>
+              <span
+                aria-hidden
+                className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+              >
+                &#8594;
+              </span>
+            </Link>
+          </Reveal>
+        </div>
+      </Container>
     </section>
-  );
-}
-
-/** "Create freely" — the quiet half of the hero, laid on the wheel. */
-function Statement() {
-  return (
-    <Reveal delay={1.05} variant="fadeIn">
-      <p className="text-center text-cream">
-        <span className="block text-[clamp(1.05rem,1.7vw,1.6rem)] font-light uppercase leading-none tracking-eyebrow">
-          Create
-        </span>{" "}
-        {/*
-          Light Sage rather than the cream the rest of the hero is set in —
-          the one place the brand colour itself appears over the artwork.
-          Taken from the token, not the hex: --color-sage is #d1e7be, and
-          re-skinning the palette should carry this with it.
-        */}
-        {/*
-          `font-flourish`, not the brand script the rest of the site's
-          flourishes take: this word keeps the copperplate the hero was
-          designed against. See the token in globals.css — it is a system face
-          and does not render the same off macOS.
-        */}
-        <span className="mt-2 block font-flourish text-[clamp(2.75rem,min(5.6vw,13vh),5rem)] leading-[1.05] tracking-normal text-sage">
-          freely
-        </span>
-      </p>
-    </Reveal>
   );
 }

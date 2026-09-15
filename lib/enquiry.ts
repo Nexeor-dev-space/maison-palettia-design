@@ -22,26 +22,54 @@
 export interface EnquiryRequest {
   name: string;
   email: string;
-  /** Optional — the form does not require it. */
+  /**
+   * Optional on the contract, which is not the same as optional on a form.
+   * The contact form leaves it blank-able; the private-event enquiry requires
+   * it, because that conversation happens over a call. A transport must not
+   * assume it is present.
+   */
   phone?: string;
   topic: EnquiryTopic;
   message: string;
+  /**
+   * Structured answers a particular form collected, in the order it asked
+   * them. Optional, so the contact form is unchanged by its existence.
+   *
+   * A list of label/value pairs rather than named fields, because the two
+   * forms that feed this ask different questions and adding
+   * `approximateGuests?: number` here would put the private-events form's
+   * vocabulary into a contract the contact form also signs. Whatever
+   * eventually delivers an enquiry can print these under the message without
+   * knowing what any of them mean.
+   *
+   * Only answered questions belong here. A form must not pad this with empty
+   * entries — see the private-events enquiry, which filters before sending.
+   */
+  details?: readonly { label: string; value: string }[];
 }
 
 /**
  * What the enquiry is about.
  *
- * Four options, each matching something this site actually does: the
- * programme at /events, the booking flow that runs off it, the collaborations
- * the studio takes on, and everything else. No "sales", no "support", no
- * "press" — the studio has no such desks, and a dropdown that implies
- * otherwise is an invented org chart.
+ * Five options, each matching something this site actually does: the
+ * programme at /events, the booking flow that runs off it, the private
+ * sessions at /private-events, the collaborations the studio takes on, and
+ * everything else. No "sales", no "support", no "press" — the studio has no
+ * such desks, and a dropdown that implies otherwise is an invented org chart.
  */
-export type EnquiryTopic = "event" | "booking" | "collaboration" | "general";
+export type EnquiryTopic = "event" | "booking" | "private" | "collaboration" | "general";
 
 export const ENQUIRY_TOPICS: { value: EnquiryTopic; label: string }[] = [
   { value: "event", label: "An event" },
   { value: "booking", label: "A booking" },
+  /*
+    Added when /private-events was built, on the same rule the footer follows:
+    an option is offered once there is something real behind it. The contact
+    form picks this up automatically, which is the intent — someone who lands
+    on /contact wanting to arrange a private session should not have to file it
+    under "Something else".
+  */
+  { value: "private", label: "A private event" },
   { value: "collaboration", label: "Working together" },
   { value: "general", label: "Something else" },
 ];
