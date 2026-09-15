@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
  * one option clears the others in its group, so it behaves as single-select,
  * but it is announced as a set of toggles — which needs no roving tabindex and
  * no arrow-key handling to be correct. Each group carries its own accessible
- * name, so the chip is announced as "Pottery, toggle button, pressed" under a
+ * name, so the chip is announced as "Painting, toggle button, pressed" under a
  * named group rather than as a loose control.
  */
 interface EventFiltersProps {

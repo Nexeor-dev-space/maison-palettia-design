@@ -21,7 +21,7 @@ import type { Workshop } from "@/types";
  * The next session, as a booking.
  *
  * This was a featured workshop: a photograph the width of the measure, a
- * title, a paragraph about centring clay, and "Explore workshop". It read as a
+ * title, a paragraph about the session, and "Explore workshop". It read as a
  * beautiful thing to admire. The studio's business is a table in a mall on a
  * Saturday at eleven, and none of that told you where or when.
  *
@@ -291,7 +291,7 @@ function BookButton({
     <Link
       href={bookSessionHref(workshop)}
       aria-label={`Book ${workshop.title}${where} on ${formatSessionDate(workshop.startsAt)}`}
-      className={`mt-8 inline-flex items-center justify-center gap-2.5 bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-white transition-colors duration-300 ease-soft hover:bg-primary/90 ${className ?? ""}`}
+      className={`mt-8 inline-flex items-center justify-center gap-2.5 bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90 ${className ?? ""}`}
     >
       Book event
       <span

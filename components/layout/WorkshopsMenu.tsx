@@ -192,7 +192,7 @@ export function WorkshopsMenu({
         hidden={!isOpen}
         onMouseEnter={openNow}
         onMouseLeave={closeSoon}
-        className="absolute inset-x-0 top-full border-t border-white/10 bg-nav"
+        className="absolute inset-x-0 top-full border-t border-on-dark/10 bg-nav"
       >
         <div className="mx-auto w-full px-gutter py-12 lg:py-14">
           <ul className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4 lg:gap-x-10">
@@ -203,7 +203,7 @@ export function WorkshopsMenu({
                   className="group block"
                   onClick={closeNow}
                 >
-                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-white/5">
+                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-on-dark/5">
                     <Image
                       src={strand.image.src}
                       alt=""
@@ -221,7 +221,7 @@ export function WorkshopsMenu({
                     size — and the image beneath already carries its own
                     hover cue (a slow scale, set on the figure above).
                   */}
-                  <p className="mt-4 text-sm font-medium uppercase tracking-eyebrow text-white transition-colors duration-300 ease-soft">
+                  <p className="mt-4 text-sm font-medium uppercase tracking-eyebrow text-on-dark transition-colors duration-300 ease-soft">
                     {strand.name}
                   </p>
                   {/*
@@ -235,7 +235,7 @@ export function WorkshopsMenu({
                     is worth the extra margin regardless of which ground ends
                     up live next.
                   */}
-                  <p className="mt-2 text-fine leading-relaxed text-white/95">
+                  <p className="mt-2 text-fine leading-relaxed text-on-dark/95">
                     {strand.description}
                   </p>
                 </Link>
@@ -251,7 +251,7 @@ export function WorkshopsMenu({
           <Link
             href={href}
             onClick={closeNow}
-            className="group mt-12 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-white"
+            className="group mt-12 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-on-dark"
           >
             <span className="border-b border-sage/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
               See every upcoming event

@@ -63,7 +63,7 @@ interface CartLineBase {
    */
   slug: string;
   title: string;
-  /** The term printed above the title, e.g. "Pottery", or "Loyalty pass". */
+  /** The term printed above the title, e.g. "Painting", or "Loyalty pass". */
   category: string;
   priceAmount: number;
   priceCurrency: string;

@@ -142,7 +142,7 @@ function SectionHead() {
 
         <Reveal delay={0.15}>
           <p className="mt-6 max-w-[26rem] text-body leading-[1.85] text-text/80 md:mt-7">
-            From colour and clay to hands-on making, discover experiences designed to bring
+            From colour and pattern to hands-on making, discover experiences designed to bring
             your ideas to life.
           </p>
         </Reveal>

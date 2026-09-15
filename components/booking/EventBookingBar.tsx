@@ -300,7 +300,7 @@ function Action({
       className={cn(
         "group inline-flex shrink-0 items-center justify-center gap-2.5 whitespace-nowrap",
         "min-h-11 bg-primary px-5 text-action font-medium uppercase leading-none tracking-eyebrow",
-        "text-white transition-colors duration-300 ease-soft hover:bg-primary/90 md:px-8 md:py-5",
+        "text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90 md:px-8 md:py-5",
       )}
     >
       Book

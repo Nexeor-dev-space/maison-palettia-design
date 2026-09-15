@@ -27,7 +27,7 @@ import type { Workshop } from "@/types";
  *
  * Facets are memoised against the catalogue rather than the filters: the
  * options a visitor is offered describe the whole programme, so the count
- * beside "Pottery" does not drop to zero the moment they pick a different
+ * beside "Painting" does not drop to zero the moment they pick a different
  * mall. Only the list below reacts.
  */
 export function EventsBrowser({ workshops }: { workshops: Workshop[] }) {

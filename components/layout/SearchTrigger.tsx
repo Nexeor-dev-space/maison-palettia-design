@@ -39,7 +39,7 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
       aria-controls={panelId}
       className={
         "group/nav inline-flex size-11 items-center justify-center gap-2 text-body " +
-        "font-medium tracking-[0.01em] text-white transition-colors duration-300 ease-soft " +
+        "font-medium tracking-[0.01em] text-on-dark transition-colors duration-300 ease-soft " +
         // Below `lg` the label is `sr-only`, so the button is an icon in a
         // fixed 44px box — the touch target the icon alone could not give it.
         // From `lg` the label is visible and the row sits in an 80–104px bar,

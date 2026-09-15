@@ -179,7 +179,7 @@ export function MobileNav({
             {disciplines.map((strand, i) => (
               <li key={strand.slug} className="animate-rise" style={riseDelay(i)}>
                 <Link href={strand.href} onClick={onClose} className="group block">
-                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-white/5">
+                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-on-dark/5">
                     <Image
                       src={strand.image.src}
                       alt=""
@@ -188,7 +188,7 @@ export function MobileNav({
                       className="object-cover"
                     />
                   </div>
-                  <p className="mt-3 text-fine font-medium uppercase tracking-eyebrow text-white">
+                  <p className="mt-3 text-fine font-medium uppercase tracking-eyebrow text-on-dark">
                     {strand.name}
                   </p>
                 </Link>
@@ -199,7 +199,7 @@ export function MobileNav({
 
         {/* 02 — the action, given a rule of its own so it is not one of a list. */}
         <div
-          className="mt-12 animate-rise border-y border-white/15 py-7"
+          className="mt-12 animate-rise border-y border-on-dark/15 py-7"
           style={riseDelay(disciplines.length)}
         >
           <BookAction size="panel" onNavigate={onClose} />
@@ -230,7 +230,7 @@ export function MobileNav({
                   href={item.href}
                   onClick={onClose}
                   aria-current={isActive(item.href) ? "page" : undefined}
-                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-white"
+                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-on-dark"
                 >
                   <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                 </Link>

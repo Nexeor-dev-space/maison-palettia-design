@@ -14,7 +14,12 @@ export const SITE = {
   name: "Maison Palettia",
   legalName: "Maison Palettia Events L.L.C.",
   /** Shown in the header wordmark and footer. */
-  tagline: "Art, craft and pottery workshops in Dubai",
+  // "pottery" removed: the client's new direction takes the brand off the
+  // wheel entirely. The activities named in its place are painting, textiles,
+  // candles, crocheting, tote-bag and ceramic painting, bedazzling, mandala
+  // and glass painting — a list too long for a tagline, so this says the
+  // category rather than the catalogue.
+  tagline: "Creative workshops and events in Dubai",
   locale: "en_AE",
   /** TODO(client): replace with the production domain before launch. */
   url: "https://www.maisonpalettia.com",
@@ -79,7 +84,7 @@ export const WORKSHOPS_HREF = "/events";
  * treatment over these until the page scrolls. Add a route here when its hero
  * lands on a dark ground.
  */
-export const DARK_HERO_ROUTES: readonly string[] = ["/"];
+export const DARK_HERO_ROUTES: readonly string[] = ["/", "/private-events"];
 
 /**
  * The single primary call to action, reused in the header and footer.
@@ -122,7 +127,10 @@ export const FOOTER_NAV: NavGroup[] = [
       /* Grown, per the rule above: /loyalty is a route that exists now. It is
          deliberately not promoted into MAIN_NAV — that list is three entries
          by design and changing it is a navigation decision, not a side effect
-         of building a page. */
+         of building a page. Same for /private-events, added on the same rule
+         when that page was built: it is a real route, so the footer carries
+         it, and the bar is left alone. */
+      { label: "Private events", href: "/private-events" },
       { label: "Passes", href: "/loyalty" },
       { label: "Gallery", href: "/gallery" },
     ],
@@ -163,63 +171,66 @@ export const LEGAL_NAV: NavItem[] = [
 ];
 
 /**
- * Homepage hero — a three-part composition read left to right:
- * painting → making → object.
+ * The homepage hero — one photograph.
  *
- * The panels abut as one continuous frame rather than three cards, so each
- * entry carries its own `position` (the CSS object-position for its crop)
- * alongside the source. Adjust `position` to re-frame a panel; never swap in
- * a differently-shaped file without re-checking the crop at every breakpoint.
+ * Cut from assets/creative-masters/painting.jpg (3457x5185) to a 4:5 window
+ * centred 42% down the frame, which is where the painter's hand, the brush and
+ * the loaded palette all sit. Higher in the frame loses the hand; lower loses
+ * her head. Exported at 2000x2500 and 514KB — it is the page's LCP image, so
+ * it is the one asset on the site worth keeping deliberately small.
+ *
+ * `position` holds the crop above centre and left of centre, and both numbers
+ * were measured rather than chosen. The hero is `h-svh`, so a wide desktop
+ * window is a short letterbox onto a tall picture and a phone is very nearly
+ * the whole of it: 38% down keeps the hand in frame on the wide crop without
+ * cutting her head off on the narrow one.
+ *
+ * The 34% across only does anything on a portrait phone. A viewport narrower
+ * than 4:5 is height-constrained, so the sides are what get cut — about 15% of
+ * the width at 360x640 — and the subject of the photograph is not in the
+ * middle of it. Centred, that crop sheared her forearm at the frame edge and
+ * ran the brush off it; at 34% the hand, the brush and the wrist all sit
+ * inside the picture. Above 4:5 the image is width-constrained and this number
+ * has no effect at all, so the desktop framing is unchanged by it.
+ *
+ * It replaces the triptych's three assets — a painting, the potter's-wheel
+ * video and a still of unglazed cups. None of them is referenced here any more.
+ */
+export const HERO_IMAGE: ImageAsset = {
+  src: "/images/hero/making.jpg",
+  alt: "A painter at her easel, brush in hand, working a canvas of coral and blush roses among deep teal leaves, a loaded palette beside her.",
+  position: "34% 38%",
+};
+
+/**
+ * A picture that is cropped rather than placed: it carries its own
+ * `position` (the CSS object-position for its crop) alongside the source, and
+ * a `poster` when the source is footage. Used by the brand introduction, the
+ * captioned images and the testimonials ground.
+ *
+ * Adjust `position` to re-frame; never swap in a differently-shaped file
+ * without re-checking the crop at every breakpoint.
  */
 export interface HeroPanel {
   src: string;
   alt: string;
   /** CSS object-position for the editorial crop. */
   position: string;
-  /** First frame, for the video panel: it holds the layout while the file loads. */
+  /** First frame, for a video panel: it holds the layout while the file loads. */
   poster?: string;
 }
 
-export const HERO_TRIPTYCH: {
-  painting: HeroPanel;
-  making: HeroPanel;
-  ceramic: HeroPanel;
-} = {
-  painting: {
-    // Client artwork. It replaces a watercolour of blooms and is a squarer
-    // plate than that one — 2810x3548 against 5426x8000 — so the crop was
-    // re-checked at each breakpoint rather than inherited. The panel's own
-    // shape is what moves, not the picture: a wide band on a phone, a tall
-    // slice at desktop.
-    src: "/images/hero/i-1.jpg",
-    alt: "An oil landscape worked in heavy impasto: slender trees on a hillside meadow, flowering shrubs below them, and banked clouds over distant hills.",
-    position: "50% 46%",
-  },
-  making: {
-    // Web encode of the master at assets/video-masters/bg-video.mp4 — outside
-    // public/ so it is retained without being served. The master is a
-    // 4K, 27 Mbps, 30 MB file — an order of magnitude too heavy to sit in the
-    // first paint of the homepage — so it stays in the repository as the
-    // source of truth and this 1000px H.264 derivative (~2.4 MB, no audio,
-    // faststart) is what ships. Re-run the encode if the master changes.
-    src: "/videos/bg-video-web.mp4",
-    alt: "Hands drawing a vessel up on the potter's wheel.",
-    position: "50% 50%",
-    poster: "/images/hero/making-poster.jpg",
-  },
-  ceramic: {
-    // 2000px web encode of assets/hero-masters/stacked-cups.jpg (3744px, 1.8MB).
-    // The panel is never wider than ~34vw, so 2000px still covers a 4K display
-    // at 2x, and the file lands at 311KB against the 3.6MB the painting beside
-    // it is still carrying as an unresized master.
-    src: "/images/hero/i-3.jpg",
-    alt: "Four hand-built cups, unglazed, nested at angles in a leaning stack on pale plaster.",
-    // The centre of the stack, on both axes: the panel is a tall slot at `lg`
-    // and cuts the sides, and a wide band on a phone where it cuts the top and
-    // foot instead, so the crop has to hold from the middle either way.
-    position: "48% 50%",
-  },
-};
+/*
+  HERO_TRIPTYCH was here. It held the three panels the old hero read left to
+  right — an impasto landscape, a potter's-wheel loop and a stack of unglazed
+  cups — and nothing has referenced it since the hero became a single
+  photograph.
+
+  Of its four files, three were pottery and have since been deleted in the
+  pottery removal: the wheel loop, its poster frame and the cups. The
+  landscape survives as /images/hero/i-1.jpg and now carries the foot of
+  /contact.
+*/
 
 /** TODO(client): awaiting real address, email and phone number. */
 export const CONTACT: ContactDetails = {
@@ -268,14 +279,18 @@ export const SOCIAL_LINKS: SocialLink[] = [
 /**
  * Brand introduction (homepage section 02).
  *
- * Client photography, and the first place on the page where the hands are
- * somebody's rather than a frame lifted from the hero's footage. Portrait at
- * 1000x1500, which is a 2:3 plate; the section renders it at 4:5 on a phone
- * and at desktop, so the crop takes its loss off the top and foot.
+ * Portrait at 1333x2000, which is a 2:3 plate; the section renders it at 4:5
+ * on a phone and at desktop, so the crop takes its loss off the top and foot.
+ *
+ * This was a photograph of two clay-covered hands drawing a vessel up on the
+ * potter's wheel — the single most prominent piece of pottery on /about — and
+ * the client has taken the brand off the wheel. A hand at a canvas replaces
+ * it: the same thing the picture was there to say (somebody's hands, mid
+ * making, not a product shot) in a medium the studio still teaches.
  */
 export const BRAND_INTRO_IMAGE: HeroPanel = {
-  src: "/images/about/about-img.jpg",
-  alt: "Two clay-covered hands drawing a tall, narrow vessel upward on the potter's wheel, wet slip running back down the wheel head.",
+  src: "/images/experience/painting.jpg",
+  alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
   position: "50% 45%",
 };
 
@@ -285,49 +300,46 @@ export interface CaptionedImage extends HeroPanel {
 }
 
 /**
- * Homepage section 04 — the experience.
+ * Section 04 — the experience.
  *
- * Three scales, three subjects: the room, the making, the material. All three
- * are cut from assets already in the project rather than shot separately —
- * the first two from the master wheel footage at assets/video-masters/bg-video.mp4
- * (its background carries the only studio atmosphere the project holds), the
- * third from the watercolour used in the hero.
+ * Three scales, three subjects: the room, the making, the material.
+ *
+ * ALL THREE WERE POTTERY AND ALL THREE HAVE BEEN REPLACED. They were a wall
+ * of finished pots on a studio shelf, a hand at a canvas, and a maker lifting
+ * a glazed dish out of a kiln in a heat glove — two of the three unusable
+ * once the client took the brand off the wheel, and the third moved up to
+ * carry the brand introduction. The `glaze` key went with them: it named a
+ * pottery process, so it is `pigment` now, and /about reads the new name.
  *
  * TODO(client): this section is the one that most wants real workshop
  * photography — people at a table together, tools, someone else's hands. When
- * it arrives, replace these three and keep the shapes: 2:1, 4:5 and 1:1. The
- * band is cut at the full 2160px width of the source frame because it runs
- * the whole measure; anything narrower would be upscaled on a large display.
+ * it arrives, replace these three and keep the shapes: 2:1, 4:5 and 1:1. What
+ * is standing in for "the room" is a still life rather than a room, because
+ * the project no longer holds a photograph of the studio that is not a
+ * photograph of the wheel.
  */
 export const EXPERIENCE_IMAGES: {
   studio: CaptionedImage;
   painting: CaptionedImage;
-  glaze: CaptionedImage;
+  pigment: CaptionedImage;
 } = {
   studio: {
-    src: "/images/experience/finished-shelf.jpg",
-    alt: "Three shelves of hand-thrown pottery against a white studio wall — rows of pale, unglazed bowls, cups and vases, with a few glazed pieces among them.",
-    /*
-      Held a little above centre. The plate is a 2:1 band and the photograph is
-      3:2, so a quarter of its height is cropped away; centred, that takes the
-      tops off the glazed gourds on the top shelf, which are the only strong
-      colour in the frame. Lifting the crop keeps them and spends the loss on
-      the empty wall along the foot instead.
-    */
-    position: "50% 44%",
-    caption: "Finished pieces, studio shelf",
+    src: "/images/editorial/late-lilies.jpg",
+    alt: "Pale blush and white lilies opening against a bare wall, petals curling back as they age.",
+    position: "50% 50%",
+    caption: "Late lilies, studio wall",
   },
   painting: {
-    src: "/images/experience/painting.jpg",
-    alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
+    src: "/images/workshops/watercolour-in-progress.jpg",
+    alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
     position: "50% 50%",
-    caption: "Brush to canvas",
+    caption: "Colour, still wet",
   },
-  glaze: {
-    src: "/images/experience/glaze.jpg",
-    alt: "A maker in a work apron lifting a wave-edged dish glazed in deep blue, one hand in a kiln glove.",
+  pigment: {
+    src: "/images/experience/pigment-on-paper.jpg",
+    alt: "Pigment sinking into damp paper — deep red blooms bleeding into blue and yellow-green washes.",
     position: "50% 50%",
-    caption: "Glazed and fired",
+    caption: "Pigment into paper",
   },
 };
 
@@ -348,14 +360,13 @@ export const EXPERIENCE_IMAGES: {
  * phone takes out of the same file — roughly 3:2, and never the 2:1 band a
  * fixed-height figure would want.
  *
- * TODO(client): the second panel is a still life because nothing in the
- * project can carry a caption any other way — every frame of the wheel
- * footage is a bright vessel against a busy shelf, with no quiet field in it
- * at any crop. It is the first place to spend real workshop photography when
- * it arrives: a room of people making, shot wide, with air around them and
- * one side of the frame left empty. Keep the shape (roughly 3:2) and the
- * panel takes it unchanged; if the new picture is dark, set it as the `foot`
- * spread instead of `field`.
+ * TODO(client): the second panel is an artwork rather than a photograph of
+ * the studio, because the project holds no wide shot of a room that is not a
+ * shot of the potter's wheel. It is the first place to spend real workshop
+ * photography when it arrives: a room of people making, shot wide, with air
+ * around them and one side of the frame left empty. Keep the shape (roughly
+ * 3:2) and the panel takes it unchanged; if the new picture is dark, set it
+ * as the `foot` spread instead of `field`.
  */
 export const EDITORIAL_PANELS: {
   movement: EditorialPanel;
@@ -403,23 +414,23 @@ export const EDITORIAL_PANELS: {
     linkHref: "/events",
     index: "02 / 02",
     image: {
-      // A storeroom wall of finished terracotta — floor-to-ceiling steel
-      // racking packed with jugs, urns and water pots, supplied by the client.
-      // Cut from assets/editorial-masters/shelved-pots.jpg.
+      // A watercolour wash — blue and violet breaking into soft yellow-green,
+      // 2100x1448 and so almost exactly the 3:2 this panel wants.
       //
-      // The hardest plate this panel has carried. It has no quiet passage at
-      // all: every square inch is a pot against a shelf edge, so local
-      // contrast is high everywhere and there is no crop that opens a field
-      // for the caption the way the original still life did. The White Rock
-      // wash below is doing all of the work, and its stops are re-measured
-      // against this photograph rather than inherited.
-      src: "/images/editorial/shelved-pots.jpg",
-      alt: "Floor-to-ceiling steel shelving packed with terracotta pottery — rows of jugs, urns and water pots in orange, buff and cream, a few glazed in green and red.",
-      // Held just above centre. The racking runs the full height, so this is
-      // not choosing a subject so much as choosing which shelf edge lands
-      // behind the statement; a little high keeps the busiest, darkest row of
-      // dark-glazed pots down at the foot and out from under the caption.
-      position: "50% 42%",
+      // IT REPLACES A STOREROOM WALL OF TERRACOTTA POTTERY, which the client
+      // has taken the brand off. That plate was the hardest this panel ever
+      // carried and the note on it said so: floor-to-ceiling racking with a
+      // pot against a shelf edge in every square inch, no quiet passage at any
+      // crop, and the caption legible only because the wash under it was doing
+      // all of the work. This is the opposite kind of picture and the one the
+      // TODO above asked for — a broad tonal field with room in it — so the
+      // caption sits on the photograph rather than on a scrim over it.
+      src: "/images/editorial/wash-and-light.jpg",
+      alt: "A watercolour passage of deep blue and violet washes breaking into soft yellow-green.",
+      // Centred. The plate is 3:2 and the panel crops it a little either way
+      // depending on the window; the wash has no subject to hold, so there is
+      // nothing to bias the crop towards.
+      position: "50% 50%",
     },
   },
 };
@@ -551,71 +562,76 @@ export const PLAN_YOUR_VISIT: VisitInvitation = {
 };
 
 /**
- * The ground behind the guest quotes — the studio at the width of the window,
- * running.
+ * The ground behind the guest quotes.
  *
- * Client-supplied footage rather than a still: thirty-eight seconds of a pot
- * being opened and drawn up, which is the one thing on the page that shows the
- * making actually taking time. A quote about a first afternoon at the wheel
- * sits better on the wheel turning than on a photograph of it stopped.
+ * WAS THIRTY-EIGHT SECONDS OF A POT BEING OPENED AND DRAWN UP ON THE WHEEL.
+ * The note here used to argue for footage over a still — a quote about a
+ * first afternoon at the wheel sits better on the wheel turning than on a
+ * photograph of it stopped — and the client has taken the brand off the
+ * wheel, so the argument went with the clip. Both the footage and its poster
+ * frame were pottery, and the project holds no other footage, so this is a
+ * still now; <HeroVideo> had no other caller and is gone with it.
  *
- * The master at assets/video-masters/testimonial-bg.mp4 is 4K, 24 Mbps and 116 MB —
- * two orders of magnitude too heavy to put behind a section — so it stays in
- * the repository as the source of truth and this 1600px H.264 derivative
- * (~4 MB, no audio, faststart) is what ships. Re-run the encode if the master
- * changes; the recipe is in the same shape as bg-video-web.mp4 above.
+ * Cut from assets/hero-masters/i-2.jpg, an impressionist oil of children in
+ * an orchard, and cut from the FOOT of that painting on purpose: the upper
+ * two thirds have faces in them, and a face behind somebody else's quote
+ * reads as a picture of the person speaking. The bottom band is skirt, grass
+ * and dappled light — brushwork rather than a scene — which is what a ground
+ * should be. 2000x1125 at 307KB, against the 4MB the video cost.
+ *
+ * Decorative, so the alt is empty: the section's meaning is the quotes, and
+ * describing the wallpaper to a screen reader only delays them.
  *
  * TODO(client): still no guests in frame. This is the one section whose
- * subject is the people who came, and every asset in the project shows either
- * an object or one anonymous pair of hands.
+ * subject is the people who came, and the project holds no photograph of them.
  */
-export const TESTIMONIALS_GROUND: HeroPanel = {
-  src: "/videos/testimonial-bg-web.mp4",
-  alt: "The studio: clay-covered hands opening and drawing up a small vessel on the potter's wheel.",
+export const TESTIMONIALS_GROUND: ImageAsset = {
+  src: "/images/testimonials/orchard-in-oil.jpg",
+  alt: "",
   /*
-    Centred. The footage is 16:9 and the section is wider than that at every
-    desktop shape, so `cover` crops it top and bottom there and this has no
-    effect at all — it is here for narrow screens, where the crop goes the
-    other way. The wheel sits centre-left in frame and the hands work across
-    the middle, so dead centre is the half worth keeping on a phone.
+    Centred. The plate is 16:9 and the section is wider than that at every
+    desktop shape, so `cover` crops it top and bottom there; on a phone the
+    crop goes the other way. The band has no subject to hold either way.
   */
   position: "50% 50%",
-  /* First frame. Holds the section while the file buffers. */
-  poster: "/images/testimonials/room-poster.jpg",
 };
 
 /* ==========================================================================
    Homepage gallery.
 
-   Existing photographs, all of them already in the repository and already
-   optimised — nothing was added or re-encoded for this. They are process
-   shots rather than shelves of finished work, because the section's job is to
-   let someone picture themselves at the table: hands in the clay, a brush
-   half-way through a bloom, a studio with its shelves behind.
+   THREE OF THESE FOUR WERE THE POTTER'S WHEEL. Two pairs of clay-slicked
+   hands and a forearm against a shelf of glazed mugs, kept because they were
+   the only process photographs in the project that were both on-message and
+   light enough for the homepage. The client has taken the brand off the wheel
+   and they are gone.
 
-   The finished-work strip that used to sit on the homepage is a different
-   thing and now lives on /about. This is not that renamed.
+   What replaces them is honest about what is left. The project holds exactly
+   one process photograph that is not pottery and not already on this page —
+   a hand at a canvas — and the other three plates are work rather than
+   working: a watercolour on the easel, and two passages of pigment on paper.
+   The section's job is to let someone picture themselves at the table, and
+   three quarters of it now shows the table's output instead.
 
-   TODO(client): four is thin for a gallery and these are the only process
-   photographs in the project that are both on-message and light enough to put
-   on the homepage. The studio shoot should replace all four.
+   TODO(client): this is the section the studio shoot should reach first.
+   Four frames of people making things, in the activities the Maison actually
+   runs, and all four of these come out.
    ========================================================================== */
 export const GALLERY_IMAGES: ImageAsset[] = [
   {
-    src: "/images/workshops/throwing-on-the-wheel.jpg",
-    alt: "Two clay-slicked hands steadying a wide-shouldered pot turning on the wheel, studio shelves of pale blue mugs behind.",
-  },
-  {
-    src: "/images/experience/pressing-the-wall.jpg",
-    alt: "Fingers drawing the wall of a tall pot upward on the wheel, wet clay running over the knuckles.",
+    src: "/images/experience/painting.jpg",
+    alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
   },
   {
     src: "/images/workshops/watercolour-in-progress.jpg",
     alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
   },
   {
-    src: "/images/experience/studio-shelf.jpg",
-    alt: "A maker's clay-covered forearm at the wheel, with shelves of blue-glazed mugs against whitewashed brick behind.",
+    src: "/images/creative/colour-in-layers.jpg",
+    alt: "Washes of yellow-green and violet laid over one another on damp paper, the colour still finding its edges.",
+  },
+  {
+    src: "/images/experience/pigment-on-paper.jpg",
+    alt: "Pigment sinking into damp paper — deep red blooms bleeding into blue and yellow-green washes.",
   },
 ];
 

@@ -4,6 +4,7 @@ import { Gallery } from "@/components/sections/Gallery";
 import { Hero } from "@/components/sections/Hero";
 import { HomeFaq } from "@/components/sections/HomeFaq";
 import { HowItWorks } from "@/components/sections/HowItWorks";
+import { MallPartners } from "@/components/sections/MallPartners";
 import { PlanYourVisit } from "@/components/sections/PlanYourVisit";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { UpcomingEvents } from "@/components/sections/UpcomingEvents";
@@ -86,6 +87,18 @@ export default function HomePage() {
         on the way to one.
       */}
       <Gallery />
+
+      {/*
+        Where those rooms actually are, and why they are malls.
+
+        Here rather than higher up because it is credibility, not navigation:
+        the practical "which mall, which Saturday" question is answered by the
+        listing at the top of the page and by /events. This answers the one
+        underneath it — what kind of business this is — and it lands best after
+        someone has seen the programme, the making and the room, immediately
+        before the section where other people vouch for it.
+      */}
+      <MallPartners />
 
       {/*
         TODO(client): THE QUOTES IN THIS SECTION ARE INVENTED AND MUST NOT GO

@@ -318,7 +318,7 @@ function Complete({
           className={cn(
             "group inline-flex w-full items-center justify-center gap-2.5",
             "bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow",
-            "text-white transition-colors duration-300 ease-soft",
+            "text-on-dark transition-colors duration-300 ease-soft",
             "hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70 sm:w-auto",
           )}
         >
@@ -385,7 +385,7 @@ function EmptyCart() {
         className={cn(
           "group mt-9 inline-flex items-center justify-center gap-2.5",
           "bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-white transition-colors duration-300 ease-soft hover:bg-primary/90",
+          "text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90",
         )}
       >
         Explore events

@@ -215,7 +215,7 @@ function BookingStrip({ next, cheapest }: { next: Workshop; cheapest: Workshop }
         */}
         <Link
           href="/events"
-          className="group inline-flex w-full shrink-0 items-center justify-center gap-2.5 bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow text-white transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
+          className="group inline-flex w-full shrink-0 items-center justify-center gap-2.5 bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
         >
           Book a place
           <span
@@ -310,17 +310,17 @@ function Schedule({ workshops }: { workshops: Workshop[] }) {
 const INTERLUDES = ["come and make something", "bring only yourself"] as const;
 
 /**
- * A full-bleed band of Ink between two events.
+ * A full-bleed band of Charcoal Slate between two events.
  *
  * It exists because the alternative was a stripe of empty page. Three blocks
  * separated by white read as three things that happen to be near each other;
  * the same three separated by a solid ground read as one run.
  *
- * Ink rather than Deep Lilac, and rather than the watercolours that briefly
+ * Charcoal rather than Deep Lilac, and rather than the watercolours that briefly
  * sat here. Both of those were working against the type: Light Sage on Deep
  * Lilac is 3.83:1 with nothing spare, and putting a painting underneath meant
  * a wash heavy enough to keep the words legible, tuned per breakpoint, for a
- * picture reduced to a 133px slice. Flat Ink gives the same words 12.33:1 and
+ * picture reduced to a 133px slice. Flat Charcoal gives the same words 9.07:1 and
  * gives the section a beat of silence between two pale blocks — which is what
  * an interlude is for.
  *
@@ -330,7 +330,7 @@ const INTERLUDES = ["come and make something", "bring only yourself"] as const;
 function Interlude({ children }: { children: string }) {
   return (
     <Reveal variant="fadeIn">
-      <div className="-mx-gutter flex items-center justify-center bg-brand-ink px-gutter py-9 md:py-11 lg:py-12">
+      <div className="-mx-gutter flex items-center justify-center bg-text px-gutter py-9 md:py-11 lg:py-12">
         <Signature ground="ink" className="text-center">
           {children}
         </Signature>

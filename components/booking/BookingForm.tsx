@@ -171,7 +171,7 @@ export function BookingForm({ workshop }: { workshop: Workshop }) {
         className={cn(
           "group mt-12 inline-flex w-full items-center justify-center gap-2.5 px-8 py-5",
           "text-action font-medium uppercase leading-none tracking-eyebrow",
-          "bg-primary text-white transition-colors duration-300 ease-soft",
+          "bg-primary text-on-dark transition-colors duration-300 ease-soft",
           "hover:bg-primary/90 sm:w-auto",
         )}
       >

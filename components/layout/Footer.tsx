@@ -9,41 +9,18 @@ import { CONTACT, FOOTER_NAV, LEGAL_NAV, SITE } from "@/lib/constants";
 import type { NavGroup } from "@/types";
 
 /**
- * The wordmark, set to run the measure as the hero's does.
+ * The closing mark.
  *
- * The page opens on the name and closes on it, at the same width both times,
- * so the site reads as one room entered and left rather than as a masthead
- * and a utility strip. The two are set in different faces on purpose: Qarine
- * caps at the top, Hapsha Sophia Script here. This is the only place on the
- * site the brand script is given the name at size, and holding it back to the
- * last thing on the page is what keeps it from becoming the site's default
- * voice — the hero is the announcement and this is the signature under it.
+ * THE OFFICIAL ASSET, NOT A SECOND SETTING OF THE NAME. This was "Maison
+ * Palettia" typed out in the brand script at up to 14vh — a logo made out of
+ * type, and the site's second such treatment after the hero's. The guidelines
+ * name one logo asset; a footer that draws its own is drawing a different one,
+ * however close the face.
  *
- * Mixed case and unspaced because the face requires it. A connecting script
- * stops connecting the moment it is set in capitals, and runs well over twice
- * as wide besides — 13.4em against 5.8em for the same fifteen characters — so
- * caps would force the type down to a third of the size to fit the measure.
- *
- * The figures are the hero's, and so are its viewport-height ceilings. Those
- * were dropped here while nothing in the footer was bound to the fold; the
- * footer is pinned now (see <FooterReveal>), which binds all of it. A pinned
- * element taller than the window keeps its head above the top of the screen
- * with no way to scroll to it, so the mark takes the measure only while the
- * measure is the tighter of the two constraints, and gives way to the window
- * when it is not. On a tall display nothing below changes at all; on a laptop
- * the mark comes down enough for the whole footer to sit on one screen. They
- * are sized for the script's own metrics and do not transfer to Qarine — see
- * the hero's own set, which are solved separately.
- *
- * The `lg` step stops growing at 14rem, which is the size at which the mark
- * spans about the same width the site map below it is capped to. Without the
- * ceiling the wordmark keeps reaching for the window while everything under it
- * holds at 1440, and the footer reads as two compositions at two measures
- * rather than one block.
+ * <Wordmark variant="logo"> renders that asset, so the foot of every page and
+ * the bar at the top of it now show the same mark. Sized to the footer rather
+ * than the bar — this is the page's closing gesture and can afford the room.
  */
-const WORDMARK =
-  "font-display font-normal leading-[1.06] tracking-normal " +
-  "text-[20vw] md:text-[min(12.5vw,14vh)] lg:text-[min(12.5vw,11rem,14vh)]";
 
 /**
  * Global site footer — the last room.
@@ -122,20 +99,25 @@ export function Footer() {
 
       <div className="bg-sage pb-8 pt-4 md:pb-10 md:pt-5 lg:pb-[min(2.75rem,4vh)]">
         <Container>
-          {/* 01 — the mark, and the first thing under the arch. */}
-          <Reveal>
-            <p
-              className={`${WORDMARK} flex flex-col items-center text-primary md:flex-row md:justify-center md:gap-[4vw]`}
-            >
-              {/*
-                Not a heading: the document already has one wordmark in its
-                outline, in the hero, and a second would say the page has two
-                subjects. The explicit space keeps it reading as two words to
-                a screen reader announcing the paragraph.
-              */}
-              <span className="block">Maison</span> <span className="block">Palettia</span>
-            </p>
-          </Reveal>
+          {/*
+            01 — NO MARK HERE, AND THAT IS THE CORRECT OUTCOME FOR NOW.
+
+            This held "Maison Palettia" typed out in the brand script at up to
+            14vh: a logo made out of type, and the site's second such treatment.
+            The guidelines name one logo asset, so that had to go.
+
+            The official asset cannot take its place on this band. logo.png is
+            drawn in Light Sage on transparency — sampled, 93% of its ink is
+            #d1e7be — and this footer is a Light Sage field. The two measure
+            1.00:1 against each other: the mark would be perfectly invisible.
+
+            So the footer closes on its signature line instead, and the mark
+            returns the moment there is something to return.
+
+            TODO(client): supply a dark-on-light cut of the logo — Charcoal
+            Slate or Deep Lilac on transparency — and this becomes one line:
+            <Wordmark className="h-16 w-auto md:h-20 lg:h-24" />.
+          */}
 
           {/* 01b — the farewell, in the Maison's signage voice. */}
           <Reveal variant="fadeIn" delay={0.15}>

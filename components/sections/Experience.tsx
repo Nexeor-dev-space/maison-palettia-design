@@ -35,14 +35,14 @@ const PLATE_HEIGHT = "md:aspect-auto md:h-[42vw] md:max-h-[46rem]";
  *
  * Nothing here is a feature card and nothing is a claim. The argument is
  * carried by what the photographs are of — a shelf of other people's cups, a
- * hand in wet clay, pigment sinking into paper — and by the silence around
+ * a brush at a canvas, pigment sinking into paper — and by the silence around
  * them.
  *
  * Server component; every animation lives in the client components it
  * composes.
  */
 export function Experience() {
-  const { studio, painting, glaze } = EXPERIENCE_IMAGES;
+  const { studio, painting, pigment } = EXPERIENCE_IMAGES;
 
   return (
     <section
@@ -111,7 +111,7 @@ export function Experience() {
           to line up. Sharing a height puts all four corners on two lines, and
           the asymmetry moves where it belongs: into the widths, which stay
           five columns against seven, and into what each frame then holds — a
-          near-square of hands at the wheel beside a long landscape of
+          near-square of pigment on paper beside a long landscape of
           pigment.
 
           A height rather than a pair of matched aspect ratios, because the
@@ -128,7 +128,7 @@ export function Experience() {
           />
 
           <Plate
-            image={glaze}
+            image={pigment}
             shape={`${PLATE_HEIGHT} aspect-square`}
             sizes="(min-width: 64rem) 55vw, (min-width: 48rem) 54vw, calc(100vw - 3rem)"
             className="col-span-12 mt-12 md:col-span-7 md:col-start-6 md:mt-0 lg:col-span-7 lg:col-start-6"

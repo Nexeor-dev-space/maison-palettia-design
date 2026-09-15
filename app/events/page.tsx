@@ -8,7 +8,7 @@ import { getAllWorkshops } from "@/lib/workshops";
 export const metadata = buildMetadata({
   title: "Events",
   description:
-    "Every upcoming Maison Palettia event — pottery, painting and craft, at fixed times in malls across Dubai. Find a date, see the location, keep a place.",
+    "Every upcoming Maison Palettia event — painting, ceramic painting and craft, at fixed times in malls across Dubai. Find a date, see the location, keep a place.",
   path: "/events",
 });
 

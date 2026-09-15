@@ -142,7 +142,7 @@ function StatementLine({ children }: { children: string }) {
 }
 
 /**
- * 02 — the philosophy, against the wheel.
+ * 02 — the philosophy, against the picture.
  *
  * A full-bleed White Rock field so the page changes material here rather than
  * merely changing subject. The photograph bleeds off the left edge and the
@@ -322,8 +322,8 @@ function VisualStory() {
             <figure className="mt-10">
               <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-alt">
                 <Image
-                  src={EXPERIENCE_IMAGES.glaze.src}
-                  alt={EXPERIENCE_IMAGES.glaze.alt}
+                  src={EXPERIENCE_IMAGES.pigment.src}
+                  alt={EXPERIENCE_IMAGES.pigment.alt}
                   fill
                   sizes="(min-width: 1024px) 24vw, 100vw"
                   className="object-cover"

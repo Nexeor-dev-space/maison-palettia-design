@@ -95,6 +95,11 @@ const SPREADS = {
    * twice. It clears entirely by three fifths of the way down, so the lower
    * half of the picture is untouched.
    *
+   * NOTE: this spread is not currently mounted — /about takes `foot` for both
+   * panels — and the photograph the figures below were measured against (the
+   * client's shelved terracotta pots) has since been deleted in the pottery
+   * removal. Re-measure before using `field` again.
+   *
    * It carried no scrim at all while the plate was a wall of soft light with
    * the flowers low in the frame; the caption was laid straight on the wall,
    * where it already had seven or eight stops. The client's shelved pots
@@ -128,8 +133,8 @@ const SPREADS = {
       the other spread's, and for the inverse reason. The ink here is charcoal,
       so the ground has to be lifted rather than dropped, and it is lifted with
       White Rock rather than with white: it is the colour the rest of the page
-      is printed on, and over a warm stoneware still life it reads as the
-      picture being lit rather than veiled.
+      is printed on, and over a warm-toned plate it reads as the picture
+      being lit rather than veiled.
 
       This spread carried no overlay at all until the plate behind it changed.
       That was right for the photograph it was drawn against — a wall of soft

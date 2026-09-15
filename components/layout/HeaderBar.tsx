@@ -43,7 +43,7 @@ import type { Discipline, Workshop } from "@/types";
  * and <WorkshopsMenu>.
  */
 const NAV_LINK =
-  "group/nav inline-flex text-body tracking-[0.01em] text-white " +
+  "group/nav inline-flex text-body tracking-[0.01em] text-on-dark " +
   "transition-colors duration-300 ease-soft";
 
 /**
@@ -220,7 +220,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         // The hairline only exists once the bar has a ground of its own. Over
         // the hero there is nothing for it to divide, and a line ruled across
         // the artwork is exactly the hard separation the bar is avoiding.
-        isSolid ? "border-white/10 bg-nav" : "border-transparent bg-transparent",
+        isSolid ? "border-on-dark/10 bg-nav" : "border-transparent bg-transparent",
       )}
     >
       <Container
@@ -328,7 +328,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           second set of markup to keep in step.
         */}
         <div className="col-start-1 flex items-center justify-start lg:col-start-2 lg:justify-center">
-          <Wordmark variant="logo" />
+          <Wordmark />
         </div>
 
         {/*

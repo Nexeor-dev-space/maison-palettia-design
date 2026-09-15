@@ -26,7 +26,7 @@ const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text
  *
  * Five fields and nothing else. No company, no budget, no "how did you hear
  * about us", no marketing consent — the studio is a table in a mall running a
- * pottery afternoon, and every extra field on a contact form is a person who
+ * creative afternoon, and every extra field on a contact form is a person who
  * decided not to bother.
  *
  * Validated here as well as by the browser: `required` and `type="email"` are
@@ -170,7 +170,7 @@ export function ContactForm() {
         className={cn(
           "group mt-12 inline-flex w-full items-center justify-center gap-2.5 px-8 py-5",
           "text-action font-medium uppercase leading-none tracking-eyebrow",
-          "bg-primary text-white transition-colors duration-300 ease-soft",
+          "bg-primary text-on-dark transition-colors duration-300 ease-soft",
           "hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
         )}
       >

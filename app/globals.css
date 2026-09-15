@@ -35,14 +35,29 @@
    ========================================================================== */
 
 @theme static {
-  /* --- Brand palette (raw values — do not use directly in components) ----- */
-  --color-brand-lilac: #9059a4; /* Deep Lilac */
-  --color-brand-sage: #d1e7be; /* Light Sage */
-  --color-brand-cream: #efe2ca; /* White Rock */
-  --color-brand-terracotta: #d97757; /* Warm Terracotta */
-  --color-brand-lavender: #c4b5fd; /* Soft Lavender */
-  --color-brand-charcoal: #2d3748; /* Charcoal Slate */
-  --color-brand-ink: #231f20; /* Ink — near-black, warm */
+  /* ------------------------------------------------------------------------
+     BRAND PALETTE — the six colours from the guidelines, and nothing else.
+
+     These are the only literal colour values in this project. Every other
+     colour below is one of these, or a mix of two of them. Nothing here is
+     "close to" a brand colour: the hexes are the supplied ones exactly.
+
+     THIS LIST IS CLOSED. A seventh value does not get added because a section
+     wanted one — that is how a palette stops being a palette. If a surface
+     needs a tone the six cannot make, the answer is a mix of two of them,
+     declared here with the reason, so the palette stays auditable from one
+     screen. The previous near-black (#231f20) is gone for exactly that reason:
+     it was never in the guidelines.
+
+     Raw values, never used directly in a component. Components use the
+     semantic names below, so re-skinning the brand is an edit to this block.
+     ------------------------------------------------------------------------ */
+  --color-brand-lilac: #9059a4; /* Deep Lilac      — the brand accent */
+  --color-brand-sage: #d1e7be; /* Light Sage      — soft supporting ground */
+  --color-brand-cream: #efe2ca; /* White Rock      — the neutral, and light ink */
+  --color-brand-terracotta: #d97757; /* Warm Terracotta — warmth, used sparingly */
+  --color-brand-lavender: #c4b5fd; /* Soft Lavender   — secondary accent */
+  --color-brand-charcoal: #2d3748; /* Charcoal Slate  — primary text, dark grounds */
 
   /* --- Semantic colour tokens (use these in components) ------------------ */
   --color-primary: var(--color-brand-lilac);
@@ -52,7 +67,28 @@
   --color-lavender: var(--color-brand-lavender);
   --color-text: var(--color-brand-charcoal);
 
-  --color-surface: #fffdf9; /* page background — warm off-white */
+  /* ------------------------------------------------------------------------
+     Light ink — what type is set in when it sits on a dark ground.
+
+     It is White Rock, not white. Pure #ffffff is not in this palette and was
+     the single most common deviation in the codebase: forty-odd `text-white`
+     utilities across the navigation, the footer and every dark panel. White on
+     a warm palette reads as a different material — it is the one colour that
+     makes a warm brand look like a default template.
+     ------------------------------------------------------------------------ */
+  --color-on-dark: var(--color-brand-cream);
+
+  /* ------------------------------------------------------------------------
+     The page ground.
+
+     A warm near-white rather than White Rock itself: White Rock at full
+     strength is a surface, and a whole site set on it has nowhere left to put
+     a quiet panel. This is White Rock taken almost to white, so the page and
+     its panels are the same material at two strengths rather than two
+     unrelated creams — which is what an arbitrary off-white (#fffdf9, as it
+     was) could never be.
+     ------------------------------------------------------------------------ */
+  --color-surface: color-mix(in oklab, var(--color-brand-cream) 14%, white);
   --color-surface-alt: var(--color-brand-cream);
   /* Secondary copy. Mixed down from Charcoal Slate toward White Rock rather
      than picked as a grey of its own: the palette has one text colour, and
@@ -69,46 +105,44 @@
      and the hero's charcoal field still track Charcoal Slate, and moving one
      should not move the other.
 
-     Deep Lilac: the brand's own colour, taken straight from the palette
-     rather than restated as a hex, so the bar moves with the brand if the
-     brand ever moves. It was near-black Ink before this, and #8f59a4 — a hair
-     off Deep Lilac — for a stretch before that.
+     Charcoal Slate, not Deep Lilac.
 
-     Against this ground full white clears 4.5:1 at 5.06:1, but the faded
-     whites do not, and they were calibrated on the near-black. Anything on
-     these three surfaces that has to be *read* is therefore set in full white
-     or in Light Sage at display size; the /45 and fainter values are rules,
-     dividers and icon strokes, which owe 3:1 as graphical objects rather than
-     4.5:1 as text. Re-measure before promoting any of them back to copy. */
-  --color-nav: var(--color-brand-lilac);
+     The bar was a full field of Deep Lilac on every page of the site, and that
+     is the one thing the brand guidelines do not want the accent doing. Lilac
+     is listed as the colour for "important brand accents"; a surface that is
+     present on every screen, at the top, is not an accent — it is the site's
+     dominant colour, and it made the whole project read purple.
+
+     Charcoal is the palette's own dark and already the primary text colour, so
+     the bar now shares a material with the hero it sits over rather than
+     fighting it, and Deep Lilac is freed to mean something again where it is
+     actually used: one action, one mark.
+
+     Light ink on this ground is White Rock (`--color-on-dark`), which measures
+     9.34:1 — against 5.06:1 for the white-on-lilac it replaces. Faded values
+     below about /70 are rules, dividers and icon strokes, which owe 3:1 as
+     graphical objects rather than 4.5:1 as text. Re-measure before promoting
+     any of them to copy. */
+  --color-nav: var(--color-brand-charcoal);
 
   /* --- Typography -------------------------------------------------------- */
-  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
-  /* Display face. The licensed "Hapsha Sophia Script" file is not yet in the
-     project — see public/fonts/README.md. The inner fallback keeps the whole
-     declaration valid while --font-hapsha is undefined; once the font is wired
-     up in lib/fonts.ts it takes over automatically.
-     Tailwind generates the `font-display` utility from this token. */
-  --font-display: var(--font-hapsha, "Snell Roundhand"), "Brush Script MT", cursive;
-  /* The hero's "freely", and only that word.
-     ---------------------------------------------------------------------
-     This is the stand-in `--font-display` used to resolve to while the
-     licensed script was missing, kept deliberately for one word at the
-     client's request: the brand script now sets every other flourish on the
-     site, and the hero keeps the copperplate it was designed against.
+  /* ------------------------------------------------------------------------
+     TWO FACES, AND ONLY TWO.
 
-     WARNING — not a bundled face. Snell Roundhand ships with macOS and
-     nothing else. A visitor on Windows gets Brush Script MT, on Android or
-     Linux whatever the system calls `cursive`, and none of them look like
-     the intended word. Everything else on this site is served from
-     public/fonts and renders identically everywhere; this one does not.
-     Licensing a copperplate and bundling it would settle it properly, at
-     which point this token points there and the warning goes away. */
-  --font-flourish: "Snell Roundhand", "Brush Script MT", cursive;
-  /* Wordmark face for the hero's "MAISON PALETTIA" — a client-supplied
-     display serif, distinct from the script used for signature accents.
-     Tailwind generates the `font-wordmark` utility from this token. */
-  --font-wordmark: var(--font-qarine), Georgia, "Times New Roman", serif;
+     The guidelines name Montserrat for text and Hapsha Sophia Script for the
+     logo. This block held four: those two, plus Qarine (a display serif used
+     to typeset the name across the hero) and `--font-flourish`, which was
+     Snell Roundhand — a macOS system script that rendered as something else
+     everywhere else. Both are gone, along with Qarine's registration in
+     lib/fonts.ts.
+
+     The script's fallback chain is now a serif rather than another cursive.
+     If the licensed file ever fails to load, the right outcome is type that is
+     plainly not the brand face — not a different handwriting standing in for
+     it and passing unnoticed.
+     ------------------------------------------------------------------------ */
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-hapsha), Georgia, "Times New Roman", serif;
 
   --tracking-display: -0.01em;
   --tracking-eyebrow: 0.18em;

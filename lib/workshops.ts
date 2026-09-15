@@ -25,43 +25,32 @@ const LOW_SEAT_THRESHOLD = 4;
    against realistic shapes, and every one of them must be replaced before
    launch.
 
-   TODO(client): THE THREE MALLS BELOW ARE PLACEHOLDERS. `venue` is a new and
+   TODO(client): THE MALLS BELOW ARE PLACEHOLDERS. `venue` is a new and
    deliberately optional field — the schedule omits the location entirely for
-   any session that has none, so blanking these three lines is all it takes to
-   ship without inventing a location. They are filled in only so the section
-   can be designed against the shape the business actually has. Supply the real
-   malls, as they are signposted, with the city under them. Delete this
-   array wholesale once the CMS is connected — `getUpcomingWorkshops` is the
-   only thing that reads it.
+   any session that has none, so blanking those lines is all it takes to ship
+   without inventing a location. They are filled in only so the section can be
+   designed against the shape the business actually has. Supply the real malls,
+   as they are signposted, with the city under them. Delete this array
+   wholesale once the CMS is connected — `getUpcomingWorkshops` is the only
+   thing that reads it.
 
-   The photographs are stand-ins too, cropped from assets already in the
-   project (the master wheel footage and the two hero stills) so the section
-   can be judged with real, on-brand imagery rather than grey boxes:
+   TWO SESSIONS, NOT THREE, AND THAT IS THE HONEST NUMBER RIGHT NOW. There was
+   a third — "Throwing on the Wheel", filed under a Pottery category — and the
+   client has taken the brand off the wheel, so it is gone rather than
+   re-dressed. The glazing session it sat beside has become Ceramic Painting,
+   which is an approved activity: the same placeholder date, venue, price and
+   seat count, with pottery-process wording (bisque, kiln, firing) out of the
+   excerpt. No new session was invented to fill the gap, because inventing one
+   would mean inventing a date and a price to go with it. The listing and the
+   homepage both render whatever they are given, so two is a supported state.
 
-     TODO(client): replace with process photography from the studio shoot —
-     people mid-making, hands in the material. Two of the three crops below
-     are of finished work rather than of the work happening, which is the
-     opposite of what this section wants to show.
+     TODO(client): the programme has eight approved activities — ceramic
+     painting, painting, tote-bag painting, bedazzling, mandala painting,
+     glass painting, candle making and crocheting — and only two are
+     represented here, because the project holds photography for only those
+     two. Supply the real schedule, and a frame per activity with it.
    ========================================================================== */
 const PLACEHOLDER_WORKSHOPS: Workshop[] = [
-  {
-    slug: "throwing-on-the-wheel",
-    title: "Throwing on the Wheel",
-    category: "Pottery",
-    startsAt: "2026-10-03T10:00:00+04:00",
-    venue: { name: "The Dubai Mall", locality: "Downtown Dubai" },
-    durationMinutes: 180,
-    price: { amount: 320, currency: "AED" },
-    seatsTotal: 10,
-    seatsAvailable: 3,
-    status: "open",
-    excerpt:
-      "Centre the clay, open the form and draw your first vessel up under your hands. An unhurried morning at the wheel, from wet lump to finished shape.",
-    image: {
-      src: "/images/experience/pottery.jpg",
-      alt: "Two clay-slicked hands opening the centre of a small pot on the wheel, seen from directly above.",
-    },
-  },
   {
     slug: "watercolour-in-bloom",
     title: "Watercolour in Bloom",
@@ -85,9 +74,9 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     },
   },
   {
-    slug: "glaze-and-finish",
-    title: "Glaze & Finish",
-    category: "Ceramics",
+    slug: "ceramic-painting",
+    title: "Ceramic Painting",
+    category: "Ceramic Painting",
     startsAt: "2026-10-24T11:00:00+04:00",
     venue: { name: "City Centre Mirdif", locality: "Mirdif" },
     durationMinutes: 150,
@@ -95,10 +84,10 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     seatsTotal: 8,
     seatsAvailable: 0,
     status: "fully-booked",
-    excerpt: "Bring a bisque-fired piece back to colour — dipping, brushwork and the last decisions before the kiln.",
+    excerpt: "Take a ready-made ceramic piece and make it yours — colour, pattern and a fine brush, one decision at a time.",
     image: {
       src: "/images/workshops/glazed-vessel.jpg",
-      alt: "A cream stoneware vase carved and glazed with a pattern of blue, green and ochre scrollwork.",
+      alt: "A cream ceramic vase painted with a pattern of blue, green and ochre scrollwork.",
     },
   },
 ];

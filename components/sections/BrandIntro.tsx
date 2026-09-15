@@ -21,10 +21,10 @@ const STATEMENT_LINE =
 /**
  * Homepage section 02 — brand introduction.
  *
- * The hero is a dark, moving triptych; this is the exhale after it. A warm
- * cream field, one still photograph, and three words. The argument carries
- * over rather than restarting: the hero shows the wheel turning, and the plate
- * here holds a single moment of the same clay still enough to look at.
+ * The hero is a dark, full-bleed photograph; this is the exhale after it. A
+ * warm cream field, one still photograph, and three words. The argument
+ * carries over rather than restarting: the hero shows a painter at her easel,
+ * and the plate here holds a single brushstroke of the same afternoon.
  *
  * The composition is a staircase. The label sits flush to the left edge of the
  * measure, the statement is indented from it, the paragraph indented again,
@@ -156,7 +156,7 @@ export function BrandIntro() {
             <Reveal variant="fadeIn" delay={0.25}>
               <figcaption className="mt-4 flex items-center gap-3 text-label uppercase tracking-eyebrow text-text/75 xs:text-action">
                 <span aria-hidden className="h-px w-5 shrink-0 bg-text/25" />
-                Throwing on the wheel
+                Brush to canvas
               </figcaption>
             </Reveal>
           </figure>

@@ -196,7 +196,7 @@ export interface RecentItem {
   slug: string;
   /** Short — two or three words. It is read at caption size. */
   title: string;
-  /** One line of context, e.g. "Wheel-throwing" or "Watercolour". */
+  /** One line of context, e.g. "Painted ceramic" or "Watercolour". */
   subtitle: string;
   /**
    * Editorial date, already formatted for display, e.g. "Oct 2026". Optional:
@@ -349,5 +349,48 @@ export interface Pass {
   /** Printed copy, e.g. "12 months from purchase". Omitted when unset. */
   validity?: string;
   /** A plate beside the entry. Optional — the row sets none without it. */
+  image?: ImageAsset;
+}
+
+/**
+ * One shopping centre the Maison has an agreement with.
+ *
+ * Distinct from {@link Venue}, and the distinction matters. A `Venue` is where
+ * one session happens — it hangs off a {@link Workshop} and comes and goes with
+ * the schedule. This is a standing relationship with a place: the studio signs
+ * with a centre and then runs dates inside it, so the partnership outlives any
+ * particular Saturday and exists whether or not a date is currently on sale.
+ *
+ * Shaped so the list can grow without the component changing. Everything the
+ * studio cannot supply today is optional, and the section renders around what
+ * is missing rather than printing a gap — which is the whole reason `logo` and
+ * `image` are optional rather than pointed at a stand-in.
+ */
+export interface MallPartner {
+  /** Stable identifier, and the React key. */
+  slug: string;
+  /** The centre, as it is signposted, e.g. "Times Square Center". */
+  name: string;
+  /** The city or district under it, e.g. "Dubai". */
+  locality: string;
+  /**
+   * One line on what the place is. Short, and factual — this is a description
+   * of a destination, not a claim about the partnership.
+   */
+  descriptor: string;
+  /**
+   * A map or the centre's own page. Optional: an entry with no link simply
+   * shows none, which is better than a link that goes to the wrong door.
+   */
+  locationHref?: string;
+  /**
+   * The centre's own mark, as the centre supplies it.
+   *
+   * Optional and left empty until an approved asset arrives. Nothing here
+   * draws, traces or approximates a partner's identity: with no logo the entry
+   * sets the name as type, which is the honest version of the same thing.
+   */
+  logo?: ImageAsset;
+  /** A photograph of the destination. Absent until the client supplies one. */
   image?: ImageAsset;
 }

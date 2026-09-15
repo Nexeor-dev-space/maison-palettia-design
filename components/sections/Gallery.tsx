@@ -48,8 +48,8 @@ const PLATES = [
  *
  * Not a portfolio, and deliberately not the finished-work strip that used to
  * sit on this page. Every photograph here is of the making rather than of the
- * made: hands in the clay, a brush half-way through a bloom, a studio with its
- * shelves behind. The section exists to let someone picture themselves at the
+ * made: a brush half-way through a bloom, pigment still finding its edges on
+ * wet paper. The section exists to let someone picture themselves at the
  * table, which is a different job from showing what the table produces.
  *
  * It sits between the programme and the practical sections rather than near
@@ -81,7 +81,7 @@ export function Gallery() {
 
         <Reveal delay={0.15} className="col-span-12 mt-5 md:col-span-5 md:col-start-8 md:mt-0">
           <p className="max-w-[24rem] text-body text-text/80">
-            Ordinary hands, wet clay and wet paint. Nobody here has done it before either.
+            Ordinary hands and wet paint. Nobody here has done it before either.
           </p>
         </Reveal>
       </div>

@@ -91,26 +91,28 @@ function Invitation() {
         see the note on <Container>.
       */}
       {/*
-        A square plate in a wide band, so the crop is doing real work: 21:9
-        keeps about 43% of its height on a desktop, 16:9 about 56%, and 3:2 on
-        a phone about 67%. Centred rather than offset, because the subject sits
-        in the middle of the frame — the hands and the rising wall of the pot
-        are held at every one of those three crops, and what is given up is
-        blurred table at the top and wheel head at the foot.
+        A tall plate in a wide band, so the crop is doing real work: 21:9 keeps
+        about a third of its height on a desktop, 16:9 about 45%, and 3:2 on a
+        phone about 54%. Held above centre, because a landscape has its subject
+        along the horizon rather than in the middle — the hillside, the trees
+        and the flowering shrubs survive all three crops, and what is given up
+        is empty sky at the top and foreground at the foot.
 
-        The same photograph carries the Shape strand (see lib/disciplines.ts),
-        so it also appears inside the events menu and the mobile panel. Never
-        at the same moment as this: both are surfaces someone has to open.
+        THIS WAS TWO CLAY-COVERED HANDS THROWING ON THE WHEEL, shared with the
+        Shape strand in lib/disciplines.ts. The client has taken the brand off
+        the wheel; the strand is gone and so is the photograph. A client oil
+        landscape stands in — it is the only picture left in the project wide
+        enough for a 21:9 band that is not already on another page.
       */}
       <Reveal variant="maskUp" className="mt-16 md:mt-20 lg:mt-24">
         <div className="relative -mx-gutter aspect-[3/2] w-screen max-w-none overflow-hidden sm:aspect-[16/9] lg:aspect-[21/9]">
           <Image
-            src="/images/creative/pottery.jpg"
-            alt="Two clay-covered hands throwing on the wheel — one inside the vessel opening it out, the other holding a metal rib against the turning wall."
+            src="/images/hero/i-1.jpg"
+            alt="An oil landscape worked in heavy impasto: slender trees on a hillside meadow, flowering shrubs below them, and banked clouds over distant hills."
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[50%_50%]"
+            className="object-cover object-[50%_42%]"
           />
         </div>
       </Reveal>
