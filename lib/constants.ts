@@ -60,14 +60,35 @@ export const MAIN_NAV: NavItem[] = [
     together: a link worth promoting to the front row is a link worth someone
     finding something at the other end of.
 
-    It is marked `utility` rather than dropped back out: on the desktop bar it
-    sits with search on the right, because reaching the studio is a different
-    kind of errand from choosing where to go in the programme. The mobile menu
-    and the footer render this list in order and are unaffected.
+    IT NO LONGER CARRIES `utility`. That flag pulled Contact out of this group
+    and into the bar's right-hand cluster beside search, on the reasoning that
+    reaching the studio was a different kind of errand from choosing where to
+    go in the programme. The client has now asked for the opposite — Contact
+    sits with Events and About, so the left reads "Events · About · Contact"
+    in one voice.
+
+    The flag existed solely for this entry (its own doc comment on `NavItem`
+    said so), and once Contact stops carrying it nothing else does: no other
+    entry has ever set `utility: true`, and this build does not add one. A
+    discriminator with zero live users and no articulated future one is dead
+    weight rather than flexibility, so it is deleted outright — from `NavItem`
+    in types/index.ts and from the split in HeaderBar.tsx, which now renders
+    this whole array as the one primary group. `secondary` is a different
+    case and stays as it was: its own doc comment describes a standing
+    threshold (five or six entries before the bar crowds) rather than naming
+    one entry, so it is a mechanism waiting for a future need, not a name with
+    a mechanism built around it — deleting it is not this change's call to
+    make.
+
+    The mobile menu still renders this array whole and in order, from its own
+    part of the panel — see HeaderBar.tsx, which is the only other reader of
+    MAIN_NAV. The footer was never wired to it: it keeps a separate,
+    hand-built site map in FOOTER_NAV below, so it has nothing to be affected
+    by here either way.
   */
   { label: "Events", href: "/events", megamenu: true },
   { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact", utility: true },
+  { label: "Contact", href: "/contact" },
 ];
 
 /**

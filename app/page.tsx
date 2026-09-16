@@ -1,43 +1,55 @@
 import { AboutTeaser } from "@/components/sections/AboutTeaser";
 import { CreativeExperiences } from "@/components/sections/CreativeExperiences";
+import { FeaturedFilm } from "@/components/sections/FeaturedFilm";
 import { Gallery } from "@/components/sections/Gallery";
 import { Hero } from "@/components/sections/Hero";
 import { HomeFaq } from "@/components/sections/HomeFaq";
 import { HowItWorks } from "@/components/sections/HowItWorks";
 import { MallPartners } from "@/components/sections/MallPartners";
 import { PlanYourVisit } from "@/components/sections/PlanYourVisit";
-import { Testimonials } from "@/components/sections/Testimonials";
 import { UpcomingEvents } from "@/components/sections/UpcomingEvents";
 
 /**
  * Homepage. Metadata comes from the site defaults in lib/seo.ts.
  *
- * THE PROGRAMME IS THE SECOND THING ON THE PAGE. That is the change this
- * revision exists for. The sessions are the product — a place at a table in a
- * mall on a fixed date — and every earlier arrangement of this page put at
- * least one screen of brand writing between a visitor and a date they could
- * book. The hero says what this is; the next thing it does is show what is on.
+ * THE PROGRAMME IS THE SECOND THING ON THE PAGE, and that has not changed:
+ * the sessions are the product — a place at a table in a mall on a fixed date
+ * — and no arrangement of this page should put a screen of brand writing
+ * between a visitor and a date they could book.
  *
- * The order after that is the shape of a decision rather than the shape of a
- * story: see a date, understand what turning up involves, see what you would
- * be making, see that there is a story, see what the room looks like, hear
- * from someone who went, have the last question answered, and be asked.
+ * What changed in this pass is how the page looks rather than what it argues.
+ * Four accent colours became one. Three competing vertical rhythms became one
+ * token. Fifty-eight one-off type sizes became eight roles. Every section now
+ * takes its ground, its padding and its masthead from the same two primitives,
+ * so a section can no longer drift on its own.
+ *
+ * THE GROUND RHYTHM, read top to bottom. The rule is one ground per section
+ * and never a band inside one:
+ *
+ *   Hero .................. Charcoal, full-bleed photograph
+ *   Upcoming events ....... surface
+ *   How it works .......... surface   (continuous with the listing above it)
+ *   Creative experiences .. surface
+ *   About teaser .......... White Rock
+ *   Featured film ......... Charcoal, full-bleed
+ *   Gallery ............... surface
+ *   Where we create ....... White Rock
+ *   FAQ ................... surface
+ *   Plan your visit ....... White Rock
+ *   Footer ................ Light Sage
  *
  * WHAT IS NOT HERE, AND WHY.
  *
- *   - The brand introduction. Its paragraph is the one sentence the studio has
- *     written about itself, and /about's own introduction renders exactly that
- *     paragraph. Two routes, one answer, read twice.
- *   - The experience section. "What does it feel like" is a slow two-column
- *     editorial read, and the creative strands below answer the more useful
- *     version of the same question — what you would actually be doing — in a
- *     third of the height.
- *   - The philosophy, the two editorial spreads and the just-added strip,
- *     moved to /about in the previous pass; see the note there.
+ *   - The testimonials. lib/testimonials.ts holds invented quotes and says so
+ *     in capitals: nobody said those things, and a fabricated endorsement is
+ *     the one placeholder on this site that is a liability rather than a
+ *     convenience. The section and its data seam are intact and unedited —
+ *     remount it the day the studio has quotes it collected, with permission.
+ *   - The brand introduction, the experience section, the philosophy, the two
+ *     editorial spreads and the just-added strip. All either duplicate /about
+ *     or now live there; see the note in the previous revision's history.
  *
- * Both unmounted components are intact, not deleted. Nothing was removed to
- * make this page shorter: everything cut is either a duplicate of /about or
- * now lives on /about.
+ * Everything unmounted is parked, not deleted.
  */
 export default function HomePage() {
   return (
@@ -52,12 +64,13 @@ export default function HomePage() {
         stops holding once the foot of its containing block arrives, so the
         wrapper has to be tall enough to outlast the covering. The sections
         that do the covering sit in their own `relative z-10` layer, above the
-        hero's `z-0`, and each carries an opaque ground of its own.
+        hero's `z-0`, and each carries an opaque ground of its own — which is
+        why <Section> has no transparent ground to choose.
 
         The wrapper deliberately stops after two sections. Once the hero has
         been covered that far there is nothing left to see, and letting it
-        scroll away frees the browser from compositing a pinned, playing video
-        for the rest of the page.
+        scroll away frees the browser from compositing a pinned photograph for
+        the rest of the page.
       */}
       <div className="relative">
         <Hero />
@@ -67,60 +80,51 @@ export default function HomePage() {
 
           {/*
             Directly under the listing, because the listing is what raises the
-            question this answers: a visitor has just seen three dates at three
-            malls and needs to know what turning up to one actually involves.
+            question this answers: a visitor has just seen dates at malls and
+            needs to know what turning up to one actually involves.
           */}
           <HowItWorks />
         </div>
       </div>
 
-      {/* What you would be making — four strands, not a second listing. */}
+      {/* What you would be making — the strands, not a second listing. */}
       <CreativeExperiences />
 
       {/* A doorway to the story rather than the story itself. */}
       <AboutTeaser />
 
       {/*
-        Reassurance, not information. It sits here rather than near the top
-        because its job is to answer "what would this actually be like" for
-        someone already weighing a date — never to be something scrolled past
-        on the way to one.
+        The page's one pause. A full-bleed backdrop pinned behind a window the
+        page scrolls past, carrying a single line and one way onward.
+
+        It sits here because the two sections either side of it are both
+        reading — the story above, the room below — and the page needs one
+        moment that asks nothing and explains nothing.
+      */}
+      <FeaturedFilm />
+
+      {/*
+        Reassurance, not information. It answers "what would this actually be
+        like" for someone already weighing a date, and must never be something
+        scrolled past on the way to one.
       */}
       <Gallery />
 
       {/*
-        Where those rooms actually are, and why they are malls.
-
-        Here rather than higher up because it is credibility, not navigation:
-        the practical "which mall, which Saturday" question is answered by the
-        listing at the top of the page and by /events. This answers the one
-        underneath it — what kind of business this is — and it lands best after
-        someone has seen the programme, the making and the room, immediately
-        before the section where other people vouch for it.
+        Where those rooms actually are, and why they are malls. Credibility
+        rather than navigation: the practical "which mall, which Saturday"
+        question is answered by the listing at the top of the page. This
+        answers the one underneath it — what kind of business this is.
       */}
       <MallPartners />
-
-      {/*
-        TODO(client): THE QUOTES IN THIS SECTION ARE INVENTED AND MUST NOT GO
-        LIVE. lib/testimonials.ts says so at the top of the file, in capitals.
-        The section is mounted because the client asked for it by name and this
-        is its place in the page; the component renders nothing at all when the
-        array is empty, so deleting the fabrications does not leave a hole.
-
-        Every other placeholder on this site is a date or a price. A made-up
-        endorsement is the one that is a liability rather than a convenience.
-        Replace these with real quotes, or empty the array, before launch.
-      */}
-      <Testimonials />
 
       {/* The last hesitations, answered in four lines. */}
       <HomeFaq />
 
       {/*
-        The last section, and the only one that asks for anything. It stays
-        last for the same reason it always did — everything above it has been
-        showing and explaining, and this is the one place the Maison speaks to
-        the visitor directly.
+        The last section, and the only one that asks for anything. Everything
+        above it has been showing and explaining; this is the one place the
+        Maison speaks to the visitor directly.
       */}
       <PlanYourVisit />
     </>

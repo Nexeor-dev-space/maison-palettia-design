@@ -12,8 +12,9 @@ import { SearchTrigger } from "@/components/layout/SearchTrigger";
 import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
+import { FilledAction } from "@/components/ui/Action";
 import { BasketLink } from "@/components/layout/BasketLink";
-import { DARK_HERO_ROUTES, MAIN_NAV } from "@/lib/constants";
+import { DARK_HERO_ROUTES, MAIN_NAV, PRIMARY_CTA } from "@/lib/constants";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 import type { Discipline, Workshop } from "@/types";
@@ -205,10 +206,14 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
-  // One source, split by role for the desktop bar only — the mobile menu and
-  // the footer still read MAIN_NAV whole and in order.
-  const primaryNav = MAIN_NAV.filter((item) => !item.secondary && !item.utility);
-  const utilityNav = MAIN_NAV.filter((item) => !item.secondary && item.utility);
+  // The desktop bar is the only place this gets filtered at all, and now only
+  // by `secondary` — <MobileNav> below still takes the whole array, in order.
+  // `utility` used to split Contact into a right-hand cluster beside search;
+  // now that Contact sits in the primary group like everything else, nothing
+  // sets the flag, and it has been deleted from NavItem (types/index.ts)
+  // rather than kept for a future entry nothing here has asked for. See the
+  // MAIN_NAV comment in lib/constants.ts for the full reasoning.
+  const primaryNav = MAIN_NAV.filter((item) => !item.secondary);
 
   return (
     <header
@@ -285,10 +290,8 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         >
           <ul className="flex items-stretch gap-7 xl:gap-10 2xl:gap-12">
             {/*
-              Two filters, two different jobs. `secondary` entries are dropped
-              from the bar entirely and kept in the mobile menu and the footer;
-              `utility` entries stay in the bar but belong with search on the
-              right. See both flags on NavItem.
+              `secondary` entries are dropped from the bar entirely and kept
+              for the mobile menu and the footer. See the flag on NavItem.
             */}
             {primaryNav.map((item) =>
               item.megamenu ? (
@@ -334,26 +337,43 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         {/*
           The right track: how to reach us, and how to find something.
 
-          THE WIDTH BUDGET IS FIXED HERE RATHER THAN TRIMMED AGAIN. True
-          centring forces both side tracks to exactly (width − mark − gaps)/2,
-          and every previous pass solved an overrun by shaving gaps and padding
-          off this side: at 1024 the nav opposite wanted 238px of its 403 while
-          this cluster wanted all of its own and then some. Two passes had
-          already taken 4px off a gap and 8px off the action's flanks, and
-          Phase 1's type scale ate both again.
+          THE OVERRUN BELOW IS HISTORY — KEPT RATHER THAN DELETED, SEE WHY
+          BELOW IT. True centring forces both side tracks to exactly
+          (width − mark − gaps)/2, and this paragraph used to record a real
+          overrun at 1024 on exactly that arithmetic: the nav opposite wanted
+          238px of its 403 while this cluster wanted all of its own and then
+          some. Two passes had already taken 4px off a gap and 8px off the
+          action's flanks, and Phase 1's type scale ate both again.
 
           The cause was that the bar carried two ways to do the same thing. The
-          booking action pointed at /events, which is exactly where the Events
-          entry on the other side of the mark goes — one row, one destination,
-          two controls, and the widest of them sitting on the tight side. It is
-          gone from the bar (it stays in the mobile menu, where it is the
-          panel's own primary action and there is room for it), and the budget
-          stopped being tight rather than being made to fit.
+          booking action pointed at /events, exactly where the Events entry on
+          the other side of the mark goes — one row, one destination, two
+          controls, the widest of them on the tight side. It was cut from the
+          bar on that basis (it stayed in the mobile menu, its own primary
+          action there) and answered that round's brief on its own terms too:
+          the client had asked for Events to lead without the bar looking like
+          a shop, and one solid block of colour in this corner was the single
+          thing that most made it look like one.
 
-          That also answers the brief on its own terms: the client asked for
-          Events to lead without the bar looking like a shop, and a header with
-          one solid block of colour in the corner is the single thing that most
-          made it look like one.
+          BOTH HALVES OF THAT ARGUMENT HAVE SINCE LAPSED. The client has now
+          asked for exactly this block of colour back, by name, at this end of
+          the row — the shop-corner objection is no longer this build's to
+          raise. And MAIN_NAV is three short entries, not the six or seven the
+          238-of-403 figure above was measuring (see its own comment in
+          lib/constants.ts) — the nav opposite no longer wants the width that
+          forced the choice.
+
+          VERIFIED AT 1024 — still the tight width — WITH THE ROW AS IT NOW
+          STANDS: the side track measures 407.3px. The nav opposite uses
+          252.8px (Events, About, Contact at 75.0 + 53.6 + 68.2px, plus two
+          28px gaps). This cluster uses 335.6px (Search at 85.8px, a 28px gap,
+          the filled action at 221.7px) — 71.7px of real spare, tighter than a
+          pre-build estimate had assumed because the action itself measures
+          wider than that estimate guessed, but spare all the same. Every
+          wider breakpoint opens further, since the track grows faster than
+          either cluster's content from here (530px at 1280, 607px at 1440) —
+          so 1024 is still the one width this row has to answer for, and it
+          does, with room left over.
         */}
         <div className="col-start-3 flex items-center justify-end gap-5 lg:gap-7 xl:gap-9">
           {/*
@@ -377,31 +397,32 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           />
 
           {/*
-            Contact, set in the same type as the navigation opposite so the two
-            halves of the bar read as one row rather than as a nav and a
-            toolbar. Desktop only — on a phone it is in the menu with
-            everything else, and repeating it in a three-control bar would
-            crowd the one control that has to be easy to hit.
+            The booking action, back at the end of the row — see the comment
+            on this track for why the width argument that removed it no
+            longer holds. `PRIMARY_CTA` rather than a label written out here:
+            it is the one constant every surface offering this action already
+            reads, and it already carries the site's approved wording ("Book
+            an event") for what the client asked for as "book the events".
+
+            Desktop only: the phone bar keeps its three controls (basket,
+            search, menu), and the mobile menu already carries this same
+            action as its own primary, directly under the four strands —
+            repeating it here on a narrow screen would be a third copy of one
+            control.
+
+            Wrapped in a plain `hidden lg:inline-flex` div rather than putting
+            `hidden` on <FilledAction> itself. FilledAction's own classes
+            carry `inline-flex` unconditionally (see components/ui/Action.tsx)
+            and two unconditional display utilities on one element are settled
+            by their order in the generated stylesheet, not by the order they
+            are written — the exact trap this spot in the row used to catch
+            Contact in, back when Contact needed the same `hidden lg:block`
+            wrapper here instead. A wrapper carrying only the toggle has
+            nothing else on it to lose to.
           */}
-          {utilityNav.map((item) => (
-            /*
-              Wrapped rather than given `hidden` directly, because NAV_LINK
-              already carries `inline-flex`: two display utilities on one
-              element are settled by their order in the generated stylesheet
-              rather than by the order they are written, and `hidden` lost —
-              Contact rendered on a 360px phone beside the menu button. The
-              same trap is documented on the booking action this replaced.
-            */
-            <div key={item.href} className="hidden lg:block">
-              <Link
-                href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={cn(NAV_LINK, NAV_WEIGHT_REST)}
-              >
-                <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
-              </Link>
-            </div>
-          ))}
+          <div className="hidden lg:inline-flex">
+            <FilledAction label={PRIMARY_CTA.label} href={PRIMARY_CTA.href} />
+          </div>
 
           <button
             ref={menuTriggerRef}

@@ -1,7 +1,6 @@
-import Link from "next/link";
-
 import { Reveal } from "@/components/motion/Reveal";
-import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHead } from "@/components/ui/SectionHead";
 import { HOMEPAGE_FAQ } from "@/lib/constants";
 
 /**
@@ -12,6 +11,15 @@ import { HOMEPAGE_FAQ } from "@/lib/constants";
  * hesitation, and it earns its place only by removing one. So it is four
  * questions, not twelve, and each one is a thing somebody would actually
  * stall on: where is this, how long is it, what do I need, how do I book.
+ *
+ * NO STANDFIRST, UNLIKE ITS NEIGHBOURS. Every other <SectionHead> on the page
+ * pairs its title with a lead paragraph; this one is just the eyebrow, the
+ * title and a single ruled link. The quietest section on the page should also
+ * be the one with the least to read before it gets out of the way. Dropping
+ * the standfirst still leaves `layout="spread"` doing something: with no lead
+ * paragraph in the side cell, `<SectionHead>` sends "Get in touch" flush to
+ * the page's right edge — the same "one small link, top right" shape as every
+ * "See all" affordance elsewhere on the page, rather than a bespoke position.
  *
  * NATIVE DISCLOSURE, NO JAVASCRIPT. `<details>` and `<summary>` give the open
  * and close behaviour, the keyboard handling and the screen-reader semantics
@@ -31,74 +39,65 @@ export function HomeFaq() {
   if (HOMEPAGE_FAQ.length === 0) return null;
 
   return (
-    <Container as="section" aria-labelledby="faq-heading" className="py-[4.5rem] md:py-section">
-      <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
-        <div className="col-span-12 md:col-span-4">
-          <Reveal>
-            <p className="flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text">
-              <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-              Before you book
-            </p>
-            <h2 id="faq-heading" className="mt-6 text-h2 font-light uppercase tracking-[-0.02em]">
-              Good to know.
-            </h2>
-          </Reveal>
+    <Section id="faq-heading" ground="surface">
+      <SectionHead
+        id="faq-heading"
+        eyebrow="Before you book"
+        title="Good to know."
+        action={{ label: "Get in touch", href: "/contact" }}
+        layout="spread"
+      />
 
-          <Reveal delay={0.15}>
-            <p className="mt-6 max-w-[22rem] text-body text-text/80">
-              Anything else, and the Maison is happy to answer.
-            </p>
-            <Link
-              href="/contact"
-              className="group mt-7 inline-flex items-center gap-3 text-action font-medium uppercase tracking-eyebrow text-text"
-            >
-              <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-                Get in touch
-              </span>
-              <span
-                aria-hidden
-                className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-              >
-                &#8594;
-              </span>
-            </Link>
-          </Reveal>
-        </div>
+      {/*
+        No column restriction: `<SectionHead>`'s own contract is "the block
+        that follows gets `mt-section-gap`", not a particular width, and this
+        page already lets a full-width row settle its own measure from its
+        content — the booking strip above does the same. Constraining it to a
+        column here would be a spacing decision this file has no business
+        inventing.
+      */}
+      <Reveal delay={0.1} className="mt-section-gap">
+        <dl>
+          {HOMEPAGE_FAQ.map((item, i) => (
+            <div key={item.question} className="border-t border-line last:border-b">
+              {/*
+                `<details>` carries the state, so the question is a <dt> and
+                the answer a <dd> only in spirit — nesting a disclosure inside
+                a definition list breaks both. The list semantics that matter
+                here are the pairing, and <summary> already announces itself
+                as an expandable control with its answer as the content.
+              */}
+              <details open={i === 0} className="group/faq py-6 md:py-7">
+                <summary className="group flex cursor-pointer list-none items-start justify-between gap-6 text-h3 font-light tracking-[-0.01em] text-text transition-colors duration-300 ease-soft hover:text-primary focus-visible:text-primary [&::-webkit-details-marker]:hidden">
+                  {item.question}
+                  {/*
+                    A rule that becomes a cross, rather than a chevron: the
+                    site draws rules everywhere and owns no icon set. It is
+                    aria-hidden because <summary> already tells a screen
+                    reader whether the row is open.
 
-        <Reveal delay={0.1} className="col-span-12 mt-10 md:col-span-7 md:col-start-6 md:mt-0">
-          <dl>
-            {HOMEPAGE_FAQ.map((item, i) => (
-              <div key={item.question} className="border-t border-line last:border-b">
-                {/*
-                  `<details>` carries the state, so the question is a <dt> and
-                  the answer a <dd> only in spirit — nesting a disclosure inside
-                  a definition list breaks both. The list semantics that matter
-                  here are the pairing, and <summary> already announces itself
-                  as an expandable control with its answer as the content.
-                */}
-                <details open={i === 0} className="group/faq py-6 md:py-7">
-                  <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-h3 font-light tracking-[-0.01em] text-text transition-colors duration-300 ease-soft hover:text-primary [&::-webkit-details-marker]:hidden">
-                    {item.question}
-                    {/*
-                      A rule that becomes a cross, rather than a chevron: the
-                      site draws rules everywhere and owns no icon set. It is
-                      aria-hidden because <summary> already tells a screen
-                      reader whether the row is open.
-                    */}
-                    <span
-                      aria-hidden
-                      className="relative mt-2.5 h-px w-4 shrink-0 bg-text transition-transform duration-500 ease-editorial"
-                    >
-                      <span className="absolute inset-0 bg-text transition-transform duration-500 ease-editorial group-open/faq:rotate-0 [transform:rotate(90deg)]" />
-                    </span>
-                  </summary>
-                  <p className="mt-4 max-w-[34rem] text-body text-text/80">{item.answer}</p>
-                </details>
-              </div>
-            ))}
-          </dl>
-        </Reveal>
-      </div>
-    </Container>
+                    DEEP LILAC ON HOVER AND FOCUS, NOT JUST BG-TEXT AT REST. A
+                    mark owes 3:1 and Deep Lilac clears it at 4.9:1 on this
+                    ground (see the contrast table), so the whole row answers
+                    together instead of the question text lighting up while
+                    its own marker stays inert. `group` is declared on
+                    <summary> itself rather than on the surrounding <details>
+                    — reading an open answer should not light the marker
+                    above it; only pointing at or focusing the question does.
+                  */}
+                  <span
+                    aria-hidden
+                    className="relative mt-2.5 h-px w-4 shrink-0 bg-text transition-colors duration-300 ease-soft group-hover:bg-primary group-focus-visible:bg-primary"
+                  >
+                    <span className="absolute inset-0 bg-text transition-[transform,background-color] duration-500 ease-editorial group-open/faq:rotate-0 group-hover:bg-primary group-focus-visible:bg-primary [transform:rotate(90deg)]" />
+                  </span>
+                </summary>
+                <p className="mt-4 max-w-[34rem] text-body text-text/80">{item.answer}</p>
+              </details>
+            </div>
+          ))}
+        </dl>
+      </Reveal>
+    </Section>
   );
 }

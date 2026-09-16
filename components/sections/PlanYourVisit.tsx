@@ -1,12 +1,15 @@
-import Link from "next/link";
 import { Fragment } from "react";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
-import { Container } from "@/components/ui/Container";
+import { FilledAction, RuledLink } from "@/components/ui/Action";
+import { Section } from "@/components/ui/Section";
 import { CONTACT, PLAN_YOUR_VISIT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import type { NavItem, VisitStep } from "@/types";
+import type { VisitStep } from "@/types";
+
+/** The heading's id, passed to both halves of the section-labelling contract. */
+const HEADING_ID = "plan-your-visit-heading";
 
 /**
  * The invitation's type. Sized per breakpoint rather than with one viewport
@@ -70,24 +73,25 @@ const STEP_PLACEMENT = [
 ];
 
 /**
- * Homepage section 09 — plan your visit.
+ * Homepage section 10 — plan your visit.
  *
  * The page's last move, and the only one that asks the visitor for anything.
  * Everything above has shown the place, the programme and the reason it
  * exists; this says come, and gives exactly one way to do it.
  *
- * It has to differ from the philosophy section it follows without raising its
- * voice, and it does that on five counts rather than by shouting: a warm
- * neutral ground where that one is a field of Deep Lilac, the terracotta-dash
- * masthead instead of its full-measure rule, a smaller statement, a spread
- * instead of a diagonal — the invitation anchored hard left, the next step
- * held far right and dropped to meet its last line — and a band of type along
- * the foot that the pause above has no equivalent of.
+ * `HomeFaq` sits directly above this and is deliberately the quietest thing
+ * on the page — hairline rows on the plain page ground, no display type, no
+ * action heavier than a ruled link. This section reads as the answer to that
+ * quiet without raising its voice: a warm neutral ground after a run of
+ * `surface` sections, a small statement giving way to an oversized one, a
+ * spread rather than a stack — the invitation anchored hard left, the next
+ * step held far right and dropped to meet its last line — and a band of type
+ * along the foot that `HomeFaq`'s own hairline rows have no equivalent of.
  *
- * White Rock is doing real work here rather than just alternating. The section
- * before it is the loudest colour on the page, and this is the exhale after
- * it: the same warmth the brand introduction opened on, so the page closes on
- * the ground it began with.
+ * White Rock is doing real work here rather than just alternating. It is the
+ * page's third and final warm field — `AboutTeaser` opened on it,
+ * `MallPartners` returned to it — so the close reads as a warmth the visitor
+ * has already met twice rather than a fourth ground introduced on the way out.
  *
  * No photograph. The brief allows one, and every atmospheric plate the project
  * holds is already hanging further up this same page — a second showing of one
@@ -101,6 +105,28 @@ const STEP_PLACEMENT = [
  * the right of the invitation and above the steps, and keep it narrow: it is
  * there to say where the visitor is going, not to fill the section.
  *
+ * THE ONE OTHER FILLED ACTION ON THE PAGE. Every call to book before this one
+ * is a ruled line of type, including the booking strip several thousand
+ * pixels above — the page's commercial spine. A closing ask quieter than the
+ * section that already made the sale was backwards, so this is the one other
+ * place `FilledAction` appears: Deep Lilac fill, white label, square corners.
+ * "Contact the Maison" stays a `RuledLink` beside it, kept visually
+ * subordinate — two filled blocks this close together both stop reading as
+ * the page's one dominant action.
+ *
+ * THE EYEBROW USES `SectionHead`'S CLASSES, NOT A `SectionHead` CALL. The
+ * component requires a `title` and always sets it as the section's one
+ * `<h2>` at `text-h2` — the exact token the invitation below is the page's
+ * one deliberate exception to (see `INVITATION_LINE`). Calling it here would
+ * mean either an empty second heading carrying the id the invitation already
+ * uses, or a second, small, fully-visible rendering of the same three words
+ * sitting directly above the giant masked ones. Neither is acceptable, so
+ * `Section` supplies the ground, the padding and the `aria-labelledby`
+ * wiring, and the masthead below is written to the same classes
+ * `SectionHead` gives a light-ground eyebrow — `text-label`, not the
+ * `text-action` this file used before — with the same Deep Lilac rule every
+ * eyebrow on the page now carries in place of Warm Terracotta.
+ *
  * Nothing here is a form, a date picker or a card. The conversion is a
  * sentence, a link, and three short lines saying what happens next.
  *
@@ -112,135 +138,163 @@ export function PlanYourVisit() {
     PLAN_YOUR_VISIT;
 
   return (
-    <section
-      aria-labelledby="plan-your-visit-heading"
-      className="bg-cream py-[5.5rem] md:py-section lg:py-section-lg"
-    >
-      <Container>
-        {/*
-          The house masthead — a terracotta rule and a label. The philosophy
-          section above opens on a rule across the whole measure instead, which
-          is what keeps two quiet, typographic sections from reading as twins.
-        */}
-        <Reveal>
-          <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
-            <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-            {eyebrow}
-          </p>
-        </Reveal>
+    <Section id={HEADING_ID} ground="cream">
+      {/*
+        The house masthead. Written to SectionHead's own light-ground eyebrow
+        classes — `text-label`, a Deep Lilac rule — rather than a <SectionHead>
+        call; see the file header for why the component itself can't be used
+        here without conflicting with the invitation's own <h2>.
+      */}
+      <Reveal>
+        <p className="flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text">
+          <span aria-hidden className="h-px w-9 shrink-0 bg-primary md:w-12" />
+          {eyebrow}
+        </p>
+      </Reveal>
 
-        <div className="mt-12 grid grid-cols-12 gap-x-6 md:mt-16 lg:mt-20 lg:gap-x-10">
-          {/* ---------- The invitation, anchored to the left edge ---------- */}
-          <div className="col-span-12 lg:col-span-6">
-            <h2 id="plan-your-visit-heading">
-              {/*
-                One trigger, three lines, each rising from behind its own mask.
-                Rendered as a <span> rather than the default <div> because the
-                content model of a heading is phrasing content; the utility
-                makes it a block, so the layout is identical.
-              */}
-              <Stagger as="span" className="block">
-                {title.map((line, i) => (
-                  <Fragment key={line}>
-                    {/*
-                      An explicit space between the lines. They are block-level
-                      and give no word boundary of their own, so without it the
-                      accessible name reads as one run-on word rather than as
-                      "Come make something with us.".
-                    */}
-                    {i > 0 ? " " : null}
-                    <InvitationLine>{line}</InvitationLine>
-                  </Fragment>
-                ))}
-              </Stagger>
-            </h2>
-
+      <div className="mt-section-gap grid grid-cols-12 gap-x-6 lg:gap-x-10">
+        {/* ---------- The invitation, anchored to the left edge ---------- */}
+        <div className="col-span-12 lg:col-span-6">
+          <h2 id={HEADING_ID}>
             {/*
-              The section's one flourish, and it is a signature rather than a
-              heading: the invitation above it is signed, and the script face
-              appears nowhere else here. Indented so it sits between the
-              statement's left edge and the action held out on the right,
-              carrying the eye across.
+              One trigger, three lines, each rising from behind its own mask.
+              Rendered as a <span> rather than the default <div> because the
+              content model of a heading is phrasing content; the utility
+              makes it a block, so the layout is identical.
             */}
-            {signature ? (
-              <Reveal variant="fadeIn" delay={0.5}>
-                <p className="ml-1 mt-8 font-display text-[1.75rem] leading-none tracking-normal text-primary md:ml-[10%] md:mt-9 md:text-[2rem] lg:ml-[12%] lg:text-[2.25rem]">
-                  {signature}
-                </p>
-              </Reveal>
-            ) : null}
-          </div>
+            <Stagger as="span" className="block">
+              {title.map((line, i) => (
+                <Fragment key={line}>
+                  {/*
+                    An explicit space between the lines. They are block-level
+                    and give no word boundary of their own, so without it the
+                    accessible name reads as one run-on word rather than as
+                    "Come make something with us.".
+                  */}
+                  {i > 0 ? " " : null}
+                  <InvitationLine>{line}</InvitationLine>
+                </Fragment>
+              ))}
+            </Stagger>
+          </h2>
 
           {/*
-            ---------- The next step, held out on the right --------------
-
-            Dropped by a large top margin at `lg` rather than bottom-aligned
-            with the column beside it: the invitation is three lines of display
-            type and this is a paragraph and two links, so an alignment rule
-            would settle where they meet on whichever of them happened to be
-            taller. The margin puts the description against the statement's
-            last line and keeps it there.
+            The section's one flourish, and it is a signature rather than a
+            heading: the invitation above it is signed, and the script face
+            appears nowhere else here. Indented so it sits between the
+            statement's left edge and the action held out on the right,
+            carrying the eye across.
           */}
-          <div className="col-span-12 mt-14 md:col-span-8 md:col-start-5 md:mt-16 lg:col-span-5 lg:col-start-8 lg:mt-20">
-            <Reveal delay={0.15}>
-              {/*
-                A measure, not the full column. `lg:max-w-none` let this run
-                the width of its five columns, which on a 1990 window is 772px
-                — about 96 characters a line, well past where a line stops
-                being comfortable to track. It is capped rather than the column
-                narrowed, so the links and the address below keep their width.
-              */}
-              <p className="max-w-[26rem] text-body leading-[1.85] text-text/80 md:text-base lg:max-w-[34rem]">
-                {description}
+          {signature ? (
+            <Reveal variant="fadeIn" delay={0.5}>
+              <p className="ml-1 mt-8 font-display text-[1.75rem] leading-none tracking-normal text-primary md:ml-[10%] md:mt-9 md:text-[2rem] lg:ml-[12%] lg:text-[2.25rem]">
+                {signature}
               </p>
             </Reveal>
-
-            <Reveal delay={0.3}>
-              <div className="mt-10 md:mt-12">
-                <InvitationLink item={primaryCta} tone="primary" />
-              </div>
-            </Reveal>
-
-            {secondaryCta ? (
-              <Reveal variant="fadeIn" delay={0.42}>
-                <div className="mt-7 md:mt-8">
-                  <InvitationLink item={secondaryCta} tone="quiet" />
-                </div>
-              </Reveal>
-            ) : null}
-
-            {/*
-              Where the studio is. The section is called Plan Your Visit and
-              never said — which is both the plainest thing a visitor wants
-              here and the reason the column had nothing holding its foot. It
-              reads {@link CONTACT}, so it fills itself in as the client
-              supplies an email and a phone number rather than needing to be
-              written again.
-            */}
-            <Reveal variant="fadeIn" delay={0.54}>
-              <address className="mt-12 border-t border-text/15 pt-7 not-italic md:mt-14">
-                <span className="block text-label font-medium uppercase tracking-eyebrow text-text/70">
-                  The Studio
-                </span>
-                <span className="mt-3 block text-body leading-[1.8] text-text/85">
-                  {CONTACT.addressLines.join(", ")}
-                </span>
-                {CONTACT.email ? (
-                  <a
-                    href={`mailto:${CONTACT.email}`}
-                    className="mt-2 inline-block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
-                  >
-                    {CONTACT.email}
-                  </a>
-                ) : null}
-              </address>
-            </Reveal>
-          </div>
+          ) : null}
         </div>
 
-        <Steps steps={steps} />
-      </Container>
-    </section>
+        {/*
+          ---------- The next step, held out on the right --------------
+
+          Dropped by a large top margin at `lg` rather than bottom-aligned
+          with the column beside it: the invitation is three lines of display
+          type and this is a paragraph and two links, so an alignment rule
+          would settle where they meet on whichever of them happened to be
+          taller. The margin puts the description against the statement's
+          last line and keeps it there.
+        */}
+        <div className="col-span-12 mt-14 md:col-span-8 md:col-start-5 md:mt-16 lg:col-span-5 lg:col-start-8 lg:mt-20">
+          <Reveal delay={0.15}>
+            {/*
+              A measure, not the full column. `lg:max-w-none` let this run
+              the width of its five columns, which on a 1990 window is 772px
+              — about 96 characters a line, well past where a line stops
+              being comfortable to track. It is capped rather than the column
+              narrowed, so the links and the address below keep their width.
+            */}
+            <p className="max-w-[26rem] text-body leading-[1.85] text-text/80 md:text-base lg:max-w-[34rem]">
+              {description}
+            </p>
+          </Reveal>
+
+          {/*
+            THE ONE REAL CHANGE. This used to be a ruled line of type, the
+            same shape as the secondary action below it — which made the
+            page's final ask quieter than the booking strip several thousand
+            pixels above. `FilledAction` is the site's one dominant-action
+            shape; promoting the primary invitation to it is what makes the
+            close land at least as hard as the sale already made further up.
+          */}
+          <Reveal delay={0.3}>
+            <div className="mt-10 md:mt-12">
+              <FilledAction label={primaryCta.label} href={primaryCta.href} />
+            </div>
+          </Reveal>
+
+          {secondaryCta ? (
+            <Reveal variant="fadeIn" delay={0.42}>
+              <div className="mt-7 md:mt-8">
+                <RuledLink label={secondaryCta.label} href={secondaryCta.href} />
+              </div>
+            </Reveal>
+          ) : null}
+
+          {/*
+            Where the studio is. The section is called Plan Your Visit and
+            never said — which is both the plainest thing a visitor wants
+            here and the reason the column had nothing holding its foot.
+            Labelled "Contact" rather than "The Studio", and that is a
+            correctness fix rather than a preference. This studio has no studio
+            door — it sets up inside a mall for a run of dates, which is the
+            single fact the rest of the page works hardest to establish. A
+            block headed "The Studio" over a city name quietly promises an
+            address to arrive at, and there is none. "Contact" promises only
+            what the block actually holds. It reads
+            {@link CONTACT}, so it fills itself in as the client supplies
+            each one — all three are independently omitted rather than
+            printed as a blank or a placeholder when not yet known, so email
+            and phone (both null today) simply do not appear until they are.
+          */}
+          <Reveal variant="fadeIn" delay={0.54}>
+            <address className="mt-12 border-t border-text/15 pt-7 not-italic md:mt-14">
+              {/*
+                /75, not /70. Charcoal at 70% over White Rock measures 4.24:1,
+                under the 4.5:1 an 11px label owes; /75 clears it at 4.79:1.
+                The /70 floor quoted elsewhere in this codebase is the floor for
+                the page's off-white ground (4.70:1), not for this one — it
+                fails on both White Rock and Light Sage, and the footer already
+                documents the same correction for Sage.
+              */}
+              <span className="block text-label font-medium uppercase tracking-eyebrow text-text/75">
+                Contact
+              </span>
+              <span className="mt-3 block text-body leading-[1.8] text-text/85">
+                {CONTACT.addressLines.join(", ")}
+              </span>
+              {CONTACT.email ? (
+                <a
+                  href={`mailto:${CONTACT.email}`}
+                  className="mt-2 inline-block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
+                >
+                  {CONTACT.email}
+                </a>
+              ) : null}
+              {CONTACT.phone ? (
+                <a
+                  href={`tel:${CONTACT.phone}`}
+                  className="mt-2 block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
+                >
+                  {CONTACT.phone}
+                </a>
+              ) : null}
+            </address>
+          </Reveal>
+        </div>
+      </div>
+
+      <Steps steps={steps} />
+    </Section>
   );
 }
 
@@ -306,84 +360,5 @@ function Steps({ steps }: { steps: readonly VisitStep[] }) {
         ))}
       </Stagger>
     </div>
-  );
-}
-
-interface InvitationLinkProps {
-  item: NavItem;
-  /** "primary" is the one dominant action on the page; "quiet" sits under it. */
-  tone: "primary" | "quiet";
-}
-
-/**
- * The call to action, as a line of type rather than a button.
- *
- * The label is Charcoal Slate and the marking is Deep Lilac — the rule under
- * it, and the rule that sweeps across on hover. It was lilac type until the
- * ground here became White Rock, where Deep Lilac measures 3.95:1 and a label
- * at this size owes 4.5:1. Moving the colour from the letterforms onto the
- * rule keeps the accent doing the same job: a rule is a graphical mark and
- * owes 3:1, which lilac clears, while the words themselves rise to 9.36:1.
- *
- * A rule already sits under the label at rest, so the link reads as a link
- * before anything is hovered; a second rule in full strength is what extends
- * across it on hover and focus. That extension is deliberately *not* gated
- * behind `motion-safe`. Under `prefers-reduced-motion` the global rule in
- * globals.css collapses its duration, so the underline snaps rather than
- * sweeps — a state change with no perceived motion, which is what that setting
- * asks for. Gating it instead would leave a visitor on reduced motion hovering
- * a link that answers with nothing at all. The arrow's drift is decoration
- * with no state behind it, so that one is gated in the usual way.
- *
- * Both responses fire on `group-focus-visible` as well as `group-hover`, so a
- * keyboard visitor sees exactly what a pointer one does.
- */
-function InvitationLink({ item, tone }: InvitationLinkProps) {
-  const primary = tone === "primary";
-  const externalProps = item.external
-    ? { target: "_blank", rel: "noopener noreferrer" }
-    : {};
-
-  return (
-    <Link
-      href={item.href}
-      {...externalProps}
-      className={cn(
-        // `-my-1.5 py-1.5` grows the tap target without moving the link: at this
-        // size the label sets a 23px box, under the 24px a standalone control
-        // owes, and the negative margin cancels the padding so the invitation's
-        // spacing is untouched. Same device as every other action on the site.
-        "group -my-1.5 inline-flex items-baseline gap-3 py-1.5 font-medium uppercase tracking-eyebrow",
-        primary
-          ? "text-fine text-text md:text-body"
-          : "text-action text-text/85 transition-colors duration-300 ease-soft hover:text-text",
-      )}
-    >
-      <span className={cn("relative", primary ? "pb-2.5" : "pb-1.5")}>
-        {item.label}
-        <span
-          aria-hidden
-          className={cn(
-            "absolute inset-x-0 bottom-0 h-px",
-            primary ? "bg-primary/45" : "bg-text/25",
-          )}
-        />
-        <span
-          aria-hidden
-          className={cn(
-            "absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-500 ease-editorial",
-            "group-hover:scale-x-100 group-focus-visible:scale-x-100",
-            primary ? "bg-primary" : "bg-text/60",
-          )}
-        />
-      </span>
-
-      <span
-        aria-hidden
-        className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1 motion-safe:group-focus-visible:translate-x-1"
-      >
-        &#8594;
-      </span>
-    </Link>
   );
 }

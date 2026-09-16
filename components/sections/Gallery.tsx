@@ -1,7 +1,8 @@
 import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
-import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHead } from "@/components/ui/SectionHead";
 import { GALLERY_IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -35,31 +36,58 @@ import { cn } from "@/lib/utils";
  *
  * Two up on a phone throughout, because four stacked plates would be most of a
  * screen each and this section is a glance, not a gallery to browse.
+ *
+ * THE SEVEN-AND-FIVE SPLIT NOW RUNS BELOW `md` AS WELL, not just from it. The
+ * mobile default used to pair the plates at equal width (col-span-6 each),
+ * which let the 4:5 plate set the row's height outright and left the
+ * shallower plate beside it stranded under a gap answering to its aspect
+ * ratio rather than its crop: measured at 390px, 84px of bare ground above
+ * the first row's 4:3 plate and 97px above the second row's 3:2 plate — 67%
+ * and 87% of that plate's own height, which reads as a hole, not a ragged
+ * edge. Handing the shallower aspect ratio the wider column — the same 7/5
+ * split `md` already runs — claws back with width what the aspect ratio
+ * gives away in height: the gap falls to 23px and 39px, 15% and 30% of the
+ * plate's height, the same proportions the desktop composition already
+ * carries. The `md:` prefix comes off both spans because the split is no
+ * longer something that starts at a breakpoint; below `md` it is the reason
+ * the raggedness still reads as composed instead of as a gap.
  */
 const PLATES = [
-  "col-span-6 aspect-[4/3] md:col-span-7",
-  "col-span-6 aspect-[4/5] md:col-span-5",
-  "col-span-6 aspect-[4/5] md:col-span-5",
-  "col-span-6 aspect-[3/2] md:col-span-7",
+  "col-span-7 aspect-[4/3]",
+  "col-span-5 aspect-[4/5]",
+  "col-span-5 aspect-[4/5]",
+  "col-span-7 aspect-[3/2]",
 ] as const;
 
 /**
  * Homepage — the gallery.
  *
+ * Built on the shared `Section` / `SectionHead` primitives rather than a
+ * hand-rolled head, which is also what moves the eyebrow rule from Warm
+ * Terracotta to Deep Lilac: `SectionHead` draws every light-ground rule in
+ * the one accent colour, and this section no longer opts out by hand.
+ *
  * Not a portfolio, and deliberately not the finished-work strip that used to
- * sit on this page. Every photograph here is of the making rather than of the
- * made: a brush half-way through a bloom, pigment still finding its edges on
- * wet paper. The section exists to let someone picture themselves at the
- * table, which is a different job from showing what the table produces.
+ * sit on this page. It is not yet fully the alternative either: the section's
+ * job is to let someone picture themselves at the table, and today only the
+ * first of the four plates shows a hand actually at it — the other three are
+ * pigment and paper after the fact, work rather than working. See the
+ * TODO(client) on `GALLERY_IMAGES` in lib/constants.ts, which explains why
+ * (the other candidates were the potter's wheel the brand has since moved off)
+ * and what the studio shoot needs to bring back: frames of people making
+ * things, in the activities the Maison actually runs. These four are kept
+ * because they are the most honest four the project currently holds, not
+ * because the mismatch is invisible.
  *
  * It sits between the programme and the practical sections rather than near
  * the top, because it is reassurance rather than information — it answers
  * "what would this actually be like" for someone already considering a date,
  * and it should never be what a visitor has to scroll past to reach one.
  *
- * NO CALL TO ACTION. The homepage has one primary action and it is booking; a
- * gallery with its own button underneath would be a second, competing with the
- * events above it for no gain. The photographs do their work silently.
+ * NO CALL TO ACTION, so `SectionHead` below is given no `action`. The
+ * homepage has one primary action and it is booking; a gallery with its own
+ * button underneath would be a second, competing with the events above it for
+ * no gain. The photographs do their work silently.
  *
  * Server component — four <Image>s and nothing that needs a browser.
  */
@@ -67,26 +95,16 @@ export function Gallery() {
   if (GALLERY_IMAGES.length === 0) return null;
 
   return (
-    <Container as="section" aria-labelledby="gallery-heading" className="py-[4.5rem] md:py-section">
-      <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-        <Reveal className="col-span-12 md:col-span-6">
-          <p className="flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text">
-            <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-            In the room
-          </p>
-          <h2 id="gallery-heading" className="mt-6 text-h2 font-light uppercase tracking-[-0.02em]">
-            What an afternoon looks like.
-          </h2>
-        </Reveal>
+    <Section id="gallery-heading" ground="surface">
+      <SectionHead
+        id="gallery-heading"
+        eyebrow="In the room"
+        title="What an afternoon looks like."
+        standfirst="Ordinary hands and wet paint. Nobody here has done it before either."
+        layout="spread"
+      />
 
-        <Reveal delay={0.15} className="col-span-12 mt-5 md:col-span-5 md:col-start-8 md:mt-0">
-          <p className="max-w-[24rem] text-body text-text/80">
-            Ordinary hands and wet paint. Nobody here has done it before either.
-          </p>
-        </Reveal>
-      </div>
-
-      <ul className="mt-12 grid grid-cols-12 items-end gap-x-4 gap-y-6 md:mt-16 md:gap-x-6 lg:gap-x-8">
+      <ul className="mt-section-gap grid grid-cols-12 items-end gap-x-4 gap-y-6 md:gap-x-6 lg:gap-x-8">
         {GALLERY_IMAGES.map((plate, i) => (
           <li key={plate.src} className={cn("relative", PLATES[i % PLATES.length])}>
             <Reveal variant="imageReveal" className="absolute inset-0">
@@ -104,6 +122,6 @@ export function Gallery() {
           </li>
         ))}
       </ul>
-    </Container>
+    </Section>
   );
 }

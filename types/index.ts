@@ -23,17 +23,25 @@ export interface NavItem {
    * both of them.
    */
   megamenu?: boolean;
-  /**
-   * Sits with the bar's utilities on the right rather than in the primary
-   * navigation on the left.
-   *
-   * Presentation only, and only on the desktop bar: the mobile menu and the
-   * footer still render the entry in document order with everything else, so
-   * there is still one list and it still cannot drift. Contact is the entry
-   * this exists for — it is a way to reach the studio rather than a place in
-   * the programme, and it belongs beside search for the same reason.
-   */
-  utility?: boolean;
+
+  /*
+    `utility?: boolean` was here. It sat an entry with the bar's utilities on
+    the right rather than in the primary navigation on the left — Contact was
+    the entry it existed for, by this field's own account, and it belonged
+    beside search because reaching the studio was a different kind of errand
+    from choosing where to go in the programme.
+
+    The client has since asked for Contact to move into the primary group
+    instead, which was this flag's only job. With nothing left carrying it —
+    no other entry ever set `utility: true` — it is deleted rather than kept
+    for a future entry nothing in this build has asked for; see the MAIN_NAV
+    comment in lib/constants.ts for the full reasoning, and HeaderBar.tsx for
+    the render-side filter that went with it. `secondary` above is a different
+    case and is untouched: its own doc comment describes a standing threshold
+    (five or six entries before the bar crowds) rather than naming one entry,
+    so it is a mechanism waiting for a future need rather than a name with a
+    mechanism built around it.
+  */
 }
 
 /** A grouped column of links in the footer. */

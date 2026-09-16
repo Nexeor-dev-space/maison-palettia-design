@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import { MaskedText } from "@/components/motion/MaskedText";
 import { Reveal } from "@/components/motion/Reveal";
+import { RuledLink } from "@/components/ui/Action";
 import { Container } from "@/components/ui/Container";
 import { HERO_IMAGE, WORKSHOPS_HREF } from "@/lib/constants";
 
@@ -27,6 +27,14 @@ import { HERO_IMAGE, WORKSHOPS_HREF } from "@/lib/constants";
  * the same logo printed twice. Anchoring low and left also leaves the painter
  * and her canvas — the top two thirds — completely uncovered, which is what
  * makes the photograph read as a photograph rather than as a backdrop.
+ *
+ * THE INLINE WORDMARK IS GONE for the same reason the block is not centred:
+ * the header already carries the mark, centred and transparent, over this
+ * same photograph, so this block used to repeat it a second time, bottom-left,
+ * within 200px of the first — the same logo printed twice on one screen. The
+ * `h1` is the only thing that now announces the name here, and the block was
+ * re-spaced so the heading sits where it lands rather than floating under a
+ * gap sized for the asset that used to sit above it.
  *
  * Still `sticky top-0 z-0`: app/page.tsx wraps this with the two sections that
  * rise over and cover it, and that behaviour is not part of this redesign.
@@ -105,24 +113,7 @@ export function Hero() {
 
       <Container className="relative pb-12 md:pb-16 lg:pb-20">
         <div className="max-w-[46rem]">
-          {/*
-            The official asset, decorative here. The header already carries it
-            as the link home, so repeating that link would put one destination
-            in the tab order twice and announce the brand twice; the heading
-            below carries the meaning.
-          */}
-          <Reveal variant="fadeIn">
-            <Image
-              src="/images/logo.png"
-              alt=""
-              width={1015}
-              height={438}
-              priority
-              className="h-12 w-auto md:h-14 lg:h-16"
-            />
-          </Reveal>
-
-          <h1 id="hero-heading" className="mt-7 md:mt-9">
+          <h1 id="hero-heading">
             <MaskedText
               delay={0.25}
               className="block text-h1 font-light uppercase tracking-[-0.02em] text-cream"
@@ -144,25 +135,27 @@ export function Hero() {
               rise stay a foot rise. One image, one statement, one door.
             */}
             {/*
-              One quiet way onward, and deliberately not an offer. The hero's
-              job is to introduce, so this is a door rather than a call to
-              action — no button, no filled block, the same ruled link the rest
-              of the site uses to say "there is more of this".
+              One quiet way onward, and deliberately not an offer. The
+              reference site sets two small outlined buttons side by side in
+              its hero; we ship one ruled link instead. The hero's job is to
+              introduce, so this is a door rather than a call to action — no
+              button, no filled block. The page's one filled action (see THE
+              ONE-ACCENT RULE in app/globals.css) belongs to the booking strip
+              in Upcoming Events, where a visitor is actually choosing a date;
+              a second filled block here would also duplicate the header's own
+              "Book an event" fill, which sits sticky and transparent over this
+              same photograph and is already on screen throughout. So this
+              stays the same ruled link the rest of the site uses to say
+              "there is more of this" — now the shared `RuledLink` primitive,
+              `tone="onDark"` for the White Rock label, rule and arrow that a
+              charcoal photograph needs (Deep Lilac on it measures 2.37:1).
             */}
-            <Link
+            <RuledLink
+              label="Explore events"
               href={WORKSHOPS_HREF}
-              className="group mt-8 inline-flex items-center gap-3 text-action font-medium uppercase tracking-eyebrow text-cream md:mt-10"
-            >
-              <span className="border-b border-cream/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-cream">
-                Explore events
-              </span>
-              <span
-                aria-hidden
-                className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-              >
-                &#8594;
-              </span>
-            </Link>
+              tone="onDark"
+              className="mt-8 md:mt-10"
+            />
           </Reveal>
         </div>
       </Container>

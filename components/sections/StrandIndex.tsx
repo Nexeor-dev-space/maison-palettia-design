@@ -1,347 +1,273 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 
 import { Reveal } from "@/components/motion/Reveal";
+import { RuledLink } from "@/components/ui/Action";
+import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import { cn } from "@/lib/utils";
 import type { Discipline } from "@/types";
 
 /**
- * The strand name — the largest type in the section, and deliberately larger
- * than the heading above it. An index whose entries are smaller than its title
- * is a table of contents; one where the entries dominate is the content.
+ * The index: one strand per row, each with a photograph big enough to be the
+ * reason you look at the row.
  *
- * The names are short — six characters at the longest — so this can be set far
- * bigger than a line of running text ever could.
+ * WHAT THIS REPLACED, AND WHY ALL OF IT WENT AT ONCE. The strands used to run
+ * down the left as a numbered list while a single arched window held at the
+ * right and cross-faded through their photographs as each row came level. The
+ * client's note on this section was three things — take the divider lines out,
+ * take the background colour out, make the images taller — following the
+ * reference's EXHIBITIONS AND FAIRS pattern, where each item is a compact
+ * block of text at the top of one half and one very large picture filling the
+ * other. Every one of those three is a load-bearing removal here:
+ *
+ *   - THE DIVIDERS. Each row opened with a `border-t border-text/20`. Gone, as
+ *     asked. Space is doing that work now, which is why the rows are set a
+ *     full `section-gap` apart rather than the reference's 20px: the reference
+ *     keeps every picture on the same side, so its rows separate on a shared
+ *     left edge. Ours alternate, so two neighbouring plates land on opposite
+ *     sides and need real vertical air or the run reads as a staircase.
+ *
+ *   - THE ACTIVE BAND. The Soft Lavender field, the lilac rule that wiped
+ *     across the top of the active row, and the `-mx-3 px-3` bleed that
+ *     existed only so that band could come out past the measure. The band was
+ *     answering a question this composition no longer asks — "which of these
+ *     rows owns the one photograph on screen" — because every row now owns its
+ *     own. With the band gone the bleed had nothing to carry and went with it.
+ *     That also takes Soft Lavender off the homepage, which is what the
+ *     one-accent rule wanted anyway.
+ *
+ *   - THE DOORWAY, AND THE CLIENT COMPONENT WITH IT. The sticky arch and the
+ *     IntersectionObserver that drove it were the only reason this file was
+ *     `"use client"`: two pieces of state (the row in the middle band, the row
+ *     being pointed at), a ref array over the rows, and an observer to keep
+ *     them true. None of it has anything to do now, so the directive, the
+ *     `useState`, the `useRef` and the `useEffect` are all deleted and this is
+ *     a server component again. The motion is still here — <Reveal> is a
+ *     client component and a server parent can render it — but the section no
+ *     longer ships any logic of its own to the browser.
+ *
+ * THE `arch` UTILITY NOW RENDERS EXACTLY ONCE. The window was one of the two
+ * places the Maison's entrance was drawn; the footer is the other. Read the
+ * note above `@utility arch` in app/globals.css — the motif is a language, not
+ * a texture — and treat the footer as the whole of it. (<BrandIntro> also
+ * carries one, but it is parked: nothing imports it.)
  */
-const NAME =
-  "font-light uppercase leading-[0.95] tracking-[-0.02em] " +
-  "text-[2.6rem] xs:text-[3rem] sm:text-[3.6rem] lg:text-[3.4rem] xl:text-[4.2rem] 2xl:text-[4.8rem]";
-
-/**
- * The band, in viewport terms, that decides which strand is showing. A strip
- * across the middle of the window: whichever row crosses it owns the doorway.
- */
-const ACTIVE_BAND = { rootMargin: "-46% 0px -46% 0px", threshold: 0 } as const;
 
 interface StrandIndexProps {
   disciplines: Discipline[];
+  /** Placement only. The section owns the head-to-content gap, not this. */
+  className?: string;
+}
+
+export function StrandIndex({ disciplines, className }: StrandIndexProps) {
+  return (
+    /*
+      `flex flex-col gap-*` rather than `space-y-*`: the gap belongs to the
+      list, not to "every child except the first", so adding a fourth strand
+      cannot land it against the third.
+    */
+    <ol className={cn("flex flex-col gap-section-gap", className)}>
+      {disciplines.map((discipline, i) => (
+        <Strand
+          key={discipline.slug}
+          discipline={discipline}
+          index={i + 1}
+          // Right, left, right. Derived from position rather than stored on
+          // the strand, so the rhythm survives a strand being added, removed
+          // or reordered in the CMS.
+          flip={i % 2 === 1}
+        />
+      ))}
+    </ol>
+  );
 }
 
 /**
- * The index: four ways in, seen through one doorway.
+ * The photograph's proportion, and the floor that actually decides its height
+ * at every desktop width anyone is reading this on.
  *
- * The strands run down the left as a numbered list and the photographs do not
- * travel with them — a single arched window holds at the right and changes
- * what is behind it as each strand comes level. The arch is the Maison's own
- * entrance (see the `arch` utility), which is the whole reason the section is
- * built this way round: these are doors, so there is one door, and the reader
- * scrolls the building past it rather than being handed four pictures.
+ * MEASURED, because the reference gives a number and a number is checkable.
+ * EXHIBITIONS AND FAIRS runs its plates at 694x518 on a 1440 screen. Our half
+ * of the site's twelve columns is narrower than the reference's: at 1440 the
+ * gutter is 2vw a side, leaving 1382.4px of measure, and six columns of twelve
+ * with the house `lg:gap-x-10` between them come to 671.2px. A clean 4:3 of
+ * that is 503px — under the reference, and under the 540px the old sticky arch
+ * reached at 1440x900. "Increase the height of the images" cannot end with a
+ * smaller picture than the one it replaced.
  *
- * Below `lg` there is no second column to hold still, so the window is dropped
- * and each strand carries its own plate. The list stops being an index and
- * becomes a sequence, which is what a single narrow column can actually be.
+ * So the ratio sets the shape and the `min-h` sets the presence:
  *
- * The active strand is found with an IntersectionObserver over a thin band
- * across the middle of the window rather than by measuring scroll offsets on
- * every frame. It costs nothing while the section is off screen, it needs no
- * knowledge of the page above it, and it stays correct when the smoothed
- * scroll overshoots and settles back.
+ *   1024   471.7 wide   4:3 gives 354   ->  min-h 30rem  =  480px
+ *   1280   594.4 wide   4:3 gives 446   ->  min-h 36rem  =  576px
+ *   1440   671.2 wide   4:3 gives 503   ->  min-h 36rem  =  576px
+ *   1920   901.4 wide   4:3 gives 676   ->  the ratio leads again
+ *
+ * Every line of that was then measured in the browser and came back exact.
+ * The half is `0.48 * viewport - 20` once the gutter and the eleven gaps are
+ * taken out, so the floor leads from `lg` up to 1642px — the whole of where
+ * this page is actually read — and the ratio takes back over above it, so the
+ * plate keeps growing with the display instead of parking at 576.
+ *
+ * BELOW `lg` THE PROPORTION IS UNCHANGED FROM WHAT SHIPPED — 4:3 on a phone,
+ * 3:2 from `xs`. The spec sketched 3:2 throughout, which at 390px would be
+ * 233px against the 262px rendering today: 29px shorter, in a section whose
+ * whole instruction was "taller". A narrow screen already gave every strand
+ * its own plate, so there was nothing to fix there; the client's note is about
+ * the desktop, where three strands were sharing one window.
  */
-export function StrandIndex({ disciplines }: StrandIndexProps) {
-  const [inBand, setInBand] = useState(0);
-  /**
-   * The strand the reader is pointing at or has tabbed to, if any.
-   *
-   * Held apart from the scrolled state rather than folded into it, so that
-   * leaving a row restores whatever the scroll position says is current
-   * instead of stranding the window on the last thing touched. A pointer that
-   * wanders across the list and off it leaves the section exactly as it found
-   * it.
-   */
-  const [previewed, setPreviewed] = useState<number | null>(null);
-  const active = previewed ?? inBand;
-  const rows = useRef<(HTMLElement | null)[]>([]);
+const PLATE = "aspect-[4/3] xs:aspect-[3/2] lg:aspect-[4/3]";
+const PLATE_FLOOR = "lg:min-h-[30rem] xl:min-h-[36rem]";
 
-  useEffect(() => {
-    const nodes = rows.current.filter((n): n is HTMLElement => n !== null);
-    if (nodes.length === 0) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        // Only ever promoted on entry. Nothing is demoted, so the last strand
-        // to cross the band keeps the window at the two ends of the section,
-        // where no row is in it at all.
-        if (entry.isIntersecting) {
-          const i = nodes.indexOf(entry.target as HTMLElement);
-          if (i !== -1) setInBand(i);
-        }
-      }
-    }, ACTIVE_BAND);
-
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
-  }, [disciplines.length]);
-
-  return (
-    <div className="mt-16 grid grid-cols-12 gap-x-6 md:mt-20 lg:mt-24 lg:gap-x-12">
-      {/* ---- The list ------------------------------------------------- */}
-      <ol className="col-span-12 lg:col-span-7">
-        {disciplines.map((discipline, i) => (
-          <Strand
-            key={discipline.slug}
-            ref={(node) => {
-              rows.current[i] = node;
-            }}
-            discipline={discipline}
-            index={i + 1}
-            isActive={i === active}
-            onPreview={(on) => setPreviewed(on ? i : null)}
-          />
-        ))}
-      </ol>
-
-      {/* ---- The doorway ----------------------------------------------- */}
-      <div className="col-span-12 hidden lg:col-span-5 lg:block">
-        {/*
-          Held clear of the sticky header rather than at the top of the window,
-          so the arch has air above it and never sits under the bar.
-        */}
-        <div className="sticky top-[7.5rem]">
-          <div
-            className="arch relative w-full overflow-hidden bg-text/5"
-            style={{ height: "clamp(22rem, 60vh, 36rem)" }}
-          >
-            {disciplines.map((discipline, i) => (
-              <Image
-                key={discipline.slug}
-                src={discipline.image.src}
-                alt={discipline.image.alt}
-                fill
-                sizes="(min-width: 64rem) 42vw, 1px"
-                className={cn(
-                  // The swap is a cross-fade with the incoming plate settling
-                  // out of a slight enlargement — the same gesture the rest of
-                  // the site uses when a photograph arrives, borrowed here so
-                  // the change reads as the picture being placed rather than
-                  // as a slideshow advancing.
-                  "object-cover transition-[opacity,transform] duration-[900ms] ease-editorial",
-                  i === active ? "scale-100 opacity-100" : "scale-[1.05] opacity-0",
-                )}
-              />
-            ))}
-          </div>
-
-          <p className="mt-5 flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text/85">
-            <span aria-hidden className="h-px w-6 shrink-0 bg-primary" />
-            {String(active + 1).padStart(2, "0")} / {String(disciplines.length).padStart(2, "0")}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+/**
+ * Rendered width at each breakpoint, so the browser fetches one file size.
+ * 47vw is the six-column half measured across the range — 46% at 1024, 46.6%
+ * at 1440, 47% at 1920 — and below `lg` the row is one column, so the plate is
+ * the full measure and the expression is the gutter token restated.
+ */
+const PLATE_SIZES = "(min-width: 64rem) 47vw, calc(100vw - 2 * max(1.25rem, 2vw))";
 
 interface StrandProps {
   discipline: Discipline;
   index: number;
-  isActive: boolean;
-  /** Called with true when the row is pointed at or focused, false on leaving. */
-  onPreview: (on: boolean) => void;
-  ref: (node: HTMLElement | null) => void;
+  /** Puts the photograph on the left at `lg`. Alternated down the run. */
+  flip: boolean;
 }
 
 /**
- * One entry in the index.
+ * One strand: a compact block of type at the top of one half, one very large
+ * photograph filling the other, and nothing else. The empty space under the
+ * text is the composition rather than a gap in it — it is the effect the
+ * reference gets, and the reason the rows can carry no rule between them.
  *
- * The active state is carried by a band of Soft Lavender laid across the row,
- * with the rule drawing over its head and the name coming up to full strength
- * inside it.
+ * WHICH SIDE THE PICTURE TAKES IS SET IN THE GRID, NEVER IN THE MARKUP ORDER.
+ * The text always comes first in the DOM and only its column changes, so a
+ * flipped row reads in the same order to a screen reader and stacks in the
+ * same order on a phone — text, then the plate it belongs to — whichever way
+ * round it is drawn.
  *
- * The band is doing a specific job, and it is not decoration. The photograph
- * beside the list belongs to exactly one of these rows and there is nothing
- * else on screen to say which — an earlier version marked the active row with
- * a coloured numeral and thirty per cent of opacity on the name, and at arm's
- * length the two rows looked identical, so the window read as a picture that
- * happened to be there rather than as this row's picture. A field of colour is
- * the one signal large enough to be seen at the same time as the thing it is
- * pointing at.
- *
- * Dimming the others instead is the obvious alternative and it is unusable:
- * the name is the link, and charcoal faint enough to read as "off" against
- * Light Sage falls under the contrast a link owes. The inactive name is held
- * at 70% — measured at 3.9:1, clear of the 3:1 large text is owed — and the
- * work is done by the band instead.
- *
- * Ink on the band is charcoal throughout, at 7.4:1. Deep Lilac is the
- * section's accent everywhere else and it cannot come along here: on Soft
- * Lavender it measures 2.7:1, under the 3:1 even a graphical mark owes. The
- * lilac keeps the hairline at the top of the row, where it is a mark rather
- * than something being read, and clears 3:1 against the band at full strength.
+ * `lg:row-start-1` on both halves is load-bearing and not decoration. Grid
+ * placement is sparse: it never backtracks. With the text first in the DOM and
+ * pinned to column 7 on a flipped row, the photograph that follows cannot be
+ * placed to its left in the same row and drops to a second one — see the same
+ * note, and the same fix, in <WorkshopFeature>. Naming the row for both keeps
+ * them side by side either way.
  */
-function Strand({ discipline, index, isActive, onPreview, ref }: StrandProps) {
+function Strand({ discipline, index, flip }: StrandProps) {
   return (
     <li>
-      <article
-        ref={ref}
-        /*
-          Pointing at a row takes the doorway, overriding the scroll position
-          for as long as the pointer is on it. Rows abut with no gap between
-          them, so crossing from one to the next fires leave-then-enter and the
-          window changes once rather than flickering back through the scrolled
-          state on the way.
-
-          Touch is excluded deliberately: a tap emits a synthetic enter on the
-          way to the link, which would swap the plate for the instant before
-          the page navigates away. There is no hover on a touch screen and the
-          window below `lg` is not rendered at all, so there is nothing to do.
-
-          Focus is wired to the same handler — React's onFocus/onBlur ride
-          focusin/focusout, which bubble from the link inside — so tabbing
-          through the index drives the window exactly as pointing does, and a
-          keyboard reader is never shown a photograph belonging to a different
-          strand than the one they are on.
-        */
-        onPointerEnter={(event) => {
-          if (event.pointerType !== "touch") onPreview(true);
-        }}
-        onPointerLeave={(event) => {
-          if (event.pointerType !== "touch") onPreview(false);
-        }}
-        onFocus={() => onPreview(true)}
-        onBlur={() => onPreview(false)}
-        className={cn(
-          "group relative border-t border-text/20 py-10 md:py-12 lg:py-14",
-          /*
-            The row is widened past the measure and pulled back by the same
-            amount, so the type stays exactly where it was and everything that
-            spans the row — the hairline above it, the rule that draws over
-            that hairline, and the band itself — comes out one width.
-
-            That is the whole reason the band is the row's own background here
-            rather than a layer floating behind it. As a layer it could bleed
-            on its own, and it did: the colour ran a clean sixteen pixels wider
-            than the two rules at the top of it, which at a glance read as a
-            misaligned box rather than as a band.
-
-            The bleed is small on purpose — it is air between the colour's edge
-            and the word, not a gesture. An earlier version bled it by the
-            width of the page gutter, which at the common desktop widths put
-            the edge a pixel off the screen and made it look like a deliberate
-            full-bleed band, then sat it a hundred pixels inside the screen the
-            moment the measure hit its cap and the container began centring.
-          */
-          "-mx-3 px-3 lg:-mx-4 lg:px-4",
-          // Fades rather than wipes. The rule at the top wipes, and two
-          // different gestures on the same edge at once read as a glitch.
-          "transition-colors duration-500 ease-soft",
-          isActive && "bg-lavender/60",
-        )}
-      >
+      {/*
+        `isolate` is here for the stretched link below. Everything the row
+        needs to do — the name's overlay, the hover on the plate — happens
+        inside this element, and a stacking context keeps the one z-index in
+        the row from meaning anything outside it.
+      */}
+      <article className="group relative isolate grid grid-cols-12 items-start gap-x-6 gap-y-10 lg:gap-x-10 lg:gap-y-0">
+        {/* --- The strand, at the top of its half ------------------------ */}
         {/*
-          The active rule, drawn over the hairline rather than replacing it, so
-          nothing in the row's height changes as it becomes active.
-        */}
-        <span
-          aria-hidden
-          className={cn(
-            "absolute left-0 top-0 h-px bg-primary transition-[width] duration-700 ease-editorial",
-            isActive ? "w-full" : "w-0",
-          )}
-        />
+          TWO CLASSES ON THIS BLOCK EXIST ONLY TO KEEP THE ROW CLICKABLE.
 
-        <Reveal variant="fadeIn">
+          `fadeIn` rather than the house `fadeUp`, because of the link inside
+          it. A transform — any transform, including the 16px rise `fadeUp`
+          animates through — makes an element a containing block for its
+          absolutely positioned descendants, which would resolve the name's
+          `inset-0` overlay against this text block instead of against the
+          row. The picture would stop being part of the target for as long as
+          the entrance was playing, and on any browser that leaves a settled
+          `transform` in place, for good.
+
+          `z-10`, on a grid item that is deliberately NOT positioned. The
+          plate opposite is `relative` — it has to be, it crops a `fill`
+          image — and it is the later sibling, so at the default `z-index:
+          auto` it paints over the overlay and swallows every click on the
+          half of the row that looks most clickable. z-index applies to a grid
+          item whether or not it is positioned, so this lifts the whole text
+          block, overlay included, above the plate without making it the
+          overlay's containing block. Putting the z-index on the pseudo-
+          element instead looks equivalent and is not: `fadeIn` is an opacity
+          animation, opacity below 1 is itself a stacking context, and the
+          lift would be trapped inside it for exactly as long as the row was
+          mid-entrance — or permanently, if the observer never fired.
+        */}
+        <Reveal
+          variant="fadeIn"
+          className={cn(
+            "z-10 col-span-12 lg:col-span-6 lg:row-start-1",
+            flip ? "lg:col-start-7" : "lg:col-start-1",
+          )}
+        >
           {/*
-            The numeral sits over the name rather than beside it. Set against
-            type this large it has no baseline worth sharing — aligned to one
-            it reads as a stray mark a long way from the word it belongs to —
-            and above, it belongs to the rule instead, which is what a folio
-            does on a page.
+            A folio, not content: the <ol> already carries the position, and
+            the numerals are the index's spine on the page rather than
+            something anyone needs read out as "zero one".
+
+            Deep Lilac, which it could not be before. On the Light Sage this
+            section used to sit on, the accent measures 3.83:1 — fine for a
+            mark, under the 4.5:1 an 11px line of text owes — so the numeral
+            was charcoal and the colour stayed on the rules. Removing the
+            background colour is what pays for it: on the page ground Deep
+            Lilac is 4.90:1, and the one-accent rule lists numerals among the
+            things the accent is for.
           */}
           <p
-            className={cn(
-              "text-label font-medium uppercase tracking-eyebrow transition-colors duration-500 ease-soft",
-              // Charcoal on the band. Lilac at eleven pixels measures 2.7:1
-              // there and 3.8:1 on the bare sage — under the 4.5:1 text this
-              // size owes on either ground.
-              isActive ? "text-text" : "text-text/85",
-            )}
+            aria-hidden
+            className="text-label font-medium uppercase tracking-eyebrow text-primary"
           >
             {String(index).padStart(2, "0")}
           </p>
 
-          <div className="mt-5 md:mt-6">
-            <h3
-              className={cn(
-                NAME,
-                "transition-colors duration-500 ease-soft",
-                isActive ? "text-text" : "text-text/70",
-              )}
+          <h3 className="mt-6 text-h2 font-light uppercase tracking-[-0.02em] text-text">
+            <Link
+              href={discipline.href}
+              aria-label={`${discipline.name} — explore ${discipline.name.toLowerCase()} experiences`}
+              /*
+                The row's one anchor, stretched across all of it — the
+                photograph included, which is half the row and the half that
+                looks most clickable. The overlay resolves against the
+                <article>, which is the nearest positioned ancestor, and the
+                `z-10` on the block above is what gets it over the plate; see
+                the note there.
+              */
+              className="after:absolute after:inset-0 after:content-['']"
             >
-              <Link
-                href={discipline.href}
-                aria-label={`${discipline.name} — explore ${discipline.name.toLowerCase()} experiences`}
-                // Stretched across the whole row, so the plate on a phone and
-                // the arrow are both live while the tab order gains exactly
-                // one well-named stop per strand.
-                className="after:absolute after:inset-0"
-              >
-                {discipline.name}
-              </Link>
-            </h3>
-          </div>
+              {discipline.name}
+            </Link>
+          </h3>
+
+          <p className="mt-6 max-w-[26rem] text-body text-text/80">{discipline.description}</p>
+
+          {/*
+            An affordance, not a link. The row already has one, stretched
+            across it, and a second anchor to the same place would put every
+            strand in the tab order twice for nothing. <RuledLink asSpan> is
+            aria-hidden and `pointer-events-none`, so it cannot become the one
+            dead spot in the middle of the target either.
+          */}
+          <RuledLink asSpan label={`Explore ${discipline.name}`} className="mt-8" />
         </Reveal>
 
-        {/*
-          The plate, on the narrow layout only. Above `lg` the doorway holds
-          every photograph and this would be the same picture twice.
-        */}
-        <div className="mt-7 lg:hidden">
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-text/5 xs:aspect-[3/2]">
-            <Reveal variant="imageReveal" className="absolute inset-0">
-              <Image
-                src={discipline.image.src}
-                alt={discipline.image.alt}
-                fill
-                sizes="(min-width: 64rem) 1px, calc(100vw - 2 * max(1.25rem, 2vw))"
-                className="object-cover"
-              />
-            </Reveal>
-          </div>
+        {/* --- The photograph, filling the other half --------------------- */}
+        <div
+          className={cn(
+            "col-span-12 lg:col-span-6 lg:row-start-1",
+            flip ? "lg:col-start-1" : "lg:col-start-7",
+          )}
+        >
+          {/*
+            <WorkshopPhoto> rather than an <Image> of our own. It is named for
+            the section it was written in and it takes a plain ImageAsset, so
+            it fits a strand exactly as well as a session: square edges, a
+            definite proportion, the shared hover scale off the row's `group`
+            — and, the part that matters here, no scroll reveal. Read its
+            header: a photograph wrapped in an observer-gated fade is a
+            photograph that can stay invisible, and these three are now the
+            largest things in the section.
+          */}
+          <WorkshopPhoto
+            image={discipline.image}
+            aspect={PLATE}
+            sizes={PLATE_SIZES}
+            className={PLATE_FLOOR}
+          />
         </div>
-
-        <Reveal delay={0.08}>
-          <p className="mt-7 max-w-[26rem] text-body leading-[1.8] text-text/80 md:mt-8">
-            {discipline.description}
-          </p>
-
-          {/*
-            Not a link: the row already has one, stretched across it, and a
-            second anchor to the same place would double every strand in the
-            tab order for nothing.
-          */}
-          {/*
-            Charcoal, not Deep Lilac. The lilac is the section's accent and it
-            reads beautifully here, but on Light Sage it measures 3.83:1 —
-            which clears the 3:1 that display type owes and fails the 4.5:1
-            owed at eleven pixels. The same constraint <Signature> is built
-            around. The lilac stays on the rule and the arrow, where it is
-            decoration rather than the thing being read.
-          */}
-          <span
-            aria-hidden
-            className="mt-6 flex w-fit items-center gap-3 text-action font-semibold uppercase tracking-eyebrow text-text"
-          >
-            <span className="border-b border-primary/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary group-focus-within:border-primary">
-              Explore {discipline.name}
-            </span>
-            <span className="text-primary transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1 motion-safe:group-focus-within:translate-x-1">
-              &#8594;
-            </span>
-          </span>
-        </Reveal>
       </article>
     </li>
   );

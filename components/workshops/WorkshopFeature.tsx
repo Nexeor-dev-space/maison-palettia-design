@@ -17,6 +17,33 @@ import {
 import { cn } from "@/lib/utils";
 import type { Workshop } from "@/types";
 
+/*
+  PARKED — not mounted anywhere right now.
+
+  This was the homepage's event block: a photograph running off one edge of the
+  page against a filled booking panel running off the other. <UpcomingEvents>
+  stopped importing it in the homepage redesign, when the client asked for the
+  reference site's HEADLINES arrangement instead — plate on top, meta row,
+  title, no panel and no card — which is <EventCard>. Nothing else in the repo
+  imports this file; the listing page has always used <EventIndexEntry>.
+
+  Keep it. Two reasons, and the second is the stronger one.
+
+  Nothing is wrong with the composition: it is the right shape for a single
+  featured date given a whole band of the page, which is a thing the site may
+  well want again on /events or on a session's own page. Rebuilding it from the
+  new card would mean re-deriving the split-panel reasoning below from nothing.
+
+  And the comments in it are cited from files that are very much alive. The
+  `lg:row-start-1` note on grid's sparse placement is referenced by
+  <StrandIndex>, and the note on the photograph's aspect ratio — a box whose
+  height comes from a sibling has no definite size, so the lazy loader never
+  fetches and the scroll observer never fires, leaving a blank panel that looks
+  deliberate — is the reason <WorkshopPhoto> carries no reveal and the reason
+  <EventCard> pins an explicit `aspect-[5/3]`. Deleting this file would delete
+  the account of a bug that is still being designed around.
+*/
+
 /**
  * The next session, as a booking.
  *
