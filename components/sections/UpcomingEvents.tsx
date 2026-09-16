@@ -5,6 +5,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { EventCard } from "@/components/workshops/EventCard";
 import {
+  bookSessionHref,
   formatPrice,
   getUpcomingWorkshops,
   isFullyBooked,
@@ -75,7 +76,6 @@ const HEADING_ID = "upcoming-events-heading";
 export async function UpcomingEvents() {
   const workshops = await getUpcomingWorkshops();
 
-  const count = workshops.length;
   const bookable = workshops.filter((workshop) => !isFullyBooked(workshop));
   // Soonest first out of `getUpcomingWorkshops`, so the head of the bookable
   // list is the next date anyone could actually take.
@@ -87,18 +87,44 @@ export async function UpcomingEvents() {
 
   return (
     <Section id={HEADING_ID} ground="surface">
+      {/*
+        `stacked`, not `spread`, and this is the one head on the page that
+        needs it.
+
+        Measured at 1440 with the spread layout: the title column stood 83px
+        and the side column 178px, because this section carries both a
+        two-line authored title AND the longest standfirst on the page, which
+        wraps to four lines. The grid row takes the taller of the two, so 96px
+        of nothing opened under the heading, and with the section gap and the
+        strip's own top padding that put 176px of dead air immediately above
+        the booking strip — the one part of this page with something to sell.
+
+        Every other spread head here pairs a one-line title with a short
+        standfirst, so the same mechanic costs them 40px and nobody notices.
+        This section is the outlier, so it takes the other layout rather than
+        the page taking a new rule.
+      */}
       <SectionHead
         id={HEADING_ID}
-        layout="spread"
+        layout="stacked"
         /*
           A state, not a boast — and only true while something can be booked.
           Computed from the data every render: with nothing bookable the label
           falls back to naming the section rather than advertising a counter
           that would be lying.
+
+          IT COUNTS `bookable`, NOT `workshops`. It counted the whole list,
+          which with today's data rendered "Now booking · 2 dates" directly
+          above a grid whose second card says FULLY BOOKED. That is the one
+          direction this section refuses to be wrong in: its own note further
+          down records that quoting a price off a date nobody can book is "the
+          oldest trick in the listing business and it is not one this studio
+          should run", and the three figures in the strip already honour that.
+          The eyebrow was the last thing that did not.
         */
         eyebrow={
           bookable.length > 0
-            ? `Now booking · ${count} ${count === 1 ? "date" : "dates"}`
+            ? `Now booking · ${bookable.length} ${bookable.length === 1 ? "date" : "dates"}`
             : "Upcoming events"
         }
         /*
@@ -195,7 +221,27 @@ function BookingStrip({ next, cheapest }: { next: Workshop; cheapest: Workshop }
           means what it says at every width with nothing to fight.
         */}
         <div className="shrink-0 sm:max-w-[18rem]">
-          <FilledAction label="Book a place" href="/events" className="w-full sm:w-auto" />
+          {/*
+            THE BUTTON GOES TO THE DATE THE STRIP JUST DESCRIBED, not to the
+            listing.
+
+            It pointed at /events, which is where "See all events" above it
+            goes and where the header's own action goes. That is the wrong
+            promise in the wrong place: the three figures beside it name one
+            specific session — its price, its date, its remaining seats — so
+            someone clicking here has already chosen. Sending them back to a
+            list to find it again asks them to make the same decision twice,
+            at the exact point in the page where intent is highest.
+
+            `next` is the soonest session anyone can actually book — the strip
+            takes it from `bookable`, never from the whole list — so this can
+            never open a closed date.
+          */}
+          <FilledAction
+            label="Book a place"
+            href={bookSessionHref(next)}
+            className="w-full sm:w-auto"
+          />
           <p className="mt-4 text-fine font-medium text-text">
             No account needed — booking takes two minutes.
           </p>

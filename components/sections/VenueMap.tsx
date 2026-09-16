@@ -190,7 +190,26 @@ export function VenueMap({ query, label }: VenueMapProps) {
         <button
           type="button"
           onClick={() => setShown(true)}
-          className="group absolute inset-0 flex flex-col items-start justify-between gap-6 p-6 text-left md:p-8"
+          /*
+            `justify-center`, not `justify-between`.
+
+            It was `justify-between`, which is the right instinct in a short
+            control and the wrong one here: this well is 526px tall at 1440, so
+            spacing the label and the control to opposite ends left 391px of
+            bare ground between them — 74% of the box, with nothing in it.
+
+            That is a different thing from the empty space this page uses
+            deliberately elsewhere. In the strand rows and the About teaser the
+            space sits beside a large photograph, so the eye has somewhere to
+            go. Here the space IS the column, and nothing rewards it. Worse,
+            this box is a placeholder for something not yet loaded, so "looks
+            empty" and "failed to load" reinforce each other and a visitor has
+            no way to tell them apart.
+
+            Centred, the three lines read as one deliberately quiet unit, which
+            is what they are.
+          */
+          className="group absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center md:p-8"
         >
           <span className="sr-only">Show map of {label}. The map is loaded from Google Maps.</span>
 
@@ -201,7 +220,7 @@ export function VenueMap({ query, label }: VenueMapProps) {
             {label}
           </span>
 
-          <span aria-hidden className="flex flex-col items-start gap-3">
+          <span aria-hidden className="flex flex-col items-center gap-3">
             <RuledLink asSpan label="Show map" />
             <span className="text-fine text-text/75">Loaded from Google Maps</span>
           </span>

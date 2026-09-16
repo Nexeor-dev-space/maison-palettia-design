@@ -44,6 +44,15 @@ export function HomeFaq() {
         id="faq-heading"
         eyebrow="Before you book"
         title="Good to know."
+        /*
+          RESTORED. This line was dropped during the rebuild because the spec
+          for this section listed only an eyebrow, a title and a layout — but a
+          prop missing from a spec is not an instruction to delete approved
+          copy. Without it the left column is a heading and a link with nothing
+          between them, and this sentence is what makes the section read as an
+          offer to help rather than as a wall of questions.
+        */
+        standfirst="Anything else, and the Maison is happy to answer."
         action={{ label: "Get in touch", href: "/contact" }}
         layout="spread"
       />

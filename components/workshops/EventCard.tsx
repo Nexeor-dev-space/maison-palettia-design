@@ -232,12 +232,40 @@ function Availability({ workshop, closed }: { workshop: Workshop; closed: boolea
   if (!scarce && !closed) return null;
 
   return (
-    <p className="mt-5 flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
-      {scarce ? (
-        <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-pill bg-terracotta" />
+    <>
+      <p className="mt-5 flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
+        {scarce ? (
+          <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-pill bg-terracotta" />
+        ) : null}
+        {spotsLabel(workshop)}
+      </p>
+
+      {/*
+        A CLOSED DATE SAYS WHERE TO GO NEXT, and that sentence is restored
+        rather than new — the split block this card replaced carried it, and
+        dropping it was a real loss.
+
+        Everything above is already honest: the label reads FULLY BOOKED, the
+        affordance says "View event" rather than "Book event", and the
+        accessible name on the title ends "— fully booked". But honesty and
+        clarity are not the same thing at the speed a page is actually
+        scanned. Two cards side by side, the same photograph size, the same
+        ruled link in the same place, one word different between them: a
+        visitor moving quickly reads two equally available dates and only
+        discovers otherwise after choosing.
+
+        This is the one place on the page where that costs something real, so
+        the card spends a line on it. It names no other date and promises no
+        replacement — the grid around it is the answer, and saying "the next
+        dates are below" would be a claim about ordering that nothing here
+        guarantees.
+      */}
+      {closed ? (
+        <p className="mt-3 text-fine leading-[1.75] text-text/75">
+          This date is full. The rest of the programme is still open.
+        </p>
       ) : null}
-      {spotsLabel(workshop)}
-    </p>
+    </>
   );
 }
 
