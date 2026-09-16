@@ -15,7 +15,7 @@ interface BookActionProps {
  * The booking action: a filled square button, and the only solid block of
  * colour in the bar.
  *
- * Square corners rather than the `rounded-pill` the shared <Button> carries.
+ * Carries the site's 8px corner, the same as the shared <Button>.
  * Nothing else on this site is rounded — the photography is hard-edged
  * throughout and the two arches are the deliberate exceptions — so a pill in
  * the corner would be the one soft shape on the page.
@@ -51,7 +51,7 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
       href={PRIMARY_CTA.href}
       onClick={onNavigate}
       className={cn(
-        "group inline-flex items-center justify-center gap-2.5 font-medium uppercase tracking-eyebrow",
+        "group inline-flex items-center justify-center gap-2.5 rounded-sm font-medium uppercase tracking-eyebrow",
         "bg-sage text-text",
         "transition-colors duration-300 ease-soft hover:bg-sage/85",
         // Narrower flanks between 1024 and 1280, where the bar is at its

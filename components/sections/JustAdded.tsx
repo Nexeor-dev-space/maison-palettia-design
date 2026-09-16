@@ -124,8 +124,8 @@ export async function JustAdded() {
  */
 function SectionHead() {
   return (
-    <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-      <div className="col-span-12 md:col-span-6 lg:col-span-7">
+    <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
+      <div className="col-span-12 md:col-span-8 lg:col-span-7">
         <Reveal>
           <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
             <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
@@ -138,17 +138,14 @@ function SectionHead() {
             <HeadingLine>From the studio</HeadingLine>
           </Stagger>
         </h2>
-      </div>
 
-      <Reveal
-        delay={0.2}
-        className="col-span-12 mt-7 md:col-span-5 md:col-start-8 md:mt-0 md:pb-2 lg:col-span-4 lg:col-start-9"
-      >
-        <p className="max-w-[24rem] text-body leading-[1.85] text-text/80">
-          Fresh moments, new pieces and small things happening around the studio.
-        </p>
-        <SeeAllLink className="mt-7" />
-      </Reveal>
+        <Reveal delay={0.2}>
+          <p className="mt-7 max-w-[32rem] text-body leading-[1.85] text-text/80 md:mt-8">
+            Fresh moments, new pieces and small things happening around the studio.
+          </p>
+          <SeeAllLink className="mt-7" />
+        </Reveal>
+      </div>
     </div>
   );
 }
@@ -211,7 +208,7 @@ function CollectionItem({ item, index }: { item: RecentItem; index: number }) {
 
   return (
     <Link href={item.href} className={cn("group block", width)}>
-      <div className={cn("relative w-full overflow-hidden bg-text/5", aspect)}>
+      <div className={cn("relative w-full overflow-hidden rounded-sm bg-text/5", aspect)}>
         <Image
           src={item.image.src}
           alt={item.image.alt}
@@ -234,7 +231,7 @@ function CollectionItem({ item, index }: { item: RecentItem; index: number }) {
           place by saying how far along the row you are — which is the one
           thing a strip with no dots cannot otherwise tell you.
         */}
-        <span aria-hidden className="text-label tabular-nums text-text/40">
+        <span aria-hidden className="text-label tabular-nums text-text/75">
           {String(index).padStart(2, "0")}
         </span>
 

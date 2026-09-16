@@ -284,7 +284,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
             <button
               type="button"
               onClick={() => onPick(term)}
-              className="rounded-pill border border-on-dark/20 px-4 py-2 text-fine text-on-dark transition-colors duration-200 ease-soft hover:border-sage hover:text-sage"
+              className="rounded-sm border border-on-dark/20 px-4 py-2 text-fine text-on-dark transition-colors duration-200 ease-soft hover:border-sage hover:text-sage"
             >
               {term}
             </button>
@@ -354,7 +354,7 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
 
   return (
     <article className="group relative flex items-center gap-4">
-      <div className="relative aspect-square w-16 shrink-0 overflow-hidden bg-on-dark/10 lg:w-[4.5rem]">
+      <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-sm bg-on-dark/10 lg:w-[4.5rem]">
         <Image
           src={workshop.image.src}
           alt=""

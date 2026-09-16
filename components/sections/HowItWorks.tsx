@@ -3,7 +3,7 @@ import { Container } from "@/components/ui/Container";
 import { HOW_IT_WORKS } from "@/lib/constants";
 
 /**
- * Homepage section 04 — how it works.
+ * How it works — the practical answer, on /about.
  *
  * The page spent a long time showing what the Maison makes and never once
  * said where any of it happens. Maison Palettia has no studio door: it sets
@@ -17,9 +17,11 @@ import { HOW_IT_WORKS } from "@/lib/constants";
  * the section in the same register as the index pages rather than turning it
  * into the "3 easy steps!" band that every service site has.
  *
- * Sits directly under the events listing on purpose. The listing raises the
- * question — what actually happens if I book one of these — and this is the
- * answer, in the place the question gets asked.
+ * Sits immediately before the closing call to action on /about, and that is
+ * the same rule it followed on the homepage, where it ran under the events
+ * listing: it belongs beside the moment the question gets asked — what
+ * actually happens if I book one of these — rather than wherever a page has
+ * room for it. The client asked for it on /about; the adjacency moved with it.
  */
 export function HowItWorks() {
   return (
@@ -27,42 +29,44 @@ export function HowItWorks() {
       as="section"
       aria-labelledby="how-it-works"
       /*
-        `bg-surface` is load-bearing, not decoration.
+        `bg-surface` was load-bearing and is now a choice — keep it either way.
 
-        This section sits inside the homepage's sticky-hero wrapper, in the
-        `relative z-10` layer whose job is to rise over the hero and cover it.
-        A section in that layer with no ground of its own is transparent, so
-        the hero's triptych and wordmark paint straight through the type — a
-        pinned photograph behind four steps of copy, which is exactly what
-        happened when this moved inside the wrapper.
+        On the homepage this sat inside the sticky-hero wrapper, in the
+        `relative z-10` layer that rises over the hero and covers it, and a
+        section in that layer with no ground of its own is transparent: the
+        pinned film painted straight through the type. There is no sticky hero
+        on /about, so nothing depends on it any more.
 
-        The page's own note states the contract: every section that does the
-        covering carries an opaque ground. This is the page's ground, matching
-        the events listing directly above, so the two read as one field with no
-        seam between them.
+        It stays because it earns its place differently here. The sections
+        above it sit on the page ground and the call to action below is
+        charcoal, so this band separates the two and keeps the page from
+        ending on one flat field. If it is ever moved again, check whether the
+        destination needs the opacity before assuming it is only a tint.
       */
       className="bg-surface py-[4.5rem] md:py-[6rem] lg:py-[7rem]"
     >
-      <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-        <Reveal className="col-span-12 md:col-span-6">
-          <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
-            <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-            How it works
-          </p>
-          <h2
-            id="how-it-works"
-            className="mt-7 text-[1.9rem] font-light uppercase leading-[1.02] tracking-[-0.02em] md:text-[2.3rem] lg:text-[2.75rem]"
-          >
-            We come to you.
-          </h2>
-        </Reveal>
+      <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
+        <div className="col-span-12 md:col-span-8 lg:col-span-7">
+          <Reveal>
+            <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
+              <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
+              How it works
+            </p>
+            <h2
+              id="how-it-works"
+              className="mt-7 text-[1.9rem] font-light uppercase leading-[1.02] tracking-[-0.02em] md:text-[2.3rem] lg:text-[2.75rem]"
+            >
+              We come to you.
+            </h2>
+          </Reveal>
 
-        <Reveal delay={0.15} className="col-span-12 mt-6 md:col-span-5 md:col-start-8 md:mt-0">
-          <p className="max-w-[24rem] text-body leading-[1.85] text-text/80">
-            Every event runs at a mall, at a set time, with everything laid out before you
-            arrive. You bring nothing but yourself.
-          </p>
-        </Reveal>
+          <Reveal delay={0.15}>
+            <p className="mt-7 max-w-[32rem] text-body leading-[1.85] text-text/80 md:mt-8">
+              Every event runs at a mall, at a set time, with everything laid out before you
+              arrive. You bring nothing but yourself.
+            </p>
+          </Reveal>
+        </div>
       </div>
 
       {/*
@@ -80,7 +84,15 @@ export function HowItWorks() {
                 two-line paragraph is a box drawn for the sake of drawing one.
               */}
               <span aria-hidden className="block h-px w-full bg-line" />
-              <p className="mt-5 text-action font-medium tabular-nums tracking-eyebrow text-terracotta">
+              {/*
+                Charcoal, not Warm Terracotta. The accent measures 3.02:1 on
+                the page ground — fine for the rules and arrows it is used for
+                elsewhere, which are graphical objects owing 3:1, and short of
+                the 4.5:1 this numeral owes as 12px text. Terracotta is an
+                accent for marks on this palette, never for small copy. /75 is
+                5.44:1 and still sits back from the step title.
+              */}
+              <p className="mt-5 text-action font-medium tabular-nums tracking-eyebrow text-text/75">
                 {String(i + 1).padStart(2, "0")}
               </p>
               <h3 className="mt-3 text-lead font-medium uppercase tracking-[0.06em] text-text md:text-lead">

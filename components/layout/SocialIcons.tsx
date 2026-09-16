@@ -51,8 +51,8 @@ export function SocialIcons() {
                 // otherwise a screen reader announces the platform twice.
                 aria-label={`${label} — opens in a new tab`}
                 className={
-                  "inline-flex size-11 items-center justify-center rounded-pill text-text/75 " +
-                  "transition-colors duration-300 ease-soft hover:bg-text/5 hover:text-primary"
+                  "inline-flex size-11 items-center justify-center rounded-sm text-current/75 " +
+                  "transition-colors duration-300 ease-soft hover:bg-current/10 hover:text-sage"
                 }
               >
                 <svg
@@ -76,7 +76,7 @@ export function SocialIcons() {
       {unlinked.length > 0 ? (
         <ul className="flex flex-col gap-2">
           {unlinked.map(({ label }) => (
-            <li key={label} className="text-body text-text/75">
+            <li key={label} className="text-body text-current/75">
               {label}
             </li>
           ))}

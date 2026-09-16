@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { EditorialStatement } from "@/components/sections/EditorialStatement";
+import { HowItWorks } from "@/components/sections/HowItWorks";
 import { JustAdded } from "@/components/sections/JustAdded";
 import { Container } from "@/components/ui/Container";
 import { Signature } from "@/components/ui/Signature";
@@ -42,7 +43,7 @@ const STATEMENT_LINE =
  * EVERY WORD ON THIS PAGE ALREADY EXISTED. The statement and the paragraph are
  * the brand introduction's own copy, the philosophy block is
  * `MAISON_PHILOSOPHY` verbatim, and the four strands are read from
- * `getDisciplines()` — the same source the homepage and the strands menu use,
+ * `getDisciplines()` — the same source the strands menu in the header uses,
  * so this page cannot drift from either. Nothing here invents a claim about
  * what the studio provides, teaches or promises, because none of that is
  * written down yet and an About page is the worst place to start guessing.
@@ -88,6 +89,18 @@ export default async function AboutPage() {
           to behind-the-scenes, and squarely About's business rather than the
           homepage's. */}
       <JustAdded />
+
+      {/*
+        The practical answer, immediately before the page asks for the booking.
+        It kept this adjacency when it moved off the homepage, where it sat
+        under the events listing for the same reason: it belongs next to the
+        moment the question gets asked, not wherever there is room for it.
+
+        Its tinted band also breaks the run of page-ground sections above it
+        and sets up the charcoal close below, so the page ends on three
+        distinct grounds rather than trailing off.
+      */}
+      <HowItWorks />
 
       <EventsCta />
     </>
@@ -155,7 +168,7 @@ function TheMaison() {
       <Container>
         <div className="grid grid-cols-12 items-center gap-x-6 lg:gap-x-12">
           <figure className="col-span-12 -mx-gutter lg:col-span-6 lg:-ml-gutter lg:mr-0">
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-alt sm:aspect-[3/2] lg:aspect-[4/5]">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface-alt sm:aspect-[3/2] lg:aspect-[4/5]">
               <Image
                 src={BRAND_INTRO_IMAGE.src}
                 alt={BRAND_INTRO_IMAGE.alt}
@@ -221,25 +234,27 @@ function TheMaison() {
 function TheExperience({ disciplines }: { disciplines: Discipline[] }) {
   return (
     <Container as="section" aria-labelledby="the-experience" className="mt-[5.5rem] md:mt-[8rem] lg:mt-[9rem]">
-      <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-        <Reveal className="col-span-12 md:col-span-6">
-          <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
-            What you&rsquo;ll do
-          </p>
-          <h2
-            id="the-experience"
-            className="mt-6 text-[1.9rem] font-light uppercase leading-[1.02] tracking-[-0.02em] md:text-[2.4rem] lg:text-[2.9rem]"
-          >
-            Four ways in.
-          </h2>
-        </Reveal>
+      <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
+        <div className="col-span-12 md:col-span-8 lg:col-span-7">
+          <Reveal>
+            <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
+              What you&rsquo;ll do
+            </p>
+            <h2
+              id="the-experience"
+              className="mt-6 text-[1.9rem] font-light uppercase leading-[1.02] tracking-[-0.02em] md:text-[2.4rem] lg:text-[2.9rem]"
+            >
+              Four ways in.
+            </h2>
+          </Reveal>
 
-        <Reveal delay={0.15} className="col-span-12 mt-6 md:col-span-5 md:col-start-8 md:mt-0">
-          <p className="max-w-[24rem] text-body leading-[1.85] text-text/80">
-            Every event begins with one of these. No experience is assumed and nothing needs
-            bringing — the table is set when you arrive.
-          </p>
-        </Reveal>
+          <Reveal delay={0.15}>
+            <p className="mt-7 max-w-[32rem] text-body leading-[1.85] text-text/80 md:mt-8">
+              Every event begins with one of these. No experience is assumed and nothing needs
+              bringing — the table is set when you arrive.
+            </p>
+          </Reveal>
+        </div>
       </div>
 
       <ol className="mt-14 grid grid-cols-12 gap-x-6 gap-y-14 md:mt-20 lg:gap-x-10">
@@ -253,7 +268,7 @@ function TheExperience({ disciplines }: { disciplines: Discipline[] }) {
             }
           >
             <Reveal>
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-alt">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-surface-alt">
                 <Image
                   src={strand.image.src}
                   alt={strand.image.alt}
@@ -299,7 +314,7 @@ function VisualStory() {
       <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
         <Reveal className="col-span-12 lg:col-span-8">
           <figure>
-            <div className="relative aspect-[3/2] w-full overflow-hidden bg-surface-alt">
+            <div className="relative aspect-[3/2] w-full overflow-hidden rounded-sm bg-surface-alt">
               <Image
                 src={EXPERIENCE_IMAGES.painting.src}
                 alt={EXPERIENCE_IMAGES.painting.alt}
@@ -320,7 +335,7 @@ function VisualStory() {
 
           <Reveal delay={0.25}>
             <figure className="mt-10">
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-alt">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-surface-alt">
                 <Image
                   src={EXPERIENCE_IMAGES.pigment.src}
                   alt={EXPERIENCE_IMAGES.pigment.alt}
@@ -359,7 +374,7 @@ function EventsCta() {
               </p>
               <h2
                 id="about-cta"
-                className="mt-7 text-[2rem] font-light uppercase leading-[1.02] tracking-[-0.02em] md:text-[2.75rem] lg:text-[3.25rem]"
+                className="mt-7 text-h1 font-light uppercase tracking-[-0.02em]"
               >
                 <span className="block">Come make</span>
                 <span className="block">something with us.</span>

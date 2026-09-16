@@ -30,7 +30,7 @@ export default function BookingStatusPage() {
           <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
           Your booking
         </p>
-        <h1 className="mt-9 max-w-[20ch] text-[2rem] font-light uppercase leading-[1.04] tracking-[-0.02em] md:text-[2.75rem] lg:text-[3.25rem]">
+        <h1 className="mt-9 max-w-[20ch] text-h1 font-light uppercase tracking-[-0.02em]">
           Check your booking.
         </h1>
         <p className="mt-8 max-w-[34rem] text-body leading-[1.85] text-text/80">

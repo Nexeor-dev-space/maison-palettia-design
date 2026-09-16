@@ -278,7 +278,7 @@ function Action({
         href="/events"
         className={cn(
           "group inline-flex shrink-0 items-center justify-center gap-2.5 whitespace-nowrap",
-          "min-h-11 border border-cream/45 px-5 text-action font-medium uppercase tracking-eyebrow",
+          "min-h-11 rounded-sm border border-cream/45 px-5 text-action font-medium uppercase tracking-eyebrow",
           "text-cream transition-colors duration-300 ease-soft hover:border-cream md:px-7",
         )}
       >
@@ -299,8 +299,8 @@ function Action({
       aria-label={`Book ${title}`}
       className={cn(
         "group inline-flex shrink-0 items-center justify-center gap-2.5 whitespace-nowrap",
-        "min-h-11 bg-primary px-5 text-action font-medium uppercase leading-none tracking-eyebrow",
-        "text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90 md:px-8 md:py-5",
+        "min-h-11 rounded-sm bg-primary px-5 text-action font-medium uppercase leading-none tracking-eyebrow",
+        "text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90 md:px-8 md:py-5",
       )}
     >
       Book

@@ -113,7 +113,7 @@ export function PassCodeField() {
           type="submit"
           disabled={checking || applied || code.trim().length === 0}
           className={cn(
-            "shrink-0 border border-text/30 px-5 py-2.5",
+            "shrink-0 rounded-sm border border-text/30 px-5 py-2.5",
             "text-label font-medium uppercase tracking-eyebrow text-text",
             "transition-colors duration-300 ease-soft",
             "hover:border-text hover:bg-text/5",

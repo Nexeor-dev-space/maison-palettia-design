@@ -1,18 +1,10 @@
 import Link from "next/link";
 
+import { SessionShowcase } from "@/components/events/SessionShowcase";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
-import { Signature } from "@/components/ui/Signature";
-import { WorkshopFeature } from "@/components/workshops/WorkshopFeature";
-import {
-  formatPrice,
-  getUpcomingWorkshops,
-  isFullyBooked,
-  sessionDateParts,
-  spotsLabel,
-} from "@/lib/workshops";
-import type { Workshop } from "@/types";
+import { getUpcomingWorkshops, isFullyBooked } from "@/lib/workshops";
 
 /**
  * The heading. A step below the brand statement above it: that section makes
@@ -22,46 +14,55 @@ const HEADING_LINE =
   "block font-light uppercase leading-[0.98] tracking-[-0.02em] " +
   "text-[2rem] xs:text-[2.4rem] sm:text-[2.9rem] md:text-[2.6rem] lg:text-[3.25rem] xl:text-[3.75rem]";
 
-/** "01", "02" — printed copy, so the padding happens once, here. */
-const ordinal = (n: number) => String(n).padStart(2, "0");
-
 /**
- * Homepage section 03 — the schedule.
+ * Homepage section 03 — the sessions you can book.
  *
- * This section used to be a curated collection: a featured workshop given a
- * gallery wall, two more set at unequal sizes on unequal baselines, and copy
- * about slowing down. It said "Maison Palettia runs beautiful workshops",
- * which is true and is not what someone lands here to find out.
+ * A LEAD AND A LIST, which is the third arrangement this section has had and
+ * the first with a hierarchy in it.
  *
- * The studio sets up in malls on fixed dates at fixed times, so every session
- * is now the same split block, answering four questions in the order they are
- * actually asked: the photograph on one side doing the work of making someone
- * want it, a White Rock field on the other carrying the venue, the date, the
- * fixed time, what is left and the price — then the one action. The two halves
- * meet on a single edge, with no gap and no border between them.
+ * It was a carousel — one session at a time behind arrows, a posture of
+ * browsing that handed the visitor whichever date the component stopped on.
+ * That was replaced by a grid of equal tiles, which fixed the real problem:
+ * choosing a date is a comparison, and a comparison needs the options in view
+ * at once. What the grid could not do is say which one matters. Three
+ * identical tiles say "here are three things".
  *
- * What is deliberately kept from the old section: the plate, the whitespace,
- * the type, the restraint. What is dropped: paragraphs of description in a
- * listing, unequal sizes and baselines between sessions, and the idea that the
- * strongest thing on offer is "Explore workshop".
+ * Now the soonest session takes a large card and the rest are rows stacked
+ * beside it — see <SessionShowcase>, and the note there on what that borrows
+ * from the reference the client pointed at and what it deliberately does not.
+ * Everything is still in view at once; the difference is that the next date
+ * leads instead of merely coming first.
  *
- * There is no carousel and no filter. Three sessions do not need either, and
- * the controls would be furniture — the whole list is on the page already.
+ * THE GRID ADAPTS TO HOW MANY DATES THERE ARE, because today there are two.
+ * Three columns holding two tiles is a hole in the page, and a layout that
+ * only looks composed once the studio has published six sessions is a layout
+ * that looks broken until then. Two dates set two half-width tiles; three or
+ * more move to thirds. Same rule <MallPartners> follows for the same reason.
  *
- * Server component, awaited in place rather than wrapped in <Suspense>.
+ * THE HEAD SELLS AND THEN GETS OUT OF THE WAY. Three lines: the state, the
+ * promise, and one sentence. The way out of the section sits up in that head
+ * row rather than under the grid — a reader who wants the whole programme
+ * rather than these dates should not have to scroll the dates first to find
+ * out there are more.
  *
- * A boundary here would be the obvious move once the data is remote, and
- * <WorkshopsSkeleton> is written and waiting for it — but it is not free. React
- * streams a suspended boundary's content at the end of the document and swaps
- * it in with an inline script, so a visitor or crawler without JavaScript is
- * left holding the skeleton for good. The root layout already carries a
- * <noscript> rule to keep the scroll reveals from hiding this page from that
- * audience; quietly reintroducing the same hole one section later would undo
- * it. Awaiting costs nothing while the data is local, and the trade is worth
- * making again deliberately when a real CMS call is on the other side.
+ * ONLY WHAT CAN BE BOOKED ONLINE IS HERE. The studio runs scheduled sessions
+ * and walk-in DIY activities, and this section is for the first kind — see
+ * `kind` on {@link Workshop}. The filter is here rather than in the data layer
+ * on purpose: /events still lists everything, because a walk-in activity still
+ * has a page worth reading.
+ *
+ * Server component throughout, and there is no client half any more: a grid of
+ * links needs no state, so nothing in this section ships JavaScript.
+ *
+ * Awaited in place rather than wrapped in <Suspense>: a boundary streams its
+ * content at the end of the document and swaps it in with a script, which
+ * leaves a visitor without JavaScript holding the skeleton for good. The root
+ * layout works hard to avoid exactly that.
  */
 export async function UpcomingEvents() {
   const workshops = await getUpcomingWorkshops();
+  const sessions = workshops.filter((workshop) => workshop.kind !== "diy");
+  const bookable = sessions.some((workshop) => !isFullyBooked(workshop));
 
   return (
     <section
@@ -69,173 +70,86 @@ export async function UpcomingEvents() {
       className="bg-surface py-[5.5rem] md:py-section lg:py-section-lg"
     >
       <Container>
-        <SectionHead workshops={workshops} />
-        <Schedule workshops={workshops} />
+        <SectionHead bookable={bookable} />
+
+        {sessions.length === 0 ? (
+          <NoSessions />
+        ) : (
+          <Reveal variant="fadeIn">
+            <SessionShowcase sessions={sessions} />
+          </Reveal>
+        )}
       </Container>
     </section>
   );
 }
 
 /**
- * The section head, pitched to sell.
+ * Three lines, and then the sessions.
  *
- * WHAT CHANGED AND WHY. This read "Upcoming events / Find your next creative
- * event." over a paragraph describing the model — accurate, and the register
- * of a programme note rather than of the one section on the homepage with
- * something to sell. The client asked for it to work harder commercially, so
- * it now leads with the action and the reward ("Book your place. / Take
- * something home."), states the three numbers a buyer actually weighs, and
- * carries a filled call to action instead of leaving the section's only
- * affordance to a line of underlined type at the foot of the list.
+ * The eyebrow is a state rather than a boast, and it is only true while
+ * something can actually be booked — a section of sold-out dates says
+ * "Upcoming sessions" instead. The heading is the action and the reward, in
+ * that order, because that is the order a headline sells in. The sentence
+ * under it is one sentence: anything longer is a paragraph standing between a
+ * visitor and the photograph that is doing the persuading.
  *
- * EVERY NUMBER IS READ OFF THE DATA. The count, the price, the date and the
- * seats are computed from the sessions below, so the strip cannot say anything
- * the schedule does not. Nothing here invents scarcity: the seat line is the
- * same `spotsLabel` the listing and the event page use, which says "left" only
- * once a date is genuinely down to its last few and "available" otherwise.
- *
- * SOLD-OUT DATES ARE EXCLUDED FROM THE PITCH. "From AED 240" quoted off a date
- * nobody can book is the oldest trick in the listing business and it is not
- * one this studio should run — the price, the date and the seats all come from
- * the soonest session a visitor could actually take.
+ * All three stack in one column. The sentence used to sit in its own column to
+ * the right of the heading, which read as a caption on the heading rather than
+ * as the line that follows it — and left the eye crossing a gap to find the
+ * thing it was meant to read next.
  */
-function SectionHead({ workshops }: { workshops: Workshop[] }) {
-  const count = workshops.length;
-  const bookable = workshops.filter((workshop) => !isFullyBooked(workshop));
-  // Soonest first, so the head of the bookable list is the next real date.
-  const next = bookable[0];
-  const cheapest = bookable.reduce<Workshop | null>(
-    (low, workshop) => (!low || workshop.price.amount < low.price.amount ? workshop : low),
-    null,
-  );
-
+function SectionHead({ bookable }: { bookable: boolean }) {
   return (
-    <div>
-      <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-        <div className="col-span-12 md:col-span-6 lg:col-span-7">
-          <Reveal>
-            <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
-              <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-              {/* "Now booking" is a state, not a boast — and it is only true
-                  while something can be booked. */}
-              {bookable.length > 0
-                ? `Now booking · ${count} ${count === 1 ? "date" : "dates"}`
-                : "Upcoming events"}
-            </p>
-          </Reveal>
-
-          <h2 id="upcoming-events-heading" className="mt-8 md:mt-11 lg:mt-14">
-            {/*
-              Two lines, one trigger, each rising from behind its own mask —
-              the same device as the brand statement, at a smaller scale. The
-              explicit space keeps the accessible name reading as a sentence.
-
-              The action first and the reward second, which is the order a
-              headline sells in. Both stay short enough to hold one line at
-              every width: a wrap inside a masked line would double its height
-              and break the run against the line beneath it.
-            */}
-            <Stagger>
-              <HeadingLine>Book your place.</HeadingLine>{" "}
-              <HeadingLine>Take something home.</HeadingLine>
-            </Stagger>
-          </h2>
-        </div>
-
-        <Reveal
-          delay={0.2}
-          className="col-span-12 mt-8 md:col-span-5 md:col-start-8 md:mt-0 md:pb-2 lg:col-span-4 lg:col-start-9"
-        >
-          <p className="max-w-[26rem] text-body leading-[1.85] text-text/80">
-            Hands-on creative events at selected malls, on scheduled dates and at fixed times.
-            Every material provided — bring nothing but yourself.
+    <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
+      <div className="col-span-12 md:col-span-8 lg:col-span-7">
+        <Reveal>
+          <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
+            <span
+              aria-hidden
+              className="h-px w-9 shrink-0 bg-terracotta md:w-12"
+            />
+            {bookable ? "Now booking" : "Upcoming sessions"}
           </p>
+        </Reveal>
+
+        <h2 id="upcoming-events-heading" className="mt-8 md:mt-11 lg:mt-14">
           {/*
-            The objection this section actually has to answer. Both halves are
-            plainly true: checkout is guest-only with four fields, and there is
-            no account to make anywhere on the site.
+            Two lines, one trigger, each rising from behind its own mask — the
+            same device as the brand statement, at a smaller scale. The explicit
+            space keeps the accessible name reading as a sentence.
+
+            Both stay short enough to hold one line at every width: a wrap
+            inside a masked line would double its height and break the run
+            against the line beneath it.
           */}
-          <p className="mt-5 max-w-[26rem] text-body font-medium leading-[1.85] text-text">
-            No account needed — booking takes two minutes.
+          <Stagger>
+            <HeadingLine>Make something.</HeadingLine>{" "}
+            <HeadingLine>Take it home.</HeadingLine>
+          </Stagger>
+        </h2>
+
+        <Reveal delay={0.2}>
+          <p className="mt-7 max-w-[32rem] text-body leading-[1.85] text-text/80 md:mt-8">
+            Join us for a hands-on creative session and make something worth
+            taking home.
           </p>
         </Reveal>
       </div>
 
-      {next && cheapest ? <BookingStrip next={next} cheapest={cheapest} /> : null}
-    </div>
-  );
-}
-
-/**
- * The three numbers, and the action.
- *
- * A price, a date and a seat count — the whole of what someone weighs before
- * deciding to look closer, gathered above the list instead of made them hunt
- * for it across three blocks.
- *
- * The figures stay in Charcoal Slate rather than taking the accent. Warm
- * Terracotta measures 3.07:1 on this ground, under the 4.5:1 body-sized text
- * owes, and urgency that only exists for readers who can see a colour is not
- * urgency. The words carry it: "3 spots left" is doing the work, not the ink.
- */
-function BookingStrip({ next, cheapest }: { next: Workshop; cheapest: Workshop }) {
-  const { weekday, day, month } = sessionDateParts(next.startsAt);
-
-  return (
-    <Reveal variant="fadeIn" delay={0.3}>
-      <div className="mt-11 flex flex-col gap-8 border-t border-line pt-8 md:mt-14 md:flex-row md:items-end md:justify-between md:gap-10">
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-7 sm:grid-cols-3 md:gap-x-12 lg:gap-x-16">
-          <Stat term="From">
-            {formatPrice(cheapest.price)}
-            <span className="mt-1 block text-fine font-normal text-text/75">per person</span>
-          </Stat>
-          <Stat term="Next date">
-            <time dateTime={next.startsAt}>
-              {weekday} {day} {month}
-            </time>
-            {next.venue ? (
-              <span className="mt-1 block text-fine font-normal text-text/75">
-                {next.venue.name}
-              </span>
-            ) : null}
-          </Stat>
-          <Stat term="Places">
-            {spotsLabel(next)}
-            <span className="mt-1 block text-fine font-normal text-text/75">on the next date</span>
-          </Stat>
-        </dl>
-
-        {/*
-          The one filled control on the homepage, and the point of the change:
-          the section's only affordance used to be a line of underlined type
-          after the whole list, which is a way out of a section rather than a
-          way into a booking. Deep Lilac with white on it clears 5.06:1 — the
-          same button the booking flow ends on, so this is the site's own
-          language spoken louder rather than a new one.
-        */}
-        <Link
-          href="/events"
-          className="group inline-flex w-full shrink-0 items-center justify-center gap-2.5 bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
-        >
-          Book a place
-          <span
-            aria-hidden
-            className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-          >
-            &#8594;
-          </span>
-        </Link>
-      </div>
-    </Reveal>
-  );
-}
-
-/** One figure in the strip: a quiet label over a value set at lead size. */
-function Stat({ term, children }: { term: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-label font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
-      <dd className="mt-2 text-lead font-medium leading-snug text-text">{children}</dd>
+      {/*
+        The way to the whole programme, level with the foot of the heading
+        block rather than under the grid. This is the one thing the ticketing
+        listings get unarguably right about a section head: "Show all" belongs
+        beside the title, where someone who wants the full schedule finds it
+        before they have scanned a partial one.
+      */}
+      <Reveal
+        delay={0.3}
+        className="col-span-12 md:col-span-4 md:col-start-9 md:justify-self-end md:pb-2"
+      >
+        <ViewAllLink />
+      </Reveal>
     </div>
   );
 }
@@ -252,106 +166,18 @@ function HeadingLine({ children }: { children: string }) {
 }
 
 /**
- * The schedule — every date as the same split block.
- *
- * An ordered list, because soonest-first is the curation and the order is the
- * only thing telling a reader what "upcoming" means.
- */
-function Schedule({ workshops }: { workshops: Workshop[] }) {
-  if (workshops.length === 0) return <NoSessions />;
-
-  return (
-    <>
-      {/*
-        Every session gets the same block — photograph one side, booking panel
-        the other, meeting on a single edge — and then the schedule is woven so
-        that no two neighbours look alike.
-
-        Three things do the weaving, and none of them is decoration for its own
-        sake. The photograph changes sides, so the eye crosses the page instead
-        of running straight down one column. The panel alternates between the
-        two pale brand grounds, White Rock and Light Sage, which charcoal clears
-        at better than 9:1 on either. And the blocks abut: the dead white bands
-        between them are gone, replaced by a line of the Maison's own signage on
-        Deep Lilac, which is the one saturated colour on the page and earns its
-        place by appearing twice and nowhere else.
-
-        The run reads cream / lilac / sage / lilac / cream — a rhythm rather
-        than a list, which is what stops three equally weighted sessions
-        feeling like a template.
-      */}
-      <ol className="mt-14 md:mt-20 lg:mt-24">
-        {workshops.map((workshop, i) => (
-          <li key={workshop.slug}>
-            {i > 0 ? <Interlude>{INTERLUDES[(i - 1) % INTERLUDES.length]}</Interlude> : null}
-            <WorkshopFeature
-              workshop={workshop}
-              index={ordinal(i + 1)}
-              flip={i % 2 === 1}
-              tone={i % 2 === 1 ? "sage" : "cream"}
-            />
-          </li>
-        ))}
-      </ol>
-
-      <ViewAllLink className="mt-14 md:mt-20 md:flex md:justify-end" />
-    </>
-  );
-}
-
-/**
- * The lines between the events.
- *
- * Signage, not copy: they promise nothing the studio would have to honour and
- * state no fact the data does not already carry. Both are the section head's
- * own sentence said shorter, which is why they sound like the rest of the page
- * rather than like a slogan dropped between two listings.
- */
-const INTERLUDES = ["come and make something", "bring only yourself"] as const;
-
-/**
- * A full-bleed band of Charcoal Slate between two events.
- *
- * It exists because the alternative was a stripe of empty page. Three blocks
- * separated by white read as three things that happen to be near each other;
- * the same three separated by a solid ground read as one run.
- *
- * Charcoal rather than Deep Lilac, and rather than the watercolours that briefly
- * sat here. Both of those were working against the type: Light Sage on Deep
- * Lilac is 3.83:1 with nothing spare, and putting a painting underneath meant
- * a wash heavy enough to keep the words legible, tuned per breakpoint, for a
- * picture reduced to a 133px slice. Flat Charcoal gives the same words 9.07:1 and
- * gives the section a beat of silence between two pale blocks — which is what
- * an interlude is for.
- *
- * Nothing is laid over the ground, so there is no scrim to measure and no
- * crop that can drift.
- */
-function Interlude({ children }: { children: string }) {
-  return (
-    <Reveal variant="fadeIn">
-      <div className="-mx-gutter flex items-center justify-center bg-text px-gutter py-9 md:py-11 lg:py-12">
-        <Signature ground="ink" className="text-center">
-          {children}
-        </Signature>
-      </div>
-    </Reveal>
-  );
-}
-
-/**
  * Nothing scheduled. The section keeps its shape and says so plainly rather
  * than leaving the outline of a schedule with nothing in it.
  */
 function NoSessions() {
   return (
     <Reveal className="mt-16 border-t border-line pt-12 md:mt-24 md:pt-16">
-      <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em] md:text-[1.75rem]">
+      <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em]">
         The next dates are being set.
       </p>
       <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">
-        New events are announced as each mall is confirmed. The full programme stays open to
-        browse in the meantime.
+        New sessions are announced as each mall is confirmed. The full programme
+        stays open to browse in the meantime.
       </p>
       <ViewAllLink className="mt-10" />
     </Reveal>
@@ -359,8 +185,8 @@ function NoSessions() {
 }
 
 /**
- * The way out of the section — a line of type, not a third call to action
- * competing with the ones on each session.
+ * The way out of the section — a line of type, not a second call to action
+ * competing with the one on the slide.
  */
 function ViewAllLink({ className }: { className?: string }) {
   return (
@@ -369,12 +195,21 @@ function ViewAllLink({ className }: { className?: string }) {
         href="/events"
         className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
       >
-        <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-          See all upcoming events
+        {/*
+          Lilac, not terracotta, and measured rather than chosen. On this
+          ground the rule was `terracotta/50` at 1.65:1 and the arrow was
+          terracotta at 2.88:1 — an underline is what makes a label read as a
+          link, so it owes 3:1, and neither cleared it. Terracotta does not
+          clear 3:1 on any of the site's light grounds at any opacity; Deep
+          Lilac does at full strength. Same substitution, same reason, as
+          <AboutTeaser>.
+        */}
+        <span className="border-b border-primary pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
+          See all upcoming sessions
         </span>
         <span
           aria-hidden
-          className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
         >
           &#8594;
         </span>

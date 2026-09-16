@@ -25,8 +25,10 @@ export function BackToTop({ className }: BackToTopProps) {
       type="button"
       onClick={scrollToTop}
       className={cn(
-        "group relative inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text",
-        "transition-colors duration-300 ease-soft hover:text-primary",
+        // `text-current`, so this follows whatever ground it is dropped on —
+        // which is the footer, and the footer is Ink now.
+        "group relative inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-current",
+        "transition-colors duration-300 ease-soft hover:text-sage",
         // The label is 11px and sets a 21px box. Extended to a comfortable
         // target with a pseudo-element rather than padding, so the footer's
         // baseline grid is untouched — same device as the links beside it.
@@ -40,7 +42,7 @@ export function BackToTop({ className }: BackToTopProps) {
       >
         &#8593;
       </span>
-      <span className="border-b border-text/25 pb-1 transition-colors duration-300 ease-soft group-hover:border-primary">
+      <span className="border-b border-current/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-sage">
         Back to top
       </span>
     </button>

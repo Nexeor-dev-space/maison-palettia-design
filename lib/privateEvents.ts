@@ -20,127 +20,91 @@ import type { ImageAsset } from "@/types";
  * it, no "up to N guests" line and no logo wall, because a component built to
  * hold a number is a component that will eventually be given an invented one.
  *
- * What is stated is of two kinds, and they are kept apart on purpose:
+ * AUDIENCES are framed as examples, in the page copy as well as here. The
+ * studio has not confirmed it has run any particular kind of event, so the
+ * page says these are the kinds of group a session can be built around — a
+ * description of the offer, never a record of the past. "The gatherings people
+ * ask us about" is exactly what it must not say: that is a claim about demand
+ * nobody has measured.
  *
- *   OCCASIONS are framed as examples, in the page copy as well as here. The
- *   studio has not confirmed it runs any particular kind of event, so the
- *   section says "the kinds of gathering people ask us about" is exactly what
- *   it must NOT say — that would be a claim about demand nobody has measured.
- *   It says these are examples of what a private session could be built
- *   around, which is a description of the offer, not a record of the past.
+ * ACTIVITIES are not in this file at all any more. They live in
+ * lib/experiences.ts, which is the studio's approved list, and the page reads
+ * them from there — see section 02 below for why that matters.
  *
- *   ACTIVITIES are the six the client supplied. They describe the craft
- *   itself — what the material is and what you do to it — and never what the
- *   studio provides, fires, supplies or guarantees. "Colour laid onto a
- *   ready-made ceramic piece" is a description of ceramic painting; "glazed
- *   and fired in our kiln within two weeks" would be a service promise this
- *   project has no authority to make.
- *
- * TODO(client): confirm the six activities below are all genuinely offered for
- * private bookings, and confirm the occasion examples. Both are supplied
- * material, not verified material.
+ * TODO(client): confirm the four audiences. They are supplied material, not
+ * verified material.
  */
 
 /* ==========================================================================
-   01 — OCCASIONS
+   01 — WHO A PRIVATE EVENT IS FOR
 
-   Presented on the page as examples and nothing else. They are a way of
-   saying "this is flexible" in concrete words, which is what someone deciding
-   whether to enquire actually needs — an abstract "for any occasion" tells
-   them less than five specifics framed as specimens.
+   Four audiences rather than a list of occasions, because "birthday" and
+   "team offsite" are not the same question: the first is an occasion, the
+   second is a kind of group, and a page that mixes them reads as a tag cloud.
+   These are the four the client named.
 
-   No icons, no cards, no photographs. Each one would need a picture the
-   project does not have, and a stock photograph of a birthday is precisely
-   the "cheap party visual" the brief rules out.
+   NO IMAGES ON THESE, AND THAT IS DELIBERATE. The project has no photograph of
+   a corporate group, a birthday or a brand activation — it has photographs of
+   people making things. Pairing "Corporate" with a stock-feeling crop of a
+   painting class would be a caption that overstates what it shows, so the
+   section is type-led and the photography carries the experiences instead.
+   That also answers the brief's own instruction not to build four identical
+   cards: four cards is what you reach for when each one has a picture.
+
+   TODO(client): a photograph per audience — a team mid-session, a birthday
+   table — turns this into an image-led run with no other change.
    ========================================================================== */
 
-export interface PrivateEventOccasion {
+export interface PrivateEventAudience {
   /** Stable key, and the React key. */
   slug: string;
   /** Set in caps by the design; stored in its natural case. */
-  label: string;
-}
-
-export const PRIVATE_EVENT_OCCASIONS: readonly PrivateEventOccasion[] = [
-  { slug: "birthdays", label: "Birthdays" },
-  { slug: "team-gatherings", label: "Team gatherings" },
-  { slug: "celebrations", label: "Celebrations" },
-  { slug: "private-sessions", label: "Private creative sessions" },
-  { slug: "brand-community", label: "Brand and community events" },
-] as const;
-
-/* ==========================================================================
-   02 — CREATIVE ACTIVITIES
-
-   The six the client approved for private events. Pottery is deliberately
-   absent: it is the studio's signature in the public programme and most of
-   the photography in this project is of it, but the brief excludes it here
-   and excluding it is the whole point of having this list rather than reusing
-   {@link getDisciplines}.
-
-   NO PER-ACTIVITY PHOTOGRAPHY, AND THAT IS NOT AN OVERSIGHT. The project
-   holds real images for two of these six — painting and ceramic painting —
-   and nothing at all for tote bags, bedazzling, candles or crochet. Six
-   entries where two carry a photograph and four carry a grey box reads as a
-   page half-built; six where four carry a photograph of something else
-   entirely is worse, because it is a lie about what the session is. So the
-   section is set as a typographic index with one true plate beside it, which
-   is also the composition the brief asked for — large type, generous space,
-   no card grid.
-
-   TODO(client): four of these need a photograph before they can be shown
-   individually — tote bag painting, bedazzling, candle making and crocheting.
-   Supply those and the index can become plates without the copy changing.
-   ========================================================================== */
-
-export interface PrivateEventActivity {
-  slug: string;
   name: string;
-  /**
-   * One line, describing the craft rather than the service. See the note at
-   * the head of this file: what the material is and what you do to it, never
-   * what the Maison supplies, fires or promises.
-   */
+  /** One line. What this group gets, not what the studio promises. */
   description: string;
 }
 
-export const PRIVATE_EVENT_ACTIVITIES: readonly PrivateEventActivity[] = [
+export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
   {
-    slug: "painting",
-    name: "Painting",
-    description: "Canvas, brushes and colour, worked at your own pace.",
+    slug: "corporate",
+    name: "Corporate",
+    description: "Creative experiences for teams, gatherings and company events.",
   },
   {
-    slug: "tote-bag-painting",
-    name: "Tote bag painting",
-    description: "Fabric paint on plain cotton — the one you carry out with you.",
+    slug: "celebrations",
+    name: "Celebrations",
+    description: "A hands-on experience for birthdays, milestones and special occasions.",
   },
   {
-    slug: "ceramic-painting",
-    name: "Ceramic painting",
-    description: "Colour and pattern laid onto a ready-made piece.",
+    slug: "community",
+    name: "Community",
+    description: "Creative activities designed to bring groups together.",
   },
   {
-    slug: "bedazzling",
-    name: "Bedazzling",
-    description: "Stones and beads set onto something plain until it is not.",
-  },
-  {
-    slug: "candle-making",
-    name: "Candle making",
-    description: "Wax, wick and colour, poured and left to set.",
-  },
-  {
-    slug: "crocheting",
-    name: "Crocheting",
-    description: "A hook, a ball of yarn and one stitch to start from.",
+    slug: "brands-and-events",
+    name: "Brands & events",
+    description: "Interactive creative experiences for brand activations and gatherings.",
   },
 ] as const;
+
+/* ==========================================================================
+   02 — CREATIVE ACTIVITIES: DELIBERATELY NOT HERE
+
+   This file used to carry its own list of six activities. It no longer does,
+   and that is the point: lib/experiences.ts is the studio's approved list —
+   seven entries, each with its own `kind`, its own optional photograph and its
+   own optional description — and it arrived after this one.
+
+   Two lists of the same thing is the drift this codebase keeps warning about.
+   The private-events page reads `getCreativeExperiences()`, so an activity
+   added, renamed or photographed there appears here with no second edit, and
+   the two can never disagree about what the Maison offers.
+   ========================================================================== */
 
 /* ==========================================================================
    03 — HOW IT WORKS
 
-   The client's own four steps, in the client's own order and close to the
+   The client's own three steps, in the client's own order and close to the
    client's own words. Nothing is added to them — no "within 24 hours", no
    "dedicated coordinator", no "site visit" — because each of those is a
    commitment somebody at the studio would have to keep.
@@ -158,20 +122,15 @@ export const PRIVATE_EVENT_STEPS: readonly PrivateEventStep[] = [
   {
     number: "01",
     title: "Tell us about your event",
-    detail: "Who is coming, roughly when, and what the occasion is.",
+    detail: "Share your occasion, group size and preferred date.",
   },
   {
     number: "02",
-    title: "Choose the creative experience",
-    detail: "Pick the activity your group would most like to spend an afternoon on.",
+    title: "Choose your experience",
+    detail: "We will help shape the right creative activity for your group.",
   },
   {
     number: "03",
-    title: "We plan the experience",
-    detail: "We come back to you with the shape of the session and what it involves.",
-  },
-  {
-    number: "04",
     title: "Create together",
     detail: "Everyone makes something, and everyone leaves holding it.",
   },
@@ -180,51 +139,84 @@ export const PRIVATE_EVENT_STEPS: readonly PrivateEventStep[] = [
 /* ==========================================================================
    04 — PHOTOGRAPHY
 
-   Three plates, each chosen against the same two rules: it must not be
-   pottery, and it must be something this project actually has. Named here so
-   the page reads its pictures from the same place it reads its words, and so
-   swapping in the studio's own shoot is one edit.
+   Two plates, chosen against the same two rules: it must not be pottery, and
+   it must be something this project actually has. Named here so the pages read
+   their pictures from the same place they read their words, and so swapping in
+   the studio's own shoot is one edit.
 
-   TODO(client): this page has no photograph of a group. Every image in the
+   THEY ARE ONE PHOTOGRAPH AT TWO CROPS, AND THAT IS THE POINT. Compared byte
+   for byte they are different files — 2000x2500 portrait and 1600x1600 square,
+   different hashes — but they are the same frame: the same painter, the same
+   brush on the same leaf, the same tattoo, the same palette in the foreground.
+   /private-events opens on the portrait and /private-events/book carries the
+   square one beside the form, which is what makes the two pages read as one
+   journey rather than as two forms on one domain. Do not "fix" the duplication
+   by pointing one of them somewhere else.
+
+   A THIRD ENTRY WAS REMOVED. `activities` held the ceramic-painting plate for
+   the old six-item index. The experiences section now reads its pictures from
+   lib/experiences.ts, where that same file is already attached to the ceramic
+   painting entry, so keeping a second reference here was one more place for
+   the two to drift.
+
+   TODO(client): these pages have no photograph of a group. Every image in the
    project is one pair of hands or a finished piece, so a page about making
    things together illustrates itself with people making things alone. That is
    the single most valuable shot the studio could add here.
    ========================================================================== */
 
-export const PRIVATE_EVENT_IMAGES: Record<"hero" | "experience" | "activities", ImageAsset> = {
+export const PRIVATE_EVENT_IMAGES: Record<"hero" | "experience", ImageAsset> = {
   /**
-   * A watercolour wash rather than a photograph of a party, and that is the
-   * positioning in one decision: the brief asks for this page not to look like
-   * an event-planning company, and nothing says event-planning company faster
+   * Someone making something, not a photograph of a party — which is the
+   * positioning in one decision: nothing says event-planning company faster
    * than a wide shot of people laughing around a table.
    *
-   * Deep blue-green through two thirds of the frame with the light breaking
-   * warm at the right, which is what makes it hold cream type at the foot —
-   * see the scrim on the hero.
+   * It is the studio's own painter at her easel, brush loaded, mid-stroke on a
+   * coral and teal canvas. Warm, hands in it, unmistakably this brand. The
+   * plate was the homepage hero until that became a carousel and has been
+   * unreferenced since; this page is the right home for it.
+   *
+   * (It replaced a watercolour wash, which read as artwork about the brand
+   * rather than as the brand at work.)
+   *
+   * Portrait, 2000x2500. The foot of the frame is the loaded palette — the
+   * darkest, busiest part — which is where the hero sets its type, so the
+   * scrim there is doing less work than it looks like it is.
    */
   hero: {
-    src: "/images/editorial/wash-and-light.jpg",
-    alt: "A watercolour wash in deep blue and teal, opening to warm yellow light and a soft dark stroke at the right of the sheet.",
+    src: "/images/hero/making.jpg",
+    alt: "A painter at her easel, brush in hand, working a canvas of coral and blush roses among deep teal leaves, a loaded palette in the foreground.",
+    /*
+      MEASURED, NOT EYEBALLED. At a desktop's aspect the cover scale is set by
+      the width, so the whole frame is shown across and only Y is in play: 828
+      of the picture's 1799 rendered pixels, about 46% of its height. Y decides
+      which 46%.
+
+      0.55 puts picture rows 30-76% on screen, which lands the hand, the brush
+      and the richest coral and teal in the upper third — the part of the frame
+      the hero leaves unscrimmed. The palette and the lower canvas fall into the
+      foot field, where they are behind the type anyway.
+
+      It was 0.38, which framed the bright middle of the canvas beautifully and
+      put white roses directly under a cream headline.
+
+      X still matters on a phone, where the crop takes the sides instead: 38%
+      holds the hand and the brush in frame there. See the note on HeroSlide in
+      lib/constants.ts for why one value has to answer both.
+    */
+    position: "38% 55%",
   },
   /**
-   * Someone at an easel, mid-brushstroke. The only picture in the project of a
-   * person making something that is not pottery, which is exactly what this
-   * section is about. Shared with the homepage strands; reused rather than
-   * substituted, because a worse-fitting picture for the sake of novelty is a
-   * bad trade.
+   * The same frame as the hero, cropped square — see the note above. It sits
+   * beside the enquiry form, where its job is continuity rather than novelty:
+   * the picture somebody was looking at one click ago.
+   *
+   * Also shared with the homepage strands, which is why the alt is worded a
+   * shade differently from the hero's; both describe the same photograph and
+   * neither claims anything the other does not.
    */
   experience: {
     src: "/images/creative/painting.jpg",
     alt: "A painter at an easel, brush in hand, working into a canvas of coral and blush roses among deep teal leaves, a loaded palette in the foreground.",
-  },
-  /**
-   * Ceramic painting, and literally so: a fine brush laying yellow onto a
-   * small pot already blocked in pastel. One of the six activities, shown
-   * being done. See the note on the activities list for why the other five
-   * are type rather than pictures.
-   */
-  activities: {
-    src: "/images/creative/craft.jpg",
-    alt: "Two hands turning a small ceramic pot while a fine brush lays a block of yellow into a design of pastel blue, lilac, mint and coral.",
   },
 };

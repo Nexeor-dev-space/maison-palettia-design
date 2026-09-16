@@ -42,8 +42,11 @@ export function WhatsAppWidget() {
       className={
         "fixed right-[max(1rem,env(safe-area-inset-right))] z-30 " +
         "bottom-[max(1rem,env(safe-area-inset-bottom))] " +
-        "inline-flex size-12 items-center justify-center rounded-pill bg-primary text-cream " +
-        "shadow-[0_6px_20px_rgba(35,31,32,0.18)] " +
+        "inline-flex size-12 items-center justify-center rounded-sm bg-primary text-on-primary " +
+        // Charcoal Slate at 18%, through the token. It was rgba(35,31,32,.18) —
+        // the near-black the palette dropped for not being in the guidelines,
+        // left behind in a shadow where nobody looks for a colour.
+        "shadow-[0_6px_20px_color-mix(in_oklab,var(--color-text)_18%,transparent)] " +
         "transition-transform duration-300 ease-soft " +
         "motion-safe:hover:-translate-y-0.5 md:size-14 " +
         "md:right-[max(1.5rem,env(safe-area-inset-right))] md:bottom-[max(1.5rem,env(safe-area-inset-bottom))]"

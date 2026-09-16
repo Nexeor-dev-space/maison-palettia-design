@@ -1,9 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { PrivateEventEnquiry } from "@/components/private-events/PrivateEventEnquiry";
 import { Container } from "@/components/ui/Container";
-import { PRIVATE_EVENT_STEPS } from "@/lib/privateEvents";
+import { getCreativeExperiences } from "@/lib/experiences";
+import { PRIVATE_EVENT_IMAGES, PRIVATE_EVENT_STEPS } from "@/lib/privateEvents";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -34,9 +36,25 @@ export const metadata = buildMetadata({
  * otherwise would be the same false promise as a thank-you screen over a form
  * that goes nowhere.
  *
- * A thin server shell around a client form, which is the shape /contact uses.
+ * A thin server shell around a client form, which is the shape /contact uses
+ * — and the shell is what reads the activity list, because
+ * `getCreativeExperiences()` is async and a client component cannot await it.
  */
-export default function PrivateEventBookingPage() {
+export default async function PrivateEventBookingPage() {
+  /*
+    The studio's own approved list, which is also what /private-events shows.
+    One source, so the select can never offer something the page before it did
+    not, and a new activity reaches both surfaces with no edit here.
+
+    The client's own flag travels with the name where there is one. Dropping
+    "Glass painting" from the list would hide an activity the studio wants
+    known about; offering it unmarked would imply it can be had next month. The
+    flag in the label is the only version of this that is true.
+  */
+  const activities = (await getCreativeExperiences()).map((experience) =>
+    experience.status ? `${experience.name} (${experience.status})` : experience.name,
+  );
+
   return (
     <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
       <Reveal>
@@ -63,7 +81,7 @@ export default function PrivateEventBookingPage() {
               <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
               Private events
             </p>
-            <h1 className="mt-9 max-w-[18ch] text-[2rem] font-light uppercase leading-[1.04] tracking-[-0.02em] md:text-[2.75rem] lg:text-[3.25rem]">
+            <h1 className="mt-9 max-w-[18ch] text-h1 font-light uppercase tracking-[-0.02em]">
               Plan your private experience.
             </h1>
             <p className="mt-8 max-w-[34rem] text-body leading-[1.85] text-text/80">
@@ -74,14 +92,14 @@ export default function PrivateEventBookingPage() {
           </Reveal>
 
           <Reveal delay={0.15} className="mt-14 md:mt-16">
-            <PrivateEventEnquiry />
+            <PrivateEventEnquiry activities={activities} />
           </Reveal>
         </div>
 
         {/*
           What happens next, beside the form rather than after it.
           ---------------------------------------------------------------
-          The same four steps the previous page sets out, restated where
+          The same three steps the previous page sets out, restated where
           someone is deciding whether the effort of filling this in is worth
           it. Read from the same constant, so the two pages cannot drift.
         */}
@@ -117,6 +135,32 @@ export default function PrivateEventBookingPage() {
               ))}
             </ol>
           </aside>
+
+          {/*
+            One photograph, and it is the same one the page before this used.
+
+            Continuity rather than decoration: someone arrives here from
+            /private-events, and meeting the picture they were just looking at
+            is what makes the two read as one journey instead of two forms on
+            one domain. It is read from PRIVATE_EVENT_IMAGES so the two pages
+            cannot drift apart.
+
+            Beneath the steps, not beside the form. The brief's own rule for
+            this image is that it supports the story rather than competing with
+            the form, and a plate in the same column as nine inputs is a plate
+            arguing with them.
+          */}
+          <Reveal variant="imageReveal" className="mt-8">
+            <div className="relative aspect-[4/5] w-full overflow-hidden bg-cream">
+              <Image
+                src={PRIVATE_EVENT_IMAGES.experience.src}
+                alt={PRIVATE_EVENT_IMAGES.experience.alt}
+                fill
+                sizes="(min-width: 1024px) 30vw, calc(100vw - 2 * max(0.75rem, 1.3889vw))"
+                className="object-cover"
+              />
+            </div>
+          </Reveal>
 
           {/*
             The public programme, offered as the thing that can actually be

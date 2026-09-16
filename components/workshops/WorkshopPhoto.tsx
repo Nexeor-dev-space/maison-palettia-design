@@ -42,7 +42,7 @@ interface WorkshopPhotoProps {
  */
 export function WorkshopPhoto({ image, aspect, sizes, className }: WorkshopPhotoProps) {
   return (
-    <div className={cn("relative w-full overflow-hidden bg-surface-alt", aspect, className)}>
+    <div className={cn("relative w-full overflow-hidden rounded-sm bg-surface-alt", aspect, className)}>
       <Image
         src={image.src}
         alt={image.alt}

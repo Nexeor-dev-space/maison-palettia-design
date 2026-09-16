@@ -112,7 +112,7 @@ export function TestimonialPanel({ testimonials }: TestimonialPanelProps) {
               <p className="text-lead font-light leading-[1.55] tracking-[-0.01em] text-text md:text-[1.35rem] lg:text-[1.5rem]">
                 {testimonial.quote}
               </p>
-              <footer className="mt-6 text-label font-medium uppercase tracking-eyebrow text-text/60 md:mt-7">
+              <footer className="mt-6 text-label font-medium uppercase tracking-eyebrow text-text/70 md:mt-7">
                 {/*
                   No "—" before it and no quotation marks around the quote. The
                   blockquote already says what this is, and the punctuation is

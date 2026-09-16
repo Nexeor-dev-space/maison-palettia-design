@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           has asked for reduced motion.
         */}
         <SmoothScroll />
-        <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-sm text-on-dark">
+        <a href="#main" className="skip-link rounded-sm bg-primary px-4 py-2 text-sm text-on-primary">
           Skip to content
         </a>
         <Header />

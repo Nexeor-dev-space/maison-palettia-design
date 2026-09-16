@@ -179,7 +179,7 @@ export function MobileNav({
             {disciplines.map((strand, i) => (
               <li key={strand.slug} className="animate-rise" style={riseDelay(i)}>
                 <Link href={strand.href} onClick={onClose} className="group block">
-                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-on-dark/5">
+                  <div className="relative aspect-[5/4] w-full overflow-hidden rounded-sm bg-on-dark/5">
                     <Image
                       src={strand.image.src}
                       alt=""

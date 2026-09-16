@@ -121,7 +121,7 @@ function PassRow({
             simply sets none, and the two text columns widen to fill it. */}
         {pass.image ? (
           <div className="col-span-12 sm:col-span-4 lg:col-span-3">
-            <div className="relative aspect-[3/2] overflow-hidden bg-surface-alt sm:aspect-square">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-sm bg-surface-alt sm:aspect-square">
               <Image
                 src={pass.image.src}
                 alt={pass.image.alt}
@@ -258,9 +258,9 @@ function Action({
         */
         aria-label={`Add to booking: ${pass.name}`}
         className={cn(
-          "group mt-6 inline-flex w-full min-h-11 items-center justify-center gap-2.5",
+          "group mt-6 inline-flex w-full min-h-11 items-center justify-center gap-2.5 rounded-sm",
           "bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto",
+          "text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto",
         )}
       >
         Add to booking
@@ -332,9 +332,9 @@ function NoPasses() {
       <Link
         href="/events"
         className={cn(
-          "group mt-8 inline-flex min-h-11 items-center justify-center gap-2.5",
+          "group mt-8 inline-flex min-h-11 items-center justify-center gap-2.5 rounded-sm",
           "bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90",
+          "text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90",
         )}
       >
         Explore events
