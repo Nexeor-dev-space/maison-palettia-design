@@ -153,7 +153,7 @@ function FilterGroup({ label, options, selected, onSelect }: FilterGroupProps) {
     <div className="flex flex-col gap-3 md:flex-row md:items-baseline md:gap-6">
       <p
         id={groupId}
-        className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/60 md:w-20"
+        className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/70 md:w-20"
       >
         {label}
       </p>
@@ -203,7 +203,7 @@ function Chip({
       className={cn(
         // The min height is a touch target, not a look: 44px is the smallest
         // comfortable one and these sit close together on a phone.
-        "inline-flex min-h-[2.75rem] items-center px-4 text-label font-medium uppercase tracking-eyebrow",
+        "inline-flex min-h-[2.75rem] items-center rounded-sm px-4 text-label font-medium uppercase tracking-eyebrow",
         "border transition-colors duration-300 ease-soft",
         pressed
           ? "border-text bg-text text-surface"

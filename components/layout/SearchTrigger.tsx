@@ -38,13 +38,28 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
       aria-expanded={isOpen}
       aria-controls={panelId}
       className={
+        // `font-normal`, not medium. Weight in this row means something —
+        // Events carries it because the client asked for that one entry to
+        // have priority — and this button was medium as well, which put the
+        // emphasis on two of the four labels in no pattern a reader could
+        // follow. Search is a utility, not a priority.
         "group/nav inline-flex size-11 items-center justify-center gap-2 text-body " +
-        "font-medium tracking-[0.01em] text-on-dark transition-colors duration-300 ease-soft " +
+        "font-normal tracking-[0.01em] text-current transition-colors duration-300 ease-soft " +
         // Below `lg` the label is `sr-only`, so the button is an icon in a
         // fixed 44px box — the touch target the icon alone could not give it.
         // From `lg` the label is visible and the row sits in an 80–104px bar,
         // so the box is let go and the button is sized by its own content.
-        "lg:size-auto lg:justify-start"
+        //
+        // `lg:pb-1.5` is what puts this label on the same line as the others,
+        // and it is reserving space rather than adding padding. Every nav
+        // entry sets its word inside <NavLabel>, which keeps 6px under the
+        // text for the rule it draws on hover; this button has no rule, so its
+        // box measured 29.75px against their 35.75px and centred 3px lower in
+        // the row. Matching the reserved space matches the baseline — and the
+        // icon moves with the label, which it would not if the padding went on
+        // the label alone. Only from `lg`: below it the button is the fixed
+        // 44px icon box and there is nothing to line up with.
+        "lg:size-auto lg:justify-start lg:pb-1.5"
       }
     >
       <Search size={18} aria-hidden className="shrink-0" />

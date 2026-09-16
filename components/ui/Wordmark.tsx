@@ -1,15 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { SITE } from "@/lib/constants";
+import { BRAND_LOGO, SITE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface WordmarkProps {
   className?: string;
+  /**
+   * Set when the mark sits on a light ground, which swaps it for the Deep
+   * Lilac cut. Named for the ground rather than for the file, so a caller
+   * never has to know which artwork answers which surface.
+   */
+  onLight?: boolean;
 }
-
-/** Intrinsic size of public/images/logo.png — kept here to reserve the space. */
-const LOGO = { src: "/images/logo.png", width: 1015, height: 438 } as const;
 
 /**
  * The brand mark, linking home. One form, because there is one logo.
@@ -19,16 +22,24 @@ const LOGO = { src: "/images/logo.png", width: 1015, height: 438 } as const;
  * allow. It is gone; the only Maison Palettia mark on this site is the
  * supplied file.
  *
- * KNOWN CONSTRAINT: the artwork is Light Sage on transparency (sampled: 93% of
- * its ink is #d1e7be), so it reads on a dark ground and disappears on a light
- * one — against the footer's sage it measures 1.00:1. Until the client
- * supplies a dark-on-light cut, this can only be used on Charcoal Slate,
- * where it measures 9.07:1.
+ * TWO CUTS, ONE COMPONENT. The supplied artwork is Light Sage on transparency,
+ * so it reads on a dark ground and vanishes on a light one. `onLight` swaps in
+ * the Deep Lilac cut the client supplied for exactly that case — which is what
+ * lets the header keep its mark when it takes a white ground on scroll.
+ *
+ * Measured: sage on Charcoal Slate 9.07:1, lilac on the white bar 5.06:1. Both
+ * clear the 3:1 a logo owes as a graphical object, and each fails on the
+ * other's ground, which is why this is a swap rather than a preference.
+ *
+ * The two files are not the same shape — 1015x438 against 1120x466 — so only
+ * the height is ever set and each keeps its own aspect.
  *
  * The link carries the accessible name, so the image itself is decorative
  * (`alt=""`) — otherwise a screen reader announces the brand twice.
  */
-export function Wordmark({ className }: WordmarkProps) {
+export function Wordmark({ className, onLight = false }: WordmarkProps) {
+  const art = onLight ? BRAND_LOGO.onLight : BRAND_LOGO;
+
   return (
     <Link
         href="/"
@@ -39,27 +50,33 @@ export function Wordmark({ className }: WordmarkProps) {
         )}
       >
       <Image
-        src={LOGO.src}
+        src={art.src}
         alt=""
-        width={LOGO.width}
-        height={LOGO.height}
+        width={art.width}
+        height={art.height}
         priority
         /*
-          Sized against the bar rather than against itself, and re-struck
-          when the bar grew.
+          Sized against the bar, and re-struck once the bar was actually the
+          height it claimed to be.
 
-          At 56px in a 104px bar the mark filled 54% of the row and left
-          24px of air above and below — which reads as compressed rather
-          than as prominent, and is a large part of why the header felt
-          small despite already being tall. The bar now rests at 120px on a
-          desktop and the mark takes 52 of it: 43%, with 34px of air on
-          each side. The mark is larger in absolute terms than it was and
-          the row around it is calmer, which is the whole trade.
+          The note here used to reason about 36px in a 72px row. The row was
+          never 72 — `md:h-header-lg` was not generating, so the desktop bar
+          had been 64px and the mark was 36px in it. Both are fixed together,
+          because sizing a mark against a bar that is the wrong height is how
+          the proportion goes wrong in the first place.
 
-          The aspect is the file's own; only the height is set, so the
-          artwork cannot distort.
+          44px in 72px is 61%, with 14px of clearance above and below. That is
+          more than the single-line sans wordmark on the compact reference the
+          client pointed at takes, and it has to be: this mark is two stacked
+          lines of script, so at 36px each line stood about 15px and read as
+          thin rather than as small. The artwork cannot be cropped to win the
+          space back — measured, it is already tight, with 3% transparent
+          margin top and bottom.
+
+          The aspect is each file's own; only the height is set, so neither cut
+          can distort.
         */
-        className="h-11 w-auto md:h-13"
+        className="h-9 w-auto md:h-11"
       />
     </Link>
   );

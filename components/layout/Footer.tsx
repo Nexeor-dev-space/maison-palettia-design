@@ -94,10 +94,21 @@ export function Footer() {
       */}
       <div
         aria-hidden
-        className="arch h-[min(16vw,18vh)] max-h-52 min-h-16 w-full bg-sage [--arch-rise:100%]"
+        className="arch h-[min(16vw,18vh)] max-h-52 min-h-16 w-full bg-footer [--arch-rise:100%]"
       />
 
-      <div className="bg-sage pb-8 pt-4 md:pb-10 md:pt-5 lg:pb-[min(2.75rem,4vh)]">
+      {/*
+        ONE PLACE DECIDES THE INK, AND EVERYTHING INSIDE INHERITS IT — the same
+        arrangement <HeaderBar> keeps, and for the same reason: a field this
+        dark cannot be half-converted. `text-on-dark` here is what <BackToTop>
+        and <SocialIcons> read through `text-current`, so neither of them has
+        to know which ground it is standing on.
+
+        `--color-focus` follows the ink as well. Deep Lilac measures 3.02:1 on
+        Ink — under the 3:1 a focus ring owes with nothing to spare — so the
+        ring takes White Rock here, as it does over the hero.
+      */}
+      <div className="bg-footer text-on-dark [--color-focus:var(--color-cream)] pb-8 pt-4 md:pb-10 md:pt-5 lg:pb-[min(2.75rem,4vh)]">
         <Container>
           {/*
             01 — NO MARK HERE, AND THAT IS THE CORRECT OUTCOME FOR NOW.
@@ -121,7 +132,7 @@ export function Footer() {
 
           {/* 01b — the farewell, in the Maison's signage voice. */}
           <Reveal variant="fadeIn" delay={0.15}>
-            <Signature ground="sage" className="mt-4 text-center md:mt-5">
+            <Signature ground="ink" className="mt-4 text-center md:mt-5">
               see you at the maison
             </Signature>
           </Reveal>
@@ -167,7 +178,7 @@ export function Footer() {
               <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-1">
                 <SocialIcons />
 
-                <address className="not-italic text-body leading-[1.85] text-text/75 sm:mt-2">
+                <address className="not-italic text-body leading-[1.85] text-on-dark/80 sm:mt-2">
                   {CONTACT.addressLines.map((line) => (
                     <span key={line} className="block">
                       {line}
@@ -197,7 +208,7 @@ export function Footer() {
 
           {/* 04 — the last line. */}
           <Reveal variant="fadeIn">
-            <div className="mx-auto mt-6 flex max-w-site flex-col gap-3 border-t border-text/20 pt-5 text-fine uppercase tracking-[0.1em] text-text/75 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto mt-6 flex max-w-site flex-col gap-3 border-t border-on-dark/20 pt-5 text-fine uppercase tracking-[0.1em] text-on-dark/75 sm:flex-row sm:items-center sm:justify-between">
               <p>
                 &copy; {year} {SITE.legalName}
               </p>
@@ -208,7 +219,7 @@ export function Footer() {
                         13px line box, the smallest targets on the site. */}
                     <Link
                       href={item.href}
-                      className="relative inline-flex transition-colors duration-300 ease-soft hover:text-primary after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']"
+                      className="relative inline-flex transition-colors duration-300 ease-soft hover:text-sage after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']"
                     >
                       {item.label}
                     </Link>
@@ -248,7 +259,7 @@ function FooterGroup({ group }: { group: NavGroup }) {
 
 function GroupHeading({ children }: { children: string }) {
   return (
-    <h2 className="text-fine font-medium uppercase tracking-[0.14em] text-text/75">
+    <h2 className="text-fine font-medium uppercase tracking-[0.14em] text-on-dark/75">
       {children}
     </h2>
   );
@@ -270,8 +281,8 @@ function GroupHeading({ children }: { children: string }) {
  * pseudo-element has no background.
  */
 const LINK =
-  "group relative inline-flex text-body text-text transition-colors duration-300 ease-soft " +
-  "hover:text-primary after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']";
+  "group relative inline-flex text-body text-on-dark transition-colors duration-300 ease-soft " +
+  "hover:text-sage after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']";
 
 /**
  * A link's text, with the rule that draws itself on hover.
@@ -286,7 +297,7 @@ function LinkLabel({ children }: { children: string }) {
       {children}
       <span
         aria-hidden
-        className="absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-primary transition-transform duration-500 ease-editorial group-hover:scale-x-100"
+        className="absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-sage transition-transform duration-500 ease-editorial group-hover:scale-x-100"
       />
     </span>
   );

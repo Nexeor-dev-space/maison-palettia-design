@@ -17,6 +17,21 @@ import {
 import { cn } from "@/lib/utils";
 import type { Workshop } from "@/types";
 
+/*
+  PARKED — not mounted anywhere right now.
+
+  This was every session on the homepage: photograph one side, a White Rock or
+  Light Sage booking panel the other, meeting on a single edge, stacked down
+  the page with a band of signage between them. The client asked for that stack
+  to become one large composition at a time, so <SessionCarousel> holds the
+  section now and nothing imports this.
+
+  Kept rather than deleted, as <CreativeExperiences> was: the split block is a
+  good treatment for a page that wants every date visible at once — the events
+  listing is the obvious place — and it is fully worked out, down to the
+  measured contrast on both panel grounds.
+*/
+
 /**
  * The next session, as a booking.
  *
@@ -291,7 +306,7 @@ function BookButton({
     <Link
       href={bookSessionHref(workshop)}
       aria-label={`Book ${workshop.title}${where} on ${formatSessionDate(workshop.startsAt)}`}
-      className={`mt-8 inline-flex items-center justify-center gap-2.5 bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90 ${className ?? ""}`}
+      className={`mt-8 rounded-sm inline-flex items-center justify-center gap-2.5 bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90 ${className ?? ""}`}
     >
       Book event
       <span

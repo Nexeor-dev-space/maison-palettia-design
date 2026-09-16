@@ -6,68 +6,31 @@ import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import { CONTACT, PLAN_YOUR_VISIT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import type { NavItem, VisitStep } from "@/types";
+import type { NavItem } from "@/types";
 
 /**
  * The invitation's type. Sized per breakpoint rather than with one viewport
  * clamp, because the line sits in a full-width well on a phone and a
  * seven-column one from `lg` up — two different measures, not one that scales.
- * "COME MAKE" is the widest of the three lines by a hair — 699px against
- * "SOMETHING"'s 689 at a 1990 window — and is what sets the ceiling. All three
- * have to hold on one line at every width, without hyphenation.
+ * "SOMETHING" is the widest of the three lines and is what sets the ceiling;
+ * all three have to hold on one line at every width, without hyphenation.
  *
  * Deliberately a step below the philosophy statement above it. That section is
  * the crescendo of the page and keeps the largest type on it; this one is the
- * quiet word afterwards, and the scale has to say which is which. At 1990 that
- * is 115px against the philosophy's 135px — close enough to read as the same
- * voice, far enough apart to read as the quieter half of it.
+ * quiet word afterwards, and the scale has to say which is which.
  *
- * Past `xl` it hands over to the viewport, because the page carries no ceiling
- * any more and the measure keeps widening with the display. At a fixed 4rem
- * the widest line held 400px of ink in a 935px column on a 1990 window, which
- * is what made the section read as mostly empty: the invitation was not small,
- * it had simply stopped growing while the room around it did not. 5.8vw picks
- * up where the 4rem step left off, and the cap stops it on a wall display.
- *
- * The gain is vertical as much as horizontal. Three lines at 115px stand about
- * 145px taller than three at 64px, which is most of the 301px hole that used
- * to sit between the signature and the foot band — the left column was short
- * against the right, and the hole was the difference.
+ * It grew when the statement gained a column. The invitation used to share the
+ * measure six-and-five with a rail of five stacked links; it now runs seven
+ * against a single action, so the same three lines have about 130px more room
+ * and take it.
  */
 const INVITATION_LINE =
-  "block font-light uppercase leading-[0.96] tracking-[-0.02em] " +
-  "text-[2rem] xs:text-[2.3rem] sm:text-[2.75rem] md:text-[3rem] lg:text-[3.4rem] " +
-  "xl:text-[min(5.8vw,7rem)]";
+  "block font-light uppercase leading-[0.94] tracking-[-0.02em] " +
+  "text-[2.1rem] xs:text-[2.5rem] sm:text-[3rem] md:text-[3.4rem] lg:text-[3.9rem] " +
+  "xl:text-[min(6.4vw,7.5rem)]";
 
-/**
- * Where each step hangs, written out per step rather than derived.
- *
- * The three used to descend, each starting lower than the last, so the run
- * read as a path walked; at `xl` they also narrowed to three columns with the
- * gaps widening as they fell. On a wide screen that put the last step at
- * column ten with a seven-hundred-pixel hole in front of it, and left three
- * one-line entries scattered across a band three hundred pixels deep. The
- * stagger was there to stop the run reading as a row of cards. It is not what
- * was doing that work — there is no border, no ground and no box anywhere in
- * the band, and the rule the whole run hangs from is what makes it an index
- * rather than three panels.
- *
- * So they share a top edge now and take an even third of the measure each.
- * A fourth step wraps to a second row, which extends the run rather than
- * breaking it.
- *
- * Every breakpoint that sets a span restates its start, and it has to. Tailwind
- * compiles `col-span-*` to the `grid-column` shorthand, which resets
- * `grid-column-start` along with everything else in it — so a later span lands
- * after every earlier rule in the stylesheet and quietly throws that
- * breakpoint's start away, leaving the step to be auto-placed against whatever
- * sits before it. A start is only safe on the breakpoint that last set the span.
- */
-const STEP_PLACEMENT = [
-  "col-span-12 md:col-span-4 md:col-start-1",
-  "col-span-12 mt-10 md:col-span-4 md:col-start-5 md:mt-0",
-  "col-span-12 mt-10 md:col-span-4 md:col-start-9 md:mt-0",
-];
+/** The label on every foot-rail entry. One class, so the three cannot drift. */
+const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/80";
 
 /**
  * Homepage section 09 — plan your visit.
@@ -76,39 +39,95 @@ const STEP_PLACEMENT = [
  * Everything above has shown the place, the programme and the reason it
  * exists; this says come, and gives exactly one way to do it.
  *
- * It has to differ from the philosophy section it follows without raising its
- * voice, and it does that on five counts rather than by shouting: a warm
- * neutral ground where that one is a field of Deep Lilac, the terracotta-dash
- * masthead instead of its full-measure rule, a smaller statement, a spread
- * instead of a diagonal — the invitation anchored hard left, the next step
- * held far right and dropped to meet its last line — and a band of type along
- * the foot that the pause above has no equivalent of.
+ * ==========================================================================
+ * WHAT THIS REPLACES, AND WHY — measured at 1440x900 before it was touched
+ * ==========================================================================
+ *
+ * The section was an invitation on the left, a rail of five stacked items on
+ * the right, and a band of three numbered steps along the foot. Four things
+ * were wrong with it and three of them were holes:
+ *
+ *   A 159px DEAD GUTTER down the middle. The grid ran six columns, skipped a
+ *   whole column, then five. Nothing bridged it at any width.
+ *
+ *   A 285px HOLE UNDER THE SIGNATURE. The two columns both ended at 728px, but
+ *   the left one ran out of content at the script line and the right kept
+ *   going to the address. Air beside a large statement reads as composition;
+ *   the same air under a small script line reads as a mistake.
+ *
+ *   A 169px TAIL between the columns and the steps rule.
+ *
+ *   A RAIL OF FIVE THINGS in four type treatments — paragraph, marked link,
+ *   quiet link, sentence-with-link, address block — stacked with no grouping.
+ *   It read as a sitemap, and the one action the page actually wants was the
+ *   same size as everything around it.
+ *
+ * And the largest type on screen carried the least information while the ask
+ * was the smallest thing in the section, which is the hierarchy upside down.
+ *
+ * THE STEPS ARE GONE, AND THAT IS A CONTENT FIX RATHER THAN A LAYOUT ONE.
+ * <HowItWorks /> already runs on this page — section 04, "We come to you",
+ * with Choose, Book, Come by and Create set out a sentence each. This section
+ * closed the same page with Choose, Book and Make. The same instruction twice
+ * on one page makes neither of them the authority, and the second telling was
+ * the shorter and vaguer of the two. Deleting it here leaves the fuller
+ * version standing where a visitor meets it before they need it, and gives
+ * this section back its foot.
+ *
+ * ==========================================================================
+ * WHAT IT IS NOW
+ * ==========================================================================
+ *
+ * Two rules and everything between them:
+ *
+ *   PLAN YOUR VISIT ──────────────────────────────────────────────────
+ *
+ *   COME MAKE
+ *   SOMETHING                        Choose an experience, find a date…
+ *   WITH US.
+ *        see you at the maison            [ EXPLORE EVENTS  → ]
+ *   ────────────────────────────────────────────────────────────────────
+ *   THE STUDIO          HAVE A QUESTION?          PLANNING FOR A GROUP?
+ *   Dubai, UAE          Contact the Maison →      Private events →
+ *
+ * The masthead rule runs from the label to the right edge instead of stopping
+ * at a 48px dash, and the foot rail hangs from a second rule the full width.
+ * Two horizontals holding one composition — the section's structure is legible
+ * before a word of it is read, and there is not a border or a box anywhere in
+ * it, which is the rule the rest of this page keeps.
+ *
+ * The statement and the action bottom-align (`lg:items-end`), so the empty
+ * space sits beside three lines of display type where it belongs rather than
+ * under the signature. At the foot of that row the eye reads signature on the
+ * left, action on the right, level with each other — which is what an
+ * invitation looks like when it is signed.
+ *
+ * ONE MARKED ACTION. Everything in the old rail was a line of type, so nothing
+ * in the page's closing section looked like something to press. Explore events
+ * is now a filled Deep Lilac block — the only one on the page — and the two
+ * other doors moved to the foot rail, where they are answers to different
+ * questions rather than three options on the same one.
  *
  * White Rock is doing real work here rather than just alternating. The section
  * before it is the loudest colour on the page, and this is the exhale after
  * it: the same warmth the brand introduction opened on, so the page closes on
  * the ground it began with.
  *
- * No photograph. The brief allows one, and every atmospheric plate the project
- * holds is already hanging further up this same page — a second showing of one
- * of them here would be decoration, and the invitation wants the quiet. What
- * carries the section instead is the space around three lines of type and the
- * one marked action inside it.
+ * No photograph. Every atmospheric plate the project holds is already hanging
+ * further up this same page, and a second showing of one here would be
+ * decoration. What carries the section is the space around three lines of type
+ * and the one marked action inside it.
  *
- * TODO(client): the one photograph that would earn a place here is the studio
- * door, or a table with people already at it — the destination rather than the
- * making, which every section above has covered. If it arrives, hang it off
- * the right of the invitation and above the steps, and keep it narrow: it is
- * there to say where the visitor is going, not to fill the section.
- *
- * Nothing here is a form, a date picker or a card. The conversion is a
- * sentence, a link, and three short lines saying what happens next.
+ * TODO(client): the one photograph that would earn a place is the studio door,
+ * or a table with people already at it — the destination rather than the
+ * making, which every section above has covered. If it arrives, hang it in the
+ * right-hand column above the action and keep it narrow.
  *
  * Server component; every animation lives in the client components it
  * composes.
  */
 export function PlanYourVisit() {
-  const { eyebrow, title, signature, description, primaryCta, secondaryCta, steps } =
+  const { eyebrow, title, signature, description, primaryCta, secondaryCta, groupCta } =
     PLAN_YOUR_VISIT;
 
   return (
@@ -118,20 +137,30 @@ export function PlanYourVisit() {
     >
       <Container>
         {/*
-          The house masthead — a terracotta rule and a label. The philosophy
-          section above opens on a rule across the whole measure instead, which
-          is what keeps two quiet, typographic sections from reading as twins.
+          The masthead, and the first of the section's two horizontals.
+
+          The house eyebrow is a 48px terracotta dash and a label; here the
+          dash keeps its colour and the rule carries on past the label to the
+          right edge of the measure. That is the same mark doing more work: it
+          opens the section and draws its top edge in one gesture, which is
+          what lets the composition below sit inside something without being
+          put in a box.
         */}
         <Reveal>
-          <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
+          <div className="flex items-center gap-4 md:gap-6">
             <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-            {eyebrow}
-          </p>
+            <p className="shrink-0 text-action font-medium uppercase tracking-eyebrow text-text">
+              {eyebrow}
+            </p>
+            {/* /15 is a hairline, not text: it owes nothing and is a boundary
+                rather than information. The foot rule matches it exactly. */}
+            <span aria-hidden className="h-px w-full bg-text/15" />
+          </div>
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-12 gap-x-6 md:mt-16 lg:mt-20 lg:gap-x-10">
+        <div className="mt-14 grid grid-cols-12 gap-x-6 md:mt-20 lg:mt-24 lg:items-end lg:gap-x-10">
           {/* ---------- The invitation, anchored to the left edge ---------- */}
-          <div className="col-span-12 lg:col-span-6">
+          <div className="col-span-12 lg:col-span-7">
             <h2 id="plan-your-visit-heading">
               {/*
                 One trigger, three lines, each rising from behind its own mask.
@@ -158,13 +187,16 @@ export function PlanYourVisit() {
             {/*
               The section's one flourish, and it is a signature rather than a
               heading: the invitation above it is signed, and the script face
-              appears nowhere else here. Indented so it sits between the
-              statement's left edge and the action held out on the right,
-              carrying the eye across.
+              appears nowhere else here.
+
+              Indented so it starts inside the statement's measure, and it now
+              sits level with the action across the gutter — the bottom edge of
+              this row reads as one line, signed on the left and answered on
+              the right.
             */}
             {signature ? (
               <Reveal variant="fadeIn" delay={0.5}>
-                <p className="ml-1 mt-8 font-display text-[1.75rem] leading-none tracking-normal text-primary md:ml-[10%] md:mt-9 md:text-[2rem] lg:ml-[12%] lg:text-[2.25rem]">
+                <p className="ml-1 mt-9 font-display text-[1.75rem] leading-none tracking-normal text-primary md:ml-[10%] md:mt-10 md:text-[2rem] lg:ml-[12%] lg:text-[2.25rem]">
                   {signature}
                 </p>
               </Reveal>
@@ -172,73 +204,34 @@ export function PlanYourVisit() {
           </div>
 
           {/*
-            ---------- The next step, held out on the right --------------
+            ---------- The one thing to do next ----------
 
-            Dropped by a large top margin at `lg` rather than bottom-aligned
-            with the column beside it: the invitation is three lines of display
-            type and this is a paragraph and two links, so an alignment rule
-            would settle where they meet on whichever of them happened to be
-            taller. The margin puts the description against the statement's
-            last line and keeps it there.
+            Bottom-aligned with the column beside it rather than dropped by a
+            top margin. The margin was a guess that happened to land; the
+            alignment is the intent — a paragraph and an action sitting on the
+            statement's last line, with the air above them rather than below.
           */}
-          <div className="col-span-12 mt-14 md:col-span-8 md:col-start-5 md:mt-16 lg:col-span-5 lg:col-start-8 lg:mt-20">
+          <div className="col-span-12 mt-14 lg:col-span-5 lg:mt-0">
             <Reveal delay={0.15}>
               {/*
-                A measure, not the full column. `lg:max-w-none` let this run
-                the width of its five columns, which on a 1990 window is 772px
-                — about 96 characters a line, well past where a line stops
-                being comfortable to track. It is capped rather than the column
-                narrowed, so the links and the address below keep their width.
+                A measure, not the full column: five columns on a wide display
+                is past 90 characters a line, well beyond where a line stops
+                being comfortable to track.
               */}
-              <p className="max-w-[26rem] text-body leading-[1.85] text-text/80 md:text-base lg:max-w-[34rem]">
+              <p className="max-w-[26rem] text-body leading-[1.85] text-text/80 lg:max-w-[30rem]">
                 {description}
               </p>
             </Reveal>
 
             <Reveal delay={0.3}>
               <div className="mt-10 md:mt-12">
-                <InvitationLink item={primaryCta} tone="primary" />
+                <PrimaryAction item={primaryCta} />
               </div>
-            </Reveal>
-
-            {secondaryCta ? (
-              <Reveal variant="fadeIn" delay={0.42}>
-                <div className="mt-7 md:mt-8">
-                  <InvitationLink item={secondaryCta} tone="quiet" />
-                </div>
-              </Reveal>
-            ) : null}
-
-            {/*
-              Where the studio is. The section is called Plan Your Visit and
-              never said — which is both the plainest thing a visitor wants
-              here and the reason the column had nothing holding its foot. It
-              reads {@link CONTACT}, so it fills itself in as the client
-              supplies an email and a phone number rather than needing to be
-              written again.
-            */}
-            <Reveal variant="fadeIn" delay={0.54}>
-              <address className="mt-12 border-t border-text/15 pt-7 not-italic md:mt-14">
-                <span className="block text-label font-medium uppercase tracking-eyebrow text-text/70">
-                  The Studio
-                </span>
-                <span className="mt-3 block text-body leading-[1.8] text-text/85">
-                  {CONTACT.addressLines.join(", ")}
-                </span>
-                {CONTACT.email ? (
-                  <a
-                    href={`mailto:${CONTACT.email}`}
-                    className="mt-2 inline-block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
-                  >
-                    {CONTACT.email}
-                  </a>
-                ) : null}
-              </address>
             </Reveal>
           </div>
         </div>
 
-        <Steps steps={steps} />
+        <FootRail secondaryCta={secondaryCta} groupCta={groupCta} />
       </Container>
     </section>
   );
@@ -258,65 +251,126 @@ function InvitationLine({ children }: { children: string }) {
 }
 
 /**
- * What happens after the link, set along the foot of the section like
- * footnotes under an article.
+ * The foot rail — where the Maison is, and the two doors that are not the
+ * main one.
  *
- * An ordered list, because the order is the content — which also means the
- * printed numerals are decoration and are hidden from assistive technology
- * rather than read out on top of "item 1 of 3". They are set large and soft
- * for the same reason: they are the band's only visual weight, and the step's
- * name is the thing that has to be legible.
+ * This is where the band of numbered steps used to be, and it is a better use
+ * of the same rule. The steps repeated <HowItWorks /> further up the page;
+ * these three answer questions the invitation raises and does not settle —
+ * where is it, who do I ask, and what if I am not booking one seat.
+ *
+ * Each entry is a label and one line, which is the index grammar the rest of
+ * the site uses. Three of them take an even third of the measure, so the rail
+ * reaches the right edge instead of trailing off — the old rail's last item
+ * finished two thirds across and left the corner empty.
  */
-function Steps({ steps }: { steps: readonly VisitStep[] }) {
-  if (steps.length === 0) return null;
-
+function FootRail({
+  secondaryCta,
+  groupCta,
+}: {
+  secondaryCta?: NavItem;
+  groupCta?: { note: string; link: NavItem };
+}) {
   return (
     <div className="mt-20 border-t border-text/15 pt-12 md:mt-24 md:pt-14 lg:mt-28">
-      <Stagger as="ol" className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
-        {steps.map((step, i) => (
-          <Reveal
-            key={step.number}
-            as="li"
-            className={cn(STEP_PLACEMENT[i % STEP_PLACEMENT.length])}
-          >
-            {/*
-              Set large and light so the band has weight without the numeral
-              ever competing with the name beside it — but not set faint. At
-              this size it is large text, and a tint light enough to read as
-              a watermark (35% was the first try) lands near 1.6:1, well under
-              the 3:1 it owes. Three-quarter strength keeps it a tint and
-              clears the ratio; the hierarchy is carried by size and weight,
-              which cost nothing in contrast.
-            */}
-            <p
-              aria-hidden
-              className="text-[2.4rem] font-light leading-none tracking-[-0.02em] text-primary/80 md:text-[2.6rem] lg:text-[3rem] xl:text-[3.6rem]"
-            >
-              {step.number}
-            </p>
+      <Stagger as="div" className="grid grid-cols-12 gap-x-6 gap-y-10 lg:gap-x-10">
+        {/*
+          Where the studio is — the plainest thing a visitor wants from a
+          section called Plan Your Visit, and it was previously the last line
+          of a five-item rail. It reads {@link CONTACT}, so it fills itself in
+          as the client supplies an email rather than needing to be written
+          again.
+        */}
+        <Reveal className="col-span-12 md:col-span-4">
+          <address className="not-italic">
+            <span className={`block ${RAIL_LABEL}`}>The studio</span>
+            <span className="mt-3 block text-body leading-[1.8] text-text/85">
+              {CONTACT.addressLines.join(", ")}
+            </span>
+            {CONTACT.email ? (
+              <a
+                href={`mailto:${CONTACT.email}`}
+                className="mt-2 inline-block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
+              >
+                {CONTACT.email}
+              </a>
+            ) : null}
+          </address>
+        </Reveal>
 
-            <h3 className="mt-5 text-action font-medium uppercase tracking-eyebrow text-text md:mt-6 md:text-fine">
-              {step.name}
-            </h3>
-
-            <p className="mt-3 max-w-[20rem] text-fine leading-[1.75] text-text/85 md:mt-4 xl:max-w-[24rem]">
-              {step.detail}
-            </p>
+        {secondaryCta ? (
+          <Reveal delay={0.08} className="col-span-12 md:col-span-4">
+            <p className={RAIL_LABEL}>Have a question?</p>
+            <div className="mt-3">
+              <RailLink item={secondaryCta} />
+            </div>
           </Reveal>
-        ))}
+        ) : null}
+
+        {groupCta ? (
+          <Reveal delay={0.16} className="col-span-12 md:col-span-4">
+            {/*
+              The client's own lead-in becomes the label. It was set as a
+              sentence with the link inside it, which was the right instinct in
+              a stack of near-identical links and is no longer needed now the
+              three entries are visibly answering different questions.
+            */}
+            <p className={RAIL_LABEL}>{groupCta.note}</p>
+            <div className="mt-3">
+              <RailLink item={groupCta.link} />
+            </div>
+          </Reveal>
+        ) : null}
       </Stagger>
     </div>
   );
 }
 
-interface InvitationLinkProps {
-  item: NavItem;
-  /** "primary" is the one dominant action on the page; "quiet" sits under it. */
-  tone: "primary" | "quiet";
+/**
+ * The page's one dominant action, and the only filled block on the homepage.
+ *
+ * IT USED TO BE A LINE OF TYPE. Every item in the old rail was — a label with
+ * a rule under it — so the closing section of the page contained nothing that
+ * looked like something to press, and the ask sat at the same weight as the
+ * address beneath it. A marked block is the plainest fix and the section can
+ * afford exactly one.
+ *
+ * Deep Lilac with `--color-on-primary`, which is the near-white the token
+ * exists for: White Rock on this ground measures 3.95:1 and a 13px label owes
+ * 4.5:1, while the near-white clears at 4.90:1. On the White Rock ground the
+ * block itself is a large area of the brand accent, which is what makes it
+ * the first thing the eye lands on in the section.
+ *
+ * `py-5` on a 13px label is a 54px target, comfortably over the 44 a thumb
+ * needs, and it runs full width below `sm` where a phone would otherwise give
+ * it a third of the screen.
+ */
+function PrimaryAction({ item }: { item: NavItem }) {
+  const externalProps = item.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
+
+  return (
+    <Link
+      href={item.href}
+      {...externalProps}
+      className={cn(
+        "group inline-flex w-full items-center justify-center gap-3 rounded-sm px-8 py-5 sm:w-auto",
+        "bg-primary text-fine font-medium uppercase leading-none tracking-eyebrow text-on-primary",
+        "transition-colors duration-300 ease-soft hover:bg-primary/90",
+      )}
+    >
+      {item.label}
+      <span
+        aria-hidden
+        className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+      >
+        &#8594;
+      </span>
+    </Link>
+  );
 }
 
 /**
- * The call to action, as a line of type rather than a button.
+ * A door in the foot rail, as a line of type.
  *
  * The label is Charcoal Slate and the marking is Deep Lilac — the rule under
  * it, and the rule that sweeps across on hover. It was lilac type until the
@@ -338,42 +392,28 @@ interface InvitationLinkProps {
  * Both responses fire on `group-focus-visible` as well as `group-hover`, so a
  * keyboard visitor sees exactly what a pointer one does.
  */
-function InvitationLink({ item, tone }: InvitationLinkProps) {
-  const primary = tone === "primary";
-  const externalProps = item.external
-    ? { target: "_blank", rel: "noopener noreferrer" }
-    : {};
+function RailLink({ item }: { item: NavItem }) {
+  const externalProps = item.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
   return (
     <Link
       href={item.href}
       {...externalProps}
-      className={cn(
-        // `-my-1.5 py-1.5` grows the tap target without moving the link: at this
-        // size the label sets a 23px box, under the 24px a standalone control
-        // owes, and the negative margin cancels the padding so the invitation's
-        // spacing is untouched. Same device as every other action on the site.
-        "group -my-1.5 inline-flex items-baseline gap-3 py-1.5 font-medium uppercase tracking-eyebrow",
-        primary
-          ? "text-fine text-text md:text-body"
-          : "text-action text-text/85 transition-colors duration-300 ease-soft hover:text-text",
-      )}
+      // `-my-1.5 py-1.5` grows the tap target without moving the link: at this
+      // size the label sets a 23px box, under the 24px a standalone control
+      // owes, and the negative margin cancels the padding so the rail's
+      // spacing is untouched. Same device as every other action on the site.
+      className="group -my-1.5 inline-flex items-baseline gap-3 py-1.5 text-fine font-medium uppercase tracking-eyebrow text-text"
     >
-      <span className={cn("relative", primary ? "pb-2.5" : "pb-1.5")}>
+      <span className="relative pb-2">
         {item.label}
+        <span aria-hidden className="absolute inset-x-0 bottom-0 h-px bg-primary/45" />
         <span
           aria-hidden
           className={cn(
-            "absolute inset-x-0 bottom-0 h-px",
-            primary ? "bg-primary/45" : "bg-text/25",
-          )}
-        />
-        <span
-          aria-hidden
-          className={cn(
-            "absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-500 ease-editorial",
+            "absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-primary",
+            "transition-transform duration-500 ease-editorial",
             "group-hover:scale-x-100 group-focus-visible:scale-x-100",
-            primary ? "bg-primary" : "bg-text/60",
           )}
         />
       </span>

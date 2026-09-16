@@ -22,7 +22,17 @@ export function NavLabel({ children, isActive }: { children: string; isActive: b
       <span
         aria-hidden
         className={cn(
-          "absolute inset-x-0 bottom-0 h-px origin-left bg-sage",
+          /*
+          Follows the bar's ink rather than holding Light Sage.
+
+          Sage was right while the bar was always charcoal. It is 1.3:1 on the
+          white ground the bar now takes on scroll — not faint, gone — and an
+          active-state rule that disappears in one of the two states is not an
+          active state. `bg-current` makes it White Rock over the hero and
+          Charcoal Slate on white, so it is always the same weight as the label
+          it underlines.
+        */
+        "absolute inset-x-0 bottom-0 h-px origin-left bg-current",
           "transition-transform duration-[400ms] ease-editorial",
           isActive ? "scale-x-100" : "scale-x-0 group-hover/nav:scale-x-100",
         )}

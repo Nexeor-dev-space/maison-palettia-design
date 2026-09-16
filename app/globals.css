@@ -4,28 +4,51 @@
    Maison Palettia — Design Tokens
    Single source of truth. Change values here to re-skin the entire site.
 
-   THE COLOUR RULE
-   Roughly four fifths of any screen should be calm ground — White Rock, Light
-   Sage, or the warm off-white the page sits on — carrying Charcoal Slate type.
-   The remaining fifth is where Deep Lilac, Warm Terracotta and Soft Lavender
-   are allowed to speak. No section uses the whole palette at once; a section
-   that needs three accents is a section that has not decided what it is about.
+   THE COLOUR RULE, IN THE ORDER THE BRAND ACTUALLY RANKS IT
+
+     Light Sage      the foundation. The page ground is a pale cut of it and
+                     whole sections take it at full strength. This is the
+                     colour a visitor should not be able to miss.
+     Deep Lilac      the identity. One dominant action per screen, the mark on
+                     a light bar, and graphic accents. It is never a field.
+     White Rock      the warm neutral, for panels and punctuation between the
+                     green expanses — and for light ink on dark grounds.
+     Warm Terracotta warmth, and almost entirely as hairlines: every one of the
+                     29 uses in this project is a rule or a dot, which is the
+                     right amount.
+     Charcoal Slate  type, and the two dark editorial fields.
+     Soft Lavender   secondary accent, and the cool inside the two mixes below.
+
+   Roughly four fifths of any screen is still calm ground carrying Charcoal
+   Slate type; the fifth that speaks is Deep Lilac and Warm Terracotta. No
+   section uses the whole palette at once — a section that needs three accents
+   is a section that has not decided what it is about.
+
+   WHAT THE SITE MUST NOT BECOME: a purple website. Deep Lilac covering
+   surfaces is the failure this palette has already had once, when the
+   navigation bar was a full lilac field on every screen. Purple is for
+   identity and contrast; green is for ground.
 
    THE HOMEPAGE GROUND RHYTHM
    Sections do not alternate between two colours — they are cast, so that quiet
-   ones make room for loud ones. Read top to bottom:
+   ones make room for loud ones. Read top to bottom, as it now stands:
 
-     Hero ................. Charcoal field, moving image
-     Brand introduction ... White Rock            warm welcome
-     Upcoming workshops ... off-white             quiet, legible
-     Editorial spread ..... Charcoal, full bleed  a pause
-     The experience ....... White Rock            warm
-     Creative experiences . Light Sage            the structural brand field
-     Editorial spread ..... White Rock, full bleed
-     Just added ........... off-white             quiet
-     Maison philosophy .... DEEP LILAC            the focal moment of the page
-     Plan your visit ...... White Rock            the warm exhale after it
-     Footer ............... White Rock
+     Hero ................. Charcoal field, photography
+     Upcoming sessions .... pale green   the page ground
+     How it works ......... pale green   the page ground
+     Creative experiences . LIGHT SAGE   full strength, the brand field
+     Partner malls + map .. pale green, with White Rock plates
+     About teaser ......... pale green
+     Gallery .............. photography, with a White Rock copy tile
+     Good to know ......... pale green
+     Testimonials ......... Charcoal, full bleed  a pause
+     Plan your visit ...... White Rock   the warm exhale before the foot
+     Footer ............... LIGHT SAGE
+
+   Five of those grounds are the page's own pale green and two are the sage
+   field at full strength, against two White Rock panels and two charcoal
+   fields. That is the proportion the brand asks for, and it is why the ground
+   token below is a green rather than a cream.
 
    Deep Lilac carries exactly one full field on the page and nothing else.
    That is what keeps it a focal colour rather than a background. The header
@@ -58,6 +81,19 @@
   --color-brand-terracotta: #d97757; /* Warm Terracotta — warmth, used sparingly */
   --color-brand-lavender: #c4b5fd; /* Soft Lavender   — secondary accent */
   --color-brand-charcoal: #2d3748; /* Charcoal Slate  — primary text, dark grounds */
+  /*
+     Ink. Outside the six, and back at the client's explicit request.
+
+     The note above says this list is closed and that #231f20 was dropped for
+     not being in the guidelines — which is still true, and is why this sits
+     here with its reason attached rather than being quietly mixed into a
+     semantic token. It has exactly one consumer: `--color-footer`.
+
+     TODO(client): confirm this belongs in the brand guidelines, or supply the
+     approved near-black. If neither, the footer's ground goes back to a mix of
+     the six and this line comes out with it.
+  */
+  --color-brand-ink: #231f20; /* Ink — near-black, warm. Client's own value. */
 
   /* --- Semantic colour tokens (use these in components) ------------------ */
   --color-primary: var(--color-brand-lilac);
@@ -79,24 +115,90 @@
   --color-on-dark: var(--color-brand-cream);
 
   /* ------------------------------------------------------------------------
-     The page ground.
+     Light ink for Deep Lilac, and only for Deep Lilac.
 
-     A warm near-white rather than White Rock itself: White Rock at full
-     strength is a surface, and a whole site set on it has nowhere left to put
-     a quiet panel. This is White Rock taken almost to white, so the page and
-     its panels are the same material at two strengths rather than two
-     unrelated creams — which is what an arbitrary off-white (#fffdf9, as it
-     was) could never be.
+     WHY THIS EXISTS. Deep Lilac is the hardest ground in the palette: measured
+     against it, every other brand colour fails the 4.5:1 that a button label
+     owes — White Rock 3.95:1, Light Sage 3.83:1, Soft Lavender 2.74:1,
+     Charcoal Slate 2.37:1. `--color-on-dark` is the right ink on Charcoal
+     (9.36:1) and the wrong one here, and it was being used on both: fourteen
+     primary actions across the site, the most important control on most
+     pages, sat at 3.95:1.
+
+     White Rock taken toward white clears it at 4.90:1, so that is what this
+     is. It used to be described as "the material the site is printed on",
+     which it no longer is — the page ground is a pale green now, and that
+     green clears Deep Lilac at 4.65. The two were the same expression by
+     coincidence, and they have been separate decisions all along: this one is
+     ink on the brand accent and answers only to that, which is why it is
+     named for the job rather than borrowed from `--color-surface`.
+
+     It stays the warmer of the two on purpose. The primary action is the most
+     important control on most pages and 4.90 is the better number.
+
+     Pure white would measure 5.06:1 and is not in the palette. It is not
+     needed: this clears the bar as the brand's own material.
+
+     TWO LIGHT INKS, AND THE RULE FOR CHOOSING. On Charcoal Slate and on
+     photographs, `on-dark`. On Deep Lilac, `on-primary`. Nothing else is a
+     light ground on this site.
      ------------------------------------------------------------------------ */
-  --color-surface: color-mix(in oklab, var(--color-brand-cream) 14%, white);
+  --color-on-primary: color-mix(in oklab, var(--color-brand-cream) 14%, white);
+
+  /* ------------------------------------------------------------------------
+     The page ground. PALE GREEN, and this is the single line that answers the
+     client's biggest complaint.
+
+     IT WAS WHITE ROCK TAKEN ALMOST TO WHITE, and the palette was never the
+     problem — an audit of every painted colour across fourteen routes found
+     all of them on-brand, with zero strays. The problem was proportion. Light
+     Sage is the brand's dominant field, and it grounded exactly one section of
+     the homepage out of ten; everything else sat on a warm near-white. So the
+     site was a cream site with purple buttons, which is not what Maison
+     Palettia looks like.
+
+     Changing this one token moves the whole site onto pale green at once —
+     every route, including the ones no component in this pass touches.
+
+     THE STRENGTH IS SET BY THE INK, NOT BY TASTE. Deep Lilac is read as text
+     on this ground (links, accents), so it owes 4.5:1, and that is what caps
+     the green: measured against sage-toward-white it holds 4.68 at 28%, 4.61
+     at 34% and 4.52 at 42% — under the bar soon after. 30% keeps Deep Lilac at
+     4.65, Charcoal Slate at 11.0 and the muted ink at 5.3, and is green enough
+     to be unmistakable across a page. Full-strength Light Sage stays what it
+     always was: the brand field a section takes deliberately (`bg-sage`), not
+     the paper everything is printed on.
+     ------------------------------------------------------------------------ */
+  --color-surface: color-mix(in oklab, var(--color-brand-sage) 30%, white);
   --color-surface-alt: var(--color-brand-cream);
+  /* The footer's field. Named for the job, so the one place that uses Ink says
+     so — and so changing the footer's ground is an edit to this line. */
+  --color-footer: var(--color-brand-ink);
   /* Secondary copy. Mixed down from Charcoal Slate toward White Rock rather
      than picked as a grey of its own: the palette has one text colour, and
      everything quieter than body copy is that colour with the warmth of the
      page left in it. A neutral grey chosen independently reads cold against
      these surfaces and stops tracking the brand if Charcoal Slate ever moves. */
   --color-muted: color-mix(in oklab, var(--color-brand-charcoal) 70%, var(--color-brand-cream));
-  --color-line: #e6ddd0; /* hairline borders — White Rock, darkened */
+  /* Hairline borders and dividers.
+
+     THE LAST HARD-CODED COLOUR IN THE PROJECT. This was #e6ddd0 — a hand-picked
+     hex, the one value in this file that was not a brand colour or a mix of
+     two, and the most-used border on the site (47 rules across eight routes).
+     A literal here is exactly what the palette block above forbids: it does
+     not move when the brand moves, and it cannot be audited from one screen.
+
+     Solved rather than re-picked, twice. The first pass matched the old hex
+     exactly — White Rock with a little Soft Lavender, ΔE 0.005 — because the
+     page was cream and a hairline on cream has to be cream, cooled.
+
+     The page is pale green now, and a warm hairline on it reads as a rule
+     borrowed from somewhere else. So this is re-derived in the same way and
+     against the same requirement: hold the weight the rule already had. The
+     old pair sat 0.084 in Oklab lightness below its ground, and Light Sage
+     with a little Soft Lavender lands 0.090 below the new one — the same
+     hairline, in the green the page is actually printed on. */
+  --color-line: color-mix(in oklab, var(--color-brand-sage) 77%, var(--color-brand-lavender));
 
   /* The navigation's ground, and the two surfaces that hang off it — the
      workshops dropdown and the mobile panel. Held apart from `--color-text`
@@ -199,13 +301,51 @@
   --text-lead: clamp(1.125rem, 1.03rem + 0.4vw, 1.25rem);
   --text-lead--line-height: 1.6;
 
-  /* Defined, not yet adopted — see ADOPTION above. */
-  --text-h3: clamp(1.25rem, 1.1rem + 0.65vw, 1.5rem);
-  --text-h3--line-height: 1.25;
+  /* ------------------------------------------------------------------------
+     THE HEADING STEPS, RE-STRUCK AGAINST WHAT THE SITE ACTUALLY SETS.
+
+     These were defined and then almost entirely ignored: four usages of
+     `text-h1`, `text-h2` and `text-h3` put together, against 174 arbitrary
+     `text-[…]` values across 40 distinct sizes. That is not carelessness —
+     the scale did not fit the page. Measured against the real compositions:
+
+       card and entry headings ... 1.5rem  ->  1.75rem   (the commonest pattern
+                                                          on the site: event
+                                                          entries, mall cards,
+                                                          pass offers)
+       page titles .............. 2rem    ->  3.25rem   (/about, /contact,
+                                                          /private-events, all
+                                                          spelled out per
+                                                          breakpoint)
+       hero statements .......... 2.75rem ->  7.5rem    (hand-composed, and
+                                                          staying that way)
+
+     The old `h3` topped out at 1.5rem and the old `h2` began at 1.75rem, so
+     the single most common heading on the site fell exactly in the gap between
+     them and could only be written by hand. `h3` now spans that band, and
+     `h1`'s floor comes down to the 2rem the page titles actually start at.
+
+     `display` is new, and it is the one step that is NOT for general use: it
+     exists so the hero and statement lines have a named ceiling to sit under,
+     not so they can be flattened into it. Editorial lines that are composed
+     per breakpoint stay composed per breakpoint — see ADOPTION above.
+     ------------------------------------------------------------------------ */
+
+  /* Card, entry and panel headings. The commonest heading on the site. */
+  --text-h3: clamp(1.5rem, 1.35rem + 0.65vw, 1.75rem);
+  --text-h3--line-height: 1.2;
+
+  /* Section headings inside a page. */
   --text-h2: clamp(1.75rem, 1.27rem + 2.1vw, 2.25rem);
   --text-h2--line-height: 1.15;
-  --text-h1: clamp(2.25rem, 1.3rem + 4.2vw, 3.25rem);
+
+  /* Page titles — the single <h1> on a standard page. */
+  --text-h1: clamp(2rem, 1.35rem + 2.9vw, 3.25rem);
   --text-h1--line-height: 1.05;
+
+  /* Hero and full-bleed statement lines. A ceiling, not a default. */
+  --text-display: clamp(2.75rem, 1.1rem + 7.3vw, 6.5rem);
+  --text-display--line-height: 0.95;
 
   /* --- Spacing rhythm (section-level) ------------------------------------ */
   --spacing-section: 6rem;
@@ -214,13 +354,21 @@
      the single source of truth for it. Sections that bleed a photograph to the
      edge cancel this exact value (`-mx-gutter`), so the two can never drift.
 
-     Proportional rather than stepped, after objectandarchive.com: 2% of the
-     viewport, which is 29px at 1440 and 38px at 1920. The floor keeps the
-     phone usable, where a bare 2% would be 8px — the reference reaches the
-     same place by switching to 3% below its tablet breakpoint, but a single
-     `max()` never shrinks as the screen grows, which their stepped pair does
-     between 834px and 1024px. */
-  --spacing-gutter: max(1.25rem, 2vw);
+     SET TO GOODMAN GALLERY'S MARGIN. Their page is full-bleed with no
+     max-width, held in by a single narrow inset: 12px on phone and tablet,
+     20px at 1440, and growing with the display above that. They reach it
+     through a fluid root — `html { font-size: calc(100vw / var(--dw)) }` with
+     --dw stepping 375 / 768 / 1440 — so their gutter of `12rem` below 769px
+     and `20rem` above it resolves to 12px at 375, 12px at 768, 20px at 1440
+     and 26.7px at 1920.
+
+     This `max()` lands on all four of those numbers without adopting their
+     scaling system: 20/1440 is 1.3889% of the viewport, and the 0.75rem floor
+     holds the phone at 12px until 864px, where the two meet. The one place it
+     deliberately departs is 769–864px, where their step to `20rem` briefly
+     shrinks the gutter to 10.7px before it grows back; `max()` never narrows
+     as the screen widens. */
+  --spacing-gutter: max(0.75rem, 1.3889vw);
 
   /* --- Layout ------------------------------------------------------------ */
   /* Header height. The hero pulls itself up by exactly this much so the bar
@@ -232,19 +380,25 @@
      the hero pulls itself up by the resting height so the bar sits over the
      artwork, and the mobile panel hangs from it.
 
-     The resting pair is generous on purpose. At 64/72 the bar was the client's
-     one note on the header — "height seems too small" — and it was right: a
-     logo, six links and a filled action inside 64px leaves nothing any room,
-     and the old scrolled state took it down to 56, which made the page feel
-     like it was closing up as you read. The mark is the anchor here and it
-     needs the air to be one.
+     SET AGAINST A REFERENCE, NOT AGAINST AN OPINION. This bar has been 64/72,
+     then 88/120, then 80/96, each time on somebody's read of "too big" or "too
+     small". The client has now pointed at cowboy.com, which settles it with a
+     number: their desktop row is 56px carrying a 24px mark — the mark at about
+     43% of the row, and no more air than that.
 
-     The scrolled pair is a refinement, not a collapse. 16px comes off, which
-     is enough to register as the bar settling and not enough to crush it. */
-  --spacing-header: 5.5rem; /* 88px — phone and tablet, at rest */
-  --spacing-header-lg: 7.5rem; /* 120px — desktop, at rest */
-  --spacing-header-set: 4.75rem; /* 76px — phone and tablet, scrolled */
-  --spacing-header-set-lg: 6rem; /* 96px — desktop, scrolled */
+     72px at rest on a desktop with a 36px mark holds the same proportion while
+     leaving this bar the extra it genuinely needs: it carries a centred mark
+     between two flanking groups, where the reference runs its logo hard left.
+     The phone keeps a little more again (64px) because the bar is the only
+     chrome there.
+
+     The scrolled pair is a refinement, not a collapse: 12px comes off the
+     desktop and 8px off the phone, enough to register as the bar settling and
+     not enough to crush it. */
+  --spacing-header: 4rem; /* 64px — phone and tablet, at rest */
+  --spacing-header-lg: 4.5rem; /* 72px — desktop, at rest */
+  --spacing-header-set: 3.5rem; /* 56px — phone and tablet, scrolled */
+  --spacing-header-set-lg: 3.75rem; /* 60px — desktop, scrolled */
 
   /* No longer applied to the page container: the layout runs full-bleed and is
      held in only by --spacing-gutter, the way the reference does it. Kept for
@@ -357,6 +511,95 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* ------------------------------------------------------------------------
+     THE GRAIN — one fixed layer of paper texture over the whole site.
+
+     Every surface here is a flat digital fill: White Rock, Light Sage, Deep
+     Lilac. Flat fills at this scale read as screen rather than as material,
+     and this is a studio that sells an afternoon with your hands in wet clay.
+     A little tooth over the top makes the grounds read as stock the brand was
+     printed on, which is the difference between a colour and a paper.
+
+     HOW IT IS MADE. An inline SVG `feTurbulence`, not an image file: it is
+     about 400 bytes in the stylesheet, costs no request, and is resolution
+     independent, so it stays crisp on a phone at 3x where a PNG tile would
+     either blur or have to ship at nine times the size. `fractalNoise` rather
+     than the default turbulence — it gives an even film grain instead of
+     wispy clouds — desaturated to monochrome, because coloured noise reads as
+     a broken panel rather than as texture.
+
+     `stitchTiles` matters: without it the noise is generated per tile and the
+     seams show as a faint grid at exactly the 240px repeat.
+
+     WHY IT IS FIXED AND WHY IT IS ON TOP. Fixed, so the grain belongs to the
+     screen rather than to the page — it holds still while the content moves
+     under it, which is how grain behaves on film and, practically, means the
+     browser never repaints it while scrolling. On top of everything, because
+     a texture that stops at the header or drops out over the pinned footer is
+     not a texture, it is a panel. `pointer-events: none` keeps it out of every
+     hit test; it cannot intercept a click, a hover or a focus.
+
+     THE OPACITY IS A CONTRAST DECISION, AND IT WAS MEASURED, NOT GUESSED.
+
+     Grain sits between the reader and the type, so it compresses every pair
+     toward its own mean. The first attempt here was 4.5% and it broke nine
+     elements: the footer's 13px group headings, `text/75` on Light Sage, went
+     from 4.71:1 to 4.36:1 against the 4.5:1 they owe. Swept across the whole
+     document, the failure threshold is between 2.5% and 2.75%.
+
+     So 2% — which leaves the worst pair on the site 0.048 clear rather than
+     0.009. The binding constraints are `text/75` on sage in the footer and the
+     `text/70` "optional" marker on the contact form, which sits at 4.70:1 with
+     0.20 of headroom before any of this existed.
+
+     VISIBILITY WAS BOUGHT BACK FROM THE NOISE, NOT THE OPACITY. What the eye
+     reads as texture is the noise's spread; what costs contrast is its mean.
+     The `feComponentTransfer` stretches the distribution 2.4x, taking the
+     standard deviation from 15 to 65 — so at 2% the grain varies the page by
+     1.3 levels RMS where the 4.5% version managed 0.7. Twice the texture for
+     less than half the contrast cost.
+
+     The stretch also pulls the mean down, from 187 to 101, because the low
+     tail clips at zero. That is measured, not intended, and it turns out to
+     help: a darker grain over these pale grounds moves the background away
+     from the charcoal type rather than toward it. Re-measured with the real
+     tile, the worst pair on the site sits 0.093 clear of its bar — better than
+     the 0.048 the arithmetic predicted before the clipping was accounted for.
+
+     Change either number and re-run the measurement; do not reason about it
+     from the slope alone, because the clipping is where the intuition fails.
+
+     No `mix-blend-mode`. It looks marginally richer, and it forces a
+     compositing layer the size of the viewport over a page that already runs
+     a video hero and a smoothed scroller. Not worth the frames.
+     --------------------------------------------------------------------- */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.4' intercept='-1.026'/%3E%3CfeFuncG type='linear' slope='2.4' intercept='-1.026'/%3E%3CfeFuncB type='linear' slope='2.4' intercept='-1.026'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 240px 240px;
+  }
+
+  /* Paper does not need a picture of paper. */
+  @media print {
+    body::after {
+      display: none;
+    }
+  }
+
+  /* Someone who has asked the operating system for more contrast has asked
+     for exactly the thing this layer spends. */
+  @media (prefers-contrast: more) {
+    body::after {
+      display: none;
+    }
+  }
+
   /* Headings inherit the sans stack; the display face is opt-in via .font-display */
   h1,
   h2,
@@ -400,9 +643,14 @@
    the page; this reads as a doorway the photograph is seen through, which is
    the reference the client actually gave.
 
-   Use it on the element that carries `overflow: hidden`, and use it rarely —
-   twice on the homepage. The motif is a language, not a texture: an arch in
-   every section stops meaning anything, and stops looking like architecture.
+   Use it on the element that carries `overflow: hidden`, and use it rarely.
+   The footer's rise out of the White Rock invitation above it is the only one
+   on the homepage; <BrandIntro> carries the other, and is not currently
+   mounted. It used to crown the creative-experiences window as well, until
+   that section became a hang of seven photographs and one arch would have had
+   to become seven — see <ExperienceIndex>. The motif is a language, not a
+   texture: an arch in every section stops meaning anything, and stops looking
+   like architecture.
 
    `--arch-rise` is the one knob. Lower it for a shallower crown on a plate
    that is already tall, raise it toward 32% for a squat one. Past that the

@@ -282,7 +282,7 @@ function EventsCta() {
               </p>
               <h2
                 id="contact-cta"
-                className="mt-7 text-[2rem] font-light uppercase leading-[1.02] tracking-[-0.02em] md:text-[2.75rem] lg:text-[3.25rem]"
+                className="mt-7 text-h1 font-light uppercase tracking-[-0.02em]"
               >
                 <span className="block">The programme,</span>
                 <span className="block">date by date.</span>

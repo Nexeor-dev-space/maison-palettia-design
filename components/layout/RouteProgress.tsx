@@ -70,9 +70,14 @@ export function RouteProgress() {
     <div
       aria-hidden={!pending}
       className={[
-        // Under the header rather than over it, and out of the document flow
-        // so it can never shift the page it is reporting on.
-        "pointer-events-none fixed inset-x-0 top-header z-40 h-0.5 overflow-hidden md:top-header-lg",
+        // At the very top of the window, and out of the document flow so it
+        // can never shift the page it is reporting on.
+        //
+        // It used to hang at `top-header`, tucked under a bar that was pinned
+        // there. The bar is in flow now and leaves with the page, so that
+        // offset would strand this line 64px down the window with nothing
+        // above it. Nought is where a progress line belongs anyway.
+        "pointer-events-none fixed inset-x-0 top-0 z-40 h-0.5 overflow-hidden",
         "transition-opacity duration-200 ease-soft",
         pending ? "bg-primary/20 opacity-100" : "opacity-0",
       ].join(" ")}

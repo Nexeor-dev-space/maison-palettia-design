@@ -14,6 +14,16 @@ interface WorkshopsMenuProps {
   disciplines: Discipline[];
   isActive: boolean;
   linkClassName: string;
+  /**
+   * Told whenever the panel opens or closes.
+   *
+   * The bar needs it: the panel drops on the page's white ground, and a white
+   * panel hanging off a bar that is still transparent over the hero reads as
+   * two unrelated things rather than one opening. The bar counts this menu as
+   * a reason to take its solid state, the same way it counts the mobile
+   * overlay and the search panel.
+   */
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -45,6 +55,7 @@ export function WorkshopsMenu({
   disciplines,
   isActive,
   linkClassName,
+  onOpenChange,
 }: WorkshopsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuId = useId();
@@ -81,20 +92,28 @@ export function WorkshopsMenu({
     }
   }, []);
 
+  const report = useCallback(
+    (open: boolean) => {
+      setIsOpen(open);
+      onOpenChange?.(open);
+    },
+    [onOpenChange],
+  );
+
   const openNow = useCallback(() => {
     cancelClose();
-    setIsOpen(true);
-  }, [cancelClose]);
+    report(true);
+  }, [cancelClose, report]);
 
   const closeSoon = useCallback(() => {
     cancelClose();
-    closeTimer.current = setTimeout(() => setIsOpen(false), 220);
-  }, [cancelClose]);
+    closeTimer.current = setTimeout(() => report(false), 220);
+  }, [cancelClose, report]);
 
   const closeNow = useCallback(() => {
     cancelClose();
-    setIsOpen(false);
-  }, [cancelClose]);
+    report(false);
+  }, [cancelClose, report]);
 
   // A pending close must not outlive the component, or it fires against an
   // unmounted tree on the way to another page.
@@ -154,30 +173,22 @@ export function WorkshopsMenu({
           hangs off, and leaving the trigger unmarked while its own panel is
           down reads as the panel belonging to nothing.
         */}
-        <NavLabel isActive={isActive || isOpen}>{label}</NavLabel>
         {/*
-          The one thing that says this entry has something behind it.
+          NO MARK BESIDE THE WORD.
 
-          Without it the trigger is a word that happens to open a panel when a
-          pointer crosses it, which a visitor only discovers by accident and a
-          touch visitor never discovers at all. `aria-hidden` because
-          `aria-expanded` on the button already says the same thing properly;
-          this is the visual half.
+          There was a small triangle here saying the entry had something behind
+          it. The client has asked for it to come out, and the row is better
+          for it: the trigger now sets exactly like the links either side of
+          it, which is what the arrow was quietly preventing — a flex row
+          carrying a word and a 7px glyph does not measure the same as one
+          carrying a word.
 
-          A 7px mark rather than a chevron glyph from the icon set: at this
-          size a drawn triangle sits on the baseline predictably, and the row
-          is small enough that a stroked chevron reads as fuzz.
+          `aria-expanded` on the button still states the relationship properly,
+          so nothing is lost to a screen reader. What is lost is the visual
+          cue for a touch visitor, who now discovers the panel by tapping —
+          which is the trade the client has chosen.
         */}
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 8 5"
-          className={cn(
-            "ml-2 h-[5px] w-2 shrink-0 fill-current transition-transform duration-300 ease-soft",
-            isOpen && "rotate-180",
-          )}
-        >
-          <path d="M0 0h8L4 5z" />
-        </svg>
+        <NavLabel isActive={isActive || isOpen}>{label}</NavLabel>
       </button>
 
       {/*
@@ -192,77 +203,123 @@ export function WorkshopsMenu({
         hidden={!isOpen}
         onMouseEnter={openNow}
         onMouseLeave={closeSoon}
-        className="absolute inset-x-0 top-full border-t border-on-dark/10 bg-nav"
+        /*
+          A WHITE FIELD NOW, NOT A CHARCOAL ONE.
+
+          The bar takes the page's own near-white the moment it stops being
+          transparent, and a panel that dropped out of it in Charcoal Slate
+          read as a second, unrelated surface arriving from somewhere else.
+          Same ground as the bar means the two are one object opening, which is
+          what a menu hanging off a masthead should be.
+
+          Charcoal on this ground is 11.61:1; the hairline is the bar's own.
+        */
+        className="absolute inset-x-0 top-full border-t border-text/10 bg-surface"
       >
-        <div className="mx-auto w-full px-gutter py-12 lg:py-14">
-          <ul className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4 lg:gap-x-10">
-            {disciplines.map((strand) => (
-              <li key={strand.slug}>
-                <Link
-                  href={strand.href}
-                  className="group block"
-                  onClick={closeNow}
+        <div className="mx-auto w-full px-gutter py-10 lg:py-12">
+          <div className="grid grid-cols-12 gap-x-6 gap-y-8 lg:gap-x-10">
+            {/*
+              The left column says what this is; the plates say what is in it.
+
+              Copy, not links. The heading is the strands section's own —
+              "Explore your creative side." — rather than a second sentence
+              written for the menu, so the menu and the page it opens onto
+              cannot drift apart. The eyebrow is the nav item's own label, so
+              it cannot drift either.
+            */}
+            <div className="col-span-12 flex flex-col lg:col-span-4">
+              <p className="text-label font-medium uppercase tracking-eyebrow text-text/70">
+                {label}
+              </p>
+              <p className="mt-4 max-w-[14ch] text-h2 font-light leading-[1.08] tracking-[-0.02em] text-text lg:mt-6">
+                Explore your creative side.
+              </p>
+
+              {/*
+                The way through to everything, held at the foot of the column
+                so it sits on the same line as the bottom of the plates at
+                `lg` and simply follows the heading on a narrower screen.
+              */}
+              <Link
+                href={href}
+                onClick={closeNow}
+                className="group mt-8 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text lg:mt-auto lg:pt-10"
+              >
+                <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
+                  See every upcoming event
+                </span>
+                <span
+                  aria-hidden
+                  className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
                 >
-                  <div className="relative aspect-[5/4] w-full overflow-hidden bg-on-dark/5">
+                  &#8594;
+                </span>
+              </Link>
+            </div>
+
+            {/*
+              The strands as plates, with their names set on the photograph
+              rather than under it. That is the whole difference between this
+              and the row of captioned thumbnails it replaces: a tile you read
+              inside is a door, where an image with a label beneath it is a
+              catalogue entry.
+            */}
+            <ul className="col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-8 lg:gap-5">
+              {disciplines.map((strand) => (
+                <li key={strand.slug}>
+                  <Link
+                    href={strand.href}
+                    onClick={closeNow}
+                    className="group relative block aspect-[5/4] overflow-hidden rounded-sm bg-surface-alt sm:aspect-[4/5] lg:aspect-[4/3]"
+                  >
                     <Image
                       src={strand.image.src}
                       alt=""
                       fill
-                      sizes="(min-width: 1024px) 22vw, 44vw"
+                      sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 92vw"
                       className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.04]"
                     />
-                  </div>
 
-                  {/*
-                    White throughout, hover included — see the note on
-                    NAV_LINK in <HeaderBar> for why the colour change was
-                    dropped: sage measured 3.84:1 during the bar's stretch on
-                    Deep Lilac, under the 4.5:1 running text owes at this
-                    size — and the image beneath already carries its own
-                    hover cue (a slow scale, set on the figure above).
-                  */}
-                  <p className="mt-4 text-sm font-medium uppercase tracking-eyebrow text-on-dark transition-colors duration-300 ease-soft">
-                    {strand.name}
-                  </p>
-                  {/*
-                    /95, not the /70 this was first written at. /70 was
-                    measured against Ink, this bar's ground both before and
-                    after — 5.9:1, clear of the 4.5:1 this size owes — but for
-                    the stretch the ground moved to Deep Lilac, /70 measured
-                    only 3.37:1 there, and /95 (4.76:1) was the fix. Left at
-                    /95 on the way back rather than restored to /70: it costs
-                    nothing against Ink either, and a description this small
-                    is worth the extra margin regardless of which ground ends
-                    up live next.
-                  */}
-                  <p className="mt-2 text-fine leading-relaxed text-on-dark/95">
-                    {strand.description}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                    {/*
+                      The type sits on the picture, so the picture has to be
+                      made to carry it — and these numbers are measured, not
+                      judged.
 
-          {/*
-            The way through to everything. Last, because the strands are the
-            answer to "what could I do here" and this is the answer to "show
-            me all of it" — which is the smaller question at this moment.
-          */}
-          <Link
-            href={href}
-            onClick={closeNow}
-            className="group mt-12 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-on-dark"
-          >
-            <span className="border-b border-sage/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
-              See every upcoming event
-            </span>
-            <span
-              aria-hidden
-              className="text-sage transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-            >
-              &#8594;
-            </span>
-          </Link>
+                      Sampled per tile: the shipped crop composited under each
+                      caption's own box, worst pixel. The first pass
+                      (88/55/32/72) read 3.79:1 under "Paint" and 2.06:1 under
+                      "Create", which is not a near miss — the create plate is
+                      a pale photograph and cream type on it was barely there.
+
+                      These stops are the lightest of five candidates that
+                      clear the 4.5:1 a 13px description owes on all three
+                      plates at once; worst case is 5.35:1, still on "Create".
+                      It is a heavy foot by the standards of this site, and the
+                      pale plate is the reason.
+
+                      TODO(client): create.jpg is the plate forcing this. It is
+                      already flagged in lib/disciplines.ts as off-message — a
+                      bought souvenir rather than something made. Replacing it
+                      would let this rise come back up.
+                    */}
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-gradient-to-t from-text/95 via-text/80 via-42% to-transparent to-85%"
+                    />
+
+                    <div className="absolute inset-x-0 bottom-0 p-4 lg:p-5">
+                      <p className="text-lead font-medium leading-tight text-on-dark">
+                        {strand.name}
+                      </p>
+                      <p className="mt-1.5 text-fine leading-snug text-on-dark/90">
+                        {strand.description}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>

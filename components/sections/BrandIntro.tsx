@@ -134,8 +134,8 @@ export function BrandIntro() {
           */}
           <figure className="col-span-12 ml-10 mt-14 md:col-span-5 md:col-start-8 md:ml-0 md:-mt-2 lg:col-span-5 lg:-mt-16">
             {/*
-              Crowned with the Maison's entrance arch — the first of exactly
-              two on the site (the other opens the creative strands). It is an
+              Crowned with the Maison's entrance arch — one of only two on
+              the site, the other being the footer's. It is an
               ellipse a fifth of the plate's height rather than a semicircular
               dome, so the photograph is seen through a doorway rather than cut
               into a shape; see the `arch` utility in globals.css.

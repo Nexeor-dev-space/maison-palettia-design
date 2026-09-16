@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "inverse" | "inverseGhost" | "sage";
 type ButtonSize = "sm" | "md" | "lg";
-type ButtonShape = "pill" | "square";
+type ButtonShape = "soft" | "square";
 
 interface StyleProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Corner treatment. Defaults to the pill used everywhere on the page body. */
+  /** Corner treatment. Defaults to the 8px radius used everywhere on the site. */
   shape?: ButtonShape;
   className?: string;
 }
@@ -20,9 +20,14 @@ interface StyleProps {
  * through `className`: `cn` only concatenates, so two competing radius
  * utilities would be settled by their order in the generated stylesheet
  * rather than by the order they were written.
+ *
+ * `soft` is the site's radius — 8px, `--radius-sm` — and it is what every
+ * button and every image plate now carries. It replaced a full pill, which was
+ * the one corner treatment on the site that could not sit beside a photograph
+ * without the two disagreeing.
  */
 const shapeStyles: Record<ButtonShape, string> = {
-  pill: "rounded-pill",
+  soft: "rounded-sm",
   square: "rounded-none",
 };
 
@@ -32,11 +37,17 @@ const base =
   "disabled:pointer-events-none disabled:opacity-50";
 
 const variantStyles: Record<ButtonVariant, string> = {
-  /* Deep Lilac. The brand offers White Rock or white for the label and this
-     takes white: White Rock on Deep Lilac measures 3.95:1, under the 4.5:1 a
-     button label owes at this size, where white clears it at 5.1:1. The same
-     measurement is why the header's navigation is white rather than cream. */
-  primary: "bg-primary text-on-dark hover:bg-primary/90",
+  /* Deep Lilac, with the one light ink that survives it.
+     ---------------------------------------------------------------------
+     The note that used to sit here had the measurement right and the token
+     wrong: it said White Rock is 3.95:1 on Deep Lilac and fails, and then set
+     the label in `on-dark`, which is White Rock. Every primary action on the
+     site shipped at 3.95:1.
+
+     `on-primary` is the page's own ground — White Rock taken toward white —
+     and measures 4.90:1 here. See the token for why that is the answer rather
+     than pure white. */
+  primary: "bg-primary text-on-primary hover:bg-primary/90",
   /* Charcoal Slate hairline and Charcoal Slate label, per the brand's
      secondary button. The ring was the pale White Rock line before, which read
      as a disabled control rather than as the quieter of two actions. */
@@ -53,16 +64,30 @@ const variantStyles: Record<ButtonVariant, string> = {
   sage: "bg-sage text-text hover:bg-sage/85",
 };
 
+/**
+ * Sizes, set in the project's own type scale.
+ *
+ * These were `text-sm` with `tracking-wide` — a Tailwind default and a
+ * Tailwind tracking, on the one component whose whole job is to be the site's
+ * button. `text-action` is the scale's step for exactly this (12px, and
+ * deliberately one above the caption size a control should never be set at),
+ * and `tracking-eyebrow` is the letterspacing every hand-rolled button on the
+ * site already uses. The type is now the same as the buttons around it.
+ *
+ * Padding is generous on purpose: a premium control is mostly air. `lg` is the
+ * page-level action and matches the 8/5 the booking and enquiry flows set by
+ * hand.
+ */
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "px-4 py-2 text-sm",
-  md: "px-6 py-3 text-sm tracking-wide",
-  lg: "px-8 py-4 text-sm tracking-wide",
+  sm: "px-5 py-3 text-action uppercase tracking-eyebrow",
+  md: "px-7 py-4 text-action uppercase tracking-eyebrow",
+  lg: "px-8 py-5 text-action uppercase tracking-eyebrow",
 };
 
 function buttonClasses({
   variant = "primary",
   size = "md",
-  shape = "pill",
+  shape = "soft",
   className,
 }: StyleProps) {
   return cn(base, variantStyles[variant], sizeStyles[size], shapeStyles[shape], className);

@@ -100,7 +100,7 @@ export function LocationDiscovery({ workshops, filters, onSelect }: LocationDisc
                 aria-pressed={selected}
                 onClick={() => onSelect(selected ? null : location.name)}
                 className={cn(
-                  "flex w-full items-start gap-4 border p-5 text-left transition-colors duration-300 ease-soft md:p-6",
+                  "flex w-full items-start gap-4 rounded-sm border p-5 text-left transition-colors duration-300 ease-soft md:p-6",
                   selected
                     ? "border-text bg-text/[0.04]"
                     : "border-line hover:border-text/45",

@@ -43,7 +43,7 @@ import type { Discipline, Workshop } from "@/types";
  * and <WorkshopsMenu>.
  */
 const NAV_LINK =
-  "group/nav inline-flex text-body tracking-[0.01em] text-on-dark " +
+  "group/nav inline-flex text-body tracking-[0.01em] text-current " +
   "transition-colors duration-300 ease-soft";
 
 /**
@@ -58,6 +58,20 @@ const NAV_LINK =
  */
 const NAV_WEIGHT_PRIMARY = "font-medium";
 const NAV_WEIGHT_REST = "font-normal";
+
+/**
+ * How far the page has to move before the bar leaves the document flow.
+ *
+ * It has to clear the bar's own resting height, and by enough that the switch
+ * happens well out of sight: detaching is the one moment the header stops
+ * taking up space, and a spacer takes its place in the same commit so the
+ * document keeps its height and nothing under it moves. 240px clears the
+ * 120px desktop bar twice over and the 88px phone bar nearly three times.
+ */
+const DETACH_AFTER = 240;
+
+/** Pixels of travel before a change of direction counts as one. */
+const DIRECTION_DEADBAND = 6;
 
 /**
  * The bar. Client component: it owns the scroll state and the mobile overlay.
@@ -99,6 +113,15 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   /*
+    The strands megamenu, open or not.
+
+    Held here rather than inside <WorkshopsMenu> alone because the bar has to
+    know: the panel drops on the page's white ground, and a white panel hanging
+    off a bar still transparent over the hero photograph reads as two unrelated
+    surfaces instead of one thing opening.
+  */
+  const [isStrandsOpen, setIsStrandsOpen] = useState(false);
+  /*
     Bumped every time the overlay opens, and used as the panel's React key.
 
     The panel is kept mounted and hidden rather than unmounted, so its contents
@@ -114,6 +137,16 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchOpenCount, setSearchOpenCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  /*
+    Two questions, not one, and they are independent.
+
+    `isDetached` — has the page moved far enough that the bar has left the
+    document flow and is now a fixed element? `isRising` — is the reader
+    currently going up? The bar is only on screen when both are true (or an
+    overlay is open, which pins it regardless).
+  */
+  const [isDetached, setIsDetached] = useState(false);
+  const [isRising, setIsRising] = useState(false);
   const menuId = useId();
   const searchPanelId = useId();
   const searchTriggerRef = useRef<HTMLButtonElement>(null);
@@ -121,8 +154,30 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   // than dropping it at the top of the document.
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
+  /*
+    The scroll reader. It answers three things: has the page moved at all
+    (ground and ink), has it moved past the bar (in flow or fixed), and which
+    way is the reader going (on screen or gone).
+
+    DIRECTION NEEDS A DEADBAND. A momentum fling and a rubber-band bounce both
+    produce a handful of pixels in the wrong direction at the end of a gesture,
+    and a bar that flips on a single pixel flickers through every one of them.
+    Six pixels is under the threshold of a deliberate scroll and over the noise.
+  */
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 8);
+    let lastY = window.scrollY;
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      setIsScrolled(y > 8);
+      setIsDetached(y > DETACH_AFTER);
+
+      const delta = y - lastY;
+      if (Math.abs(delta) > DIRECTION_DEADBAND) {
+        setIsRising(delta < 0);
+        lastY = y;
+      }
+    };
 
     // Deferred so the restored-scroll sync does not run inside the effect body.
     const initial = requestAnimationFrame(onScroll);
@@ -200,7 +255,80 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   // the same way the mobile menu does, and the desktop search dropdown is the
   // same `bg-nav` the bar itself would otherwise be fading out of.
   const isOverHero = DARK_HERO_ROUTES.includes(pathname);
-  const isSolid = !isOverHero || isScrolled || isMenuOpen || isSearchOpen;
+  const overlayOpen = isMenuOpen || isSearchOpen;
+
+  /*
+    THE BAR IS IN FLOW AT THE TOP AND FIXED ON THE WAY BACK UP, at the client's
+    ask, and the two halves of that answer two different complaints.
+
+    Pinned everywhere, it is furniture: a permanent strip across a site whose
+    whole argument is full-bleed photography, taking a slice of every screen
+    including the hero. In flow everywhere — which is what this was — there is
+    no navigation from the middle of a page at all, and reaching it means
+    scrolling back to the top.
+
+    Going down is reading, so the bar gets out of the way. Going up is looking
+    for something, and the something is almost always navigation — so that is
+    when it comes back, and it comes back over whatever section happens to be
+    passing, which is why it takes its ground and its ink with it rather than
+    arriving transparent.
+
+    An open overlay pins it regardless: both panels hang off the bar's bottom
+    edge, and a bar that slid away while its own menu stayed would leave the
+    menu attached to nothing.
+  */
+  const isPinned = isDetached && (isRising || overlayOpen);
+
+  /*
+    GROUND AND INK ARE TWO DECISIONS, AND THE GROUND HAS THREE CAUSES.
+
+    The bar is transparent where it opens — over a hero that is its own colour
+    field — and takes a ground the moment it is over page instead.
+
+    THE PANEL ON SCROLL IS BACK, AT THE CLIENT'S ASK. It was taken out in an
+    earlier pass so the bar sat on the page at every position with only its ink
+    changing, and the client has since asked for the white bar. It is the
+    better answer anyway now that the sections under it are photographs as
+    often as they are flat colour: ink alone cannot hold a bar legible over an
+    arbitrary picture, and a ground can.
+
+    `!isOverHero` is the same rule said at rest rather than on scroll. Only the
+    homepage opens on a colour field; every other route opens on page, so the
+    bar is over something it needs a ground for from the first paint. Without
+    it those routes flashed — transparent for eight pixels of scroll, then
+    white, on a bar that is already on its way off the screen.
+
+    The other two causes are the overlays. The mobile menu and the search panel
+    hang directly off the bar's bottom edge; a transparent bar above either
+    would show a strip of page between the two and read as a gap in one field
+    rather than as one panel.
+  */
+  const hasGround = overlayOpen || isStrandsOpen || isScrolled || !isOverHero;
+
+  /*
+    WHICH ground, which is not the same question as whether there is one.
+
+    The mobile menu and the search panel are `bg-nav`, so the bar joins them in
+    Charcoal Slate. The strands megamenu is the page's own near-white, so the
+    bar has to join *that* instead — a charcoal bar over a white panel is the
+    same two-unrelated-surfaces problem as a white bar over a charcoal one,
+    facing the other way.
+
+    This does not reintroduce the panel on scroll. Scrolling alone still leaves
+    the bar sitting on the page with no ground of its own; the only thing added
+    here is the field the strands panel opens into.
+  */
+  const groundIsDark = overlayOpen;
+
+  /*
+    Light ink over the hero photograph before the page has moved, and while a
+    charcoal overlay is open — because that panel is charcoal and the bar is
+    part of it. Everywhere else the bar is over a pale ground and takes
+    Charcoal Slate, and that now includes the hero itself while the strands
+    megamenu is open: the panel is near-white, the bar joins it, and light ink
+    on the pair would be unreadable.
+  */
+  const onDarkInk = overlayOpen || (isOverHero && !isScrolled && !isStrandsOpen);
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -211,16 +339,78 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const utilityNav = MAIN_NAV.filter((item) => !item.secondary && item.utility);
 
   return (
+    <>
     <header
       className={cn(
-        // The focus ring is cream throughout: on this ground the default lilac
-        // would vanish.
-        "sticky top-0 z-50 border-b transition-colors duration-500",
-        "ease-[cubic-bezier(0.4,0,0.2,1)] [--color-focus:var(--color-cream)]",
-        // The hairline only exists once the bar has a ground of its own. Over
-        // the hero there is nothing for it to divide, and a line ruled across
-        // the artwork is exactly the hard separation the bar is avoiding.
-        isSolid ? "border-on-dark/10 bg-nav" : "border-transparent bg-transparent",
+        /*
+          THREE POSITIONS, AND ONLY THE FIRST TWO ARE EVER SEEN.
+
+            in flow      at the top of the document, `relative` so `z-50`
+                         still applies — the overlays hang off this element
+                         and have to stack over the page.
+            fixed, up    translated off the top. This is the "not fixed" the
+                         client asked for while reading down: the bar is out
+                         of flow but out of sight, so the page is whole.
+            fixed, down  on screen, over whatever is passing.
+
+          `relative` is kept for the first because a `fixed` bar takes no
+          space, and every page on this site is laid out against a bar that
+          does — the hero pulls itself up by `-mt-header` to sit under it. Go
+          fixed at the top and the hero would clear a bar that is no longer
+          there. So the switch happens 240px down, out of sight, and a spacer
+          takes the bar's place in the same render.
+        */
+        isDetached ? "fixed inset-x-0 top-0" : "relative",
+        "z-50 transition-colors duration-500",
+        "ease-[cubic-bezier(0.4,0,0.2,1)]",
+        /*
+          The slide. Transform only — an animated `top` would lay out on every
+          frame, where a transform is composited. Held behind `motion-reduce`,
+          which snaps it instead: a reader who has asked for stillness should
+          still get the bar back on the way up, just without the travel.
+        */
+        isDetached
+          ? "transition-transform duration-[450ms] motion-reduce:transition-none"
+          : "",
+        isDetached && !isPinned ? "-translate-y-full" : "translate-y-0",
+        // The focus ring follows the ink. Cream is right over the hero and
+        // inside an open overlay; on the page's pale grounds it would vanish,
+        // so the ring falls back to Deep Lilac there.
+        onDarkInk ? "[--color-focus:var(--color-cream)]" : "[--color-focus:var(--color-primary)]",
+        /*
+          THE NEAR-WHITE PANEL ON SCROLL, which the bar carries from the
+          moment the page has moved at all. `bg-surface` rather than a pure
+          white: the page's own ground is #fffdf9, and a bar of #ffffff over it
+          reads as a second, colder surface laid on top rather than as the page
+          continuing up behind the type.
+
+          `border-b` IS APPLIED WITH THE GROUND, NOT KEPT AND MADE
+          TRANSPARENT, and that is a layout fix rather than a tidy-up. A
+          transparent border still occupies its pixel: the bar measured 121px
+          against the 120px the hero pulls itself up by, so one row of the
+          page's own near-white ground showed above the artwork as a hairline
+          across the top of the window.
+
+          ONE PLACE DECIDES THE INK, AND EVERYTHING IN THE BAR INHERITS IT.
+          Setting `color` here and letting the row use `text-current` means the
+          flip is one class rather than a conditional on every link, icon and
+          rule inside it — and it cannot go half-done, which is what a bar of
+          White Rock links over a pale section would be.
+
+          `bg-nav` for the overlay case rather than the near-white it used to
+          take: the panel hanging under it is `bg-nav`, and the two have to be
+          one field. They were not — a white bar sat above a charcoal panel.
+
+          Charcoal on the page measures 11.61:1; White Rock over the hero is
+          held up by the photograph's own head wash, which is measured in
+          <Hero>.
+        */
+        hasGround
+          ? groundIsDark
+            ? "border-b border-on-dark/10 bg-nav"
+            : "border-b border-text/10 bg-surface"
+          : "bg-transparent",
+        onDarkInk ? "text-on-dark" : "text-text",
       )}
     >
       <Container
@@ -244,13 +434,39 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           "grid grid-cols-[auto_1fr_auto] items-center gap-6",
           "lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
           "transition-[height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          // Full height while either overlay is open, whatever the scroll:
-          // both panels hang from the resting height (<MobileNav>'s `top-header`,
-          // <SearchPanel>'s mobile shape the same), and a settled bar would
-          // leave a strip of the page showing between the two.
-          isScrolled && !isMenuOpen && !isSearchOpen
-            ? "h-header-set md:h-header-set-lg"
-            : "h-header md:h-header-lg",
+          /*
+            ONE HEIGHT NOW, AND THE PINNING IS WHY.
+
+            The bar used to settle 8px shorter once the page moved. An
+            out-of-flow bar can do that for free; an in-flow one cannot —
+            shrinking it moves every pixel of the document up by the
+            difference, so the whole page would lurch at 8px of scroll and
+            lurch back on the way home.
+
+            It also quietly fixes a mismatch that was always there: both
+            overlays hang from the *resting* height (<MobileNav>'s
+            `top-header`, <SearchPanel>'s mobile shape the same), so a settled
+            bar left a strip of page showing between the bar and the panel.
+          */
+          /*
+            THE DESKTOP HEIGHT NEVER APPLIED, AND THE BAR HAS BEEN 64px SINCE.
+
+            This read `md:h-header-lg`, and that utility is not generated —
+            measured at 700, 900 and 1440, the row was 64px at all three. The
+            token is fine and the breakpoint is fine: the hero's own
+            `md:-mt-header-lg` resolves to -72px from the same variable at the
+            same width. It is `h-*` specifically that does not pick this name
+            up, so the class sat in the markup looking correct and did nothing.
+
+            The mismatch was live: the hero pulled up 72px under a 64px bar, so
+            the two disagreed by 8px about where the page starts — the same
+            class of bug as the white stroke this bar had earlier.
+
+            Referencing the variable directly is unambiguous and keeps the
+            token the single source of truth, which an arbitrary `4.5rem` here
+            would not.
+          */
+          "h-header md:h-[var(--spacing-header-lg)]",
         )}
       >
         {/*
@@ -294,6 +510,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
               item.megamenu ? (
                 <li key={item.href} className="flex items-center">
                   <WorkshopsMenu
+                    onOpenChange={setIsStrandsOpen}
                     label={item.label}
                     href={item.href}
                     disciplines={disciplines}
@@ -328,7 +545,8 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           second set of markup to keep in step.
         */}
         <div className="col-start-1 flex items-center justify-start lg:col-start-2 lg:justify-center">
-          <Wordmark />
+          {/* Light ground gets the Deep Lilac cut; the sage cut would vanish. */}
+          <Wordmark onLight={!onDarkInk} />
         </div>
 
         {/*
@@ -410,7 +628,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
             aria-expanded={isMenuOpen}
             aria-controls={menuId}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            className="-mr-2 inline-flex size-11 items-center justify-center text-cream transition-colors duration-200 hover:text-sage lg:hidden"
+            className="-mr-2 inline-flex size-11 items-center justify-center text-current transition-colors duration-200 hover:opacity-70 lg:hidden"
           >
             {isMenuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
           </button>
@@ -437,5 +655,20 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         workshops={workshops}
       />
     </header>
+
+    {/*
+      The bar's stand-in, and the reason detaching is invisible.
+
+      A `fixed` element takes no space, so the moment the bar leaves the flow
+      the document is one bar shorter and everything below it jumps up by that
+      much — 120px on a desktop, mid-scroll, with no warning. This holds the
+      gap open. It carries the bar's own height classes rather than a measured
+      number, so the two cannot drift: change the bar's height and this
+      follows in the same edit.
+    */}
+    {isDetached ? (
+      <div aria-hidden className="h-header md:h-[var(--spacing-header-lg)]" />
+    ) : null}
+    </>
   );
 }

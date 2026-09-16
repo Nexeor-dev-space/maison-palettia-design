@@ -25,69 +25,83 @@ const LOW_SEAT_THRESHOLD = 4;
    against realistic shapes, and every one of them must be replaced before
    launch.
 
-   TODO(client): THE MALLS BELOW ARE PLACEHOLDERS. `venue` is a new and
-   deliberately optional field — the schedule omits the location entirely for
-   any session that has none, so blanking those lines is all it takes to ship
-   without inventing a location. They are filled in only so the section can be
-   designed against the shape the business actually has. Supply the real malls,
-   as they are signposted, with the city under them. Delete this array
-   wholesale once the CMS is connected — `getUpcomingWorkshops` is the only
-   thing that reads it.
+   THE VENUES ARE NO LONGER INVENTED. They were "The Dubai Mall", "Mall of
+   the Emirates" and "City Centre Mirdif" — three centres the studio has no
+   agreement with, named on a public listing, which lib/partners.ts flagged as
+   the one thing on the site that could actually cause trouble. Both sessions
+   now sit at Times Square Center, the single destination the client has
+   confirmed, so the schedule and the partner section tell one story and the
+   homepage map has something true to point at.
 
-   TWO SESSIONS, NOT THREE, AND THAT IS THE HONEST NUMBER RIGHT NOW. There was
-   a third — "Throwing on the Wheel", filed under a Pottery category — and the
-   client has taken the brand off the wheel, so it is gone rather than
-   re-dressed. The glazing session it sat beside has become Ceramic Painting,
-   which is an approved activity: the same placeholder date, venue, price and
-   seat count, with pottery-process wording (bisque, kiln, firing) out of the
-   excerpt. No new session was invented to fill the gap, because inventing one
-   would mean inventing a date and a price to go with it. The listing and the
-   homepage both render whatever they are given, so two is a supported state.
+   `venue` is still optional: the schedule omits the location entirely for any
+   session that has none, so blanking these lines ships without inventing one.
+   Delete this array wholesale once the CMS is connected — `getUpcomingWorkshops`
+   is the only thing that reads it.
 
-     TODO(client): the programme has eight approved activities — ceramic
-     painting, painting, tote-bag painting, bedazzling, mandala painting,
-     glass painting, candle making and crocheting — and only two are
-     represented here, because the project holds photography for only those
-     two. Supply the real schedule, and a frame per activity with it.
+   TWO SESSIONS, AND THEY ARE THE TWO THE CLIENT SAYS ARE BOOKABLE. The studio
+   runs two kinds of thing: DIY activities you walk in and do, and scheduled
+   sessions you book online for a fixed time. The client has confirmed that the
+   second list is Candle Making and Crocheting, so those are the two entries
+   here; the DIY activities live in lib/experiences.ts, which carries the same
+   split on its own `kind` field.
+
+   THE DATES, TIMES, VENUE, PRICES AND SEAT COUNTS BELOW ARE STILL INVENTED.
+   Only the names, the descriptions and the photographs are the studio's. Two
+   earlier placeholder sessions — "Watercolour in Bloom" and a ceramic-painting
+   date — were re-pointed onto these two activities at the client's direction,
+   keeping their invented schedule rather than inventing a new one. So every
+   number here is a shape to design against and none of it is a commitment.
+
+     TODO(client): supply the real dates, times, prices and seat counts. Until
+     then the second session reads as fully booked, which is a placeholder seat
+     count rather than a statement about crochet.
+
+     TODO(client): the programme has eight approved activities. The other six
+     are DIY and are listed in lib/experiences.ts; none of them belongs here
+     unless the studio starts selling a fixed date for it — see `kind` on
+     {@link Workshop}, which is what the homepage carousel filters on.
    ========================================================================== */
 const PLACEHOLDER_WORKSHOPS: Workshop[] = [
   {
-    slug: "watercolour-in-bloom",
-    title: "Watercolour in Bloom",
-    category: "Painting",
+    slug: "candle-making",
+    title: "Candle Making",
+    category: "Craft",
     startsAt: "2026-10-11T15:30:00+04:00",
-    venue: { name: "Mall of the Emirates", locality: "Al Barsha" },
+    venue: { name: "Times Square Center", locality: "Dubai" },
     durationMinutes: 120,
     price: { amount: 240, currency: "AED" },
     seatsTotal: 12,
     seatsAvailable: 9,
     status: "open",
-    excerpt: "Loose washes, soft pigment and slow layers — an afternoon of colour worked from a single stem.",
+    // The client's own wording for this session, supplied with the carousel brief.
+    excerpt: "Choose your scent, pour your candle and create something that's uniquely yours.",
     image: {
-      src: "/images/workshops/watercolour-street.jpg",
-      alt: "A watercolour of a cobbled hillside street — whitewashed houses under terracotta roofs, geraniums at a shuttered window, and a castle wall rising above the trees.",
-      // The plate is 4:5 and the painting is taller than that, so `cover` takes
-      // about a tenth off the height. Held a little high: the loss is spent on
-      // the empty cobbles along the foot rather than on the roofline and the
-      // castle, which is where the painting's detail is.
-      position: "50% 45%",
+      // The same frame, alt text and crop `lib/experiences.ts` carries for
+      // candle making — one photograph is never described two ways, and the
+      // shared slug is what keeps the two entries findable together.
+      src: "/images/hero-carousel/1.jpg",
+      alt: "Two hands cupping a freshly poured candle in a glass jar, its wick lit, with tealights burning on the wooden bench around it.",
+      position: "50% 40%",
     },
   },
   {
-    slug: "ceramic-painting",
-    title: "Ceramic Painting",
-    category: "Ceramic Painting",
+    slug: "crocheting",
+    title: "Crocheting",
+    category: "Craft",
     startsAt: "2026-10-24T11:00:00+04:00",
-    venue: { name: "City Centre Mirdif", locality: "Mirdif" },
+    venue: { name: "Times Square Center", locality: "Dubai" },
     durationMinutes: 150,
     price: { amount: 280, currency: "AED" },
     seatsTotal: 8,
     seatsAvailable: 0,
     status: "fully-booked",
-    excerpt: "Take a ready-made ceramic piece and make it yours — colour, pattern and a fine brush, one decision at a time.",
+    // Opens on the studio's own line from lib/experiences.ts, so the menu and
+    // the schedule cannot describe the same activity two different ways.
+    excerpt: "A hook, a ball of yarn and one stitch to start from — worked into something you take with you.",
     image: {
-      src: "/images/workshops/glazed-vessel.jpg",
-      alt: "A cream ceramic vase painted with a pattern of blue, green and ochre scrollwork.",
+      src: "/images/hero-carousel/crocheting.jpg",
+      alt: "Balls of mint and cream yarn with a crochet hook resting on them, beside a finished blanket worked in shell stitch.",
+      position: "58% 42%",
     },
   },
 ];

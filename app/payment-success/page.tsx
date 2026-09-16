@@ -46,7 +46,7 @@ export default function PaymentSuccessPage() {
           directive, so importing it here breaks the build. See the note in the
           Phase 9 report; that module should carry the directive.
         */}
-        <h1 className="mt-9 max-w-[20ch] text-[2rem] font-light uppercase leading-[1.04] tracking-[-0.02em] md:text-[2.75rem] lg:text-[3.25rem]">
+        <h1 className="mt-9 max-w-[20ch] text-h1 font-light uppercase tracking-[-0.02em]">
           Your reference is ready.
         </h1>
       </Reveal>

@@ -187,7 +187,7 @@ function CartEntry({
         {/* A pass may have no photograph on file; the entry then shows none
             rather than a stand-in borrowed from something else. */}
         {line.image ? (
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-surface-alt sm:h-24 sm:w-24">
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm bg-surface-alt sm:h-24 sm:w-24">
             <Image
               src={line.image.src}
               alt={line.image.alt}
@@ -272,7 +272,7 @@ function CartEntry({
       <div className="mt-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-4">
         <div>
           <p className={TERM}>{units === "places" ? "Places" : "Passes"}</p>
-          <div className="mt-2 flex items-center border border-text/20">
+          <div className="mt-2 flex items-center overflow-hidden rounded-sm border border-text/20">
             <Step
               label={`One fewer ${unit} for ${line.title}`}
               onClick={() => onQuantity(line.slug, line.quantity - 1)}

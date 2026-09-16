@@ -76,7 +76,7 @@ export function BookingForm({ workshop }: { workshop: Workshop }) {
       <fieldset>
         <legend className={LABEL}>Places</legend>
         <div className="mt-4 flex items-center gap-6">
-          <div className="flex items-center border border-line">
+          <div className="flex items-center overflow-hidden rounded-sm border border-line">
             <Step
               label="One fewer place"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -169,9 +169,9 @@ export function BookingForm({ workshop }: { workshop: Workshop }) {
       <button
         type="submit"
         className={cn(
-          "group mt-12 inline-flex w-full items-center justify-center gap-2.5 px-8 py-5",
+          "group mt-12 inline-flex w-full items-center justify-center gap-2.5 rounded-sm px-8 py-5",
           "text-action font-medium uppercase leading-none tracking-eyebrow",
-          "bg-primary text-on-dark transition-colors duration-300 ease-soft",
+          "bg-primary text-on-primary transition-colors duration-300 ease-soft",
           "hover:bg-primary/90 sm:w-auto",
         )}
       >

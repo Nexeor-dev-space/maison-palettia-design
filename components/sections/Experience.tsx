@@ -179,7 +179,7 @@ interface PlateProps {
 function Plate({ image, shape, sizes, className }: PlateProps) {
   return (
     <figure className={className}>
-      <div className={cn("group relative w-full overflow-hidden bg-text/5", shape)}>
+      <div className={cn("group relative w-full overflow-hidden rounded-sm bg-text/5", shape)}>
         <Reveal variant="imageReveal" className="absolute inset-0">
           <div className="relative h-full w-full transition-transform duration-[1400ms] ease-editorial motion-safe:group-hover:scale-[1.03]">
             <Image

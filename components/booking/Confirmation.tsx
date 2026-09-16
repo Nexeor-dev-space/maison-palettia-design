@@ -57,7 +57,7 @@ export function Confirmation() {
       <div className="mt-11 flex flex-wrap items-center gap-x-9 gap-y-5">
         <Link
           href="/events"
-          className="group inline-flex items-center gap-3 bg-primary px-7 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-dark transition-colors duration-300 ease-soft hover:bg-primary/90"
+          className="group inline-flex items-center gap-3 rounded-sm bg-primary px-7 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90"
         >
           View events
           <span

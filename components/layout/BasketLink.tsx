@@ -24,16 +24,16 @@ export function BasketLink() {
   return (
     <Link
       href="/checkout"
-      className="group inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-on-dark"
+      className="group inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-current"
     >
-      <span className="border-b border-on-dark/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-on-dark">
+      <span className="border-b border-current/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-current">
         Booking
       </span>
       {/*
         The count is the point of the link, so it is announced rather than left
         as a decorative bubble beside a word.
       */}
-      <span className="rounded-pill bg-on-dark/15 px-2 py-0.5 tabular-nums">
+      <span className="rounded-pill bg-current/15 px-2 py-0.5 tabular-nums">
         {places}
         {/* "Places" would be wrong the moment a pass is in the basket, which
             holds no place until it is redeemed. This counts both. */}

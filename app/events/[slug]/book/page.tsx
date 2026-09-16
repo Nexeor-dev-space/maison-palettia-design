@@ -115,7 +115,7 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
   return (
     <Reveal variant="fadeIn">
       <div className="bg-cream">
-        <div className="relative aspect-[3/2] w-full overflow-hidden">
+        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-sm">
           <Image
             src={workshop.image.src}
             alt={workshop.image.alt}

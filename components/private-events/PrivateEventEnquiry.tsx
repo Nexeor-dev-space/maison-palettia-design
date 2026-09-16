@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { sendEnquiry, type EnquiryResult } from "@/lib/enquiry";
-import { PRIVATE_EVENT_ACTIVITIES, PRIVATE_EVENT_OCCASIONS } from "@/lib/privateEvents";
+import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
 import { cn } from "@/lib/utils";
 
 /**
@@ -78,8 +78,15 @@ const FIELD_ORDER = ["name", "email", "phone", "date", "guests", "message"] as c
  * there is nowhere for their message to go. It matters more on this page than
  * anywhere else on the site — someone planning a birthday around a reply that
  * is never coming loses more than a reply.
+ *
+ * WHY THE ACTIVITIES ARRIVE AS A PROP. They are the studio's approved list and
+ * it is read through `getCreativeExperiences()`, which is async because it is
+ * the seam a CMS query will replace. A client component cannot await it, so
+ * the server page does and hands the names down. The alternative — a second
+ * copy of the list kept here — is exactly the drift that had this form and the
+ * homepage disagreeing about what the Maison offers.
  */
-export function PrivateEventEnquiry() {
+export function PrivateEventEnquiry({ activities }: { activities: readonly string[] }) {
   const ids = useId();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [result, setResult] = useState<EnquiryResult | null>(null);
@@ -298,19 +305,26 @@ export function PrivateEventEnquiry() {
         </p>
 
         <div className="mt-8 grid grid-cols-1 gap-x-10 gap-y-9 sm:grid-cols-2">
+          {/*
+            The same four groups the page before this one sets out, read from
+            the same constant so a visitor is never offered a type here that
+            the page did not show them. "Something else" stays: these are
+            examples, and a select with no way out turns an example into a
+            requirement.
+          */}
           <Select id={`${ids}-occasion`} name="occasion" label="Event type">
-            {PRIVATE_EVENT_OCCASIONS.map((occasion) => (
-              <option key={occasion.slug} value={occasion.label}>
-                {occasion.label}
+            {PRIVATE_EVENT_AUDIENCES.map((audience) => (
+              <option key={audience.slug} value={audience.name}>
+                {audience.name}
               </option>
             ))}
             <option value="Something else">Something else</option>
           </Select>
 
           <Select id={`${ids}-activity`} name="activity" label="Creative activity">
-            {PRIVATE_EVENT_ACTIVITIES.map((activity) => (
-              <option key={activity.slug} value={activity.name}>
-                {activity.name}
+            {activities.map((activity) => (
+              <option key={activity} value={activity}>
+                {activity}
               </option>
             ))}
           </Select>
@@ -403,11 +417,13 @@ export function PrivateEventEnquiry() {
         type="submit"
         disabled={submitting}
         className={cn(
-          "group mt-12 inline-flex w-full items-center justify-center gap-2.5 px-8 py-5",
+          "group mt-12 inline-flex w-full items-center justify-center gap-2.5 rounded-sm px-8 py-5",
           "text-action font-medium uppercase leading-none tracking-eyebrow",
-          // White, not White Rock. Measured on Deep Lilac: --color-on-dark is
-          // 3.95:1 and white is 5.06:1, and a 12px button label owes 4.5:1.
-          "bg-primary text-white transition-colors duration-300 ease-soft",
+          // `on-primary`, the one light ink that clears Deep Lilac (4.90:1).
+          // This was `text-white` — correct on contrast and off-palette, which
+          // is now unnecessary: the token says the same thing in the brand's
+          // own material. It was the last hard-coded colour in the codebase.
+          "bg-primary text-on-primary transition-colors duration-300 ease-soft",
           "hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
         )}
       >

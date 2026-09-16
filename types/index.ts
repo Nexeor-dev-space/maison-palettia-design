@@ -80,6 +80,41 @@ export interface ImageAsset {
   position?: string;
 }
 
+/**
+ * One tile in the homepage mosaic.
+ *
+ * A UNION RATHER THAN AN IMAGE WITH AN OPTIONAL `video` FIELD, because the two
+ * need different things and an optional field cannot say so: a still needs
+ * `alt`, a clip needs a `poster` to hold its cell while it buffers and a label
+ * that describes it for anyone who cannot watch it. Shaped this way, adding
+ * footage to the section is a data edit — the grid does not change and neither
+ * does the component.
+ *
+ * TODO(client): there is no footage in this project. Both clips it once held
+ * were of the potter's wheel and went in the pottery removal, so every tile
+ * today is a still. The `video` arm is here because the section was asked to
+ * carry both, and a clip of a table mid-afternoon is the single best thing the
+ * studio shoot could put on this page.
+ */
+export type GalleryTile =
+  | {
+      kind: "image";
+      src: string;
+      alt: string;
+      /** CSS object-position for the crop. Tiles are cropped hard — see <Gallery>. */
+      position?: string;
+    }
+  | {
+      kind: "video";
+      /** A web encode, not a master. */
+      src: string;
+      /** First frame. Holds the cell while the file buffers, and stands in under reduced motion. */
+      poster: string;
+      /** What the footage shows, for anyone not watching it. */
+      label: string;
+      position?: string;
+    };
+
 /** A money amount, kept numeric so the currency can be formatted per locale. */
 export interface Price {
   amount: number;
@@ -133,6 +168,24 @@ export interface Workshop {
    * should not need a code change to do it.
    */
   category: string;
+  /**
+   * How this activity is sold.
+   *
+   * `scheduled` is a session you book online for a fixed date and time.
+   * `diy` is a walk-in activity you turn up and do — the studio runs both, and
+   * the homepage carousel is explicitly for the first kind only.
+   *
+   * Optional, and absence means `scheduled`. That is the deliberate default:
+   * every session in the project predates this field and every one of them is
+   * bookable, so adding the field changes nothing until something is marked,
+   * and nothing has to be migrated. A surface that cares filters on it; the
+   * listing and the event page do not, because a walk-in activity still has a
+   * page worth reading.
+   *
+   * TODO(client): the studio's eight approved activities split across these two
+   * kinds and only the client knows which way each falls. Mark the walk-ins.
+   */
+  kind?: "scheduled" | "diy";
   /** ISO 8601 with the studio's offset, e.g. "2026-10-03T10:00:00+04:00". */
   startsAt: string;
   durationMinutes: number;
@@ -242,24 +295,6 @@ export interface EditorialPanel {
 }
 
 /**
- * One step of the invitation that closes the homepage: choose, book, make.
- *
- * Three fields and no icon, because the hierarchy is typographic — a numeral
- * set large and soft, a name set small and hard, a single line under it. The
- * numeral is stored rather than derived from the array index: it is printed
- * copy ("01", not `1`), and the studio should be able to renumber or reorder
- * the run without the component deciding what a step is called.
- */
-export interface VisitStep {
-  /** The printed numeral, e.g. "01". Decorative — the list carries the order. */
-  number: string;
-  /** Set in caps by the design; stored in its natural case. */
-  name: string;
-  /** One short sentence. Any longer and the band stops reading as a footnote. */
-  detail: string;
-}
-
-/**
  * The closing invitation (homepage section 09) — everything the section says,
  * and nowhere else.
  *
@@ -283,8 +318,26 @@ export interface VisitInvitation {
   primaryCta: NavItem;
   /** Kept visually subordinate, and omitted entirely if there is nothing to add. */
   secondaryCta?: NavItem;
-  steps: readonly VisitStep[];
+  /**
+   * A third way on, for the reader the first two do not serve: someone
+   * organising for a group rather than booking a seat.
+   *
+   * Carries its own lead-in sentence because it is answering a different
+   * question from the one the section asked, and a bare third link under two
+   * others reads as a third of the same thing. Optional — omit it and the
+   * section sets nothing.
+   */
+  groupCta?: { note: string; link: NavItem };
 }
+
+/*
+  `steps` was here, and VisitStep with it — three numbered lines the closing
+  section set along its foot. They said choose, book, make; HOW_IT_WORKS says
+  choose, book, come by, create a sentence each, and renders earlier on the
+  same homepage. One page telling a visitor the same thing twice makes neither
+  telling the authoritative one, so the shorter version went. See the note at
+  the head of <PlanYourVisit>.
+*/
 
 /**
  * One thing a guest said about the Maison.
@@ -393,4 +446,15 @@ export interface MallPartner {
   logo?: ImageAsset;
   /** A photograph of the destination. Absent until the client supplies one. */
   image?: ImageAsset;
+  /**
+   * What to ask a map for, when "<name>, <locality>" is not what finds the
+   * place — a centre that shares its name with another city's, say, or one
+   * signposted differently from how it is listed.
+   *
+   * Optional, and normally left unset: the homepage map falls back to the name
+   * and the locality, which is a search rather than a coordinate. Nothing in
+   * this project stores latitude and longitude, and a pin dropped at a guessed
+   * position is worse than no pin at all — see <LocationMap>.
+   */
+  mapQuery?: string;
 }

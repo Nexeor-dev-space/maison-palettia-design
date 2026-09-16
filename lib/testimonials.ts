@@ -34,14 +34,14 @@ const PLACEHOLDER_TESTIMONIALS: Testimonial[] = [
   {
     id: "two-hours-off-a-screen",
     quote:
-      "It is the only two hours in my week where I am not looking at a screen. I did not expect a painting class to be the thing that fixed that.",
-    attribution: "Watercolour in Bloom",
+      "It is the only two hours in my week where I am not looking at a screen. I did not expect a candle-making class to be the thing that fixed that.",
+    attribution: "Candle Making",
   },
   {
     id: "an-afternoon-that-ran-long",
     quote:
       "I came in to make one thing and stayed until the light went. There is no rush in that room, which turns out to be the whole point.",
-    attribution: "Ceramic Painting",
+    attribution: "Crocheting",
   },
 ];
 

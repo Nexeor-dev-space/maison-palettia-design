@@ -2,6 +2,7 @@ import type {
   ContactDetails,
   EditorialPanel,
   FaqItem,
+  GalleryTile,
   ImageAsset,
   NavGroup,
   NavItem,
@@ -23,6 +24,64 @@ export const SITE = {
   locale: "en_AE",
   /** TODO(client): replace with the production domain before launch. */
   url: "https://www.maisonpalettia.com",
+} as const;
+
+/**
+ * THE OFFICIAL LOGO, AND THE ONLY ONE.
+ *
+ * The single source of truth for the brand mark: its path, its intrinsic size,
+ * and — the part that actually matters — the grounds it may be placed on.
+ * Every surface that draws the logo reads these numbers from here, so the file
+ * can be replaced in one edit and nothing is left pointing at the old one.
+ *
+ * WHAT IT IS. Light Sage script on transparency, with the palette motif in the
+ * P. Sampled: 93% of its ink is #d1e7be.
+ *
+ * TWO CUTS, AND THE GROUND DECIDES WHICH. The sage cut reads on a dark ground
+ * and vanishes on a light one — on Charcoal Slate it measures 9.07:1, on the
+ * footer's own Light Sage field it measures 1.00:1, invisible rather than
+ * faint. The client has now supplied the Deep Lilac cut below for light
+ * grounds, which is what lets the header carry the mark once it turns white.
+ *
+ * The footer still closes on its signature line: its field is Light Sage, and
+ * Deep Lilac on Light Sage is 3.83:1 — fine at display size, and a decision
+ * about that band rather than about this constant.
+ *
+ * THERE IS NO SECOND MARK. The site previously typeset "Maison Palettia" in
+ * the brand script in two places — the header and the foot — which is a logo
+ * made out of type and is not what the guidelines permit. Both are gone. Do
+ * not add a text mark, a monogram, a favicon drawn by hand, or a recoloured
+ * cut: the artwork is the client's and is not ours to redraw.
+ *
+ */
+export const BRAND_LOGO = {
+  /**
+   * The Light Sage cut, for dark grounds — the header while it is transparent
+   * over the hero, and the hero itself.
+   */
+  src: "/images/logo.png",
+  /** The file's own pixel dimensions. Set height only; the aspect follows. */
+  width: 1015,
+  height: 438,
+
+  /**
+   * The Deep Lilac cut, for light grounds — the header once it takes its white
+   * ground on scroll.
+   *
+   * This is the dark-on-light cut the earlier note asked for, and it closes
+   * the constraint that kept the mark off every pale surface on the site. Deep
+   * Lilac measures 5.06:1 on white, well past the 3:1 a logo owes as a
+   * graphical object.
+   *
+   * Its own proportion, not the sage cut's: 1120x466 against 1015x438. Close,
+   * but not the same, so the two must never share a width — set the height and
+   * let each file keep its own aspect.
+   */
+  onLight: {
+    src: "/images/scroll-logo.png",
+    width: 1120,
+    height: 466,
+  },
 } as const;
 
 /**
@@ -201,6 +260,160 @@ export const HERO_IMAGE: ImageAsset = {
   alt: "A painter at her easel, brush in hand, working a canvas of coral and blush roses among deep teal leaves, a loaded palette beside her.",
   position: "34% 38%",
 };
+
+/**
+ * THE HOMEPAGE HERO — one film, looping, and nothing else behind it.
+ *
+ * It replaced a carousel of four photographs. A hero that turns every six
+ * seconds is four openings rather than one, and it spent its whole budget
+ * proving the Maison does more than one thing — which the Creative Experiences
+ * menu three sections down now does properly, with a name under every picture.
+ * A single film says the same thing better: hands, a brush, paint going onto
+ * cloth, continuously.
+ *
+ * THE POSTER IS A FRAME OF THE FILM, not a photograph chosen to stand near it.
+ * Cut from the video itself at three seconds, so the still and the moving
+ * image are the same shot and the swap when the film starts is invisible.
+ * It is also what a reader who has asked for reduced motion gets instead of
+ * the video — see <Hero>, where the film is hidden outright rather than paused
+ * with a play button nobody asked for.
+ *
+ * TODO(client): the film is 1920x1080, 20.7s, 6.0MB at 2.3Mbps. That is a
+ * reasonable rate for its size and it is still six megabytes on the homepage.
+ * Worth a second derivative — 1280-wide for phones, served through a <source>
+ * media query — before launch.
+ */
+export const HERO_VIDEO = {
+  src: "/videos/maison-banner-bg-1.mp4",
+  poster: {
+    src: "/images/hero/banner-poster.jpg",
+    alt: "Two hands painting a pale denim tote with a fine brush, a coral palette of teal, white and lilac paint on the table beside them.",
+  },
+} as const;
+
+/**
+ * One photograph in the hero carousel.
+ *
+ * `position` is the CSS object-position for the crop, and a single value
+ * serves every breakpoint on purpose. `object-fit: cover` only ever crops one
+ * axis: on a tall phone it crops the sides, so the X term decides the framing;
+ * on a wide desktop it crops top and bottom, so the Y term does. One
+ * "X% Y%" therefore answers both without a media query — set X for the phone
+ * and Y for the desktop.
+ */
+export interface HeroSlide {
+  /** The activity this photograph actually shows. Caption, and control label. */
+  activity: string;
+  src: string;
+  alt: string;
+  position: string;
+  /**
+   * The line the hero sets large while this slide is showing.
+   *
+   * Not written for the hero. Every one of these is the studio's own
+   * description of that activity, already in the project — see
+   * PRIVATE_EVENT_ACTIVITIES in lib/privateEvents.ts and the same strings in
+   * lib/experiences.ts. Reusing them means the hero cannot describe an
+   * activity differently from the page that sells it, and it keeps invented
+   * hero copy out of the one place on the site most likely to be read.
+   */
+  statement: string;
+}
+
+/**
+ * THE HERO CAROUSEL — four client-supplied photographs, and nothing else.
+ *
+ * Every file here is from public/images/hero-carousel/, which is the set the
+ * client provided for this purpose. Nothing is stock, nothing is generated,
+ * nothing is borrowed from another folder in this project.
+ *
+ * EACH FILE WAS OPENED AND ASSIGNED BY WHAT IS IN THE FRAME, not by its name.
+ * That mattered when the originals were called 1–4 and said nothing, and it
+ * still matters now that two are subject-named: the client asked for the new
+ * crochet file to replace "the 3rd image", and the third slide in this array
+ * is candle making. `3-crochet.jpg` is a crocheted rainbow, so it went to the
+ * crocheting slide — the fourth — because this carousel prints the activity
+ * name on screen beside the photograph and the two must agree. The "3" is the
+ * client's own numbering for the file, and the crochet slide's previous file
+ * was `3.jpg`, which is very likely what they were counting.
+ *
+ * THE ORDER is the client's stated activity priority — tote bag painting
+ * first, then bedazzling, then the scheduled sessions.
+ *
+ * CERAMIC PAINTING IS MISSING, AND IS DELIBERATELY NOT FAKED. It is second in
+ * the client's priority list and none of the four photographs shows it: there
+ * is candle making, tote painting, crochet and face gems, and that is all. The
+ * brief's own instruction for this case is to use the strongest available
+ * images and adjust the carousel rather than invent an asset, so the carousel
+ * is four slides and the ceramic slide is simply absent.
+ *
+ * TODO(client): supply a ceramic-painting photograph for this folder and it
+ * becomes one more entry in this array — the carousel counts its own slides.
+ * (A real ceramic-painting photograph does already exist elsewhere in the
+ * project, at /images/creative/craft.jpg, used by the strands and the private
+ * events page. It is deliberately NOT pulled in here: the brief says not to
+ * take images from other folders, and a hero is exactly where a borrowed crop
+ * would be noticed.)
+ */
+export const HERO_CAROUSEL: readonly HeroSlide[] = [
+  {
+    activity: "Tote bag painting",
+    statement: "Fabric paint on plain cotton — the one you carry out with you.",
+    src: "/images/hero-carousel/h-1.jpg",
+    alt: "A natural cotton tote carried at someone's side, printed with a sun-faced design ringed by the words \u201cwe\u2019re in this together\u201d, against a pale blue wall.",
+    /*
+      Client replacement for 1-tote.png. 6240x4160, so a 3:2 landscape into a
+      hero that runs from 3:2 at desktop down to a tall portrait on a phone —
+      at 390 only a third of the frame's width survives, which is why X matters
+      more here than Y. The bag's centre sits at about 48% across and fills the
+      middle of the frame top to bottom, so Y stays centred and X holds the
+      design in the middle of the narrowest crop.
+
+      TODO(client): two things worth a look before launch. The design is
+      screen-printed rather than painted — crisp two-colour artwork with set
+      type — and this slide says "fabric paint on plain cotton", so the picture
+      and the sentence under it describe different things. And it carries
+      another maker's name ("NAVA & SNOW") along the bottom of the print, which
+      on a full-bleed homepage hero reads as the Maison showing somebody else's
+      product as its own work.
+    */
+    position: "48% 50%",
+  },
+  {
+    activity: "Bedazzling",
+    statement: "Stones and beads set onto something plain until it is not.",
+    src: "/images/hero-carousel/4.jpg",
+    alt: "A smiling young woman in a denim jacket, her cheeks and brows set with clusters of coloured gems and tiny rhinestone flowers.",
+    // Y is high because the eyes sit in the top third: a centred crop would
+    // cut them off the moment the viewport goes wide.
+    position: "55% 30%",
+  },
+  {
+    activity: "Candle making",
+    statement: "Wax, wick and colour, poured and left to set.",
+    src: "/images/hero-carousel/1.jpg",
+    alt: "Two hands cupping a freshly poured candle in a glass jar, its wick lit, with tealights burning on the wooden bench around it.",
+    position: "50% 40%",
+  },
+  {
+    activity: "Crocheting",
+    statement: "A hook, a ball of yarn and one stitch to start from.",
+    src: "/images/hero-carousel/h-3.jpg",
+    alt: "A crocheted granny-square blanket in teal, green, mustard and cream laid across weathered decking, with pine cones, orange lanterns and autumn leaves gathered beside it.",
+    /*
+      Client replacement for 3-crochet.jpg. 4288x2848, another 3:2 landscape.
+      The blanket runs from the left edge to about two thirds across and the
+      autumn arrangement holds the right, so X is pulled left of centre: a
+      centred crop puts the seam between the two down the middle of a phone,
+      and at 42% the narrow crop is blanket — the thing the slide is about —
+      with the arrangement arriving as the frame widens.
+
+      It measures better than the rainbow it replaces, which failed the mark at
+      1440 (2.89:1 against 3:1). See the note on the head wash below.
+    */
+    position: "42% 50%",
+  },
+] as const;
 
 /**
  * A picture that is cropped rather than placed: it carries its own
@@ -554,11 +767,21 @@ export const PLAN_YOUR_VISIT: VisitInvitation = {
     "Choose an experience, find a date that suits you, and give yourself an afternoon in the studio.",
   primaryCta: { label: "Explore events", href: "/events" },
   secondaryCta: { label: "Contact the Maison", href: "/contact" },
-  steps: [
-    { number: "01", name: "Choose", detail: "Find the experience that feels right." },
-    { number: "02", name: "Book", detail: "Pick a date and reserve your seat." },
-    { number: "03", name: "Make", detail: "Arrive, settle in, and begin." },
-  ],
+  /*
+    THE ONLY ROUTE TO /private-events FROM THE HOMEPAGE. The page exists and is
+    linked in the footer, and a footer is where a visitor looks for a link they
+    already know is there — not where someone organising a birthday finds out
+    the Maison does birthdays. This section is the page's designated "what
+    next", and a group organiser reading "come make something with us" is
+    exactly the reader it was missing a door for.
+
+    It is deliberately a third tier rather than a promoted button: the homepage
+    has one dominant action and it is booking a seat.
+  */
+  groupCta: {
+    note: "Planning something for a group?",
+    link: { label: "Private events", href: "/private-events" },
+  },
 };
 
 /**
@@ -597,43 +820,68 @@ export const TESTIMONIALS_GROUND: ImageAsset = {
 };
 
 /* ==========================================================================
-   Homepage gallery.
+   Homepage gallery — the mosaic's tiles, in the order they are laid.
 
-   THREE OF THESE FOUR WERE THE POTTER'S WHEEL. Two pairs of clay-slicked
-   hands and a forearm against a shelf of glazed mugs, kept because they were
-   the only process photographs in the project that were both on-message and
-   light enough for the homepage. The client has taken the brand off the wheel
-   and they are gone.
+   ORDER IS COMPOSITION HERE, NOT RANKING. <Gallery> gives the first tile the
+   large cell and cuts the rest around it, so moving an entry up this list
+   changes the shape of the section rather than only its sequence. The first
+   should be the widest-reading picture of the four; the last sits in the long
+   landscape cell at the foot and wants a picture that survives being cropped
+   to 8:3.
 
-   What replaces them is honest about what is left. The project holds exactly
-   one process photograph that is not pottery and not already on this page —
-   a hand at a canvas — and the other three plates are work rather than
-   working: a watercolour on the easel, and two passages of pigment on paper.
-   The section's job is to let someone picture themselves at the table, and
-   three quarters of it now shows the table's output instead.
+   THREE OF THESE FOUR WERE THE POTTER'S WHEEL before the pottery removal, and
+   what stands in is honest about what is left: the project holds exactly one
+   process photograph that is not pottery and not already on this page — the
+   hand at the canvas, which leads — and the other three are work rather than
+   working.
 
-   TODO(client): this is the section the studio shoot should reach first.
-   Four frames of people making things, in the activities the Maison actually
-   runs, and all four of these come out.
+   FOUR DIFFERENT PICTURES, WHICH IS HARDER THAN IT SOUNDS HERE. The set that
+   came out of the pottery removal was three watercolours and a photograph, and
+   two of those watercolours — `watercolour-in-progress` and `pigment-on-paper`
+   — are crops of the same painting. With gutters between the plates that was
+   merely repetitive. Flush, with no edge between the cells, two crops of one
+   painting side by side read as a single smeared tile and the whole band looks
+   like a mistake. So `pigment-on-paper` is out (it still carries /about) and
+   the lilies are in, and the order sets the one photograph next to the copy
+   tile, the strongest colour in the smallest cell, and the broadest wash in
+   the long one. Subject, scale and tone all change between neighbours.
+
+   TODO(client): this is the section the studio shoot should reach first. Four
+   frames of people making things, in the activities the Maison actually runs.
+   At least one of them should be footage: the grid takes a `video` tile with
+   no change to the component, and a table mid-afternoon moving is worth more
+   here than any still.
    ========================================================================== */
-export const GALLERY_IMAGES: ImageAsset[] = [
+export const GALLERY_TILES: GalleryTile[] = [
   {
+    kind: "image",
     src: "/images/experience/painting.jpg",
     alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
+    // The tall cell is a 2:3 portrait cropped to roughly 3:2 at desktop, so
+    // two thirds of the height goes. Held high: the hand and the brush tip are
+    // in the top half, and the loss is spent on the table along the foot.
+    position: "50% 38%",
   },
   {
+    kind: "image",
+    src: "/images/recent/late-blooms.jpg",
+    alt: "Pale blush and white lilies opening against a bare wall, petals curling back as they age.",
+    // Portrait into a 2:1 slot. Centred a little low, where the flowers are.
+    position: "50% 52%",
+  },
+  {
+    kind: "image",
     src: "/images/workshops/watercolour-in-progress.jpg",
     alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
+    position: "50% 45%",
   },
   {
+    kind: "image",
     src: "/images/creative/colour-in-layers.jpg",
     alt: "Washes of yellow-green and violet laid over one another on damp paper, the colour still finding its edges.",
   },
-  {
-    src: "/images/experience/pigment-on-paper.jpg",
-    alt: "Pigment sinking into damp paper — deep red blooms bleeding into blue and yellow-green washes.",
-  },
 ];
+
 
 /* ==========================================================================
    The questions that stand between someone and a booking.

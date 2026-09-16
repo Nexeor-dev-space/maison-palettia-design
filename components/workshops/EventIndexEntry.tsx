@@ -96,7 +96,7 @@ export function EventIndexEntry({ workshop, index }: { workshop: Workshop; index
           </span>
         </p>
 
-        <h2 className="mt-4 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] lg:text-[1.75rem]">
+        <h2 className="mt-4 text-h3 font-light tracking-[-0.02em]">
           <Link
             href={workshopHref(workshop)}
             aria-label={`${workshop.title}, ${formatSessionDate(workshop.startsAt)}${workshop.venue ? ` at ${formatVenueLine(workshop.venue)}` : ""}`}
