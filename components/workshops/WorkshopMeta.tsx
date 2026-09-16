@@ -1,3 +1,17 @@
+/*
+  PARKED — not imported anywhere.
+
+  It served the split booking panel the homepage used before the redesign.
+  Its closed-session treatment fills a pill with Soft Lavender, which the
+  homepage's one-accent rule no longer permits, so the new <EventCard> wrote
+  its own availability line rather than reusing this one.
+
+  Kept rather than deleted, following this project's convention for code that
+  is finished and may be wanted again (see components/workshops/WorkshopFeature.tsx
+  and components/sections/Testimonials.tsx). Delete it if a later pass decides
+  the pattern is genuinely gone.
+*/
+
 import {
   availabilityLabel,
   formatDuration,

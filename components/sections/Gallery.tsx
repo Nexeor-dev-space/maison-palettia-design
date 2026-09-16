@@ -52,11 +52,30 @@ import { cn } from "@/lib/utils";
  * longer something that starts at a breakpoint; below `md` it is the reason
  * the raggedness still reads as composed instead of as a gap.
  */
+/**
+ * Each plate's span, and the `sizes` hint that goes with it.
+ *
+ * THE HINT IS PER SHAPE, because the plates are not one width.
+ *
+ * One flat `sizes="(min-width: 768px) 28vw, 46vw"` covered both shapes, and it
+ * under-stated the wide plate badly enough to be visible. Measured off the
+ * live page: every plate, wide or narrow, was fetched at the same w=828
+ * bucket, while a `col-span-7` plate renders 793px at a 1440 window — about
+ * 1586 device pixels on an ordinary 2x display. The browser was upscaling the
+ * source roughly two-fold, in the one section on the page whose entire job is
+ * showing photography.
+ *
+ * The figures below are the real proportions of the grid rather than round
+ * numbers: seven of twelve columns is 55vw once the gutter and the 24-40px
+ * column gap are taken out, five of twelve is 39vw. Below `md` the same 7/5
+ * split applies to a two-up row, so the plates take about half the measure
+ * each.
+ */
 const PLATES = [
-  "col-span-7 aspect-[4/3]",
-  "col-span-5 aspect-[4/5]",
-  "col-span-5 aspect-[4/5]",
-  "col-span-7 aspect-[3/2]",
+  { span: "col-span-7 aspect-[4/3]", sizes: "(min-width: 768px) 55vw, 50vw" },
+  { span: "col-span-5 aspect-[4/5]", sizes: "(min-width: 768px) 39vw, 36vw" },
+  { span: "col-span-5 aspect-[4/5]", sizes: "(min-width: 768px) 39vw, 36vw" },
+  { span: "col-span-7 aspect-[3/2]", sizes: "(min-width: 768px) 55vw, 50vw" },
 ] as const;
 
 /**
@@ -105,22 +124,25 @@ export function Gallery() {
       />
 
       <ul className="mt-section-gap grid grid-cols-12 items-end gap-x-4 gap-y-6 md:gap-x-6 lg:gap-x-8">
-        {GALLERY_IMAGES.map((plate, i) => (
-          <li key={plate.src} className={cn("relative", PLATES[i % PLATES.length])}>
+        {GALLERY_IMAGES.map((plate, i) => {
+          const frame = PLATES[i % PLATES.length];
+          return (
+          <li key={plate.src} className={cn("relative", frame.span)}>
             <Reveal variant="imageReveal" className="absolute inset-0">
               <div className="relative h-full w-full overflow-hidden bg-surface-alt">
                 <Image
                   src={plate.src}
                   alt={plate.alt}
                   fill
-                  sizes="(min-width: 768px) 28vw, 46vw"
+                  sizes={frame.sizes}
                   style={{ objectPosition: plate.position ?? "50% 50%" }}
                   className="object-cover"
                 />
               </div>
             </Reveal>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </Section>
   );

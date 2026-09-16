@@ -41,6 +41,22 @@ import { HERO_IMAGE, WORKSHOPS_HREF } from "@/lib/constants";
  */
 export function Hero() {
   return (
+    /*
+      THE ONE SECTION ON THIS PAGE THAT DOES NOT USE <Section>, and the reason
+      is a genuine limitation of the primitive rather than an oversight.
+
+      <Section> always applies `py-section-y` and always wraps its children in
+      a <Container>. This hero wants neither: it is `h-svh`, so vertical
+      padding would push the composition out of the viewport it is sized to,
+      and it pulls itself up under the transparent header with a negative top
+      margin, which a container would fight.
+
+      What it does duplicate from the primitive is deliberate and small:
+      `bg-text` and the cream focus variable are exactly what `ground="ink"`
+      supplies, and they are hand-written here because there is no way to take
+      the ground without also taking the padding. If <Section> ever grows an
+      opt-out for its own spacing, this is the first caller that should use it.
+    */
     <section
       aria-labelledby="hero-heading"
       className="sticky top-0 z-0 isolate -mt-header flex h-svh flex-col justify-end overflow-hidden bg-text [--color-focus:var(--color-cream)] md:-mt-header-lg"

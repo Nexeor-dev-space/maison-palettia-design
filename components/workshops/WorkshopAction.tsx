@@ -1,3 +1,16 @@
+/*
+  PARKED — not imported anywhere.
+
+  It was generalised into components/ui/Action.tsx during the redesign —
+  that file's own header credits it as the origin of `RuledLink asSpan`. The
+  primitive covers every caller, and this was left behind unreferenced.
+
+  Kept rather than deleted, following this project's convention for code that
+  is finished and may be wanted again (see components/workshops/WorkshopFeature.tsx
+  and components/sections/Testimonials.tsx). Delete it if a later pass decides
+  the pattern is genuinely gone.
+*/
+
 import { cn } from "@/lib/utils";
 
 interface WorkshopActionProps {

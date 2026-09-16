@@ -49,7 +49,20 @@ export async function FeaturedFilm() {
   // `getFeaturedFilm`.
   if (!film) return null;
 
-  const hasVideo = film.video !== null;
+  /*
+    Truthy, not `!== null`.
+
+    `video` is typed `string | null` and this file's own note tells whoever
+    supplies the clip that setting that one field is the only change needed —
+    which makes `video: ""` a realistic slip rather than a hypothetical one.
+    Against `!== null` an empty string reads as "there is a film": the section
+    would render a <video> with an empty <source> that can never play, AND
+    blank the poster's alt text, because it would believe the still is only a
+    fallback behind real footage. A silent broken element over an undescribed
+    photograph is exactly the hole this codebase refuses to render.
+  */
+  const videoSrc = film.video?.trim() ? film.video : null;
+  const hasVideo = videoSrc !== null;
 
   return (
     <Section
@@ -135,7 +148,7 @@ export async function FeaturedFilm() {
           className="object-cover"
         />
 
-        {film.video ? (
+        {hasVideo ? (
           /*
             THE REDUCED-MOTION RULE, and why it is a media query on the source
             rather than a hook.
@@ -182,7 +195,7 @@ export async function FeaturedFilm() {
             preload="metadata"
             className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
           >
-            <source src={film.video} media="(prefers-reduced-motion: no-preference)" />
+            <source src={videoSrc} media="(prefers-reduced-motion: no-preference)" />
           </video>
         ) : null}
       </div>
@@ -280,7 +293,7 @@ export async function FeaturedFilm() {
             same way.
           */
           eyebrow={
-            film.video && film.runtime ? `${film.eyebrow} · ${film.runtime}` : film.eyebrow
+            hasVideo && film.runtime ? `${film.eyebrow} · ${film.runtime}` : film.eyebrow
           }
           /*
             An array, so the break lands between the clauses from `md` up and
