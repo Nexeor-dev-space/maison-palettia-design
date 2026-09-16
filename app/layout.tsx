@@ -43,7 +43,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           has asked for reduced motion.
         */}
         <SmoothScroll />
-        <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-sm text-on-dark">
+        {/*
+          WHITE, NOT WHITE ROCK, and a real tap target.
+
+          This carried `text-on-dark` on `bg-primary` — White Rock on Deep
+          Lilac, which measures 3.95:1 against the 4.5:1 its size owes. That is
+          the exact failure <FilledAction> was built to correct, and this was
+          the one control on the site still bypassing the primitive and still
+          carrying it. White clears it at 5.06:1.
+
+          It also set a 36px box against the 44px a control owes. Padding
+          rather than this codebase's usual pseudo-element, because a skip link
+          is absolutely positioned and out of flow — there is no surrounding
+          layout for padding to disturb.
+
+          Worth getting right for its own sake: this is the first focusable
+          element on every page, and it exists specifically for the people
+          these two defects affect most.
+        */}
+        <a
+          href="#main"
+          className="skip-link inline-flex min-h-11 items-center rounded-pill bg-primary px-5 py-3 text-action font-medium uppercase tracking-eyebrow text-white"
+        >
           Skip to content
         </a>
         <Header />

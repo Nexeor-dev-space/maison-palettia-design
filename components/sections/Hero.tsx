@@ -124,7 +124,7 @@ export function Hero() {
       */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[66%] bg-gradient-to-t from-text/90 via-text/64 via-36% to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[66%] bg-gradient-to-t from-text/95 via-text/86 via-46% to-transparent md:from-text/90 md:via-text/64 md:via-36%"
       />
 
       <Container className="relative pb-12 md:pb-16 lg:pb-20">

@@ -66,7 +66,22 @@ export function HomeFaq() {
         inventing.
       */}
       <Reveal delay={0.1} className="mt-section-gap">
-        <dl>
+        {/*
+          A PLAIN <div>, NOT A <dl>.
+
+          This was a definition list whose children were <details> elements —
+          no <dt> and no <dd> anywhere inside it. A <dl> may contain dt/dd
+          pairs, or <div>s that themselves contain dt/dd, and this was neither,
+          so the term/description relationship the element exists to convey was
+          never actually conveyed. The file's own note already admitted the
+          pairing was "only in spirit"; the honest conclusion is that the
+          element was not earning its place.
+
+          Nothing is lost by dropping it. <summary> already announces itself as
+          an expandable control with its answer as the content, which is the
+          semantic that does the work here.
+        */}
+        <div>
           {HOMEPAGE_FAQ.map((item, i) => (
             <div key={item.question} className="border-t border-line last:border-b">
               {/*
@@ -132,7 +147,7 @@ export function HomeFaq() {
               </details>
             </div>
           ))}
-        </dl>
+        </div>
       </Reveal>
     </Section>
   );

@@ -189,15 +189,36 @@ export function Footer() {
           </div>
 
           {/* 05 — the utility, floated at the foot of the measure. */}
-          <Reveal variant="fadeIn">
-            <div className="mx-auto mt-8 flex max-w-site justify-start md:mt-9 md:justify-end">
-              <BackToTop />
-            </div>
-          </Reveal>
+          {/*
+            NO <Reveal> ON THESE LAST TWO ROWS, AND THAT IS A BUG FIX.
+
+            They faded in on their own scroll intersection, and in this footer
+            that observer cannot be trusted. <FooterReveal> pins the whole
+            footer `position: fixed` behind <main> and lets the page uncover
+            it, so these elements go from out-of-flow-and-off-screen to
+            fixed-in-viewport without ever crossing the viewport the way a
+            scrolling element does. Measured on the running page, scrolling
+            incrementally — the way a person scrolls — left the copyright row
+            at `opacity: 0` four times out of four. Jumping straight to the
+            bottom fired it correctly, which is why it survived every check
+            that did not scroll.
+
+            So the site's copyright notice and legal links were invisible to
+            anyone who reached them normally, on every route, while still
+            sitting in the tab order. Reduced motion masked it completely,
+            because that path skips the observer and mounts at full opacity —
+            it only ever hit the majority who have motion enabled.
+
+            This is the same failure <WorkshopPhoto> documents and refuses for
+            the same reason: content must not be contingent on an observer
+            firing. An entrance animation is a nicety; a copyright line is not.
+          */}
+          <div className="mx-auto mt-8 flex max-w-site justify-start md:mt-9 md:justify-end">
+            <BackToTop />
+          </div>
 
           {/* 04 — the last line. */}
-          <Reveal variant="fadeIn">
-            <div className="mx-auto mt-6 flex max-w-site flex-col gap-3 border-t border-text/20 pt-5 text-fine uppercase tracking-[0.1em] text-text/75 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mx-auto mt-6 flex max-w-site flex-col gap-3 border-t border-text/20 pt-5 text-fine uppercase tracking-[0.1em] text-text/75 sm:flex-row sm:items-center sm:justify-between">
               <p>
                 &copy; {year} {SITE.legalName}
               </p>
@@ -215,8 +236,7 @@ export function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
-          </Reveal>
+          </div>
         </Container>
       </div>
     </footer>
@@ -248,9 +268,16 @@ function FooterGroup({ group }: { group: NavGroup }) {
 
 function GroupHeading({ children }: { children: string }) {
   return (
-    <h2 className="text-fine font-medium uppercase tracking-[0.14em] text-text/75">
+    /*
+      <h3>, not <h2>. These are navigation-group labels, and at h2 they sat at
+      the same level as the page's ten real sections — so a reader navigating
+      by heading got four extra stops interleaved with actual content at the
+      end of every page. The <nav aria-label="Footer"> landmark already groups
+      them; the heading only has to rank them below the page itself.
+    */
+    <h3 className="text-fine font-medium uppercase tracking-[0.14em] text-text/75">
       {children}
-    </h2>
+    </h3>
   );
 }
 

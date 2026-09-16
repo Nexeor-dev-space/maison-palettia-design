@@ -30,7 +30,11 @@ export function BackToTop({ className }: BackToTopProps) {
         // The label is 11px and sets a 21px box. Extended to a comfortable
         // target with a pseudo-element rather than padding, so the footer's
         // baseline grid is untouched — same device as the links beside it.
-        "after:absolute after:inset-x-0 after:-inset-y-2 after:content-['']",
+        // -inset-y-3, not -2. This row is a 20.9px box — the same starting
+        // point <RuledLink> documents — and 8px each side leaves it at 36.9px
+        // against the 44px a control owes. 12px each side reaches 44.9px, and
+        // is the figure the primitive settled on for exactly this shape.
+        "after:absolute after:inset-x-0 after:-inset-y-3 after:content-['']",
         className,
       )}
     >
