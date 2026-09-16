@@ -15,23 +15,66 @@
    Sections do not alternate between two colours — they are cast, so that quiet
    ones make room for loud ones. Read top to bottom:
 
-     Hero ................. Charcoal field, moving image
-     Brand introduction ... White Rock            warm welcome
-     Upcoming workshops ... off-white             quiet, legible
-     Editorial spread ..... Charcoal, full bleed  a pause
-     The experience ....... White Rock            warm
-     Creative experiences . Light Sage            the structural brand field
-     Editorial spread ..... White Rock, full bleed
-     Just added ........... off-white             quiet
-     Maison philosophy .... DEEP LILAC            the focal moment of the page
-     Plan your visit ...... White Rock            the warm exhale after it
-     Footer ............... White Rock
+     Hero .................. Charcoal, full-bleed photograph
+     Upcoming events ....... surface
+     How it works .......... surface      continuous with the events above
+     Creative experiences .. surface      was Light Sage; the client asked for none
+     About teaser .......... White Rock
+     Featured film ......... Charcoal, full-bleed video
+     Gallery ............... surface
+     Where we create ....... White Rock
+     FAQ ................... surface
+     Plan your visit ....... White Rock
+     Footer ................ Light Sage   global; this pass does not touch it
 
-   Deep Lilac carries exactly one full field on the page and nothing else.
-   That is what keeps it a focal colour rather than a background. The header
-   bar is not part of this rhythm at all — it sits on Ink, its own near-black,
-   so that it reads as a masthead over whatever section is passing under it.
-   Anything that changes this rhythm should change it here first.
+   Three coloured fields on the whole page, and two of them are the same
+   Charcoal — the hero and the film. That is the shape of a page that has
+   stopped using colour to mark where one section ends and the next begins;
+   space and a section head do that now. White Rock is the only warm field
+   left and it is deliberately not alternating: it lands three times, each
+   time under a section asking the reader to slow down.
+
+   WHY THIS BLOCK WAS REWRITTEN. The rhythm printed here before described a
+   page that had not existed for two revisions. It listed the brand
+   introduction, two editorial spreads, the experience, the just-added strip
+   and a full field of Deep Lilac for the philosophy — every one of them since
+   unmounted from app/page.tsx or moved to /about — and it closed by promising
+   that Deep Lilac "carries exactly one full field on the page", which by then
+   it carried on a different route. A ground-rhythm note is the thing the next
+   person edits against, so one describing an imaginary page is worse than
+   none at all. Anything that changes this rhythm changes it here first.
+
+   The header bar is not part of this rhythm at all — it sits on Charcoal, its
+   own field, so that it reads as a masthead over whatever section is passing
+   under it.
+
+   ONE GROUND PER SECTION. No band inside a section; no White Rock panel on a
+   White Rock section, which is a box nobody can see; and no type over a
+   photograph anywhere but the hero and the film, both of which carry a
+   measured scrim.
+
+   THE ONE-ACCENT RULE
+   Deep Lilac is the homepage's only accent. It carries the eyebrow rules, the
+   arrows, the link underlines, the numerals, the active marks and the single
+   filled button, and it is the only colour on the page carrying any of them.
+
+   Warm Terracotta leaves the homepage. It was drawing the eyebrow rule and
+   the arrow across ten files on this page, and it cannot hold that job here:
+   a graphical mark owes 3:1, and Terracotta measures 2.44:1 on White Rock and
+   2.36:1 on Light Sage — two of the three grounds listed above. It clears the
+   bar on the page ground alone, at 3.02:1, which is not a colour rule; it is
+   a colour that happens to work in one of the three places the page puts it.
+   One use survives, the scarcity dot on an event that is nearly full, where
+   it is a mark beside words already saying the same thing.
+
+   Soft Lavender leaves the homepage down to ::selection. Its one job here was
+   the active band in the strand index, and that band is going anyway.
+
+   Neither colour is removed from the palette and neither is wrong on another
+   route — /private-events and /about still use both, and this pass does not
+   touch them. The rule is about the homepage, where a third and a fourth
+   accent were buying variety at the cost of the one colour that is supposed
+   to mean something.
    ========================================================================== */
 
 @theme static {
@@ -208,6 +251,57 @@
   --text-h1--line-height: 1.05;
 
   /* --- Spacing rhythm (section-level) ------------------------------------ */
+  /* ------------------------------------------------------------------------
+     ONE VERTICAL RHYTHM, AND IT IS THIS ONE.
+
+     The homepage was running three competing scales at once — 4.5/6/7rem,
+     5.5rem/section/section-lg, and 4.5rem/section — so two neighbouring
+     sections could differ by 32px at `lg` without anyone having decided that
+     they should. Eleven sections, three rhythms; the seam between the events
+     listing and the steps directly under it was the one a reader could
+     actually see, because those two are meant to read as a single field.
+
+     This pair replaces the concept. A homepage section takes `py-section-y`
+     for its vertical padding and `mt-section-gap` between its head and the
+     content that head introduces, and it takes nothing else — no breakpoint
+     ladder, no one-off `py-[…]`. Fluid rather than stepped, because what is
+     being tuned is a proportion of the screen rather than a breakpoint.
+
+     WHERE THE NUMBERS COME FROM. The floor is 4.5rem/72px, the value two of
+     the three old scales already chose on a phone; the third spent 88px of a
+     390px screen on nothing before the first word. The ceiling is 8rem/128px,
+     the midpoint of the two the page actually reached at `lg` (7rem and
+     9rem) — 9rem was reserved for the loud sections and the homepage, with
+     one accent and no coloured bands left in the middle of it, no longer has
+     any.
+
+     THE RAMP PASSES THROUGH THE OLD VALUES RATHER THAN NEAR THEM. At 768px
+     it computes to 95.9px, which is --spacing-section to within a rounding
+     error, and at 1024px to 112.0px, which is exactly the 7rem the other
+     scale used. So at both breakpoints these sections were tuned at, the
+     migration is invisible; everywhere between them the page simply stops
+     stepping. It reaches the ceiling just under 1280px, the `xl` breakpoint,
+     and holds there — an
+     open-ended `clamp(_, _vw, …)` with no top keeps opening the page up on a
+     27-inch display until the sections stop reading as one document.
+     ------------------------------------------------------------------------ */
+  --spacing-section-y: clamp(4.5rem, 2.97rem + 6.3vw, 8rem);
+
+  /* The head-to-content gap — the other half of the same rhythm, and hand-set
+     everywhere from mt-12 to mt-24 before this existed.
+
+     Deliberately smaller than --spacing-section-y at both ends of the ramp:
+     48 of 72 on a phone, 80 of 128 on a desktop. That proportion is the whole
+     point of the token. A section head has to sit closer to its own content
+     than to the section above it, or it stops reading as a head and starts
+     reading as a caption on whatever it follows. */
+  --spacing-section-gap: clamp(3rem, 2.12rem + 3.6vw, 5rem);
+
+  /* Kept, and deliberately not folded into the pair above. Every route but
+     the homepage still sets its padding with these — /about, /contact,
+     /private-events and the booking journey — and all of them are outside
+     this pass. Deleting two tokens to make a point about the homepage would
+     restyle four routes nobody asked about. */
   --spacing-section: 6rem;
   --spacing-section-lg: 9rem;
   /* The page gutter — the only thing holding content off the screen edge, and
