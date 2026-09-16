@@ -119,14 +119,26 @@ export const MAIN_NAV: NavItem[] = [
     together: a link worth promoting to the front row is a link worth someone
     finding something at the other end of.
 
-    It is marked `utility` rather than dropped back out: on the desktop bar it
-    sits with search on the right, because reaching the studio is a different
-    kind of errand from choosing where to go in the programme. The mobile menu
-    and the footer render this list in order and are unaffected.
+    IT NO LONGER CARRIES `utility`, AT THE CLIENT'S ASK. That flag sat it with
+    search on the right instead of here, on the reasoning that reaching the
+    studio was a different kind of errand from choosing where to go in the
+    programme — a real distinction, but the client wants the left-hand group
+    to read Events, About, Contact rather than have one of the three peel off
+    to the other end of the bar, so the distinction no longer earns a place in
+    the layout. `utility` is deleted from NavItem entirely rather than left
+    unset on this entry: Contact was the only thing it ever marked (its own
+    doc comment said so), nothing else in this list has a use for it, and a
+    flag with no remaining reason to flip is a trap for whoever finds it next
+    — see <HeaderBar>, which lost its right-hand cluster and the filter that
+    built it in the same change, and gained a booking action at that end of
+    the bar in its place. The mobile menu still renders this array whole and
+    in order, unfiltered, so Contact's position there is untouched. The footer
+    is unaffected for a different reason: its Visit group carries its own
+    Contact entry rather than reading MAIN_NAV, so nothing here reaches it.
   */
   { label: "Events", href: "/events", megamenu: true },
   { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact", utility: true },
+  { label: "Contact", href: "/contact" },
 ];
 
 /**

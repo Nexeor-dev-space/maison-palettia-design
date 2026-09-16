@@ -10,10 +10,11 @@ import { NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
 import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
+import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { BasketLink } from "@/components/layout/BasketLink";
-import { DARK_HERO_ROUTES, MAIN_NAV } from "@/lib/constants";
+import { DARK_HERO_ROUTES, MAIN_NAV, PRIMARY_CTA } from "@/lib/constants";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 import type { Discipline, Workshop } from "@/types";
@@ -333,10 +334,14 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
-  // One source, split by role for the desktop bar only — the mobile menu and
-  // the footer still read MAIN_NAV whole and in order.
-  const primaryNav = MAIN_NAV.filter((item) => !item.secondary && !item.utility);
-  const utilityNav = MAIN_NAV.filter((item) => !item.secondary && item.utility);
+  // Filtered for the desktop bar only — <MobileNav> below is handed MAIN_NAV
+  // itself, unfiltered. `secondary` is the one flag that still drops an entry
+  // from this row (nothing in MAIN_NAV sets it today); the `utility` split
+  // that used to pull Contact out to the right-hand cluster is gone along
+  // with the flag itself — see the note on MAIN_NAV in lib/constants.ts, and
+  // the booking action at the end of the right-hand track below for what
+  // took its place there.
+  const primaryNav = MAIN_NAV.filter((item) => !item.secondary);
 
   return (
     <>
@@ -501,10 +506,10 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         >
           <ul className="flex items-stretch gap-7 xl:gap-10 2xl:gap-12">
             {/*
-              Two filters, two different jobs. `secondary` entries are dropped
-              from the bar entirely and kept in the mobile menu and the footer;
-              `utility` entries stay in the bar but belong with search on the
-              right. See both flags on NavItem.
+              Contact renders here now, same as About: a plain entry with no
+              `megamenu` flag, so it falls to the `else` below like any other
+              link. `secondary` is the only flag left that would drop an entry
+              from this row — see NavItem — and nothing in MAIN_NAV sets it.
             */}
             {primaryNav.map((item) =>
               item.megamenu ? (
@@ -552,26 +557,42 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         {/*
           The right track: how to reach us, and how to find something.
 
-          THE WIDTH BUDGET IS FIXED HERE RATHER THAN TRIMMED AGAIN. True
-          centring forces both side tracks to exactly (width − mark − gaps)/2,
-          and every previous pass solved an overrun by shaving gaps and padding
-          off this side: at 1024 the nav opposite wanted 238px of its 403 while
-          this cluster wanted all of its own and then some. Two passes had
-          already taken 4px off a gap and 8px off the action's flanks, and
-          Phase 1's type scale ate both again.
+          THE WIDTH BUDGET, REOPENED AT THE CLIENT'S ASK. A booking action
+          used to sit here, pointing at /events — exactly where the Events
+          entry on the other side of the mark already goes — and it was taken
+          out for being a second control to the same destination on the tight
+          side of the bar. The client has now asked for it back regardless,
+          filled the same way it was before, so the redundancy is accepted
+          rather than re-argued: Events and this button lead to the same
+          place on purpose. What follows is that trade re-measured, not the
+          old case for leaving it out.
 
-          The cause was that the bar carried two ways to do the same thing. The
-          booking action pointed at /events, which is exactly where the Events
-          entry on the other side of the mark goes — one row, one destination,
-          two controls, and the widest of them sitting on the tight side. It is
-          gone from the bar (it stays in the mobile menu, where it is the
-          panel's own primary action and there is room for it), and the budget
-          stopped being tight rather than being made to fit.
+          THE TRADE CLEARS BECAUSE CONTACT LEFT IN THE SAME CHANGE. Contact
+          moved into the nav opposite — see the note on MAIN_NAV in
+          lib/constants.ts — so the width one side gave up is close to what
+          the other now asks for. Both are still true `minmax(0,1fr)` tracks:
+          confirmed live at a 1024px viewport, each measures 422.8px, and the
+          wordmark's own box sits at 461.0–563.0, centred exactly on 512.
+          The nav opposite carries Events, About and Contact at 236.8px of
+          its 422.8 (three items and two 28px gaps), 186px spare. This side,
+          with an empty basket — the common case — carries Search and the
+          booking action at 285.1px of the same 422.8 (85.1 + a 28px gap +
+          172.0), 137.7px spare. `sm`, the smallest of <Button>'s three
+          sizes, is what keeps the booking action at 172px rather than wider.
 
-          That also answers the brief on its own terms: the client asked for
-          Events to lead without the bar looking like a shop, and a header with
-          one solid block of colour in the corner is the single thing that most
-          made it look like one.
+          THE TIGHT CASE IS THE BASKET, NOT THIS CHANGE. <BasketLink> is not
+          in the 285.1px above because it renders nothing until something is
+          held. Measured the same way, "Booking" plus its count pill runs
+          105px at one digit and 115px at two (tabular-nums, so any run of
+          that many digits measures the same). One digit still clears the
+          track — 418px of 422.8, 4.6px spare. Two do not: 428px of 422.8, a
+          5px overrun. `minmax(0,1fr)` will not grow the column to rescue it,
+          so ten or more places or passes held, at exactly this width, spills
+          the row about 5px past its own track rather than pushing the mark
+          off centre — the fixed 24px grid gap to the mark is a separate
+          margin and stays untouched, so nothing there collides. Re-measure
+          this note, not just the paragraph above, before adding anything
+          else to this row.
         */}
         <div className="col-start-3 flex items-center justify-end gap-5 lg:gap-7 xl:gap-9">
           {/*
@@ -595,31 +616,48 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           />
 
           {/*
-            Contact, set in the same type as the navigation opposite so the two
-            halves of the bar read as one row rather than as a nav and a
-            toolbar. Desktop only — on a phone it is in the menu with
-            everything else, and repeating it in a three-control bar would
-            crowd the one control that has to be easy to hit.
+            THE BOOKING ACTION, BACK AT THIS END, AT THE CLIENT'S ASK — see the
+            width-budget note opposite for the last time this row carried one
+            and why it left. Filled rather than another text link: it is the
+            one thing on this side of the mark that should read as an action
+            rather than a place to go, and a fill is what says that.
+
+            Light Sage (`sage` on <Button>/<ButtonLink>): the bar's ground here
+            runs dark whenever it has one — Charcoal Slate at rest over the
+            hero and again behind either overlay (`bg-nav`, both read from the
+            one token) — and sage is the palest thing in the palette, so it is
+            the fill least likely to sit into a dark ground rather than on it.
+            Charcoal text on Light Sage measures 9.07:1, and since contrast is
+            symmetric that is also sage-on-Charcoal: the fill reads clearly
+            against the bar's own dark ground rather than disappearing into
+            it. Against the pale `bg-surface` the bar takes on scroll — itself
+            a sage tint mixed into white — the fill is still the more
+            saturated of the two and still reads as a distinct block, just
+            with far less contrast to spare; it was not asked to clear a ratio
+            there and none is claimed.
+
+            PRIMARY_CTA rather than a label written here, so the header, the
+            footer and this action can never say three different things about
+            the one thing a visitor is meant to do.
+
+            `sm`: the smallest of <Button>'s three sizes, chosen for the same
+            reason the note opposite exists at all — this is the tight side of
+            the bar, and the booking action re-entering it is exactly what
+            used up the budget last time.
+
+            Wrapped rather than given `hidden` directly, because <Button>'s own
+            base classes carry `inline-flex`: two display utilities on one
+            element are settled by their order in the generated stylesheet
+            rather than by the order they are written, and `hidden` can lose —
+            documented above on the Contact link this now stands in for, which
+            hit the same trap rendering on a 360px phone beside the menu
+            button.
           */}
-          {utilityNav.map((item) => (
-            /*
-              Wrapped rather than given `hidden` directly, because NAV_LINK
-              already carries `inline-flex`: two display utilities on one
-              element are settled by their order in the generated stylesheet
-              rather than by the order they are written, and `hidden` lost —
-              Contact rendered on a 360px phone beside the menu button. The
-              same trap is documented on the booking action this replaced.
-            */
-            <div key={item.href} className="hidden lg:block">
-              <Link
-                href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={cn(NAV_LINK, NAV_WEIGHT_REST)}
-              >
-                <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
-              </Link>
-            </div>
-          ))}
+          <div className="hidden lg:block">
+            <ButtonLink href={PRIMARY_CTA.href} variant="sage" size="sm">
+              {PRIMARY_CTA.label}
+            </ButtonLink>
+          </div>
 
           <button
             ref={menuTriggerRef}

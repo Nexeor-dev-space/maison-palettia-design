@@ -23,17 +23,6 @@ export interface NavItem {
    * both of them.
    */
   megamenu?: boolean;
-  /**
-   * Sits with the bar's utilities on the right rather than in the primary
-   * navigation on the left.
-   *
-   * Presentation only, and only on the desktop bar: the mobile menu and the
-   * footer still render the entry in document order with everything else, so
-   * there is still one list and it still cannot drift. Contact is the entry
-   * this exists for — it is a way to reach the studio rather than a place in
-   * the programme, and it belongs beside search for the same reason.
-   */
-  utility?: boolean;
 }
 
 /** A grouped column of links in the footer. */

@@ -255,19 +255,34 @@ export async function Hero() {
           */}
           <Reveal variant="fadeIn">
             {/*
-              A filled button, at the client's ask, where a ruled link used to
-              be. Deep Lilac with `on-primary` on it — the same control the
-              booking flow ends on and the same one every other primary action
-              on the site uses, so the hero speaks the site's language rather
-              than a louder dialect of its own.
+              LIGHT SAGE, NOT DEEP LILAC, and the reason is measured rather
+              than stylistic.
 
-              Its own ground means its contrast does not depend on the frame
-              behind it, which is the other reason a filled control is the
-              right answer over a moving picture.
+              The note that stood here argued that a filled control's contrast
+              "does not depend on the frame behind it". That is true of the
+              LABEL against its own fill, and false of the thing that actually
+              matters over a photograph: WCAG 1.4.11 asks a control's own shape
+              to clear 3:1 against what surrounds it, or there is no button to
+              find. Sampled against the real composited banner at 1440, the
+              worst pixel around this button measured **1.50:1** in Deep Lilac
+              — the lilac and the marbling's own violets are close enough that
+              the edge dissolves. In Light Sage the same worst pixel measures
+              **5.75:1**.
+
+              It is also the colour the client asked for here, and it settles a
+              split the page could not defend: the header's booking action is
+              Light Sage, and the two sat in one viewport as two different
+              answers to "what is this site's filled button".
+
+              The label goes charcoal with the fill (9.07:1 on sage, against
+              4.5 owed). Note this pairing is for a DARK or photographic
+              ground only — on the page's own pale grounds a sage fill
+              measures 1.03:1 and disappears, which is why the closing
+              invitation keeps its lilac.
             */}
             <Link
               href={WORKSHOPS_HREF}
-              className="group mt-10 inline-flex min-h-11 items-center justify-center gap-2.5 rounded-sm bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90 md:mt-12"
+              className="group mt-10 inline-flex min-h-11 items-center justify-center gap-2.5 rounded-sm bg-sage px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-text transition-colors duration-300 ease-soft hover:bg-sage/85 md:mt-12"
             >
               Explore events
               <span
