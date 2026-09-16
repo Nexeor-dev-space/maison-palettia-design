@@ -195,7 +195,24 @@ export function SectionHead({
           eyebrow ? "mt-7" : null,
         )}
       >
-        <Reveal className={cells.title}>
+        {/*
+          A TITLE WITH NOTHING BESIDE IT TAKES THE WIDER MEASURE.
+
+          `stacked` holds the title to eight of twelve columns so an action has
+          somewhere to sit. When there is no side cell at all — no action, and
+          `stacked` puts the standfirst under the title rather than beside it —
+          those four columns are not reserved for anything. They are empty, and
+          the heading is paying for them.
+
+          Measured: <MallPartners> has neither an action nor a side, and at
+          768px its eight-column cell is 477px against a longest authored line
+          that needs about 490. The line broke in two — the one thing authored
+          lines exist to prevent, and precisely what the hand-tuned heading
+          this replaced used a smaller type step to avoid. Ten columns is 610px
+          at the same width, which clears it without letting a display line run
+          the whole measure.
+        */}
+        <Reveal className={cn(cells.title, !hasSide && layout === "stacked" && "md:col-span-10")}>
           <h2
             id={id}
             className={cn("text-h2 font-light uppercase tracking-[-0.02em]", ink.heading)}

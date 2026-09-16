@@ -76,8 +76,26 @@ export function HomeFaq() {
                 here are the pairing, and <summary> already announces itself
                 as an expandable control with its answer as the content.
               */}
-              <details open={i === 0} className="group/faq py-6 md:py-7">
-                <summary className="group flex cursor-pointer list-none items-start justify-between gap-6 text-h3 font-light tracking-[-0.01em] text-text transition-colors duration-300 ease-soft hover:text-primary focus-visible:text-primary [&::-webkit-details-marker]:hidden">
+              {/*
+                THE PADDING IS ON THE SUMMARY, NOT ON THE DETAILS, and the
+                difference is the whole tap target.
+
+                It sat on <details>, which reads identically — one continuous
+                row between two hairlines — and is wrong, because only
+                <summary> toggles. Activation outside its own box does
+                nothing, so the 24 to 28px above and below the question were
+                dead space that looked live. Measured on the running page, the
+                real hit box was 25px at 390 and 30px at 1440, against the
+                44px a control owes; there was no pseudo-element extending it
+                the way every other control on this page has one.
+
+                The row keeps its exact height and spacing: the padding simply
+                moved onto the element that responds to it, and the marker is
+                pushed back up by the same amount so it still aligns with the
+                first line of the question rather than with the padded box.
+              */}
+              <details open={i === 0} className="group/faq">
+                <summary className="group flex cursor-pointer list-none items-start justify-between gap-6 py-6 text-h3 font-light tracking-[-0.01em] text-text transition-colors duration-300 ease-soft hover:text-primary focus-visible:text-primary md:py-7 [&::-webkit-details-marker]:hidden">
                   {item.question}
                   {/*
                     A rule that becomes a cross, rather than a chevron: the
@@ -101,7 +119,16 @@ export function HomeFaq() {
                     <span className="absolute inset-0 bg-text transition-[transform,background-color] duration-500 ease-editorial group-open/faq:rotate-0 group-hover:bg-primary group-focus-visible:bg-primary [transform:rotate(90deg)]" />
                   </span>
                 </summary>
-                <p className="mt-4 max-w-[34rem] text-body text-text/80">{item.answer}</p>
+                {/*
+                  The row's lower padding lives here now. It moved off
+                  <details> with the upper half (see above), and an open answer
+                  is what sits at the bottom of the row, so it is what has to
+                  carry it. A closed row is <summary> alone and keeps its own
+                  py — so both states keep exactly the height they had.
+                */}
+                <p className="mt-4 max-w-[34rem] pb-6 text-body text-text/80 md:pb-7">
+                  {item.answer}
+                </p>
               </details>
             </div>
           ))}

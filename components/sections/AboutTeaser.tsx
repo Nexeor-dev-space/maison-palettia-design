@@ -77,7 +77,23 @@ export function AboutTeaser() {
   return (
     <Section id="about-teaser" ground="cream">
       <div className="grid grid-cols-12 gap-x-6 gap-y-10 lg:gap-x-10">
-        <div className="col-span-12 lg:col-span-6">
+        {/*
+          THE SPLIT WAITS FOR `xl`, and that is a measurement rather than a
+          taste.
+
+          It began at `lg`. At exactly 1024 the text column is five of twelve
+          columns — 386px — against an authored line ("and time to use them.")
+          that needs about 468px at the shared heading size. It broke in two,
+          which is the one thing authored lines exist to prevent, and it did it
+          in the narrow window between 1024 and roughly 1150 where nobody
+          looking at a laptop or a desktop would see it.
+
+          Held to `xl`, the same column is 489px and the line holds. Below that
+          the section simply stacks — photograph over text, both at the full
+          measure — which is what it already does on a phone and is a better
+          answer at tablet width than a heading breaking mid-clause.
+        */}
+        <div className="col-span-12 xl:col-span-6">
           <div className="relative aspect-[4/5] w-full overflow-hidden bg-text/5">
             <Reveal variant="imageReveal" className="absolute inset-0">
               <Image
@@ -101,7 +117,7 @@ export function AboutTeaser() {
           push against — "anchored low" is a large-screen reading of the
           row, not a phone one.
         */}
-        <div className="col-span-12 flex flex-col justify-end lg:col-span-5 lg:col-start-8">
+        <div className="col-span-12 flex flex-col justify-end xl:col-span-5 xl:col-start-8">
           <Stagger>
             <Reveal>
               <p className="flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text">
