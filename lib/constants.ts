@@ -864,33 +864,67 @@ export const TESTIMONIALS_GROUND: ImageAsset = {
    no change to the component, and a table mid-afternoon moving is worth more
    here than any still.
    ========================================================================== */
+/* --------------------------------------------------------------------------
+   TODO(client): TWO OF THESE FOUR SHOW SHOP-BOUGHT MERCHANDISE, NOT MAKING.
+
+   The plates were supplied for this section and are used as supplied. Two of
+   them are a problem worth raising before launch, and the section's own line —
+   "Ordinary hands and wet paint. Nobody here has done it before either." — is
+   what makes it one:
+
+     tote-rack-new-york.jpg is a retail display. Rows of mass-produced printed
+     totes on a pegboard, most of them New York souvenir designs. It is a photo
+     of a shop, not of anybody making anything.
+
+     printed-tote-copenhagen.jpg is a commercially printed tote with the word
+     COPENHAGEN on it. The Maison teaches tote-bag painting — hands, brushes,
+     fabric paint — and a machine-printed bag from another city says the
+     opposite of that.
+
+   This is the same fault already logged against the "Create" strand in
+   lib/disciplines.ts, which uses a shop-bought Portuguese souvenir coaster:
+   another country's tourist merchandise standing in for work made here. Two
+   sections now share it.
+
+   The other two are right. Both crochet plates show real handmade work, and
+   crocheting is on the approved activity list.
+
+   What this section actually wants is four frames from the studio's own
+   sessions, in the activities the Maison runs, with hands in them. The grid
+   also takes a `video` tile with no change to the component, and a table
+   mid-afternoon is worth more here than any still.
+   -------------------------------------------------------------------------- */
 export const GALLERY_TILES: GalleryTile[] = [
   {
     kind: "image",
-    src: "/images/experience/painting.jpg",
-    alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
-    // The tall cell is a 2:3 portrait cropped to roughly 3:2 at desktop, so
-    // two thirds of the height goes. Held high: the hand and the brush tip are
-    // in the top half, and the loss is spent on the table along the foot.
-    position: "50% 38%",
+    src: "/images/tile/printed-tote-copenhagen.jpg",
+    alt: "A canvas tote carried at the hip, printed with a framed botanical panel and the word Copenhagen.",
+    // Portrait into a taller-than-wide cell, so the crop is gentle. Held high:
+    // the printed panel is in the upper two thirds and the loss is spent on
+    // the paving along the foot.
+    position: "50% 42%",
   },
   {
     kind: "image",
-    src: "/images/recent/late-blooms.jpg",
-    alt: "Pale blush and white lilies opening against a bare wall, petals curling back as they age.",
-    // Portrait into a 2:1 slot. Centred a little low, where the flowers are.
-    position: "50% 52%",
+    src: "/images/tile/granny-square-blanket.jpg",
+    alt: "A crocheted granny-square blanket in cream, blue, green and ochre, folded on weathered boards beside autumn leaves and a small pumpkin.",
+    // Landscape into a five-column cell. Biased left, where the crochet is —
+    // the right third is the styling prop rather than the work.
+    position: "35% 50%",
   },
   {
     kind: "image",
-    src: "/images/workshops/watercolour-in-progress.jpg",
-    alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
+    src: "/images/tile/tote-rack-new-york.jpg",
+    alt: "A shop display of printed canvas tote bags hung on a pegboard wall, most of them New York souvenir designs.",
     position: "50% 45%",
   },
   {
     kind: "image",
-    src: "/images/creative/colour-in-layers.jpg",
-    alt: "Washes of yellow-green and violet laid over one another on damp paper, the colour still finding its edges.",
+    src: "/images/tile/crochet-rainbow.jpg",
+    alt: "A crocheted rainbow in red, orange, teal, cream and mauve, tied to black railings in front of flowering ceanothus.",
+    // Landscape into the widest cell, which is the shape it was shot in. The
+    // rainbow sits right of centre, so the crop is pulled that way.
+    position: "58% 50%",
   },
 ];
 
