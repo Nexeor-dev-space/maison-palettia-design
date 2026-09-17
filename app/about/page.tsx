@@ -1,11 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { EditorialStatement } from "@/components/sections/EditorialStatement";
 import { HowItWorks } from "@/components/sections/HowItWorks";
 import { JustAdded } from "@/components/sections/JustAdded";
+import { PlanYourVisit } from "@/components/sections/PlanYourVisit";
 import { Container } from "@/components/ui/Container";
 import { Signature } from "@/components/ui/Signature";
 import { BRAND_INTRO_IMAGE, EDITORIAL_PANELS, EXPERIENCE_IMAGES, MAISON_PHILOSOPHY } from "@/lib/constants";
@@ -97,12 +97,26 @@ export default async function AboutPage() {
         moment the question gets asked, not wherever there is room for it.
 
         Its tinted band also breaks the run of page-ground sections above it
-        and sets up the charcoal close below, so the page ends on three
+        and sets up the White Rock close below, so the page ends on three
         distinct grounds rather than trailing off.
       */}
       <HowItWorks />
 
-      <EventsCta />
+      {/*
+        The close, moved here from the foot of the homepage at the client's
+        ask — see the note in <PlanYourVisit>.
+
+        IT REPLACED A SECTION RATHER THAN JOINING ONE. This page already ended
+        with an <EventsCta> whose heading was "Come make / something with us."
+        over a paragraph and an "Explore events" link. That is the same
+        sentence and the same ask this section makes from the same constant,
+        so mounting both would have set the identical invitation twice in a
+        row, the second time smaller. The one that survives is the one with
+        the foot rail on it: where the studio is, who to ask a question, and
+        the door for group bookings — three answers the shorter version simply
+        did not have room for.
+      */}
+      <PlanYourVisit />
     </>
   );
 }
@@ -349,64 +363,5 @@ function VisualStory() {
         </div>
       </div>
     </Container>
-  );
-}
-
-/**
- * 05 — the way through.
- *
- * The page ends where the business does. Charcoal, full-bleed, one line and
- * one action — the only place on this page that asks for anything, which is
- * what lets it ask plainly.
- */
-function EventsCta() {
-  return (
-    <section
-      aria-labelledby="about-cta"
-      className="mt-[5.5rem] bg-text py-[5rem] text-cream md:mt-[8rem] md:py-section lg:mt-[9rem]"
-    >
-      <Container>
-        <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-7">
-            <Reveal>
-              <p className="text-label font-medium uppercase tracking-eyebrow text-cream/75">
-                The programme
-              </p>
-              <h2
-                id="about-cta"
-                className="mt-7 text-h1 font-light uppercase tracking-[-0.02em]"
-              >
-                <span className="block">Come make</span>
-                <span className="block">something with us.</span>
-              </h2>
-            </Reveal>
-          </div>
-
-          <div className="col-span-12 mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0">
-            <Reveal delay={0.15}>
-              <p className="max-w-[24rem] text-body leading-[1.85] text-cream/80">
-                We set up in a different mall each week and run at fixed times. Find a date that
-                suits you and keep a place.
-              </p>
-
-              <Link
-                href="/events"
-                className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-cream"
-              >
-                <span className="border-b border-sage/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
-                  Explore events
-                </span>
-                <span
-                  aria-hidden
-                  className="text-sage transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                >
-                  &#8594;
-                </span>
-              </Link>
-            </Reveal>
-          </div>
-        </div>
-      </Container>
-    </section>
   );
 }
