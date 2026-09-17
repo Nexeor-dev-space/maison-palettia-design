@@ -4,6 +4,7 @@ import { Gallery } from "@/components/sections/Gallery";
 import { Hero } from "@/components/sections/Hero";
 import { HomeFaq } from "@/components/sections/HomeFaq";
 import { MallPartners } from "@/components/sections/MallPartners";
+import { StudioFilm } from "@/components/sections/StudioFilm";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { UpcomingEvents } from "@/components/sections/UpcomingEvents";
 
