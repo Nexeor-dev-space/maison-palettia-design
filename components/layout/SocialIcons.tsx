@@ -50,9 +50,16 @@ export function SocialIcons() {
                 // The name is on the link because the glyph is decorative —
                 // otherwise a screen reader announces the platform twice.
                 aria-label={`${label} — opens in a new tab`}
+                // `text-current`, and the hover is now current too. It was
+                // hard-coded to Light Sage for the footer's old near-black
+                // ground; the footer is a Light Sage field now, and sage on
+                // sage is an icon that disappears under the pointer. Bringing
+                // the mark up to full strength against its own ground works
+                // on either, and the wash behind it already carries most of
+                // the response.
                 className={
                   "inline-flex size-11 items-center justify-center rounded-sm text-current/75 " +
-                  "transition-colors duration-300 ease-soft hover:bg-current/10 hover:text-sage"
+                  "transition-colors duration-300 ease-soft hover:bg-current/10 hover:text-current"
                 }
               >
                 <svg

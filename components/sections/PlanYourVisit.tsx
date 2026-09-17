@@ -33,11 +33,25 @@ const INVITATION_LINE =
 const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/80";
 
 /**
- * Homepage section 09 — plan your visit.
+ * The close of /about — plan your visit.
  *
  * The page's last move, and the only one that asks the visitor for anything.
  * Everything above has shown the place, the programme and the reason it
  * exists; this says come, and gives exactly one way to do it.
+ *
+ * IT SPENT ITS LIFE AT THE FOOT OF THE HOMEPAGE and moved here at the
+ * client's ask. Two things are worth knowing about the move.
+ *
+ * It did not join this page, it replaced a section: /about already ended with
+ * an <EventsCta> setting "Come make / something with us." over an "Explore
+ * events" link — the same sentence and the same ask, read from the same
+ * constant. Only one of them could stay, and the one with a foot rail under
+ * it is the one that answers more than a single question.
+ *
+ * And the argument below for what surrounds it was written about the
+ * homepage. Where the old neighbours are named, the notes say which page they
+ * were on; the composition itself is unchanged, because none of it depended
+ * on the sections around it.
  *
  * ==========================================================================
  * WHAT THIS REPLACES, AND WHY — measured at 1440x900 before it was touched
@@ -66,13 +80,18 @@ const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/
  * was the smallest thing in the section, which is the hierarchy upside down.
  *
  * THE STEPS ARE GONE, AND THAT IS A CONTENT FIX RATHER THAN A LAYOUT ONE.
- * <HowItWorks /> already runs on this page — section 04, "We come to you",
- * with Choose, Book, Come by and Create set out a sentence each. This section
- * closed the same page with Choose, Book and Make. The same instruction twice
- * on one page makes neither of them the authority, and the second telling was
- * the shorter and vaguer of the two. Deleting it here leaves the fuller
- * version standing where a visitor meets it before they need it, and gives
- * this section back its foot.
+ * <HowItWorks /> — "We come to you", with Choose, Book, Come by and Create
+ * set out a sentence each. This section closed the same page with Choose,
+ * Book and Make. The same instruction twice on one page makes neither of them
+ * the authority, and the second telling was the shorter and vaguer of the
+ * two. Deleting it here leaves the fuller version standing where a visitor
+ * meets it before they need it, and gives this section back its foot.
+ *
+ * The two travelled separately and have ended up adjacent again: <HowItWorks>
+ * moved to /about first and sits immediately above this. So the argument
+ * holds in its strongest form — the steps are not merely elsewhere on the
+ * page, they are the section directly before this one, and repeating them
+ * here would be the same words twice in a row.
  *
  * ==========================================================================
  * WHAT IT IS NOW
@@ -108,10 +127,20 @@ const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/
  * other doors moved to the foot rail, where they are answers to different
  * questions rather than three options on the same one.
  *
- * White Rock is doing real work here rather than just alternating. The section
- * before it is the loudest colour on the page, and this is the exhale after
- * it: the same warmth the brand introduction opened on, so the page closes on
- * the ground it began with.
+ * White Rock is doing real work here rather than just alternating. Above it
+ * sits <HowItWorks> on the page's own pale green, and above that a run of
+ * sections on the same ground; this is the change of material that says the
+ * page has stopped explaining and started asking. It is also the ground
+ * <TheMaison> takes near the top of /about, so the page closes on the warmth
+ * it opened with — which is the argument it made on the homepage too, where
+ * the brand introduction held that position.
+ *
+ * It matters to the footer as well. <Footer> is a Light Sage arch cut out of a
+ * White Rock band, and the band is invisible only when the section above it is
+ * also White Rock. On /about that used to be a charcoal call to action, and
+ * the cream showed as a strip under it; the joint is now the clean one the
+ * footer was designed around. The homepage has inherited the untidy version —
+ * see the note at the foot of app/page.tsx.
  *
  * No photograph. Every atmospheric plate the project holds is already hanging
  * further up this same page, and a second showing of one here would be
@@ -327,7 +356,7 @@ function FootRail({
 }
 
 /**
- * The page's one dominant action, and the only filled block on the homepage.
+ * The page's one dominant action, and the only filled block on /about.
  *
  * IT USED TO BE A LINE OF TYPE. Every item in the old rail was — a label with
  * a rule under it — so the closing section of the page contained nothing that
