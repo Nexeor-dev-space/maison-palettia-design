@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Container } from "@/components/ui/Container";
-import { ABOUT_TEASER, EXPERIENCE_IMAGES } from "@/lib/constants";
+import { ParallaxPlate } from "@/components/motion/ParallaxPlate";
+import { ABOUT_TEASER, HERO_IMAGE } from "@/lib/constants";
 
 /**
  * Homepage section — the About teaser.
@@ -111,53 +112,99 @@ import { ABOUT_TEASER, EXPERIENCE_IMAGES } from "@/lib/constants";
  * no `lg:` size in the classes below; that is the hold, not an omission.
  */
 export function AboutTeaser() {
-  const plate = EXPERIENCE_IMAGES.studio;
+  /*
+    HERO_IMAGE, and it was going spare. The hero became a looping film, which
+    left this — a painter at her easel, brush in hand, a loaded palette beside
+    her — exported and referenced by nothing. It is also the photograph this
+    section has wanted all along: see the note below.
+  */
+  const plate = HERO_IMAGE;
 
   return (
     <section
       aria-labelledby="about-teaser"
-      className="bg-cream py-[4.5rem] md:py-[6rem] lg:py-[7rem]"
+      /*
+        NO GROUND OF ITS OWN, at the client's ask. It carried White Rock; the
+        reference sets this composition on the page's own paper and lets the
+        photograph be the only block of colour in it.
+      */
+      className="py-[4.5rem] md:py-[6rem] lg:py-[7rem]"
     >
       <Container>
-        <div className="grid grid-cols-12 gap-x-6 gap-y-10 lg:items-end lg:gap-x-10">
+        {/*
+          Top-aligned, not bottom. The reference hangs its text from the top of
+          the picture and lets the column end wherever it ends — which is what
+          makes the two read as one object rather than as two blocks sitting on
+          a shared baseline.
+        */}
+        <div className="grid grid-cols-12 gap-x-6 gap-y-10 lg:items-start lg:gap-x-10">
           <Reveal variant="maskUp" className="col-span-12 lg:col-span-6">
             {/*
-            `surface`, not `surface-alt`. The holding ground behind a plate is
-            there so the frame reads as a frame before the photograph arrives —
-            and `surface-alt` IS White Rock, which is now the section's own
-            ground, so it would have left an invisible hole during load. The
-            near-white sits a shade lighter than the field and reads as a plate.
-          */}
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface">
+              `surface-alt` now the section has no ground of its own: the
+              holding colour behind a plate is there so the frame reads as a
+              frame before the photograph arrives, and on the page's own paper
+              the near-white it used would have been an invisible hole.
+            */}
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface-alt">
               {/*
-                TODO(client): `plate` is EXPERIENCE_IMAGES.studio — dried lilies
-                against a bare wall — and it does not show what the heading
-                promises. The heading is "a room, a table, and time to use
-                them"; the photograph is a still life, with no room, no table
-                and no one using anything in it. The project's other two
-                captioned plates (`.painting`, `.pigment`) are the same kind of
-                shot at the same close distance — paint on paper, not a space
-                or a session — so reaching for either one would trade this
-                mismatch for an identical one rather than fix it, which is why
-                neither is swapped in here. What this frame actually needs is a
-                wide, environmental photograph of a real session — the table
-                laid with materials, the room it sits in — and nothing at that
-                distance exists in this project's image library yet. Left on
-                the plate already wired to this section until the studio
-                supplies one.
+                THE PLATE'S OWN TODO IS RESOLVED BY THIS SWAP.
+
+                It used to carry EXPERIENCE_IMAGES.studio — dried lilies
+                against a bare wall — and the note here said plainly that it
+                did not show what the heading promises: "a room, a table, and
+                time to use them", against a still life with no room, no table
+                and nobody using anything. This is a painter at her easel
+                mid-brushstroke with her palette beside her, which is the
+                heading.
+
+                THE DRIFT IS THE REFERENCE'S OWN MECHANISM. Goodman hangs a
+                575px picture in a 518px frame and slides it as the section
+                passes; <ParallaxPlate> overscans by 16% and drifts 7.5%, which
+                is the same effect by the same means and is already on the site
+                for the editorial spreads and the experience index.
               */}
-              <Image
-                src={plate.src}
-                alt={plate.alt}
-                fill
-                sizes="(min-width: 1024px) 48vw, 100vw"
-                style={{ objectPosition: plate.position }}
-                className="object-cover"
-              />
+              <ParallaxPlate>
+                <Image
+                  src={plate.src}
+                  alt={plate.alt}
+                  fill
+                  sizes="(min-width: 1024px) 48vw, 100vw"
+                  style={{ objectPosition: plate.position }}
+                  className="object-cover"
+                />
+              </ParallaxPlate>
             </div>
           </Reveal>
 
-          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
+          {/*
+            AND THE TEXT HOLDS WHILE THE PICTURE GOES PAST.
+
+            This is the half of the reference's motion that was missing. I gave
+            the plate its drift and stopped there, and the client was right
+            that the section still felt inert — the drift is 82px over a whole
+            section, which nobody reads as movement. The thing you actually see
+            on their page is the copy standing still while the photograph
+            slides up behind it.
+
+            Measured on the reference: the text column computes `position:
+            sticky`, tracks the page 1:1 until the section reaches the top of
+            the window, then pins — gaining 238px on its own picture before the
+            containing block's foot pushes it out and it resumes. The picture
+            never pauses.
+
+            ON THE GRID ITEM, NOT INSIDE IT. A grid item's containing block is
+            its grid *area*, which is as tall as the row — so a short column in
+            a tall row has exactly the travel sticky needs. Put this on the
+            <Reveal> inside instead and it would stick within its own box,
+            which is its own height, and never move. `self-start` keeps the box
+            from stretching to fill the area and taking that travel away;
+            `items-start` on the grid already sets it, and it is repeated here
+            so moving this block cannot silently break it.
+
+            `lg` only: stacked in one column below that, the picture is above
+            the text rather than beside it and there is nothing to hold against.
+          */}
+          <div className="col-span-12 lg:sticky lg:top-20 lg:col-span-6 lg:col-start-7 lg:self-start">
             <Reveal delay={0.12}>
               <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
                 {ABOUT_TEASER.eyebrow}
@@ -177,44 +224,37 @@ export function AboutTeaser() {
               </p>
 
               {/*
-                THE MARKING IS LILAC HERE, NOT TERRACOTTA, AND IT IS THE GROUND
-                THAT DECIDES THAT.
+                A FILLED BUTTON, as the reference ends on.
 
-                A link's underline is what makes the label read as a link
-                rather than as a caption, so it is a graphical object and owes
-                3:1. Swept against White Rock at 40/50/60/70/85/100%:
+                Goodman closes this composition with a small solid block —
+                "Explore the Programme" — rather than a ruled line of type, and
+                on a section with no ground of its own it is the only thing
+                holding the column down. Deep Lilac with `on-primary`, the same
+                control every other primary action on this site uses.
+
+                It also settles a contrast problem the ruled version had, which
+                is worth keeping on the record. A link's underline is what
+                makes the label read as a link, so it is a graphical object and
+                owes 3:1. Swept against White Rock at 40/50/60/70/85/100%:
 
                   Warm Terracotta .. 1.41  1.53  1.70  1.86  2.12  2.44
                   Deep Lilac ....... 1.64  1.87  2.17  2.52  3.10  3.95
                   Charcoal Slate ... 2.11  2.59  3.30  4.24  6.26  9.36
 
                 Terracotta fails at every opacity — it cannot carry a rule on
-                this ground at all, which is worth knowing before it is reached
-                for again. Lilac clears only at full strength, and that is what
-                this uses: /50 was the first attempt here and measured 1.87, so
-                the tint that looked like restraint was simply a rule nobody
-                could see. Hover goes to the label's own ink at 9.36, so the
-                state change is unmistakable in both directions.
+                that ground at all, which is worth knowing before it is reached
+                for again. A filled control has its own ground and none of this
+                applies to it.
 
-                The arrow went with it. At 12px terracotta it measured 2.44:1,
-                and while it is `aria-hidden` and adds nothing the label does
-                not already say, a glyph that washes out beside crisp type
-                reads as a rendering fault rather than as restraint. In the
-                label's own ink it is 9.36:1 and the control reads as one
-                object.
-
-                TODO(client): the same terracotta-underline pair is used on the
-                back links at /private-events and /events/[slug]/book, where it
-                sits on the page off-white and measures no better. Worth one
-                pass across the site rather than four separate fixes.
+                TODO(client): the same terracotta-underline pair is still used
+                on the back links at /private-events and /events/[slug]/book.
+                Worth one pass across the site rather than separate fixes.
               */}
               <Link
                 href="/about"
-                className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
+                className="group mt-9 inline-flex min-h-11 items-center justify-center gap-2.5 rounded-sm bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90 md:mt-10"
               >
-                <span className="border-b border-primary pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
-                  {ABOUT_TEASER.cta}
-                </span>
+                {ABOUT_TEASER.cta}
                 <span
                   aria-hidden
                   className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"

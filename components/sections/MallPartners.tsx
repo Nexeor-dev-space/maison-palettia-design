@@ -48,7 +48,9 @@ const MAP_HALF = "col-span-12 lg:col-span-6 lg:col-start-7";
  * nowhere, which is the one thing worse than no map.
  */
 function mapQueryFor(partner: MallPartner): string | undefined {
-  const raw = partner.mapQuery ?? [partner.name, partner.locality].filter(Boolean).join(", ");
+  const raw =
+    partner.mapQuery ??
+    [partner.name, partner.locality].filter(Boolean).join(", ");
   const query = raw.trim();
   return query.length > 0 ? query : undefined;
 }
@@ -135,51 +137,79 @@ export async function MallPartners() {
       className="py-[4.5rem] md:py-[6rem] lg:py-[7rem]"
     >
       {/*
-        No dividers between rows and no ground behind them — the reference's
-        Exhibitions and Fairs rows are separated by space alone, and this
-        section sits on the page's own pale green with nothing drawn under it.
+        THE CARD, WHICH THE CLIENT ASKED FOR AND WHICH REPLACES THE OPPOSITE
+        DECISION. This section used to sit directly on the page's own pale
+        green with nothing drawn under it, on the reference's argument that its
+        Exhibitions rows are separated by space alone. Space alone stopped
+        working once the film band went in above: two unbounded stretches of
+        type in a row read as one long section, and the card gives this one an
+        edge to start at.
+
+        THE GROUND IS WHITE ROCK ON THE PAGE'S PALE GREEN — `bg-surface-alt` on
+        `--color-surface`, both of them existing tokens. The section brief is
+        explicit that this part of the page uses the approved palette and
+        introduces nothing, so the card is made out of the two grounds the
+        site already has rather than out of a new one, and the warm/cool
+        difference between them is what separates it from the page.
+
+        `rounded-md` — 14px — RATHER THAN THE 8px THE IMAGES AND BUTTONS TAKE.
+        A radius reads against the size of the thing carrying it: 8px on a
+        1100px-wide panel is a corner that has been nicked rather than turned,
+        and at this scale 14px is the same apparent softness that 8px gives a
+        plate. The map inside keeps its 8px, so the two nest instead of
+        competing.
+
+        No dividers between the rows inside it — that part of the reference
+        still holds.
       */}
-      <div className="flex flex-col gap-y-14 lg:gap-y-16">
-        {partners.map((partner, i) => {
-          const query = mapQueryFor(partner);
-          const place = [partner.name, partner.locality].filter(Boolean).join(", ");
+      <div className="rounded-md border border-line bg-surface-alt px-6 py-10 md:px-10 md:py-12 lg:px-14 lg:py-16">
+        <div className="flex flex-col gap-y-14 lg:gap-y-16">
+          {partners.map((partner, i) => {
+            const query = mapQueryFor(partner);
+            const place = [partner.name, partner.locality]
+              .filter(Boolean)
+              .join(", ");
 
-          return (
-            <div key={partner.slug} className={ROW}>
-              <div className={TEXT_HALF}>
-                {/* The masthead rides in the first row and nowhere else. */}
-                {i === 0 ? <Masthead /> : null}
-                <Destination partner={partner} className={i === 0 ? "mt-14 md:mt-16 lg:mt-20" : ""} />
-              </div>
+            return (
+              <div key={partner.slug} className={ROW}>
+                <div className={TEXT_HALF}>
+                  {/* The masthead rides in the first row and nowhere else. */}
+                  {i === 0 ? <Masthead /> : null}
+                  <Destination
+                    partner={partner}
+                    className={i === 0 ? "mt-14 md:mt-16 lg:mt-20" : ""}
+                  />
+                </div>
 
-              <div className={MAP_HALF}>
-                {/*
+                <div className={MAP_HALF}>
+                  {/*
                   Render nothing rather than a broken frame. A destination with
                   no queryable name and no override has nothing to ask a map
                   for, so it keeps its text entry and the half stays empty —
                   which reads as the composition it already is.
                 */}
-                {query ? (
-                  <Reveal variant="fadeIn" delay={0.1}>
-                    <MallMap src={embedSrc(query)} place={place} />
-                  </Reveal>
-                ) : null}
+                  {query ? (
+                    <Reveal variant="fadeIn" delay={0.1}>
+                      <MallMap src={embedSrc(query)} place={place} />
+                    </Reveal>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      {/*
+        {/*
         The honest version of "and many more". It says the list will grow
         without claiming it already has, and it is the same sentence the events
         listing uses about dates — one voice for one situation.
       */}
-      <Reveal variant="fadeIn">
-        <p className="mt-12 max-w-[34rem] text-body leading-[1.85] text-text/75 md:mt-14">
-          More destinations are announced as each partnership is confirmed.
-        </p>
-      </Reveal>
+        <Reveal variant="fadeIn">
+          <p className="mt-12 max-w-[34rem] text-body leading-[1.85] text-text/75 md:mt-14">
+            More destinations are announced as each partnership is confirmed.
+          </p>
+        </Reveal>
+      </div>
     </Container>
   );
 }
@@ -202,7 +232,10 @@ function Masthead() {
     <Stagger>
       <Reveal>
         <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
-          <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
+          <span
+            aria-hidden
+            className="h-px w-9 shrink-0 bg-terracotta md:w-12"
+          />
           Where we create
         </p>
       </Reveal>
@@ -224,9 +257,10 @@ function Masthead() {
 
       <Reveal>
         <p className="mt-7 max-w-[32rem] text-body leading-[1.85] text-text/80 md:mt-8">
-          The Maison keeps no premises of its own. It partners with a shopping centre and brings
-          the studio inside for a run of fixed dates, materials included &#8212; so where to find
-          us is a date as much as it is a place.
+          The Maison keeps no premises of its own. It partners with a shopping
+          centre and brings the studio inside for a run of fixed dates,
+          materials included &#8212; so where to find us is a date as much as it
+          is a place.
         </p>
       </Reveal>
     </Stagger>
@@ -255,10 +289,18 @@ function Masthead() {
  * is safe on this ground too (4.70), but the entry is the block of type the
  * whole section is built around and the extra headroom costs nothing.
  */
-function Destination({ partner, className }: { partner: MallPartner; className?: string }) {
+function Destination({
+  partner,
+  className,
+}: {
+  partner: MallPartner;
+  className?: string;
+}) {
   return (
     <Reveal className={className}>
-      <h3 className="text-lead font-medium leading-[1.3] text-text">{partner.name}</h3>
+      <h3 className="text-lead font-medium leading-[1.3] text-text">
+        {partner.name}
+      </h3>
 
       <p className="mt-2 text-fine font-medium uppercase tracking-eyebrow text-text/75">
         {partner.locality}

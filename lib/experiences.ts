@@ -67,8 +67,12 @@ export interface CreativeExperience {
    alternative was leaving the client's second-priority activity without a
    picture while a correct one sat in the repository.
 
-   TODO(client): mandala painting and glass painting have no photograph. Both
-   render as name-only entries until one arrives.
+   Mandala painting and glass painting are the client's own photographs,
+   supplied for this section and re-cut for the web — 4608x3072 and 4000x4000
+   masters down to 1800px on the long edge, with the originals kept outside
+   public/ at assets/masters/. The full-size files were 1.2MB and 3.5MB, and a
+   4000x4000 source is the exact shape that hung the image optimizer on the
+   crocheting frame; see the note in lib/workshops.ts.
    ========================================================================== */
 
 const EXPERIENCES: readonly CreativeExperience[] = [
@@ -107,10 +111,19 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   },
   {
     // No description: the studio has not written one, and this is not the
-    // place to invent a sentence about what a mandala is.
+    // place to invent a sentence about what a mandala is. The photograph is
+    // the client's own and needs no caption to do its work.
     slug: "mandala-painting",
     name: "Mandala painting",
     kind: "diy",
+    image: {
+      src: "/images/creative/mandala-painting.jpg",
+      alt: "A hand holding up a large round mandala board against blurred autumn foliage — turquoise, worked in concentric white-ridged arcs inlaid with mirror diamonds and dots.",
+      // The disc fills the square frame and the hand enters from the lower
+      // left; held a little above centre so a landscape crop keeps the
+      // pattern and loses the foliage rather than the other way round.
+      position: "50% 45%",
+    },
   },
   {
     slug: "glass-painting",
@@ -118,6 +131,17 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     kind: "diy",
     // The client's own wording, carried through rather than paraphrased.
     status: "Coming soon",
+    image: {
+      src: "/images/creative/glass-painting.jpg",
+      alt: "A finished glass panel in a pale wooden frame standing on a walnut table, painted with a blue toucan on a branch among monstera and palm leaves, a lamp lit behind it.",
+      /*
+        The panel sits right of centre and low in a wide, mostly empty frame —
+        a lamp and an armchair fill the left third. Pulled across and down so a
+        `cover` crop keeps the painted glass and gives away the empty wall,
+        which is the only part of this photograph with nothing in it.
+      */
+      position: "56% 62%",
+    },
   },
   {
     slug: "candle-making",

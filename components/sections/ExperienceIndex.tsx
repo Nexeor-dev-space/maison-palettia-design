@@ -3,25 +3,38 @@ import Link from "next/link";
 
 import { ParallaxPlate } from "@/components/motion/ParallaxPlate";
 import { Reveal } from "@/components/motion/Reveal";
-import { EXPERIENCE_KIND_LABEL, type CreativeExperience } from "@/lib/experiences";
+import {
+  EXPERIENCE_KIND_LABEL,
+  type CreativeExperience,
+} from "@/lib/experiences";
 import { cn } from "@/lib/utils";
 
 /**
  * The activity name.
  *
- * `text-h2` off the scale — clamp(1.75rem, …, 2.25rem), so 28px on a phone and
- * 36px at 1440. It came DOWN to `text-h3` in the last pass, on the argument
- * that a name set at display scale beside a 400px photograph is two things
- * shouting; it goes back up one step now because the photograph is no longer
- * 414px but 518px, and the text block no longer sits beside the whole of it.
- * It is a compact stack at the TOP of an otherwise empty 694px half, and at
- * 28px it read as a caption that had come adrift rather than as the thing the
- * half is about. 36px against the section's own 70px statement keeps the
- * outline unambiguous, and everything else in the block — the folio at 11px,
- * the line at 17px, the affordance at 12px — is small enough that the name is
- * plainly the largest thing in it without being the largest thing on screen.
+ * `text-h3` — clamp(1.5rem, …, 1.75rem), so 24px on a phone and 28px at 1440.
+ *
+ * IT WENT BACK UP AT THE CLIENT'S ASK. The pass before this one took it down
+ * to `text-lead` on the reference's argument — Goodman set their row titles at
+ * 17px and let the photograph carry the section. That is a defensible reading
+ * of their page and it was the wrong one for this content: their rows name
+ * artists a visitor already came looking for, ours name activities a visitor
+ * is deciding between, and at 18px against a 518px plate the names stopped
+ * being the thing you scan and became a caption under a number.
+ *
+ * ONE STEP, NOT TWO. `text-h2` is where this started and it is still too much
+ * — 36px would put the row names level with the section's own statement and
+ * flatten the outline. 28px keeps the order statement → band → activity
+ * legible while leaving the name plainly the largest thing in its own stack:
+ * the folio now sits at 13px and the line under it at 20px.
+ *
+ * `leading-[1.15]` is not decoration at this size. These names wrap to two
+ * lines from `md` down ("Ceramic painting", "Tote-bag painting"), and the
+ * scale's default leading opened a visible gap between the halves of one
+ * name. The tighter tracking is the usual companion — uppercase at 28px
+ * carries more letter-space than it needs.
  */
-const NAME = "text-h2 font-light uppercase tracking-[-0.02em]";
+const NAME = "text-h3 font-light uppercase leading-[1.15] tracking-[-0.015em]";
 
 /**
  * The plate, and the whole point of this revision: the client asked for a
@@ -86,8 +99,29 @@ const PLATE =
  * and the rest of its half is empty — that emptiness is the composition, not a
  * gap waiting to be filled.
  */
-const HALF_LEFT = "lg:col-span-6 lg:col-start-1 lg:row-start-1";
-const HALF_RIGHT = "lg:col-span-6 lg:col-start-7 lg:row-start-1";
+const HALF_LEFT = "lg:col-span-5 lg:col-start-1 lg:row-start-1";
+const HALF_RIGHT = "lg:col-span-7 lg:col-start-6 lg:row-start-1";
+
+/**
+ * Where the label parks while its picture travels past.
+ *
+ * THE SCROLL BEHAVIOUR THE REFERENCE IS ACTUALLY MADE OF. Measured on their
+ * page: the label computes `position: sticky` and holds at 80px from the top
+ * of the window while its photograph scrolls from -26 to -426 beneath it, then
+ * releases as the next row's label arrives under it. Without this the section
+ * has the reference's layout and none of its behaviour, which is what ours had.
+ *
+ * 80px is their figure, taken directly. It works here because this site's
+ * header is in flow and leaves with the page, so there is no bar for a pinned
+ * label to hide under.
+ *
+ * `self-start` is load-bearing: a stretched grid item is exactly as tall as
+ * its row, and a sticky element with no room inside its own box never moves.
+ * Sticky only from `lg`, where the label and the plate are side by side —
+ * stacked in one column below that, the label's box is its own height and
+ * pinning would have nowhere to travel.
+ */
+const CAPTION_STICKY = "lg:sticky lg:top-20 lg:self-start";
 
 /**
  * The index: one large row per experience, photographs alternating sides.
@@ -129,7 +163,11 @@ const HALF_RIGHT = "lg:col-span-6 lg:col-start-7 lg:row-start-1";
  * NO STATE, NO OBSERVER, NO CLIENT BOUNDARY. A server component; every
  * animation belongs to the shared motion primitives it composes.
  */
-export function ExperienceIndex({ experiences }: { experiences: CreativeExperience[] }) {
+export function ExperienceIndex({
+  experiences,
+}: {
+  experiences: CreativeExperience[];
+}) {
   const groups = groupByKind(experiences);
 
   return (
@@ -159,7 +197,10 @@ export function ExperienceIndex({ experiences }: { experiences: CreativeExperien
               id={`experience-group-${kind}`}
               className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text"
             >
-              <span aria-hidden className="h-px w-9 shrink-0 bg-primary md:w-12" />
+              <span
+                aria-hidden
+                className="h-px w-9 shrink-0 bg-primary md:w-12"
+              />
               {EXPERIENCE_KIND_LABEL[kind]}
             </h3>
           </Reveal>
@@ -167,7 +208,11 @@ export function ExperienceIndex({ experiences }: { experiences: CreativeExperien
           {/* No `border-b`, and no rule between items. */}
           <ol className="mt-8 md:mt-10">
             {entries.map(({ experience, folio }) => (
-              <Row key={experience.slug} experience={experience} index={folio} />
+              <Row
+                key={experience.slug}
+                experience={experience}
+                index={folio}
+              />
             ))}
           </ol>
         </section>
@@ -177,7 +222,10 @@ export function ExperienceIndex({ experiences }: { experiences: CreativeExperien
 }
 
 /** The order the bands are hung in: walk-in first, then the diary. */
-const GROUP_ORDER = ["diy", "scheduled"] as const satisfies readonly CreativeExperience["kind"][];
+const GROUP_ORDER = [
+  "diy",
+  "scheduled",
+] as const satisfies readonly CreativeExperience["kind"][];
 
 /**
  * The experiences in bands, and empty bands dropped.
@@ -216,7 +264,12 @@ function groupByKind(experiences: CreativeExperience[]) {
     kind: band.kind,
     entries: band.entries.map((experience, j) => ({
       experience,
-      folio: bands.slice(0, i).reduce((n, previous) => n + previous.entries.length, 0) + j + 1,
+      folio:
+        bands
+          .slice(0, i)
+          .reduce((n, previous) => n + previous.entries.length, 0) +
+        j +
+        1,
     })),
   }));
 }
@@ -267,11 +320,14 @@ function groupByKind(experiences: CreativeExperience[]) {
  * the rules than it was with them: a ruled short row looked like a row that
  * had lost its picture, where an unruled one is just a change of pace.
  */
-function Row({ experience, index }: { experience: CreativeExperience; index: number }) {
+function Row({
+  experience,
+  index,
+}: {
+  experience: CreativeExperience;
+  index: number;
+}) {
   const plate = experience.image;
-  // Odd folios hang their picture on the right, even on the left. Keyed to the
-  // folio, which is continuous across the bands — see groupByKind.
-  const flip = index % 2 === 0;
 
   return (
     <li className="mt-14 first:mt-0 lg:mt-12">
@@ -288,9 +344,13 @@ function Row({ experience, index }: { experience: CreativeExperience; index: num
           seven — a status. A column that is empty six times out of seven is
           not a column.
         */}
-        <div className={cn("col-span-12", plate && (flip ? HALF_RIGHT : HALF_LEFT))}>
-          <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text/85">
-            <span className="tabular-nums">{String(index).padStart(2, "0")}</span>
+        <div
+          className={cn("col-span-12", plate && cn(HALF_LEFT, CAPTION_STICKY))}
+        >
+          <p className="flex items-center gap-3 text-fine font-medium uppercase tracking-eyebrow text-text/85">
+            <span className="tabular-nums">
+              {String(index).padStart(2, "0")}
+            </span>
             {experience.status ? (
               <>
                 <span aria-hidden className="h-px w-5 shrink-0 bg-primary" />
@@ -319,31 +379,24 @@ function Row({ experience, index }: { experience: CreativeExperience; index: num
             // the homepage and is not about to appear seven more. Weight and
             // ink carry the register change instead. /80 sits well above the
             // /70 floor this ground allows.
-            <p className="mt-4 max-w-[26rem] text-body leading-[1.75] text-text/80">
+            <p className="mt-4 max-w-[30rem] text-lead leading-[1.65] text-text/80">
               {experience.description}
             </p>
           ) : null}
 
           {/*
-            An affordance, not a link — the name above already covers the whole
-            row. Same rule and same treatment as <EventIndexEntry>.
+            NO "VIEW ACTIVITY" HERE ANY MORE.
 
-            Deep Lilac on the page ground measures 4.90:1; on the Light Sage
-            this section used to carry it was 3.83 and depended on being a
-            graphical mark rather than copy. Losing the ground colour is what
-            makes it safe as 12px text.
+            The reference carries no per-row call to action — the whole row is
+            one link and the picture is the invitation. Ours had a ruled lilac
+            affordance under every label, which on seven rows is seven of them
+            down one column, and it was the loudest thing in a section whose
+            photographs are supposed to be doing the talking.
+
+            Nothing is lost: the name's `after:absolute after:inset-0` already
+            makes the entire row the hit area, so the row is exactly as
+            clickable as it was.
           */}
-          <span
-            aria-hidden
-            className="mt-7 flex w-fit items-center gap-3 text-action font-semibold uppercase tracking-eyebrow text-primary"
-          >
-            <span className="border-b border-primary/40 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
-              View activity
-            </span>
-            <span className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">
-              &#8594;
-            </span>
-          </span>
         </div>
 
         {/*
@@ -368,7 +421,7 @@ function Row({ experience, index }: { experience: CreativeExperience; index: num
           <div
             className={cn(
               "relative -z-10 col-span-12 overflow-hidden rounded-xs bg-cream",
-              flip ? HALF_LEFT : HALF_RIGHT,
+              HALF_RIGHT,
               PLATE,
             )}
           >

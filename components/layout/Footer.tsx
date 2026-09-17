@@ -25,7 +25,8 @@ import type { NavGroup } from "@/types";
 /**
  * Global site footer — the last room.
  *
- * A Light Sage field rising through an arch out of the White Rock invitation
+ * An Ink field meeting the page on a straight edge. It used to rise through
+ * an arch out of the White Rock invitation
  * above it. The arch is the Maison's own mark: it crowns the photograph that
  * opens the brand introduction and the one that opens the creative strands,
  * and here it is the doorway on the way out rather than a frame around a
@@ -63,39 +64,29 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    // The ground the arch cuts into, so its corners reveal the same White Rock
-    // the invitation above closes on rather than the page's off-white.
-    <footer className="bg-cream">
+    // The ground the arch cuts into, so its corners reveal White Rock rather
+    // than the page's off-white.
+    //
+    // WHICH IS INVISIBLE ONLY WHERE THE SECTION ABOVE IS ALSO WHITE ROCK, and
+    // that is now /about, whose closing invitation this was written against
+    // before that section moved there from the homepage. Everywhere the last
+    // section takes another ground — the homepage's Charcoal quotes, most
+    // visibly — this band reads as a cream strip above the arch instead of as
+    // the invitation continuing into it. It is a seam rather than a fault, and
+    // it is the same seam every route other than /about and the homepage has
+    // always had; flagged because the comment here used to promise otherwise.
+    <footer>
       {/*
-        The arch. A strip of its own rather than a radius on the whole footer:
-        the utility sets the vertical radius as a share of the element's
-        height, so giving it an element whose height is a share of the
-        viewport keeps the sweep proportional to the width at every size
-        instead of stretching with the footer's contents.
+        NO ARCH, AND NO RADIUS ON THE TOP EDGE — removed at the client's ask.
+
+        This was a strip of Ink cut into an arch, so the footer rose out of the
+        section above it on a curve. It is gone: the footer is a flat-topped
+        field now and meets the page on a straight edge.
+
+        The `bg-cream` on the <footer> itself went with it. Its only job was to
+        be what the arch's corners revealed; with no curve there are no corners
+        and it would be a cream hairline under the last section.
       */}
-      {/*
-        DEEPER THAN IT WAS, because the client could not see it.
-
-        Measured before changing anything: at 1440px the arch rose 101px over
-        1440 of width — a 1:14 sweep, which is a very slightly bent line rather
-        than an arch. The colours are not the problem to solve here; sage
-        against the page's off-white measures 1.3:1, which is enough for a
-        shape this size, and the cream the corners reveal is 1.03:1 against the
-        sage on purpose so the curve reads as one clean edge rather than as a
-        band with its own outline.
-
-        What was missing was rise. These figures give roughly 1:9 on a desktop
-        and 1:6 on a phone, which is a curve you see rather than infer. It
-        costs about 60px on a desktop and 22px on a phone, and the spacing
-        below gives back several times that.
-
-        The ceiling against the window stays for the reason it always had: the
-        footer is pinned and has to fit the screen — see <FooterReveal>.
-      */}
-      <div
-        aria-hidden
-        className="arch h-[min(16vw,18vh)] max-h-52 min-h-16 w-full bg-footer [--arch-rise:100%]"
-      />
 
       {/*
         ONE PLACE DECIDES THE INK, AND EVERYTHING INSIDE INHERITS IT — the same

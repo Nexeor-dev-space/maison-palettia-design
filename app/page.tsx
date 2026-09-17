@@ -4,7 +4,7 @@ import { Gallery } from "@/components/sections/Gallery";
 import { Hero } from "@/components/sections/Hero";
 import { HomeFaq } from "@/components/sections/HomeFaq";
 import { MallPartners } from "@/components/sections/MallPartners";
-import { PlanYourVisit } from "@/components/sections/PlanYourVisit";
+import { StudioFilm } from "@/components/sections/StudioFilm";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { UpcomingEvents } from "@/components/sections/UpcomingEvents";
 
@@ -92,6 +92,8 @@ export default function HomePage() {
         credibility for a business already argued for. Nothing else on the page
         moved with it.
       */}
+      <StudioFilm />
+
       <MallPartners />
 
       {/* A doorway to the story rather than the story itself. */}
@@ -129,15 +131,29 @@ export default function HomePage() {
         endorsement is the one that is a liability rather than a convenience.
         Replace these with real quotes, or empty the array, before launch.
       */}
-      <Testimonials />
-
       {/*
-        The last section, and the only one that asks for anything. It stays
-        last for the same reason it always did — everything above it has been
-        showing and explaining, and this is the one place the Maison speaks to
-        the visitor directly.
+        And now the last section on the page.
+
+        THE CLOSING INVITATION HAS GONE TO /about, at the client's ask, where
+        it replaced a shorter section making the identical ask — see the note
+        there. What that costs this page is its one direct address to the
+        visitor and its one filled button: the homepage now ends on somebody
+        else's words about the studio rather than on the studio's own.
+
+        It is not left without a way forward. The programme is the second
+        thing on the page, <CreativeExperiences> closes on "Explore all
+        experiences", and the header carries the booking action on every
+        screen. But the deliberate last word is gone, and the ground rhythm
+        in globals.css now ends on Charcoal rather than on the White Rock
+        exhale it was written around.
+
+        TODO(client): if the homepage should still sign off in the Maison's
+        own voice, the thing to bring back is a short invitation — a line and
+        the one action — not this section again. Two pages cannot both close
+        on "Come make something with us." without the second one sounding
+        like an echo.
       */}
-      <PlanYourVisit />
+      <Testimonials />
     </>
   );
 }

@@ -31,15 +31,54 @@ export function HomeFaq() {
   if (HOMEPAGE_FAQ.length === 0) return null;
 
   return (
-    <Container as="section" aria-labelledby="faq-heading" className="py-[4.5rem] md:py-section">
-      <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
-        <div className="col-span-12 md:col-span-4">
+    <Container
+      as="section"
+      aria-labelledby="faq-heading"
+      className="py-[4.5rem] md:py-section"
+    >
+      {/*
+        `md:items-start` IS HALF OF THE SCROLL BEHAVIOUR AND IS EASY TO MISS.
+
+        A grid item stretches to its row by default, and a caption column
+        stretched to the height of a four-item accordion is already as tall as
+        its own containing block — so it has nowhere to stick to and `sticky`
+        silently does nothing. Starting the items lets the short column stay
+        short, which is what gives it travel. `md:self-start` on the column
+        below says the same thing at the item, the way <AboutTeaser> does.
+      */}
+      <div className="grid grid-cols-12 gap-x-6 md:items-start lg:gap-x-10">
+        {/*
+          THE CAPTION HOLDS WHILE THE QUESTIONS GO PAST — the same movement as
+          "The Maison / A room, a table, and time to use them.", and the same
+          two lines of CSS that produce it there.
+
+          A sticky grid item's containing block is its GRID AREA rather than
+          the section, so the travel here is exactly the accordion's height
+          minus this column's: the caption pins once its top reaches 80px,
+          rides down with the row, and releases at the bottom of the answers.
+          Nothing is measured in script and nothing is hard-coded — add a
+          question and the hold gets longer on its own.
+
+          `top-20` — 5rem — is the figure <AboutTeaser> uses, and it is the
+          header's height plus a line of air rather than a round number.
+
+          FROM `md`, NOT `lg`, because `md` is where this section becomes two
+          columns. Below it the caption and the questions are one stack and
+          there is nothing to hold still against.
+        */}
+        <div className="col-span-12 md:sticky md:top-20 md:col-span-4 md:self-start">
           <Reveal>
             <p className="flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text">
-              <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
+              <span
+                aria-hidden
+                className="h-px w-9 shrink-0 bg-terracotta md:w-12"
+              />
               Before you book
             </p>
-            <h2 id="faq-heading" className="mt-6 text-h2 font-light uppercase tracking-[-0.02em]">
+            <h2
+              id="faq-heading"
+              className="mt-6 text-h2 font-light uppercase tracking-[-0.02em]"
+            >
               Good to know.
             </h2>
           </Reveal>
@@ -65,10 +104,16 @@ export function HomeFaq() {
           </Reveal>
         </div>
 
-        <Reveal delay={0.1} className="col-span-12 mt-10 md:col-span-7 md:col-start-6 md:mt-0">
+        <Reveal
+          delay={0.1}
+          className="col-span-12 mt-10 md:col-span-7 md:col-start-6 md:mt-0"
+        >
           <dl>
             {HOMEPAGE_FAQ.map((item, i) => (
-              <div key={item.question} className="border-t border-line last:border-b">
+              <div
+                key={item.question}
+                className="border-t border-line last:border-b"
+              >
                 {/*
                   `<details>` carries the state, so the question is a <dt> and
                   the answer a <dd> only in spirit — nesting a disclosure inside
@@ -92,7 +137,9 @@ export function HomeFaq() {
                       <span className="absolute inset-0 bg-text transition-transform duration-500 ease-editorial group-open/faq:rotate-0 [transform:rotate(90deg)]" />
                     </span>
                   </summary>
-                  <p className="mt-4 max-w-[34rem] text-body text-text/80">{item.answer}</p>
+                  <p className="mt-4 max-w-[34rem] text-body text-text/80">
+                    {item.answer}
+                  </p>
                 </details>
               </div>
             ))}
