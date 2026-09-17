@@ -25,10 +25,21 @@ export function BackToTop({ className }: BackToTopProps) {
       type="button"
       onClick={scrollToTop}
       className={cn(
-        // `text-current`, so this follows whatever ground it is dropped on —
-        // which is the footer, and the footer is Ink now.
+        // `text-current`, so this follows whatever ground it is dropped on.
+        //
+        // AND THE HOVER FOLLOWS IT TOO, which it did not used to. The resting
+        // ink was inherited but the hover was hard-coded to Light Sage, on the
+        // assumption that this only ever stands on the footer's near-black.
+        // The footer is a Light Sage field now, so that hover was sage on
+        // sage — 1:1, a control that vanishes when you point at it.
+        //
+        // The response is carried by the rule and the arrow instead of by the
+        // ink, so there is no colour that has to be right on both a dark
+        // ground and a light one. Same reasoning as the rail links in
+        // <PlanYourVisit>: a rule is a graphical mark and can take the accent,
+        // where an 11px label cannot without a contrast measurement per
+        // ground.
         "group relative inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-current",
-        "transition-colors duration-300 ease-soft hover:text-sage",
         // The label is 11px and sets a 21px box. Extended to a comfortable
         // target with a pseudo-element rather than padding, so the footer's
         // baseline grid is untouched — same device as the links beside it.
@@ -42,7 +53,7 @@ export function BackToTop({ className }: BackToTopProps) {
       >
         &#8593;
       </span>
-      <span className="border-b border-current/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-sage">
+      <span className="border-b border-current/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-current">
         Back to top
       </span>
     </button>

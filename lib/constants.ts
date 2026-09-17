@@ -495,6 +495,50 @@ export const WHATSAPP: {
   greeting: "Hello! I would like to ask about an upcoming event.",
 };
 
+/**
+ * The footer's mailing-list signup, and the switch that hides it.
+ *
+ * WHY IT IS BUILT BUT NOT SHOWN. The footer was rebuilt after
+ * goodman-gallery.com, whose footer leads with a newsletter block — heading,
+ * one line of copy, and a filled Subscribe button. This project has no mailing
+ * list: no provider, no endpoint, no list to join. A Subscribe button that
+ * posts nowhere is the worst version of this, because it takes an address and
+ * loses it, so the block renders nothing at all until `actionUrl` is set.
+ *
+ * That is the same rule {@link SOCIAL_LINKS}, {@link WHATSAPP} and
+ * {@link LEGAL_NAV} already follow: the code is ready, the absence is honest,
+ * and switching it on is a value rather than a build.
+ *
+ * HOW TO TURN IT ON. Put the provider's form endpoint in `actionUrl` — the
+ * URL a Mailchimp, Klaviyo or Buttondown embed form posts to. <Footer>
+ * renders a plain `<form method="post">` at it with one `email` field, so it
+ * works with no JavaScript and needs no client library. If the provider wants
+ * the field called something other than "email", change `fieldName` with it.
+ *
+ * A third-party endpoint will navigate away to its own confirmation page. That
+ * is the honest default and it is what these embeds do; swapping it for a
+ * fetch and an inline "thank you" is a real piece of work, not a prop.
+ *
+ * TODO(client): placeholder wording, written to the brand voice. Replace with
+ * approved copy — and note that `description` is a promise about what gets
+ * sent, so it should say what the studio will actually send.
+ */
+export const NEWSLETTER: {
+  /** The provider's form endpoint. `null` hides the block entirely. */
+  actionUrl: string | null;
+  /** The name the provider expects on the email field. */
+  fieldName: string;
+  heading: string;
+  description: string;
+  cta: string;
+} = {
+  actionUrl: null,
+  fieldName: "email",
+  heading: "Newsletter",
+  description: "New dates and new experiences, straight to your inbox.",
+  cta: "Subscribe",
+};
+
 /** TODO(client): awaiting live social profile URLs. */
 export const SOCIAL_LINKS: SocialLink[] = [
   { label: "Instagram", href: null },
@@ -747,29 +791,40 @@ export const MAISON_PHILOSOPHY: {
 };
 
 /**
- * Homepage section 09 — plan your visit.
+ * The closing invitation — plan your visit.
  *
- * The page's one conversion moment, written as an invitation rather than an
- * offer. Everything above it has been showing and explaining; this is the only
- * place Maison Palettia speaks to the visitor directly, and the copy is kept
- * short because by this point nothing needs explaining again.
+ * The conversion moment, written as an invitation rather than an offer.
+ * Everything above it has been showing and explaining; this is the only place
+ * Maison Palettia speaks to the visitor directly, and the copy is kept short
+ * because by this point nothing needs explaining again.
+ *
+ * IT CLOSES /about NOW, not the homepage — moved at the client's ask, and in
+ * the move it displaced an <EventsCta> that was making the identical ask in
+ * fewer words. See <PlanYourVisit>. Nothing in this object changed with the
+ * route; the notes below say which page each argument was written about.
  *
  * TODO(client): placeholder wording, written to the brief's brand voice.
  * Replace with approved copy. The composition holds as long as the title stays
  * three short lines, the description stays one sentence, and each step's
  * detail stays under about forty characters.
  *
- * On "Come make something with us.": the philosophy section deliberately
- * avoids a fourth "Make …" heading, and this one takes it back on purpose. It
- * is the only statement on the page in the second person, the only one with
- * "us" in it, and it lands immediately after "Made slowly. Felt deeply." — so
- * the two read as a call and its answer, which is how the page is meant to
- * end. Every other heading on the page instructs; this one asks.
+ * On "Come make something with us.": MAISON_PHILOSOPHY deliberately avoids a
+ * fourth "Make …" heading, and this one takes it back on purpose. It is the
+ * only statement in the second person and the only one with "us" in it, and
+ * it was written to land immediately after "Made slowly. Felt deeply." — a
+ * call and its answer, which is how the homepage used to end.
+ *
+ * THAT PAIRING IS GONE AND THE LINE IS STILL THE RIGHT ONE. The philosophy
+ * block now sits in <TheMaison> near the top of /about and this closes the
+ * same page, so the two no longer touch; what they have instead is a page
+ * that opens on the Maison's own words and ends by asking the reader in. The
+ * heading earns its place on the change of person alone — every other one on
+ * that page instructs, and this one asks.
  *
  * `primaryCta` points at the workshops listing rather than at a booking flow
- * on purpose: the homepage should hand the visitor to the collection and let
- * them choose there. When a dedicated experiences route exists, re-point this
- * one field — no component knows the path.
+ * on purpose: the page should hand the visitor to the collection and let them
+ * choose there. When a dedicated experiences route exists, re-point this one
+ * field — no component knows the path.
  */
 export const PLAN_YOUR_VISIT: VisitInvitation = {
   eyebrow: "Plan Your Visit",
@@ -780,15 +835,20 @@ export const PLAN_YOUR_VISIT: VisitInvitation = {
   primaryCta: { label: "Explore events", href: "/events" },
   secondaryCta: { label: "Contact the Maison", href: "/contact" },
   /*
-    THE ONLY ROUTE TO /private-events FROM THE HOMEPAGE. The page exists and is
-    linked in the footer, and a footer is where a visitor looks for a link they
-    already know is there — not where someone organising a birthday finds out
-    the Maison does birthdays. This section is the page's designated "what
-    next", and a group organiser reading "come make something with us" is
-    exactly the reader it was missing a door for.
+    A SIGNPOSTED ROUTE TO /private-events. The page exists and is linked in the
+    footer, and a footer is where a visitor looks for a link they already know
+    is there — not where someone organising a birthday finds out the Maison
+    does birthdays. This section is a designated "what next", and a group
+    organiser reading "come make something with us" is exactly the reader it
+    was missing a door for.
 
-    It is deliberately a third tier rather than a promoted button: the homepage
-    has one dominant action and it is booking a seat.
+    IT USED TO BE THE HOMEPAGE'S ONLY ROUTE TO THAT PAGE, and this section has
+    since moved to /about, so the homepage no longer has one outside the
+    footer. Worth knowing before anything else is moved: the door still exists,
+    it is just no longer on the page most visitors land on.
+
+    It is deliberately a third tier rather than a promoted button: the page has
+    one dominant action and it is booking a seat.
   */
   groupCta: {
     note: "Planning something for a group?",

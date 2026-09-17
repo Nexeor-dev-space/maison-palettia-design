@@ -33,11 +33,25 @@ const INVITATION_LINE =
 const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/80";
 
 /**
- * Homepage section 09 — plan your visit.
+ * The close of /about — plan your visit.
  *
  * The page's last move, and the only one that asks the visitor for anything.
  * Everything above has shown the place, the programme and the reason it
  * exists; this says come, and gives exactly one way to do it.
+ *
+ * IT SPENT ITS LIFE AT THE FOOT OF THE HOMEPAGE and moved here at the
+ * client's ask. Two things are worth knowing about the move.
+ *
+ * It did not join this page, it replaced a section: /about already ended with
+ * an <EventsCta> setting "Come make / something with us." over an "Explore
+ * events" link — the same sentence and the same ask, read from the same
+ * constant. Only one of them could stay, and the one with a foot rail under
+ * it is the one that answers more than a single question.
+ *
+ * And the argument below for what surrounds it was written about the
+ * homepage. Where the old neighbours are named, the notes say which page they
+ * were on; the composition itself is unchanged, because none of it depended
+ * on the sections around it.
  *
  * ==========================================================================
  * WHAT THIS REPLACES, AND WHY — measured at 1440x900 before it was touched
@@ -65,28 +79,19 @@ const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/
  * And the largest type on screen carried the least information while the ask
  * was the smallest thing in the section, which is the hierarchy upside down.
  *
- * THE STEPS STAY GONE — RE-CHECKED THIS PASS, AND THE OLD REASON WAS WRONG.
- * This paragraph used to say <HowItWorks /> already ran on this page, section
- * 04, "We come to you", with Choose, Book, Come by and Create set out a
- * sentence each, so keeping the steps here too would tell a visitor the same
- * thing twice. It does not run here: app/page.tsx mounts Hero, UpcomingEvents,
- * CreativeExperiences, MallPartners, AboutTeaser, Gallery, HomeFaq,
- * Testimonials and this section, nothing else, and its own comment says why —
- * <HowItWorks /> "moved to /about" a pass before this one. /private-events and
- * /loyalty each define their own page-local "HowItWorks", not this component,
- * so neither of those is "this page" either.
+ * THE STEPS ARE GONE, AND THAT IS A CONTENT FIX RATHER THAN A LAYOUT ONE.
+ * <HowItWorks /> — "We come to you", with Choose, Book, Come by and Create
+ * set out a sentence each. This section closed the same page with Choose,
+ * Book and Make. The same instruction twice on one page makes neither of them
+ * the authority, and the second telling was the shorter and vaguer of the
+ * two. Deleting it here leaves the fuller version standing where a visitor
+ * meets it before they need it, and gives this section back its foot.
  *
- * The steps were therefore never actually said twice on the homepage, and
- * "leaves the fuller version standing where a visitor meets it before they
- * need it" was describing a page that is not this one. The removal still
- * holds, on a narrower and truer reason: a closing section is the wrong place
- * to explain a process for the first time, regardless of whether it is
- * explained anywhere else on the same page. By the time a visitor reaches the
- * last section, the page has stopped explaining and started asking —
- * Choose/Book/Come by/Create is the former, and belongs nearer the listing it
- * describes if the homepage ever wants it stated on itself. What the removal
- * reliably did either way is give this section back its foot, for
- * {@link FootRail} below.
+ * The two travelled separately and have ended up adjacent again: <HowItWorks>
+ * moved to /about first and sits immediately above this. So the argument
+ * holds in its strongest form — the steps are not merely elsewhere on the
+ * page, they are the section directly before this one, and repeating them
+ * here would be the same words twice in a row.
  *
  * ==========================================================================
  * WHAT IT IS NOW
@@ -122,17 +127,20 @@ const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/
  * other doors moved to the foot rail, where they are answers to different
  * questions rather than three options on the same one.
  *
- * White Rock is doing real work here rather than just alternating — CHECKED
- * AGAINST THE ACTUAL PAGE THIS PASS, AND PARTLY REWRITTEN. This used to say
- * the section before it is the loudest colour on the page and that White Rock
- * answers it with the same warmth the brand introduction opened on. Neither
- * half is true of app/page.tsx as it stands: the brand introduction is not
- * mounted on the homepage at all (see that file's own "WHAT IS NOT HERE"
- * note), and what actually precedes this section is <Testimonials>, set on
- * Charcoal Slate — the one dark ground the homepage holds, not the loudest
- * colour on it. White Rock after that is still real work, just a different
- * kind: the page's only dark passage resolves into its lightest warm neutral
- * rather than into more colour, which needs no earlier section to justify it.
+ * White Rock is doing real work here rather than just alternating. Above it
+ * sits <HowItWorks> on the page's own pale green, and above that a run of
+ * sections on the same ground; this is the change of material that says the
+ * page has stopped explaining and started asking. It is also the ground
+ * <TheMaison> takes near the top of /about, so the page closes on the warmth
+ * it opened with — which is the argument it made on the homepage too, where
+ * the brand introduction held that position.
+ *
+ * It matters to the footer as well. <Footer> is a Light Sage arch cut out of a
+ * White Rock band, and the band is invisible only when the section above it is
+ * also White Rock. On /about that used to be a charcoal call to action, and
+ * the cream showed as a strip under it; the joint is now the clean one the
+ * footer was designed around. The homepage has inherited the untidy version —
+ * see the note at the foot of app/page.tsx.
  *
  * No photograph. Every atmospheric plate the project holds is already hanging
  * further up this same page, and a second showing of one here would be
@@ -415,7 +423,7 @@ function FootRail({
 }
 
 /**
- * The page's one dominant action, and the only filled block on the homepage.
+ * The page's one dominant action, and the only filled block on /about.
  *
  * IT USED TO BE A LINE OF TYPE. Every item in the old rail was — a label with
  * a rule under it — so the closing section of the page contained nothing that
