@@ -95,7 +95,13 @@ export function HowItWorks() {
               <p className="mt-5 text-action font-medium tabular-nums tracking-eyebrow text-text/75">
                 {String(i + 1).padStart(2, "0")}
               </p>
-              <h3 className="mt-3 text-lead font-medium uppercase tracking-[0.06em] text-text md:text-lead">
+              {/*
+                `text-h3`, not `text-lead`. The type scale assigns `h3` to item
+                titles and `lead` to a section standfirst; this is an item
+                title, and it was the only one on the page still set from the
+                standfirst role. The duplicated `md:text-lead` was a no-op.
+              */}
+              <h3 className="mt-3 text-h3 font-medium uppercase tracking-[0.06em] text-text">
                 {step.title}
               </h3>
               <p className="mt-3 text-body leading-[1.75] text-text/80">{step.body}</p>

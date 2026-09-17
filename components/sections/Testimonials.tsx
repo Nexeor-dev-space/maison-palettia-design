@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { ParallaxPlate } from "@/components/motion/ParallaxPlate";
 import { Reveal } from "@/components/motion/Reveal";
 import { TestimonialPanel } from "@/components/sections/TestimonialPanel";
 import { Container } from "@/components/ui/Container";
@@ -78,14 +79,35 @@ export async function Testimonials() {
         asked for reduced motion, and 307KB where the clip was 4MB.
       */}
       <Reveal variant="imageReveal" className="absolute inset-0 -z-10">
-        <Image
-          src={TESTIMONIALS_GROUND.src}
-          alt={TESTIMONIALS_GROUND.alt}
-          fill
-          sizes="100vw"
-          style={{ objectPosition: TESTIMONIALS_GROUND.position }}
-          className="object-cover"
-        />
+        {/*
+          THE OTHER HALF OF THE MOVEMENT THE CLIENT POINTED AT. "The Maison"
+          gets its drift from a <ParallaxPlate> behind the type, and this
+          section has the one thing on the page that can carry the same
+          treatment at full width: a ground photograph the quote card sits on.
+
+          The plate overscans its frame by 16% and slides 7.5% of a frame as
+          the section passes, so the ground rises against the card instead of
+          travelling with it — a section that used to move as one flat sheet
+          now has a near and a far distance.
+
+          NO CLIPPING TO ADD. <ParallaxPlate> hides its own overflow and this
+          section is already `overflow-hidden`, so the oversized picture cannot
+          show an edge at either end of the travel.
+
+          IT COSTS NO EXTRA REQUEST. Same <Image>, same `fill`, same `sizes` —
+          it is re-parented, not replaced, and the 16% overscan is spent on
+          pixels the browser was already fetching for a full-bleed ground.
+        */}
+        <ParallaxPlate>
+          <Image
+            src={TESTIMONIALS_GROUND.src}
+            alt={TESTIMONIALS_GROUND.alt}
+            fill
+            sizes="100vw"
+            style={{ objectPosition: TESTIMONIALS_GROUND.position }}
+            className="object-cover"
+          />
+        </ParallaxPlate>
       </Reveal>
 
       {/*
@@ -110,7 +132,10 @@ export async function Testimonials() {
               id="testimonials-heading"
               className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text"
             >
-              <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
+              <span
+                aria-hidden
+                className="h-px w-9 shrink-0 bg-terracotta md:w-12"
+              />
               In their words
             </h2>
 

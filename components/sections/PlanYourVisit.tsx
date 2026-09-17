@@ -106,7 +106,7 @@ const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/
  *   WITH US.
  *        see you at the maison            [ EXPLORE EVENTS  → ]
  *   ────────────────────────────────────────────────────────────────────
- *   THE STUDIO          HAVE A QUESTION?          PLANNING FOR A GROUP?
+ *   WHERE               HAVE A QUESTION?          PLANNING FOR A GROUP?
  *   Dubai, UAE          Contact the Maison →      Private events →
  *
  * The masthead rule runs from the label to the right edge instead of stopping
@@ -151,6 +151,37 @@ const RAIL_LABEL = "text-label font-medium uppercase tracking-eyebrow text-text/
  * or a table with people already at it — the destination rather than the
  * making, which every section above has covered. If it arrives, hang it in the
  * right-hand column above the action and keep it narrow.
+ *
+ * ==========================================================================
+ * THIS PASS — checked against goodman-gallery.com's own closing register,
+ * and against the "no premises" rule this round adds
+ * ==========================================================================
+ *
+ * Three calls were asked for explicitly. All three left the section's shape
+ * alone and either preserved a cost already paid or fixed a cost this pass
+ * found, rather than moving anything for its own sake:
+ *
+ *   The invitation's per-breakpoint sizing (INVITATION_LINE, below) is
+ *   untouched. Its own comment already carries the measured reason: two
+ *   different measures, not one curve between them — and nothing about the
+ *   reference argues with that arithmetic; goodman-gallery's own display type
+ *   is the same idea at a different scale, quiet weight and tightened
+ *   tracking rather than colour or ornament.
+ *
+ *   The closing action ({@link PrimaryAction}, below) stays a filled block,
+ *   and stays Deep Lilac rather than the Light Sage this round's navbar
+ *   takes. Both calls have measured reasons on that function itself, not
+ *   just asserted here.
+ *
+ *   The steps band stays gone, but not for the reason this comment used to
+ *   give — see the correction above, which was wrong about what else runs on
+ *   this page. The script signature stays; see the note beside it below for
+ *   why this is the rarer of two cases, not an oversight.
+ *
+ * One thing not on that list turned up while checking the rest: the foot
+ * rail's location entry was labelled "The studio", which this business does
+ * not have. See the note inside {@link FootRail} for the fix and the
+ * precedent already set for it on /contact.
  *
  * Server component; every animation lives in the client components it
  * composes.
@@ -216,7 +247,20 @@ export function PlanYourVisit() {
             {/*
               The section's one flourish, and it is a signature rather than a
               heading: the invitation above it is signed, and the script face
-              appears nowhere else here.
+              — `font-display`, the Hapsha cut set in globals.css — appears
+              nowhere else in this section.
+
+              IT EARNS THAT EXCEPTION RATHER THAN JUST KEEPING IT. The brand's
+              actual handwriting is rationed on purpose: <Signature>, in
+              components/ui, carries a "signage voice" of its own — wide caps,
+              not script — everywhere the site used to reach for the cursive
+              face, precisely so the cursive would stay rare once it stopped
+              being the default. Checked this pass: `font-display` now has
+              exactly one other caller in the whole component tree, the
+              matching aside in <Experience>. A closing invitation is the
+              register that handwriting was kept for, and this is the second
+              of its two remaining appearances — not a leftover the brand pass
+              missed.
 
               Indented so it starts inside the statement's measure, and it now
               sits level with the action across the gutter — the bottom edge of
@@ -284,9 +328,10 @@ function InvitationLine({ children }: { children: string }) {
  * main one.
  *
  * This is where the band of numbered steps used to be, and it is a better use
- * of the same rule. The steps repeated <HowItWorks /> further up the page;
- * these three answer questions the invitation raises and does not settle —
- * where is it, who do I ask, and what if I am not booking one seat.
+ * of the same rule — see the correction above {@link PlanYourVisit} on why
+ * they stayed gone. These three answer questions the invitation raises and
+ * does not settle instead — where is it, who do I ask, and what if I am not
+ * booking one seat.
  *
  * Each entry is a label and one line, which is the index grammar the rest of
  * the site uses. Three of them take an even third of the measure, so the rail
@@ -304,22 +349,44 @@ function FootRail({
     <div className="mt-20 border-t border-text/15 pt-12 md:mt-24 md:pt-14 lg:mt-28">
       <Stagger as="div" className="grid grid-cols-12 gap-x-6 gap-y-10 lg:gap-x-10">
         {/*
-          Where the studio is — the plainest thing a visitor wants from a
-          section called Plan Your Visit, and it was previously the last line
-          of a five-item rail. It reads {@link CONTACT}, so it fills itself in
-          as the client supplies an email rather than needing to be written
-          again.
+          Where the Maison operates — the plainest thing a visitor wants from
+          a section called Plan Your Visit, and it was previously the last
+          line of a five-item rail. It reads {@link CONTACT}, so it fills
+          itself in as the client supplies an email rather than needing to be
+          written again.
+
+          LABELLED "WHERE", NOT "THE STUDIO" — CHECKED THIS PASS. There is no
+          studio: the business sets up inside a mall on fixed dates, and
+          CONTACT.addressLines holds a city and a country, not a street.
+          "The studio", the label this carried before, names a place with a
+          door and sits directly over an address block — exactly the
+          impression /contact's own equivalent entry was written to avoid:
+          "the city is all the project holds, and a city is not an address
+          someone can arrive at." That page's fix was a plain "Where" label
+          plus a link redirecting to the venues that actually exist, one per
+          event. This block borrows the honest label and skips the redirect —
+          the section's one action, a column over, already sends the visitor
+          to that same listing, and a second link to it here would have the
+          rail repeat the invitation instead of answering a different
+          question.
         */}
         <Reveal className="col-span-12 md:col-span-4">
           <address className="not-italic">
-            <span className={`block ${RAIL_LABEL}`}>The studio</span>
+            <span className={`block ${RAIL_LABEL}`}>Where</span>
             <span className="mt-3 block text-body leading-[1.8] text-text/85">
               {CONTACT.addressLines.join(", ")}
             </span>
             {CONTACT.email ? (
+              // `after:-inset-y-3` clears 44px on text-body's smallest
+              // computed line height (16px × 1.75 ≈ 28px, +24px from the
+              // pseudo-element ≈ 52px) with no padding that would push the
+              // line below it out of the rail's measured rhythm. Untested
+              // against real content — CONTACT.email is null today — and
+              // kept correct anyway, so a future email is not also a future
+              // hit-area fix.
               <a
                 href={`mailto:${CONTACT.email}`}
-                className="mt-2 inline-block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary"
+                className="relative mt-2 inline-block text-body text-text/85 underline decoration-primary/40 underline-offset-4 transition-colors duration-300 ease-soft hover:decoration-primary after:absolute after:inset-x-0 after:-inset-y-3 after:content-['']"
               >
                 {CONTACT.email}
               </a>
@@ -364,11 +431,46 @@ function FootRail({
  * address beneath it. A marked block is the plainest fix and the section can
  * afford exactly one.
  *
+ * RECONSIDERED AGAINST THE REFERENCE, AND KEPT FILLED. goodman-gallery.com's
+ * own closing moments run to plain type, and even its hero buttons are small
+ * and outlined rather than solid — the honest transfer of that restraint
+ * would put this back to a line of type. It stays a filled block anyway, for
+ * a difference the reference does not have to reconcile: nothing on a
+ * gallery's homepage is the one place a visitor buys something, and this is
+ * — the homepage has exactly one conversion moment and this button is it
+ * (see the comment on `PLAN_YOUR_VISIT` in lib/constants.ts). Undoing the fix
+ * this component exists for, to match a gallery's register more closely,
+ * would trade a real and already-diagnosed problem for a closer costume.
+ * Restraint is kept everywhere else it does not cost that: flat colour, no
+ * shadow, the same 8px corner as every other control on the site, and the
+ * same `px-8 py-5` padding as `Button`'s own `lg` — "the page-level action"
+ * per that component's comment — rather than anything larger.
+ *
  * Deep Lilac with `--color-on-primary`, which is the near-white the token
  * exists for: White Rock on this ground measures 3.95:1 and a 13px label owes
  * 4.5:1, while the near-white clears at 4.90:1. On the White Rock ground the
  * block itself is a large area of the brand accent, which is what makes it
  * the first thing the eye lands on in the section.
+ *
+ * STILL DEEP LILAC, NOT THIS ROUND'S SAGE FILL. <BookAction> — the header's
+ * booking button, filled this round in Light Sage — says explicitly why:
+ * sage "is the palest thing in the palette and reads instantly against
+ * [charcoal], where lilac is dark and would sit into the ground rather than
+ * on it." That reasoning flips on this section's ground. PlanYourVisit sits
+ * on White Rock, a pale warm cream, and Light Sage sits at almost exactly the
+ * same lightness — by the sRGB relative-luminance arithmetic behind every
+ * other ratio in this file, sage on this cream measures roughly 1.03:1. It is
+ * the same failure `BRAND_LOGO`'s own note names for a different pale-on-pale
+ * pairing: "invisible rather than faint." Nothing sits inside the fill here,
+ * so 1.03:1 is not a text ratio; it is the contrast a borderless block owes
+ * its own ground to read as a shape at all, which WCAG 1.4.11 sets at 3:1.
+ * Deep Lilac against the same cream is the 3.95:1 pairing Button.tsx's own
+ * `primary` note already records for White Rock on Deep Lilac — cited there
+ * as a failing TEXT pairing, near-white type set into the fill, but equally
+ * true read the other way, as this block's own edge against the page, where
+ * 3.95:1 clears the 3:1 a shape owes. The brand-fill swap belongs on a dark
+ * ground; on this section's own light one, Deep Lilac is the colour that
+ * still reads as a block.
  *
  * `py-5` on a 13px label is a 54px target, comfortably over the 44 a thumb
  * needs, and it runs full width below `sm` where a phone would otherwise give

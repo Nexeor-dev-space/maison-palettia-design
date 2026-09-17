@@ -134,38 +134,29 @@ export async function Footer() {
   const partners = await getMallPartners();
 
   return (
-    // The band the arch's corners reveal. White Rock, which is what the
-    // section above the footer is on /about — see the note on the seam below.
-    <footer className="bg-cream">
+    // The ground the arch cuts into, so its corners reveal White Rock rather
+    // than the page's off-white.
+    //
+    // WHICH IS INVISIBLE ONLY WHERE THE SECTION ABOVE IS ALSO WHITE ROCK, and
+    // that is now /about, whose closing invitation this was written against
+    // before that section moved there from the homepage. Everywhere the last
+    // section takes another ground — the homepage's Charcoal quotes, most
+    // visibly — this band reads as a cream strip above the arch instead of as
+    // the invitation continuing into it. It is a seam rather than a fault, and
+    // it is the same seam every route other than /about and the homepage has
+    // always had; flagged because the comment here used to promise otherwise.
+    <footer>
       {/*
-        The arch. A strip of its own rather than a radius on the whole footer:
-        the utility sets the vertical radius as a share of the element's
-        height, so giving it an element whose height is a share of the viewport
-        keeps the sweep proportional to the width at every size instead of
-        stretching with the footer's contents.
+        NO ARCH, AND NO RADIUS ON THE TOP EDGE — removed at the client's ask.
 
-        NOW DRAWN IN THE FOOTER'S OWN FIELD rather than against it. This was a
-        near-black dome on a White Rock band; it is a Light Sage dome on the
-        same band, so the footer rises into the page instead of being stamped
-        onto it. The two grounds measure 1.03:1 against each other, which is
-        deliberate and is why the curve reads as one clean edge rather than as
-        a band with an outline of its own: the shape is carried by the change
-        of hue, not by a step in lightness.
+        This was a strip of Ink cut into an arch, so the footer rose out of the
+        section above it on a curve. It is gone: the footer is a flat-topped
+        field now and meets the page on a straight edge.
 
-        THE SEAM ABOVE IT STILL DEPENDS ON THE PAGE. The corners are invisible
-        only where the last section is also White Rock, which is /about and its
-        closing invitation. Everywhere else — the homepage's Charcoal quotes,
-        most visibly — this band reads as a cream strip above the arch. That is
-        a seam rather than a fault, and it is the one every route except /about
-        has always had.
-
-        The ceiling against the window stays for the reason it always had: the
-        footer is pinned and has to fit the screen.
+        The `bg-cream` on the <footer> itself went with it. Its only job was to
+        be what the arch's corners revealed; with no curve there are no corners
+        and it would be a cream hairline under the last section.
       */}
-      <div
-        aria-hidden
-        className="arch h-[min(16vw,18vh)] max-h-52 min-h-16 w-full bg-footer [--arch-rise:100%]"
-      />
 
       {/*
         ONE PLACE DECIDES THE INK AND EVERYTHING INSIDE INHERITS IT — the same

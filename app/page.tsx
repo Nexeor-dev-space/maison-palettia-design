@@ -91,6 +91,8 @@ export default function HomePage() {
         credibility for a business already argued for. Nothing else on the page
         moved with it.
       */}
+      <StudioFilm />
+
       <MallPartners />
 
       {/* A doorway to the story rather than the story itself. */}
