@@ -81,7 +81,7 @@ export default async function PrivateEventBookingPage() {
               <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
               Private events
             </p>
-            <h1 className="mt-9 max-w-[18ch] text-h1 font-light uppercase tracking-[-0.02em]">
+            <h1 className="mt-8 heading-script text-script-section">
               Plan your private experience.
             </h1>
             <p className="mt-8 max-w-[34rem] text-body leading-[1.85] text-text/80">

@@ -333,15 +333,21 @@
      compositions, not to type alone. They are adopted when each section is
      restructured, not before. */
 
-  /* Eyebrows, wall labels, figure captions. 11px is the floor — it was 9.3px
-     in places, which is below what a tracked uppercase label can carry. */
-  --text-label: 0.6875rem;
+  /* Eyebrows, wall labels, figure captions.
+
+     12px, raised from 11. The redesign brief rules out tiny text, and a
+     tracked uppercase label at 11px was the smallest type on the site in
+     ninety-odd places — legible on a retina laptop, marginal on a phone held
+     at arm's length. Raising the token moves every label at once and costs
+     nothing in contrast: a larger glyph never measures worse. It was 9.3px in
+     places before 11 was set as the floor. */
+  --text-label: 0.75rem;
   --text-label--line-height: 1.45;
 
   /* Interactive labels: buttons, CTAs, the header action. Held one step above
      `label` because a control a visitor has to find should not be set at
-     caption size. */
-  --text-action: 0.75rem;
+     caption size — 13px now, following the label up. */
+  --text-action: 0.8125rem;
   --text-action--line-height: 1.2;
 
   /* Genuine fine print: helper text, field errors, legal, metadata. */
@@ -403,6 +409,21 @@
   --text-display: clamp(2.75rem, 1.1rem + 7.3vw, 6.5rem);
   --text-display--line-height: 0.95;
 
+  /* Script headings — Hapsha Sophia Script, for page banners and section
+     headings. See `heading-script` below for why these are larger than the
+     Montserrat steps they replace: the script's lowercase is 0.41em tall
+     against Montserrat's 0.7em capitals, so at the same size it reads a size
+     and a half smaller. The line heights are looser for the same reason in
+     reverse — the capitals and loops reach 0.9em above the baseline. */
+  --text-script-hero: clamp(3rem, 2.2rem + 3.6vw, 6.25rem);
+  --text-script-hero--line-height: 1.06;
+
+  --text-script-section: clamp(2.6rem, 1.9rem + 2.9vw, 5rem);
+  --text-script-section--line-height: 1.1;
+
+  --text-script-compact: clamp(2.2rem, 1.7rem + 1.9vw, 3.4rem);
+  --text-script-compact--line-height: 1.12;
+
   /* --- Spacing rhythm (section-level) ------------------------------------ */
   --spacing-section: 6rem;
   --spacing-section-lg: 9rem;
@@ -450,9 +471,23 @@
 
      The scrolled pair is a refinement, not a collapse: 12px comes off the
      desktop and 8px off the phone, enough to register as the bar settling and
-     not enough to crush it. */
-  --spacing-header: 4rem; /* 64px — phone and tablet, at rest */
-  --spacing-header-lg: 4.5rem; /* 72px — desktop, at rest */
+     not enough to crush it.
+
+     RAISED 8PX EACH (2026-09-17) with the logo, at the client's ask for a
+     larger mark: 72/80 carrying 44/54px, so the mark keeps the same share of
+     the bar it had (61% and 67%) instead of being crammed into the old row.
+     Every consumer reads these two — the bar, both heroes that run up under
+     it, and the panels that hang from it — so they move together. */
+  /*
+    RAISED WITH THE MARK, which is the only way "bigger and proportionate to
+    the frame" can be answered past a point: the wordmark is two stacked lines
+    of script and it was already taking three quarters of the row, so growing
+    it alone would have had it touching the bar's edges. Bar and mark go up
+    together and the proportion is kept — see <Wordmark> for the measured
+    share, which counts the artwork's ink rather than its file box.
+  */
+  --spacing-header: 5rem; /* 80px — phone and tablet, at rest */
+  --spacing-header-lg: 5.5rem; /* 88px — desktop, at rest */
   --spacing-header-set: 3.5rem; /* 56px — phone and tablet, scrolled */
   --spacing-header-set-lg: 3.75rem; /* 60px — desktop, scrolled */
 
@@ -713,8 +748,75 @@
    curve starts eating the subject rather than framing it.
    -------------------------------------------------------------------------- */
 
+/*
+  The brand's stripe — Light Sage on the Maison's near-white, in even bands.
+
+  Lifted from the client's own brand board, where it grounds the script mark,
+  and repeated in the studio's email signature in Soft Lavender. It is the one
+  pattern the brand owns, so it is the one used, and it is used sparingly: a
+  band, or a ground that type never sits directly on. Alternating fields under
+  a line of text fail contrast on every other stripe, which is why the deck
+  itself always sets its words on a solid panel laid over the pattern.
+
+  `--stripe-a`, `--stripe-b` and `--stripe-w` retune it per use without a
+  second utility: the lavender variant is two custom properties, not a copy.
+*/
+@utility stripes {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--stripe-a, var(--color-sage)) 0 var(--stripe-w, 1.75rem),
+    var(--stripe-b, var(--color-surface)) var(--stripe-w, 1.75rem)
+      calc(var(--stripe-w, 1.75rem) * 2)
+  );
+}
+
 @utility arch {
   border-radius: 50% 50% 0 0 / var(--arch-rise, 20%) var(--arch-rise, 20%) 0 0;
+}
+
+/*
+  The script voice — Hapsha Sophia Script, exactly as drawn.
+
+  For banner taglines and section headings. Upright, always: the face has one
+  style, a Regular with no italic angle, and an `italic` or `font-style` on an
+  ancestor would make the browser slant it a second time on top of the lean the
+  letters already have. `font-synthesis: none` refuses that, and refuses a faux
+  bold from a `font-medium` nearby as well — the face has one weight.
+
+  Sentence case and no tracking: the capitals are swash forms, unreadable as a
+  run of capitals, and letter-spacing pulls the joins between letters apart.
+
+  The face has no curly apostrophe (nor curly quotes or dashes), so write a
+  straight ' in a script heading — its straight quote is drawn as a curled
+  mark — or the browser borrows a serif's glyph for that one character.
+*/
+@utility heading-script {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: normal;
+  font-synthesis: none;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/*
+  The mask for one masked line of script (see `maskUp` in lib/motion.ts).
+
+  A plain `overflow: hidden` line cuts the script: its capitals and ascender
+  loops stand up to 0.22em above the line box and its first letter can hang
+  0.15em left of it. The padding lets the mask reach past the box by that much
+  and the negative margin takes the same amount back, so the text sits exactly
+  where it would unmasked. No room is added below: at these line heights the
+  deepest descender still ends inside the box.
+
+  Set the heading's size on the element that carries this class or above it —
+  the ems here are the line's own.
+*/
+@utility script-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.25em 0.15em 0;
+  margin: -0.25em -0.15em 0;
 }
 
 /* Skip link — visible only when focused */
@@ -778,6 +880,79 @@ html.lenis.lenis-stopped {
 /* ==========================================================================
    Reduced motion — honoured globally and by the Framer Motion helpers
    ========================================================================== */
+
+/*
+  ==========================================================================
+  THE HOMEPAGE INTRO — the two rules it cannot keep in its own module
+  ==========================================================================
+
+  While the intro plays it needs the whole screen, and <main> is a stacking
+  context below the site header, so nothing inside the hero can paint over the
+  bar. These hide the bar and tint the page behind it Light Sage until the hero
+  settles; the header component itself is not changed.
+
+  Every selector is scoped to a page containing the hero (`[data-hero-intro]`),
+  so no other route is affected. `html:not([data-intro])` covers the instant
+  before the hero's inline script runs, so the bar never flashes on a first
+  visit. See components/sections/hero/Hero.module.css for the full sequence.
+*/
+html:not([data-intro]) body:has([data-hero-intro]),
+html[data-intro="play"] body:has([data-hero-intro]),
+html[data-intro="draw"] body:has([data-hero-intro]),
+html[data-intro="settle"] body:has([data-hero-intro]) {
+  /* Held through `settle` too: the bar fades back in over it, and releasing
+     the tint any earlier flashed a pale strip above the hero. Light Sage
+     because the banner's own ground is Light Sage: the canvas the bouquet is
+     drawn on and the banner it settles into are one colour, with no seam. */
+  background-color: var(--color-sage);
+}
+
+html:not([data-intro]) body:has([data-hero-intro]) > header,
+html[data-intro="play"] body:has([data-hero-intro]) > header,
+html[data-intro="draw"] body:has([data-hero-intro]) > header {
+  opacity: 0;
+  visibility: hidden;
+  /* A fail-safe, not a timing: if the script never runs, the bar still
+     arrives. The intro replaces this long before it would fire. */
+  animation: intro-failsafe 0.01s 4.5s forwards;
+}
+
+/*
+  The site footer, hidden until the hero has settled. <FooterReveal> pins it
+  behind <main> whenever it fits the screen — at 1024x768 its top edge sits
+  38px from the top — and the header is the only thing that normally covers
+  that strip. With the header hidden, a charcoal band showed across the top
+  of the intro. Nobody can scroll to the footer in the two seconds it is
+  hidden, and `> div > footer` matches only the site footer's own wrapper.
+*/
+html:not([data-intro]) body:has([data-hero-intro]) > div > footer,
+html[data-intro="play"] body:has([data-hero-intro]) > div > footer,
+html[data-intro="draw"] body:has([data-hero-intro]) > div > footer,
+html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
+  visibility: hidden;
+  animation: intro-failsafe 0.01s 4.5s forwards;
+}
+
+/*
+  The bar comes in as the logo lands, not after it. The flight runs 820ms on a
+  strong ease-in-out, so the mark is all but home by 600ms: from there the bar
+  fades up around it, and the flying mark fades out over the bar's own at the
+  same place and size.
+*/
+html[data-intro="settle"] body:has([data-hero-intro]) > header {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 380ms ease 600ms,
+    visibility 0s 600ms;
+}
+
+@keyframes intro-failsafe {
+  to {
+    opacity: 1;
+    visibility: visible;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   html {

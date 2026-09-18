@@ -76,12 +76,13 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     // The client's own wording for this session, supplied with the carousel brief.
     excerpt: "Choose your scent, pour your candle and create something that's uniquely yours.",
     image: {
-      // The same frame, alt text and crop `lib/experiences.ts` carries for
-      // candle making — one photograph is never described two ways, and the
-      // shared slug is what keeps the two entries findable together.
-      src: "/images/hero-carousel/1.jpg",
-      alt: "Two hands cupping a freshly poured candle in a glass jar, its wick lit, with tealights burning on the wooden bench around it.",
-      position: "50% 40%",
+      // The client's own candle-making picture, the same file and the same
+      // alt text `lib/experiences.ts` carries — one photograph is never
+      // described two ways, and the shared slug keeps the two findable
+      // together.
+      src: "/images/experiences/CANDLE_MAKING.jpg",
+      alt:
+        "Two poured candles in glass jars on a white tray, one set with pink wax flowers and one with pink hearts, sprigs of gypsophila beside them.",
     },
   },
   {
@@ -99,9 +100,9 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     // the schedule cannot describe the same activity two different ways.
     excerpt: "A hook, a ball of yarn and one stitch to start from — worked into something you take with you.",
     image: {
-      src: "/images/hero-carousel/crocheting.jpg",
-      alt: "Balls of mint and cream yarn with a crochet hook resting on them, beside a finished blanket worked in shell stitch.",
-      position: "58% 42%",
+      src: "/images/experiences/CROCHETING.jpg",
+      alt:
+        "A crocheted blanket of granny squares in forest green, cream, mustard and rust, each worked with a sun or a moon.",
     },
   },
 ];

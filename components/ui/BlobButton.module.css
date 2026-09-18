@@ -1,0 +1,140 @@
+/*
+  THE BLOB BUTTON — the site's primary action, flooded on hover.
+
+  Four Light Sage ellipses rise from under the button one after another, 80ms
+  apart, through a gooey SVG filter — a blur, then an alpha threshold that
+  turns the blur's soft overlaps back into hard edges, so four ellipses read as
+  one liquid fill rather than four circles. The filter is <BlobGooFilter>, in
+  the root layout, so any button on any page can reach it.
+
+  This began as the banner's action, from the CodePen the client sent, and
+  lived in the hero's stylesheet. The client has now asked for the same
+  treatment on the Experiences menu's action, and a hover animation is not
+  something to keep two copies of — so it is a component, and the banner and
+  the menu both use it.
+
+  THE BLOBS ARE SIZED TO COVER WITHOUT THE FILTER, and they did not use to be.
+  `@supports (filter: url(...))` answers yes in Safari — the syntax parses —
+  but Safari then does not paint the filter, so it took the smaller ellipse
+  meant for the goo path and drew it raw. Four ellipses 25% wide at 0/30/60/90%
+  only meet in the middle of the button; at its top and bottom edges each one
+  has narrowed, and at `scale(1.4)` they fall 5.51% of the button's width short
+  of each other. That is three Deep Lilac wedges biting into the flood along
+  both edges, which is exactly what the client sent back.
+
+  So there is one size now, and it is the one that closes with or without the
+  filter. At the button's edge an ellipse is `12.5 · sqrt(scale² - 1)` per cent
+  wide either side of its centre, and the centres are 30% apart, so it takes
+  `scale >= 1.562` to meet. 1.4 gives 12.25% against the 15% needed; 1.7 gives
+  17.18% and laps its neighbour by 4.37%. The filter, where it does draw, melts
+  a shape that was already whole.
+
+  And `.flood` settles it: whatever any engine does with the filter, once the
+  rise is over the button is one flat field of Light Sage, which is the fill
+  the action promises.
+
+  INK. Deep Lilac at rest with the light `on-primary` ink (4.90:1); Light Sage
+  once flooded, with Charcoal Slate on it (9.35:1). Both cleared.
+*/
+.button {
+  position: relative;
+  isolation: isolate;
+  color: var(--color-on-primary);
+  transition: color 500ms ease;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: var(--color-primary);
+}
+
+.blobs {
+  position: relative;
+  display: block;
+  height: 100%;
+  filter: url("#blob-goo");
+}
+
+.blob {
+  position: absolute;
+  top: 2px;
+  width: 25%;
+  height: 100%;
+  border-radius: 100%;
+  background-color: var(--color-sage);
+  transform: translate3d(0, 150%, 0) scale(1.7);
+  transition: transform 450ms ease;
+}
+
+/*
+  The settled fill, arriving as the last blob lands — 240ms of stagger plus a
+  450ms rise. It is the blobs' own colour, so where they already cover it
+  cannot be seen; all it does is close anything they left. Leaving the button
+  it goes first and without delay, so the blobs are free to fall away.
+*/
+.flood {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-sage);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.blob:nth-child(1) {
+  left: 0%;
+}
+
+.blob:nth-child(2) {
+  left: 30%;
+  transition-delay: 80ms;
+}
+
+.blob:nth-child(3) {
+  left: 60%;
+  transition-delay: 160ms;
+}
+
+.blob:nth-child(4) {
+  left: 90%;
+  transition-delay: 240ms;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    color: var(--color-text);
+  }
+
+  .button:hover .blob {
+    transform: translateZ(0) scale(1.7);
+  }
+
+  .button:hover .flood {
+    opacity: 1;
+    transition: opacity 260ms ease 470ms;
+  }
+}
+
+.button:focus-visible {
+  color: var(--color-text);
+}
+
+.button:focus-visible .blob {
+  transform: translateZ(0) scale(1.7);
+}
+
+.button:focus-visible .flood {
+  opacity: 1;
+  transition: opacity 260ms ease 470ms;
+}
+
+/* The flood is the whole effect, so it simply does not run. */
+@media (prefers-reduced-motion: reduce) {
+  .blob,
+  .flood {
+    transition: none;
+  }
+}

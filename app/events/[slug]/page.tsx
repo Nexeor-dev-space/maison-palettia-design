@@ -797,7 +797,7 @@ function LocationSection({
             <p className={TERM}>Location</p>
             <h2
               id="event-location"
-              className="mt-5 text-[1.75rem] font-light uppercase leading-[1.05] tracking-[-0.02em] md:text-[2.25rem]"
+              className="mt-4 heading-script text-script-compact"
             >
               {heading}
             </h2>
@@ -864,7 +864,7 @@ function ActionArea({
         <Reveal className="col-span-12 md:col-span-7">
           <h2
             id="event-close"
-            className="text-[1.75rem] font-light uppercase leading-[1.05] tracking-[-0.02em] md:text-[2.25rem]"
+            className="heading-script text-script-compact"
           >
             Ready to create?
           </h2>

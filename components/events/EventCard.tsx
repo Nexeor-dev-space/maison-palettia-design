@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { ModeMark } from "@/components/ui/ModeMark";
+
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import { cn } from "@/lib/utils";
 import {
@@ -84,9 +86,6 @@ export function EventCard({
     "Ceramic Painting" — and an eyebrow repeating the heading beneath it is the
     kind of furniture that makes a composition look automated.
   */
-  const category = workshop.category.trim();
-  const categoryLabel =
-    category.toLowerCase() === workshop.title.toLowerCase() ? null : category;
 
   return (
     <article
@@ -124,18 +123,19 @@ export function EventCard({
       </div>
 
       <div className="mt-6 flex flex-1 flex-col">
-        {categoryLabel ? (
-          <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
-            {categoryLabel}
-          </p>
-        ) : null}
+        {/*
+          How you take part, not which strand it is filed under. The category
+          ("Craft") came from the old Paint / Shape / Craft / Create system and
+          told a visitor nothing they could act on; "Scheduled session" tells
+          them this is a date they book — the same mark and words the hero,
+          the homepage groups and the menus use.
+        */}
+        <p className="flex items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text">
+          <ModeMark mode="scheduled" />
+          Scheduled session
+        </p>
 
-        <h3
-          className={cn(
-            "text-h3 font-light tracking-[-0.015em]",
-            categoryLabel && "mt-3",
-          )}
-        >
+        <h3 className="mt-3 text-h3 font-light tracking-[-0.015em]">
           <Link
             href={workshopHref(workshop)}
             className="after:absolute after:inset-0"

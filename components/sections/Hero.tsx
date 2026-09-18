@@ -1,323 +1,264 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Reveal } from "@/components/motion/Reveal";
-import { Stagger } from "@/components/motion/Stagger";
-import { Container } from "@/components/ui/Container";
-import { HERO_VIDEO, SITE, WORKSHOPS_HREF } from "@/lib/constants";
-import { getMallPartners } from "@/lib/partners";
+import { NavLabel } from "@/components/layout/NavLabel";
+import { BlobButton } from "@/components/ui/BlobButton";
+import { DOODLE_PLAN, DRAW_ORDER, type DoodlePlan } from "@/components/sections/hero/composition";
+import { DOODLES } from "@/components/sections/hero/doodles";
+import styles from "@/components/sections/hero/Hero.module.css";
+import { HeroIntro } from "@/components/sections/hero/HeroIntro";
+import { cn } from "@/lib/utils";
+
+type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
+
+/*
+  Without JavaScript the intro cannot run and nothing opens on scroll, so the
+  banner is simply shown composed — every hidden state undone by name, the
+  frame no longer held for a scroll that would change nothing, and the two
+  actions shown in the place the scroll cue would have had.
+*/
+const NO_SCRIPT_CSS = [
+  "html body:has([data-hero-intro]){background-color:var(--color-surface)!important}",
+  "html body:has([data-hero-intro])>header{opacity:1!important;visibility:visible!important}",
+  "html body:has([data-hero-intro])>div>footer{visibility:visible!important}",
+  `.${styles.introLogo}{display:none!important}`,
+  `.${styles.flip}{opacity:1!important;transform:none!important}`,
+  `.${styles.ink}{stroke-dashoffset:0!important;fill-opacity:1!important;stroke-opacity:0!important}`,
+  `.${styles.bloom}{clip-path:none!important}`,
+  `.${styles.cardImage}{transform:none!important}`,
+  `.${styles.reveal},.${styles.lineInner}{opacity:1!important;transform:none!important}`,
+  `.${styles.track}{height:auto!important}`,
+  `.${styles.frame}{position:relative!important}`,
+  `.${styles.actions}{opacity:1!important;transform:none!important}`,
+  `.${styles.cue}{display:none!important}`,
+].join("");
 
 /**
- * Homepage hero — one film, one statement, one door.
+ * The banner's picture, and how it is framed.
  *
- * WHAT THIS REPLACES. A carousel of four photographs, each with its own
- * eyebrow and its own large statement, turning every six seconds behind a row
- * of rule indicators. It was four openings rather than one, and it spent the
- * most valuable screen on the site proving the Maison does more than one
- * thing — which the Creative Experiences menu now does properly, with a name
- * under every picture. The client asked for one film instead, and it is the
- * better hero: hands, a brush and paint going onto cloth, continuously,
- * instead of a slideshow of stills.
+ * `position` is the crop, per breakpoint: the resting card is far wider than
+ * it is tall, so what a visitor sees is a horizontal band of the file, and the
+ * band has to hold the subject at both shapes — a wide card on a desktop and a
+ * tall window on a phone.
  *
- * THE HEADING IS VISIBLE NOW, and that is a direct consequence. It was
- * `sr-only` because the large type changed with the carousel, and a document
- * whose <h1> changes every six seconds has no stable heading. Nothing changes
- * any more, so the line on screen and the line in the outline are the same
- * line — which is what a heading is supposed to be.
- *
- * THE CONTENT IS LOW AND LEFT-ALIGNED, NOT CENTRED, and that is not a style
- * preference. The header's mark is centred and sits transparent over this on
- * the homepage; a centred hero would stack directly beneath it and read as the
- * same brand printed twice. Anchoring low also leaves the top two thirds of
- * the frame — the hands and the brush — completely uncovered, which is what
- * keeps the film a film rather than a backdrop.
- *
- * IT SPANS THE FRAME RATHER THAN SITTING IN A CORNER. The type used to be one
- * cluster capped at 46rem, which on a wide screen is half the width in one
- * corner with the other half bare — the hero read as empty, and it was. The
- * statement now runs the full container at `--text-display`, with a full-width
- * rule under it and a band below carrying the action at one end and the place
- * at the other. See the note on the <Container> for why three bands rather
- * than one block.
- *
- * Still `sticky top-0 z-0`: app/page.tsx wraps this with the two sections that
- * rise over and cover it, and that behaviour is not part of this change.
+ * `lift` raises the picture inside the resting card so the window frames the
+ * middle of the scene rather than its foreground. It eases to nothing as the
+ * card opens.
  */
-export async function Hero() {
+const HERO_IMAGE = {
   /*
-    The one place-truth the site has. Read here rather than hard-coded so the
-    hero can never name a venue the rest of the site does not — see
-    lib/partners.ts, which is deliberately a single confirmed destination.
+    The client's own banner artwork, supplied for this frame. Wider than it is
+    tall (1672x941, 1.78:1), so the resting card crops it vertically and the
+    open, full-bleed state shows very nearly all of it.
   */
-  const partners = await getMallPartners();
+  src: "/images/hero/bg-bg.png",
+  alt: "A girl in the studio holding up the stained-glass star she has painted, its panels in pink, orange, teal and blue, paint still on her fingers.",
+  position: { desktop: "50% 50%", mobile: "50% 50%" },
+  lift: "-2%",
+};
+
+/**
+ * ==========================================================================
+ * Homepage banner — a photograph that opens, and the words it takes inside
+ * ==========================================================================
+ *
+ * AT REST it is the client's wireframe, centred top to bottom: a wide rounded
+ * photograph, the tagline under it, two lines of supporting text, and "scroll
+ * down" at the foot of the screen — with the preloader's doodles tucked behind
+ * the photograph, showing past its edges.
+ *
+ * AS THE PAGE SCROLLS the banner is held still while it changes, all of it
+ * driven by one number, `--p` (see <HeroIntro> and ./hero/Hero.module.css):
+ *
+ *   the photograph  opens from its card to the whole screen, its corners
+ *                   squaring off and a slight zoom settling as it goes;
+ *   the doodles ... drift away from it and are covered;
+ *   the words ..... rise into the picture, their ink turning light as a shade
+ *                   deepens behind them;
+ *   the actions ... arrive beneath the words once they are inside —
+ *                   "Explore experiences" and "Plan a private event";
+ *   the cue ....... goes as soon as the page moves.
+ *
+ * Then it rests fully open for a moment, and the page carries on into the
+ * creative experiences. Under reduced motion none of it moves: the banner is
+ * shown at rest, with the two actions where the cue would be.
+ *
+ * GROUND. Light Sage, the deck's own, running up behind the navigation — the
+ * bar is transparent over it until the page moves (LIGHT_HERO_ROUTES).
+ *
+ * THE INTRO plays on every load of the page: the logo and the doodles draw
+ * themselves as a bouquet on Light Sage, then the doodles fly home behind the
+ * card as the photograph blooms open and the words rise.
+ */
+export function Hero() {
+  const delay = (ms: number): Vars => ({ "--reveal-delay": `${ms}ms` });
 
   return (
     <section
+      data-hero-intro
       aria-labelledby="hero-heading"
-      className="sticky top-0 z-0 isolate -mt-header flex h-svh flex-col justify-center overflow-hidden bg-text [--color-focus:var(--color-cream)] md:-mt-header-lg"
+      className={cn(styles.hero, "relative z-0 isolate -mt-header bg-sage md:-mt-header-lg")}
     >
-      {/*
-        The poster, under the film and painted first.
+      {/* Whether the intro plays is decided in <head> before this paints —
+          see ./hero/intro.ts. */}
+      <noscript>
+        <style dangerouslySetInnerHTML={{ __html: NO_SCRIPT_CSS }} />
+      </noscript>
 
-        `priority`, because until the video has enough of itself to show a
-        frame this *is* the hero — it is the page's LCP candidate and the one
-        image worth preloading. It is also the whole hero for a reader who has
-        asked for reduced motion, which is why it is a real <Image> with real
-        alt text rather than the video's `poster` attribute: that attribute
-        carries no alternative text and disappears the moment the film plays.
-      */}
-      <Image
-        src={HERO_VIDEO.poster.src}
-        alt={HERO_VIDEO.poster.alt}
-        fill
-        priority
-        sizes="100vw"
-        className="absolute inset-0 object-cover"
-      />
+      <HeroIntro />
 
-      {/*
-        The film.
+      <div data-hero-track className={styles.track}>
+        <div data-hero-frame className={styles.frame}>
+          {/* ---- the doodles, placed in the resting card's box ---- */}
+          <div className={styles.window}>
+            {DOODLE_PLAN.map((plan) => (
+              <DoodleShape key={plan.id} plan={plan} />
+            ))}
+          </div>
 
-        `aria-hidden` and out of the tab order: the poster underneath already
-        carries the description, and announcing the same shot twice helps
-        nobody. Muted, looped and `playsInline` — the three things a background
-        film has to be for a browser to start it at all, and `playsInline` is
-        what stops iOS taking it fullscreen.
+          {/* ---- the photograph, full size, shown through the card ---- */}
+          <div className={styles.card}>
+            <div className={styles.bloom}>
+              <Image
+                src={HERO_IMAGE.src}
+                alt={HERO_IMAGE.alt}
+                fill
+                priority
+                sizes="100vw"
+                style={
+                  {
+                    "--pos-d": HERO_IMAGE.position.desktop,
+                    "--pos-m": HERO_IMAGE.position.mobile,
+                    "--lift": HERO_IMAGE.lift,
+                  } as Vars
+                }
+                className={styles.cardImage}
+              />
+            </div>
+            <div aria-hidden className={styles.scrim} />
+          </div>
 
-        `motion-reduce:hidden` rather than a paused video: hidden, the poster
-        behind it is simply what is there, with no control to find and no
-        frozen frame that looks like a broken player. The same arrangement
-        <Gallery> uses for its own tiles.
-
-        `preload="metadata"` — enough to know the dimensions and start, without
-        pulling six megabytes into a page a visitor may never scroll.
-      */}
-      <video
-        src={HERO_VIDEO.src}
-        aria-hidden
-        tabIndex={-1}
-        muted
-        loop
-        playsInline
-        autoPlay
-        preload="metadata"
-        className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
-      />
-
-      {/*
-        The head wash exists for the navigation, not for the hero. The bar is
-        transparent over this film on the homepage, and its links, its centred
-        mark and the phone's icon buttons all have to stay legible over
-        whatever frame happens to be showing.
-
-        IT HAS TO PLATEAU, NOT RAMP. A wash that starts at its darkest and
-        fades immediately is already well down by the bottom of the nav row.
-        So it holds flat past the nav and only then falls away — long enough
-        that it reads as light behind the bar rather than as a bar.
-
-        Kept at the alpha the carousel needed, which was solved against the
-        brightest of four photographs. See the note in <Hero>'s own history:
-        the figure answers the worst frame, not the first one.
-      */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-text/80 via-text/80 via-45% to-transparent md:h-56 md:via-40%"
-      />
-
-      {/*
-        THE WASH A CENTRED BLOCK SITS ON.
-
-        What this replaces was solved for type in the bottom-left corner: a
-        foot rise and a ramp across, both anchored to edges the block no longer
-        touches. Centred type has no edge to lean on, so the treatment has to
-        be the frame itself.
-
-        An even wash with a vignette over it. The flat layer is what the words
-        actually stand on; the vignette puts the extra ink at the corners,
-        where nothing is being read, so the middle of the film — the hand, the
-        brush, the cloth — keeps as much of itself as the contrast allows.
-        Solved against the brightest sampled frame rather than an average.
-      */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-text/65" />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          /*
-            CENTRE-WEIGHTED, NOT A VIGNETTE — and the first attempt here was a
-            vignette, which is why it failed. A vignette is transparent in the
-            middle and dark at the corners; the block is in the middle, so it
-            put the ink everywhere the type is not. Measured, the heading came
-            back at 2.57:1 against the 3:1 large type owes.
-
-            Inverted, it adds ink under the block and fades out well before the
-            frame's edges, so the corners of the film — which nobody is reading
-            over — keep the most of themselves.
-
-            Centred at 42% rather than 46%, and with a longer plateau, because
-            the eyebrow sits above the heading and came back 0.15 short at 1440
-            with the focus lower. The block's own centre is around 44% of the
-            frame; the ink is held a little above it so the top of the stack is
-            covered as well as the middle.
-          */
-          background:
-            "radial-gradient(100% 82% at 50% 42%, " +
-            "color-mix(in oklab, var(--color-text) 32%, transparent) 0%, " +
-            "color-mix(in oklab, var(--color-text) 28%, transparent) 55%, " +
-            "transparent 85%)",
-        }}
-      />
-
-      <Container className="relative z-10 pb-[7vh] md:pb-[9vh]">
-        {/*
-          A CENTRED STACK, MID-FRAME — the arrangement the client pointed at.
-
-          Four things down the middle of the screen, each centred on the same
-          axis: what this is, what it says, the one way in, and where it
-          happens. Nothing is anchored to an edge and nothing runs the full
-          width, so the film is framed by the type rather than fenced by it.
-
-          WHY CENTRING IS SAFE HERE WHEN IT WAS NOT BEFORE. This file used to
-          argue — correctly — that a centred hero block reads as the brand
-          printed twice, because the header's mark is centred and transparent
-          over it. That holds for a block near the top. Vertically centred
-          there is about 300px of clear film between the two at 1440, and they
-          stop arguing. Bottom-left was one answer to that problem; this is the
-          other, and it is the one that was asked for.
-
-          The `pb` is optical rather than arithmetic: a block centred by
-          measurement reads low, and the foot of this frame is where the film
-          has most going on.
-        */}
-        {/*
-          64rem, not 52. "ART, CRAFT AND" sets about 870px at the display
-          size's 104px ceiling, so a 52rem measure broke it again — three
-          lines at 1280 and 1440 with the orphan back. The measure has to be
-          wider than the longest authored line or authoring it achieves
-          nothing.
-        */}
-        <Stagger className="mx-auto max-w-[64rem] text-center">
-          <Reveal>
-            {/*
-              The studio's own tagline, not a line written for this hero —
-              see SITE in lib/constants.ts. It says the what and the where in
-              seven words, which is exactly what an eyebrow is for.
-            */}
-            {/*
-              No leading hairline here, and only here. That rule is the site's
-              device for an eyebrow that starts at a margin; centred, it would
-              have to be mirrored on both sides to balance, and two rules
-              around seven words is a nameplate.
-            */}
-            <p className="text-label font-medium uppercase tracking-eyebrow text-cream">
-              {SITE.tagline}
-            </p>
-          </Reveal>
-
-          <Reveal variant="subtleReveal">
-            {/*
-              Full measure and display size. `text-display` carries its own
-              0.95 leading, which is what makes two lines of this read as one
-              mass rather than as two sentences — do not override it with the
-              body leading the old 46rem version used.
-            */}
-            {/*
-              TWO LINES, AUTHORED — because three is what it set on its own.
-
-              Centred at display size in a 52rem measure it broke as "ART,
-              CRAFT / AND / COMMUNITY.", which leaves "AND" alone on a line of
-              its own: the classic orphan, and the one thing a centred headline
-              cannot carry. The break belongs between the clauses.
-
-              Inline below `sm` so a narrow phone is still allowed to flow —
-              the same arrangement <EditorialStatement> and <MallPartners>
-              use, and for the same reason: an authored break only helps where
-              there is a measure worth breaking.
-            */}
-            <h1
-              id="hero-heading"
-              className="mt-6 text-display font-light uppercase leading-[0.95] tracking-[-0.02em] text-cream md:mt-7"
-            >
-              <span className="inline sm:block">Art, craft and</span>{" "}
-              <span className="inline sm:block">community.</span>
-            </h1>
-          </Reveal>
-
-          {/*
-            The way in, centred under the statement — Goodman's arrangement
-            and, on this composition, the only one that works: a full-width
-            rule with the action at one end and the place at the other is a
-            band, and a band fences a centred block instead of finishing it.
-
-            The rule went with it. It was the floor of a three-band layout;
-            under a centred stack it would draw a line across the film for no
-            reason.
-          */}
-          <Reveal variant="fadeIn">
-            {/*
-              LIGHT SAGE, NOT DEEP LILAC, and the reason is measured rather
-              than stylistic.
-
-              The note that stood here argued that a filled control's contrast
-              "does not depend on the frame behind it". That is true of the
-              LABEL against its own fill, and false of the thing that actually
-              matters over a photograph: WCAG 1.4.11 asks a control's own shape
-              to clear 3:1 against what surrounds it, or there is no button to
-              find. Sampled against the real composited banner at 1440, the
-              worst pixel around this button measured **1.50:1** in Deep Lilac
-              — the lilac and the marbling's own violets are close enough that
-              the edge dissolves. In Light Sage the same worst pixel measures
-              **5.75:1**.
-
-              It is also the colour the client asked for here, and it settles a
-              split the page could not defend: the header's booking action is
-              Light Sage, and the two sat in one viewport as two different
-              answers to "what is this site's filled button".
-
-              The label goes charcoal with the fill (9.07:1 on sage, against
-              4.5 owed). Note this pairing is for a DARK or photographic
-              ground only — on the page's own pale grounds a sage fill
-              measures 1.03:1 and disappears, which is why the closing
-              invitation keeps its lilac.
-            */}
-            <Link
-              href={WORKSHOPS_HREF}
-              className="group mt-10 inline-flex min-h-11 items-center justify-center gap-2.5 rounded-sm bg-sage px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-text transition-colors duration-300 ease-soft hover:bg-sage/85 md:mt-12"
-            >
-              Explore events
-              <span
-                aria-hidden
-                className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-              >
-                &#8594;
+          {/* ---- the words: under the card, then inside the picture ---- */}
+          <div data-hero-copy className={styles.copy}>
+            <h1 id="hero-heading" className={cn(styles.headline, "heading-script")}>
+              <span className={styles.line} style={delay(0)}>
+                <span className={styles.lineInner}>A palette of</span>
+              </span>{" "}
+              <span className={styles.line} style={delay(90)}>
+                <span className={cn(styles.lineInner, styles.accent)}>creativity</span>
+              </span>{" "}
+              <span className={styles.line} style={delay(180)}>
+                <span className={styles.lineInner}>for everyone.</span>
               </span>
-            </Link>
-          </Reveal>
+            </h1>
 
-          {/*
-            And where it happens, last and quietest.
+            <p
+              className={cn(
+                styles.reveal,
+                styles.sub,
+                "mx-auto mt-1.5 max-w-[42rem] text-[clamp(1.1875rem,1rem+0.72vw,1.625rem)] leading-[1.5] md:mt-2",
+              )}
+              style={delay(260)}
+            >
+              {/*
+                BROKEN WHERE THE CLIENT ASKED, not where the browser would.
+                `text-balance` put the turn after "blend"; the second line is
+                to start at "mindfulness". The rule is only worth keeping while
+                the first line fits, so below `sm` it comes out and the line
+                wraps on its own.
+              */}
+              Hands-on experiences that blend art,{" "}
+              <br aria-hidden className="hidden sm:inline" />
+              mindfulness, and community.
+            </p>
 
-            A visitor's first question about a studio with no fixed address is
-            where it actually is, so it earns a line — but under the action
-            rather than opposite it, because on a centred stack the far end of
-            a row is nowhere. The list comes from lib/partners.ts and grows
-            with it rather than being retyped, so the hero can never name a
-            venue the rest of the site does not.
-          */}
-          {partners.length > 0 ? (
-            <Reveal variant="fadeIn">
-              <p className="mt-8 text-fine text-cream/80 md:mt-10">
-                <span className="uppercase tracking-eyebrow text-cream/60">Where we set up</span>
-                <span aria-hidden className="mx-3 text-cream/40">&middot;</span>
-                {partners.map((partner) => partner.name).join(" · ")}
-                <span className="text-cream/60">, {partners[0].locality}</span>
-              </p>
-            </Reveal>
-          ) : null}
+            <div data-hero-actions className={styles.actions}>
+              <BlobButton
+                href="/events"
+                className="min-h-[3.75rem] px-9 shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)]"
+              >
+                Explore experiences
+              </BlobButton>
+              {/* The navigation's own link treatment: no rule at rest, and the
+                  hand-drawn line wiping in from the left on hover or focus. */}
+              <Link
+                href="/private-events"
+                className="group/nav inline-flex min-h-12 items-center text-action font-semibold uppercase tracking-eyebrow"
+              >
+                <NavLabel isActive={false}>Plan a private event</NavLabel>
+              </Link>
+            </div>
+          </div>
 
-        </Stagger>
-      </Container>
-
+          {/* ---- the way down, until the page moves ---- */}
+          <div data-hero-cue className={styles.cue}>
+            <a
+              href="#experience-discovery"
+              aria-label="Scroll down to Creative experiences"
+              className={cn(
+                styles.reveal,
+                "flex flex-col items-center gap-3 whitespace-nowrap text-label font-semibold uppercase tracking-eyebrow text-text/80 transition-colors duration-300 ease-soft hover:text-text",
+              )}
+              style={delay(380)}
+            >
+              Scroll down
+              <span aria-hidden className={styles.cueLine} />
+            </a>
+          </div>
+        </div>
+      </div>
     </section>
+  );
+}
+
+/** One doodle, in its five boxes — see `.doodle` in Hero.module.css. Decorative. */
+function DoodleShape({ plan }: { plan: DoodlePlan }) {
+  const shape = DOODLES[plan.name];
+  const mobile = plan.mobile ?? plan.desktop;
+  // Which way it drifts as the card opens over it: away from the card's centre.
+  const dirx = plan.desktop.left + plan.desktop.width / 2 < 50 ? -1 : 1;
+  const diry = plan.desktop.top < 50 ? -1 : 1;
+  const vars: Vars = {
+    "--d-left": `${plan.desktop.left}%`,
+    "--d-top": `${plan.desktop.top}%`,
+    "--d-width": `${plan.desktop.width}%`,
+    "--m-left": `${mobile.left}%`,
+    "--m-top": `${mobile.top}%`,
+    "--m-width": `${mobile.width}%`,
+    "--depth": plan.depth,
+    "--float": `${plan.float}s`,
+    "--float-delay": `${-(DRAW_ORDER.indexOf(plan.id) * 1.37).toFixed(2)}s`,
+    "--dirx": dirx,
+    "--diry": diry,
+  };
+
+  return (
+    <div
+      aria-hidden
+      data-doodle={plan.id}
+      className={cn(styles.doodle, styles.flip, plan.mobile ? undefined : styles.desktopOnly)}
+      style={vars}
+    >
+      <div className={styles.drift}>
+        <div className={styles.parallax}>
+          <div className={styles.float}>
+            <svg
+              viewBox={`0 0 ${shape.w} ${shape.h}`}
+              className={styles.svg}
+              style={{ "--rotate": `${plan.desktop.rotate}deg` } as Vars}
+              focusable="false"
+            >
+              <path
+                d={shape.d}
+                pathLength={1}
+                fill={plan.color}
+                stroke={plan.color}
+                className={styles.ink}
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

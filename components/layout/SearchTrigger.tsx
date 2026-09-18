@@ -38,13 +38,18 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
       aria-expanded={isOpen}
       aria-controls={panelId}
       className={
-        // `font-normal`, not medium. Weight in this row means something —
-        // Events carries it because the client asked for that one entry to
-        // have priority — and this button was medium as well, which put the
-        // emphasis on two of the four labels in no pattern a reader could
-        // follow. Search is a utility, not a priority.
-        "group/nav inline-flex size-11 items-center justify-center gap-2 text-body " +
-        "font-normal tracking-[0.01em] text-current transition-colors duration-300 ease-soft " +
+        /*
+          The row's one weight, Medium, and not the Regular it used to set.
+
+          The note here argued that weight in this row meant something and that
+          Search, being a utility rather than a destination, should sit below
+          the links beside it. The client's read of the finished bar was that
+          the labels were simply in different weights — see <HeaderBar>, where
+          the same ranking was undone for the same reason. Search keeps the one
+          mark no other entry has, which is the icon.
+        */
+        "group/nav inline-flex size-11 items-center justify-center gap-2 whitespace-nowrap text-body " +
+        "font-medium tracking-[0.015em] text-current transition-colors duration-300 ease-soft " +
         // Below `lg` the label is `sr-only`, so the button is an icon in a
         // fixed 44px box — the touch target the icon alone could not give it.
         // From `lg` the label is visible and the row sits in an 80–104px bar,

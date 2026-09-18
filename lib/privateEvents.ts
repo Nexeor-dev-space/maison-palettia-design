@@ -1,3 +1,4 @@
+import type { DoodleName } from "@/components/sections/hero/doodles";
 import type { ImageAsset } from "@/types";
 
 /**
@@ -56,34 +57,126 @@ import type { ImageAsset } from "@/types";
    ========================================================================== */
 
 export interface PrivateEventAudience {
-  /** Stable key, and the React key. */
+  /** Stable key, the React key, and the anchor on /private-events. */
   slug: string;
   /** Set in caps by the design; stored in its natural case. */
   name: string;
   /** One line. What this group gets, not what the studio promises. */
   description: string;
+  /**
+   * The picture the bar's Private events menu shows beside this programme.
+   *
+   * READ THIS BEFORE CHANGING ONE. Nothing in the project photographs a
+   * birthday party, a company gathering or a school group — checked, every
+   * folder — so these three are the studio's own photographs whose *contents*
+   * come closest to the group named, and they are stand-ins until the client
+   * supplies the real thing.
+   *
+   * What keeps that honest is the alt text: each one describes what is in the
+   * frame and never asserts the occasion. The keepsakes photograph says
+   * children's hands holding named keepsakes; it does not say "a birthday
+   * party". A caption that claims the occasion would be the one thing this
+   * file keeps refusing to do, and swapping the file later changes nothing
+   * else.
+   */
+  image?: ImageAsset;
+  /**
+   * A brand cut-out, drawn when a programme has no photograph at all. Kept as
+   * the fallback the row renders when `image` is absent.
+   */
+  mark?: { name: DoodleName; color: string };
+  /**
+   * Offered in the bar's Private events menu.
+   *
+   * Three of the four are: a birthday, a company gathering and a school visit
+   * are all things a host books privately. Mall & community activations is
+   * not — the proposal lists it as its own programme category, the studio is
+   * engaged by the venue rather than by a guest, and putting it in a menu
+   * headed "Private events" would file it as something it is not. It keeps
+   * its place on the page with the other three.
+   */
+  inPrivateEventsMenu?: boolean;
 }
 
+/**
+ * Where "Book a private event" goes, everywhere it is offered.
+ *
+ * The studio runs one private-event enquiry and it is at /private-events/book
+ * — the page the private-events page itself sends people to. Named here so
+ * the bar's menu points at the same flow rather than growing a second one.
+ */
+/**
+ * The three brand colours the menu's marks are drawn in, named here rather
+ * than reached for one by one. They are the deck's own — the same values
+ * `INK` in the hero's composition carries.
+ */
+const INK_MARK = {
+  lilac: "#9059A4",
+  lavender: "#C4B5FD",
+  terracotta: "#D97757",
+} as const;
+
+export const PRIVATE_EVENT_ENQUIRY_HREF = "/private-events/book";
+
 export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
+  /*
+    THE PROPOSAL'S PROGRAMME PAGES, NOT A LIST WRITTEN FOR THIS ONE.
+
+    These four were Corporate / Celebrations / Community / Brands & events —
+    reasonable, but composed for the page. The signed proposal names the
+    studio's programmes exactly: Birthday Parties, Corporate Events, School
+    Programs, and Mall & Community Activations. Those are the kinds of private
+    booking the business has contracted a website for, so they are the ones
+    offered here.
+
+    Each line says only what the brand deck supports. Birthdays lean on its
+    "Family bonding" (p.5) and "Appeals to all ages" (p.11); activations on
+    "Our experience" (p.12), which is the one programme with a track record in
+    the deck. Corporate and school programmes have no content in either
+    document — the proposal says their pages get content "when ready" — so
+    their lines describe the offer and promise nothing about it.
+  */
   {
-    slug: "corporate",
-    name: "Corporate",
-    description: "Creative experiences for teams, gatherings and company events.",
+    slug: "birthday-parties",
+    name: "Birthday parties",
+    description: "Kids and parents sharing a creative activity, and quality time together.",
+    image: {
+      src: "/images/events/glitter-keepsakes.jpg",
+      alt:
+        "Four handmade keepsakes cupped in children’s hands, two lettered with names and hearts and two filled with purple glitter and heart charms.",
+    },
+    mark: { name: "splash", color: INK_MARK.lavender },
+    inPrivateEventsMenu: true,
   },
   {
-    slug: "celebrations",
-    name: "Celebrations",
-    description: "A hands-on experience for birthdays, milestones and special occasions.",
+    slug: "corporate-events",
+    name: "Corporate events",
+    description: "Hands-on creative experiences for teams and company gatherings.",
+    image: {
+      src: "/images/experience/community-table.jpg",
+      alt:
+        "A hand resting over a watercolour palette and a sheet of paper at a shared table, brushes and a bag beside it.",
+    },
+    mark: { name: "starburst", color: INK_MARK.lilac },
+    inPrivateEventsMenu: true,
   },
   {
-    slug: "community",
-    name: "Community",
-    description: "Creative activities designed to bring groups together.",
+    slug: "school-programs",
+    name: "School programmes",
+    description: "Creative, hands-on activities brought to students.",
+    image: {
+      src: "/images/events/national-day-cards.jpg",
+      alt:
+        "Two quilled cards for Eid Al Etihad reading “I love UAE”, beside a pen pot made from lolly sticks painted in the colours of the UAE flag.",
+    },
+    mark: { name: "starleaf", color: INK_MARK.terracotta },
+    inPrivateEventsMenu: true,
   },
   {
-    slug: "brands-and-events",
-    name: "Brands & events",
-    description: "Interactive creative experiences for brand activations and gatherings.",
+    slug: "mall-and-community-activations",
+    name: "Mall & community activations",
+    description:
+      "Workshops tailored to an event’s theme, bringing creativity to kids and adults alike.",
   },
 ] as const;
 

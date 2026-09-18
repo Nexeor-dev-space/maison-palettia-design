@@ -11,7 +11,16 @@ import { getPopularSearches, searchWorkshops } from "@/lib/search";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { useMediaQuery } from "@/lib/useMediaQuery";
-import { formatVenueLine, formatWorkshopDate, sessionTimeRange, workshopHref } from "@/lib/workshops";
+import {
+  formatVenueLine,
+  formatWorkshopDate,
+  isFullyBooked,
+  isScarce,
+  sessionTimeRange,
+  spotsLabel,
+  workshopHref,
+} from "@/lib/workshops";
+import { cn } from "@/lib/utils";
 import type { Workshop } from "@/types";
 
 /** Cards shown at once. The brief's own instruction — do not overwhelm — set
@@ -146,7 +155,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
         // clear whichever one is actually on screen or it either overlaps the
         // bar or leaves a strip of the page showing under it. See the same
         // pair on <MobileNav>, which this is positioned to match exactly.
-        className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-nav md:top-header-lg"
+        className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface md:top-[var(--spacing-header-lg)]"
       >
         <div className="animate-rise px-gutter pb-16 pt-10">
           <SearchExperience key={openCount} onClose={onClose} workshops={workshops} />
@@ -160,7 +169,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       id={id}
       ref={panelRef}
       hidden={!isOpen}
-      className="absolute inset-x-0 top-full border-t border-on-dark/10 bg-nav"
+      className="absolute inset-x-0 top-full border-t border-text/10 bg-surface"
     >
       <div className="mx-auto w-full animate-rise px-gutter py-12 lg:py-14">
         <div className="mx-auto max-w-[36rem]">
@@ -218,22 +227,22 @@ function SearchExperience({ onClose, workshops }: { onClose: () => void; worksho
   return (
     <>
       <div className="flex items-start justify-between gap-6">
-        <h2 id={headingId} className="text-label font-medium uppercase tracking-eyebrow text-on-dark">
+        <h2 id={headingId} className="text-label font-medium uppercase tracking-eyebrow text-text">
           Search Maison Palettia
         </h2>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close search"
-          className="-mr-2 -mt-2 inline-flex size-11 shrink-0 items-center justify-center text-on-dark transition-colors duration-200 hover:text-sage"
+          className="-mr-2 -mt-2 inline-flex size-11 shrink-0 items-center justify-center text-text transition-colors duration-200 hover:text-primary"
         >
           <X size={22} aria-hidden />
         </button>
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 lg:mt-8" role="search">
-        <div className="flex items-center gap-3 border-b border-on-dark/25 pb-3 transition-colors duration-300 ease-soft focus-within:border-sage">
-          <Search size={20} aria-hidden className="shrink-0 text-on-dark/80" />
+        <div className="flex items-center gap-3 border-b border-text/25 pb-3 transition-colors duration-300 ease-soft focus-within:border-primary">
+          <Search size={20} aria-hidden className="shrink-0 text-text/70" />
           <input
             ref={inputRef}
             type="search"
@@ -242,7 +251,7 @@ function SearchExperience({ onClose, workshops }: { onClose: () => void; worksho
             aria-labelledby={headingId}
             placeholder="Search events by name, type or location"
             autoComplete="off"
-            className="w-full bg-transparent text-xl font-light text-on-dark placeholder:text-on-dark/95 outline-none lg:text-lg"
+            className="w-full bg-transparent text-xl font-light text-text placeholder:text-text/70 outline-none lg:text-lg"
           />
         </div>
       </form>
@@ -275,7 +284,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
 
   return (
     <div>
-      <p className="text-label font-medium uppercase tracking-eyebrow text-on-dark">
+      <p className="text-label font-medium uppercase tracking-eyebrow text-text">
         Popular searches
       </p>
       <ul className="mt-4 flex flex-wrap gap-2.5">
@@ -284,7 +293,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
             <button
               type="button"
               onClick={() => onPick(term)}
-              className="rounded-sm border border-on-dark/20 px-4 py-2 text-fine text-on-dark transition-colors duration-200 ease-soft hover:border-sage hover:text-sage"
+              className="rounded-sm border border-text/25 px-4 py-2 text-fine text-text transition-colors duration-200 ease-soft hover:border-primary hover:text-primary"
             >
               {term}
             </button>
@@ -300,16 +309,16 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
 function NoResults({ onNavigate }: { onNavigate: () => void }) {
   return (
     <div>
-      <p className="text-body font-medium text-on-dark">No events found</p>
-      <p className="mt-2 text-fine text-on-dark/95">
+      <p className="text-body font-medium text-text">No events found</p>
+      <p className="mt-2 text-fine text-text/80">
         Try searching for another event, location, or activity.
       </p>
       <Link
         href={WORKSHOPS_HREF}
         onClick={onNavigate}
-        className="group mt-6 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-sage"
+        className="group mt-6 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-primary"
       >
-        <span className="border-b border-sage/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
+        <span className="border-b border-primary/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
           View all events
         </span>
         <span
@@ -342,19 +351,20 @@ function ResultList({ workshops, onNavigate }: { workshops: Workshop[]; onNaviga
  * folded here into one compact line rather than a table, because a search
  * result is a pointer to the full page, not the page itself).
  *
- * `bg-on-dark/10` behind the thumbnail rather than `<WorkshopPhoto>`'s own
- * `bg-surface-alt`: that component is tuned for the light grounds it
- * normally sits on, and its cream placeholder would read as a hole in this
- * panel's dark one. <WorkshopsMenu> hand-rolls its own thumbnails for the
- * same reason; this follows that precedent rather than reaching for
- * `<WorkshopPhoto>` and fighting its ground.
+ * The panel is the site's white now, at the client's ask — the same ground as
+ * the Experiences menu and the bar on scroll — so the ink is Charcoal Slate
+ * and the accents are Deep Lilac (4.67:1 on this ground; Light Sage, the
+ * accent on the old charcoal panel, all but vanishes on white). White Rock
+ * behind the thumbnail, as <WorkshopsMenu> uses for its own.
  */
 function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: () => void }) {
   const { start } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
+  const closed = isFullyBooked(workshop);
+  const scarce = isScarce(workshop);
 
   return (
     <article className="group relative flex items-center gap-4">
-      <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-sm bg-on-dark/10 lg:w-[4.5rem]">
+      <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-sm bg-cream lg:w-[4.5rem]">
         <Image
           src={workshop.image.src}
           alt=""
@@ -366,34 +376,69 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-label font-medium uppercase tracking-eyebrow text-on-dark">
+        <p className="text-label font-medium uppercase tracking-eyebrow text-text">
           {workshop.category}
         </p>
-        <h3 className="mt-1 truncate text-body font-medium leading-snug text-on-dark">
+        <h3 className="mt-1 truncate text-body font-medium leading-snug text-text">
           <Link href={workshopHref(workshop)} onClick={onNavigate} className="after:absolute after:inset-0">
             {workshop.title}
           </Link>
         </h3>
-        <p className="mt-1 truncate text-fine text-on-dark/95">
+        <p className="mt-1 truncate text-fine text-text/80">
           {formatWorkshopDate(workshop.startsAt)}
-          <span aria-hidden className="px-1.5 text-on-dark/80">
+          <span aria-hidden className="px-1.5 text-text/70">
             &middot;
           </span>
           <span className="tabular-nums">{start}</span>
           {workshop.venue ? (
             <>
-              <span aria-hidden className="px-1.5 text-on-dark/80">
+              <span aria-hidden className="px-1.5 text-text/70">
                 &middot;
               </span>
               {formatVenueLine(workshop.venue)}
             </>
           ) : null}
         </p>
+
+        {/*
+          WHAT IS LEFT, IN THE COLOUR OF THE ACTION.
+
+          The client's note on this card asked for the seat count to be here
+          and to carry the call-to-action's colour — "2 spots left" was their
+          example. The words are `spotsLabel`, which reads `seatsAvailable`
+          straight off the session and is the same sentence the listing, the
+          event page and the booking bar set; nothing is estimated and no
+          number is written by hand. A session down to its last few seats is
+          the one that takes Deep Lilac, the ground of every primary button on
+          the site (4.90:1 with `on-primary`); a comfortable one takes Light
+          Sage and a closed one the quiet grey, because a panel where every
+          result shouts is a panel where nothing does.
+
+          Not positioned, deliberately: the title's `after:absolute inset-0`
+          covers the card and is what makes all of it clickable, and a chip
+          that painted above it would be a dead patch in the middle of the row.
+        */}
+        <p
+          className={cn(
+            "mt-2 inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1",
+            "text-label font-medium uppercase tracking-eyebrow",
+            closed
+              ? "bg-text/10 text-text/80"
+              : scarce
+                ? "bg-primary text-on-primary"
+                : "bg-sage text-text",
+          )}
+        >
+          {scarce ? (
+            <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-on-primary/90" />
+          ) : null}
+          {spotsLabel(workshop)}
+        </p>
       </div>
 
       <span
         aria-hidden
-        className="hidden shrink-0 items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-sage lg:flex"
+        className="hidden shrink-0 items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-primary lg:flex"
       >
         View event
         <span className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">

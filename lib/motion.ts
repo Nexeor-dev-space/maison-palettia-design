@@ -70,9 +70,14 @@ export const imageReveal: Variants = {
  * A line of text sliding up from behind a mask. Requires a parent with
  * `overflow: hidden` — use the <MaskedText> component rather than this
  * variant directly.
+ *
+ * 135%, not the 115% it was: headings are set in the script now, whose
+ * capitals stand above the line box into the mask's extra room (see
+ * `script-mask` in globals.css), and a shorter travel left their tops showing
+ * before the line rose.
  */
 export const maskUp: Variants = {
-  hidden: { y: "115%" },
+  hidden: { y: "135%" },
   visible: (delay: Delay = 0) => ({
     y: "0%",
     transition: { ...transitions.reveal, delay },
