@@ -95,13 +95,22 @@ export function LocationMap({ partners, className }: LocationMapProps) {
                   Titled, because an iframe is announced by its title and
                   "Google Maps" would tell a screen-reader user the vendor
                   rather than the place. `loading="lazy"` keeps the request
-                  off the initial page load; `referrerPolicy` sends the origin
-                  and not the full URL.
+                  off the initial page load.
+
+                  `strict-origin-when-cross-origin`, NOT
+                  `no-referrer-when-downgrade`, and the difference is a real
+                  leak rather than a preference. That value was here with a
+                  comment claiming it "sends the origin and not the full URL",
+                  which is the opposite of what it does: on an https-to-https
+                  request it sends the full URL, path and query included. So
+                  every event page handed Google its own address the moment
+                  this map loaded. This value is what the comment described,
+                  and is also the modern browser default.
                 */
                 title={`Map showing ${partner.name}, ${partner.locality}`}
                 src={embedSrc(partner)}
                 loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
+                referrerPolicy="strict-origin-when-cross-origin"
                 className="absolute inset-0 h-full w-full border-0"
               />
             </div>
