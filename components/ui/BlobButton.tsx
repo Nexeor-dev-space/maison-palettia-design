@@ -69,6 +69,8 @@ export function BlobButton({ href, children, onClick, className }: BlobButtonPro
           <span className={styles.blob} />
           <span className={styles.blob} />
         </span>
+        {/* Last, so it settles over the blobs rather than under them. */}
+        <span className={styles.flood} />
       </span>
       {children}
       <span

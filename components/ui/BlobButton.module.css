@@ -13,8 +13,25 @@
   something to keep two copies of — so it is a component, and the banner and
   the menu both use it.
 
-  Where a browser cannot draw the filter, the blobs still rise and fill: the
-  `@supports` rules only trade a slightly larger ellipse for the melt.
+  THE BLOBS ARE SIZED TO COVER WITHOUT THE FILTER, and they did not use to be.
+  `@supports (filter: url(...))` answers yes in Safari — the syntax parses —
+  but Safari then does not paint the filter, so it took the smaller ellipse
+  meant for the goo path and drew it raw. Four ellipses 25% wide at 0/30/60/90%
+  only meet in the middle of the button; at its top and bottom edges each one
+  has narrowed, and at `scale(1.4)` they fall 5.51% of the button's width short
+  of each other. That is three Deep Lilac wedges biting into the flood along
+  both edges, which is exactly what the client sent back.
+
+  So there is one size now, and it is the one that closes with or without the
+  filter. At the button's edge an ellipse is `12.5 · sqrt(scale² - 1)` per cent
+  wide either side of its centre, and the centres are 30% apart, so it takes
+  `scale >= 1.562` to meet. 1.4 gives 12.25% against the 15% needed; 1.7 gives
+  17.18% and laps its neighbour by 4.37%. The filter, where it does draw, melts
+  a shape that was already whole.
+
+  And `.flood` settles it: whatever any engine does with the filter, once the
+  rise is over the button is one flat field of Light Sage, which is the fill
+  the action promises.
 
   INK. Deep Lilac at rest with the light `on-primary` ink (4.90:1); Light Sage
   once flooded, with Charcoal Slate on it (9.35:1). Both cleared.
@@ -53,6 +70,20 @@
   transition: transform 450ms ease;
 }
 
+/*
+  The settled fill, arriving as the last blob lands — 240ms of stagger plus a
+  450ms rise. It is the blobs' own colour, so where they already cover it
+  cannot be seen; all it does is close anything they left. Leaving the button
+  it goes first and without delay, so the blobs are free to fall away.
+*/
+.flood {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-sage);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
 .blob:nth-child(1) {
   left: 0%;
 }
@@ -72,12 +103,6 @@
   transition-delay: 240ms;
 }
 
-@supports (filter: url("#blob-goo")) {
-  .blob {
-    transform: translate3d(0, 150%, 0) scale(1.4);
-  }
-}
-
 @media (hover: hover) {
   .button:hover {
     color: var(--color-text);
@@ -87,10 +112,9 @@
     transform: translateZ(0) scale(1.7);
   }
 
-  @supports (filter: url("#blob-goo")) {
-    .button:hover .blob {
-      transform: translateZ(0) scale(1.4);
-    }
+  .button:hover .flood {
+    opacity: 1;
+    transition: opacity 260ms ease 470ms;
   }
 }
 
@@ -102,15 +126,15 @@
   transform: translateZ(0) scale(1.7);
 }
 
-@supports (filter: url("#blob-goo")) {
-  .button:focus-visible .blob {
-    transform: translateZ(0) scale(1.4);
-  }
+.button:focus-visible .flood {
+  opacity: 1;
+  transition: opacity 260ms ease 470ms;
 }
 
 /* The flood is the whole effect, so it simply does not run. */
 @media (prefers-reduced-motion: reduce) {
-  .blob {
+  .blob,
+  .flood {
     transition: none;
   }
 }
