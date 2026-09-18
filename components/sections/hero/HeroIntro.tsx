@@ -76,12 +76,23 @@ const REDUCED = "(prefers-reduced-motion: reduce)";
 
 /*
   Clear air kept between the supporting line and the scroll cue under the
-  resting card. Every pixel taken out of the foot is a pixel the photograph
-  gains, which is what the client asked for — so this, `--copy-gap` and `--wt`
-  were all trimmed together, and the cue still has its own bottom offset under
-  this.
+  resting card.
+
+  IT SCALES WITH THE TYPE, and it did not use to. A flat 10px was set when the
+  foot was trimmed to give the photograph every pixel it could have — but the
+  supporting line is sized in `vw`, so on a wide screen 10px sits under 26px
+  text set on a 39px line, and the cue's label came up against the descenders
+  of "mindfulness, and community." On the machine it was measured on it cleared
+  by 13.9px; a slightly different face, a text-size preference or a rounding
+  difference closes that, and the client saw the two collide.
+
+  So the floor is 20px and the real figure is a fraction of the line the words
+  are actually set on, which holds the same proportion at every width. The cost
+  is about 3% of the photograph's height — the smallest amount that makes the
+  cue a separate thing from the sentence above it.
 */
-const CUE_CLEARANCE = 14;
+const CUE_CLEARANCE_MIN = 20;
+const CUE_CLEARANCE_RATIO = 0.7;
 
 /**
  * Sizes the banner's foot — the space under the resting card — to exactly
@@ -107,8 +118,12 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
   } else {
     const line = copy.querySelector("p");
     const words = line ? line.offsetTop + line.offsetHeight : copy.offsetHeight;
+    // `lineHeight` computes to a pixel length in every engine that matters; if
+    // it ever answers `normal`, the floor below is what applies.
+    const lead = line ? parseFloat(getComputedStyle(line).lineHeight) : NaN;
+    const clearance = Math.max(CUE_CLEARANCE_MIN, Math.round((lead || 0) * CUE_CLEARANCE_RATIO));
     const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
-    foot = gap + words + CUE_CLEARANCE + cue.offsetHeight + cueFromEdge;
+    foot = gap + words + clearance + cue.offsetHeight + cueFromEdge;
   }
   frame.style.setProperty("--wb", `${Math.ceil(foot)}px`);
 }
@@ -171,8 +186,19 @@ export function HeroIntro() {
     // Registered before the scroll effect's own listener, so on a resize the
     // foot is refitted before the words' landing is measured against it.
     window.addEventListener("resize", refit);
+    /*
+      And whenever the words themselves change height, for any reason the two
+      lines above do not name: a face swapping in after `fonts.ready` has
+      already resolved, a browser text-size preference, a zoom that reflows the
+      tagline onto two lines. The foot is reserved from a measurement, so it is
+      only ever as right as the last measurement — this is what keeps it
+      current instead of trusting that nothing moves after load.
+    */
+    const ro = new ResizeObserver(refit);
+    ro.observe(copy);
     return () => {
       cancelled = true;
+      ro.disconnect();
       window.removeEventListener("resize", refit);
     };
   }, []);
@@ -270,14 +296,30 @@ export function HeroIntro() {
       fallback only covers a logo that has somehow not been laid out.
     */
     const unit = logo?.offsetWidth || Math.min(vw, vh) * 0.4;
+    /*
+      How far out the petals sit, as a multiple of the measured radius.
+
+      One on anything but a phone. On a narrow screen the ring was 98.5% of the
+      width with its outermost petals 9px past both edges — measured at 375 and
+      390 — so the flower was being cropped by the screen rather than framed by
+      it. Drawing it in a little is what a tighter bouquet needs there, and it
+      costs nothing at the sizes where the ring already has room.
+    */
+    const ring = vw < 640 ? 0.93 : 1;
     const plans = new Map(DOODLE_PLAN.map((plan) => [plan.id, plan]));
     for (const el of doodles) {
       const plan = plans.get(el.dataset.doodle ?? "");
       const box = el.getBoundingClientRect();
       if (!plan || box.width === 0) continue;
       const i = order(el);
-      el.style.setProperty("--fx", `${vw / 2 + plan.flower.x * unit - (box.left + box.width / 2)}px`);
-      el.style.setProperty("--fy", `${vh / 2 + plan.flower.y * unit - (box.top + box.height / 2)}px`);
+      el.style.setProperty(
+        "--fx",
+        `${vw / 2 + plan.flower.x * unit * ring - (box.left + box.width / 2)}px`,
+      );
+      el.style.setProperty(
+        "--fy",
+        `${vh / 2 + plan.flower.y * unit * ring - (box.top + box.height / 2)}px`,
+      );
       el.style.setProperty("--fs", `${(plan.flower.width * unit) / box.width}`);
       el.style.setProperty("--fr", `${plan.flower.rotate}deg`);
       el.style.setProperty("--draw-delay", `${DRAW_START + i * DRAW_STEP}ms`);

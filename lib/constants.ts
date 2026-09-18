@@ -104,9 +104,10 @@ export const BRAND_LOGO = {
  * in descending order of how often they answer a question someone has before
  * booking.
  *
- * `megamenu: true` marks the entry the header opens as a panel rather than
- * navigating, so the two never drift apart — it is a flag rather than a match
- * on the path, because Workshops and Sessions deliberately share one.
+ * `menu` marks an entry the header opens as a panel rather than navigating,
+ * and names which panel — Experiences opens the programme, Private events the
+ * three programmes a host can book. It is a field rather than a match on the
+ * path, because entries deliberately share destinations.
  */
 export const MAIN_NAV: NavItem[] = [
   /*
@@ -127,8 +128,8 @@ export const MAIN_NAV: NavItem[] = [
     first-order questions. Journal, FAQ, Gallery and Passes keep their routes
     and live in the footer and the mobile menu, which read this list in order.
   */
-  { label: "Experiences", href: "/events", megamenu: true },
-  { label: "Private events", href: "/private-events" },
+  { label: "Experiences", href: "/events", menu: "experiences" },
+  { label: "Private events", href: "/private-events", menu: "private-events" },
   { label: "Locations", href: "/locations" },
   { label: "About", href: "/about", utility: true },
   { label: "Contact", href: "/contact", utility: true },

@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BookAction } from "@/components/layout/BookAction";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { ModeMark } from "@/components/ui/ModeMark";
+import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
+import { cn } from "@/lib/utils";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { NavItem } from "@/types";
 
@@ -251,6 +253,17 @@ export function MobileNav({
                 style={riseDelay(experiences.length + 1 + i)}
               >
                 {/*
+                  PRIVATE EVENTS EXPANDS HERE RATHER THAN HANGING A PANEL.
+
+                  The bar's version is a dropdown because a pointer can hover;
+                  a finger cannot, and a desktop menu forced onto a phone is
+                  the usual way a nav becomes unusable. So the entry keeps its
+                  link — tapping the word still goes to the page — and the
+                  three programmes sit behind a disclosure beside it, which is
+                  the interaction a phone actually has. Everything else in this
+                  list is untouched.
+                */}
+                {/*
                   The same device the desktop bar uses — see <NavLabel> — kept
                   in step for a reason beyond consistency: the sage this used
                   to switch the text to on the current-page state measured
@@ -262,18 +275,115 @@ export function MobileNav({
                   alone; the label keeps one ink throughout — Charcoal Slate,
                   now that the menu is the page's white at the client's ask.
                 */}
-                <Link
-                  href={item.href}
-                  onClick={onClose}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
-                >
-                  <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
-                </Link>
+                {item.menu === "private-events" ? (
+                  <PrivateEventsGroup item={item} isActive={isActive(item.href)} onClose={onClose} />
+                ) : (
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
+                  >
+                    <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
         </nav>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The Private events entry on a phone: a link, and a disclosure beside it.
+ *
+ * Two controls rather than one, deliberately. Making the whole row a toggle
+ * would take away the page — and that page is the one place the studio's words
+ * about these programmes actually live. So the word navigates, like every
+ * other entry in this list, and the chevron opens the three programmes under
+ * it. Each of those is an anchor into that same page; none of them invents a
+ * route or a claim.
+ *
+ * `grid-rows-[0fr]` to `[1fr]` is the height transition that needs no measured
+ * pixel value and so cannot go stale when the copy changes. Closed, the region
+ * is `inert`, so its links are out of the tab order exactly as they are out of
+ * sight.
+ */
+function PrivateEventsGroup({
+  item,
+  isActive,
+  onClose,
+}: {
+  item: NavItem;
+  isActive: boolean;
+  onClose: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const panelId = "mobile-private-events";
+  const programmes = PRIVATE_EVENT_AUDIENCES.filter((a) => a.inPrivateEventsMenu);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          href={item.href}
+          onClick={onClose}
+          aria-current={isActive ? "page" : undefined}
+          className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
+        >
+          <NavLabel isActive={isActive}>{item.label}</NavLabel>
+        </Link>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-label={`${open ? "Hide" : "Show"} private event programmes`}
+          onClick={() => setOpen((v) => !v)}
+          className="-mr-2 flex size-11 shrink-0 items-center justify-center rounded-pill text-text transition-colors duration-300 ease-soft hover:bg-cream/70"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "block size-2.5 border-b-[1.5px] border-r-[1.5px] border-current transition-transform duration-300 ease-editorial motion-reduce:transition-none",
+              open ? "-translate-y-[2px] rotate-[225deg]" : "-translate-y-[3px] rotate-45",
+            )}
+          />
+        </button>
+      </div>
+
+      <div
+        id={panelId}
+        inert={!open}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-[380ms] ease-editorial motion-reduce:transition-none",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <ul className="overflow-hidden">
+          {programmes.map((programme) => (
+            <li key={programme.slug}>
+              <Link
+                href={`${item.href}#${programme.slug}`}
+                onClick={onClose}
+                className="block py-2.5 pl-4 text-body font-medium text-text/85"
+              >
+                {programme.name}
+              </Link>
+            </li>
+          ))}
+          <li className="pb-2 pl-4 pt-3">
+            <Link
+              href={PRIVATE_EVENT_ENQUIRY_HREF}
+              onClick={onClose}
+              className="inline-flex items-center gap-2 rounded-pill bg-primary px-5 py-2.5 text-action font-semibold uppercase tracking-eyebrow text-on-primary"
+            >
+              Book a private event
+              <span aria-hidden>&#8594;</span>
+            </Link>
+          </li>
+        </ul>
       </div>
     </div>
   );

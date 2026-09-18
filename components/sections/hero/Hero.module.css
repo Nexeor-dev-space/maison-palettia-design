@@ -53,13 +53,29 @@
   top: 50%;
   z-index: 50;
   /*
-    Raised twice at the client's ask — 15rem, then 18.5, now 20 on a desktop.
-    The phone keeps the 56vw share: the flower is laid out in widths of this
-    box, and its outermost petal reaches 0.89 of a width from the centre, which
-    is the whole of a 390px screen. The flight's scale is measured against the
-    box, so a larger mark still lands exactly on the header's.
+    THE CAP IS WHAT THE CLIENT WAS SEEING, not the share. "Make the loading
+    animation's text and other size larger — try to occupy more space": on a
+    phone the flower already ran the full width, but 20rem meant a 1440-wide
+    screen got a 320px mark in it, and the whole composition covered 39% of
+    the width and 47% of the height. It sat in the middle of a lot of nothing.
+
+    Three limits, and on any given screen the smallest of them wins:
+
+      56vw ..... the phone's share, unchanged. The flower is laid out in
+                 widths of this box and reaches 0.89 of one from the centre,
+                 which is the whole of a 390px screen.
+      30rem .... the desktop mark, raised from 20rem. At 1440 the composition
+                 now covers 59% of the width and 70% of the height.
+      62svh .... and the guard that stops it doing that on a short screen. The
+                 flower is about 1.32 boxes tall, so this holds it to roughly
+                 four fifths of the height on a 720px laptop, where the cap
+                 alone would have pushed the outermost petals off the top and
+                 bottom edges.
+
+    The flight's scale is measured against this box, so a larger mark still
+    lands exactly on the header's.
   */
-  width: min(56vw, 20rem);
+  width: min(56vw, 30rem, 62svh);
   height: auto;
   /*
     Opaque from the first frame. The mask over the artwork shows nothing until
@@ -70,6 +86,20 @@
   opacity: 1;
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+/*
+  A smaller share once the ring is drawn at its full radius.
+
+  Below 640 the petals are pulled in to 0.93 of a radius (see <HeroIntro>), so
+  56vw fits there; above it they are not, and 56vw put the ring 18px past both
+  edges of a 768 tablet — measured. 52vw is the share that fits, and it changes
+  nothing on a desktop, where the 30rem cap binds long before either.
+*/
+@media (min-width: 640px) {
+  .introLogo {
+    width: min(52vw, 30rem, 62svh);
+  }
 }
 
 /*
@@ -313,7 +343,21 @@
     screen. The phone is untouched — it sits on the 2.75rem floor either way.
   */
   --headline-size: min(clamp(2.75rem, 1.35rem + 4.4vw, 5.5rem), 10svh);
-  --copy-gap: 0.75rem;
+  /*
+    THE AIR UNDER THE PHOTOGRAPH, AND WHY IT IS BIGGER THAN IT LOOKS.
+
+    This gap is measured to the top of the copy block, and the tagline's ink
+    does not start there: the script's ascenders and the swash on its capital
+    rise about 27px above the block at desktop size, because the headline is
+    set at a line-height tighter than the face's own line box. So 28px of gap
+    put one pixel of daylight between the photograph and the lettering — which
+    is what the client saw, and they were right that it read as none.
+
+    Set against the ink instead. 48px here leaves about 20px of visible air at
+    1440 and 16px on a phone; the numbers below are what is left after the
+    ascenders have taken their share.
+  */
+  --copy-gap: 2.25rem;
   /* A fallback until <HeroIntro> has measured the foot: two lines of tagline
      on a phone, one from `md`, plus the supporting line and the cue. */
   --wb: calc(11.75rem + 2.16 * var(--headline-size));
@@ -322,8 +366,15 @@
 @media (min-width: 768px) {
   .frame {
     --wx: max(5%, calc((100% - 96rem) / 2));
-    --wt: calc(var(--spacing-header-lg) + 1.75rem);
-    --copy-gap: 1rem;
+    /*
+      20px of clear air under the bar rather than 28. Giving the tagline its
+      room back under the photograph cost the card 12px on a desktop, which
+      took it just below the height it had before any of this; the top inset
+      gives 8 of them back. The bar is 88px tall, so 20px is still a clear
+      band between it and the card's top edge.
+    */
+    --wt: calc(var(--spacing-header-lg) + 1.25rem);
+    --copy-gap: 3rem;
     --wb: calc(12.75rem + 1.08 * var(--headline-size));
   }
 }

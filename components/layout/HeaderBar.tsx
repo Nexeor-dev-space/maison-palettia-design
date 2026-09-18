@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
+import { PrivateEventsMenu } from "@/components/layout/PrivateEventsMenu";
 import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
@@ -44,21 +45,38 @@ import type { Workshop } from "@/types";
  * and <WorkshopsMenu>.
  */
 const NAV_LINK =
-  "group/nav inline-flex text-body tracking-[0.01em] text-current " +
+  "group/nav inline-flex whitespace-nowrap text-body tracking-[0.015em] text-current " +
   "transition-colors duration-300 ease-soft";
 
 /**
- * Events carries the one piece of weight in the row; everything else is set
- * regular.
+ * ONE WEIGHT FOR THE WHOLE ROW — Montserrat SemiBold.
  *
- * The client asked for Events to have priority without looking like a shop
- * button, and weight is the quietest way a nav can say "start here" — it is
- * the same typeface at the same size, so the row still reads as one object
- * rather than as a link beside an advert. The chevron on the entry (see
- * <WorkshopsMenu>) does the rest by showing there is more behind it.
+ * The client asked twice, and the second note corrected the first. "Improve
+ * the font weight on the navbar" was answered by raising it; that left three
+ * weights in one row, because the bar had been built to rank itself by weight
+ * — SemiBold for the two entries that open a panel, Medium for the plain
+ * links, Regular for Search, which was filed as a utility rather than a
+ * destination. The reasoning was sound and the result was not: at 17px on a
+ * pale ground, three weights across six words read as an inconsistency rather
+ * than as a hierarchy, which is exactly what the client saw.
+ *
+ * So the row is one weight. SemiBold was tried there first, on the reasoning
+ * that the first note had asked for confidence — and it was too much: the
+ * client's word was "not this much hard". Medium is the answer to both notes
+ * at once. It is a step up from the Regular the row started at, so it still
+ * reads as deliberate rather than as default, and it is light enough that six
+ * words across a masthead stay elegant.
+ *
+ * WHAT CARRIES THE HIERARCHY INSTEAD. Nothing is lost by giving up the
+ * ranking, because none of it was doing the work alone: an entry that opens a
+ * panel says so with `aria-expanded` and by drawing its rule while the panel
+ * is down, and Search keeps the icon that no other entry has. The row ranks
+ * itself by order and by behaviour now rather than by weight.
+ *
+ * Letterspacing is 0.015em against the old 0.01em: a heavier weight closes the
+ * counters, and a little more air keeps the labels as legible as they were.
  */
-const NAV_WEIGHT_PRIMARY = "font-medium";
-const NAV_WEIGHT_REST = "font-normal";
+const NAV_WEIGHT = "font-medium";
 
 /**
  * How far the page has to move before the bar leaves the document flow.
@@ -120,12 +138,14 @@ export function HeaderBar({
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   /*
-    The strands megamenu, open or not.
+    Whether a panel is down under the bar — either of them.
 
-    Held here rather than inside <WorkshopsMenu> alone because the bar has to
-    know: the panel drops on the page's white ground, and a white panel hanging
-    off a bar still transparent over the hero photograph reads as two unrelated
-    surfaces instead of one thing opening.
+    Held here rather than inside the menus because the bar has to know: a panel
+    drops on the page's white ground, and a white panel hanging off a bar still
+    transparent over the hero photograph reads as two unrelated surfaces
+    instead of one thing opening. Both menus report through the same setter —
+    only one can be open at a time, because opening either means the pointer
+    has left the other.
   */
   const [isStrandsOpen, setIsStrandsOpen] = useState(false);
   /*
@@ -502,7 +522,14 @@ export function HeaderBar({
           aria-label="Primary"
           className="hidden self-stretch lg:col-start-1 lg:flex lg:justify-start"
         >
-          <ul className="flex items-stretch gap-7 xl:gap-10 2xl:gap-12">
+          {/*
+            24px at 1024, 44px from 1280. The labels are heavier now and the
+            row gained a fourth thing to fit; measured, 32px everywhere left
+            the 1024 track 2px short and wrapped a label. The wide screens keep
+            the air — it is only the narrow end of the desktop range that has
+            to give it up.
+          */}
+          <ul className="flex items-stretch gap-6 xl:gap-11 2xl:gap-12">
             {/*
               Two filters, two different jobs. `secondary` entries are dropped
               from the bar entirely and kept in the mobile menu and the footer;
@@ -510,7 +537,17 @@ export function HeaderBar({
               right. See both flags on NavItem.
             */}
             {primaryNav.map((item) =>
-              item.megamenu ? (
+              item.menu === "private-events" ? (
+                <li key={item.href} className="flex items-center">
+                  <PrivateEventsMenu
+                    onOpenChange={setIsStrandsOpen}
+                    label={item.label}
+                    href={item.href}
+                    isActive={isActive(item.href)}
+                    linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
+                  />
+                </li>
+              ) : item.menu === "experiences" ? (
                 <li key={item.href} className="flex items-center">
                   <WorkshopsMenu
                     onOpenChange={setIsStrandsOpen}
@@ -522,7 +559,7 @@ export function HeaderBar({
                     // clicks away. Matched to an activity by slug inside.
                     sessions={workshops}
                     isActive={isActive(item.href)}
-                    linkClassName={cn(NAV_LINK, NAV_WEIGHT_PRIMARY)}
+                    linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
                   />
                 </li>
               ) : (
@@ -530,7 +567,7 @@ export function HeaderBar({
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
-                    className={cn(NAV_LINK, NAV_WEIGHT_REST)}
+                    className={cn(NAV_LINK, NAV_WEIGHT)}
                   >
                     <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                   </Link>
@@ -621,7 +658,7 @@ export function HeaderBar({
               <Link
                 href={item.href}
                 aria-current={isActive(item.href) ? "page" : undefined}
-                className={cn(NAV_LINK, NAV_WEIGHT_REST)}
+                className={cn(NAV_LINK, NAV_WEIGHT)}
               >
                 <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
               </Link>

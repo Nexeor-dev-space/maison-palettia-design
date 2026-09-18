@@ -376,7 +376,16 @@ function WhoItIsFor() {
 
         <ol className="mt-12 md:mt-16">
           {PRIVATE_EVENT_AUDIENCES.map((audience, i) => (
-            <li key={audience.slug}>
+            /*
+              The slug is the anchor the bar's Private events menu points at.
+              Three of these programmes have no page of their own yet — the
+              proposal says their content arrives when the client is ready —
+              so the menu sends a visitor to the entry that describes it here
+              rather than to a route invented to receive them. `scroll-mt`
+              clears the fixed bar, which would otherwise cover the heading
+              the anchor just landed on.
+            */
+            <li key={audience.slug} id={audience.slug} className="scroll-mt-header md:scroll-mt-[var(--spacing-header-lg)]">
               <Reveal delay={i * 0.06}>
                 <div className="grid grid-cols-12 items-baseline gap-x-5 border-t border-text/15 py-7 md:gap-x-8 md:py-9">
                   {/*

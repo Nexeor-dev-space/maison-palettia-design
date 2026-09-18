@@ -3,17 +3,29 @@ import { cn } from "@/lib/utils";
 /**
  * A navigation label, and the line that draws itself under it.
  *
- * A RULE, NOT A SQUIGGLE — the client's note is exact: "The movement of the
- * underline is good! but not the wavy lines." So the movement is untouched and
- * the wave is gone. What was a loose pen line, drawn once at 30rem and cropped
- * to each label, is a hairline of the label's own width; the wipe that reveals
- * it is the same one, at the same length and easing, and nothing else about
- * the component changed. `inline-block` so the line is the word's width even
- * where the link is a full-width row, as in the mobile menu.
+ * A RULE, NOT A SQUIGGLE — the client's note was exact: "The movement of the
+ * underline is good! but not the wavy lines." So the movement stayed and the
+ * wave went, and this is a hairline of the label's own width.
  *
- * HOW IT ARRIVES. A wipe from the left edge, the direction a pen travels, on
- * hover; it stays drawn while the page is the current one, so hover and active
- * are the same mark rather than two ideas.
+ * HOW IT ARRIVES, AND HOW IT LEAVES. It used to be one gesture played
+ * backwards: a clip wiping in from the left on hover, and the same clip
+ * unwiping to the left on the way out — which reads as the mark being undone
+ * rather than as the pen finishing. It now travels. The rule scales from its
+ * left edge on the way in and from its right edge on the way out, so it
+ * arrives under the word in the direction a hand writes and leaves in the same
+ * direction rather than reversing into itself. Nothing else moves: no lift, no
+ * colour change, no second signal. That restraint is the point — the client's
+ * earlier note was that uncontrolled movement "doesn't look good or smooth".
+ *
+ * 380ms rather than 550: the wipe was slow enough to still be arriving after
+ * the eye had moved on. This is quick without snapping, and it is the one
+ * hover language the bar, the mobile menu and the Experiences menu all share.
+ *
+ * `scale` rather than `clip-path` is also why it is smooth: a transform is
+ * composited, where clipping re-rasterises the box on every frame.
+ *
+ * Tailwind v4 wraps `hover:` in `(hover: hover)`, so a touch device never gets
+ * a rule stuck under the last thing tapped; focus draws it for a keyboard.
  *
  * `pb-1.5` is unchanged and still load-bearing: the search trigger reserves
  * the same 6px to sit on this label's baseline (see <SearchTrigger>). The line
@@ -21,8 +33,7 @@ import { cn } from "@/lib/utils";
  * move.
  *
  * `currentColor`, so it is White Rock over a dark hero and Charcoal Slate on
- * the white bar — always the weight of the word it underlines. Reduced motion
- * is handled globally: the wipe simply completes at once.
+ * the white bar — always the weight of the word it underlines.
  */
 export function NavLabel({ children, isActive }: { children: string; isActive: boolean }) {
   return (
@@ -31,18 +42,21 @@ export function NavLabel({ children, isActive }: { children: string; isActive: b
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute left-0 top-full -mt-2 block h-2.5 w-full overflow-hidden",
-          "transition-[clip-path] duration-[550ms] ease-editorial",
+          // -mt-1 puts the rule exactly where the clipped version sat: 4px
+          // under the text box, on the baseline the search trigger aligns to.
+          "pointer-events-none absolute left-0 top-full -mt-1 block h-px w-full bg-current",
+          "transition-transform duration-[380ms] ease-editorial motion-reduce:transition-none",
           isActive
-            ? "[clip-path:inset(0_0_0_0)]"
-            : "[clip-path:inset(0_100%_0_0)] group-hover/nav:[clip-path:inset(0_0_0_0)] group-focus-visible/nav:[clip-path:inset(0_0_0_0)]",
+            ? "origin-left scale-x-100"
+            : cn(
+                // At rest it is collapsed against its right edge, so the next
+                // growth starts from the left and the last retreat ended right.
+                "origin-right scale-x-0",
+                "group-hover/nav:origin-left group-hover/nav:scale-x-100",
+                "group-focus-visible/nav:origin-left group-focus-visible/nav:scale-x-100",
+              ),
         )}
-      >
-        {/* Sat 4px into the 10px box the wipe crops, which is where the pen
-            line used to cross it — so the underline sits exactly where it did,
-            straight. */}
-        <span className="mt-1 block h-px w-full bg-current" />
-      </span>
+      />
     </span>
   );
 }
