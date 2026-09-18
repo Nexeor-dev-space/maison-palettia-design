@@ -28,6 +28,30 @@ import { registerScroller } from "@/lib/scroll";
  *
  * Renders nothing.
  */
+/**
+ * WebKit is left to scroll itself.
+ *
+ * Safari repositions `position: sticky` elements on its compositor a frame
+ * behind a scroll that JavaScript has set, then corrects — and Lenis sets the
+ * scroll from JavaScript every frame. On the homepage banner, which is a
+ * sticky frame held for two screens, that correction is visible as the whole
+ * picture shaking while the page moves through it. The client saw it in
+ * Safari and nowhere else; Chrome and Firefox resolve sticky and the new
+ * scroll position in the same frame and do not shake.
+ *
+ * It is not a bug the hero can code around, because it is not in the hero:
+ * it is the engine's sticky handling against any scroll it did not initiate.
+ * So on WebKit the page keeps its native scrolling — which on a Mac trackpad
+ * is already inertial — and everything scrubbed by scroll position reads the
+ * window's own event instead (see `onScrollFrame` in lib/scroll.ts). This
+ * covers Safari on the desktop and every browser on iOS, which are all
+ * WebKit underneath.
+ */
+const isWebKit = () =>
+  typeof navigator !== "undefined" &&
+  /AppleWebKit/.test(navigator.userAgent) &&
+  !/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/.test(navigator.userAgent);
+
 export function SmoothScroll() {
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -36,8 +60,9 @@ export function SmoothScroll() {
     const sync = () => {
       // Someone who has asked for reduced motion gets the browser's own
       // scrolling back, immediately and at any point — this is re-read when
-      // the preference changes, not only on mount.
-      if (query.matches) {
+      // the preference changes, not only on mount. WebKit gets it always; see
+      // the note above.
+      if (query.matches || isWebKit()) {
         lenis?.destroy();
         lenis = null;
         registerScroller(null);

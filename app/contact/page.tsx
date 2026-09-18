@@ -5,7 +5,6 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
-import { Signature } from "@/components/ui/Signature";
 import { CONTACT, SOCIAL_LINKS } from "@/lib/constants";
 import { buildMetadata } from "@/lib/seo";
 
@@ -16,9 +15,8 @@ export const metadata = buildMetadata({
   path: "/contact",
 });
 
-const STATEMENT_LINE =
-  "block font-light uppercase leading-[0.96] tracking-[-0.02em] " +
-  "text-[2.25rem] xs:text-[2.75rem] sm:text-[3.25rem] md:text-[3.25rem] lg:text-[4rem] xl:text-[4.5rem]";
+/* The page's banner line, in the brand's script — see `heading-script`. */
+const STATEMENT_LINE = "block heading-script text-script-hero";
 
 /**
  * Contact — an invitation, then a form, then the way back to the programme.
@@ -64,7 +62,7 @@ function Invitation() {
 
       <h1 id="contact-intro" className="mt-10 md:mt-14 lg:mt-16">
         <Stagger>
-          <span className={STATEMENT_LINE}>Let&rsquo;s create</span>
+          <span className={STATEMENT_LINE}>Let&apos;s create</span>
           <span className={STATEMENT_LINE}>something together.</span>
         </Stagger>
       </h1>
@@ -138,7 +136,7 @@ function Enquiry() {
           <Reveal>
             <h2
               id="contact-enquiry"
-              className="text-[1.6rem] font-light uppercase leading-[1.1] tracking-[-0.01em] md:text-[2rem]"
+              className="heading-script text-script-compact"
             >
               Write to us
             </h2>
@@ -173,9 +171,12 @@ function Details() {
   if (!hasAddress && !CONTACT.email && !CONTACT.phone && social.length === 0) return null;
 
   return (
-    <aside className="col-span-12 lg:col-span-4 lg:col-start-9">
+    <aside aria-labelledby="contact-find-us" className="col-span-12 lg:col-span-4 lg:col-start-9">
       <Reveal delay={0.2}>
-        <Signature ground="warm">Find us</Signature>
+        {/* A heading in the script, the pair of "Write to us" beside it. */}
+        <h2 id="contact-find-us" className="heading-script text-script-compact text-text">
+          Find us
+        </h2>
 
         <dl className="mt-10 border-t border-line">
           {hasAddress ? (
@@ -282,7 +283,7 @@ function EventsCta() {
               </p>
               <h2
                 id="contact-cta"
-                className="mt-7 text-h1 font-light uppercase tracking-[-0.02em]"
+                className="mt-6 heading-script text-script-section"
               >
                 <span className="block">The programme,</span>
                 <span className="block">date by date.</span>

@@ -6,7 +6,9 @@ import { useEffect, useRef } from "react";
 
 import { BookAction } from "@/components/layout/BookAction";
 import { NavLabel } from "@/components/layout/NavLabel";
-import type { Discipline, NavItem } from "@/types";
+import { ModeMark } from "@/components/ui/ModeMark";
+import type { CreativeExperience } from "@/lib/experiences";
+import type { NavItem } from "@/types";
 
 /**
  * How far apart the pieces of the menu arrive, in seconds, and the longest any
@@ -31,7 +33,7 @@ interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   items: NavItem[];
-  disciplines: Discipline[];
+  experiences: CreativeExperience[];
   isActive: (href: string) => boolean;
 }
 
@@ -63,7 +65,7 @@ export function MobileNav({
   isOpen,
   onClose,
   items,
-  disciplines,
+  experiences,
   isActive,
 }: MobileNavProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -169,38 +171,72 @@ export function MobileNav({
       data-lenis-prevent
       ref={panelRef}
       aria-label="Site menu"
-      className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-nav md:top-header-lg lg:hidden"
+      className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface md:top-[var(--spacing-header-lg)] lg:hidden"
     >
       {/* Keyed so the reveal below runs again every time the menu is opened. */}
       <div key={openCount} className="px-gutter pb-16 pt-10">
-        {/* 01 — what you could do here. */}
-        <nav aria-label="Creative strands">
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-8">
-            {disciplines.map((strand, i) => (
-              <li key={strand.slug} className="animate-rise" style={riseDelay(i)}>
-                <Link href={strand.href} onClick={onClose} className="group block">
-                  <div className="relative aspect-[5/4] w-full overflow-hidden rounded-sm bg-on-dark/5">
-                    <Image
-                      src={strand.image.src}
-                      alt=""
-                      fill
-                      sizes="46vw"
-                      className="object-cover"
-                    />
-                  </div>
-                  <p className="mt-3 text-fine font-medium uppercase tracking-eyebrow text-on-dark">
-                    {strand.name}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {/*
+          01 — what you could do here, in the two groups the whole site uses.
+          A compact list rather than a grid of plates: seven activities as
+          plates ran to four screens of scrolling before the rest of the menu.
+        */}
+        <nav aria-label="Experiences">
+          {(
+            [
+              { mode: "diy", title: "Walk-in DIY" },
+              { mode: "scheduled", title: "Scheduled sessions" },
+            ] as const
+          ).map((group, gi) => {
+            const items = experiences.filter((e) => e.kind === group.mode);
+            if (items.length === 0) return null;
+            return (
+              <div key={group.mode} className={gi > 0 ? "mt-9" : undefined}>
+                <p
+                  className="flex animate-rise items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text"
+                  style={riseDelay(gi * 4)}
+                >
+                  <ModeMark mode={group.mode} />
+                  {group.title}
+                </p>
+                <ul className="mt-3">
+                  {items.map((experience, i) => (
+                    <li key={experience.slug} className="animate-rise" style={riseDelay(gi * 4 + i + 1)}>
+                      <Link
+                        href={`/events/${experience.slug}`}
+                        onClick={onClose}
+                        className="flex items-center gap-4 py-2"
+                      >
+                        <span className="relative size-12 shrink-0 overflow-hidden rounded-sm bg-cream">
+                          {experience.image ? (
+                            <Image
+                              src={experience.image.src}
+                              alt=""
+                              fill
+                              sizes="48px"
+                              style={{ objectPosition: experience.image.position ?? "50% 50%" }}
+                              className="object-cover"
+                            />
+                          ) : null}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-body font-medium text-text">{experience.name}</span>
+                          {experience.status ? (
+                            <span className="block text-fine text-text/80">{experience.status}</span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </nav>
 
         {/* 02 — the action, given a rule of its own so it is not one of a list. */}
         <div
-          className="mt-12 animate-rise border-y border-on-dark/15 py-7"
-          style={riseDelay(disciplines.length)}
+          className="mt-12 animate-rise border-y border-text/15 py-7"
+          style={riseDelay(experiences.length)}
         >
           <BookAction size="panel" onNavigate={onClose} />
         </div>
@@ -212,7 +248,7 @@ export function MobileNav({
               <li
                 key={item.href}
                 className="animate-rise"
-                style={riseDelay(disciplines.length + 1 + i)}
+                style={riseDelay(experiences.length + 1 + i)}
               >
                 {/*
                   The same device the desktop bar uses — see <NavLabel> — kept
@@ -222,15 +258,15 @@ export function MobileNav({
                   and weight (light, not bold, so the 22px does not earn the
                   large-text exemption) — under the 4.5:1 running text owes.
                   The drawn rule is a graphical mark rather than text and
-                  clears 3:1 comfortably against either ground, so it carries
-                  hover and current-page alone; the label stays white
-                  throughout regardless of which ground the bar is on.
+                  clears 3:1 comfortably, so it carries hover and current-page
+                  alone; the label keeps one ink throughout — Charcoal Slate,
+                  now that the menu is the page's white at the client's ask.
                 */}
                 <Link
                   href={item.href}
                   onClick={onClose}
                   aria-current={isActive(item.href) ? "page" : undefined}
-                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-on-dark"
+                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
                 >
                   <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                 </Link>

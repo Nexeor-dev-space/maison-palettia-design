@@ -1,231 +1,180 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
-import { Stagger } from "@/components/motion/Stagger";
-import { EditorialStatement } from "@/components/sections/EditorialStatement";
-import { HowItWorks } from "@/components/sections/HowItWorks";
-import { JustAdded } from "@/components/sections/JustAdded";
-import { PlanYourVisit } from "@/components/sections/PlanYourVisit";
 import { Container } from "@/components/ui/Container";
-import { Signature } from "@/components/ui/Signature";
-import { BRAND_INTRO_IMAGE, EDITORIAL_PANELS, EXPERIENCE_IMAGES, MAISON_PHILOSOPHY } from "@/lib/constants";
-import { getDisciplines } from "@/lib/disciplines";
+import { DisplayHeading, Eyebrow, forScript } from "@/components/ui/SectionHeader";
+import {
+  BRAND_STORY,
+  CLOSING,
+  COMMUNITY,
+  EVENT_PLATES,
+  MISSION,
+  PAST_DESTINATIONS,
+  TAGLINE,
+  VISION,
+  WHAT_SETS_US_APART,
+  WORKSHOP_JOURNEY,
+} from "@/lib/brand";
 import { buildMetadata } from "@/lib/seo";
-import type { Discipline } from "@/types";
 
 export const metadata = buildMetadata({
   title: "About",
   description:
-    "Maison Palettia is a creative space where art, craft and community come together — hands-on events at fixed times in malls across Dubai.",
+    "Maison Palettia is a creative lifestyle brand celebrating creativity, mindfulness and meaningful human connection — hands-on experiences that bring people together.",
   path: "/about",
 });
 
-const STATEMENT_LINE =
-  "block font-light uppercase leading-[0.96] tracking-[-0.02em] " +
-  "text-[2.25rem] xs:text-[2.75rem] sm:text-[3.25rem] md:text-[3.25rem] lg:text-[4rem] xl:text-[4.5rem]";
-
 /**
- * About — the story, told the way the rest of the site talks.
+ * /about — who the Maison is, in the order its own deck tells it.
  *
- * This was a scaffold, then five movements, and is now eight: a statement, the
- * Maison's own philosophy against a photograph, an editorial spread, the four
- * things you can actually make here, a visual aside, a second spread, what has
- * come out of the room lately, and the way through to the programme.
+ * Welcome and story (p.2), mission and vision (p.3), how the community is made
+ * (p.4–5), what sets it apart (p.11), where it has created (p.12), and the
+ * deck's closing line (p.15). Every sentence of substance is lib/brand.ts;
+ * the headings are short and say only what their section contains.
  *
- * IT GREW BECAUSE THE HOMEPAGE SHRANK. The homepage was carrying four
- * sections of brand storytelling between a visitor and a date they could
- * book. Three of those were duplicates of what this page already said — the
- * philosophy from the same constant, the strands from the same source — so
- * they were simply dropped there; the two editorial spreads and the
- * just-added strip are real content with nowhere else to be, and they are
- * here. The homepage introduces, this page explains, /events converts.
- *
- * EVERY WORD ON THIS PAGE ALREADY EXISTED. The statement and the paragraph are
- * the brand introduction's own copy, the philosophy block is
- * `MAISON_PHILOSOPHY` verbatim, and the four strands are read from
- * `getDisciplines()` — the same source the strands menu in the header uses,
- * so this page cannot drift from either. Nothing here invents a claim about
- * what the studio provides, teaches or promises, because none of that is
- * written down yet and an About page is the worst place to start guessing.
- *
- * Composition follows the site rather than a template: no three-column card
- * row, no team grid, no statistics. Each section is a different shape, and the
- * page is read by moving through them.
- *
- * Server component; it awaits the strands in place, as the homepage does.
+ * WHAT CAME OUT. The previous page opened on "Art, craft and company.", ran
+ * a sequence of watercolour editorial panels, and included a "Just added"
+ * strip whose photographs were glazed ceramic vases — pottery, which the
+ * client has asked the site not to show. It also described the programme
+ * through the Paint / Shape / Craft / Create strands, which the rest of the
+ * site no longer uses.
  */
-export default async function AboutPage() {
-  const disciplines = await getDisciplines();
-
+export default function AboutPage() {
   return (
     <>
-      <Introduction />
-      <TheMaison />
-
-      {/*
-        The first of the two editorial spreads that used to break up the
-        homepage. They belong to the story rather than to the booking journey,
-        and this is the page that tells the story — see the note on the
-        homepage for the rest of that argument.
-      */}
-      <EditorialStatement panel={EDITORIAL_PANELS.movement} spread="foot" />
-
-      <TheExperience disciplines={disciplines} />
-      <VisualStory />
-
-      {/*
-        Set as a `foot` spread, not the `field` one it was built for. That
-        spread lays charcoal type straight on the picture with a light wash,
-        and it needs a pale, quiet photograph to do it. The client's shelved
-        pots are neither: measured, charcoal came out at 1.0-1.8:1 against
-        them, and the cream wash heavy enough to fix that erased the
-        photograph. Under the dark scrim with cream type every element clears
-        its bar — worst 4.5:1 — at half the overlay, so the pots stay visible.
-        See the note on the plate in lib/constants.ts.
-      */}
-      <EditorialStatement panel={EDITORIAL_PANELS.making} spread="foot" />
-
-      {/* What has come out of the room lately — the closest thing the site has
-          to behind-the-scenes, and squarely About's business rather than the
-          homepage's. */}
-      <JustAdded />
-
-      {/*
-        The practical answer, immediately before the page asks for the booking.
-        It kept this adjacency when it moved off the homepage, where it sat
-        under the events listing for the same reason: it belongs next to the
-        moment the question gets asked, not wherever there is room for it.
-
-        Its tinted band also breaks the run of page-ground sections above it
-        and sets up the White Rock close below, so the page ends on three
-        distinct grounds rather than trailing off.
-      */}
-      <HowItWorks />
-
-      {/*
-        The close, moved here from the foot of the homepage at the client's
-        ask — see the note in <PlanYourVisit>.
-
-        IT REPLACED A SECTION RATHER THAN JOINING ONE. This page already ended
-        with an <EventsCta> whose heading was "Come make / something with us."
-        over a paragraph and an "Explore events" link. That is the same
-        sentence and the same ask this section makes from the same constant,
-        so mounting both would have set the identical invitation twice in a
-        row, the second time smaller. The one that survives is the one with
-        the foot rail on it: where the studio is, who to ask a question, and
-        the door for group bookings — three answers the shorter version simply
-        did not have room for.
-      */}
-      <PlanYourVisit />
+      <Welcome />
+      <MissionVision />
+      <Community />
+      <Apart />
+      <Created />
+      <Close />
     </>
   );
 }
 
-/** 01 — who this is, in as few words as the brand uses elsewhere. */
-function Introduction() {
+/* ---- 01 welcome ---------------------------------------------------------- */
+
+function Welcome() {
   return (
-    <Container as="section" aria-labelledby="about-intro" className="pt-[4rem] md:pt-[6rem] lg:pt-[7rem]">
-      <Reveal>
-        <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
-          <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-          About the Maison
-        </p>
-      </Reveal>
+    <section aria-labelledby="about-title" className="bg-surface">
+      <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
+        <div className="grid grid-cols-12 gap-x-6 gap-y-12 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-6">
+            <Reveal>
+              <Eyebrow>About</Eyebrow>
+            </Reveal>
+            <p className="mt-9 heading-script text-[2.1rem] leading-[1.15] text-primary md:text-[2.6rem]">
+              {TAGLINE}
+            </p>
+            <DisplayHeading
+              as="h1"
+              id="about-title"
+              className="mt-6"
+              lines={["Welcome to", "Maison Palettia."]}
+            />
+            <Reveal delay={0.15}>
+              <p className="mt-9 max-w-[34rem] text-lead leading-[1.75] text-text">{BRAND_STORY}</p>
+            </Reveal>
+          </div>
 
-      <h1 id="about-intro" className="mt-10 md:mt-14 lg:mt-16">
-        <Stagger>
-          <StatementLine>Art, craft</StatementLine>{" "}
-          <StatementLine>and company.</StatementLine>
-        </Stagger>
-      </h1>
-
-      <div className="mt-12 grid grid-cols-12 gap-x-6 md:mt-16 lg:gap-x-10">
-        <Reveal delay={0.15} className="col-span-12 md:col-span-7 md:col-start-6 lg:col-span-6 lg:col-start-7">
-          {/*
-            The brand introduction's own paragraph, unchanged. It is the one
-            sentence the studio has already written about itself, and writing a
-            second one here would leave the site with two answers to the same
-            question.
-          */}
-          <p className="text-lead font-light leading-[1.7] text-text md:text-[1.35rem]">
-            Maison Palettia is a creative space where art, craft and community come together. A
-            place to slow down, make something with your hands, and leave with an experience
-            that stays with you.
-          </p>
-        </Reveal>
-      </div>
-    </Container>
-  );
-}
-
-function StatementLine({ children }: { children: string }) {
-  return (
-    <span className="block overflow-hidden pb-[0.14em] [&+span]:-mt-[0.14em]">
-      <Reveal as="span" variant="maskUp" className={STATEMENT_LINE}>
-        {children}
-      </Reveal>
-    </span>
-  );
-}
-
-/**
- * 02 — the philosophy, against the picture.
- *
- * A full-bleed White Rock field so the page changes material here rather than
- * merely changing subject. The photograph bleeds off the left edge and the
- * words sit in the right half, which is the same anatomy the events use — one
- * language, two purposes.
- */
-function TheMaison() {
-  return (
-    <section aria-labelledby="the-maison" className="mt-[5rem] bg-cream md:mt-[7rem] lg:mt-[8rem]">
-      <Container>
-        <div className="grid grid-cols-12 items-center gap-x-6 lg:gap-x-12">
-          <figure className="col-span-12 -mx-gutter lg:col-span-6 lg:-ml-gutter lg:mr-0">
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface-alt sm:aspect-[3/2] lg:aspect-[4/5]">
+          <Reveal variant="fadeIn" className="col-span-12 lg:col-span-5 lg:col-start-8">
+            <div className="arch relative aspect-[4/5] overflow-hidden bg-cream [--arch-rise:34%]">
               <Image
-                src={BRAND_INTRO_IMAGE.src}
-                alt={BRAND_INTRO_IMAGE.alt}
+                src="/images/experience/painting.jpg"
+                alt="A hand painting a pale flower on a canvas at an easel, holding a palette of white, lilac and blue paint."
                 fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                style={{ objectPosition: BRAND_INTRO_IMAGE.position }}
+                priority
+                sizes="(min-width: 1024px) 38vw, 92vw"
                 className="object-cover"
               />
             </div>
-          </figure>
+          </Reveal>
+        </div>
+      </Container>
+    </section>
+  );
+}
 
-          <div className="col-span-12 py-12 md:py-16 lg:col-span-5 lg:col-start-8 lg:py-24">
+/* ---- 02 mission and vision ---------------------------------------------- */
+
+function MissionVision() {
+  return (
+    <section aria-labelledby="purpose-heading" className="bg-sage py-[5rem] md:py-section">
+      <Container>
+        <h2 id="purpose-heading" className="sr-only">
+          Mission and vision
+        </h2>
+        <div className="grid grid-cols-1 gap-x-10 gap-y-14 md:grid-cols-2">
+          {[
+            { label: "Our mission", text: MISSION },
+            { label: "Our vision", text: VISION },
+          ].map((item, i) => (
+            <Reveal key={item.label} delay={i * 0.1}>
+              <figure className="border-t border-text/30 pt-8">
+                <figcaption className="text-label font-semibold uppercase tracking-eyebrow text-text">
+                  {item.label}
+                </figcaption>
+                <blockquote className="mt-6 text-[1.7rem] font-light leading-[1.25] tracking-[-0.015em] text-text md:text-[2.2rem]">
+                  {item.text}
+                </blockquote>
+              </figure>
+            </Reveal>
+          ))}
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+/* ---- 03 community ------------------------------------------------------- */
+
+function Community() {
+  return (
+    <section aria-labelledby="community-about" className="bg-surface py-[5rem] md:py-section lg:py-section-lg">
+      <Container>
+        <div className="grid grid-cols-12 gap-x-6 gap-y-12 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-5">
             <Reveal>
-              <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
-                {MAISON_PHILOSOPHY.eyebrow}
-              </p>
-
-              <h2
-                id="the-maison"
-                className="mt-7 text-[2rem] font-light leading-[1.05] tracking-[-0.02em] md:text-[2.5rem] lg:text-[2.75rem]"
-              >
-                {MAISON_PHILOSOPHY.title.map((line) => (
-                  <span key={line} className="block">
-                    {line}
-                  </span>
-                ))}
-              </h2>
+              <Eyebrow>The Maison experience</Eyebrow>
             </Reveal>
-
+            <DisplayHeading
+              id="community-about"
+              size="compact"
+              className="mt-8 md:mt-10"
+              lines={["Creating community", "through creativity."]}
+            />
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[32rem] text-body leading-[1.85] text-text/80">
-                {MAISON_PHILOSOPHY.description}
+              <p className="mt-7 max-w-[30rem] text-body leading-[1.85] text-text/85">{COMMUNITY.body}</p>
+              <p className="mt-6 heading-script text-[1.75rem] leading-[1.2] text-primary md:text-[2.1rem]">
+                {forScript(COMMUNITY.closer)}
               </p>
-              {/*
-                The script, used once on this page and nowhere else on it. It
-                is the brand's rarest gesture and the reason it still reads as
-                one — see the contract in <Signature>, which also sets its own
-                size because the ink pairings only clear at display scale.
-              */}
-              <Signature ground="warm" className="mt-10">
-                {MAISON_PHILOSOPHY.accent}
-              </Signature>
             </Reveal>
+          </div>
+
+          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
+            <Reveal>
+              <h3 className="text-label font-semibold uppercase tracking-eyebrow text-text">
+                The workshop journey
+              </h3>
+            </Reveal>
+            <ol className="mt-5 border-t border-text/25">
+              {WORKSHOP_JOURNEY.map((step, i) => (
+                <li key={step.slug} className="border-b border-text/25 py-5">
+                  <Reveal delay={i * 0.05}>
+                    <div className="grid grid-cols-[2.5rem_1fr] items-baseline gap-x-3">
+                      <span aria-hidden className="text-label font-semibold tabular-nums tracking-eyebrow text-text">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <p className="text-lead font-semibold leading-snug text-text">{step.name}</p>
+                        <p className="mt-1.5 text-body leading-[1.7] text-text/85">{step.description}</p>
+                      </div>
+                    </div>
+                  </Reveal>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </Container>
@@ -233,135 +182,130 @@ function TheMaison() {
   );
 }
 
-/**
- * 03 — the four things you could make.
- *
- * Read from `getDisciplines()` rather than written here. The brief's example
- * had four invented headings for what an event feels like; the studio has four
- * real ones for what an event *is*, with its own sentence under each. Using
- * the real ones costs nothing and means this section updates itself when the
- * programme grows a fifth strand.
- *
- * The row is staggered rather than level — every other plate drops — so four
- * equal items still read as a composition rather than as a card grid.
- */
-function TheExperience({ disciplines }: { disciplines: Discipline[] }) {
+/* ---- 04 what sets it apart ---------------------------------------------- */
+
+function Apart() {
   return (
-    <Container as="section" aria-labelledby="the-experience" className="mt-[5.5rem] md:mt-[8rem] lg:mt-[9rem]">
-      <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
-        <div className="col-span-12 md:col-span-8 lg:col-span-7">
-          <Reveal>
-            <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
-              What you&rsquo;ll do
-            </p>
-            <h2
-              id="the-experience"
-              className="mt-6 text-[1.9rem] font-light uppercase leading-[1.02] tracking-[-0.02em] md:text-[2.4rem] lg:text-[2.9rem]"
-            >
-              Four ways in.
-            </h2>
-          </Reveal>
-
-          <Reveal delay={0.15}>
-            <p className="mt-7 max-w-[32rem] text-body leading-[1.85] text-text/80 md:mt-8">
-              Every event begins with one of these. No experience is assumed and nothing needs
-              bringing — the table is set when you arrive.
-            </p>
-          </Reveal>
-        </div>
-      </div>
-
-      <ol className="mt-14 grid grid-cols-12 gap-x-6 gap-y-14 md:mt-20 lg:gap-x-10">
-        {disciplines.map((strand, i) => (
-          <li
-            key={strand.slug}
-            className={
-              i % 2 === 1
-                ? "col-span-12 sm:col-span-6 lg:col-span-3 lg:mt-16"
-                : "col-span-12 sm:col-span-6 lg:col-span-3"
-            }
-          >
+    <section aria-labelledby="apart-heading" className="bg-cream py-[5rem] md:py-section">
+      <Container>
+        <div className="grid grid-cols-12 gap-x-6 gap-y-12 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-7">
             <Reveal>
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-surface-alt">
-                <Image
-                  src={strand.image.src}
-                  alt={strand.image.alt}
-                  fill
-                  sizes="(min-width: 1024px) 22vw, (min-width: 640px) 46vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-              <p className="mt-6 flex items-center gap-3">
-                <span className="text-label font-medium uppercase tracking-eyebrow text-text/75">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span aria-hidden className="h-px w-5 shrink-0 bg-terracotta" />
-              </p>
-              <h3 className="mt-4 text-lead font-medium uppercase tracking-[0.04em]">
-                {strand.name}
-              </h3>
-              <p className="mt-3 max-w-[20rem] text-body leading-[1.8] text-text/80">
-                {strand.description}
-              </p>
+              <Eyebrow>What sets us apart</Eyebrow>
             </Reveal>
-          </li>
-        ))}
-      </ol>
-    </Container>
+            <ul className="mt-10 grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+              {WHAT_SETS_US_APART.map((point, i) => (
+                <li key={point.slug} className="border-t border-text/25 py-6">
+                  <Reveal delay={i * 0.06}>
+                    <h3 className="text-[1.3rem] font-light leading-tight tracking-[-0.01em] text-text md:text-[1.5rem]">
+                      {point.name}
+                    </h3>
+                    <p className="mt-2.5 text-body leading-[1.75] text-text/85">{point.description}</p>
+                  </Reveal>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+            <Reveal>
+              <h3 className="text-label font-semibold uppercase tracking-eyebrow text-text">From our tables</h3>
+            </Reveal>
+            <div className="mt-10 grid grid-cols-2 gap-3">
+              {EVENT_PLATES.map((plate, i) => (
+                <Reveal
+                  key={plate.src}
+                  variant="fadeIn"
+                  delay={i * 0.08}
+                  className={i === 0 ? "col-span-2" : undefined}
+                >
+                  <div
+                    className={`relative overflow-hidden rounded-sm bg-surface ${i === 0 ? "aspect-[4/3]" : "aspect-square"}`}
+                  >
+                    <Image
+                      src={plate.src}
+                      alt={plate.alt}
+                      fill
+                      sizes={i === 0 ? "(min-width: 1024px) 30vw, 92vw" : "(min-width: 1024px) 15vw, 46vw"}
+                      className="object-cover"
+                    />
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Container>
+    </section>
   );
 }
 
-/**
- * 04 — a visual aside.
- *
- * One large plate, one small one held below and inside it, and a single line
- * of type. Deliberately asymmetric and deliberately quiet: the page has said
- * its piece by now, and this is the pause before it asks for anything.
- */
-function VisualStory() {
+/* ---- 05 where it has created -------------------------------------------- */
+
+function Created() {
   return (
-    <Container as="section" aria-labelledby="visual-story" className="mt-[5.5rem] md:mt-[8rem] lg:mt-[9rem]">
-      <h2 id="visual-story" className="sr-only">
-        Inside the studio
-      </h2>
-
-      <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
-        <Reveal className="col-span-12 lg:col-span-8">
-          <figure>
-            <div className="relative aspect-[3/2] w-full overflow-hidden rounded-sm bg-surface-alt">
-              <Image
-                src={EXPERIENCE_IMAGES.painting.src}
-                alt={EXPERIENCE_IMAGES.painting.alt}
-                fill
-                sizes="(min-width: 1024px) 64vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          </figure>
-        </Reveal>
-
-        <div className="col-span-12 mt-10 lg:col-span-3 lg:col-start-10 lg:mt-28">
-          <Reveal delay={0.15}>
-            <p className="text-lead font-light leading-[1.7] text-text md:text-lead">
-              A room, a table, and everything already laid out.
+    <section aria-labelledby="created-heading" className="bg-surface py-[5rem] md:py-section">
+      <Container>
+        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-5">
+            <Reveal>
+              <Eyebrow>Our experience</Eyebrow>
+            </Reveal>
+            <DisplayHeading
+              id="created-heading"
+              size="compact"
+              className="mt-8 md:mt-10"
+              lines={["Where we’ve", "created."]}
+            />
+          </div>
+          <Reveal delay={0.15} className="col-span-12 lg:col-span-7">
+            <p className="text-[1.3rem] font-light leading-[1.55] tracking-[-0.01em] text-text md:text-[1.6rem]">
+              {PAST_DESTINATIONS.join(" · ")} and more.
             </p>
-          </Reveal>
-
-          <Reveal delay={0.25}>
-            <figure className="mt-10">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-surface-alt">
-                <Image
-                  src={EXPERIENCE_IMAGES.pigment.src}
-                  alt={EXPERIENCE_IMAGES.pigment.alt}
-                  fill
-                  sizes="(min-width: 1024px) 24vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-            </figure>
+            <Link
+              href="/locations"
+              className="group -my-1.5 mt-7 inline-flex items-baseline gap-3 py-1.5 text-action font-semibold uppercase tracking-eyebrow text-text"
+            >
+              <span className="border-b border-primary pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
+                Locations
+              </span>
+              <span aria-hidden className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">
+                &#8594;
+              </span>
+            </Link>
           </Reveal>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </section>
+  );
+}
+
+/* ---- 06 close ----------------------------------------------------------- */
+
+function Close() {
+  return (
+    <section aria-labelledby="about-close" className="stripes py-16 md:py-24">
+      <Container>
+        <Reveal className="mx-auto max-w-[50rem] bg-cream px-7 py-14 text-center sm:px-12 md:py-18">
+          <h2 id="about-close" className="heading-script text-[2.4rem] leading-[1.1] text-primary sm:text-[3.2rem] md:text-[3.8rem]">
+            {forScript(CLOSING.heading)}
+          </h2>
+          <p className="mx-auto mt-6 max-w-[30rem] text-lead leading-[1.7] text-text">{CLOSING.body}</p>
+          <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/events"
+              className="inline-flex min-h-12 items-center rounded-sm bg-primary px-7 text-action font-semibold uppercase tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90"
+            >
+              Explore experiences
+            </Link>
+            <Link
+              href="/private-events"
+              className="inline-flex min-h-12 items-center rounded-sm border border-text px-7 text-action font-semibold uppercase tracking-eyebrow text-text transition-colors duration-300 ease-soft hover:bg-text hover:text-cream"
+            >
+              Plan a private event
+            </Link>
+          </div>
+        </Reveal>
+      </Container>
+    </section>
   );
 }

@@ -2,10 +2,12 @@ import type { Metadata, Viewport } from "next";
 
 import { Footer } from "@/components/layout/Footer";
 import { FooterReveal } from "@/components/layout/FooterReveal";
+import { BlobGooFilter } from "@/components/ui/BlobButton";
 import { Header } from "@/components/layout/Header";
 import { RouteProgress } from "@/components/layout/RouteProgress";
 import { WhatsAppWidget } from "@/components/layout/WhatsAppWidget";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
+import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
 import { hapsha, montserrat } from "@/lib/fonts";
 import { defaultMetadata } from "@/lib/seo";
 
@@ -23,8 +25,19 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${hapsha.variable}`}>
+    <html
+      lang="en"
+      className={`${montserrat.variable} ${hapsha.variable}`}
+      /* The intro script below writes `data-intro` here before hydration, to
+         decide on the homepage intro without a flash; React is told to expect
+         it. This only covers this element's own attributes, not anything
+         beneath it. */
+      suppressHydrationWarning
+    >
       <head>
+        {/* Decides the homepage intro before first paint; does nothing on any
+            other page. See components/sections/hero/intro.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
         {/*
           Scroll-triggered reveals render at opacity 0 until JavaScript runs.
           Without this, a visitor (or crawler) with JS disabled sees an empty
@@ -43,6 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           has asked for reduced motion.
         */}
         <SmoothScroll />
+        {/* The gooey filter the primary action's blobs are drawn through, reachable
+            by id from anywhere in the document — see <BlobButton>. */}
+        <BlobGooFilter />
         <a href="#main" className="skip-link rounded-sm bg-primary px-4 py-2 text-sm text-on-primary">
           Skip to content
         </a>

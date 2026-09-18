@@ -54,25 +54,20 @@ export interface CreativeExperience {
 /* ==========================================================================
    IMAGERY PROVENANCE — read before changing a `src` here.
 
-   Four of the five photographs are the client's own activity set from
-   public/images/hero-carousel/, already identified frame by frame in
-   HERO_CAROUSEL (lib/constants.ts); the alt text and crop positions are
-   carried across unchanged so one photograph is never described two ways.
+   All seven are the client's own, supplied as a named set in
+   public/images/experiences/ — one square 1024x1024 file per activity, the
+   file name matching the activity. They replaced a set borrowed from
+   elsewhere in the project: two frames of the studio's banner footage, two
+   photographs re-cut from 4000px masters, and one picture of a different
+   activity standing in for ceramic painting. Every one of these shows the
+   thing its row names.
 
-   The fifth, ceramic painting, is /images/creative/craft.jpg. That file is a
-   genuine ceramic-painting photograph — a brush laying colour onto a
-   ready-made pot — and is already used for the Craft strand and on the
-   private-events page. The note in HERO_CAROUSEL explains why it is kept out
-   of the *hero* specifically; no such restriction applies here, and the
-   alternative was leaving the client's second-priority activity without a
-   picture while a correct one sat in the repository.
+   Square suits where they are used: the menu's thumbnails are 48px squares
+   and the homepage plates are close to square, so none of them is being
+   cropped hard in either direction.
 
-   Mandala painting and glass painting are the client's own photographs,
-   supplied for this section and re-cut for the web — 4608x3072 and 4000x4000
-   masters down to 1800px on the long edge, with the originals kept outside
-   public/ at assets/masters/. The full-size files were 1.2MB and 3.5MB, and a
-   4000x4000 source is the exact shape that hung the image optimizer on the
-   crocheting frame; see the note in lib/workshops.ts.
+   The set also contains HAND_BUILDING.jpg, which is not used and should not
+   be: it is pottery-making, which the client has asked stays off the site.
    ========================================================================== */
 
 const EXPERIENCES: readonly CreativeExperience[] = [
@@ -82,9 +77,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     description: "Fabric paint on plain cotton — the one you carry out with you.",
     kind: "diy",
     image: {
-      src: "/images/hero-carousel/2.png",
-      alt: "Seen from above, two hands painting a hummingbird and a spray of orchids and hibiscus onto a royal blue cotton tote, a tray of colour pots beside them.",
-      position: "45% 50%",
+      src: "/images/experiences/TOTE_BAG_PAINTING.jpg",
+      alt:
+        "A cotton tote painted with a yellow sun and moon face among blue flowers, brushes and jars of paint on the table behind it.",
+      position: "50% 45%",
     },
   },
   {
@@ -93,8 +89,9 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     description: "Colour and pattern laid onto a ready-made piece.",
     kind: "diy",
     image: {
-      src: "/images/creative/craft.jpg",
-      alt: "Two hands turning a small ceramic pot while a fine brush lays a block of yellow into a design of pastel blue, lilac, mint and coral.",
+      src: "/images/experiences/CERAMIC_PAINTING.jpg",
+      alt:
+        "A ceramic plate painted with pale blue stripes and blueberries beside a matching mug, a paint palette and three brushes on a dark table.",
       position: "50% 50%",
     },
   },
@@ -104,25 +101,24 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     description: "Stones and beads set onto something plain until it is not.",
     kind: "diy",
     image: {
-      src: "/images/hero-carousel/4.jpg",
-      alt: "A smiling young woman in a denim jacket, her cheeks and brows set with clusters of coloured gems and tiny rhinestone flowers.",
-      position: "55% 30%",
+      src: "/images/experiences/BEDAZZLING.jpg",
+      alt:
+        "A hand in a red glove holding up a balloon dog covered all over in pink rhinestones, bright grass behind it.",
+      position: "50% 45%",
     },
   },
   {
-    // No description: the studio has not written one, and this is not the
-    // place to invent a sentence about what a mandala is. The photograph is
-    // the client's own and needs no caption to do its work.
-    slug: "mandala-painting",
+slug: "mandala-painting",
     name: "Mandala painting",
     kind: "diy",
     image: {
-      src: "/images/creative/mandala-painting.jpg",
-      alt: "A hand holding up a large round mandala board against blurred autumn foliage — turquoise, worked in concentric white-ridged arcs inlaid with mirror diamonds and dots.",
+      src: "/images/experiences/MANDALA_PAINTING.jpg",
+      alt:
+        "Hands holding a round mandala board painted in teal, orange and cream, worked outwards from the centre in petals and dots.",
       // The disc fills the square frame and the hand enters from the lower
       // left; held a little above centre so a landscape crop keeps the
       // pattern and loses the foliage rather than the other way round.
-      position: "50% 45%",
+      position: "50% 50%",
     },
   },
   {
@@ -132,15 +128,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     // The client's own wording, carried through rather than paraphrased.
     status: "Coming soon",
     image: {
-      src: "/images/creative/glass-painting.jpg",
-      alt: "A finished glass panel in a pale wooden frame standing on a walnut table, painted with a blue toucan on a branch among monstera and palm leaves, a lamp lit behind it.",
-      /*
-        The panel sits right of centre and low in a wide, mostly empty frame —
-        a lamp and an armchair fill the left third. Pulled across and down so a
-        `cover` crop keeps the painted glass and gives away the empty wall,
-        which is the only part of this photograph with nothing in it.
-      */
-      position: "56% 62%",
+      src: "/images/experiences/GLASS_PAINTING.jpg",
+      alt:
+        "A hand holding an arched glass panel painted with a dragonfly among red and pink flowers on green leaves, the sun throwing its colours onto the wall.",
+      position: "50% 50%",
     },
   },
   {
@@ -149,9 +140,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     description: "Wax, wick and colour, poured and left to set.",
     kind: "scheduled",
     image: {
-      src: "/images/hero-carousel/1.jpg",
-      alt: "Two hands cupping a freshly poured candle in a glass jar, its wick lit, with tealights burning on the wooden bench around it.",
-      position: "50% 40%",
+      src: "/images/experiences/CANDLE_MAKING.jpg",
+      alt:
+        "Two poured candles in glass jars on a white tray, one set with pink wax flowers and one with pink hearts, sprigs of gypsophila beside them.",
+      position: "50% 50%",
     },
   },
   {
@@ -160,9 +152,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     description: "A hook, a ball of yarn and one stitch to start from.",
     kind: "scheduled",
     image: {
-      src: "/images/hero-carousel/crocheting.jpg",
-      alt: "Balls of mint and cream yarn with a crochet hook resting on them, beside a finished blanket worked in shell stitch.",
-      position: "58% 42%",
+      src: "/images/experiences/CROCHETING.jpg",
+      alt:
+        "A crocheted blanket of granny squares in forest green, cream, mustard and rust, each worked with a sun or a moon.",
+      position: "50% 50%",
     },
   },
 ];

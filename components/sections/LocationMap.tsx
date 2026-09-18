@@ -15,7 +15,7 @@ import type { MallPartner } from "@/types";
  * `mapQuery` overrides it for the case where the signposted name is not what
  * finds the place.
  */
-function mapSearch(partner: MallPartner): string {
+export function mapSearch(partner: MallPartner): string {
   return partner.mapQuery ?? `${partner.name}, ${partner.locality}`;
 }
 
@@ -31,7 +31,7 @@ function mapSearch(partner: MallPartner): string {
  * It is `loading="lazy"`, so a homepage visitor who never scrolls this far
  * never makes the request.
  */
-function embedSrc(partner: MallPartner): string {
+export function embedSrc(partner: MallPartner): string {
   return `https://www.google.com/maps?q=${encodeURIComponent(mapSearch(partner))}&output=embed`;
 }
 

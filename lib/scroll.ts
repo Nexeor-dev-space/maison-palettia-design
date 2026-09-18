@@ -18,12 +18,46 @@ interface Scroller {
   scrollTo(target: number, options?: { duration?: number }): void;
   stop(): void;
   start(): void;
+  on?(event: "scroll", handler: () => void): void;
+  off?(event: "scroll", handler: () => void): void;
 }
 
 let scroller: Scroller | null = null;
+const frameListeners = new Set<() => void>();
 
 export function registerScroller(instance: Scroller | null): void {
+  for (const listener of frameListeners) scroller?.off?.("scroll", listener);
   scroller = instance;
+  for (const listener of frameListeners) scroller?.on?.("scroll", listener);
+}
+
+/**
+ * Call back whenever the page has moved — in the frame it moved in.
+ *
+ * WHY THIS IS NOT JUST A `scroll` LISTENER. Lenis moves the page from inside
+ * its own animation frame, and the browser does not dispatch `scroll`
+ * synchronously when it does: the event is queued and fires in the *next*
+ * frame's rendering steps. So anything scrubbed by `window.scrollY` from a
+ * scroll listener paints one frame behind the page it belongs to — the hero's
+ * photograph did, and against a sticky frame that reads as the banner shaking
+ * rather than being carried, which is what the client saw.
+ *
+ * Lenis emits its own event inside that frame, before the paint, so a
+ * consumer subscribed here is always in step. The window listener stays as
+ * well: it is the only signal when Lenis is not running — a reader who has
+ * asked for reduced motion, a touch drag (`syncTouch` is off), or no
+ * JavaScript at all — and calling back twice with the same scroll position
+ * costs nothing.
+ */
+export function onScrollFrame(handler: () => void): () => void {
+  frameListeners.add(handler);
+  scroller?.on?.("scroll", handler);
+  window.addEventListener("scroll", handler, { passive: true });
+  return () => {
+    frameListeners.delete(handler);
+    scroller?.off?.("scroll", handler);
+    window.removeEventListener("scroll", handler);
+  };
 }
 
 /**

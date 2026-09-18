@@ -1,0 +1,865 @@
+/*
+  ==========================================================================
+  THE HOMEPAGE INTRO AND BANNER
+  ==========================================================================
+
+  One state machine, written onto <html> as `data-intro`, drives the entrance.
+  React only ever changes that attribute; timing lives in the transitions
+  below, so the sequence runs on the compositor.
+
+    (none) ... not yet decided: styled as `play`
+    play ..... every page load of the homepage: sage canvas, header hidden,
+               shapes not yet drawn — see ./intro.ts
+    draw ..... the logo fades in and the doodles draw themselves as a bouquet
+    settle ... doodles fly home behind the photograph, the photograph blooms
+               open, the words rise, the logo flies into the header
+    skip ..... the homepage again without a reload, just before its entrance
+    enter .... the short entrance that return gets instead of the intro
+    done ..... at rest: drift, and pointer depth
+
+  Separately, `--p` (0–1) is written onto the frame as the page scrolls — see
+  <HeroIntro>. The frame is held still while it runs: the photograph opens from
+  its resting card to the whole screen, the doodles drift away under it, the
+  words rise into it and turn light, and the two actions arrive beneath them.
+
+  The header, the pinned footer and the page tint during the intro live in
+  app/globals.css: a CSS module cannot select <body> or the site header.
+*/
+
+.hero {
+  --ease-flight: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow-x: clip;
+}
+
+:global(html:not([data-intro])) .hero,
+:global(html[data-intro="play"]) .hero,
+:global(html[data-intro="draw"]) .hero,
+:global(html[data-intro="settle"]) .hero {
+  z-index: 30;
+}
+
+/* ---- the logo that opens the intro -------------------------------------- */
+
+/*
+  The client's own file, never redrawn. It is on screen from the first paint,
+  then flies to the exact box of the logo in the header bar — measured, not
+  guessed — and hands over to it as the bar fades back in.
+*/
+.introLogo {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  /*
+    Raised twice at the client's ask — 15rem, then 18.5, now 20 on a desktop.
+    The phone keeps the 56vw share: the flower is laid out in widths of this
+    box, and its outermost petal reaches 0.89 of a width from the centre, which
+    is the whole of a 390px screen. The flight's scale is measured against the
+    box, so a larger mark still lands exactly on the header's.
+  */
+  width: min(56vw, 20rem);
+  height: auto;
+  /*
+    Opaque from the first frame. The mask over the artwork shows nothing until
+    the pen moves, so the box has nothing to hide; fading it in as well would
+    put the first letters on screen half-transparent, and the reveal has to be
+    the writing, never a fade.
+  */
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/*
+  THE MARK WRITES ITSELF — FROM ITS OWN VECTOR. The client sent the Illustrator
+  file, so the intro no longer sweeps a mask across a PNG: the lettering is the
+  file's outlines, and each letter is uncovered along the path a pen takes to
+  write it (see <LogoReveal> and ./logoArt.ts). Every rule below is about the
+  mask over the artwork; the artwork itself never changes.
+*/
+.logoArt {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.logoInk {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+}
+
+/*
+  A pen path in the mask: white where the artwork shows through, drawn along
+  its length by a dash the size of the path sliding into view. Its width is
+  the letter's own stroke plus a margin, set on the element.
+*/
+.pen {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: 0;
+}
+
+/* Once a letter is written, its whole outline joins the mask — see <LogoReveal>. */
+.penCover {
+  fill: #fff;
+  opacity: 1;
+}
+
+:global(html:not([data-intro])) .pen,
+:global(html[data-intro="play"]) .pen {
+  stroke-dashoffset: var(--len);
+}
+
+:global(html:not([data-intro])) .penCover,
+:global(html[data-intro="play"]) .penCover {
+  opacity: 0;
+}
+
+:global(html[data-intro="draw"]) .pen {
+  animation: penDraw var(--dur, 100ms) linear var(--delay, 0ms) both;
+}
+
+:global(html[data-intro="draw"]) .penCover {
+  animation: coverIn 140ms ease var(--delay, 0ms) both;
+}
+
+@keyframes penDraw {
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes coverIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+  THE DOTS IN THE "P", ONE BY ONE — the client's ask. They are the file's own
+  six dot paths, each scaled up from nothing in turn once the last letter is
+  written, in the order the palette runs. Nothing is covered or redrawn.
+*/
+.pDot {
+  transform-box: fill-box;
+  transform: scale(1);
+  opacity: 1;
+}
+
+:global(html:not([data-intro])) .pDot,
+:global(html[data-intro="play"]) .pDot {
+  transform: scale(0);
+  opacity: 0;
+}
+
+:global(html[data-intro="draw"]) .pDot {
+  animation: dotIn 300ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
+}
+
+@keyframes dotIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Reduced motion: the mark is simply there, dots and all. */
+@media (prefers-reduced-motion: reduce) {
+  .pen,
+  .penCover,
+  .pDot {
+    animation: none;
+  }
+
+  .pen {
+    stroke-dashoffset: 0;
+  }
+
+  .penCover,
+  .pDot {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  THE FLIGHT IS AN ANIMATION, NOT A TRANSITION. It used to be a transform
+  transition taking over from the entrance animation above, and in Chrome that
+  handover does not travel: cancelling `logoIn` in the same style change as
+  the transition began meant the transition had nothing to start from, and
+  the mark appeared at the header's position at once — then sat there alone,
+  measured for about 750ms, until the bar faded in around it. A keyframe
+  animation owns both of its ends, so it always flies.
+
+  Opacity is held at 1 through the flight and faded by its own animation at
+  the end, once the bar has come in underneath it at the same place and size.
+*/
+:global(html[data-intro="settle"]) .introLogo {
+  opacity: 1;
+  transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px)))
+    scale(var(--logo-s, 1));
+  animation:
+    logoFly 820ms var(--ease-flight) forwards,
+    logoOut 220ms ease 880ms forwards;
+}
+
+@keyframes logoFly {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px)))
+      scale(var(--logo-s, 1));
+  }
+}
+
+@keyframes logoOut {
+  to {
+    opacity: 0;
+  }
+}
+
+:global(html[data-intro="skip"]) .introLogo,
+:global(html[data-intro="enter"]) .introLogo,
+:global(html[data-intro="done"]) .introLogo {
+  display: none;
+}
+
+/* ---- the track and the frame ---------------------------------------------- */
+
+/*
+  The frame is held while the photograph opens: the track is the frame plus
+  the scroll it is held for, and the frame is sticky inside it, so the page
+  keeps scrolling but the banner stays put until it has fully opened and
+  rested a moment.
+
+  THE RESTING CARD IS THREE INSETS, shared by everything that has to agree
+  with it — the card's clip, the box the doodles are placed in, and the words
+  that sit under it:
+
+    --wx ... each side. Most of the width; capped on very wide screens.
+    --wt ... the top: the bar the banner runs up under, and clear air under
+             it — widened at the client's ask, where the doodles along the
+             card's top edge had crowded the navigation.
+    --wb ... the foot: exactly what the tagline, its line and the scroll cue
+             need, measured by <HeroIntro> — the photograph takes the rest of
+             the screen. A fixed allowance here was either wasted height on a
+             tall screen or an overlap on a short one: at 1280x720 the line ran
+             14px into the cue.
+*/
+.track {
+  position: relative;
+  /*
+    HOW LONG THE BANNER IS HELD. The track is the frame plus the scroll it is
+    held for, so this number alone decides how much of the page is spent on
+    the banner: 190svh gave a 90svh hold, and with the opening taking 78% of
+    it the photograph was fully open for barely 20svh — a flick of the wheel
+    and the page had moved on, which is the "goes to the next section too
+    quickly" the client saw. 280svh gives a 180svh hold; at OPENING_SHARE
+    0.52 the picture opens over 94svh and then stands, full bleed, for 86svh
+    — most of a screen of scrolling with nothing to do but look at it.
+  */
+  height: 280svh;
+}
+
+.frame {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  /*
+    Its own compositor layer. The frame holds still while the page moves
+    under it for two screens, and every browser handles a sticky element more
+    steadily when it does not have to re-rasterise the page around it to
+    reposition it. Cheap: this is one layer the size of the viewport.
+  */
+  will-change: transform;
+  --p: 0;
+  /*
+    Two paces taken from the one progress. The tagline crosses the card's
+    foot at about 15% of the opening, so its ink has to be light by the time
+    it is over the picture (`--ink`, done at 30%), and the shade behind it
+    deep enough to read on (`--shade`, done at 40%). Paced by `--p` itself,
+    the words were grey on the photograph's brightest stripes halfway through.
+  */
+  --ink: clamp(0, calc((var(--p) - 0.05) * 4), 1);
+  --shade: clamp(0, calc(var(--p) * 2.5), 1);
+  --wx: 4%;
+  --wt: calc(var(--spacing-header) + 1.25rem);
+  /*
+    THE VW TERM IS WHAT BINDS, so raising the clamp's ceiling alone did
+    nothing: at 1440 the old track gave 1.35rem + 3.9vw = 77.8px, well under
+    its own 5rem cap. 4.4vw takes the tagline to 85px there and 78px at 1280,
+    and the `10svh` cap still stops it crowding the photograph on a short
+    screen. The phone is untouched — it sits on the 2.75rem floor either way.
+  */
+  --headline-size: min(clamp(2.75rem, 1.35rem + 4.4vw, 5.5rem), 10svh);
+  --copy-gap: 0.75rem;
+  /* A fallback until <HeroIntro> has measured the foot: two lines of tagline
+     on a phone, one from `md`, plus the supporting line and the cue. */
+  --wb: calc(11.75rem + 2.16 * var(--headline-size));
+}
+
+@media (min-width: 768px) {
+  .frame {
+    --wx: max(5%, calc((100% - 96rem) / 2));
+    --wt: calc(var(--spacing-header-lg) + 1.75rem);
+    --copy-gap: 1rem;
+    --wb: calc(12.75rem + 1.08 * var(--headline-size));
+  }
+}
+
+/* Nothing opens under reduced motion, so there is nothing to hold still for. */
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    height: auto;
+  }
+
+  .frame {
+    position: relative;
+  }
+}
+
+/* ---- the photograph ------------------------------------------------------- */
+
+/*
+  Laid out at the frame's full size and shown through the resting card's
+  window, so opening it is one clip-path changing: no layout, no resampling,
+  and the picture is already rendered at the size it opens to, so it never
+  softens as it grows. The corner rounds away with it.
+*/
+.card {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  clip-path: inset(
+    calc(var(--wt) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p)))
+      calc(var(--wb) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p))) round
+      calc(var(--radius-sm) * (1 - var(--p)))
+  );
+  will-change: clip-path;
+}
+
+/*
+  The intro's opening, on its own layer so it never fights the scroll clip: a
+  circle growing from the foot of the resting card. A wipe rose as a
+  flat-topped rectangle; a bloom has no straight edge at any moment.
+*/
+.bloom {
+  position: absolute;
+  inset: 0;
+  clip-path: circle(150% at 50% calc(100% - var(--wb)));
+}
+
+/*
+  At rest the picture is lifted inside the card, so the window frames the two
+  faces and the heart the girl holds up rather than the mall's ceiling above
+  them. The lift eases to nothing as the card opens, and a slight zoom settles
+  with it — the one bit of depth in the opening.
+*/
+/*
+  THE ZOOM IS WHY THE BANNER SHIMMERED. This photograph is scaled from 1.06 to
+  1.00 as the card opens, a hair per frame, and without a promise that the
+  transform is all that changes, a browser re-rasterises the whole picture at
+  each new scale. The resampling grid lands differently every frame, so fine
+  detail — hair, the thin lines of the star, the tiled floor — crawls. The
+  client's word for it was "giggling", and on a 5760px-wide photograph it is
+  exactly that.
+
+  `will-change: transform` makes the picture its own composited layer: the
+  browser rasterises it once and the scale becomes a GPU transform of that
+  texture, so nothing is resampled while the card opens. `backface-visibility`
+  keeps Safari on the same path, which is where the client saw it.
+*/
+.cardImage {
+  object-fit: cover;
+  object-position: var(--pos-m, 50% 50%);
+  --lift-now: calc(var(--lift, 0%) * (1 - var(--p)));
+  transform: translate3d(0, var(--lift-now), 0) scale(calc(1.06 - 0.06 * var(--p)));
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@media (min-width: 768px) {
+  .cardImage {
+    object-position: var(--pos-d, 50% 50%);
+  }
+}
+
+:global(html:not([data-intro])) .bloom,
+:global(html[data-intro="play"]) .bloom,
+:global(html[data-intro="draw"]) .bloom,
+:global(html[data-intro="skip"]) .bloom {
+  clip-path: circle(0% at 50% calc(100% - var(--wb)));
+}
+
+:global(html:not([data-intro])) .cardImage,
+:global(html[data-intro="play"]) .cardImage,
+:global(html[data-intro="draw"]) .cardImage,
+:global(html[data-intro="skip"]) .cardImage {
+  transform: translate3d(0, var(--lift-now), 0) scale(1.16);
+}
+
+:global(html[data-intro="settle"]) .bloom,
+:global(html[data-intro="enter"]) .bloom {
+  transition: clip-path 1250ms var(--ease-flight) var(--bloom-delay, 220ms);
+}
+
+:global(html[data-intro="settle"]) .cardImage,
+:global(html[data-intro="enter"]) .cardImage {
+  transition: transform 1700ms var(--ease-out) var(--bloom-delay, 220ms);
+}
+
+/*
+  The shade the words are read against once they are inside the picture.
+  Nothing at rest, where the words are under the card on Light Sage; it
+  deepens as they arrive, and is darkest where they land, at 70% down.
+  Measured fully open with the words hidden, on the brightest pixel behind
+  each line — the tagline owes 3:1, the supporting line and the private-events
+  link 4.5:1. At 1440x900: 3.1, 5.8 and 5.4. At 390x844: 3.8, 5.4 and 6.1.
+*/
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 75% 34% at 50% 70%, rgb(35 31 32 / 0.38), transparent 75%),
+    linear-gradient(180deg, rgb(35 31 32 / 0.2) 0%, rgb(35 31 32 / 0.38) 45%, rgb(35 31 32 / 0.74) 100%);
+  opacity: var(--shade);
+}
+
+/*
+  Deeper on a phone. The words land over the white card the girl holds up, and
+  at 18px the supporting line owes 4.5:1 on its brightest pixel, not only on
+  most of them — measured, the wide-screen shade left it at 3.9 there.
+*/
+@media (max-width: 767px) {
+  .scrim {
+    background:
+      radial-gradient(ellipse 95% 30% at 50% 70%, rgb(35 31 32 / 0.52), transparent 78%),
+      linear-gradient(180deg, rgb(35 31 32 / 0.22) 0%, rgb(35 31 32 / 0.44) 45%, rgb(35 31 32 / 0.8) 100%);
+  }
+}
+
+/* ---- a doodle ------------------------------------------------------------- */
+
+/*
+  The doodles are placed in the resting card's box, not the frame's, so every
+  percentage in ./composition.ts is the card's.
+*/
+.window {
+  position: absolute;
+  left: var(--wx);
+  right: var(--wx);
+  top: var(--wt);
+  bottom: var(--wb);
+}
+
+/*
+  Five nested boxes, each owning one transform so no motion overwrites
+  another: `flip` the flight from the bouquet, `drift` the scroll, `parallax`
+  the pointer, `float` the idle drift, and the <svg> its resting rotation.
+  All of them sit under the photograph.
+*/
+.doodle {
+  position: absolute;
+  z-index: 0;
+  left: var(--m-left);
+  top: var(--m-top);
+  width: var(--m-width);
+}
+
+@media (min-width: 768px) {
+  .doodle {
+    left: var(--d-left);
+    top: var(--d-top);
+    width: var(--d-width);
+  }
+}
+
+.desktopOnly {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktopOnly {
+    display: block;
+  }
+}
+
+/* While the bouquet is drawn the photograph is not there yet; the shapes sit
+   above where it will be, and drop behind it as it opens. */
+:global(html[data-intro="draw"]) .doodle,
+:global(html[data-intro="play"]) .doodle {
+  z-index: 20;
+}
+
+.flip {
+  transform-origin: 50% 50%;
+}
+
+/* No transition here on purpose: a drift that eased would trail the scroll. */
+.drift {
+  transform: translate3d(
+      calc(var(--dirx, 0) * var(--p) * 4rem),
+      calc(var(--diry, 0) * var(--p) * 3rem),
+      0
+    )
+    scale(calc(1 - var(--p) * 0.2));
+  opacity: calc(1 - var(--p) * 1.3);
+}
+
+.parallax {
+  transform: translate3d(
+    calc(var(--mx, 0) * var(--depth, 0) * 1px),
+    calc(var(--my, 0) * var(--depth, 0) * 1px),
+    0
+  );
+  transition: transform 1100ms var(--ease-out);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transform: rotate(var(--rotate, 0deg));
+}
+
+.ink {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.6px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
+  stroke-opacity: 0;
+}
+
+/* ---- play: nothing drawn, and nothing where it will end up ---------------- */
+
+:global(html:not([data-intro])) .flip,
+:global(html[data-intro="play"]) .flip {
+  opacity: 0;
+}
+
+:global(html:not([data-intro])) .ink,
+:global(html[data-intro="play"]) .ink {
+  stroke-dashoffset: 1;
+  fill-opacity: 0;
+  stroke-opacity: 1;
+}
+
+/* ---- draw: the bouquet, each shape tracing its own outline -------------- */
+
+:global(html[data-intro="draw"]) .flip {
+  opacity: 1;
+  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1))
+    rotate(var(--fr, 0deg));
+}
+
+:global(html[data-intro="draw"]) .ink {
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
+  stroke-opacity: 1;
+  transition:
+    stroke-dashoffset 760ms cubic-bezier(0.45, 0, 0.2, 1) var(--draw-delay),
+    fill-opacity 520ms ease calc(var(--draw-delay) + 380ms);
+}
+
+:global(html[data-intro="draw"]) .svg {
+  animation: pop 700ms var(--ease-pop) var(--draw-delay) both;
+}
+
+@keyframes pop {
+  from {
+    transform: rotate(calc(var(--rotate, 0deg) - 10deg)) scale(0.82);
+  }
+  to {
+    transform: rotate(var(--rotate, 0deg)) scale(1);
+  }
+}
+
+/* ---- settle: home, behind the photograph -------------------------------- */
+
+:global(html[data-intro="settle"]) .flip {
+  opacity: 1;
+  transform: none;
+  transition: transform 1050ms var(--ease-flight) var(--settle-delay, 0ms);
+}
+
+:global(html[data-intro="settle"]) .ink {
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
+  stroke-opacity: 0;
+  transition: stroke-opacity 400ms ease 500ms;
+}
+
+/* ---- skip and enter: the short entrance ----------------------------------- */
+
+:global(html[data-intro="skip"]) .flip {
+  opacity: 0;
+  transform: scale(0.82) rotate(-8deg);
+}
+
+:global(html[data-intro="enter"]) .flip {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 500ms ease var(--enter-delay, 0ms),
+    transform 900ms var(--ease-pop) var(--enter-delay, 0ms);
+}
+
+/* ---- done: at rest, breathing ------------------------------------------- */
+
+.float {
+  animation: none;
+}
+
+:global(html[data-intro="done"]) .float {
+  animation: drift var(--float, 8s) ease-in-out var(--float-delay, 0s) infinite alternate;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0.18rem, -0.45rem, 0) rotate(2deg);
+  }
+  100% {
+    transform: translate3d(-0.12rem, 0.15rem, 0) rotate(-1.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(html[data-intro="done"]) .float {
+    animation: none;
+  }
+}
+
+/* ---- the words ------------------------------------------------------------ */
+
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+:global(html:not([data-intro])) .reveal,
+:global(html[data-intro="play"]) .reveal,
+:global(html[data-intro="draw"]) .reveal,
+:global(html[data-intro="skip"]) .reveal {
+  opacity: 0;
+  transform: translate3d(0, 1.1rem, 0);
+}
+
+:global(html[data-intro="settle"]) .reveal {
+  transition:
+    opacity 700ms ease calc(var(--reveal-delay, 0ms) + 650ms),
+    transform 900ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 650ms);
+}
+
+:global(html[data-intro="enter"]) .reveal {
+  transition:
+    opacity 600ms ease calc(var(--reveal-delay, 0ms) + 100ms),
+    transform 800ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 100ms);
+}
+
+/*
+  The words: under the resting card, then carried up into the opened picture.
+
+  They start just below the card's foot and rise by `--copy-shift`, measured by
+  <HeroIntro> so the block lands centred at 70% of the screen's height
+  whatever its own height — below both faces in the photograph, where the
+  shade is also deepest. Their ink crosses from Charcoal Slate to White Rock as
+  they go, "creativity" from Deep Lilac to Soft Lavender — lilac is too dark to
+  read on the shaded photograph, lavender is the same family, lightened.
+*/
+.copy {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% - var(--wb) + var(--copy-gap));
+  z-index: 20;
+  padding-inline: var(--spacing-gutter);
+  text-align: center;
+  color: color-mix(in oklab, var(--color-cream) calc(var(--ink) * 100%), var(--color-text));
+  text-shadow: 0 1px 28px rgb(35 31 32 / calc(var(--ink) * 0.4));
+  transform: translate3d(0, calc(var(--p) * var(--copy-shift, 0px)), 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy {
+    transform: none;
+  }
+}
+
+.accent {
+  color: color-mix(in oklab, var(--color-lavender) calc(var(--ink) * 100%), var(--color-primary));
+}
+
+.sub {
+  color: color-mix(
+    in oklab,
+    var(--color-cream) calc(var(--ink) * 100%),
+    color-mix(in oklab, var(--color-text) 86%, var(--color-sage))
+  );
+}
+
+/*
+  THE TAGLINE, and the first-screen budget it belongs to.
+
+  One line from a phone's landscape up — the whole tagline sets at 10.83em in
+  Hapsha, measured — and two on a phone, where "A palette of creativity" holds
+  the first line.
+
+  A step down from what it was, at the client's ask to improve the sizing of
+  both texts and to give the photograph more presence: the script was carrying
+  the whole hierarchy on size alone, and the line under it was left too small
+  to read as the second voice. The tagline gives back about a tenth, the line
+  under it takes a little, and the height goes to the picture.
+*/
+.headline {
+  font-size: var(--headline-size);
+  line-height: 1.08;
+}
+
+/*
+  Masked phrases for the tagline: each rises out of its own clip rather than
+  fading, which is what gives a large statement its weight on arrival.
+
+  Inline blocks, so the phrases wrap where the width says without a break
+  written for each. Clipped with clip-path rather than `overflow: hidden`: an
+  inline block that hides its overflow takes its baseline from its bottom
+  edge, which would drop the phrase off the line. The clip reaches past the box
+  by what Hapsha needs — its capitals stand 0.27em above a line this tight, and
+  a first letter can hang 0.15em to the left — and the rise starts far enough
+  down to begin wholly outside it.
+*/
+.line {
+  display: inline-block;
+  clip-path: inset(-0.34em -0.3em -0.12em -0.3em);
+}
+
+.lineInner {
+  display: inline-block;
+  transform: none;
+}
+
+:global(html:not([data-intro])) .lineInner,
+:global(html[data-intro="play"]) .lineInner,
+:global(html[data-intro="draw"]) .lineInner,
+:global(html[data-intro="skip"]) .lineInner {
+  transform: translate3d(0, 1.55em, 0);
+}
+
+:global(html[data-intro="settle"]) .lineInner {
+  transition: transform 1100ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 600ms);
+}
+
+:global(html[data-intro="enter"]) .lineInner {
+  transition: transform 1000ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 80ms);
+}
+
+/*
+  The two actions, which arrive only once the words are inside the picture —
+  the banner at rest is the client's wireframe, and has none. <HeroIntro> makes
+  them inert until they are there. Under reduced motion nothing opens, so they
+  are simply shown, in the place the scroll cue would have had.
+*/
+.actions {
+  --in: clamp(0, calc((var(--p) - 0.55) * 3.2), 1);
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.75rem;
+  opacity: var(--in);
+  transform: translate3d(0, calc((1 - var(--in)) * 0.75rem), 0);
+}
+
+@media (min-width: 768px) {
+  .actions {
+    margin-top: 1.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actions {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+/* ---- the scroll cue ------------------------------------------------------- */
+
+/*
+  At the foot of the screen until the page moves, then gone within the first
+  fifth of the opening. A hairline with a short stroke travelling down it.
+*/
+.cue {
+  position: absolute;
+  left: 50%;
+  bottom: 0.75rem;
+  z-index: 20;
+  translate: -50% 0;
+  opacity: clamp(0, calc(1 - var(--p) * 6), 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cue {
+    display: none;
+  }
+}
+
+.cueLine {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 1.5rem;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--color-text) 22%, transparent);
+}
+
+.cueLine::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 42%;
+  background-color: var(--color-text);
+  transform: translate3d(0, -100%, 0);
+  animation: cueDrop 2200ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes cueDrop {
+  0% {
+    transform: translate3d(0, -100%, 0);
+  }
+  65%,
+  100% {
+    transform: translate3d(0, 240%, 0);
+  }
+}

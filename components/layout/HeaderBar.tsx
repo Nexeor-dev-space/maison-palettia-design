@@ -13,10 +13,11 @@ import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { BasketLink } from "@/components/layout/BasketLink";
-import { DARK_HERO_ROUTES, MAIN_NAV } from "@/lib/constants";
+import { DARK_HERO_ROUTES, LIGHT_HERO_ROUTES, MAIN_NAV } from "@/lib/constants";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
-import type { Discipline, Workshop } from "@/types";
+import type { CreativeExperience } from "@/lib/experiences";
+import type { Workshop } from "@/types";
 
 /**
  * Shared by the nav links and the menu trigger so the two are one row of type.
@@ -109,7 +110,13 @@ const DIRECTION_DEADBAND = 6;
  * page closing up the further someone got into it. See the height tokens in
  * globals.css, where all four numbers live.
  */
-export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[]; workshops: Workshop[] }) {
+export function HeaderBar({
+  experiences,
+  workshops,
+}: {
+  experiences: CreativeExperience[];
+  workshops: Workshop[];
+}) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   /*
@@ -253,8 +260,11 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   // everywhere else the ground is there from the first paint. Either overlay
   // forces it solid too — the mobile search panel hangs directly off the bar
   // the same way the mobile menu does, and the desktop search dropdown is the
-  // same `bg-nav` the bar itself would otherwise be fading out of.
-  const isOverHero = DARK_HERO_ROUTES.includes(pathname);
+  // same white the bar itself would otherwise be fading out of.
+  // A light hero — the homepage's Light Sage banner — earns the transparent
+  // bar too, but not the light ink: see LIGHT_HERO_ROUTES.
+  const isOverDarkHero = DARK_HERO_ROUTES.includes(pathname);
+  const isOverHero = isOverDarkHero || LIGHT_HERO_ROUTES.includes(pathname);
   const overlayOpen = isMenuOpen || isSearchOpen;
 
   /*
@@ -306,29 +316,17 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const hasGround = overlayOpen || isStrandsOpen || isScrolled || !isOverHero;
 
   /*
-    WHICH ground, which is not the same question as whether there is one.
+    ONE GROUND. Every panel that hangs off the bar is the page's own white —
+    the strands megamenu, the search panel, and the mobile menu, which were
+    charcoal until the client asked for each of them white — so whenever the
+    bar has a ground it is that white, and it joins whichever panel is open as
+    one field.
 
-    The mobile menu and the search panel are `bg-nav`, so the bar joins them in
-    Charcoal Slate. The strands megamenu is the page's own near-white, so the
-    bar has to join *that* instead — a charcoal bar over a white panel is the
-    same two-unrelated-surfaces problem as a white bar over a charcoal one,
-    facing the other way.
-
-    This does not reintroduce the panel on scroll. Scrolling alone still leaves
-    the bar sitting on the page with no ground of its own; the only thing added
-    here is the field the strands panel opens into.
+    Light ink only over a dark hero before the page has moved, with nothing
+    open. Every panel is white, the bar joins it, and light ink on the pair
+    would be unreadable.
   */
-  const groundIsDark = overlayOpen;
-
-  /*
-    Light ink over the hero photograph before the page has moved, and while a
-    charcoal overlay is open — because that panel is charcoal and the bar is
-    part of it. Everywhere else the bar is over a pale ground and takes
-    Charcoal Slate, and that now includes the hero itself while the strands
-    megamenu is open: the panel is near-white, the bar joins it, and light ink
-    on the pair would be unreadable.
-  */
-  const onDarkInk = overlayOpen || (isOverHero && !isScrolled && !isStrandsOpen);
+  const onDarkInk = isOverDarkHero && !isScrolled && !isStrandsOpen && !overlayOpen;
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -372,7 +370,17 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         isDetached
           ? "transition-transform duration-[450ms] motion-reduce:transition-none"
           : "",
-        isDetached && !isPinned ? "-translate-y-full" : "translate-y-0",
+        /*
+          `translate-none` on screen, never `translate-y-0`. Tailwind 4 writes
+          these as the CSS `translate` property, and any value but `none` —
+          `0 0` included — makes the bar the containing block for `fixed`
+          descendants. The menu and search overlays are `fixed` children of
+          this element, sized top-to-bottom against the screen; contained by a
+          64px bar they measured 0px tall, so tapping the menu turned the bar
+          dark and showed nothing. `none` still transitions to and from
+          `-translate-y-full`, so the slide is unchanged.
+        */
+        isDetached && !isPinned ? "-translate-y-full" : "translate-none",
         // The focus ring follows the ink. Cream is right over the hero and
         // inside an open overlay; on the page's pale grounds it would vanish,
         // so the ring falls back to Deep Lilac there.
@@ -397,19 +405,14 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           rule inside it — and it cannot go half-done, which is what a bar of
           White Rock links over a pale section would be.
 
-          `bg-nav` for the overlay case rather than the near-white it used to
-          take: the panel hanging under it is `bg-nav`, and the two have to be
-          one field. They were not — a white bar sat above a charcoal panel.
+          The same white when a panel is open, because every panel hanging
+          under it is that white, and the two have to read as one field.
 
           Charcoal on the page measures 11.61:1; White Rock over the hero is
           held up by the photograph's own head wash, which is measured in
           <Hero>.
         */
-        hasGround
-          ? groundIsDark
-            ? "border-b border-on-dark/10 bg-nav"
-            : "border-b border-text/10 bg-surface"
-          : "bg-transparent",
+        hasGround ? "border-b border-text/10 bg-surface" : "bg-transparent",
         onDarkInk ? "text-on-dark" : "text-text",
       )}
     >
@@ -513,7 +516,11 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
                     onOpenChange={setIsStrandsOpen}
                     label={item.label}
                     href={item.href}
-                    disciplines={disciplines}
+                    experiences={experiences}
+                    // The same dates the search panel and the listing read, so
+                    // a seat count in the menu can never disagree with one two
+                    // clicks away. Matched to an activity by slug inside.
+                    sessions={workshops}
                     isActive={isActive(item.href)}
                     linkClassName={cn(NAV_LINK, NAV_WEIGHT_PRIMARY)}
                   />
@@ -642,7 +649,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         isOpen={isMenuOpen}
         onClose={closeMenu}
         items={MAIN_NAV}
-        disciplines={disciplines}
+        experiences={experiences}
         isActive={isActive}
       />
 

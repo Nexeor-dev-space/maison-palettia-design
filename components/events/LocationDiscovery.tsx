@@ -5,6 +5,20 @@ import { formatSessionDate, sessionDateParts } from "@/lib/workshops";
 import { cn } from "@/lib/utils";
 import type { Workshop } from "@/types";
 
+const NUMBER_WORDS = [
+  "No", "One", "Two", "Three", "Four", "Five", "Six",
+  "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve",
+];
+
+/**
+ * The count for a heading set in the script, in words. Hapsha's 7, 8 and 9
+ * are placeholder marks rather than figures, so a number past twelve is set in
+ * Montserrat rather than risk one.
+ */
+function countInWords(count: number) {
+  return NUMBER_WORDS[count] ?? <span className="font-sans text-[0.75em]">{count}</span>;
+}
+
 /**
  * Where the studio sets up — the listing's location discovery area.
  *
@@ -74,11 +88,8 @@ export function LocationDiscovery({ workshops, filters, onSelect }: LocationDisc
             <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
             Where we set up
           </p>
-          <h2
-            id="locations-heading"
-            className="mt-6 text-[1.75rem] font-light uppercase leading-[1.05] tracking-[-0.02em] md:text-[2.25rem]"
-          >
-            {locations.length} {locations.length === 1 ? "location" : "locations"}
+          <h2 id="locations-heading" className="mt-5 heading-script text-script-compact">
+            {countInWords(locations.length)} {locations.length === 1 ? "location" : "locations"}
           </h2>
         </div>
 

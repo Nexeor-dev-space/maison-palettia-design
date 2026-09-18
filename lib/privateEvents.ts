@@ -65,25 +65,43 @@ export interface PrivateEventAudience {
 }
 
 export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
+  /*
+    THE PROPOSAL'S PROGRAMME PAGES, NOT A LIST WRITTEN FOR THIS ONE.
+
+    These four were Corporate / Celebrations / Community / Brands & events —
+    reasonable, but composed for the page. The signed proposal names the
+    studio's programmes exactly: Birthday Parties, Corporate Events, School
+    Programs, and Mall & Community Activations. Those are the kinds of private
+    booking the business has contracted a website for, so they are the ones
+    offered here.
+
+    Each line says only what the brand deck supports. Birthdays lean on its
+    "Family bonding" (p.5) and "Appeals to all ages" (p.11); activations on
+    "Our experience" (p.12), which is the one programme with a track record in
+    the deck. Corporate and school programmes have no content in either
+    document — the proposal says their pages get content "when ready" — so
+    their lines describe the offer and promise nothing about it.
+  */
   {
-    slug: "corporate",
-    name: "Corporate",
-    description: "Creative experiences for teams, gatherings and company events.",
+    slug: "birthday-parties",
+    name: "Birthday parties",
+    description: "Kids and parents sharing a creative activity, and quality time together.",
   },
   {
-    slug: "celebrations",
-    name: "Celebrations",
-    description: "A hands-on experience for birthdays, milestones and special occasions.",
+    slug: "corporate-events",
+    name: "Corporate events",
+    description: "Hands-on creative experiences for teams and company gatherings.",
   },
   {
-    slug: "community",
-    name: "Community",
-    description: "Creative activities designed to bring groups together.",
+    slug: "school-programs",
+    name: "School programmes",
+    description: "Creative, hands-on activities brought to students.",
   },
   {
-    slug: "brands-and-events",
-    name: "Brands & events",
-    description: "Interactive creative experiences for brand activations and gatherings.",
+    slug: "mall-and-community-activations",
+    name: "Mall & community activations",
+    description:
+      "Workshops tailored to an event’s theme, bringing creativity to kids and adults alike.",
   },
 ] as const;
 

@@ -65,18 +65,32 @@ export function Wordmark({ className, onLight = false }: WordmarkProps) {
           because sizing a mark against a bar that is the wrong height is how
           the proportion goes wrong in the first place.
 
-          44px in 72px is 61%, with 14px of clearance above and below. That is
-          more than the single-line sans wordmark on the compact reference the
-          client pointed at takes, and it has to be: this mark is two stacked
-          lines of script, so at 36px each line stood about 15px and read as
-          thin rather than as small. The artwork cannot be cropped to win the
-          space back — measured, it is already tight, with 3% transparent
-          margin top and bottom.
+          SIZED BY ITS INK, NOT BY ITS FILE. Both cuts carry transparent
+          margin — the lilac one 6.0% above the lettering and 7.3% below, the
+          sage one 3.7% and 4.1% — so a 60px image was only ever 52px of
+          visible mark. Measured in the bar, that was 65% of the row on
+          desktop and 58% on a phone, which is why the mark kept reading small
+          however the number was raised.
+
+          74px in an 88px bar on desktop, 60px in 80px on a phone. The ink
+          those give is 64–68px and 52–55px, so the visible mark now takes
+          73–78% of the desktop row and 65–69% of the phone's, with about 10px
+          of air above and below it at the tightest. The bar went up with it
+          (see `--spacing-header`); growing the mark alone would have had the
+          script touching the row's edges.
+
+          The two cuts differ by 6% in ink for the same file height, which is
+          why this is a range rather than a number — the component sets height
+          only, and each file keeps its own aspect. This mark is two stacked lines of script, so it needs more height
+          than a one-line wordmark to read at all: at 44px each line stood
+          about 18px. The artwork cannot be cropped to win the space back —
+          measured, it is already tight, with 3% transparent margin top and
+          bottom.
 
           The aspect is each file's own; only the height is set, so neither cut
           can distort.
         */
-        className="h-9 w-auto md:h-11"
+        className="h-[3.75rem] w-auto md:h-[4.625rem]"
       />
     </Link>
   );

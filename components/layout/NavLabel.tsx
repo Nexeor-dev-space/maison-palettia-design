@@ -1,42 +1,48 @@
 import { cn } from "@/lib/utils";
 
 /**
- * A navigation label and the rule under it.
+ * A navigation label, and the line that draws itself under it.
  *
- * The rule is an element rather than an underline, which is what lets it be
- * drawn: it scales from its left edge on hover and stays out at full width
- * while the page is the current one, so the active state and the hover state
- * are the same mark at two lengths rather than two different ideas.
+ * A RULE, NOT A SQUIGGLE — the client's note is exact: "The movement of the
+ * underline is good! but not the wavy lines." So the movement is untouched and
+ * the wave is gone. What was a loose pen line, drawn once at 30rem and cropped
+ * to each label, is a hairline of the label's own width; the wipe that reveals
+ * it is the same one, at the same length and easing, and nothing else about
+ * the component changed. `inline-block` so the line is the word's width even
+ * where the link is a full-width row, as in the mobile menu.
  *
- * It sits on its own line below the text rather than on the text's baseline,
- * so a descender never crosses it — and `pb` on the label keeps that line far
- * enough down to clear one.
+ * HOW IT ARRIVES. A wipe from the left edge, the direction a pen travels, on
+ * hover; it stays drawn while the page is the current one, so hover and active
+ * are the same mark rather than two ideas.
  *
- * Reduced motion is handled globally: the site's stylesheet cuts every
- * transition to almost nothing, so the rule is simply there or not.
+ * `pb-1.5` is unchanged and still load-bearing: the search trigger reserves
+ * the same 6px to sit on this label's baseline (see <SearchTrigger>). The line
+ * hangs in that space, absolutely positioned, so the bar's layout does not
+ * move.
+ *
+ * `currentColor`, so it is White Rock over a dark hero and Charcoal Slate on
+ * the white bar — always the weight of the word it underlines. Reduced motion
+ * is handled globally: the wipe simply completes at once.
  */
 export function NavLabel({ children, isActive }: { children: string; isActive: boolean }) {
   return (
-    <span className="relative block pb-1.5">
+    <span className="relative inline-block pb-1.5">
       {children}
       <span
         aria-hidden
         className={cn(
-          /*
-          Follows the bar's ink rather than holding Light Sage.
-
-          Sage was right while the bar was always charcoal. It is 1.3:1 on the
-          white ground the bar now takes on scroll — not faint, gone — and an
-          active-state rule that disappears in one of the two states is not an
-          active state. `bg-current` makes it White Rock over the hero and
-          Charcoal Slate on white, so it is always the same weight as the label
-          it underlines.
-        */
-        "absolute inset-x-0 bottom-0 h-px origin-left bg-current",
-          "transition-transform duration-[400ms] ease-editorial",
-          isActive ? "scale-x-100" : "scale-x-0 group-hover/nav:scale-x-100",
+          "pointer-events-none absolute left-0 top-full -mt-2 block h-2.5 w-full overflow-hidden",
+          "transition-[clip-path] duration-[550ms] ease-editorial",
+          isActive
+            ? "[clip-path:inset(0_0_0_0)]"
+            : "[clip-path:inset(0_100%_0_0)] group-hover/nav:[clip-path:inset(0_0_0_0)] group-focus-visible/nav:[clip-path:inset(0_0_0_0)]",
         )}
-      />
+      >
+        {/* Sat 4px into the 10px box the wipe crops, which is where the pen
+            line used to cross it — so the underline sits exactly where it did,
+            straight. */}
+        <span className="mt-1 block h-px w-full bg-current" />
+      </span>
     </span>
   );
 }
