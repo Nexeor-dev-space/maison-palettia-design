@@ -6,8 +6,8 @@ import Image from "next/image";
 
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
-import { DOODLES } from "@/components/sections/hero/doodles";
 import { BlobButton } from "@/components/ui/BlobButton";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
 import { cn } from "@/lib/utils";
 
@@ -70,7 +70,7 @@ export function PrivateEventsMenu({
   const rise = (index: number) => ({ transitionDelay: shown ? `${90 + index * 45}ms` : "0ms" });
   const RISE =
     "transition-[opacity,translate] duration-[420ms] ease-editorial motion-reduce:transition-none";
-  const riseState = shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0";
+  const riseState = shown ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0";
 
   const items = PRIVATE_EVENT_AUDIENCES.filter((audience) => audience.inPrivateEventsMenu);
 
@@ -108,14 +108,74 @@ export function PrivateEventsMenu({
         */
         className={cn(
           "absolute inset-x-0 top-full overflow-hidden bg-surface",
-          "border-t border-t-text/10 border-b-2 border-b-primary/30",
-          "transition-[clip-path,opacity] ease-editorial motion-reduce:transition-none",
+          "border-t border-t-text/10",
+          /*
+            THE PANEL IS OPAQUE THE WHOLE WAY DOWN, and it did not use to be.
+
+            It faded in while the clip wiped, so for the first few hundred
+            milliseconds the whole surface was semi-transparent and the page
+            behind it showed straight through — the script line and the
+            photograph bleeding into the menu. That is what "abrupt" was about:
+            not the speed, but that the panel never read as a surface arriving.
+            It read as a translucent sheet being switched on over the page.
+
+            The clip alone reveals it now. A solid ground drawn down from under
+            the bar is a drawer opening; the Deep Lilac rule along its bottom
+            is the drawer's lip, and it travels down with the edge. Nothing
+            else about the timing changed — 520ms down, 240 back up, because
+            a menu you have decided against should get out of the way.
+
+            The two durations are per-property, in the order the property list
+            names them: clip-path 520ms, opacity 0ms. On the way out one
+            `duration` covers both at 240.
+
+            Closing keeps the fade. Wiping a fully opaque panel upward off the
+            page reads as the content being eaten from below; going out it is
+            better to simply stop being there.
+          */
+          // See <SearchPanel> for why this is `ease-soft` and not
+          // `ease-editorial`: the quintic curve spent five sixths of its
+          // time on the last few per cent of the travel.
+          "transition-[clip-path,opacity] ease-soft motion-reduce:transition-none",
           shown
-            ? "opacity-100 duration-[520ms] [clip-path:inset(0_0_0_0)]"
+            ? "opacity-100 [transition-duration:520ms,0ms] [clip-path:inset(0_0_0_0)]"
             : "opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
           isOpen ? null : "pointer-events-none",
         )}
       >
+        {/*
+          THE DRAWER'S EDGE, WHICH THE PANEL CANNOT DRAW FOR ITSELF.
+
+          The bottom border used to sit on the panel, and the note beside it
+          claimed the line travelled down with the reveal. Photographed, it
+          does not: `clip-path: inset(0 0 X% 0)` clips the element's own
+          bottom border away for the whole of the wipe, so the line only
+          appears in the final frame. What a visitor actually saw was menu
+          text arriving over page text with no boundary between them — on
+          /about the panel's ground (`--color-surface`, thirty per cent sage
+          in white) is the same colour as the page behind it, so there was
+          nothing to mark where the menu ended. That, not the speed, is what
+          reads as abrupt.
+
+          So the edge is its own element. It is pinned to the top of the panel
+          and its `bottom` travels from 100% to 0 on the same duration and the
+          same curve as the clip, which keeps its 2px underside exactly on the
+          clip's edge for every frame. A line drawn down the page with the
+          menu filling in behind it is a drawer being pulled open.
+
+          Percentages both ends, and `bottom` rather than `height`: an
+          absolutely positioned box resolves them against its containing
+          block's padding box, which is this panel and is definite. A `height`
+          of 100% would resolve against a content-sized parent and collapse.
+        */}
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 border-b-2 border-b-primary/30",
+            "transition-[bottom] ease-soft motion-reduce:transition-none",
+            shown ? "[bottom:0%] duration-[520ms]" : "[bottom:100%] duration-[240ms]",
+          )}
+        />
         {mounted ? (
           <div className="mx-auto w-full px-gutter py-8 lg:py-9">
             <div className="grid grid-cols-12 gap-x-6 gap-y-8 lg:gap-x-8">
@@ -143,6 +203,12 @@ export function PrivateEventsMenu({
                 <BlobButton
                   href={PRIVATE_EVENT_ENQUIRY_HREF}
                   onClick={closeNow}
+                  /* Light Sage on hover rather than the default Charcoal, at
+                     the client's ask. It is a tone rather than a change to the
+                     default because the flood measures 1.00:1 on the Light
+                     Sage sections the homepage buttons stand on, and 1.22:1
+                     on this panel's near-white — see BlobButton.module.css. */
+                  tone="sage"
                   className="mt-6 w-fit min-h-[3.25rem] px-7"
                 >
                   Book a private event
@@ -195,14 +261,15 @@ export function PrivateEventsMenu({
                           />
                         ) : audience.mark ? (
                           <span className="flex size-full items-center justify-center">
-                            <svg
-                              viewBox={`0 0 ${DOODLES[audience.mark.name].w} ${DOODLES[audience.mark.name].h}`}
+                            {/* Drawn in as the panel opens, one after the
+                                next — see <DoodleMark>. */}
+                            <DoodleMark
+                              name={audience.mark.name}
+                              color={audience.mark.color}
+                              on={isOpen}
+                              delay={120 + i * 90}
                               className="size-7"
-                              aria-hidden
-                              focusable="false"
-                            >
-                              <path d={DOODLES[audience.mark.name].d} fill={audience.mark.color} />
-                            </svg>
+                            />
                           </span>
                         ) : null}
                       </span>

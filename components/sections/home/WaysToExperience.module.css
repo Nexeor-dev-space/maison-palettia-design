@@ -1,0 +1,47 @@
+/*
+  THE FOUR DOORS — see WaysToExperience.tsx.
+
+  Each way in is a row on the section's White Rock, and the only thing holding
+  it is a stroke of paint down its left margin in that group's colour. No
+  panel, no border, no card: a painted margin is the lightest mark that can
+  both separate four blocks and carry the palette, and it is the same paint the
+  plates and the workshop journey use (`--mask-brush-v` in globals.css).
+
+  Why the colour lives here and not in the type: on White Rock only Charcoal
+  Slate (9.36:1) and Deep Lilac (3.95:1) can carry anything that is read. Warm
+  Terracotta is 2.44:1 and Soft Lavender 1.44:1 against it. The stroke and the
+  cut-out are decorative and `aria-hidden`, so they owe no ratio and the whole
+  palette is free to appear in them; every word in the row stays Charcoal.
+*/
+
+.row {
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  .row {
+    padding-left: 2.5rem;
+  }
+}
+
+.edge {
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  bottom: 0.15rem;
+  width: 0.5rem;
+  background-color: var(--paint, var(--color-primary));
+  -webkit-mask-image: var(--mask-brush-v);
+  mask-image: var(--mask-brush-v);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+@media (min-width: 768px) {
+  .edge {
+    width: 0.625rem;
+  }
+}

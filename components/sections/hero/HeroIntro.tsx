@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 
 import { DOODLE_PLAN, DRAW_ORDER } from "@/components/sections/hero/composition";
+import { DOODLES } from "@/components/sections/hero/doodles";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { LogoReveal } from "@/components/sections/hero/LogoReveal";
 import { BRAND_LOGO } from "@/lib/constants";
@@ -53,8 +54,72 @@ const ENTER_MS = 1400; // the short entrance on a return without a reload
   one thing the client ruled out. The mask hides everything until the pen
   moves, so the container has nothing to hide and no longer fades at all.
 */
-const DRAW_START = 160; // first shape begins tracing
-const DRAW_STEP = 44; // each following shape, this much later
+const DRAW_START = 140; // first piece the clock sends in, if no hand has
+/*
+  78ms, AND THE ARITHMETIC IS THE FLIGHT'S.
+
+  A piece takes 780ms to come in from off-screen (./Hero.module.css owns that
+  number), and DRAW_MS ends the phase at 2400 — set by the last dot in the
+  mark, not by the collage. So the last of the eighteen has to leave by 1620ms
+  to be home in time, and 140 + 17 × 78 = 1466 lands it at 2246, with 154ms of
+  rest before anything moves.
+
+  It is deliberately most of the phase. The cadence before the collage was 44ms
+  and had the whole bouquet finished by 1670 — the clock was winning a race it
+  is not supposed to be in, and anyone who reached for it after a second and a
+  half found nothing left to bring in.
+*/
+const DRAW_STEP = 78; // each following piece, this much later
+
+/*
+  THE CANVAS — what a hand does, and what happens if none arrives.
+
+  SPLATS is the pool of marks, used round-robin. Ten covers the fastest sweep
+  anyone can make across the ring inside one mark's 620ms life; an eleventh
+  would only ever replace one already faded.
+
+  REACH is how far the hand's pull carries, from the logo's own measured width
+  so it holds the same proportion of the ring on a phone as on a desktop —
+  clamped, because a very small logo would otherwise want a pull too fine to
+  aim and a very large one a pull that takes the whole collage in a stroke.
+
+  AWAY is where a piece waits before it is sent for, as a share of the screen's
+  diagonal: 0.62 of it from the middle clears every corner at every ratio I
+  tested, so nothing is ever seen hanging at an edge.
+
+  WRITE_TAIL is the mark's last dot finishing after the pen stops, and is what
+  the early finish waits for: painting the bouquet quickly is rewarded, but not
+  by cutting the logo's writing short, which is the one thing the client asked
+  twice to keep.
+*/
+const SPLATS = 10;
+/*
+  THE BRUSH, AS AN ACTUAL CURSOR.
+
+  The client asked to explore a paintbrush or colour-dropper pointer, and the
+  brand rules say the visual language is the deck's cut-outs — so the pointer
+  is one. `splash` is drawn at CURSOR_PX into a data URI and handed to the CSS
+  `cursor` property, filled with the colour of the next piece due to land: a
+  brush already loaded with the colour it is about to lay down, which is the
+  dropper idea and the brush idea in the same mark.
+
+  A real cursor rather than an element chasing the pointer, which is the whole
+  reason to do it this way: the compositor draws it, so it cannot lag behind
+  the hand, and it costs nothing per frame. The string is rebuilt only when the
+  next colour changes — at most eighteen times in the life of the intro.
+
+  26px because a cursor bitmap over about 32px is ignored by some browsers, and
+  the hotspot is its middle so the mark sits where the pointer actually is.
+*/
+const CURSOR_PX = 26;
+const REACH_SHARE = 0.42;
+const REACH_MIN = 96;
+const REACH_MAX = 240;
+const TAP_REACH = 1.3;
+const AWAY = 0.62;
+const TURN = 21; // degrees a piece is turned off its resting angle, in flight
+const WRITE_TAIL = 240;
+const KEY_STROKE = 2; // shapes a key press lays down
 const SETTLE_STEP = 22; // flights leave in the same order, a beat apart
 const ENTER_STEP = 28; // the short entrance's shapes, a beat apart
 
@@ -166,6 +231,7 @@ function nextPaint(fn: () => void): () => void {
  */
 export function HeroIntro() {
   const logoRef = useRef<HTMLDivElement>(null);
+  const splatsRef = useRef<HTMLDivElement>(null);
 
   /* ------------------------------------------------------------------ fit */
   // First, so the intro below measures the doodles in the card's final place.
@@ -307,23 +373,73 @@ export function HeroIntro() {
     */
     const ring = vw < 640 ? 0.93 : 1;
     const plans = new Map(DOODLE_PLAN.map((plan) => [plan.id, plan]));
+    /*
+      Where every shape will sit, kept as it is placed rather than measured
+      again later — the same arithmetic, the same filter. A shape with no box
+      is one the width has taken out of the layout (`desktopOnly` below 768),
+      and it must be left out of both, or the bouquet could never be finished.
+    */
+    const targets: { el: HTMLElement; color: string; x: number; y: number }[] = [];
+    const away = Math.hypot(vw, vh) * AWAY;
+    /*
+      EVERY PIECE IS MEASURED WHERE IT LIES, NOT WHERE IT IS WAITING.
+
+      `play` now carries the away transform, which means an element that has
+      been through this once is translated off-screen and scaled when the loop
+      below reads its box — and React runs this effect twice in development,
+      and again on any remount. Measured that way, `--fx` is the distance from
+      a position off the screen to the ring, so every piece "lands" somewhere
+      out at the edges: the collage assembles into nothing at all.
+
+      The flight's own properties therefore come off first, in one pass over
+      all of them, so the single forced layout the next line triggers is paid
+      once rather than eighteen times.
+    */
+    const FLIGHT_VARS = ["--ax", "--ay", "--ar", "--fx", "--fy", "--fs"] as const;
+    for (const el of doodles) {
+      for (const prop of FLIGHT_VARS) el.style.removeProperty(prop);
+    }
     for (const el of doodles) {
       const plan = plans.get(el.dataset.doodle ?? "");
       const box = el.getBoundingClientRect();
       if (!plan || box.width === 0) continue;
       const i = order(el);
-      el.style.setProperty(
-        "--fx",
-        `${vw / 2 + plan.flower.x * unit * ring - (box.left + box.width / 2)}px`,
-      );
-      el.style.setProperty(
-        "--fy",
-        `${vh / 2 + plan.flower.y * unit * ring - (box.top + box.height / 2)}px`,
-      );
+      const x = vw / 2 + plan.flower.x * unit * ring;
+      const y = vh / 2 + plan.flower.y * unit * ring;
+      const cx = box.left + box.width / 2;
+      const cy = box.top + box.height / 2;
+      el.style.setProperty("--fx", `${x - cx}px`);
+      el.style.setProperty("--fy", `${y - cy}px`);
       el.style.setProperty("--fs", `${(plan.flower.width * unit) / box.width}`);
       el.style.setProperty("--fr", `${plan.flower.rotate}deg`);
-      el.style.setProperty("--draw-delay", `${DRAW_START + i * DRAW_STEP}ms`);
       el.style.setProperty("--settle-delay", `${i * SETTLE_STEP}ms`);
+      /*
+        WHERE IT WAITS. On the ray from the middle of the screen through its
+        own place in the ring, pushed out past every corner — so a piece flies
+        in along the line it will end up on rather than across the composition,
+        and eighteen of them arriving read as one gathering rather than as
+        traffic. A place in the ring that is almost dead centre has no ray of
+        its own to speak of, so it takes an angle from its position in the
+        order instead; normalising a near-zero vector would send it anywhere.
+      */
+      const dx = x - vw / 2;
+      const dy = y - vh / 2;
+      const len = Math.hypot(dx, dy);
+      const angle = len > 1 ? Math.atan2(dy, dx) : ((i / DRAW_ORDER.length) * Math.PI * 2);
+      const ux = len > 1 ? dx / len : Math.cos(angle);
+      const uy = len > 1 ? dy / len : Math.sin(angle);
+      el.style.setProperty("--ax", `${vw / 2 + ux * away - cx}px`);
+      el.style.setProperty("--ay", `${vh / 2 + uy * away - cy}px`);
+      /*
+        And turned off its resting angle on the way, alternating, so the pieces
+        turn into place instead of sliding — a collage laid by hand, not a grid
+        snapping shut. Deterministic, from the order: nothing here is random.
+      */
+      el.style.setProperty(
+        "--ar",
+        `${plan.flower.rotate + (i % 2 ? -1 : 1) * (TURN + (i % 3) * 6)}deg`,
+      );
+      targets.push({ el, color: plan.color, x, y });
     }
 
     // Where the logo lands: the logo in the header bar, measured while the bar
@@ -357,21 +473,150 @@ export function HeroIntro() {
       logo.style.setProperty("--logo-s", `${to.width / from.width}`);
     };
 
-    const skip = (event: Event) => {
-      if (event instanceof KeyboardEvent && ["Shift", "Control", "Alt", "Meta"].includes(event.key)) return;
-      if (html.dataset.intro === "draw") settle();
+    /* ---------------------------------------------- the canvas, and the hand */
+    /*
+      WHAT A VISITOR IS ACTUALLY DOING HERE. The eighteen pieces of the collage
+      wait off-screen, whole and in their own colours. Any piece whose place in
+      the ring falls under the hand is sent for early — it flies in and lands,
+      and leaves one of the deck's splash cut-outs, in its own colour, where it
+      touched down. Sweep once and half the composition comes in behind you.
+
+      THE MARKS ARE YOURS, AND ONLY YOURS. A piece the clock sends for lands
+      silently; a piece a hand calls in leaves a splash. Doing nothing gives a
+      clean composition assembling itself, and taking part leaves something on
+      the page that would not otherwise be there — which is the whole of what
+      the client asked this moment to say.
+
+      It is one attribute per piece. The stylesheet owns every millisecond of
+      what that attribute means (see ./Hero.module.css), nothing is measured
+      per frame, and no animation loop runs — which is why an interaction this
+      direct costs less than the timer it replaced.
+    */
+    const splats = splatsRef.current;
+    const reach = Math.min(REACH_MAX, Math.max(REACH_MIN, unit * REACH_SHARE));
+
+    let inked = 0;
+    let mark = 0;
+    let wrote = false;
+
+    /*
+      The pointer, carrying the next colour. `encodeURIComponent` rather than a
+      raw SVG: a cut-out path is full of `#` and `,`, either of which ends a
+      `url()` early and leaves the cursor silently unset.
+    */
+    const splash = DOODLES.splash;
+    const cursorFor = (color: string) =>
+      `url("data:image/svg+xml,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${CURSOR_PX}" height="${CURSOR_PX}" viewBox="0 0 ${splash.w} ${splash.h}"><path d="${splash.d}" fill="${color}"/></svg>`,
+      )}") ${CURSOR_PX / 2} ${CURSOR_PX / 2}, crosshair`;
+
+    let loaded = "";
+    /* Whatever the clock or the hand will reach for next, in the bouquet's order. */
+    const reload = () => {
+      const next = targets.find((t) => t.el.dataset.landed === undefined);
+      const color = next?.color ?? "";
+      if (color === loaded) return;
+      loaded = color;
+      html.style.cursor = color ? cursorFor(color) : "";
     };
+
+    /* The brand's own splash cut-out, in the colour of whatever just landed. */
+    const burst = (x: number, y: number, color: string) => {
+      const pool = splats?.children;
+      if (!pool?.length) return;
+      const node = pool[mark % pool.length] as HTMLElement;
+      mark += 1;
+      node.style.color = color;
+      node.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${(mark * 53) % 360}deg)`;
+      delete node.dataset.burst;
+      void node.offsetWidth; // so the same node can throw a second mark
+      node.dataset.burst = "";
+    };
+
+    /* `byHand` is what decides whether a landing leaves a mark. */
+    const land = (target: (typeof targets)[number], byHand: boolean) => {
+      if (target.el.dataset.landed !== undefined) return false;
+      target.el.dataset.landed = "";
+      inked += 1;
+      if (byHand) burst(target.x, target.y, target.color);
+      reload();
+      return true;
+    };
+
+    /*
+      Painting it quickly is rewarded, but not by cutting the mark's writing
+      short — that is the one thing the client has asked twice to keep. So the
+      moment ends when the bouquet is finished AND the pen has stopped, and in
+      any case at DRAW_MS.
+    */
+    const finished = () => {
+      if (wrote && inked >= targets.length) settle();
+    };
+
+    /*
+      A pull. Every waiting piece whose place falls under the hand is sent for
+      at once, so a sweep brings in a handful rather than one. A touch that
+      reaches nothing still calls the nearest piece — a tap that did nothing at
+      all would read as a broken page rather than as a miss, and the brief
+      asked for an immediate visual response.
+    */
+    const pull = (x: number, y: number, radius: number) => {
+      let hit = false;
+      let nearest: (typeof targets)[number] | undefined;
+      let best = Infinity;
+      for (const target of targets) {
+        if (target.el.dataset.landed !== undefined) continue;
+        const gap = Math.hypot(target.x - x, target.y - y);
+        if (gap < best) {
+          best = gap;
+          nearest = target;
+        }
+        if (gap <= radius && land(target, true)) hit = true;
+      }
+      if (!hit && nearest) land(nearest, true);
+      finished();
+    };
+
+    const onMove = (event: PointerEvent) => {
+      pull(event.clientX, event.clientY, reach);
+    };
+    const onDown = (event: PointerEvent) => {
+      pull(event.clientX, event.clientY, reach * TAP_REACH);
+    };
+    /*
+      A keyboard calls pieces in too, in the order the collage was always laid
+      in, so nobody is shut out of the moment for not having a pointer. Escape
+      ends it outright, and a wheel says the same in the language of a mouse:
+      the one thing an intro must never do is hold someone who wants to be in.
+    */
+    const onKey = (event: KeyboardEvent) => {
+      if (["Shift", "Control", "Alt", "Meta", "Tab"].includes(event.key)) return;
+      if (event.key === "Escape") {
+        settle();
+        return;
+      }
+      let laid = 0;
+      for (const target of targets) {
+        if (target.el.dataset.landed !== undefined) continue;
+        land(target, true);
+        if (++laid === KEY_STROKE) break;
+      }
+      finished();
+    };
+    const onWheel = () => settle();
+
     const attach = () => {
-      window.addEventListener("keydown", skip);
-      window.addEventListener("pointerdown", skip);
-      window.addEventListener("wheel", skip, { passive: true });
-      window.addEventListener("touchstart", skip, { passive: true });
+      window.addEventListener("pointermove", onMove, { passive: true });
+      window.addEventListener("pointerdown", onDown, { passive: true });
+      window.addEventListener("keydown", onKey);
+      window.addEventListener("wheel", onWheel, { passive: true });
     };
     const detach = () => {
-      window.removeEventListener("keydown", skip);
-      window.removeEventListener("pointerdown", skip);
-      window.removeEventListener("wheel", skip);
-      window.removeEventListener("touchstart", skip);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("wheel", onWheel);
+      html.style.removeProperty("cursor");
     };
 
     function settle() {
@@ -389,6 +634,25 @@ export function HeroIntro() {
     cancelPaint = nextPaint(() => {
       html.dataset.intro = "draw";
       attach();
+      reload();
+      /*
+        THE CLOCK IS THE FALLBACK, NOT THE POINT. Anyone who does nothing sees
+        the collage assemble itself, piece by piece, and every frame of it is
+        whole. Anyone who moves gets there first, and the clock finds those
+        pieces already landed and does nothing. `false`: the clock's pieces
+        land silently, because the splashes belong to the hand.
+      */
+      targets.forEach((target, i) =>
+        later(() => {
+          land(target, false);
+          finished();
+        }, DRAW_START + i * DRAW_STEP),
+      );
+      later(() => {
+        wrote = true;
+        finished();
+      }, WRITE_MS + WRITE_TAIL);
+      /* However it goes, it is over by here. */
       later(settle, DRAW_MS);
     });
 
@@ -400,6 +664,12 @@ export function HeroIntro() {
       cancelPaint();
       timers.forEach(clearTimeout);
       detach();
+      // A remount must find the pieces exactly as this effect first found
+      // them: at rest in the collage, with none of the flight written on them.
+      doodles.forEach((el) => {
+        delete el.dataset.landed;
+        for (const prop of FLIGHT_VARS) el.style.removeProperty(prop);
+      });
       unlock();
       releaseRestoration();
     };
@@ -542,16 +812,35 @@ export function HeroIntro() {
   }, []);
 
   return (
-    /*
-      The official artwork, never redrawn — now from the client's Illustrator
-      file rather than a PNG. It writes itself: each letter is uncovered along
-      the path a pen would take, in writing order, and the six dots in the "P"
-      arrive one by one at the end. See <LogoReveal>. The box is the
-      lettering's own; the flight above aims at the header's letters, not its
-      file, so the two still meet exactly.
-    */
-    <div ref={logoRef} aria-hidden className={styles.introLogo}>
-      <LogoReveal writeMs={WRITE_MS} dotStepMs={DOT_STEP} />
-    </div>
+    <>
+      {/*
+        The official artwork, never redrawn — now from the client's Illustrator
+        file rather than a PNG. It writes itself: each letter is uncovered along
+        the path a pen would take, in writing order, and the six dots in the "P"
+        arrive one by one at the end. See <LogoReveal>. The box is the
+        lettering's own; the flight above aims at the header's letters, not its
+        file, so the two still meet exactly.
+
+        UNTOUCHED BY THIS PASS. The canvas around it changed; the mark did not.
+      */}
+      <div ref={logoRef} aria-hidden className={styles.introLogo}>
+        <LogoReveal writeMs={WRITE_MS} dotStepMs={DOT_STEP} />
+      </div>
+
+      {/* The marks a hand leaves — see ./Hero.module.css. */}
+      <div ref={splatsRef} aria-hidden className={styles.splats}>
+        {Array.from({ length: SPLATS }, (_, i) => (
+          <svg
+            key={i}
+            viewBox={`0 0 ${DOODLES.splash.w} ${DOODLES.splash.h}`}
+            className={styles.splat}
+            focusable="false"
+          >
+            <path d={DOODLES.splash.d} fill="currentColor" />
+          </svg>
+        ))}
+      </div>
+
+    </>
   );
 }

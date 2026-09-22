@@ -424,7 +424,7 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
           // is now unnecessary: the token says the same thing in the brand's
           // own material. It was the last hard-coded colour in the codebase.
           "bg-primary text-on-primary transition-colors duration-300 ease-soft",
-          "hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
+          "press-in hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
         )}
       >
         {submitting ? "Sending" : "Send enquiry"}

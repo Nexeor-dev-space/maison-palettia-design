@@ -301,6 +301,13 @@
      ------------------------------------------------------------------------ */
   --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-hapsha), Georgia, "Times New Roman", serif;
+  /* The deck's heading role. It is Montserrat — the guideline's own text face,
+     which the client has confirmed is what the deck headings use. It was a
+     third family (Bebas Neue, a condensed stand-in); the token survives the
+     swap because the role does, and because a licensed condensed face would be
+     one line here. See lib/fonts.ts, including the width figure that made this
+     a resize and not just a re-point. */
+  --font-deck: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
 
   --tracking-display: -0.01em;
   --tracking-eyebrow: 0.18em;
@@ -413,16 +420,55 @@
      headings. See `heading-script` below for why these are larger than the
      Montserrat steps they replace: the script's lowercase is 0.41em tall
      against Montserrat's 0.7em capitals, so at the same size it reads a size
-     and a half smaller. The line heights are looser for the same reason in
-     reverse — the capitals and loops reach 0.9em above the baseline. */
+     and a half smaller.
+
+     ------------------------------------------------------------------------
+     THE LINE HEIGHTS, AND WHY THEY ARE NOT THE SANS'S.
+
+     The client's note on the banner was that the script "fits the creative,
+     experimental theme much better now, but line spacing and layering need
+     fine-tuning". This block is the line-spacing half, and the fix is a
+     measurement rather than a taste.
+
+     Hapsha's ink does not fit in a normal line box. Measured off the file
+     with fontTools: the lowercase x-height is 0.41em, but its swash capitals
+     and ascender loops stand to 0.9em above the baseline and its descenders
+     drop 0.28em below it. So one line of this face occupies 1.18em of ink,
+     against roughly 0.95em for Montserrat.
+
+     These were 1.06, 1.10 and 1.12 — every one of them BELOW 1.18, which
+     means consecutive lines did not merely look tight, they physically
+     overlapped: at the section size a descender from one line finished 3 to
+     6px inside the swash of the line under it. That is what "line spacing
+     needs fine-tuning" was describing.
+
+     The floor is therefore 1.18 and these sit above it, by more as the size
+     comes down — the usual optical rule, and the reason the three differ:
+
+       hero ...... 1.24   +0.06em of air. Set once per page at 48-100px,
+                   where a little tension still reads as composed.
+       section ... 1.28   +0.10em. The workhorse, and the one that wraps to
+                   two and three lines most often.
+       compact ... 1.32   +0.14em. Smallest, so it needs the most relative
+                   air to stop reading as a block of texture.
+
+     BEFORE CHANGING ONE, remember the stacked case. Several headings on this
+     site are built as one <span> per line rather than as a wrapped paragraph
+     (see /private-events and <SectionHeader>). Those stack at exactly this
+     line height too, so a value that is safe for a wrapped heading is safe
+     for a stacked one and vice versa — there is no separate number to tune.
+
+     The other half of the client's note, the layering, is spacing between the
+     script and the sans that follows it; `script-lede` below is the shared
+     answer, and the call sites that need it say so. */
   --text-script-hero: clamp(3rem, 2.2rem + 3.6vw, 6.25rem);
-  --text-script-hero--line-height: 1.06;
+  --text-script-hero--line-height: 1.24;
 
   --text-script-section: clamp(2.6rem, 1.9rem + 2.9vw, 5rem);
-  --text-script-section--line-height: 1.1;
+  --text-script-section--line-height: 1.28;
 
   --text-script-compact: clamp(2.2rem, 1.7rem + 1.9vw, 3.4rem);
-  --text-script-compact--line-height: 1.12;
+  --text-script-compact--line-height: 1.32;
 
   /* --- Spacing rhythm (section-level) ------------------------------------ */
   --spacing-section: 6rem;
@@ -515,10 +561,14 @@
 
   /* --- Shadows ------------------------------------------------------------
      Deliberately one token, and it is close to nothing. Depth here comes from
-     warm ground against warm ground, not from elevation; the only sanctioned
-     use is a panel that genuinely floats over content it must be readable
-     against, such as the mobile navigation. Anything that merely wants to look
-     separated should take a ground or a hairline instead. */
+     warm ground against warm ground, not from elevation.
+
+     TWO SANCTIONED USES, AND NO THIRD. A panel that genuinely floats over
+     content it must stay readable against, such as the mobile navigation; and
+     a plate whose own ground is too close in lightness to the paper's to be
+     seen against it at all (see `@utility plate` below, where the figure is
+     given). Anything that merely wants to look separated still takes a ground
+     or a hairline instead. */
   --shadow-veil: 0 1px 2px -1px color-mix(in oklab, var(--color-brand-charcoal) 12%, transparent),
     0 8px 24px -12px color-mix(in oklab, var(--color-brand-charcoal) 18%, transparent);
 
@@ -573,6 +623,25 @@
   --duration-fast: 200ms;
   --duration-base: 400ms;
   --duration-slow: 800ms;
+
+  /* --- The interaction pair ------------------------------------------------
+     Every hover on this site is one of two speeds, and they were literals in
+     sixty files before they were tokens here.
+
+     `hover` is the mark that answers the pointer — the rule under a nav item,
+     the rule under a card's title, a fill arriving behind a label. It is the
+     380ms the client approved on the navbar ("the movement of the underline is
+     good"), and everything that answers a pointer now moves at it.
+
+     `wash` is slower, because paint is: the stroke that sweeps colour across a
+     photograph has further to travel and reads as a gesture rather than as a
+     state change.
+
+     `press` is the one that must be quick enough to feel like contact.
+     ------------------------------------------------------------------------ */
+  --duration-hover: 380ms;
+  --duration-wash: 620ms;
+  --duration-press: 120ms;
 
   /* --- Breakpoints ------------------------------------------------------- */
   --breakpoint-xs: 26rem; /* 416px  */
@@ -800,6 +869,37 @@
 }
 
 /*
+  THE AIR BETWEEN A SCRIPT HEADING AND THE SANS LINE UNDER IT.
+
+  The second half of the client's note on the banner — "line spacing and
+  layering need fine-tuning" — is this gap. Layering here does not mean
+  overlap; it means the two voices were sitting on top of one another. The
+  banner set an 85px script and put its supporting line 8px beneath it, and
+  because Hapsha's descenders drop 0.28em below the baseline, 24px of that
+  85px line's ink was already hanging into the gap. The sans did not read as
+  the second voice; it read as a caption stuck to the bottom of the script.
+
+  ONE NUMBER, PROPORTIONAL TO THE PAGE RATHER THAN TO EITHER TYPE SIZE. The
+  script sizes are viewport clamps and the sans sizes are viewport clamps, so
+  a gap that tracks the viewport stays in proportion to both without either
+  having to know about the other:
+
+    390px ....... 15px      768px ....... 17px
+    1280px ...... 24px      1440px ...... 28px
+
+  Enough that the descenders clear and the sans starts on its own ground; not
+  so much that the pair stops reading as one statement.
+
+  USE IT ON THE SANS, NOT ON THE SCRIPT. The script heading is often the thing
+  a section measures its own layout against (the banner does), so keeping the
+  margin off it leaves those measurements alone. And it replaces a `mt-*`
+  rather than adding to one — check the call site.
+*/
+@utility script-lede {
+  margin-top: clamp(0.9rem, 0.55rem + 1.1vw, 1.75rem);
+}
+
+/*
   The mask for one masked line of script (see `maskUp` in lib/motion.ts).
 
   A plain `overflow: hidden` line cuts the script: its capitals and ascender
@@ -817,6 +917,232 @@
   overflow: hidden;
   padding: 0.25em 0.15em 0;
   margin: -0.25em -0.15em 0;
+}
+
+/* ==========================================================================
+   THE TACTILE SYSTEM
+   ==========================================================================
+
+   The client's direction for this pass was experimental, playful, tactile —
+   an interactive creative environment rather than a corporate site. That is
+   not a licence for everything to move at once, so the whole site answers a
+   pointer with a small vocabulary, defined once here and used everywhere:
+
+     the rule ...... a hairline that grows from the left under a word, and
+                     retreats to the right. The navbar's gesture, approved by
+                     the client, now also under card titles and text links.
+     the sweep ..... a colour that fills a control from its left edge.
+     the press ..... 1px of travel under the finger, on anything clickable.
+     the wash ...... a brush stroke of brand colour across a photograph. The
+                     loudest of the four, so it belongs to one component (the
+                     activity plates) rather than to every picture.
+     the dab ....... the pointer itself, over pictures only. See
+                     components/motion/CursorLayer.tsx.
+
+   Each one is a transform or a colour, so each runs on the compositor; none
+   of them changes layout, so nothing on the page can move because of a hover.
+   -------------------------------------------------------------------------- */
+
+/*
+  The rule. On a `.group` it answers the whole card; on its own it answers the
+  link it is on. Hover is wrapped in `(hover: hover)` so a phone never leaves
+  one drawn under the last thing tapped, and `:focus-within` draws it for a
+  keyboard — which is the half the site was missing on plates, rows and links.
+*/
+.ink-rule {
+  position: relative;
+}
+
+.ink-rule::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.18em;
+  height: 1px;
+  background-color: var(--rule, currentColor);
+  transform: scaleX(0);
+  /* Collapsed against its right edge at rest, so the next growth starts from
+     the left and the last retreat ended on the right — the pen's direction,
+     both ways. */
+  transform-origin: right;
+  transition: transform var(--duration-hover) var(--ease-editorial);
+}
+
+@media (hover: hover) {
+  .group:hover .ink-rule::after,
+  .ink-rule:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+.group:focus-within .ink-rule::after,
+.ink-rule:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Touch gets it on the press rather than not at all. */
+@media (hover: none) {
+  .group:active .ink-rule::after,
+  .ink-rule:active::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+/*
+  ==========================================================================
+  A PLATE — something laid on the paper, edged without drawing a line
+  ==========================================================================
+
+  WHAT THIS REPLACED. Every panel, tile and photograph on the homepage sat
+  inside a 2.5px Charcoal Slate rectangle: the deck's "cut paper" device,
+  taken off the PDF and repeated nine times across eight files. The client's
+  note was "don't use this much hard stroke lines", and they are right — at
+  that weight an outline stops being an edge and becomes the loudest mark in
+  the section, and four tinted cards in a row read as a worksheet.
+
+  IT COULD NOT SIMPLY BE DELETED, AND THAT IS A MEASUREMENT. The palette is
+  four light colours of very nearly one lightness: White Rock sits at 0.770
+  and Light Sage at 0.744, which is a contrast of 1.03:1. A cream tile on
+  sage, or the sage sheet on cream, disappears completely the moment its
+  outline goes. The outline was load-bearing, which is why it was there.
+
+  SO THE EDGE STAYS AND THE LINE GOES. Charcoal at a tenth, one pixel, says
+  where the plate stops without being a mark anybody reads; the veil beneath
+  it does the separating. A gradient is what actually reads between two
+  grounds of equal lightness — an edge you see rather than a rule you notice.
+
+  It follows whatever radius the caller sets, so a plate is still a plate at
+  0.9rem and at 1.75rem, and it costs no layout: nothing here is a border, so
+  nothing shifts by 2.5px on every side the way the outline did.
+*/
+@utility plate {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-brand-charcoal) 10%, transparent),
+    var(--shadow-veil);
+}
+
+/*
+  The press. Every control the hand can reach: buttons, filled actions, plates.
+  Held to 1px and a whisker of scale — enough to feel, too little to read as a
+  bounce, which the client has twice said no to.
+*/
+@utility press-in {
+  transition: transform var(--duration-press) var(--ease-soft);
+
+  &:active {
+    transform: translateY(1px) scale(0.994);
+  }
+}
+
+/*
+  The sweep: a colour arriving behind a label from the left, for the quieter
+  buttons — the outlined and ghost ones, where a filled button already has its
+  colour. `--sweep` names the colour, so a caller picks from the palette
+  instead of inventing one.
+*/
+@utility action-sweep {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--sweep, var(--color-cream));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--duration-hover) var(--ease-editorial);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    transform: scaleX(1);
+  }
+}
+
+/*
+  The dab replaces the system cursor over a marked picture, and only there —
+  never over a form, a button, the basket or the checkout, none of which carry
+  the attribute. The rule is scoped to `data-paint-cursor`, which
+  <CursorLayer> writes onto <html> only once it has checked for a fine pointer
+  and for reduced motion, so a visitor whose JavaScript never runs, or who is
+  on a phone, keeps the cursor they had.
+*/
+html[data-paint-cursor] [data-paint] {
+  cursor: none;
+}
+
+/* A control laid over a picture keeps its own pointer. */
+html[data-paint-cursor]
+  [data-paint]
+  :where(button, input, select, textarea, label, summary, [role="button"], [contenteditable]) {
+  cursor: auto;
+}
+
+/*
+  A link inside a paint surface follows the surface, and does not keep a hand.
+
+  The exception above is for CONTROLS — a button or a field laid over a
+  photograph keeps the pointer that says what it is, because losing it costs a
+  visitor something they need. A link is the other case. `cursor: pointer`
+  comes from the UA stylesheet on the element itself, so it beats the
+  `cursor: none` this surface inherits down, and the hand is then drawn on top
+  of the brush: two cursors at once.
+
+  It has never shown up before because of where the attribute sits — the
+  activity plates mark the frame INSIDE the anchor, so the brush has always
+  been the only cursor on them. The footer marks the whole element and is made
+  almost entirely of links, which is what surfaced it.
+
+  Guarded by `data-paint-cursor` like everything else here, so a visitor
+  without JavaScript, on a phone, or under reduced motion keeps the hand: the
+  brush that would have replaced it is never mounted for them.
+*/
+html[data-paint-cursor] [data-paint] :where(a) {
+  cursor: none;
+}
+
+/*
+  The brush edge, as a token.
+
+  One loaded-brush edge — ragged, with two bristle wisps — shared by everything
+  that lays paint on this site: the stroke across an activity plate and the
+  swatches in the workshop journey. A second copy of this shape would drift
+  from the first the moment either was tuned.
+
+  It is a mask, so the colour is always the element's own; `preserveAspectRatio`
+  is off inside it, so it stretches to whatever it is masking.
+*/
+:root {
+  --mask-brush: url("data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 250%22 preserveAspectRatio=%22none%22><path d=%22M-18.0 258 L-18.0 169.1 C-16.2 169.3 -10.8 170.5 -7.3 170.3 C-3.7 170.0 -0.1 168.2 3.5 167.5 C7.0 166.7 10.6 165.8 14.2 166.0 C17.8 166.2 21.3 168.1 24.9 168.9 C28.5 169.8 32.1 170.9 35.6 171.0 C39.2 171.1 42.8 170.7 46.4 169.6 C49.9 168.5 53.5 165.8 57.1 164.3 C60.7 162.8 64.2 160.9 67.8 160.8 C71.4 160.7 75.0 163.9 78.5 163.5 C82.1 163.1 85.7 159.4 89.3 158.5 C92.8 157.7 96.4 158.0 100.0 158.5 C103.6 159.0 107.2 160.9 110.7 161.5 C114.3 162.0 117.9 161.9 121.5 161.9 C125.0 161.9 128.6 161.8 132.2 161.3 C135.8 160.7 139.3 158.7 142.9 158.6 C146.5 158.5 150.1 160.2 153.6 160.6 C157.2 161.0 160.8 160.9 164.4 161.1 C167.9 161.3 171.5 160.8 175.1 161.7 C178.7 162.7 182.2 165.5 185.8 167.0 C189.4 168.5 193.0 170.2 196.5 170.9 C200.1 171.5 203.7 170.8 207.3 170.8 C210.8 170.9 216.2 170.9 218.0 170.9 L218.0 258 Z%22 fill=%22white%22/></svg>");
+}
+
+/*
+  The same brush, pulled downward: a stroke for a margin rather than a foot.
+  Both long edges are ragged and it thins where the brush was lifted, so a
+  painted rule down the side of a block reads as paint and not as a border.
+*/
+:root {
+  --mask-brush-v: url("data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 12 200%22 preserveAspectRatio=%22none%22><path d=%22M6.00 0.0 C5.71 1.3 4.77 5.1 4.29 7.7 C3.81 10.3 3.42 12.8 3.11 15.4 C2.79 17.9 2.54 20.5 2.40 23.1 C2.26 25.6 2.27 28.2 2.29 30.8 C2.30 33.3 2.47 35.9 2.50 38.5 C2.53 41.0 2.55 43.6 2.46 46.2 C2.38 48.7 2.15 51.3 1.98 53.8 C1.80 56.4 1.53 59.0 1.44 61.5 C1.35 64.1 1.34 66.7 1.44 69.2 C1.53 71.8 1.82 74.4 2.01 76.9 C2.21 79.5 2.50 82.1 2.60 84.6 C2.70 87.2 2.69 89.7 2.61 92.3 C2.53 94.9 2.26 97.4 2.11 100.0 C1.96 102.6 1.75 105.1 1.71 107.7 C1.67 110.3 1.76 112.8 1.87 115.4 C1.98 117.9 2.25 120.5 2.37 123.1 C2.49 125.6 2.61 128.2 2.59 130.8 C2.56 133.3 2.38 135.9 2.22 138.5 C2.07 141.0 1.77 143.6 1.66 146.2 C1.54 148.7 1.46 151.3 1.52 153.8 C1.59 156.4 1.82 159.0 2.02 161.5 C2.22 164.1 2.54 166.7 2.72 169.2 C2.90 171.8 3.02 174.4 3.10 176.9 C3.19 179.5 3.09 182.1 3.22 184.6 C3.34 187.2 3.39 189.7 3.85 192.3 C4.32 194.9 5.64 198.7 6.00 200.0 L6.00 200.0 C6.26 198.7 7.15 194.9 7.56 192.3 C7.96 189.7 8.17 187.2 8.44 184.6 C8.71 182.1 9.01 179.5 9.19 176.9 C9.37 174.4 9.51 171.8 9.54 169.2 C9.58 166.7 9.46 164.1 9.41 161.5 C9.36 159.0 9.22 156.4 9.24 153.8 C9.26 151.3 9.36 148.7 9.53 146.2 C9.70 143.6 10.04 141.0 10.26 138.5 C10.47 135.9 10.74 133.3 10.82 130.8 C10.89 128.2 10.83 125.6 10.72 123.1 C10.61 120.5 10.31 117.9 10.15 115.4 C9.99 112.8 9.79 110.3 9.75 107.7 C9.71 105.1 9.82 102.6 9.92 100.0 C10.01 97.4 10.26 94.9 10.34 92.3 C10.42 89.7 10.48 87.2 10.40 84.6 C10.33 82.1 10.08 79.5 9.89 76.9 C9.69 74.4 9.38 71.8 9.25 69.2 C9.12 66.7 9.05 64.1 9.10 61.5 C9.15 59.0 9.38 56.4 9.53 53.8 C9.68 51.3 9.93 48.7 10.00 46.2 C10.07 43.6 10.05 41.0 9.96 38.5 C9.86 35.9 9.60 33.3 9.43 30.8 C9.26 28.2 9.04 25.6 8.92 23.1 C8.80 20.5 8.83 17.9 8.71 15.4 C8.59 12.8 8.65 10.3 8.19 7.7 C7.74 5.1 6.37 1.3 6.00 0.0 Z%22 fill=%22white%22/></svg>");
+}
+
+/*
+  Paint thrown, rather than paint laid: a torn edge with tongues and bites in
+  it, and thirty dabs scattered off the top of it — biggest and densest just
+  above the tear, thinning as they travel. Solid from the tear to the bottom,
+  so whatever it covers is covered completely.
+
+  For paint that arrives from below (the activity cards' flood). The brush
+  edges above are for paint that is drawn across something.
+*/
+:root {
+  --mask-splatter: url("data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 260%22 preserveAspectRatio=%22none%22><path d=%22M-10.0 290 L-10.0 127.1 C-8.8 126.9 -5.1 126.8 -2.7 126.3 C-0.2 125.9 2.2 125.5 4.7 124.4 C7.1 123.2 9.6 119.9 12.0 119.4 C14.4 119.0 16.9 121.1 19.3 121.5 C21.8 121.9 24.2 124.3 26.7 121.8 C29.1 119.4 31.6 106.7 34.0 106.9 C36.4 107.1 38.9 120.5 41.3 123.1 C43.8 125.8 46.2 121.2 48.7 122.7 C51.1 124.2 53.6 133.2 56.0 132.1 C58.4 131.0 60.9 119.2 63.3 115.9 C65.8 112.6 68.2 113.8 70.7 112.4 C73.1 110.9 75.6 109.8 78.0 107.1 C80.4 104.4 82.9 95.7 85.3 96.1 C87.8 96.6 90.2 107.4 92.7 109.9 C95.1 112.4 97.6 110.5 100.0 111.2 C102.4 112.0 104.9 113.4 107.3 114.5 C109.8 115.5 112.2 115.6 114.7 117.4 C117.1 119.3 119.6 125.8 122.0 125.3 C124.4 124.8 126.9 115.8 129.3 114.4 C131.8 113.0 134.2 116.5 136.7 116.8 C139.1 117.0 141.6 119.3 144.0 116.0 C146.4 112.8 148.9 96.2 151.3 97.1 C153.8 98.0 156.2 116.3 158.7 121.2 C161.1 126.2 163.6 125.7 166.0 126.7 C168.4 127.7 170.9 124.6 173.3 127.2 C175.8 129.8 178.2 142.1 180.7 142.1 C183.1 142.1 185.6 130.1 188.0 127.2 C190.4 124.3 192.9 125.9 195.3 124.9 C197.8 123.9 200.2 122.7 202.7 121.3 C205.1 119.9 208.8 117.2 210.0 116.3 L210.0 290 Z%22 fill=%22white%22/><ellipse cx=%2213.8%22 cy=%2296.7%22 rx=%224.7%22 ry=%223.6%22 transform=%22rotate(11 13.8 96.7)%22 fill=%22white%22/><ellipse cx=%2233.9%22 cy=%22107.1%22 rx=%227.0%22 ry=%224.8%22 transform=%22rotate(-31 33.9 107.1)%22 fill=%22white%22/><ellipse cx=%2216.5%22 cy=%22109.2%22 rx=%226.1%22 ry=%225.5%22 transform=%22rotate(-14 16.5 109.2)%22 fill=%22white%22/><ellipse cx=%2272.9%22 cy=%22102.7%22 rx=%226.5%22 ry=%225.2%22 transform=%22rotate(-19 72.9 102.7)%22 fill=%22white%22/><ellipse cx=%2218.3%22 cy=%2267.9%22 rx=%222.7%22 ry=%221.9%22 transform=%22rotate(4 18.3 67.9)%22 fill=%22white%22/><ellipse cx=%22187.1%22 cy=%2290.0%22 rx=%222.6%22 ry=%222.5%22 transform=%22rotate(-36 187.1 90.0)%22 fill=%22white%22/><ellipse cx=%2282.6%22 cy=%22115.7%22 rx=%226.7%22 ry=%226.3%22 transform=%22rotate(24 82.6 115.7)%22 fill=%22white%22/><ellipse cx=%22193.4%22 cy=%2295.0%22 rx=%224.8%22 ry=%223.6%22 transform=%22rotate(38 193.4 95.0)%22 fill=%22white%22/><ellipse cx=%2274.4%22 cy=%22103.7%22 rx=%225.4%22 ry=%223.7%22 transform=%22rotate(35 74.4 103.7)%22 fill=%22white%22/><ellipse cx=%22193.7%22 cy=%22103.2%22 rx=%225.6%22 ry=%223.8%22 transform=%22rotate(3 193.7 103.2)%22 fill=%22white%22/><ellipse cx=%22165.1%22 cy=%22105.6%22 rx=%227.2%22 ry=%225.5%22 transform=%22rotate(-13 165.1 105.6)%22 fill=%22white%22/><ellipse cx=%22181.6%22 cy=%2266.7%22 rx=%222.2%22 ry=%221.6%22 transform=%22rotate(15 181.6 66.7)%22 fill=%22white%22/><ellipse cx=%22168.6%22 cy=%2277.2%22 rx=%222.8%22 ry=%222.1%22 transform=%22rotate(22 168.6 77.2)%22 fill=%22white%22/><ellipse cx=%22111.9%22 cy=%2292.2%22 rx=%222.7%22 ry=%222.2%22 transform=%22rotate(-13 111.9 92.2)%22 fill=%22white%22/><ellipse cx=%22112.3%22 cy=%2256.4%22 rx=%222.3%22 ry=%221.5%22 transform=%22rotate(5 112.3 56.4)%22 fill=%22white%22/><ellipse cx=%22108.7%22 cy=%22108.0%22 rx=%225.3%22 ry=%224.1%22 transform=%22rotate(17 108.7 108.0)%22 fill=%22white%22/><ellipse cx=%22-3.2%22 cy=%22103.8%22 rx=%223.4%22 ry=%223.1%22 transform=%22rotate(-24 -3.2 103.8)%22 fill=%22white%22/><ellipse cx=%22137.7%22 cy=%22108.7%22 rx=%225.2%22 ry=%223.4%22 transform=%22rotate(16 137.7 108.7)%22 fill=%22white%22/><ellipse cx=%2295.9%22 cy=%2276.0%22 rx=%223.1%22 ry=%222.4%22 transform=%22rotate(-16 95.9 76.0)%22 fill=%22white%22/><ellipse cx=%22182.9%22 cy=%22115.8%22 rx=%227.5%22 ry=%225.9%22 transform=%22rotate(22 182.9 115.8)%22 fill=%22white%22/><ellipse cx=%22136.1%22 cy=%2281.0%22 rx=%223.0%22 ry=%222.2%22 transform=%22rotate(-16 136.1 81.0)%22 fill=%22white%22/><ellipse cx=%22195.6%22 cy=%22101.1%22 rx=%224.7%22 ry=%224.2%22 transform=%22rotate(-2 195.6 101.1)%22 fill=%22white%22/><ellipse cx=%22111.2%22 cy=%22103.8%22 rx=%223.5%22 ry=%222.4%22 transform=%22rotate(-19 111.2 103.8)%22 fill=%22white%22/><ellipse cx=%22173.3%22 cy=%2287.3%22 rx=%224.1%22 ry=%222.7%22 transform=%22rotate(5 173.3 87.3)%22 fill=%22white%22/><ellipse cx=%2288.0%22 cy=%2253.8%22 rx=%221.9%22 ry=%221.3%22 transform=%22rotate(39 88.0 53.8)%22 fill=%22white%22/><ellipse cx=%22127.9%22 cy=%22115.5%22 rx=%224.7%22 ry=%223.5%22 transform=%22rotate(-28 127.9 115.5)%22 fill=%22white%22/><ellipse cx=%22170.2%22 cy=%22114.1%22 rx=%225.2%22 ry=%224.4%22 transform=%22rotate(-17 170.2 114.1)%22 fill=%22white%22/><ellipse cx=%2212.3%22 cy=%2251.3%22 rx=%221.2%22 ry=%221.1%22 transform=%22rotate(33 12.3 51.3)%22 fill=%22white%22/><ellipse cx=%2234.0%22 cy=%22113.3%22 rx=%224.1%22 ry=%223.5%22 transform=%22rotate(-2 34.0 113.3)%22 fill=%22white%22/><ellipse cx=%22143.5%22 cy=%2289.8%22 rx=%224.8%22 ry=%223.9%22 transform=%22rotate(7 143.5 89.8)%22 fill=%22white%22/></svg>");
 }
 
 /* Skip link — visible only when focused */

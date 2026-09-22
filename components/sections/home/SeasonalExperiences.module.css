@@ -1,0 +1,183 @@
+/*
+  FOUR SEASONS, ONE PINNED FRAME — see SeasonalExperiences.tsx.
+
+  From `lg` the section holds still while the page scrolls past it and the
+  occasion changes underneath: the stage is sticky, and the extra height below
+  it (`.steps`) is what the reader is actually scrolling through. Below `lg`
+  none of that happens — the four are simply stacked and scrolled, which is
+  what a phone wants and what a pinned four-step section is worst at.
+*/
+
+.stage {
+  position: static;
+}
+
+.steps {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .stage {
+    position: sticky;
+    /* Under the bar, with room to breathe. */
+    top: calc(var(--spacing-header-lg) + 1.5rem);
+    display: flex;
+    min-height: calc(100svh - var(--spacing-header-lg) - 3rem);
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /*
+    One screenful of scroll per occasion after the first. Less than this and
+    the change feels like a flicker as you pass; more and the page feels
+    stuck, which is the thing everyone hates about pinned sections.
+  */
+  .steps {
+    display: block;
+    height: calc(var(--steps, 3) * 62svh);
+  }
+}
+
+/* ---- the panels -------------------------------------------------------- */
+
+.panels {
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  .panels {
+    /* Every panel is laid over the same box, so the stage does not resize as
+       the occasion changes — and the box is most of the pinned screen, because
+       the photograph is the thing the reader came to this section to see. */
+    height: 100%;
+    min-height: clamp(24rem, 62svh, 40rem);
+  }
+
+  .panel {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 420ms var(--ease-editorial),
+      visibility 0s 420ms;
+  }
+
+  .panel[data-on="true"] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 420ms var(--ease-editorial),
+      visibility 0s;
+  }
+}
+
+/* Below lg every panel is simply there, one after another. */
+.panel + .panel {
+  margin-top: 3rem;
+}
+
+@media (min-width: 1024px) {
+  .panel + .panel {
+    margin-top: 0;
+  }
+}
+
+/*
+  The photograph, and the occasion's cut-out behind it.
+
+  The plate is inset from the panel so the shape can be seen past two of its
+  corners: a cut-out fully behind a photograph is a cut-out nobody sees, and
+  one laid over it is a sticker. `overflow: hidden` on the panel keeps the
+  shape inside the composition however far it is pushed.
+*/
+/*
+  The box the photograph lives in. Below `lg` it is a proportion, because the
+  panel is in normal flow and nothing else can give it a height; from `lg` it
+  is whatever is left of the pinned stage after the caption, so the picture
+  grows with the screen instead of leaving a gap under itself.
+*/
+.plateWrap {
+  position: relative;
+  aspect-ratio: 16 / 11;
+}
+
+@media (min-width: 1024px) {
+  .plateWrap {
+    flex: 1;
+    min-height: 14rem;
+    aspect-ratio: auto;
+  }
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background-color: var(--color-cream);
+}
+
+.photo {
+  object-fit: cover;
+  transition: transform 1600ms var(--ease-editorial);
+}
+
+/* The picture settles as its occasion arrives — the only movement in the
+   swap, and it runs once rather than on a loop. */
+.panel[data-on="true"] .photo {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo,
+  .panel[data-on="true"] .photo {
+    transform: none;
+    transition: none;
+  }
+}
+
+.mark {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  pointer-events: none;
+}
+
+/* ---- reduced motion: nothing is pinned, nothing is hidden --------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    position: static;
+    min-height: 0;
+  }
+
+  .plateWrap {
+    flex: none;
+    aspect-ratio: 16 / 11;
+  }
+
+  .steps {
+    display: none;
+  }
+
+  .panels {
+    height: auto;
+    min-height: 0;
+  }
+
+  .panel {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transition: none;
+  }
+
+  .panel + .panel {
+    margin-top: 3rem;
+  }
+
+  .plate {
+    aspect-ratio: 16 / 11;
+  }
+}

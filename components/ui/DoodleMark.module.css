@@ -1,0 +1,132 @@
+/*
+  THREE WAYS A BRAND ICON CAN ARRIVE — see DoodleMark.tsx.
+
+  The client's note on the last set was that the icons scattered, and that it
+  did not look good. None of these scatter: each shape arrives in the place it
+  already occupies, and a group of them arrives in reading order rather than
+  from random directions.
+
+    draw ..... the pen puts it on the page, outline first, then the fill. The
+               brand's own language — its cut-outs are drawn shapes.
+    stamp .... it is pressed on: a fast overshoot and settle, answering a
+               hover rather than a page load.
+    rise ..... it lifts into place from a few pixels below. The quietest, for
+               a mark that sits beside running text.
+*/
+
+/*
+  THE DRIFT — the banner's doodle movement, everywhere else.
+
+  <PointerField> publishes the pointer as --mx/--my on <html>, from -1 at one
+  edge of the window to +1 at the other. Each mark multiplies that pair by its
+  own --depth and translates, so a set of marks at different depths separates
+  as the mouse moves and closes up again as it comes back.
+
+  1100ms and an easing curve, matching `.parallax` in the banner's own stylesheet:
+  the marks follow the pointer, they do not track it. A short transition here
+  reads as the page twitching; none at all reads as a bug.
+
+  --mx and --my are simply never set for a coarse pointer, under reduced
+  motion, or without JavaScript — <PointerField> does not mount in any of
+  those cases — and `var(--mx, 0)` puts every mark exactly where it is drawn.
+  The rule below is the belt to that braces.
+*/
+.drift {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: translate3d(
+    calc(var(--mx, 0) * var(--depth, 8) * 1px),
+    calc(var(--my, 0) * var(--depth, 8) * 1px),
+    0
+  );
+  transition: transform 1100ms var(--ease-out);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drift {
+    transform: none;
+    transition: none;
+  }
+}
+
+.mark {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
+}
+
+/* ---- draw ---------------------------------------------------------------- */
+
+.draw .ink {
+  fill-opacity: 0;
+  stroke: currentColor;
+  stroke-width: 1.25px;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.draw[data-on="true"] .ink {
+  fill-opacity: 1;
+  stroke-dashoffset: 0;
+  transition:
+    stroke-dashoffset 620ms cubic-bezier(0.45, 0, 0.2, 1) var(--mark-delay, 0ms),
+    fill-opacity 420ms ease calc(var(--mark-delay, 0ms) + 380ms);
+}
+
+/* ---- stamp --------------------------------------------------------------- */
+
+.stamp {
+  transform: scale(1);
+  transition: transform var(--duration-press) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (hover: hover) {
+  :global(.group):hover .stamp {
+    transform: scale(1.12) rotate(-3deg);
+  }
+}
+
+:global(.group):focus-within .stamp {
+  transform: scale(1.12) rotate(-3deg);
+}
+
+/* ---- rise ---------------------------------------------------------------- */
+
+.rise {
+  opacity: 0;
+  transform: translate3d(0, 0.375rem, 0);
+  transition:
+    opacity 420ms var(--ease-editorial) var(--mark-delay, 0ms),
+    transform 520ms var(--ease-editorial) var(--mark-delay, 0ms);
+}
+
+.rise[data-on="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+  Reduced motion: the mark is simply there. The global rule already cuts the
+  durations, but a drawn outline that snaps to filled is a flicker, so the
+  stroke is dropped instead.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .draw .ink {
+    fill-opacity: 1;
+    stroke: none;
+    stroke-dashoffset: 0;
+  }
+
+  .rise {
+    opacity: 1;
+    transform: none;
+  }
+
+  .stamp {
+    transition: none;
+  }
+}

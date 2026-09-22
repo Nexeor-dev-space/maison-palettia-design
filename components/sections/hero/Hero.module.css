@@ -30,6 +30,8 @@
   --ease-flight: cubic-bezier(0.76, 0, 0.24, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* A piece arriving from off-screen: quick away, long settle, no overshoot. */
+  --ease-land: cubic-bezier(0.16, 1, 0.3, 1);
   overflow-x: clip;
 }
 
@@ -359,8 +361,11 @@
   */
   --copy-gap: 2.25rem;
   /* A fallback until <HeroIntro> has measured the foot: two lines of tagline
-     on a phone, one from `md`, plus the supporting line and the cue. */
-  --wb: calc(11.75rem + 2.16 * var(--headline-size));
+     on a phone, one from `md`, plus the supporting line and the cue.
+
+     The multiplier is the tagline's line count times its line-height, so it
+     tracks `.headline` — 2 x 1.24. It was 2.16 while that was 1.08. */
+  --wb: calc(11.75rem + 2.48 * var(--headline-size));
 }
 
 @media (min-width: 768px) {
@@ -375,7 +380,8 @@
     */
     --wt: calc(var(--spacing-header-lg) + 1.25rem);
     --copy-gap: 3rem;
-    --wb: calc(12.75rem + 1.08 * var(--headline-size));
+    /* One line, at `.headline`'s line-height — was 1.08. */
+    --wb: calc(12.75rem + 1.24 * var(--headline-size));
   }
 }
 
@@ -610,45 +616,139 @@
 
 /* ---- play: nothing drawn, and nothing where it will end up ---------------- */
 
+/*
+  Already waiting out beyond the edge of the screen, and invisible — so that
+  entering `draw` changes nothing but opacity and no piece is ever seen flying
+  the wrong way. <HeroIntro> writes --ax/--ay/--ar while the state is `play`.
+*/
 :global(html:not([data-intro])) .flip,
 :global(html[data-intro="play"]) .flip {
   opacity: 0;
+  transform: translate(var(--ax, 0px), var(--ay, 0px)) scale(var(--fs, 1))
+    rotate(var(--ar, 0deg));
 }
 
 :global(html:not([data-intro])) .ink,
 :global(html[data-intro="play"]) .ink {
-  stroke-dashoffset: 1;
-  fill-opacity: 0;
-  stroke-opacity: 1;
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
+  stroke-opacity: 0;
 }
 
-/* ---- draw: the bouquet, each shape tracing its own outline -------------- */
+/* ---- draw: the collage, laid down piece by piece ------------------------ */
 
-:global(html[data-intro="draw"]) .flip {
-  opacity: 1;
-  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1))
-    rotate(var(--fr, 0deg));
-}
+/*
+  THE COMPOSITION ASSEMBLES; IT IS NOT COLOURED IN.
+
+  The pass before this had each shape trace its own outline where it would end
+  up and then flood with colour, and a hand could bring that on early. It was
+  interactive and it was not beautiful, for a reason worth writing down: every
+  intermediate frame held a mixture of pale unfinished outlines and solid
+  shapes, which does not read as a composition being made. It reads as a page
+  that has failed to load.
+
+  So nothing is ever half-drawn. Every piece is whole and in its own colour
+  from the first frame it exists; what changes is where it is. Each waits out
+  beyond the edge of the screen, on the ray running from the middle of the
+  screen through its own place in the ring and turned a little off its resting
+  angle, and flies in along that ray to land — the brand deck's collage laid
+  down around the mark, a piece at a time.
+
+  A hand brings the nearest waiting pieces in early; see <HeroIntro>. It is one
+  attribute per shape, and this stylesheet owns every millisecond of what that
+  attribute means. `transform` is the only property that changes, so a flight
+  is a compositor's job: nothing is laid out or painted again on the way in.
+*/
 
 :global(html[data-intro="draw"]) .ink {
   stroke-dashoffset: 0;
   fill-opacity: 1;
-  stroke-opacity: 1;
-  transition:
-    stroke-dashoffset 760ms cubic-bezier(0.45, 0, 0.2, 1) var(--draw-delay),
-    fill-opacity 520ms ease calc(var(--draw-delay) + 380ms);
+  stroke-opacity: 0;
 }
 
-:global(html[data-intro="draw"]) .svg {
-  animation: pop 700ms var(--ease-pop) var(--draw-delay) both;
+/* Waiting: whole, coloured, off-screen — the transform `play` already held. */
+:global(html[data-intro="draw"]) .flip {
+  opacity: 1;
+  transform: translate(var(--ax, 0px), var(--ay, 0px)) scale(var(--fs, 1))
+    rotate(var(--ar, 0deg));
+  transition: transform 780ms var(--ease-land);
 }
 
-@keyframes pop {
-  from {
-    transform: rotate(calc(var(--rotate, 0deg) - 10deg)) scale(0.82);
+/* Landed: its place in the ring, at its resting angle. */
+:global(html[data-intro="draw"]) .flip[data-landed] {
+  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1))
+    rotate(var(--fr, 0deg));
+}
+
+/*
+  NO POINTER HALO. There was one here — a soft round of Soft Lavender light
+  that followed the hand — and the colour was approved but the shape was not.
+  A radial gradient is not in this brand's vocabulary: the guideline's visual
+  language is flat paper cut-outs in six flat colours, and a glow is the one
+  thing on the screen that could not have been cut out of paper.
+
+  What answers the hand instead is the brand's own material. A piece flies in
+  and lands the moment you reach it, and it leaves one of the deck's splash
+  cut-outs where it touched down — feedback made of the same shapes as the
+  composition it is building.
+*/
+
+/*
+  THE MARKS A HAND LEAVES. The brand's own `splash` cut-out, in the colour of
+  whichever piece has just landed — not a circle, not a particle system. Ten
+  are rendered once and used round-robin, so a sweep that brings eight pieces
+  in at once costs eight transform writes and no allocation.
+
+  ONLY A HAND MAKES THESE. A piece the clock sends for lands silently, so the
+  composition that assembles itself is clean and the marks on the page are
+  exactly the ones a visitor made. Above the pieces, so a mark reads as ink
+  thrown onto the collage rather than as something behind it.
+*/
+.splats {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+}
+
+/*
+  Smaller and firmer than it first was. At 6rem and 52% it expanded into a
+  pale ghost roughly the size of the cut-outs around it — and since the deck's
+  splash is a cousin of the starburst already in the composition, a faint one
+  beside a solid one read as a rendering fault rather than as a mark somebody
+  made. At 4.5rem and 62% it stamps: smaller than the pieces, definite enough
+  to be deliberate, and gone inside two thirds of a second.
+*/
+.splat {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4.5rem;
+  height: auto;
+  margin: -2.25rem 0 0 -2.25rem;
+  opacity: 0;
+}
+
+/*
+  `scale` rather than a scale inside `transform`: <HeroIntro> owns `transform`
+  for the position, and the two properties compose without either overwriting
+  the other.
+*/
+.splat[data-burst] {
+  animation: splat 620ms var(--ease-out) both;
+}
+
+@keyframes splat {
+  0% {
+    opacity: 0;
+    scale: 0.22;
   }
-  to {
-    transform: rotate(var(--rotate, 0deg)) scale(1);
+  20% {
+    opacity: 0.62;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.05;
   }
 }
 
@@ -660,11 +760,29 @@
   transition: transform 1050ms var(--ease-flight) var(--settle-delay, 0ms);
 }
 
+/*
+  A SHAPE THAT WAS NEVER PAINTED FINISHES ITSELF ON THE WAY HOME.
+
+  The canvas can now be left part-done — Escape and a wheel both end the moment
+  wherever it has got to, and they are meant to. Before this, the three
+  properties simply took their settled values with only `stroke-opacity`
+  transitioned, so every shape the visitor had not reached snapped from nothing
+  to solid colour in one frame: a dozen shapes appearing at once, which is a
+  worse thing than the moment they were escaping.
+
+  Given the same trace and flood, quicker, they complete as they fly. A shape
+  already painted is at these values and transitions nothing.
+*/
+/*
+  Nothing left to finish: every piece has been whole since it existed, so the
+  ink is already at these values and this transitions nothing. A piece that
+  never landed simply flies home from wherever off-screen it was waiting, which
+  is what makes Escape and a wheel safe to offer at any moment of the collage.
+*/
 :global(html[data-intro="settle"]) .ink {
   stroke-dashoffset: 0;
   fill-opacity: 1;
   stroke-opacity: 0;
-  transition: stroke-opacity 400ms ease 500ms;
 }
 
 /* ---- skip and enter: the short entrance ----------------------------------- */
@@ -792,7 +910,46 @@
 */
 .headline {
   font-size: var(--headline-size);
-  line-height: 1.08;
+  /*
+    1.24, not 1.08, and the number comes off the font file.
+
+    Hapsha's swash capitals and ascender loops stand 0.9em above the baseline
+    and its descenders drop 0.28em below it, so one line of it is 1.18em of
+    ink. At 1.08 the two lines a phone sets did not just crowd — the "p" of
+    "palette" finished inside the swash of "creativity" under it. 1.24 leaves
+    0.06em of daylight, which is tight enough to still read as one statement.
+
+    The client's note was "line spacing and layering need fine-tuning"; this
+    is the spacing half. See the script tokens in globals.css, which carry the
+    same correction for every other script heading on the site, and keep this
+    in step with them if the face is ever replaced.
+
+    --wb below counts this number twice on a phone and once from `md`, so the
+    two move together.
+  */
+  line-height: 1.24;
+  /*
+    GREEDY WRAPPING, BECAUSE BALANCE BREAKS THIS SENTENCE IN THE WRONG PLACE.
+
+    The base layer gives every heading `text-wrap: balance`, which evens the
+    line lengths — and on a phone that put the turn after "of": "A palette
+    of" over "creativity for everyone." It splits the one phrase the brand is
+    built on (the deck's own story is the word "Palette") and it leaves a
+    line ending on a preposition.
+
+    Measured at 390px: the two phrases together set 303px inside a 366px
+    measure, so greedy wrapping puts "A palette of creativity" on the first
+    line and "for everyone." under it, which is the break the note above the
+    tagline always described and never got. It still fits at 375 (351px of
+    measure) and the size is on its floor from 430 down, so the break holds
+    across every phone width.
+
+    `wrap`, not `normal` — `normal` is not one of this property's values
+    (wrap | nowrap | balance | stable | pretty), so the browser drops the
+    declaration and the base layer's balance stands. The shorthand resets
+    `text-wrap-style` to auto, which is the greedy wrapping wanted here.
+  */
+  text-wrap: wrap;
 }
 
 /*

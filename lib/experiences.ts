@@ -1,3 +1,4 @@
+import type { VibeSlug } from "@/lib/vibes";
 import type { ImageAsset } from "@/types";
 
 /**
@@ -38,6 +39,21 @@ export interface CreativeExperience {
   kind: "diy" | "scheduled";
   /** The studio's own flag, e.g. "Coming soon". Shown verbatim. */
   status?: string;
+  /**
+   * Which discovery vibes this activity belongs to — the CMS seam for the
+   * "Find your vibe" layer.
+   *
+   * UNSET ON EVERY ACTIVITY BELOW, AND THAT IS NOT AN OVERSIGHT. Whether
+   * bedazzling is "messy and expressive" or "quick" is the studio's judgement
+   * about its own programme, not a fact that can be read off a name or a
+   * photograph. Guessing would put a visitor who asked for calm in front of
+   * something loud, which is the one failure a mood filter cannot survive.
+   *
+   * See lib/vibes.ts for the taxonomy and for what happens while this is
+   * empty: the layer reports honestly rather than inventing members. Adding
+   * `vibes: ["mindful-chill"]` to an entry is the whole of the change.
+   */
+  vibes?: readonly VibeSlug[];
   /**
    * A photograph of this activity, where a real one exists.
    *

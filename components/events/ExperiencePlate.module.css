@@ -1,0 +1,99 @@
+/*
+  THE PAINT STROKE — the activity plates' hover. See ExperiencePlate.tsx.
+
+  A stroke of the plate's own colour is brushed up over the foot of the
+  photograph, its top edge ragged the way a loaded flat brush leaves paint.
+  The edge is `--mask-brush` in globals.css — one shape, shared with the
+  workshop journey's swatches, stretched to whatever proportion it masks.
+
+  Why the foot and not the whole picture: a wash over the entire photograph
+  buries the thing being sold — measured against six alternatives on the real
+  activity photographs before this one was chosen. Paint along the bottom
+  edge reads as paint, keeps the subject, and lands against the name directly
+  beneath it, whose rule draws at the same moment.
+
+  Everything moves on transforms and opacity only: no layout, no filters, no
+  repaint of the photograph.
+*/
+
+.plate {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-cream);
+}
+
+.image {
+  object-fit: cover;
+  transition: transform 1200ms var(--ease-editorial);
+}
+
+.stroke {
+  position: absolute;
+  /* Past the edges, so no rounding of the plate shows a seam. */
+  inset: -3% -3% -1%;
+  background-color: var(--paint, var(--color-primary));
+  opacity: 0.88;
+  pointer-events: none;
+  transform: translate3d(0, 101%, 0);
+  transition: transform var(--duration-wash) var(--ease-editorial);
+  -webkit-mask-image: var(--mask-brush);
+  mask-image: var(--mask-brush);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  will-change: transform;
+}
+
+/*
+  Hover is wrapped so a phone cannot leave a plate painted after a tap; focus
+  paints it for a keyboard, which is how this interaction stays available
+  without a mouse.
+*/
+@media (hover: hover) {
+  :global(.group):hover .stroke {
+    transform: translate3d(0, 0, 0);
+  }
+
+  :global(.group):hover .image {
+    transform: scale(1.04);
+  }
+}
+
+:global(.group):focus-visible .stroke,
+:global(.group):focus-within .stroke {
+  transform: translate3d(0, 0, 0);
+}
+
+:global(.group):focus-within .image {
+  transform: scale(1.04);
+}
+
+/* Touch: the paint answers the finger while it is down. */
+@media (hover: none) {
+  :global(.group):active .stroke {
+    transform: translate3d(0, 18%, 0);
+  }
+}
+
+/*
+  Reduced motion: the stroke does not slide, and it does not snap into place
+  either — the global rule would otherwise cut its 620ms to nothing and make
+  it appear instantly, which is a flash rather than less motion. The plate
+  keeps the rule under its name, which is signal enough.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .stroke {
+    display: none;
+  }
+
+  .image {
+    transition: none;
+  }
+
+  :global(.group):hover .image,
+  :global(.group):focus-within .image {
+    transform: none;
+  }
+}

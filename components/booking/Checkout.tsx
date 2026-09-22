@@ -319,7 +319,7 @@ function Complete({
             "group inline-flex w-full items-center justify-center gap-2.5 rounded-sm",
             "bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow",
             "text-on-dark transition-colors duration-300 ease-soft",
-            "hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70 sm:w-auto",
+            "press-in hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70 sm:w-auto",
           )}
         >
           {submitting ? "Confirming…" : "Confirm booking"}
@@ -385,7 +385,7 @@ function EmptyCart() {
         className={cn(
           "group mt-9 inline-flex items-center justify-center gap-2.5 rounded-sm",
           "bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90",
+          "text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90",
         )}
       >
         Explore events

@@ -1,128 +1,181 @@
 import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
+import { INK } from "@/components/sections/hero/composition";
+import styles from "@/components/sections/home/CommunityMoment.module.css";
 import { Container } from "@/components/ui/Container";
-import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
-import { COMMUNITY, EVENT_PLATES, WHAT_SETS_US_APART } from "@/lib/brand";
+import { DoodleMark } from "@/components/ui/DoodleMark";
+import { COMMUNITY } from "@/lib/brand";
+import { cn } from "@/lib/utils";
 
 /**
- * Homepage 06 — the community, and the page's one immersive pause.
+ * Creating community through creativity — one screen, one claim.
  *
- * THE PAUSE. After two sections of reading and choosing, a photograph gets the
- * full width. It is held still while the page moves past it — a fixed image
- * inside a clipped frame, which gives the effect `background-attachment:
- * fixed` is usually reached for, without the property iOS ignores and every
- * browser repaints expensively. Under reduced motion it is an ordinary image.
+ * ==========================================================================
+ * IT IS THE PICTURE AND THE SENTENCE, AND NOTHING ELSE
+ * ==========================================================================
  *
- * THE WORDS ARE ON A PANEL, NOT ON THE PICTURE. The frame is a bright white
- * table, and making type legible across it would take a scrim dark enough to
- * turn it grey. So the deck's own device is used instead: a solid panel laid
- * over the imagery, overlapping the photograph's lower edge so the two read as
- * one composition.
+ * This used to carry three things: the photograph, the deck's four
+ * differentiators set as type beside the brand's marks, and a tilted collage
+ * of three event photographs. All three were good and only the first belongs
+ * on a homepage.
  *
- * THEN THE PROOF, KEPT SMALL. What sets the Maison apart is the deck's list
- * (p.11). Beside it, the three photographs on this site taken at the studio's
- * own events — hands and finished pieces, no faces; see EVENT_PLATES for why.
- * They are phone photos, so they are set as small plates and never enlarged.
+ * THE FOUR POINTS AND THE COLLAGE HAVE MOVED TO /about, at the client's ask,
+ * where <Apart> already carried the same four points from `lib/brand.ts` in a
+ * plainer arrangement — so the move replaced that arrangement rather than
+ * duplicating it, and the homepage does not now say twice what the About page
+ * says once.
+ *
+ * What is left is the strongest thing the section had: a screen-high
+ * photograph the page slides over, with the deck's heading and closing line on
+ * it. `COMMUNITY.body` — the three-sentence middle — is still not set here and
+ * is still set in full in <Community> on /about.
  */
+
 export function CommunityMoment() {
   return (
-    <section aria-labelledby="community-heading" className="relative bg-surface">
-      {/* ---- the pause ---- */}
-      <div className="relative h-[62svh] min-h-[24rem] overflow-hidden [clip-path:inset(0)] md:h-[78svh]">
-        <div className="absolute inset-0 motion-safe:fixed motion-safe:h-screen">
+    <section
+      aria-labelledby="community-heading"
+      className="relative isolate overflow-hidden bg-sage"
+    >
+      {/*
+        ==================================================================
+        THE HELD PICTURE
+        ==================================================================
+
+        HOW "FIXED" IS DONE, because the obvious way does not work here.
+        `background-attachment: fixed` is the usual answer and it stutters
+        badly under the smoothed scroll this site runs. So the picture is a
+        `position: fixed` layer the size of the window, and the band around it
+        carries `clip-path: inset(0)` — a clip establishes a containing block
+        for fixed descendants, so the layer is trimmed to exactly this band
+        while staying pinned to the viewport. The page slides over a picture
+        that never moves, and nothing is repainted as it scrolls.
+
+        `clip-path` rather than a transform for the same job: a transform on
+        the ancestor would also contain the fixed child, but it would take the
+        photograph with it and the whole point is that it holds still.
+
+        THE WORDS SIT ON THE PICTURE rather than in a panel laid over its
+        foot, and they are centred on it. Nothing is laid over the frame at
+        all now — see the module stylesheet for the three overlays that have
+        come off this band and for what holds the type up instead.
+
+        THE COPY IS SHORTER BY SELECTION, NOT BY REWRITING. The client asked
+        for it cut down. `COMMUNITY.body` — the three-sentence middle — is not
+        set here any more; the heading and the closing line are, both verbatim
+        from lib/brand.ts. Not one word of the deck's copy has been edited,
+        and the body it drops is still set in full in <Community> on /about,
+        so nothing is lost from the site.
+
+        TODO(client): the photograph is /images/hero/img.png, supplied and
+        chosen by the client. It carries C2PA content credentials signed by
+        Google LLC with `trainedAlgorithmicMedia` and a SynthID watermark —
+        it is AI-generated, and that is publicly inspectable by anyone who
+        downloads it. Flagged rather than swapped: the client asked for this
+        frame specifically. A real photograph of a Maison table would replace
+        it with a change to one `src`.
+      */}
+      {/*
+        A FULL SCREEN OF PICTURE, WITH THE WORDS ON IT.
+
+        The picture is pinned to the viewport and the section scrolls over it,
+        so the frame holds still while the page moves — `clip-path: inset(0)`
+        on the wrapper is what makes a `fixed` child stay inside this band
+        instead of covering the whole document. `motion-safe:` only: under
+        reduced motion it falls back to a normal background and the band is
+        simply a photograph.
+
+        THE BAND IS ONE VIEWPORT TALL, at the client's ask: `100svh`, the small
+        viewport height, so a phone with a retracting address bar never leaves
+        a strip of the next section showing under the picture.
+
+        THE WORDS ARE CENTRED ON THE PICTURE AND NOTHING SHADES IT. The band
+        has carried three overlays and the client has asked for each of them
+        off, the last being the ramp at the foot. There is no layer over the
+        photograph now; the type carries its own shadow instead, which darkens
+        the letters and not the frame. ./CommunityMoment.module.css has the
+        measurement and is honest about what it does and does not fix.
+
+        WORTH KNOWING BEFORE THE NEXT CHANGE: centred type lands on the two
+        faces and the white keepsake card, which are both the subject of the
+        photograph and its brightest pixels. Sampled across that middle third,
+        White Rock runs 1.32:1 at worst and 3.45:1 median against the picture.
+        The shadow makes that readable rather than compliant. If it needs to
+        be genuinely legible, the answer is a frame whose middle is dark — a
+        different crop or a different photograph — not more shadow.
+      */}
+      <div className="relative isolate [clip-path:inset(0)]">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 motion-safe:fixed">
           <Image
-            src="/images/experience/community-table.jpg"
-            alt="A long white workshop table: a hand with a fine brush over watercolour paper and an open palette, a blue fabric bag beside it, and other people's hands at work further along."
+            src="/images/hero/img.png"
+            alt=""
             fill
             sizes="100vw"
-            style={{ objectPosition: "38% 50%" }}
             className="object-cover"
+            style={{ objectPosition: "50% 42%" }}
           />
         </div>
-      </div>
 
-      <Container className="relative">
-        <Reveal className="-mt-24 ml-auto max-w-[44rem] bg-cream p-8 sm:p-10 md:-mt-40 md:p-14">
-          <Eyebrow>The Maison experience</Eyebrow>
-          <h2
-            id="community-heading"
-            className="mt-6 heading-script text-script-compact text-text"
+        {/*
+          THE WASH. Even, full-frame, and absolute rather than fixed: the
+          picture is pinned to the viewport and the words scroll, so a shade
+          pinned with the picture would let the type slide out of it on the
+          way past. Tied to the band, the two travel together.
+        */}
+        <span aria-hidden className={styles.scrim} />
+
+        <Container className="relative flex min-h-[100svh] items-center justify-center py-24">
+          <Reveal
+            delay={0.06}
+            /*
+              Centred on the picture, at the client's ask, and `text-center`
+              as well as centred as a block — a left-ragged column sitting in
+              the middle of a frame reads as misplaced rather than as placed.
+              `styles.lift` is inherited from here, so the shadow is on every
+              line of type in the block and nowhere else.
+            */
+            className={cn("w-full max-w-[34rem] text-center md:max-w-[38rem]", styles.lift)}
           >
-            {COMMUNITY.heading}.
-          </h2>
-          <p className="mt-6 text-lead leading-[1.7] text-text">{COMMUNITY.body}</p>
-          <p className="mt-6 heading-script text-[1.9rem] leading-[1.2] text-primary md:text-[2.3rem]">
-            {forScript(COMMUNITY.closer)}
-          </p>
-        </Reveal>
-      </Container>
-
-      {/* ---- what sets it apart, and the proof ---- */}
-      <Container className="py-[5rem] md:py-section lg:pb-section-lg">
-        <div className="grid grid-cols-12 gap-x-6 gap-y-14 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-6">
-            <Reveal>
-              <h3 className="text-label font-semibold uppercase tracking-eyebrow text-text">
-                What sets Maison Palettia apart
-              </h3>
-            </Reveal>
-            <ul className="mt-8 grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-              {WHAT_SETS_US_APART.map((point, i) => (
-                <li key={point.slug} className="border-t border-text/20 py-6">
-                  <Reveal delay={i * 0.06}>
-                    <p className="text-lead font-semibold leading-snug text-text">{point.name}</p>
-                    <p className="mt-2 text-body leading-[1.75] text-text/85">{point.description}</p>
-                  </Reveal>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="col-span-12 lg:col-span-5 lg:col-start-8">
-            <Reveal>
-              <h3 className="text-label font-semibold uppercase tracking-eyebrow text-text">
-                From our tables
-              </h3>
-            </Reveal>
-            {/*
-              Three plates of three shapes, arranged rather than gridded: the
-              tall one leads, the two others stack beside it. Each is sized so
-              it is never drawn wider than the phone photo it came from.
-            */}
-            <div className="mt-8 grid grid-cols-5 gap-3 sm:gap-4">
-              <Reveal variant="fadeIn" className="col-span-3 row-span-2">
-                <Plate plate={EVENT_PLATES[0]} aspect="aspect-[3/4]" sizes="(min-width: 1024px) 22vw, 56vw" />
-              </Reveal>
-              <Reveal variant="fadeIn" delay={0.08} className="col-span-2">
-                <Plate plate={EVENT_PLATES[1]} aspect="aspect-[3/4]" sizes="(min-width: 1024px) 14vw, 36vw" />
-              </Reveal>
-              <Reveal variant="fadeIn" delay={0.16} className="col-span-2">
-                <Plate plate={EVENT_PLATES[2]} aspect="aspect-square" sizes="(min-width: 1024px) 14vw, 36vw" />
-              </Reveal>
-            </div>
-            <p className="mt-4 text-fine leading-[1.6] text-text/85">
-              Pieces made at Maison Palettia workshops and activations.
+            <p className="flex items-center justify-center gap-3 text-label font-bold uppercase tracking-eyebrow text-cream">
+              {/*
+                Soft Lavender, not Deep Lilac. The mark is on Ink now rather
+                than on White Rock, and lilac on that ground is 2.7:1 — a dot
+                nobody can see. Lavender reads at 13.8:1.
+              */}
+              <span aria-hidden className="block w-4 shrink-0">
+                <DoodleMark name="dot" color={INK.lavender} />
+              </span>
+              The Maison experience
             </p>
-          </div>
-        </div>
-      </Container>
-    </section>
-  );
-}
 
-function Plate({
-  plate,
-  aspect,
-  sizes,
-}: {
-  plate: (typeof EVENT_PLATES)[number];
-  aspect: string;
-  sizes: string;
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-sm bg-cream ${aspect}`}>
-      <Image src={plate.src} alt={plate.alt} fill sizes={sizes} className="object-cover" />
-    </div>
+            {/*
+              Bigger than it was, because it is no longer boxed: a full screen
+              of photograph will swallow a 48px line. White Rock, which is the
+              pairing the banner's headline already uses.
+            */}
+            <h2
+              id="community-heading"
+              className="heading-script mx-auto mt-5 max-w-[15ch] text-[clamp(2rem,1.25rem+2.9vw,3.5rem)] leading-[1.14] text-cream"
+            >
+              {COMMUNITY.heading}
+            </h2>
+
+            {/*
+              Montserrat, at the client's ask, and right on its own terms: two
+              lines of running text belong to the text face. The heading above
+              keeps the script, which is what a display face is for.
+
+              Full strength White Rock rather than /85 — on a photograph a
+              transparent ink is a different ratio in every pixel it crosses,
+              and this one is now unshaded.
+            */}
+            <p className="mx-auto mt-5 max-w-[40ch] text-[clamp(1rem,0.95rem+0.35vw,1.1875rem)] leading-[1.7] text-cream">
+              {COMMUNITY.closer}
+            </p>
+          </Reveal>
+        </Container>
+      </div>
+    </section>
   );
 }

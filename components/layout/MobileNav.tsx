@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { BookAction } from "@/components/layout/BookAction";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { ModeMark } from "@/components/ui/ModeMark";
 import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
 import { cn } from "@/lib/utils";
+import { FindYourVibe } from "@/components/layout/FindYourVibe";
+import { VIBES, experiencesByVibe, hasVibeTags, type VibeSlug } from "@/lib/vibes";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { NavItem } from "@/types";
 
@@ -71,6 +73,35 @@ export function MobileNav({
   isActive,
 }: MobileNavProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+
+  /*
+    Same contract as the desktop panel: null means unfiltered, so the menu a
+    visitor opens is always the studio's full structure until they choose a
+    mood. Reset whenever the menu reopens, alongside the reveal — a filter left
+    over from a previous visit would silently hide activities.
+  */
+  const [vibe, setVibe] = useState<VibeSlug | null>(null);
+  /*
+    Reset during render rather than in an effect — React's own pattern for
+    adjusting state when a prop changes, and the one the lint rule is pointing
+    at. An effect would paint the stale filter for a frame first, and the
+    menu opens with a clip-path reveal, so that frame is visible.
+  */
+  const [lastOpenCount, setLastOpenCount] = useState(openCount);
+  if (lastOpenCount !== openCount) {
+    setLastOpenCount(openCount);
+    setVibe(null);
+  }
+
+  const vibeCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        VIBES.map((entry) => [entry.slug, experiencesByVibe(experiences, entry.slug).length]),
+      ) as Record<VibeSlug, number>,
+    [experiences],
+  );
+
+  const shortlist = vibe ? experiencesByVibe(experiences, vibe) : experiences;
   // A route change from inside the overlay should close it. The links call
   // `onClose` directly, but a browser back/forward while it is open would
   // otherwise leave it covering the page it returned to.
@@ -96,8 +127,9 @@ export function MobileNav({
       - focus returns to the trigger when it closes, so nobody is dropped at
         the top of the document.
 
-    The panel is `hidden` when closed, so its contents are out of the tab order
-    on their own — this only has to hold the boundary while it is open.
+    The panel is `inert` when closed, so its contents are out of the tab order
+    and out of the accessibility tree on their own — this only has to hold the
+    boundary while it is open.
   */
   useEffect(() => {
     const panel = panelRef.current;
@@ -150,7 +182,29 @@ export function MobileNav({
   return (
     <div
       id={id}
-      hidden={!isOpen}
+      /*
+        THE ABRUPT DROPDOWN, WHICH IS WHAT THIS USED TO BE.
+
+        The panel was `hidden` when closed — `display: none` — and there is no
+        transition between that and a laid-out box. So the whole surface
+        appeared in one frame, fully formed, and only its contents animated:
+        the client's note was exactly right, and this was the thing it was
+        about.
+
+        It is `inert` now instead, which takes it out of the tab order, out of
+        the accessibility tree and out of reach of a pointer without ever
+        removing it from the layout — so there is something for CSS to animate
+        between. What it animates is the same gesture the two mega-menus make:
+        the surface drawn down from under the bar with a clip, at the same
+        520ms and the same easing, leaving in the same faster 240. Three ways
+        into the navigation, one movement, whatever the width.
+
+        `visibility` is in the transition list on purpose. It interpolates
+        discretely but stays at `visible` for the whole of a transition that
+        starts there, so the panel is still drawn while it is wiping away and
+        is properly hidden — not merely transparent — once it has gone.
+      */
+      inert={!isOpen}
       /*
         Lenis listens for wheel and touch on the window with `passive: false`
         and calls `preventDefault()` on anything it decides to handle — which
@@ -173,7 +227,17 @@ export function MobileNav({
       data-lenis-prevent
       ref={panelRef}
       aria-label="Site menu"
-      className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface md:top-[var(--spacing-header-lg)] lg:hidden"
+      className={cn(
+        "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface",
+        "md:top-[var(--spacing-header-lg)] lg:hidden",
+        // See <SearchPanel> for why this is `ease-soft` and not
+          // `ease-editorial`: the quintic curve spent five sixths of its
+          // time on the last few per cent of the travel.
+          "transition-[clip-path,opacity,visibility] ease-soft motion-reduce:transition-none",
+        isOpen
+          ? "visible opacity-100 duration-[520ms] [clip-path:inset(0_0_0_0)]"
+          : "invisible opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
+      )}
     >
       {/* Keyed so the reveal below runs again every time the menu is opened. */}
       <div key={openCount} className="px-gutter pb-16 pt-10">
@@ -182,14 +246,33 @@ export function MobileNav({
           A compact list rather than a grid of plates: seven activities as
           plates ran to four screens of scrolling before the rest of the menu.
         */}
-        <nav aria-label="Experiences">
+        {/*
+          THE SAME DISCOVERY LAYER AS THE DESKTOP PANEL, and deliberately the
+          same component — a phone visitor should not get a lesser version of
+          the idea, and two implementations of one filter is how they drift.
+
+          Tap rather than hover, which it already is: these are buttons, and
+          the chips filter the two lists underneath exactly as they do on the
+          desktop. Nothing is behind an accordion here because the row is three
+          chips and a line, and hiding that behind a disclosure would cost more
+          taps than it saves screen.
+        */}
+        {/* Not drawn while every vibe is empty — see the note in
+            <WorkshopsMenu>, which this panel mirrors exactly. */}
+        {hasVibeTags(experiences) ? (
+          <div className="animate-rise" style={riseDelay(0)}>
+            <FindYourVibe counts={vibeCounts} selected={vibe} onSelect={setVibe} size="compact" />
+          </div>
+        ) : null}
+
+        <nav aria-label="Experiences" className="mt-9">
           {(
             [
               { mode: "diy", title: "Walk-in DIY" },
               { mode: "scheduled", title: "Scheduled sessions" },
             ] as const
           ).map((group, gi) => {
-            const items = experiences.filter((e) => e.kind === group.mode);
+            const items = shortlist.filter((e) => e.kind === group.mode);
             if (items.length === 0) return null;
             return (
               <div key={group.mode} className={gi > 0 ? "mt-9" : undefined}>

@@ -67,6 +67,27 @@ export function onScrollFrame(handler: () => void): () => void {
  * when the reader has asked for reduced motion — a smoothed scroll of the
  * whole page is exactly the kind of movement that setting is asking to stop.
  */
+/**
+ * Send the page to a position, by whichever means is in charge.
+ *
+ * The same hand-off `scrollToTop` makes, for a caller that knows where it
+ * wants to land — the seasonal section jumps to the step belonging to the
+ * occasion that was clicked. A bare `window.scrollTo` would be dragged back by
+ * Lenis on the next frame.
+ */
+export function scrollToY(top: number): void {
+  const reduced =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (scroller && !reduced) {
+    scroller.scrollTo(top);
+    return;
+  }
+
+  window.scrollTo({ top, behavior: reduced ? "auto" : "smooth" });
+}
+
 export function scrollToTop(): void {
   const reduced =
     typeof window !== "undefined" &&

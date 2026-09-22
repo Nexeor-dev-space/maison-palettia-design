@@ -156,7 +156,13 @@ export function Hero() {
               className={cn(
                 styles.reveal,
                 styles.sub,
-                "mx-auto mt-1.5 max-w-[42rem] text-[clamp(1.1875rem,1rem+0.72vw,1.625rem)] leading-[1.5] md:mt-2",
+                // `script-lede` rather than a margin of its own: the gap
+                // between a script heading and the sans under it is one
+                // decision, made in globals.css, and this is the line the
+                // client was looking at when they asked for it. It was
+                // `mt-1.5 md:mt-2` — 6px under an 85px script whose
+                // descenders already hang 24px into that gap.
+                "script-lede mx-auto max-w-[42rem] text-[clamp(1.1875rem,1rem+0.72vw,1.625rem)] leading-[1.5]",
               )}
               style={delay(260)}
             >
@@ -173,8 +179,14 @@ export function Hero() {
             </p>
 
             <div data-hero-actions className={styles.actions}>
+              {/* The banner stands on the photograph, not on Light Sage, so it
+                  takes the brand's own Light Sage flood. It was briefly `deep`
+                  on a bad measurement: the probe sampled the ground here while
+                  <HeroIntro> was still covering the banner, and read the
+                  intro's own sage backdrop instead of the picture. */}
               <BlobButton
                 href="/events"
+                tone="sage"
                 className="min-h-[3.75rem] px-9 shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)]"
               >
                 Explore experiences

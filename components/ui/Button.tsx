@@ -31,9 +31,14 @@ const shapeStyles: Record<ButtonShape, string> = {
   square: "rounded-none",
 };
 
+/*
+  Every button presses. It is one pixel and 120ms — the smallest amount of
+  travel that still reads as contact, and the client has twice ruled out
+  anything that bounces or scales.
+*/
 const base =
-  "inline-flex items-center justify-center gap-2 font-medium " +
-  "transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] " +
+  "press-in inline-flex items-center justify-center gap-2 font-medium " +
+  "transition-colors duration-200 ease-soft " +
   "disabled:pointer-events-none disabled:opacity-50";
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -51,7 +56,11 @@ const variantStyles: Record<ButtonVariant, string> = {
   /* Charcoal Slate hairline and Charcoal Slate label, per the brand's
      secondary button. The ring was the pale White Rock line before, which read
      as a disabled control rather than as the quieter of two actions. */
-  secondary: "bg-transparent text-text ring-1 ring-inset ring-text/35 hover:bg-cream hover:ring-text/60",
+  /* The quiet buttons take the sweep rather than a flat colour swap: the fill
+     arrives from the left, the direction everything else on the site moves
+     in. `--sweep` names the colour from the palette. */
+  secondary:
+    "action-sweep [--sweep:var(--color-cream)] bg-transparent text-text ring-1 ring-inset ring-text/35 hover:ring-text/60",
   ghost: "bg-transparent text-text hover:text-primary",
   /**
    * For a saturated or dark ground, where `primary` would vanish. Colours are

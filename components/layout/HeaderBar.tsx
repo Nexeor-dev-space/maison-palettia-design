@@ -697,6 +697,7 @@ export function HeaderBar({
         onClose={closeSearch}
         triggerRef={searchTriggerRef}
         workshops={workshops}
+        experiences={experiences}
       />
     </header>
 

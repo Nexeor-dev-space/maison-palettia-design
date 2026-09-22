@@ -42,6 +42,24 @@ export const TAGLINE = "A palette of creativity for everyone";
 export const BRAND_STORY =
   "Maison Palettia is a creative lifestyle brand inspired by the word “Palette” — a symbol of colour, expression, and imagination. Blending elegance with playfulness, the brand celebrates creativity, mindfulness, and meaningful human connection, encouraging people to slow down, unplug, and embrace the art of intentional living.";
 
+/*
+  THE SAME SENTENCE, TYPESET.
+
+  The homepage opens on the brand story as an editorial spread rather than a
+  paragraph, which means the sentence has to be set in parts: a lead-in, the
+  one word the brand is named for, and the clause that defines it. These are
+  `BRAND_STORY` cut at its own punctuation and nothing else — read them in
+  order and you have the deck's sentence back, word for word. Anything written
+  here that is not in `BRAND_STORY` is a bug.
+*/
+export const BRAND_STORY_SET = {
+  leadIn: "Maison Palettia is a creative lifestyle brand inspired by the word",
+  word: "Palette",
+  defines: "a symbol of colour, expression, and imagination.",
+  carries:
+    "Blending elegance with playfulness, the brand celebrates creativity, mindfulness, and meaningful human connection, encouraging people to slow down, unplug, and embrace the art of intentional living.",
+} as const;
+
 /** Deck p.3, as assigned by the redesign brief — see the TODO above. */
 export const MISSION = "To inspire meaningful connections through the joy of creativity.";
 

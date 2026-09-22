@@ -44,6 +44,10 @@ export function ModeMark({
       className={cn(
         "inline-block size-2.5 shrink-0 rounded-pill",
         mode === "diy" ? "border-[1.5px]" : "",
+        // Pressed on when the card it labels is hovered: the smallest member
+        // of the tactile system, and the one that repeats most often.
+        "transition-transform duration-[var(--duration-press)] ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+        "motion-safe:group-hover:scale-125 motion-safe:group-focus-within:scale-125",
         ink,
         className,
       )}

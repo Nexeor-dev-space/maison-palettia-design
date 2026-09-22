@@ -35,15 +35,26 @@ export function inkFor(ground: Ground) {
 export function Eyebrow({
   children,
   ground = "light",
+  as: Tag = "p",
+  id,
   className,
 }: {
   children: React.ReactNode;
   ground?: Ground;
+  /**
+   * A paragraph by default, because an eyebrow is usually a label over a
+   * heading. Where the eyebrow IS the section's heading — a section whose
+   * content is a list rather than a statement — pass "h2" and an `id`, so
+   * `aria-labelledby` has something real to point at.
+   */
+  as?: "p" | "h2" | "h3";
+  id?: string;
   className?: string;
 }) {
   const ink = INK[ground];
   return (
-    <p
+    <Tag
+      id={id}
       className={cn(
         "flex items-center gap-4 text-label font-semibold uppercase tracking-eyebrow",
         ink.text,
@@ -52,7 +63,7 @@ export function Eyebrow({
     >
       <span aria-hidden className={cn("h-px w-8 shrink-0 md:w-10", ink.rule)} />
       {children}
-    </p>
+    </Tag>
   );
 }
 
@@ -120,6 +131,7 @@ export function DisplayHeading({
   id,
   lines,
   ground = "light",
+  tone = "ink",
   size = "section",
   as: Tag = "h2",
   className,
@@ -127,13 +139,33 @@ export function DisplayHeading({
   id?: string;
   lines: readonly string[];
   ground?: Ground;
+  /**
+   * Which ink, within the ground's own pairing.
+   *
+   *   ink ...... the ground's reading colour. The default, and right for a
+   *              statement that is the section's main voice.
+   *   accent ... Deep Lilac, for a statement set as a brand moment rather
+   *              than as a heading. Only offered on `light`: on the lilac
+   *              ground it would be invisible, and on a dark one it measures
+   *              3.02:1 — under the 3:1 even large text owes.
+   *
+   * IT IS A PROP RATHER THAN SOMETHING A CALLER PASSES IN `className`, and
+   * that is a bug fix. `cn` is plain concatenation — "we only need
+   * concatenation, not Tailwind conflict resolution", per lib/utils — so a
+   * `text-primary` handed in through `className` does not override the ink
+   * chosen here. The two utilities have equal specificity and the stylesheet's
+   * own order decides, which meant a caller asking for the accent silently
+   * got charcoal with `text-primary` sitting in the class list doing nothing.
+   */
+  tone?: "ink" | "accent";
   size?: keyof typeof SIZES;
   as?: "h1" | "h2" | "h3";
   className?: string;
 }) {
   const ink = INK[ground];
+  const color = tone === "accent" && ground === "light" ? "text-primary" : ink.text;
   return (
-    <Tag id={id} className={cn("heading-script", SIZES[size], ink.text, className)}>
+    <Tag id={id} className={cn("heading-script", SIZES[size], color, className)}>
       <Stagger>
         {lines.map((line, i) => (
           <span key={line} className="script-mask">

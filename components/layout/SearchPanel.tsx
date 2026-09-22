@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
 
 import { WORKSHOPS_HREF } from "@/lib/constants";
-import { getPopularSearches, searchWorkshops } from "@/lib/search";
+import { getPopularSearches, searchExperiences, searchWorkshops } from "@/lib/search";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { useMediaQuery } from "@/lib/useMediaQuery";
@@ -21,6 +21,7 @@ import {
   workshopHref,
 } from "@/lib/workshops";
 import { cn } from "@/lib/utils";
+import type { CreativeExperience } from "@/lib/experiences";
 import type { Workshop } from "@/types";
 
 /** Cards shown at once. The brief's own instruction — do not overwhelm — set
@@ -48,6 +49,15 @@ interface SearchPanelProps {
    * check — see the note on that effect below. */
   triggerRef: RefObject<HTMLButtonElement | null>;
   workshops: Workshop[];
+  /**
+   * The studio's approved activities.
+   *
+   * Search indexed the schedule alone until now, and the schedule is two
+   * dates — so five of the seven things the Maison does could not be found by
+   * name. The header already holds this list for the Experiences menu, so it
+   * costs one prop rather than a second fetch.
+   */
+  experiences: readonly CreativeExperience[];
 }
 
 /**
@@ -89,9 +99,68 @@ interface SearchPanelProps {
  * every time they open search, without this component reaching into a ref to
  * force the reset by hand.
  */
-export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, workshops }: SearchPanelProps) {
+export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, workshops, experiences }: SearchPanelProps) {
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  /*
+    MOUNTED ON THE FIRST OPEN, AND NEVER BEFORE.
+
+    <SearchExperience> focuses its input the instant it mounts — mounting and
+    opening are the same event for a component that only exists because
+    someone asked for search. That held while the panel was toggled with
+    `hidden`, because `.focus()` on a `display: none` element does nothing at
+    all, so the effect ran on every page load and quietly failed.
+
+    The panel is animated now, which means it stays displayed while it is
+    closed — and that same effect would fire for real, dropping the caret into
+    a search box nobody opened and scrolling the page up to it. So the
+    contents are gated: nothing mounts until the first open, and after that
+    they stay, which is also what gives every later open a transition to run.
+
+    ONE FRAME LATER, ON PURPOSE. A transition needs two states in two frames,
+    and on the first open the contents mount in the same commit that opens
+    them — setting the open classes there would paint them already open with
+    nothing to animate. Two nested frames is the reliable version of "once
+    this has been laid out and painted"; one is enough in Chrome and not in
+    every engine. <useMenuDisclosure> waits the same two frames for the two
+    megamenus, for the same reason.
+
+    `ready` is the whole state this needs, and it is one-way: it says the
+    panel has been through a first open and is laid out. Everything else
+    falls out of it and the `isOpen` the header owns, which is why neither
+    flag below is state of its own — deriving them is what keeps this out of
+    an effect that writes state on every open and close.
+  */
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || ready) return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setReady(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [isOpen, ready]);
+
+  /** Rendered from the first open onward — see above. */
+  const mounted = isOpen || ready;
+  /** The visual state: open, and laid out at least one frame ago. */
+  const shown = isOpen && ready;
+
+  /*
+    The rise the contents make into the drawn panel, held back far enough that
+    the surface is most of the way down before the words start arriving. The
+    two megamenus stagger a grid of rows across this beat; search has one
+    column, so it is a single move.
+  */
+  const RISE =
+    "transition-[opacity,translate] duration-[460ms] ease-editorial motion-reduce:transition-none " +
+    "[transition-delay:120ms]";
+  const riseState = shown ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0";
 
   // Escape closes on both shapes. The brief calls this out for the desktop
   // overlay specifically; there is no reason the full-screen one should
@@ -148,18 +217,44 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       <div
         id={id}
         ref={panelRef}
-        hidden={!isOpen}
+        // `inert`, not `hidden`. `hidden` is `display: none`, which is not a
+        // state anything can animate between — the overlay arrived fully
+        // formed in one frame and left the same way. `inert` takes the closed
+        // panel out of the tab order and out of the accessibility tree while
+        // leaving it something a transition can move.
+        inert={!isOpen}
         data-lenis-prevent
         // `top-header md:top-header-lg`, not the resting height alone — the
         // header itself is 80px at rest and 104px from `md`, and this has to
         // clear whichever one is actually on screen or it either overlaps the
         // bar or leaves a strip of the page showing under it. See the same
         // pair on <MobileNav>, which this is positioned to match exactly.
-        className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface md:top-[var(--spacing-header-lg)]"
+        className={cn(
+          "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface md:top-[var(--spacing-header-lg)]",
+          // The mobile navigation's own reveal, to the millisecond. These two
+          // overlays occupy the same rectangle and a visitor should not be
+          // able to tell from the movement which one they opened — see the
+          // note at the top of this file on why they share their chrome.
+          // `visibility` is in the list so the closed panel stops being a
+          // scroll container, and transitions discretely: it stays `visible`
+          // for the whole of the 240ms exit and only then goes.
+          // `ease-soft` for the same reason as the desktop shape below.
+          "transition-[clip-path,opacity,visibility] ease-soft motion-reduce:transition-none",
+          shown
+            ? "visible opacity-100 duration-[520ms] [clip-path:inset(0_0_0_0)]"
+            : "invisible opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
+        )}
       >
-        <div className="animate-rise px-gutter pb-16 pt-10">
-          <SearchExperience key={openCount} onClose={onClose} workshops={workshops} />
-        </div>
+        {mounted ? (
+          <div className={cn("px-gutter pb-16 pt-10", RISE, riseState)}>
+            <SearchExperience
+              key={openCount}
+              onClose={onClose}
+              workshops={workshops}
+              experiences={experiences}
+            />
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -168,14 +263,112 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
     <div
       id={id}
       ref={panelRef}
-      hidden={!isOpen}
-      className="absolute inset-x-0 top-full border-t border-text/10 bg-surface"
+      // See the note on the full-screen shape above for why this is `inert`
+      // and not `hidden`.
+      inert={!isOpen}
+      className={cn(
+        "absolute inset-x-0 top-full overflow-hidden bg-surface",
+        // The hairline at the top is the bar's own. The Deep Lilac line along
+        // the bottom is the drawer's edge, and it is the reason the reveal
+        // reads at all: this panel's ground is `--color-surface`, which is
+        // thirty per cent sage in white and very close to the page behind it,
+        // so a wipe of one pale field over another has nothing to show for
+        // itself. The lip travels down with the clip and draws the movement.
+        // The same two borders <WorkshopsMenu> and <PrivateEventsMenu> carry.
+        "border-t border-t-text/10",
+        /*
+          THE SAME DRAWER THE TWO MEGAMENUS OPEN.
+
+          Search was the last panel in this bar that simply switched on: the
+          ground appeared in one frame and the contents played a mount
+          keyframe over the top of it, and closing was a single frame with no
+          movement at all. It now draws down from under the bar like
+          <WorkshopsMenu> and <PrivateEventsMenu>, on their timings, so the
+          three things that can drop out of this header are one gesture rather
+          than three ideas about what a menu is.
+
+          The durations are per-property in the order the list names them:
+          clip-path 520ms, opacity 0ms. Opaque from the first frame on the way
+          down — a panel that fades while it wipes is a translucent sheet
+          being switched on over the page, with the hero showing through it,
+          which is the thing that read as abrupt. On the way out one `duration`
+          covers both at 240: going up, it is better to simply stop being
+          there than to eat the content from below.
+        */
+        /*
+            THE CURVE, NOT THE DURATION, IS WHAT READ AS ABRUPT.
+
+            This used to be `ease-editorial` — cubic-bezier(0.22, 1, 0.36, 1),
+            a quintic ease-out. Measured on the real panel, it puts the wipe
+            about 85% of the way down in the first third of its 520ms and then
+            spends the remaining 350ms covering the last few per cent. So the
+            eye sees a surface snap most of the way and then a tail it cannot
+            perceive at all: nominally half a second, actually about 150ms of
+            movement. That is the abruptness, and no amount of extra duration
+            fixes it, because the duration was never being spent where it
+            showed.
+
+            `ease-soft` is cubic-bezier(0.4, 0, 0.2, 1), which reaches half its
+            distance at half its time and still lands softly. The same 520ms
+            now travels for the whole 520ms.
+
+            The quintic curve stays on the rows' own rise below: a 12px move
+            wants to arrive and settle, and it is riding on top of this.
+          */
+          "transition-[clip-path,opacity] ease-soft motion-reduce:transition-none",
+        shown
+          ? "opacity-100 [transition-duration:520ms,0ms] [clip-path:inset(0_0_0_0)]"
+          : "opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
+        // The clipped panel is still laid out, so it would still catch a
+        // click over the top of the page behind it.
+        isOpen ? null : "pointer-events-none",
+      )}
     >
-      <div className="mx-auto w-full animate-rise px-gutter py-12 lg:py-14">
-        <div className="mx-auto max-w-[36rem]">
-          <SearchExperience key={openCount} onClose={onClose} workshops={workshops} />
+      {/*
+        THE DRAWER'S EDGE, WHICH THE PANEL CANNOT DRAW FOR ITSELF.
+
+        The bottom border used to sit on the panel, and the note beside it
+        claimed the line travelled down with the reveal. Photographed, it
+        does not: `clip-path: inset(0 0 X% 0)` clips the element's own
+        bottom border away for the whole of the wipe, so the line only
+        appears in the final frame. What a visitor actually saw was menu
+        text arriving over page text with no boundary between them — on
+        /about the panel's ground (`--color-surface`, thirty per cent sage
+        in white) is the same colour as the page behind it, so there was
+        nothing to mark where the menu ended. That, not the speed, is what
+        reads as abrupt.
+
+        So the edge is its own element. It is pinned to the top of the panel
+        and its `bottom` travels from 100% to 0 on the same duration and the
+        same curve as the clip, which keeps its 2px underside exactly on the
+        clip's edge for every frame. A line drawn down the page with the
+        menu filling in behind it is a drawer being pulled open.
+
+        Percentages both ends, and `bottom` rather than `height`: an
+        absolutely positioned box resolves them against its containing
+        block's padding box, which is this panel and is definite. A `height`
+        of 100% would resolve against a content-sized parent and collapse.
+      */}
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 border-b-2 border-b-primary/30",
+          "transition-[bottom] ease-soft motion-reduce:transition-none",
+          shown ? "[bottom:0%] duration-[520ms]" : "[bottom:100%] duration-[240ms]",
+        )}
+      />
+      {mounted ? (
+        <div className={cn("mx-auto w-full px-gutter py-12 lg:py-14", RISE, riseState)}>
+          <div className="mx-auto max-w-[36rem]">
+            <SearchExperience
+              key={openCount}
+              onClose={onClose}
+              workshops={workshops}
+              experiences={experiences}
+            />
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -197,7 +390,15 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
  * asked for — mounting and opening are the same event for a component that
  * only ever mounts because someone opened it.
  */
-function SearchExperience({ onClose, workshops }: { onClose: () => void; workshops: Workshop[] }) {
+function SearchExperience({
+  onClose,
+  workshops,
+  experiences,
+}: {
+  onClose: () => void;
+  workshops: Workshop[];
+  experiences: readonly CreativeExperience[];
+}) {
   const headingId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -207,7 +408,15 @@ function SearchExperience({ onClose, workshops }: { onClose: () => void; worksho
   const trimmedQuery = debouncedQuery.trim();
 
   const results = useMemo(() => searchWorkshops(workshops, debouncedQuery), [workshops, debouncedQuery]);
-  const popularSearches = useMemo(() => getPopularSearches(workshops), [workshops]);
+  const activityResults = useMemo(
+    () => searchExperiences(experiences, debouncedQuery),
+    [experiences, debouncedQuery],
+  );
+  const popularSearches = useMemo(
+    () => getPopularSearches(workshops, experiences),
+    [workshops, experiences],
+  );
+  const nothingFound = results.length === 0 && activityResults.length === 0;
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -263,10 +472,28 @@ function SearchExperience({ onClose, workshops }: { onClose: () => void; worksho
       <div className="mt-8 lg:mt-10" aria-live="polite">
         {trimmedQuery === "" ? (
           <PopularSearches terms={popularSearches} onPick={setQuery} />
-        ) : results.length === 0 ? (
+        ) : nothingFound ? (
           <NoResults onNavigate={onClose} />
         ) : (
-          <ResultList workshops={results.slice(0, RESULT_LIMIT)} onNavigate={onClose} />
+          /*
+            DATES FIRST, THEN ACTIVITIES, and the order is the answer to two
+            different questions. A query that matches a session is answered
+            best by the session — it has a date, a price and a seat count. A
+            query that matches only an activity is answered by the activity's
+            own page, which is where a walk-in belongs because there is nothing
+            to book. Whichever list is empty simply does not render.
+          */
+          <div className="space-y-10">
+            {results.length > 0 ? (
+              <ResultList workshops={results.slice(0, RESULT_LIMIT)} onNavigate={onClose} />
+            ) : null}
+            {activityResults.length > 0 ? (
+              <ActivityResults
+                experiences={activityResults.slice(0, RESULT_LIMIT)}
+                onNavigate={onClose}
+              />
+            ) : null}
+          </div>
         )}
       </div>
     </>
@@ -334,6 +561,12 @@ function NoResults({ onNavigate }: { onNavigate: () => void }) {
 
 function ResultList({ workshops, onNavigate }: { workshops: Workshop[]; onNavigate: () => void }) {
   return (
+    <>
+    {/* Labelled now that activities can follow underneath: two unlabelled
+        lists of links read as one list that changes shape halfway down. */}
+    <p className="mb-4 text-label font-medium uppercase tracking-eyebrow text-text/75">
+      Sessions with dates
+    </p>
     <ul className="flex flex-col gap-6 lg:gap-5">
       {workshops.map((workshop) => (
         <li key={workshop.slug}>
@@ -341,6 +574,56 @@ function ResultList({ workshops, onNavigate }: { workshops: Workshop[]; onNaviga
         </li>
       ))}
     </ul>
+    </>
+  );
+}
+
+/**
+ * Activities that matched, as names rather than as dated rows.
+ *
+ * NO DATE, NO PRICE, NO SEAT COUNT — because a walk-in activity has none of
+ * those, and inventing a shape for it that looks like a session would be
+ * telling a visitor there is something to book when there is not. Each row is
+ * the activity's name, its one line where the studio has written one, and how
+ * you take part. The link goes to the activity's own page, which is the same
+ * destination the Experiences menu uses.
+ */
+function ActivityResults({
+  experiences,
+  onNavigate,
+}: {
+  experiences: readonly CreativeExperience[];
+  onNavigate: () => void;
+}) {
+  return (
+    <div>
+      <p className="mb-4 text-label font-medium uppercase tracking-eyebrow text-text/75">
+        Activities
+      </p>
+      <ul className="flex flex-col gap-5">
+        {experiences.map((experience) => (
+          <li key={experience.slug}>
+            <Link
+              href={`/events/${experience.slug}`}
+              onClick={onNavigate}
+              className="group flex items-baseline justify-between gap-5 border-b border-line pb-4 transition-colors duration-200 ease-soft hover:border-primary"
+            >
+              <span className="min-w-0">
+                <span className="block text-body font-light text-text">{experience.name}</span>
+                {experience.description ? (
+                  <span className="mt-1 block text-fine leading-[1.6] text-text/75">
+                    {experience.description}
+                  </span>
+                ) : null}
+              </span>
+              <span className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/70">
+                {experience.kind === "diy" ? "Walk-in" : "Scheduled"}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

@@ -90,14 +90,22 @@ export function EventCard({
   return (
     <article
       className={cn(
-        "group relative flex flex-col",
+        "group press-in relative flex flex-col",
+        // The tile lifts as one object — picture, chip and type together —
+        // rather than the picture moving inside a card that stays put. That
+        // is the "layered" reading: everything on the tile answers, each by a
+        // different amount. Transform only, so nothing in the grid reflows.
+        "transition-transform duration-[var(--duration-hover)] ease-editorial",
+        "motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-within:-translate-y-1",
         // A sold-out date stays in the grid and stays readable — it is still
         // information — but it stops competing with the ones that can be had.
         closed && "opacity-75",
         className,
       )}
     >
-      <div className="relative">
+      {/* The pointer becomes a dab of Deep Lilac over the picture — the same
+          mark the activity plates use. See <CursorLayer>. */}
+      <div className="relative" data-paint style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}>
         <WorkshopPhoto
           image={workshop.image}
           aspect="aspect-[3/2]"
@@ -115,6 +123,10 @@ export function EventCard({
             className={cn(
               "absolute left-3 top-3 rounded-sm px-3 py-1.5 text-label font-medium uppercase tracking-eyebrow",
               closed ? "bg-text text-on-dark" : "bg-primary text-on-primary",
+              // A few pixels more than the tile, so the two read as separate
+              // layers rather than as one flat picture.
+              "transition-transform duration-[var(--duration-hover)] ease-editorial",
+              "motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5",
             )}
           >
             {spotsLabel(workshop)}
@@ -140,7 +152,11 @@ export function EventCard({
             href={workshopHref(workshop)}
             className="after:absolute after:inset-0"
           >
-            <span className="bg-gradient-to-r from-primary to-primary bg-[length:0%_1px] bg-left-bottom bg-no-repeat pb-1 transition-[background-size] duration-500 ease-editorial group-hover:bg-[length:100%_1px] group-focus-within:bg-[length:100%_1px]">
+            {/* `ink-rule` is the site's single underline — the navbar's
+                gesture, defined once in globals.css. It replaced a
+                background-size trick that did the same thing a third slower
+                and only here. */}
+            <span className="ink-rule" style={{ "--rule": "var(--color-primary)" } as React.CSSProperties}>
               {workshop.title}
             </span>
           </Link>

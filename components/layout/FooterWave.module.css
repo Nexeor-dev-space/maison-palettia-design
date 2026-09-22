@@ -1,0 +1,60 @@
+/*
+  THE WAVE ON THE FOOTER'S TOP EDGE — see FooterWave.tsx.
+
+  ==========================================================================
+  IT IS DRAWN AT THE FOOT OF <main>, AND IT HAS TO BE
+  ==========================================================================
+
+  <FooterReveal> pins the footer BEHIND <main>, and main carries an opaque
+  background — that is what hides the footer for the whole of the page. Main's
+  bottom border edge lands exactly on the footer's top edge, so anything the
+  footer paints ABOVE that line is covered by main and never seen.
+
+  The wave is the footer's own White Rock carried up over that line, so it has
+  to be on main's side of it. Filled with the footer's colour and meeting the
+  footer on a seam that cannot be found — both sides of it are the same colour
+  — what reads is the footer's background with a wavy top.
+
+  THIS MOVED BACK OUT OF THE FOOTER. The version before it kept a Deep Lilac
+  band inside the footer: straight along the top, wavy along the bottom, so the
+  section above could keep a flat bottom and the footer still had a wavy top.
+  The client has taken the purple out, and without a band there is nothing
+  between the two — one edge again, belonging to both.
+
+  WHICH IS A TRADE, AND IT IS WORTH WRITING DOWN. Only two colours in the
+  palette have 3:1 against BOTH the Light Sage above and the White Rock below:
+  Deep Lilac (3.83 and 3.95) and Charcoal Slate (7.6 and 9.36). Warm Terracotta
+  is 2.36 and 2.44, Soft Lavender 1.40 and 1.44, Light Sage against White Rock
+  1.03. So a separating band can only be purple or charcoal; anything else is
+  too close in value to hold two edges apart. With no band, the section's
+  bottom and the footer's top are the same line and cannot be given different
+  shapes.
+
+  The cream-on-sage edge itself reads fine despite measuring 1.03:1 — that is a
+  LUMINANCE figure, and these two differ in hue rather than in lightness. A
+  large decorative shape reads on hue; a hairline or a line of type would not,
+  which is why nothing here is either.
+*/
+.wave {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  /* The SVG is `preserveAspectRatio: none`, so this height IS the amplitude. */
+  height: 2.75rem;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .wave {
+    height: 3.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wave {
+    height: 4.5rem;
+  }
+}

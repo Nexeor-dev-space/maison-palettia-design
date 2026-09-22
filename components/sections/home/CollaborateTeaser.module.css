@@ -1,0 +1,68 @@
+/*
+  THE THREE WAYS IN, AS A HAND OF SWATCH CARDS —
+  see CollaborateTeaser.tsx.
+
+  Two rules and nothing else: a card is set down a degree or two off square,
+  and a dab of paint sits above its name. Everything else in the section is
+  type on the page.
+
+  WHY A MODULE AND NOT UTILITIES. The dab is a mask over a flat colour —
+  `--mask-brush` in globals.css, the one loaded-brush edge already shared by the
+  activity plates and the workshop journey — and a mask needs four declarations
+  with their -webkit- twins. That is a stylesheet's job. No colour is written
+  here: `--paint` arrives from the component, which takes it from lib/paint.ts,
+  so the only colours that can reach this file are the approved four.
+*/
+
+/*
+  THE TILT IS PER CARD AND FIXED, which is the same argument the journey's
+  swatches make: three cards at one angle read as a template that has been
+  knocked, and three set down slightly differently read as paper somebody put
+  there.
+
+  It is a static transform rather than an animation, so reduced motion keeps
+  it — what that reader gives up is the travel on hover, not the composition.
+*/
+.card {
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 520ms var(--ease-editorial);
+}
+
+@media (hover: hover) {
+  /*
+    The card squares up and lifts a hair: a stack being straightened, not a
+    tile inflating. Nothing in the card is a link, so this is decoration for a
+    pointer and owes no focus state.
+  */
+  .card:hover {
+    transform: rotate(0deg) translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card:hover {
+    transform: rotate(var(--tilt, 0deg));
+    transition: none;
+  }
+}
+
+/*
+  The dab: a swatch of paint above the name, the way a chip is tested.
+
+  `scaleY(-1)` turns the brush so its ragged edge is at the foot — paint laid
+  down and drying downward, the same way round as the journey's swatches. The
+  size is set at the call site and is the journey's: much wider and the brush
+  edge stretches out of sight, which is the note that file already carries.
+*/
+.dab {
+  display: block;
+  background-color: var(--paint, var(--color-primary));
+  transform: scaleY(-1) rotate(var(--tilt, 0deg));
+  -webkit-mask-image: var(--mask-brush);
+  mask-image: var(--mask-brush);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}

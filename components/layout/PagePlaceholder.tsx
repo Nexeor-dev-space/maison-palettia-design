@@ -18,9 +18,6 @@ export function PagePlaceholder({ title, phase }: PagePlaceholderProps) {
   return (
     <Container as="section" className="py-section">
       <Stagger>
-        <Reveal>
-          <p className="text-action uppercase tracking-eyebrow text-muted">Maison Palettia</p>
-        </Reveal>
         <Reveal variant="subtleReveal">
           <h1 className="mt-4 text-4xl md:text-6xl">{title}</h1>
         </Reveal>

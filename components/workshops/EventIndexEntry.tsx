@@ -65,9 +65,14 @@ export function EventIndexEntry({ workshop, index }: { workshop: Workshop; index
   return (
     <Reveal
       as="article"
-      className={cn("group relative grid grid-cols-12 items-center gap-x-6 lg:gap-x-10", closed && "opacity-70")}
+      className={cn(
+        "group press-in relative grid grid-cols-12 items-center gap-x-6 lg:gap-x-10",
+        closed && "opacity-70",
+      )}
     >
       <figure
+        data-paint
+        style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}
         className={cn(
           "col-span-12 md:row-start-1",
           flip ? "md:col-span-7 md:col-start-6" : "md:col-span-7 md:col-start-1",
@@ -100,9 +105,13 @@ export function EventIndexEntry({ workshop, index }: { workshop: Workshop; index
           <Link
             href={workshopHref(workshop)}
             aria-label={`${workshop.title}, ${formatSessionDate(workshop.startsAt)}${workshop.venue ? ` at ${formatVenueLine(workshop.venue)}` : ""}`}
-            className="transition-colors duration-300 ease-soft after:absolute after:inset-0 hover:text-primary"
+            className="after:absolute after:inset-0"
           >
-            {workshop.title}
+            {/* The site's one underline, in place of this row's own
+                colour-change — see `ink-rule` in globals.css. */}
+            <span className="ink-rule" style={{ "--rule": "var(--color-primary)" } as React.CSSProperties}>
+              {workshop.title}
+            </span>
           </Link>
         </h2>
 

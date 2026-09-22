@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useId } from "react";
+import { useId, useMemo, useState } from "react";
 
+import { FindYourVibe } from "@/components/layout/FindYourVibe";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { ModeMark } from "@/components/ui/ModeMark";
 import { cn } from "@/lib/utils";
+import { VIBES, experiencesByVibe, hasVibeTags, type VibeSlug } from "@/lib/vibes";
 import { formatWorkshopDate, isScarce, spotsLabel } from "@/lib/workshops";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { Workshop } from "@/types";
@@ -128,9 +130,33 @@ export function WorkshopsMenu({
     useMenuDisclosure(onOpenChange);
   const menuId = useId();
 
+  /*
+    THE DISCOVERY LAYER SITS OVER THE STRUCTURE, NEVER INSTEAD OF IT.
+
+    `vibe` is null until a chip is pressed, and null means the panel is exactly
+    what it always was: every activity, in the studio's two groups. Choosing a
+    vibe narrows the same two groups rather than replacing them with a third
+    arrangement — so a visitor who arrives structural and a visitor who arrives
+    by mood are reading one panel, not two.
+
+    A group that empties under a filter drops out rather than showing a heading
+    over nothing, which is the contract every list on this site keeps.
+  */
+  const [vibe, setVibe] = useState<VibeSlug | null>(null);
+
+  const counts = useMemo(
+    () =>
+      Object.fromEntries(
+        VIBES.map((entry) => [entry.slug, experiencesByVibe(experiences, entry.slug).length]),
+      ) as Record<VibeSlug, number>,
+    [experiences],
+  );
+
+  const shortlist = vibe ? experiencesByVibe(experiences, vibe) : experiences;
+
   const groups = GROUPS.map((group) => ({
     ...group,
-    items: experiences.filter((experience) => experience.kind === group.mode),
+    items: shortlist.filter((experience) => experience.kind === group.mode),
   })).filter((group) => group.items.length > 0);
 
   /*
@@ -222,14 +248,74 @@ export function WorkshopsMenu({
         */
         className={cn(
           "absolute inset-x-0 top-full overflow-hidden bg-surface",
-          "border-t border-t-text/10 border-b-2 border-b-primary/30",
-          "transition-[clip-path,opacity] ease-editorial motion-reduce:transition-none",
+          "border-t border-t-text/10",
+          /*
+            THE PANEL IS OPAQUE THE WHOLE WAY DOWN, and it did not use to be.
+
+            It faded in while the clip wiped, so for the first few hundred
+            milliseconds the whole surface was semi-transparent and the page
+            behind it showed straight through — the script line and the
+            photograph bleeding into the menu. That is what "abrupt" was about:
+            not the speed, but that the panel never read as a surface arriving.
+            It read as a translucent sheet being switched on over the page.
+
+            The clip alone reveals it now. A solid ground drawn down from under
+            the bar is a drawer opening; the Deep Lilac rule along its bottom
+            is the drawer's lip, and it travels down with the edge. Nothing
+            else about the timing changed — 520ms down, 240 back up, because
+            a menu you have decided against should get out of the way.
+
+            The two durations are per-property, in the order the property list
+            names them: clip-path 520ms, opacity 0ms. On the way out one
+            `duration` covers both at 240.
+
+            Closing keeps the fade. Wiping a fully opaque panel upward off the
+            page reads as the content being eaten from below; going out it is
+            better to simply stop being there.
+          */
+          // See <SearchPanel> for why this is `ease-soft` and not
+          // `ease-editorial`: the quintic curve spent five sixths of its
+          // time on the last few per cent of the travel.
+          "transition-[clip-path,opacity] ease-soft motion-reduce:transition-none",
           shown
-            ? "opacity-100 duration-[520ms] [clip-path:inset(0_0_0_0)]"
+            ? "opacity-100 [transition-duration:520ms,0ms] [clip-path:inset(0_0_0_0)]"
             : "opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
           isOpen ? null : "pointer-events-none",
         )}
       >
+        {/*
+          THE DRAWER'S EDGE, WHICH THE PANEL CANNOT DRAW FOR ITSELF.
+
+          The bottom border used to sit on the panel, and the note beside it
+          claimed the line travelled down with the reveal. Photographed, it
+          does not: `clip-path: inset(0 0 X% 0)` clips the element's own
+          bottom border away for the whole of the wipe, so the line only
+          appears in the final frame. What a visitor actually saw was menu
+          text arriving over page text with no boundary between them — on
+          /about the panel's ground (`--color-surface`, thirty per cent sage
+          in white) is the same colour as the page behind it, so there was
+          nothing to mark where the menu ended. That, not the speed, is what
+          reads as abrupt.
+
+          So the edge is its own element. It is pinned to the top of the panel
+          and its `bottom` travels from 100% to 0 on the same duration and the
+          same curve as the clip, which keeps its 2px underside exactly on the
+          clip's edge for every frame. A line drawn down the page with the
+          menu filling in behind it is a drawer being pulled open.
+
+          Percentages both ends, and `bottom` rather than `height`: an
+          absolutely positioned box resolves them against its containing
+          block's padding box, which is this panel and is definite. A `height`
+          of 100% would resolve against a content-sized parent and collapse.
+        */}
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 border-b-2 border-b-primary/30",
+            "transition-[bottom] ease-soft motion-reduce:transition-none",
+            shown ? "[bottom:0%] duration-[520ms]" : "[bottom:100%] duration-[240ms]",
+          )}
+        />
         {mounted ? (
           <div className="mx-auto w-full px-gutter py-8 lg:py-9">
             {/*
@@ -259,15 +345,47 @@ export function WorkshopsMenu({
                 className={cn("col-span-12 flex flex-col lg:col-span-3 xl:col-span-4", RISE, riseState)}
                 style={rise(0)}
               >
-                <p className="text-label font-semibold uppercase tracking-eyebrow text-primary">
-                  {label}
-                </p>
-                {/* The site's own accent mark under an eyebrow — see <SectionHeader>. */}
-                <span aria-hidden className="mt-2.5 block h-px w-8 bg-terracotta" />
-                <p className="mt-3.5 max-w-[12ch] text-[clamp(1.5rem,1.15rem+0.9vw,2rem)] font-light leading-[1.1] tracking-[-0.02em] text-text">
-                  Choose what you make.
-                </p>
-                <p className="mt-3 max-w-[30ch] text-fine leading-[1.6] text-text/85">
+                {/*
+                  THE FIRST COLUMN ASKS BEFORE IT TELLS.
+
+                  It used to open "Experiences / Choose what you make" — the
+                  studio's own framing, which a visitor has to translate before
+                  it helps them. The vibe row takes that position and the
+                  structural line moves underneath it, so the column now reads
+                  mood first, model second: how do you feel like creating, and
+                  then, quietly, here is how taking part actually works.
+
+                  It is the same column and the same width. Nothing was added
+                  to the panel's footprint — see §1's warning about crowding.
+                */}
+                {/*
+                  THE ROW IS NOT DRAWN UNTIL SOMETHING IS BEHIND IT.
+
+                  Every vibe is empty — nothing in lib/experiences.ts carries a
+                  `vibes` tag, and lib/vibes.ts says at length why inventing
+                  them is the one thing a mood filter cannot survive. The chips
+                  were therefore rendered `disabled`, with a line underneath
+                  explaining that the sorting was still to come. The client's
+                  report on that was simply "these buttons can't be clicking",
+                  which is the correct reading: three controls that cannot
+                  respond are a broken panel, however carefully they are
+                  captioned, and the brief itself said to show these "only if
+                  they are supported by actual project data".
+
+                  `hasVibeTags` is the switch lib/vibes.ts built for this. Tag
+                  one activity in the CMS and the row appears, live, with a
+                  count on it — no change here.
+                */}
+                {hasVibeTags(experiences) ? (
+                  <FindYourVibe
+                    counts={counts}
+                    selected={vibe}
+                    onSelect={setVibe}
+                    size="compact"
+                  />
+                ) : null}
+
+                <p className="mt-6 max-w-[30ch] text-fine leading-[1.6] text-text/85">
                   Walk in and create at your own pace, or book a guided session for a set date.
                 </p>
                 {/*
@@ -280,6 +398,12 @@ export function WorkshopsMenu({
                 <BlobButton
                   href={href}
                   onClick={closeNow}
+                  /* Light Sage on hover rather than the default Charcoal, at
+                     the client's ask. It is a tone rather than a change to the
+                     default because the flood measures 1.00:1 on the Light
+                     Sage sections the homepage buttons stand on, and 1.22:1
+                     on this panel's near-white — see BlobButton.module.css. */
+                  tone="sage"
                   className="mt-6 w-fit min-h-[3.25rem] px-7"
                 >
                   All experiences

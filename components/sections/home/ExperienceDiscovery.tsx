@@ -1,152 +1,91 @@
-import { ExperiencePlate } from "@/components/events/ExperiencePlate";
 import { Reveal } from "@/components/motion/Reveal";
+import { ExperienceCarousel } from "@/components/sections/home/ExperienceCarousel";
+import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
-import { ModeMark } from "@/components/ui/ModeMark";
+import { DeckSheet } from "@/components/ui/deck/Deck";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
-import { getCreativeExperiences, type CreativeExperience } from "@/lib/experiences";
+import { DoodleMark } from "@/components/ui/DoodleMark";
+import { getCreativeExperiences } from "@/lib/experiences";
 
 /**
- * Homepage 02 — what you can make, grouped by how you take part. Directly
- * under the banner, where its "scroll down" leads.
+ * The seven activities — a track you push through and paint.
  *
- * THE GROUPING IS THE POINT. The single most important thing a visitor has to
- * understand about the Maison is that most of it is walk-in and some of it is
- * booked for a date. So the seven activities are not one grid with a badge on
- * each; they are two groups, each introduced by what it means — walk in with
- * no booking, or book a session — and each plate carries the same mark the
- * hero uses, so the distinction is learned once and read everywhere.
+ * ==========================================================================
+ * REFERENCED FROM THE DECK, NOT COPIED FROM IT
+ * ==========================================================================
  *
- * FIVE PORTRAITS, THEN TWO LANDSCAPES. Walk-in activities are many and quick
- * to scan, so they run as a strip of narrow plates. The two scheduled
- * sessions are fewer and a commitment of an afternoon, so each gets a wide
- * plate. The change of shape between the groups marks the change of mode
- * before a word of either label is read.
+ * The deck gives this two static rows of plates, and the first attempt here
+ * reproduced them. The client's note was that this had become a conversion of
+ * the PDF rather than a site designed from it, and they were right: a grid of
+ * seven identical plates is what a page that cannot move has to do.
  *
- * Every name, line, status and photograph comes from lib/experiences.ts, the
- * studio's approved list. Each plate opens that activity's own page, where a
- * walk-in activity is never offered a booking.
+ * What is kept is the brand's language — the outlined rounded plate, the
+ * cut-outs, the six colours, the pill. What changes is that the website does
+ * the thing the deck could not: the activities sit on a track you push, and a
+ * card is a flat wash of one brand colour until you reach it, when a splash of
+ * the studio's own paint opens and the photograph comes through. See
+ * <ExperienceCarousel>.
+ *
+ * The heading sits left with its line beside it rather than centred over the
+ * page, so the section reads as part of a scrolling site rather than as a
+ * bound leaf. No binding on this sheet for the same reason.
+ *
+ * Server component: the activities are fetched here and handed to the client
+ * component, so the list is rendered on the server and only the track's
+ * behaviour ships to the browser.
  */
 export async function ExperienceDiscovery() {
   const experiences = await getCreativeExperiences();
-  const walkIn = experiences.filter((e) => e.kind === "diy");
-  const scheduled = experiences.filter((e) => e.kind === "scheduled");
+  const walkIn = experiences.filter((e) => e.kind === "diy").length;
+  const scheduled = experiences.length - walkIn;
 
   return (
-    <section
-      aria-labelledby="experience-discovery"
-      className="relative bg-surface py-[5rem] md:py-section lg:py-section-lg"
-    >
-      <Container>
-        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-7">
+    <DeckSheet labelledBy="experiences-heading" className="overflow-x-clip">
+      <Container className="relative">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+          {/*
+            THE PILL IS GONE, AND THE HEADING IS THE SITE'S OWN.
+
+            An outlined lilac pill with the title set in condensed caps inside
+            it is a device off the deck's title slides, and it was the last
+            place a heading on this site was set that way — nine other sections
+            and three sub-pages already open on the eyebrow and the script
+            statement. Two heading systems on one page is one too many, and the
+            one to keep is the one that reads as the website.
+          */}
+          <div>
             <Reveal>
-              <Eyebrow>Creative experiences</Eyebrow>
+              <Eyebrow>The Maison Palettia experience</Eyebrow>
             </Reveal>
             <DisplayHeading
-              id="experience-discovery"
-              className="mt-8 md:mt-10"
-              lines={["Choose what", "you make."]}
+              id="experiences-heading"
+              className="mt-7 md:mt-9"
+              lines={["Pick a colour,", "pick a table."]}
             />
           </div>
 
-          {/* The key, stated once, before either group. */}
-          <Reveal delay={0.2} className="col-span-12 lg:col-span-5 lg:pb-3">
-            <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <dt className="flex items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text">
-                  <ModeMark mode="diy" /> Walk-in DIY
-                </dt>
-                <dd className="mt-2 text-fine leading-[1.65] text-text/85">
-                  Choose on the day and create at your own pace. No booking.
-                </dd>
-              </div>
-              <div>
-                <dt className="flex items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text">
-                  <ModeMark mode="scheduled" /> Scheduled
-                </dt>
-                <dd className="mt-2 text-fine leading-[1.65] text-text/85">
-                  A guided session on a set date. Booked online.
-                </dd>
-              </div>
-            </dl>
+          <Reveal delay={0.08} className="lg:max-w-[30ch] lg:pb-2">
+            <p className="flex items-start gap-3 text-[1.0625rem] leading-[1.7] text-text/85">
+              <span aria-hidden className="mt-[0.4em] block w-4 shrink-0">
+                <DoodleMark name="starleaf" color={INK.terracotta} delay={180} />
+              </span>
+              <span>
+                {walkIn} to walk in and make any time, {scheduled} guided sessions with a date.
+                Reach a card to paint it.
+              </span>
+            </p>
           </Reveal>
         </div>
-
-        <Group
-          id="walk-in-diy"
-          mode="diy"
-          title="Walk-in DIY"
-          note={`${walkIn.length} experiences · no booking needed`}
-          className="mt-16 md:mt-20"
-        >
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-5 lg:gap-x-6">
-            {walkIn.map((experience, i) => (
-              <Reveal as="li" key={experience.slug} variant="fadeIn" delay={i * 0.05}>
-                <ExperiencePlate
-                  experience={experience}
-                  aspect="aspect-[4/5]"
-                  sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 46vw"
-                />
-              </Reveal>
-            ))}
-          </ul>
-        </Group>
-
-        <Group
-          id="scheduled-sessions"
-          mode="scheduled"
-          title="Scheduled sessions"
-          note="Guided · booked online"
-          className="mt-16 md:mt-20"
-        >
-          <ul className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:gap-x-10">
-            {scheduled.map((experience, i) => (
-              <Reveal as="li" key={experience.slug} variant="fadeIn" delay={i * 0.08}>
-                <ExperiencePlate
-                  experience={experience}
-                  aspect="aspect-[4/3] lg:aspect-[16/10]"
-                  sizes="(min-width: 640px) 46vw, 92vw"
-                  large
-                />
-              </Reveal>
-            ))}
-          </ul>
-        </Group>
       </Container>
-    </section>
-  );
-}
 
-function Group({
-  id,
-  mode,
-  title,
-  note,
-  className,
-  children,
-}: {
-  id: string;
-  mode: CreativeExperience["kind"];
-  title: string;
-  note: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={className} role="group" aria-labelledby={id}>
-      <Reveal>
-        <div className="mb-7 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-text/25 pt-5 md:mb-9">
-          <h3
-            id={id}
-            className="flex items-center gap-3 text-lead font-semibold tracking-[-0.005em] text-text"
-          >
-            <ModeMark mode={mode} />
-            {title}
-          </h3>
-          <p className="text-label font-semibold uppercase tracking-eyebrow text-text/85">{note}</p>
-        </div>
-      </Reveal>
-      {children}
-    </div>
+      {/*
+        The track runs to the screen's edge rather than stopping inside the
+        container, so a card is visibly cut off at the right — which is what
+        tells a visitor there is more of it without a label saying so.
+      */}
+      <div className="mt-10 pl-gutter md:mt-14">
+        <ExperienceCarousel experiences={experiences} />
+      </div>
+    </DeckSheet>
   );
 }

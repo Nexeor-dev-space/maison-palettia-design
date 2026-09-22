@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { Reveal } from "@/components/motion/Reveal";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
@@ -68,18 +67,15 @@ export function PrivateEventsTeaser() {
                   White Rock button on the lilac field: a figure standing on the
                   ground rather than a second lilac shape dissolving into it.
                 */}
-                <Link
+                {/* A pill now, and White Rock on the lilac field: the site's
+                    primary action is one object wherever it appears. */}
+                <BlobButton
                   href="/private-events"
-                  className="group inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-sm bg-cream px-7 text-action font-semibold uppercase tracking-eyebrow text-text transition-colors duration-300 ease-soft hover:bg-surface sm:w-auto"
+                  tone="cream"
+                  className="min-h-12 w-full justify-center px-7 sm:w-auto"
                 >
                   Plan a private event
-                  <span
-                    aria-hidden
-                    className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                  >
-                    &#8594;
-                  </span>
-                </Link>
+                </BlobButton>
               </div>
             </Reveal>
           </div>

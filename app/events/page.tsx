@@ -121,6 +121,7 @@ export default async function EventsPage() {
                   experience={experience}
                   aspect="aspect-[4/5]"
                   sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 46vw"
+                  index={i}
                 />
               </Reveal>
             ))}

@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
+import { Stagger } from "@/components/motion/Stagger";
+import { INK } from "@/components/sections/hero/composition";
+import type { DoodleName } from "@/components/sections/hero/doodles";
 import { Container } from "@/components/ui/Container";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import {
   BRAND_STORY,
@@ -98,29 +102,132 @@ function Welcome() {
 
 /* ---- 02 mission and vision ---------------------------------------------- */
 
+/**
+ * ==========================================================================
+ * THE PURPOSE — A PAUSE, NOT A CORPORATE BLOCK
+ * ==========================================================================
+ *
+ * WHERE IT CAME FROM. This lived on the homepage as <VisionMission>, set the
+ * way the brand deck's page 3 sets it: a lavender pill reading VISION, the
+ * sentence in an outlined rounded box, the same again for MISSION, and two
+ * cut-outs breaking the corners. That is a faithful reproduction of a slide,
+ * and the client's note was that reproducing the slide is exactly what not to
+ * do — the deck is the source of the colours and the words, not of the
+ * layout. It is also two sentences the About page was already carrying, so
+ * the page and the homepage were saying the same thing twice.
+ *
+ * WHAT REPLACES IT, and it is the brief's own direction for this section: the
+ * mission set large in the brand's script, the vision revealed under it in
+ * Montserrat, and "a quiet emotional pause in the page".
+ *
+ *   The mission is the script line because it is the shorter and the warmer
+ *   of the two — eight words, first person, no clause about curation. It is
+ *   the one of the pair that can carry display scale without becoming a
+ *   paragraph set in a handwriting face, which §4 of the brief forbids and
+ *   which the script is genuinely bad at.
+ *
+ *   The vision answers it in the sans, dropped and indented so the eye
+ *   crosses the measure to reach it. It is the practical half — what the
+ *   studio does about the mission — so it reads as the supporting voice
+ *   rather than as a second banner.
+ *
+ * NO BOXES AND NO PILLS. The whole composition is two statements, one
+ * hairline and one mark. An outline around a sentence adds nothing a change
+ * of scale and ink is not already saying, and boxing both made them look like
+ * a form rather than a belief.
+ *
+ * ONE DOODLE, AND IT IS PUNCTUATION. It sits on the rule where the statement
+ * turns into its answer — a printer's mark at the turn, not a shape floating
+ * in a corner. The client's note on the last set was that scattering does not
+ * look good, and two cut-outs pinned to opposite corners of a slide is
+ * scattering with better manners.
+ *
+ * INK. Deep Lilac on Light Sage measures 3.83:1 — clear of the 3:1 large text
+ * owes and under the 4.5:1 it would owe below 24px, which is why the script
+ * carries it and the sans does not. The vision is Charcoal Slate at 9.07:1.
+ */
+/**
+ * The mission, broken into display lines — and checked against the constant.
+ *
+ * Where a statement turns is a design decision on this site, so the breaks are
+ * written rather than left to the measure. Writing them means writing the
+ * words a second time, which is how a page ends up quietly disagreeing with
+ * lib/brand.ts after somebody edits one and not the other.
+ *
+ * So the pieces are joined back up and compared: if they still spell {@link
+ * MISSION} they are used, and if the studio ever reworded the mission the
+ * heading falls back to the constant on a single line — right, if less
+ * composed, which is the correct way round for a fallback.
+ */
+const MISSION_LINES = ["To inspire meaningful", "connections through", "the joy of creativity."];
+
+function missionLines(): string[] {
+  return MISSION_LINES.join(" ") === MISSION ? MISSION_LINES : [MISSION];
+}
+
 function MissionVision() {
   return (
-    <section aria-labelledby="purpose-heading" className="bg-sage py-[5rem] md:py-section">
+    <section aria-labelledby="purpose-heading" className="bg-sage py-[5rem] md:py-section lg:py-section-lg">
       <Container>
-        <h2 id="purpose-heading" className="sr-only">
-          Mission and vision
-        </h2>
-        <div className="grid grid-cols-1 gap-x-10 gap-y-14 md:grid-cols-2">
-          {[
-            { label: "Our mission", text: MISSION },
-            { label: "Our vision", text: VISION },
-          ].map((item, i) => (
-            <Reveal key={item.label} delay={i * 0.1}>
-              <figure className="border-t border-text/30 pt-8">
-                <figcaption className="text-label font-semibold uppercase tracking-eyebrow text-text">
-                  {item.label}
-                </figcaption>
-                <blockquote className="mt-6 text-[1.7rem] font-light leading-[1.25] tracking-[-0.015em] text-text md:text-[2.2rem]">
-                  {item.text}
-                </blockquote>
-              </figure>
+        <div className="grid grid-cols-12 gap-x-6 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-8">
+            <Reveal>
+              <Eyebrow>Our mission</Eyebrow>
             </Reveal>
-          ))}
+
+            {/*
+              Deep Lilac rather than the ground's charcoal, set inline — and
+              that is not laziness.
+
+              <DisplayHeading> picks an ink from its `ground` and concatenates
+              the caller's `className` after it, but `cn` in lib/utils is
+              documented as plain concatenation: "we only need concatenation,
+              not Tailwind conflict resolution". Two utilities of equal
+              specificity then race on stylesheet order rather than on the
+              order they appear in the attribute, and `text-text` wins — the
+              heading rendered charcoal with `text-primary` sitting right
+              there in the class list.
+
+              So <DisplayHeading> now takes `tone` and emits one ink class
+              instead of two fighting ones — which fixes it here and for the
+              other twenty-two call sites that would have hit the same trap.
+
+              Lines are passed because where a statement breaks is a design
+              decision on this site, not something left to the measure.
+            */}
+            <DisplayHeading
+              id="purpose-heading"
+              tone="accent"
+              className="mt-8 md:mt-10"
+              lines={missionLines()}
+            />
+          </div>
+        </div>
+
+        {/*
+          The answer. Dropped below the statement and pushed to the right half,
+          so the page turns a corner between the two rather than stacking them.
+        */}
+        <div className="mt-14 grid grid-cols-12 gap-x-6 md:mt-20 lg:gap-x-10">
+          <Reveal delay={0.15} className="col-span-12 md:col-span-8 md:col-start-5 lg:col-span-6 lg:col-start-7">
+            <figure className="relative border-t border-text/30 pt-8">
+              {/* On the rule, at the turn. Sized by its wrapper — <DoodleMark>
+                  fills the box it is given. */}
+              <span
+                aria-hidden
+                className="absolute -top-4 left-0 block h-8 w-8 bg-sage pr-2"
+              >
+                <DoodleMark name="starleaf" color="#D97757" treatment="draw" delay={240} />
+              </span>
+
+              <figcaption className="text-label font-semibold uppercase tracking-eyebrow text-text">
+                Our vision
+              </figcaption>
+              <blockquote className="mt-5 max-w-[34rem] text-lead font-light leading-[1.6] text-text">
+                {VISION}
+              </blockquote>
+            </figure>
+          </Reveal>
         </div>
       </Container>
     </section>
@@ -184,55 +291,114 @@ function Community() {
 
 /* ---- 04 what sets it apart ---------------------------------------------- */
 
+/*
+  One mark per point, in the order the deck lists them, and the three angles
+  the collage is dropped at. Both came here with the block below — see the note
+  on <Apart>.
+*/
+const MARKS: readonly { name: DoodleName; color: string }[] = [
+  { name: "starburst", color: INK.lilac },
+  { name: "bean", color: INK.terracotta },
+  { name: "coral", color: INK.lavender },
+  { name: "zigzag", color: INK.charcoal },
+];
+
+/* Dropped, not aligned — the angles are fixed so the collage never reshuffles. */
+const TILT = ["-rotate-[5deg]", "rotate-[3deg]", "-rotate-[2deg]"];
+
+/**
+ * What sets the Maison apart — the deck's p.11, and three photographs from a
+ * table.
+ *
+ * ==========================================================================
+ * THIS ARRIVED FROM THE HOMEPAGE, AND IT REPLACED A SECOND COPY OF ITSELF
+ * ==========================================================================
+ *
+ * The client asked for the homepage's version of this block to live here. The
+ * page already had these same four points, from the same `WHAT_SETS_US_APART`,
+ * set as ruled rows beside a two-column grid of the same three photographs —
+ * so this is not an addition. The better treatment replaced the plainer one
+ * and the site says this once.
+ *
+ * WHAT MAKES IT THE BETTER ONE. The points are type on the paper with the
+ * brand's own cut-outs against them: no boxes, no icons in circles, nothing
+ * that turns four sentences into four cards. The photographs are a collage
+ * dropped at fixed angles and allowed to overlap, which is how the deck lays
+ * pictures down — cut paper rather than a grid.
+ *
+ * THE MARKS CARRY THE COLOUR AND THE WORDS DO NOT. On White Rock only Charcoal
+ * and Deep Lilac can hold anything that is read; Soft Lavender is 1.44:1. The
+ * cut-outs are decorative and `aria-hidden`, so they owe no ratio and the whole
+ * palette is free to appear in them. Every word here stays Charcoal.
+ *
+ * THE EYEBROW IS THE HEADING. This section's content is a list, not a
+ * statement, so there is nothing for a display heading to say that the label
+ * does not — and `aria-labelledby="apart-heading"` pointed at an id that did
+ * not exist until the label became an `h2`.
+ */
 function Apart() {
   return (
     <section aria-labelledby="apart-heading" className="bg-cream py-[5rem] md:py-section">
       <Container>
-        <div className="grid grid-cols-12 gap-x-6 gap-y-12 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-7">
-            <Reveal>
-              <Eyebrow>What sets us apart</Eyebrow>
-            </Reveal>
-            <ul className="mt-10 grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-              {WHAT_SETS_US_APART.map((point, i) => (
-                <li key={point.slug} className="border-t border-text/25 py-6">
-                  <Reveal delay={i * 0.06}>
-                    <h3 className="text-[1.3rem] font-light leading-tight tracking-[-0.01em] text-text md:text-[1.5rem]">
+        <Reveal>
+          <Eyebrow as="h2" id="apart-heading">
+            What sets us apart
+          </Eyebrow>
+        </Reveal>
+
+        <div className="mt-12 grid grid-cols-12 gap-x-gutter gap-y-14 md:mt-16">
+          <Stagger as="ul" className="col-span-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:col-span-7">
+            {WHAT_SETS_US_APART.map((point, i) => {
+              const mark = MARKS[i % MARKS.length];
+              return (
+                <Reveal as="li" key={point.slug} className="flex gap-4">
+                  <span aria-hidden className="mt-1 block w-7 shrink-0">
+                    <DoodleMark name={mark.name} color={mark.color} delay={i * 90} />
+                  </span>
+                  <div>
+                    <p className="text-[1.25rem] uppercase leading-[1] tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none] md:text-[1.5rem]">
                       {point.name}
-                    </h3>
-                    <p className="mt-2.5 text-body leading-[1.75] text-text/85">{point.description}</p>
-                  </Reveal>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+                    </p>
+                    <p className="mt-2 max-w-[34ch] text-[0.9375rem] leading-[1.7] text-text/80">
+                      {point.description}
+                    </p>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </Stagger>
+
+          {/*
+            The collage. They are small on purpose: these three are phone
+            photographs, 480–768px on the long edge, and the code that first
+            used them says in as many words not to set them large.
+          */}
+          <Reveal delay={0.12} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:self-center">
             <Reveal>
-              <h3 className="text-label font-semibold uppercase tracking-eyebrow text-text">From our tables</h3>
+              <h3 className="text-label font-semibold uppercase tracking-eyebrow text-text">
+                From our tables
+              </h3>
             </Reveal>
-            <div className="mt-10 grid grid-cols-2 gap-3">
+            <div className="relative mx-auto mt-8 flex max-w-[24rem] items-center justify-center gap-0 lg:max-w-none">
               {EVENT_PLATES.map((plate, i) => (
-                <Reveal
+                <span
                   key={plate.src}
-                  variant="fadeIn"
-                  delay={i * 0.08}
-                  className={i === 0 ? "col-span-2" : undefined}
+                  className={`plate relative block w-[38%] shrink-0 overflow-hidden rounded-[0.9rem] bg-surface ${TILT[i % TILT.length]} ${i > 0 ? "-ml-[9%]" : ""}`}
+                  style={{ zIndex: i === 1 ? 3 : 2 - i }}
                 >
-                  <div
-                    className={`relative overflow-hidden rounded-sm bg-surface ${i === 0 ? "aspect-[4/3]" : "aspect-square"}`}
-                  >
+                  <span className="relative block aspect-[3/4] w-full">
                     <Image
                       src={plate.src}
                       alt={plate.alt}
                       fill
-                      sizes={i === 0 ? "(min-width: 1024px) 30vw, 92vw" : "(min-width: 1024px) 15vw, 46vw"}
+                      sizes="(min-width: 1024px) 16vw, 34vw"
                       className="object-cover"
                     />
-                  </div>
-                </Reveal>
+                  </span>
+                </span>
               ))}
             </div>
-          </div>
+          </Reveal>
         </div>
       </Container>
     </section>
@@ -293,7 +459,7 @@ function Close() {
           <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/events"
-              className="inline-flex min-h-12 items-center rounded-sm bg-primary px-7 text-action font-semibold uppercase tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90"
+              className="inline-flex min-h-12 items-center rounded-sm bg-primary px-7 text-action font-semibold uppercase tracking-eyebrow text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90"
             >
               Explore experiences
             </Link>

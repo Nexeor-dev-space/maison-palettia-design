@@ -438,7 +438,7 @@ function Slide({ slide }: { slide: SessionSlide }) {
             "transition-colors duration-300 ease-soft sm:w-auto",
             slide.closed
               ? "border border-text/35 text-text hover:border-text/60 hover:bg-text/5"
-              : "bg-primary text-on-primary hover:bg-primary/90",
+              : "press-in bg-primary text-on-primary hover:bg-primary/90",
           )}
         >
           {slide.ctaLabel}

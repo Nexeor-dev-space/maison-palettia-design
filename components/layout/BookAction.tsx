@@ -51,7 +51,7 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
       className={cn(
         "group inline-flex items-center justify-center gap-2.5 rounded-sm font-medium uppercase tracking-eyebrow",
         "bg-primary text-on-primary",
-        "transition-colors duration-300 ease-soft hover:bg-primary/90",
+        "press-in transition-colors duration-300 ease-soft hover:bg-primary/90",
         // Narrower flanks between 1024 and 1280, where the bar is at its
         // tightest: that is the band in which the inline nav exists and the
         // mark is centred, so the actions are held to exactly half of what the

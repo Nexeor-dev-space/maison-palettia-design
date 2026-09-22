@@ -1,4 +1,5 @@
 import { sessionDateParts } from "@/lib/workshops";
+import type { CreativeExperience } from "@/lib/experiences";
 import type { Workshop } from "@/types";
 
 /**
@@ -92,6 +93,56 @@ export function searchWorkshops(workshops: Workshop[], rawQuery: string): Worksh
 }
 
 /**
+ * Every activity whose text matches `rawQuery`, best match first.
+ *
+ * ==========================================================================
+ * WHY SEARCH HAD TO LEARN ABOUT ACTIVITIES AT ALL
+ * ==========================================================================
+ *
+ * It indexed the schedule and nothing else, and the schedule is two dates.
+ * The studio offers seven activities; five of them are walk-in and therefore
+ * have no date, which meant that typing "bedazzling", "glass painting" or
+ * "tote bag" into the site's own search returned nothing at all — for five of
+ * the seven things the Maison actually does. That is the discovery failure
+ * the brief is pointing at, and it is a real one rather than a styling note.
+ *
+ * Same four-tier shape as {@link searchWorkshops} so the two ranks agree, and
+ * the same plain substring matching for the same reason.
+ *
+ * `vibes` is deliberately NOT in the haystack. It holds slugs rather than
+ * words a visitor would type, and matching on them would make an untagged
+ * catalogue look like a broken one; the vibe chips are how that dimension is
+ * searched — see lib/vibes.ts.
+ */
+function experienceHaystack(experience: CreativeExperience): string {
+  return [experience.name, experience.description, experience.kind === "diy" ? "walk-in diy" : "scheduled"]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+export function searchExperiences(
+  experiences: readonly CreativeExperience[],
+  rawQuery: string,
+): CreativeExperience[] {
+  const query = rawQuery.trim().toLowerCase();
+  if (!query) return [];
+
+  return experiences
+    .map((experience) => {
+      const name = experience.name.toLowerCase();
+      let tier = -1;
+      if (name.startsWith(query)) tier = 0;
+      else if (name.includes(query)) tier = 1;
+      else if (experienceHaystack(experience).includes(query)) tier = 2;
+      return { experience, tier };
+    })
+    .filter((entry) => entry.tier !== -1)
+    .sort((a, b) => a.tier - b.tier)
+    .map((entry) => entry.experience);
+}
+
+/**
  * A short list of terms worth suggesting before anyone has typed anything.
  *
  * Every word here is read off the catalogue at call time rather than kept as
@@ -106,13 +157,36 @@ export function searchWorkshops(workshops: Workshop[], rawQuery: string): Worksh
  * catalogue in miniature; categories and "Weekend" are cheap so they are
  * never the ones cut, and the first few localities carry whatever is left.
  */
-export function getPopularSearches(workshops: Workshop[]): string[] {
+export function getPopularSearches(
+  workshops: Workshop[],
+  experiences: readonly CreativeExperience[] = [],
+): string[] {
   const categories = [...new Set(workshops.map((workshop) => workshop.category))];
   const localities = [
     ...new Set(workshops.map((workshop) => workshop.venue?.locality).filter((locality) => Boolean(locality))),
   ] as string[];
 
   const suggestions = [...categories];
+
+  /*
+    "WALK-IN DIY", AND ONLY BECAUSE IT IS TRUE.
+
+    The brief offers three experiential tags to seed this row —
+    "Glow-in-the-dark", "Group Jam" and "Walk-in DIY" — and instructs that they
+    appear only where the data supports them. Exactly one does: `kind` on
+    CreativeExperience already marks five activities walk-in, so this term
+    finds real rows the moment it is pressed.
+
+    The other two are not here and should not be added by hand. Nothing in the
+    project records whether any activity glows in the dark or is run as a group
+    jam, and a suggestion chip is a promise that pressing it returns something
+    — a suggestion that returns an empty list is worse than an absent one,
+    because the visitor blames the catalogue rather than the tag. When the
+    studio can describe those, they arrive as vibes (lib/vibes.ts) or as a
+    further derived term here, and this row picks them up with no edit.
+  */
+  if (experiences.some((experience) => experience.kind === "diy")) suggestions.push("Walk-in DIY");
+
   if (workshops.some(isWeekendWorkshop)) suggestions.push("Weekend");
   suggestions.push(...localities);
 

@@ -1,0 +1,74 @@
+/*
+  THE BRUSH — see CursorLayer.tsx.
+
+  It was a filled circle with a hairline ring around it, and the client's read
+  of that was a colour-dropper: a round dab of colour is the eyedropper icon
+  every image editor uses, so over a photograph it said "pick a colour" rather
+  than "paint here". This is a brush instead — bristles, ferrule and handle —
+  which says the one thing the Maison actually does.
+
+  WHAT HOLDS IT TOGETHER ON ANY PHOTOGRAPH. The old ring existed because a dab
+  of Deep Lilac disappears against a dark picture and a pale one both. The
+  brush keeps that idea as a halo: every stroke is drawn twice, once wider in
+  the page's own near-white and once in its real colour on top, so the
+  silhouette reads over any crop without a filter or a shadow.
+
+  Nothing here reacts per frame. The component writes the position, the tilt,
+  the colour and the state; every transition below is between states.
+*/
+.brush {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 90;
+  display: block;
+  height: var(--brush, 2.5rem);
+  width: var(--brush, 2.5rem);
+  pointer-events: none;
+  opacity: 0;
+  /*
+    THE HOTSPOT IS THE BRISTLE TIP, AT THE GLYPH'S BOTTOM-LEFT.
+
+    The brush is drawn the way one is held — head down on the left, handle
+    rising to the right toward the hand — so the point that touches the
+    picture is the bottom-left corner rather than the top-left. `translateY`
+    lifts the box by its own height so that corner lands on the pointer, and
+    the origin is set to the same corner so the lean and the press both pivot
+    about the paint rather than swinging the tip off it.
+  */
+  transform-origin: 0 100%;
+  transform: translate3d(var(--x, 50vw), var(--y, 50vh), 0) translateY(-100%)
+    rotate(calc(var(--tilt, 0) * 1deg)) scale(calc(var(--in, 0) * var(--press, 1)));
+  transition: opacity 220ms var(--ease-soft);
+  will-change: transform;
+}
+
+/* The halo is allowed outside the box: the tip sits on the glyph's 0,0 so the
+   stroke around it would otherwise be clipped by the viewBox. */
+.glyph {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
+}
+
+/* The bristles carry the surface's own colour; the transition is what makes
+   moving between two differently-painted pictures read as reloading a brush
+   rather than as a swap. */
+.bristles {
+  fill: var(--paint, var(--color-primary));
+  transition: fill 260ms var(--ease-soft);
+}
+
+.brush[data-state="on"] {
+  opacity: 1;
+}
+
+/* No brush where a pointer cannot hover, and none for a reader who asked for
+   less motion — the component does not mount in either case, and this is the
+   belt to that braces. */
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .brush {
+    display: none;
+  }
+}

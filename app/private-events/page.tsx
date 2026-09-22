@@ -881,7 +881,7 @@ function PlanAction({
           as a figure standing on that ground rather than dissolve into it.
         */
         onImage
-          ? "bg-primary text-on-primary hover:bg-primary/90"
+          ? "press-in bg-primary text-on-primary hover:bg-primary/90"
           : "bg-cream text-text hover:bg-surface",
         className ?? "",
       ].join(" ")}

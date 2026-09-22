@@ -2,10 +2,13 @@ import type { Metadata, Viewport } from "next";
 
 import { Footer } from "@/components/layout/Footer";
 import { FooterReveal } from "@/components/layout/FooterReveal";
+import { FooterWave } from "@/components/layout/FooterWave";
 import { BlobGooFilter } from "@/components/ui/BlobButton";
 import { Header } from "@/components/layout/Header";
 import { RouteProgress } from "@/components/layout/RouteProgress";
 import { WhatsAppWidget } from "@/components/layout/WhatsAppWidget";
+import { CursorLayer } from "@/components/motion/CursorLayer";
+import { PointerField } from "@/components/motion/PointerField";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
 import { hapsha, montserrat } from "@/lib/fonts";
@@ -84,6 +87,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface"
         >
           {children}
+          {/*
+            The footer's wave, INSIDE main and anchored to its bottom edge. It
+            has to be on this side of the lid: the footer is pinned behind
+            main, so a shape drawn from the footer upward is covered by the
+            very background that hides the footer. Filled with the footer's own
+            White Rock, so what reads is the footer's background rising over
+            the seam. Decorative, hidden from the accessibility tree, and last
+            so it paints over the closing section rather than under it. See
+            <FooterWave>.
+          */}
+          <FooterWave />
         </main>
 
         <FooterReveal>
@@ -92,6 +106,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Last in the body so it sits above the page without a stacking
             context of its own; renders nothing until it has a number. */}
+        {/* The paint dab, over pictures only — it mounts nothing on a phone
+            or under reduced motion. See components/motion/CursorLayer.tsx. */}
+        <CursorLayer />
+        {/* Publishes the pointer's position as --mx/--my on <html> so every
+            <DoodleMark> on the page can drift against it, the way the
+            banner's doodles do. Renders nothing; see PointerField.tsx. */}
+        <PointerField />
+
         <WhatsAppWidget />
       </body>
     </html>

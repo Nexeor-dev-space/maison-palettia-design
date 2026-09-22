@@ -260,7 +260,7 @@ function Action({
         className={cn(
           "group mt-6 inline-flex w-full min-h-11 items-center justify-center gap-2.5 rounded-sm",
           "bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto",
+          "text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto",
         )}
       >
         Add to booking
@@ -334,7 +334,7 @@ function NoPasses() {
         className={cn(
           "group mt-8 inline-flex min-h-11 items-center justify-center gap-2.5 rounded-sm",
           "bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90",
+          "text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90",
         )}
       >
         Explore events

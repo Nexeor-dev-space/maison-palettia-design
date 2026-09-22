@@ -539,7 +539,7 @@ function PrimaryAction({
     return (
       <Link
         href={bookingStepHref(detail.workshop)}
-        className="group inline-flex w-full items-center justify-center gap-3 rounded-sm bg-primary px-8 py-5 text-fine font-medium uppercase leading-none tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
+        className="group inline-flex w-full items-center justify-center gap-3 rounded-sm bg-primary px-8 py-5 text-fine font-medium uppercase leading-none tracking-eyebrow text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
       >
         Book this experience
         <span
