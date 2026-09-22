@@ -1,5 +1,5 @@
 import { HeaderBar } from "@/components/layout/HeaderBar";
-import { getDisciplines } from "@/lib/disciplines";
+import { getCreativeExperiences } from "@/lib/experiences";
 import { getAllWorkshops } from "@/lib/workshops";
 
 /**
@@ -18,7 +18,12 @@ import { getAllWorkshops } from "@/lib/workshops";
  * without navigation — or a working search box — for the first paint.
  */
 export async function Header() {
-  const [disciplines, workshops] = await Promise.all([getDisciplines(), getAllWorkshops()]);
+  /*
+    The approved activities, not the old Paint / Craft / Create strands: the
+    Experiences menu has to say what you can make and whether you walk in or
+    book, and a strand name answers neither.
+  */
+  const [experiences, workshops] = await Promise.all([getCreativeExperiences(), getAllWorkshops()]);
 
-  return <HeaderBar disciplines={disciplines} workshops={workshops} />;
+  return <HeaderBar experiences={experiences} workshops={workshops} />;
 }

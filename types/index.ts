@@ -15,14 +15,31 @@ export interface NavItem {
    */
   secondary?: boolean;
   /**
-   * Opens the creative-strands menu instead of navigating.
+   * Opens a panel under the bar instead of navigating, and says which one.
    *
-   * A flag rather than a match on `href`, because "Workshops" and "Sessions"
-   * deliberately share a destination — one asks what you could make, the other
-   * when you could make it — and matching on the path would hang a menu off
-   * both of them.
+   * A field rather than a match on `href`, because entries deliberately share
+   * destinations — "Workshops" and "Sessions" both point at the programme, one
+   * asking what you could make and the other when — and matching on the path
+   * would hang a menu off both of them.
+   *
+   * It replaced a boolean `megamenu`. There are two panels now, and a second
+   * boolean beside the first is exactly the drift this file keeps warning
+   * about: one entry could have claimed both, and nothing would have said
+   * which won. The trigger still navigates for anyone without JavaScript —
+   * the `href` is unchanged and the panel is an enhancement over it.
    */
-  megamenu?: boolean;
+  menu?: "experiences" | "private-events";
+  /**
+   * Sits with the bar's utilities on the right rather than in the primary
+   * navigation on the left — About and Contact, beside search. Presentation
+   * only, and only on the desktop bar: the mobile menu and the footer still
+   * render the entry in document order with everything else, so there is
+   * still one list and it cannot drift.
+   *
+   * Main had dropped this flag along with its right-hand cluster; the current
+   * design keeps both, so it comes back with the merge.
+   */
+  utility?: boolean;
 }
 
 /** A grouped column of links in the footer. */

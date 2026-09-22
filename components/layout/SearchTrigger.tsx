@@ -1,6 +1,8 @@
 import { Search } from "lucide-react";
 import type { Ref } from "react";
 
+import { NavLabel } from "@/components/layout/NavLabel";
+
 interface SearchTriggerProps {
   ref: Ref<HTMLButtonElement>;
   isOpen: boolean;
@@ -38,32 +40,51 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
       aria-expanded={isOpen}
       aria-controls={panelId}
       className={
-        // `font-normal`, not medium. Weight in this row means something —
-        // Events carries it because the client asked for that one entry to
-        // have priority — and this button was medium as well, which put the
-        // emphasis on two of the four labels in no pattern a reader could
-        // follow. Search is a utility, not a priority.
-        "group/nav inline-flex size-11 items-center justify-center gap-2 text-body " +
-        "font-normal tracking-[0.01em] text-current transition-colors duration-300 ease-soft " +
+        /*
+          The row's one weight, Medium, and not the Regular it used to set.
+
+          The note here argued that weight in this row meant something and that
+          Search, being a utility rather than a destination, should sit below
+          the links beside it. The client's read of the finished bar was that
+          the labels were simply in different weights — see <HeaderBar>, where
+          the same ranking was undone for the same reason. Search keeps the one
+          mark no other entry has, which is the icon.
+        */
+        "group/nav inline-flex size-11 items-center justify-center gap-2 whitespace-nowrap text-body " +
+        "font-medium tracking-[0.015em] text-current transition-colors duration-300 ease-soft " +
         // Below `lg` the label is `sr-only`, so the button is an icon in a
         // fixed 44px box — the touch target the icon alone could not give it.
         // From `lg` the label is visible and the row sits in an 80–104px bar,
         // so the box is let go and the button is sized by its own content.
         //
-        // `lg:pb-1.5` is what puts this label on the same line as the others,
-        // and it is reserving space rather than adding padding. Every nav
-        // entry sets its word inside <NavLabel>, which keeps 6px under the
-        // text for the rule it draws on hover; this button has no rule, so its
-        // box measured 29.75px against their 35.75px and centred 3px lower in
-        // the row. Matching the reserved space matches the baseline — and the
-        // icon moves with the label, which it would not if the padding went on
-        // the label alone. Only from `lg`: below it the button is the fixed
-        // 44px icon box and there is nothing to line up with.
-        "lg:size-auto lg:justify-start lg:pb-1.5"
+        // From `lg` the label sits in <NavLabel>, like every other entry in
+        // the row: it reserves the same 6px under the word and draws the same
+        // rule on hover. This button used to reserve that space itself and
+        // draw nothing — the one entry in the bar with no hover mark at all.
+        "lg:size-auto lg:justify-start"
       }
     >
-      <Search size={18} aria-hidden className="shrink-0" />
-      <span className="sr-only lg:not-sr-only">Search</span>
+      {/*
+        THE ICON RESERVES WHAT THE LABEL RESERVES. <NavLabel> keeps 6px under
+        the word for the rule that draws on hover, so from `lg` the label's
+        flex item is the word plus six empty pixels — and `items-center` was
+        centring the icon against that whole box, which sat it three pixels
+        below the word it belongs to. That is the misalignment: not the
+        baseline, which already matched the rest of the row, but the icon
+        hanging low against every label beside it.
+
+        Six pixels of the same reserve under the icon makes both items carry
+        the same dead space, so centring them centres the word and the glyph
+        on one line. Below `lg` the label is `sr-only` and the button is a
+        plain 44px touch box, where there is nothing to align to and the
+        margin would only push the icon off-centre.
+      */}
+      <Search size={18} aria-hidden className="shrink-0 lg:mb-1.5" />
+      <span className="sr-only lg:not-sr-only">
+        {/* Drawn while the panel is open as well as on hover, so the bar shows
+            where you are the way a current page does. */}
+        <NavLabel isActive={isOpen}>Search</NavLabel>
+      </span>
     </button>
   );
 }

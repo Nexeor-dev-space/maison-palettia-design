@@ -1,484 +1,441 @@
+import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { BackToTop } from "@/components/layout/BackToTop";
-import { SocialIcons } from "@/components/layout/SocialIcons";
-import { Reveal } from "@/components/motion/Reveal";
 import { Container } from "@/components/ui/Container";
-import { CONTACT, FOOTER_NAV, LEGAL_NAV, NEWSLETTER, SITE } from "@/lib/constants";
+import { DoodleMark } from "@/components/ui/DoodleMark";
+import { forScript } from "@/components/ui/SectionHeader";
+import { MISSION, TAGLINE } from "@/lib/brand";
+import { BRAND_LOGO, CONTACT, FOOTER_NAV, LEGAL_NAV, SITE, SOCIAL_LINKS } from "@/lib/constants";
 import { getMallPartners } from "@/lib/partners";
-import type { NavGroup } from "@/types";
+
+/** A footer link: the label, and a rule that draws in under it on hover. */
+const LINK =
+  "group/link -my-1.5 inline-flex py-1.5 text-body text-text/75 transition-colors duration-300 ease-soft hover:text-text";
 
 /**
- * Global site footer — the last room.
- *
  * ==========================================================================
- * REBUILT AFTER GOODMAN GALLERY'S FOOTER, AND LIGHT
+ * THE FOOTER
  * ==========================================================================
  *
- * The reference is a plain light field with dark type and almost no styling
- * at all: sentence-case group headings in medium weight, links in regular
- * weight at the same size, a newsletter block holding the left quarter, a
- * hairline, and a band of the gallery's cities underneath with an address and
- * a directions link under each. Weight does the hierarchy; nothing is tracked,
- * nothing is uppercase, and there is not a box anywhere in it.
+ * WHITE ROCK, AT THE CLIENT'S ASK, AND IT INVERTED EVERY INK IN THE FILE.
+ * This was Charcoal Slate for a long time on the argument that a dark floor
+ * stops the page thinning out into another pale band. The client read it as
+ * not matching the site, which is fair: every section above it is light, and
+ * the one dark surface on the site was the last thing you saw.
  *
- * WHAT CHANGED HERE, AND IT IS MOSTLY THE REGISTER. The footer was a near-
- * black field carrying White Rock type, with tracked uppercase group headings
- * at 13px and body-size links under them. The ground is Light Sage now —
- * `--color-footer`, one line in globals.css, which also explains why Light
- * Sage rather than a white the palette does not contain — and the labels have
- * come down out of caps into the reference's quiet sentence case.
+ * The ground is now the palette's own neutral and the ink is Charcoal Slate at
+ * 9.36:1. The logo swapped cuts with it — the client supplied Light Sage for
+ * dark grounds and Deep Lilac for pale ones, and the sage cut on White Rock
+ * would have been a blank rectangle.
  *
- * THE ARCH SURVIVED THE MOVE, AND IS BETTER OFF. It needs two grounds to read
- * as a shape, and it had them the wrong way round: a near-black dome rising
- * out of a White Rock band, which is a dark shape cut into a light one. Now
- * the dome is the footer's own Light Sage and the band behind its corners is
- * still White Rock — the pairing the component's documentation described for
- * years while the code did something else. The reference has no such motif and
- * this is the one place the redesign does not follow it: the arch is the
- * Maison's entrance and one of only two left on the site.
+ * ONLY WHAT IS REAL.
  *
- * INK ON LIGHT SAGE. Charcoal Slate at full strength measures 9.07:1, and at
- * /75 it is 4.70:1 — so the muted ink that carries addresses and the legal
- * line still clears the 4.5:1 body copy owes. Deep Lilac is 3.83:1 here, which
- * is under that bar and over the 3:1 a graphical mark owes, so the accent is
- * only ever a rule: the link underlines, and nothing that is read as words.
- * That is the same division <PlanYourVisit> settled on for its rail links.
+ *   Contact ....... the address lines are always shown; email and phone only
+ *                   once they are set in CONTACT. Both are null today.
+ *   Social ........ only profiles with a real URL. Every href in SOCIAL_LINKS
+ *                   is null, so there is no "Follow" heading at all — the
+ *                   previous footer printed "Instagram" and "Facebook" as
+ *                   plain text under "Follow", which reads as two broken links.
+ *   Legal ......... LEGAL_NAV, which is empty until the policy pages exist,
+ *                   so no link in the footer answers 404.
+ *   Newsletter .... not rendered: NEWSLETTER has no endpoint, and a form that
+ *                   posts nowhere is a promise the site cannot keep.
  *
  * ==========================================================================
- * THE COMPOSITION
+ * BROUGHT INTO THE SITE'S OWN LANGUAGE
  * ==========================================================================
  *
- *   ╭──────────────────── the arch ────────────────────╮
+ * It was the last surface that had not been: no script, no brand mark, no
+ * doodle — a dark slab with three columns of links and two bands of
+ * addresses, which is what every footer on the internet looks like. Three
+ * things changed and the ground was not one of them.
  *
- *   Newsletter                     Create      The Maison     Visit
- *   New dates and new…             Events      About          Contact
- *   [ Subscribe ]                  Private…    Journal        Check a booking
- *                                  Passes                     FAQ
- *                                  Gallery
- *   Follow
- *   Instagram  Facebook
- *   ─────────────────────────────────────────────────────────────────────
- *   The studio              Times Square Center
- *   Dubai                   Dubai
- *   United Arab Emirates    Get directions
+ *   THE TAGLINE IS SET IN THE SCRIPT. It was a 12px uppercase label, which is
+ *   the register this site gives to eyebrows and field labels rather than to
+ *   the sentence the brand is named for. Hapsha in Light Sage measures 9.07:1
+ *   here — the strongest pairing in the palette — so the one place the page
+ *   can afford the brand's own voice at size is the place it was missing.
  *
- *   © 2026 Maison Palettia Events L.L.C.                    Back to top
+ *   THE TWO ADDRESS BANDS BECAME ONE. "Find us" and "The studio" each took a
+ *   third of a full-width band and left the other two thirds empty, and the
+ *   mission sat alone under the logo above. They are now one row of three:
+ *   where the Maison sets up, where the studio is, and the mission as the
+ *   line that closes it. Nothing was added and nothing was cut — the same
+ *   content stops leaving two holes in the page.
  *
- * THREE COLUMNS OF LINKS RATHER THAN THE REFERENCE'S STAGGERED TWO. Goodman
- * deals four groups into two columns and starts the second pair lower down,
- * which is what four groups of eight and ten links need. This site has three
- * groups holding nine links between them; dealt into two columns they would
- * make a stagger out of nothing, which is a composition borrowed rather than
- * earned. Three even columns is the same footer at this content's size, and a
- * fourth group appended to FOOTER_NAV wraps into the row without an edit here.
+ *   TWO MARKS, BOTH ANCHORED. One on the rule where the links turn into the
+ *   addresses — the same "mark at the turn" the workshop journey and the
+ *   About purpose section use, so the footer is punctuated the way the rest
+ *   of the site is — and one bleeding off the bottom corner behind the legal
+ *   line, where there is genuinely nothing else.
  *
- * THE CITIES BAND IS THE REFERENCE'S AND IT IS THE PART THAT TRANSFERS BEST.
- * Goodman lists four galleries with an address and Get Directions under each.
- * The Maison has a studio locality and a list of partner centres it actually
- * sets up in — real places, with a real maps link already on each one for
- * <MallPartners> — so the band is built from those rather than invented. One
- * partner today (see lib/partners.ts, which explains why one is the point
- * rather than a gap); the band takes more by appending to that array.
+ * THE ACCENTS ALL CHANGED HANDS WITH THE GROUND, and the old note is worth
+ * keeping beside the new one because it is the exact mirror. On Charcoal:
+ * Light Sage 9.07:1, White Rock 9.36:1, Soft Lavender 6.49:1, Warm Terracotta
+ * 3.84:1 — all clear — and DEEP LILAC DIED at 2.37:1, so the marks were sage,
+ * lavender and terracotta and the site's own accent was deliberately absent.
  *
- * WHAT IS NOT HERE, AND WHY. No newsletter block until there is a mailing
- * list — see {@link NEWSLETTER}, which renders the whole left-hand block only
- * once an endpoint exists. No Legals group: LEGAL_NAV is deliberately empty
- * because neither route has been built, so the legal line at the foot carries
- * nothing today and fills itself in when they are.
+ * On White Rock it is the other way round and much tighter. Measured against
+ * this ground: Deep Lilac 3.95:1, Warm Terracotta 2.44:1, Soft Lavender
+ * 1.44:1, Light Sage 1.03:1. Only Deep Lilac clears the 3:1 a rule or a mark
+ * owes, so it is now the only accent in the footer — the tagline, the heading
+ * rules, the link underlines, the starleaf and the brush's own bristles. The
+ * three that carried this footer on Charcoal cannot be used on it at all.
  *
- * AND THE SIGNATURE HAS GONE. "see you at the maison" closed this footer in
- * the brand script on every page of the site. It is also the signature inside
- * <PlanYourVisit>, which now closes /about — so on that page the same five
- * words were set twice within about four hundred pixels, the second time
- * smaller. The invitation is where the line means something; the footer is
- * where it had become furniture. The reference's footer has no flourish in it
- * at all, which made this the moment to settle it.
+ * Nothing here is set in Deep Lilac at body size: 3.95:1 is under the 4.5:1
+ * running text owes. Muted copy is Charcoal at /75 and the tagline is display
+ * type at 2.75rem, which owes 3:1.
  *
- * ==========================================================================
- * THE HEIGHT BUDGET — MEASURED, BECAUSE THE FOOTER IS ONLY PINNED WHILE IT
- * FITS THE WINDOW
- * ==========================================================================
- *
- * <FooterReveal> measures this element, hands <main> a bottom margin of the
- * same height and fixes the footer behind it. Past the window height it gives
- * up and the footer goes back into the flow — graceful, but it is not the
- * designed ending, and it flips silently.
- *
- * The arch is `min(16vw,18vh)`, so the footer shrinks with the window: its
- * height is roughly `body + 0.18H` at desktop widths, and it pins while that
- * is at most `H - 8`. Measured at 1440 wide:
- *
- *   body 514px  ->  676px at H=900, and pins down to about H=637
- *   the old Ink footer was ~467px of body and pinned to about H=579
- *
- * The cities band is what costs the difference, and it is the part of the
- * reference that transfers best, so it stays. The spacing between the three
- * bands was tightened once to pay for it: at the first spacing the body came
- * to 566px and the footer stopped pinning below about H=700, and a 1366x768
- * laptop gives around 678px of viewport once browser chrome is off it — so the
- * reveal was quietly dying on one of the commonest screens there is. 637
- * clears that band with room.
- *
- * THE NEWSLETTER COSTS 147px ON TOP OF THAT — 875px at H=900, measured with a
- * dummy endpoint in place. Switched on, this footer pins only above about
- * H=893, which is to say almost nowhere. Before turning it on, either accept
- * that the reveal stops on most laptops or close the gap between the block and
- * Follow and trim a band; do not switch it on and assume the reveal survived.
- *
- * Server component, and async only to read the partner list. The interactive
- * parts are <BackToTop> and the newsletter form.
+ * <FooterReveal> measures this element's height to decide whether to pin it
+ * behind the page. Merging the two address bands took height out rather than
+ * adding it, which is the right direction: past the window height the whole
+ * reveal falls back to a footer in the flow.
  */
 export async function Footer() {
-  const year = new Date().getFullYear();
   const partners = await getMallPartners();
+  const year = new Date().getFullYear();
+  const socials = SOCIAL_LINKS.filter((link): link is typeof link & { href: string } =>
+    Boolean(link.href),
+  );
 
   return (
-    // The ground the arch cuts into, so its corners reveal White Rock rather
-    // than the page's off-white.
-    //
-    // WHICH IS INVISIBLE ONLY WHERE THE SECTION ABOVE IS ALSO WHITE ROCK, and
-    // that is now /about, whose closing invitation this was written against
-    // before that section moved there from the homepage. Everywhere the last
-    // section takes another ground — the homepage's Charcoal quotes, most
-    // visibly — this band reads as a cream strip above the arch instead of as
-    // the invitation continuing into it. It is a seam rather than a fault, and
-    // it is the same seam every route other than /about and the homepage has
-    // always had; flagged because the comment here used to promise otherwise.
-    <footer>
-      {/*
-        NO ARCH, AND NO RADIUS ON THE TOP EDGE — removed at the client's ask.
+    /*
+      ---- THE WAVE ON TOP OF THIS ELEMENT IS NOT DRAWN HERE ----
 
-        This was a strip of Ink cut into an arch, so the footer rose out of the
-        section above it on a curve. It is gone: the footer is a flat-topped
-        field now and meets the page on a straight edge.
+      <FooterWave>, rendered at the foot of <main>, carries this footer's own
+      White Rock up over the seam on five crests. It cannot be drawn from
+      inside this element: <FooterReveal> pins the footer BEHIND main, and
+      main's opaque background — the lid that hides the footer for the whole of
+      the page — covers anything this element paints above its own top edge.
 
-        The `bg-cream` on the <footer> itself went with it. Its only job was to
-        be what the arch's corners revealed; with no curve there are no corners
-        and it would be a cream hairline under the last section.
-      */}
+      IT TOOK FIVE GOES AND EACH ONE FAILED DIFFERENTLY. A five-stop band of
+      the whole palette, which read as a rainbow rather than as paint and
+      misread the activity cards (a card is flooded with ONE colour; the set
+      only appears because seven cards each take a different one). Then a torn
+      splatter edge in that colour with a swell that tracked the pointer — read
+      as a bite taken out of the section above, and the swell as simply odd.
+      Then a smooth wave, one edge doing both jobs. Then a Deep Lilac band with
+      a straight top and a wavy bottom, which is the only arrangement that lets
+      the section keep a flat bottom while this footer keeps a wavy top — and
+      the client has taken the purple out, so the two are one edge again. See
+      FooterWave.module.css for why no other colour in the palette can hold
+      those two edges apart.
 
-      {/*
-        ONE PLACE DECIDES THE INK AND EVERYTHING INSIDE INHERITS IT — the same
-        arrangement <HeaderBar> keeps. `text-text` here is what <BackToTop> and
-        <SocialIcons> read through `text-current`, so neither has to know which
-        ground it is standing on; both used to hard-code a Light Sage hover
-        that would now be invisible, and both were fixed with this change.
+      ---- AND THE BRUSH ----
 
-        No `--color-focus` override any more. It was pointed at White Rock
-        because Deep Lilac measures 3.02:1 on Ink, under the 3:1 a focus ring
-        owes. On Light Sage the default lilac is 3.83:1 and clears it, so the
-        ring goes back to the site's own accent.
-      */}
-      <div className="bg-footer text-text pb-8 pt-5 md:pb-9 md:pt-6 lg:pb-[min(2.5rem,4vh)]">
-        <Container>
-          <div className="mx-auto grid max-w-site grid-cols-12 gap-x-6 gap-y-12 lg:gap-x-10">
-            {/* ---- The left quarter: the list, and who to follow ---- */}
-            <div className="col-span-12 lg:col-span-4">
-              <NewsletterBlock />
+      `data-paint` is what puts <CursorLayer>'s paintbrush over this footer,
+      loaded with the Deep Lilac in `--paint`: the pointer picked up over an
+      activity photograph is the one the visitor still has when they reach the
+      foot of the page. It was Light Sage while the ground was Charcoal, and
+      the bristles would be all but invisible on White Rock at 1.03:1.
 
-              <div className={NEWSLETTER.actionUrl ? "mt-12 lg:mt-16" : undefined}>
-                <GroupHeading>Follow</GroupHeading>
-                {/*
-                  Marks rather than words where there is a URL to point at, and
-                  plain readable names where there is not — see <SocialIcons>,
-                  which holds that rule and the pull-left that keeps the icons'
-                  44px targets from indenting the row past the type above them.
-                */}
-                <div className="mt-4">
-                  <SocialIcons />
-                </div>
-              </div>
-            </div>
+      The brush no longer drags anything with it. It used to push a swell of
+      paint along the edge above; that came out at the client's ask along with
+      the torn edge it was swelling.
 
+      ---- AND THE WAVE IS THE FIRST CHILD ----
+
+      It is absolutely positioned and <Container> below it is `relative`, so
+      paint order settles between the two on DOM order alone and the type sits
+      over the band without either needing a z-index. `isolate` keeps that
+      argument inside this element.
+
+      IT COSTS THE LINKS THEIR HAND, which is worth saying out loud, and it
+      took a rule in globals.css to make it do so cleanly. `cursor: none` on
+      this element is inherited by everything in it, but `cursor: pointer`
+      comes from the UA stylesheet on each <a> itself and beats an inherited
+      value — so the first build drew the hand ON TOP OF the brush over every
+      link in the footer. That never showed up on the activity plates because
+      they mark the frame INSIDE the anchor rather than the anchor itself.
+
+      So a link inside a paint surface now follows the surface; see the rule
+      next to the other paint-cursor rules in globals.css. The links keep the
+      rule that draws in under them on hover, which is the affordance doing
+      the work at this size anyway, and the brush is never mounted at all for
+      a visitor on a phone, under reduced motion or without JavaScript — all
+      of whom keep the hand.
+    */
+    <footer
+      data-paint
+      style={{ "--paint": "var(--color-primary)" } as CSSProperties}
+      className="relative isolate bg-cream text-text"
+    >
+      <Container className="relative pb-8 pt-16 md:pt-20 lg:pb-10 lg:pt-24">
+        {/*
+          THE CORAL THAT USED TO BLEED OFF THIS CORNER HAS GONE, and the note
+          it carried is worth keeping because it was right at the time: the
+          footer's top margin was the one piece of genuinely empty space in
+          the composition — roughly 96px of padding, the full width of the
+          page — after the bottom-right corner put a shape behind "Back to
+          top" and the left column drove the row 89px taller in flow.
+
+          That space is the pour now, which is a stronger event on the same
+          edge and would have the mark sitting in wet paint. The footer keeps
+          one doodle, the starleaf at the turn below; Terracotta opens the
+          band along the top instead, where it used to sit up here alone.
+
+          A ROW OF FIVE PAINT DABS UNDER THE TAGLINE WAS TRIED AND TAKEN OUT.
+          The idea was to resolve the band back into the colours it came off,
+          which is a fair rhyme and a poor drawing: the `splash` vector has
+          arms thinner than the gaps between them, so at 16-24px it sets as an
+          asterisk, at 24-40 as a small flower, and only past about 44px as a
+          splat — by which point five of them are a 48px row of clip art
+          sitting 400px under a band that already says the same thing better.
+          The palette is stated once, at the top, in paint.
+        */}
+        <div className="grid grid-cols-12 gap-x-6 gap-y-14 lg:gap-x-10">
+          {/* ---- the Maison ---- */}
+          <div className="col-span-12 lg:col-span-5">
+            <Link href="/" aria-label={`${SITE.name} — home`} className="inline-block">
+              {/*
+                THE DEEP LILAC CUT, BECAUSE THE GROUND IS LIGHT NOW. The client
+                supplied two: Light Sage for dark grounds and Deep Lilac for
+                pale ones. This was the sage cut, which was right on Charcoal
+                at 9.07:1 and is invisible on White Rock — it would have left
+                the footer opening on a blank rectangle.
+
+                The two files are NOT the same proportion (1120x466 against
+                1015x438), so only the height is set and each keeps its own
+                aspect; see the note on BRAND_LOGO.onLight.
+              */}
+              <Image
+                src={BRAND_LOGO.onLight.src}
+                alt=""
+                width={BRAND_LOGO.onLight.width}
+                height={BRAND_LOGO.onLight.height}
+                className="h-16 w-auto md:h-20"
+              />
+            </Link>
             {/*
-              ---- The site map ----
-
-              The nav keeps its own element and spans the right half rather
-              than being flattened into the outer grid: `display: contents` on
-              a landmark would line the groups up just as well and has a
-              history of dropping the landmark out of the accessibility tree,
-              which is a bad trade for an alignment nothing depends on.
+              The brand's own voice, at the one size the palette lets it be
+              read: Light Sage on Charcoal is 9.07:1. `forScript` swaps curly
+              punctuation for the straight marks Hapsha actually draws — the
+              face has no curly apostrophe, and the tagline has none either,
+              but the copy is shared and this keeps it safe if it ever gains
+              one. The size carries the face's own leading floor; see the
+              script tokens in globals.css.
             */}
-            <nav
-              aria-label="Footer"
-              className="col-span-12 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:col-span-6 lg:col-start-7 lg:gap-x-10"
-            >
-              {FOOTER_NAV.map((group) => (
-                <FooterGroup key={group.title} group={group} />
-              ))}
-            </nav>
+            {/*
+              IT IS THE FOOTER'S DISPLAY LINE NOW, not a caption under the
+              mark. It was 32px rising to 38px and set on one line, which left
+              the left half of this row carrying about a third of its own
+              width — the widest hole in the composition, and a good part of
+              why the footer read as a directory with a logo on it.
+
+              A STEP UNDER `text-script-compact`, WHICH WAS TRIED FIRST AND IS
+              TOO MUCH. That token tops out at 3.4rem, and at 1440 it set the
+              tagline in two lines nearly as tall as the whole nav beside it —
+              the footer stopped closing the page and started competing with
+              the section above it, and it pushed about 110px into the height
+              <FooterReveal> is budgeting. 2.75rem is the size that fills the
+              column without taking it over.
+
+              `leading-[1.22]` is set because the size is: the script tokens
+              carry their own leading (1.32 at this step) and an arbitrary
+              size does not inherit it, so the two lines opened a gap wide
+              enough to read as two separate sentences.
+
+              THE MEASURE IS THE COLUMN, and that is what closes the hole. It
+              breaks the line in two at every width — without a measure a
+              2000px display sets all thirty-six characters on one line — and
+              at 34rem the second line runs to about the foot of the five
+              columns this block is given, so the brand block finally occupies
+              its own half of the row. At 20rem, which is where this started,
+              the type stopped 290px short of the nav beside it and the hole
+              the larger size was meant to close was still there, just lower
+              down.
+
+              Light Sage on Charcoal is 9.07:1, the strongest pairing in the
+              palette — see the note at the head of this file.
+            */}
+            <p className="mt-7 heading-script max-w-[34rem] text-[clamp(1.9rem,1.35rem+1.6vw,2.75rem)] leading-[1.22] text-primary">
+              {forScript(TAGLINE)}
+            </p>
+
           </div>
 
+          {/* ---- where to go ---- */}
           {/*
-            ---- The cities band ----
-
-            The reference's own, and the hairline above it is the only rule in
-            the footer. Four columns at desktop so a fourth partner lands
-            beside the third rather than starting a row of its own.
+            Seven columns from the sixth rather than six from the seventh. The
+            three groups were parked against the right edge with a column of
+            nothing between them and the brand block; starting one column
+            earlier closes that gap and gives the longest label ("Check a
+            booking") room to stay on one line.
           */}
-          <Reveal variant="fadeIn">
-            <div className="mx-auto mt-10 grid max-w-site grid-cols-12 gap-x-6 gap-y-10 border-t border-text/20 pt-8 md:mt-12 lg:gap-x-10">
-              <div className="col-span-6 md:col-span-3">
-                <PlaceHeading>The studio</PlaceHeading>
-                <address className="not-italic mt-3 text-body leading-[1.75] text-text/75">
-                  {CONTACT.addressLines.map((line) => (
-                    <span key={line} className="block">
-                      {line}
-                    </span>
-                  ))}
-                  {/* Both null today, and rendered only when they are not —
-                      the footer has never printed a contact detail the studio
-                      has not supplied. */}
-                  {CONTACT.email ? (
-                    <a href={`mailto:${CONTACT.email}`} className={`${LINK} mt-2`}>
-                      <LinkLabel>{CONTACT.email}</LinkLabel>
-                    </a>
-                  ) : null}
-                  {CONTACT.phone ? (
-                    <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className={LINK}>
-                      <LinkLabel>{CONTACT.phone}</LinkLabel>
-                    </a>
-                  ) : null}
-                </address>
-              </div>
-
-              {partners.map((partner) => (
-                <div key={partner.slug} className="col-span-6 md:col-span-3">
-                  <PlaceHeading>{partner.name}</PlaceHeading>
-                  <p className="mt-3 text-body leading-[1.75] text-text/75">{partner.locality}</p>
-
-                  {/*
-                    "Get directions" carries a rule at rest rather than only on
-                    hover, because it is the one link in this band and nothing
-                    around it looks like a link. The reference underlines its
-                    own for the same reason.
-
-                    THE REST RULE IS NEUTRAL, NOT LILAC, AND THAT IS A CONTRAST
-                    FIX. It identifies a link, so WCAG 1.4.11 asks 3:1 of it.
-                    Deep Lilac at /50 — the weight the rail links use on White
-                    Rock — composites to 2.11:1 on this ground and fails;
-                    Charcoal at /60 is 3.26:1 and passes. Measured on the
-                    rendered pixel rather than computed, because Tailwind mixes
-                    these in oklab and the sRGB arithmetic does not predict it.
-
-                    It also buys a better hover: the sweep is full-strength
-                    Deep Lilac at 3.83:1, so pointing at the link changes the
-                    rule's colour as well as redrawing it.
-                  */}
-                  {partner.locationHref ? (
-                    <a
-                      href={partner.locationHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${LINK} mt-3`}
-                    >
-                      <span className="relative pb-1">
-                        Get directions
-                        <span
-                          aria-hidden
-                          className="absolute inset-x-0 bottom-0 h-px bg-text/60"
-                        />
-                        <span
-                          aria-hidden
-                          className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-primary transition-transform duration-500 ease-editorial group-hover:scale-x-100"
-                        />
-                      </span>
-                    </a>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </Reveal>
-
-          {/* ---- The last line ---- */}
-          <Reveal variant="fadeIn">
-            <div className="mx-auto mt-8 flex max-w-site flex-col gap-5 text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between md:mt-10">
-              <div className="flex flex-col gap-x-7 gap-y-2 sm:flex-row sm:items-center">
-                <p>
-                  &copy; {year} {SITE.legalName}
-                </p>
-
-                {/* Empty today and rendered from the array regardless, so the
-                    two documents appear here the moment their routes exist. */}
-                {LEGAL_NAV.length > 0 ? (
-                  <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">
-                    {LEGAL_NAV.map((item) => (
+          <nav aria-label="Footer" className="col-span-12 lg:col-span-7 lg:col-start-6">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
+              {FOOTER_NAV.map((group) => (
+                <div key={group.title}>
+                  <FooterHeading>{group.title}</FooterHeading>
+                  <ul className="mt-5 space-y-2.5">
+                    {group.items.map((item) => (
                       <li key={item.href}>
-                        {/* The same invisible pad the nav links carry — these
-                            set a 13px line box, the smallest targets here. */}
-                        <Link
-                          href={item.href}
-                          className="relative inline-flex transition-colors duration-300 ease-soft hover:text-text after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']"
-                        >
-                          {item.label}
+                        <Link href={item.href} className={LINK}>
+                          <span className="border-b border-transparent pb-0.5 transition-colors duration-300 ease-soft group-hover/link:border-primary">
+                            {item.label}
+                          </span>
                         </Link>
                       </li>
                     ))}
                   </ul>
-                ) : null}
-              </div>
-
-              <BackToTop />
+                </div>
+              ))}
             </div>
-          </Reveal>
-        </Container>
-      </div>
+          </nav>
+        </div>
+
+        {/* ---- where to find it ---- */}
+        {/*
+          ---- where to find it, and what it is for ----
+
+          One row of three rather than two bands of one. "Find us" and "The
+          studio" each held a third and left the rest of a full-width band
+          empty; the mission now takes the third column, so the row is full
+          and the footer is shorter than it was.
+        */}
+        <div className="relative mt-12 grid grid-cols-12 gap-x-6 gap-y-10 border-t border-text/20 pt-12 md:mt-16 lg:gap-x-10">
+          {/* The mark at the turn — the same punctuation <WorkshopJourney>
+              and the About purpose section use, so the footer is marked the
+              way the rest of the site is. Sized by its wrapper: <DoodleMark>
+              fills the box it is given. */}
+          <span
+            aria-hidden
+            className="absolute -top-5 left-0 block h-10 w-10 bg-cream pr-2"
+          >
+            {/* Deep Lilac, not the Soft Lavender it was. On Charcoal that
+                lavender measured 6.49:1; on White Rock it is 1.44:1 and the
+                mark simply disappears. Deep Lilac is 3.95:1 here and clears
+                the 3:1 a graphical mark owes. */}
+            <DoodleMark name="starleaf" color="#9059A4" treatment="draw" delay={120} />
+          </span>
+
+          {partners.map((partner) => (
+            <div key={partner.slug} className="col-span-12 sm:col-span-6 lg:col-span-4">
+              <FooterHeading>Find us</FooterHeading>
+              <p className="mt-4 text-lead leading-snug text-text">{partner.name}</p>
+              <p className="mt-1 text-body text-text/75">{partner.locality}</p>
+              {partner.locationHref ? (
+                <a
+                  href={partner.locationHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${LINK} mt-3 items-baseline gap-2`}
+                >
+                  <span className="border-b border-text/60 pb-0.5 transition-colors duration-300 ease-soft group-hover/link:border-primary">
+                    Get directions
+                  </span>
+                  <span className="sr-only">(opens Google Maps in a new tab)</span>
+                  <span aria-hidden>&#8599;</span>
+                </a>
+              ) : null}
+            </div>
+          ))}
+
+          <div className="col-span-12 sm:col-span-6 lg:col-span-4">
+            <FooterHeading>The studio</FooterHeading>
+            <address className="mt-4 text-body not-italic leading-[1.75] text-text/75">
+              {CONTACT.addressLines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </address>
+            {CONTACT.email ? (
+              <a href={`mailto:${CONTACT.email}`} className={`${LINK} mt-2`}>
+                {CONTACT.email}
+              </a>
+            ) : null}
+            {CONTACT.phone ? (
+              <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className={`${LINK} block`}>
+                {CONTACT.phone}
+              </a>
+            ) : null}
+          </div>
+
+          {/*
+            The mission, moved down out of the logo block to close this row.
+            It was sitting alone under the mark while this band ran two
+            thirds empty; here it does the work of a third column and the
+            page ends on what the studio is for rather than on an address.
+          */}
+          <div className="col-span-12 sm:col-span-6 lg:col-span-4">
+            <FooterHeading>Why we do it</FooterHeading>
+            <p className="mt-4 max-w-[22rem] text-body leading-[1.8] text-text/75">{MISSION}</p>
+          </div>
+
+          {socials.length > 0 ? (
+            <div className="col-span-12 sm:col-span-6 lg:col-span-4">
+              <FooterHeading>Follow</FooterHeading>
+              <ul className="mt-4 space-y-2.5">
+                {socials.map((link) => (
+                  <li key={link.label}>
+                    <a href={link.href} target="_blank" rel="noopener noreferrer" className={LINK}>
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ---- the foot ---- */}
+        <div className="mt-14 flex flex-col gap-5 border-t border-text/20 pt-7 text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between md:mt-16">
+
+          <div className="flex flex-col gap-x-7 gap-y-2 sm:flex-row sm:items-center">
+            <p>
+              &copy; {year} {SITE.legalName}
+            </p>
+            {LEGAL_NAV.length > 0 ? (
+              <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">
+                {LEGAL_NAV.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="transition-colors hover:text-text">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+          <BackToTop />
+        </div>
+      </Container>
     </footer>
   );
 }
 
 /**
- * The mailing-list block, or nothing at all.
+ * A heading in the footer, with the short rule every section on the site
+ * opens with.
  *
- * It renders only once {@link NEWSLETTER} has an endpoint, for the reason set
- * out on that constant: this project has no mailing list, and a Subscribe
- * button that posts nowhere takes an address and loses it.
+ * THE RULE IS THE WHOLE CHANGE, and it is reuse rather than decoration. Six
+ * bare tracked labels floating in a dark field is what a footer looked like
+ * before the rest of this site had a language; <Eyebrow> has carried a rule
+ * in front of exactly this type at exactly this size on every section above,
+ * so this was the one surface speaking a dialect of its own.
  *
- * A plain `<form method="post">` at the provider's own endpoint — no client
- * library, no JavaScript, and it keeps working for a visitor who has none.
- * The provider's confirmation page is where the visitor lands, which is what
- * these embeds do and is honest about where the address went.
+ * THE COLOUR IS WRITTEN OUT RATHER THAN TAKEN FROM `inkFor`, which is the one
+ * place this component stops reusing <Eyebrow>'s decisions, and it is a
+ * measurement. `inkFor("light")` gives Warm Terracotta, and that ground covers
+ * "the page off-white, White Rock, Light Sage" as one — but Terracotta on
+ * White Rock is 2.44:1, under the 3:1 a rule identifying a heading owes. Deep
+ * Lilac is 3.95:1 on the same ground and clears it, so the rule takes the
+ * accent instead. (`inkFor("dark")` was right while this footer was Charcoal
+ * and its Light Sage would now be 1.03:1 — invisible.)
+ *
+ * Still an <h2>, and not <Eyebrow> itself, which renders a <p>. These head
+ * lists inside a nav landmark and an address block; the rule is styling and
+ * the heading is structure, and swapping the element to reuse the one would
+ * give up the other.
  */
-function NewsletterBlock() {
-  const { actionUrl, fieldName, heading, description, cta } = NEWSLETTER;
-  if (!actionUrl) return null;
-
+function FooterHeading({ children }: { children: string }) {
   return (
-    <div>
-      <GroupHeading>{heading}</GroupHeading>
-      <p className="mt-3 max-w-[22rem] text-body leading-[1.75] text-text/75">{description}</p>
-
-      <form action={actionUrl} method="post" className="mt-6 max-w-[22rem]">
-        {/*
-          A real label, visually hidden. A placeholder is not a label: it
-          disappears the moment anything is typed, and it is the only thing
-          naming this field for a screen reader.
-        */}
-        <label htmlFor="newsletter-email" className="sr-only">
-          Email address
-        </label>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          {/*
-            The border is the field's only boundary, so it is a user interface
-            component under WCAG 1.4.11 and owes 3:1: Charcoal at /60 measures
-            3.26:1 on this ground where the /30 it started at is about 1.7:1.
-            The placeholder is held at /75 (4.70:1) for the same reason — it is
-            read as text, so it owes the full 4.5:1.
-          */}
-          <input
-            id="newsletter-email"
-            type="email"
-            name={fieldName}
-            required
-            autoComplete="email"
-            placeholder="you@example.com"
-            className="w-full border-b border-text/60 bg-transparent pb-2 text-body text-text placeholder:text-text/75 transition-colors duration-300 ease-soft focus:border-primary focus:outline-none"
-          />
-          {/*
-            Deep Lilac with `--color-on-primary`, the near-white that token
-            exists for: White Rock on this ground measures 3.95:1 and a 13px
-            label owes 4.5:1, where the near-white clears at 4.90:1. The
-            reference's button is a filled black block; this is the same
-            gesture in the one colour this site fills a block with.
-          */}
-          <button
-            type="submit"
-            className="shrink-0 rounded-sm bg-primary px-6 py-3 text-fine font-medium uppercase leading-none tracking-eyebrow text-on-primary transition-colors duration-300 ease-soft hover:bg-primary/90"
-          >
-            {cta}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-/**
- * One column of the site map.
- *
- * A heading and a list, so the group's name is announced with its links rather
- * than sitting beside them as decoration.
- */
-function FooterGroup({ group }: { group: NavGroup }) {
-  return (
-    <div>
-      <GroupHeading>{group.title}</GroupHeading>
-      <ul className="mt-4 flex flex-col gap-2.5">
-        {group.items.map((item) => (
-          <li key={item.href}>
-            <Link href={item.href} className={LINK}>
-              <LinkLabel>{item.label}</LinkLabel>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/**
- * A group's name.
- *
- * SENTENCE CASE AT BODY SIZE, WHICH IS THE WHOLE REDESIGN IN ONE COMPONENT.
- * These were 13px, uppercase, tracked to 0.14em and set at 75% ink — the
- * site's label register, used here for eight headings at once. The reference
- * sets its group names in the same size and face as the links beneath them and
- * separates the two by weight alone, which is what makes that footer read as
- * quiet rather than as a directory. Full-strength charcoal against links held
- * lower does the same job here.
- *
- * Still an <h2>: it heads a list, and the footer is the one place on the page
- * where several of these stand side by side.
- */
-function GroupHeading({ children }: { children: string }) {
-  return <h2 className="text-body font-medium text-text">{children}</h2>;
-}
-
-/** A place name in the cities band. Not a heading — it labels an address. */
-function PlaceHeading({ children }: { children: string }) {
-  return <p className="text-body font-medium text-text">{children}</p>;
-}
-
-/**
- * A footer link, and the reason it carries an invisible pad.
- *
- * The text sets a 20px line box, and these are list items rather than links
- * inside a sentence — so WCAG 2.5.8's 24x24 minimum applies to them with no
- * inline exception to fall back on. Measured on a 360px phone, every link in
- * this footer came in at 20px high.
- *
- * The fix is a pseudo-element rather than padding, because padding here would
- * push the columns apart and re-space a footer that is already tuned.
- * `after:-inset-y-1.5` extends the hit area to 32px without moving a pixel of
- * type; the rule under the label stays where it was. Nothing is drawn — the
- * pseudo-element has no background.
- *
- * The ink no longer changes on hover. It used to go to Light Sage, which is
- * now the ground; the obvious replacement is Deep Lilac and it fails, at
- * 3.83:1 against the 4.5:1 body-size type owes. So the accent moved onto the
- * rule, where it is a graphical mark owing 3:1 — see <LinkLabel>.
- */
-const LINK =
-  "group relative inline-flex text-body text-text/75 transition-colors duration-300 ease-soft " +
-  "hover:text-text after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']";
-
-/**
- * A link's text, with the rule that draws itself on hover.
- *
- * The underline is a border on the label rather than `text-decoration`, so it
- * sits clear of the descenders and can be animated; it grows from the left
- * instead of fading, which reads as drawn rather than switched on. Deep Lilac,
- * which clears the 3:1 a rule owes on this ground at 3.83:1.
- */
-function LinkLabel({ children }: { children: string }) {
-  return (
-    <span className="relative">
+    <h2 className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text">
+      <span aria-hidden className="h-px w-6 shrink-0 bg-primary" />
       {children}
-      <span
-        aria-hidden
-        className="absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-primary transition-transform duration-500 ease-editorial group-hover:scale-x-100"
-      />
-    </span>
+    </h2>
   );
 }

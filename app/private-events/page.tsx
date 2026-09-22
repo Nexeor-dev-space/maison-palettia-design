@@ -36,9 +36,7 @@ const ENQUIRY_HREF = "/private-events/book";
  * any single step of the scale, and these lines are this page's editorial
  * voice rather than ordinary headings.
  */
-const SECTION_LINE =
-  "block font-light uppercase leading-[0.96] tracking-[-0.02em] " +
-  "text-[2rem] xs:text-[2.5rem] sm:text-[3rem] md:text-[3rem] lg:text-[3.75rem] xl:text-[4.25rem]";
+const SECTION_LINE = "heading-script text-script-section";
 
 /**
  * The hero statement, composed per breakpoint rather than taken from
@@ -51,9 +49,7 @@ const SECTION_LINE =
  * field, which buys back a third of the picture. It is still the largest type
  * on the page by a wide margin.
  */
-const HERO_LINE =
-  "block font-light uppercase leading-[0.95] tracking-[-0.03em] " +
-  "text-[2.5rem] xs:text-[3rem] sm:text-[3.75rem] md:text-[4rem] lg:text-[4.75rem] xl:text-[5.25rem]";
+const HERO_LINE = "heading-script text-script-hero";
 
 const EYEBROW =
   "flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow";
@@ -256,8 +252,8 @@ function Hero() {
  */
 function HeroLine({ children }: { children: string }) {
   return (
-    <span className="block overflow-hidden pb-[0.1em] [&+span]:-mt-[0.1em]">
-      <Reveal as="span" variant="maskUp" className={HERO_LINE}>
+    <span className={`script-mask ${HERO_LINE}`}>
+      <Reveal as="span" variant="maskUp" className="block">
         {children}
       </Reveal>
     </span>
@@ -380,7 +376,16 @@ function WhoItIsFor() {
 
         <ol className="mt-12 md:mt-16">
           {PRIVATE_EVENT_AUDIENCES.map((audience, i) => (
-            <li key={audience.slug}>
+            /*
+              The slug is the anchor the bar's Private events menu points at.
+              Three of these programmes have no page of their own yet — the
+              proposal says their content arrives when the client is ready —
+              so the menu sends a visitor to the entry that describes it here
+              rather than to a route invented to receive them. `scroll-mt`
+              clears the fixed bar, which would otherwise cover the heading
+              the anchor just landed on.
+            */
+            <li key={audience.slug} id={audience.slug} className="scroll-mt-header md:scroll-mt-[var(--spacing-header-lg)]">
               <Reveal delay={i * 0.06}>
                 <div className="grid grid-cols-12 items-baseline gap-x-5 border-t border-text/15 py-7 md:gap-x-8 md:py-9">
                   {/*
@@ -798,7 +803,7 @@ function EnquiryCta() {
 
             <h2 id="private-events-enquiry" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine tone="light">Let&rsquo;s make</SectionLine>{" "}
+                <SectionLine tone="light">Let&apos;s make</SectionLine>{" "}
                 <SectionLine tone="light">something together.</SectionLine>
               </Stagger>
             </h2>
@@ -876,7 +881,7 @@ function PlanAction({
           as a figure standing on that ground rather than dissolve into it.
         */
         onImage
-          ? "bg-primary text-on-primary hover:bg-primary/90"
+          ? "press-in bg-primary text-on-primary hover:bg-primary/90"
           : "bg-cream text-text hover:bg-surface",
         className ?? "",
       ].join(" ")}
@@ -901,11 +906,11 @@ function SectionLine({
   tone?: "dark" | "light";
 }) {
   return (
-    <span className="block overflow-hidden pb-[0.12em] [&+span]:-mt-[0.12em]">
+    <span className={`script-mask ${SECTION_LINE}`}>
       <Reveal
         as="span"
         variant="maskUp"
-        className={`${SECTION_LINE} ${tone === "light" ? "text-surface" : "text-text"}`}
+        className={`block ${tone === "light" ? "text-surface" : "text-text"}`}
       >
         {children}
       </Reveal>

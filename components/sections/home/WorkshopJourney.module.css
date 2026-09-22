@@ -1,0 +1,93 @@
+/*
+  THE PALETTE OF WAYS IN — see WorkshopJourney.tsx.
+
+  Each way a visit can go is a swatch of paint above its name, laid with the
+  same loaded-brush edge the activity plates use (`--mask-brush`). Five of
+  them in a row read as a palette, which is the brand's own line — "a palette
+  of creativity for everyone" — rather than a bulleted list transcribed from a
+  slide.
+
+  The swatch is a mask over a flat colour, so the colour is always a palette
+  token and never a gradient or an image.
+*/
+
+.swatch {
+  display: block;
+  height: 2.5rem;
+  /* A dab, not a bar: at the full width of its column it read as a highlighter
+     stroke under nothing, and the brush edge was too stretched to see. */
+  width: 4.5rem;
+  background-color: var(--paint, var(--color-primary));
+  /*
+    Flipped, so the ragged edge is at the foot of the swatch — paint laid on
+    the page and drying downward, rather than a lid closing over it — and
+    turned a degree or two off square. Five dabs at exactly the same angle
+    read as buttons; the same five, each set down slightly differently, read
+    as paint. `--tilt` is per swatch and fixed, so nothing here is random.
+  */
+  transform: scaleY(-1) rotate(var(--tilt, 0deg));
+  -webkit-mask-image: var(--mask-brush);
+  mask-image: var(--mask-brush);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+@media (min-width: 1024px) {
+  .swatch {
+    height: 3rem;
+    width: 5.5rem;
+  }
+}
+
+/*
+  THE OPENING PICTURE, beside the heading.
+
+  HEIGHT, NOT RATIO, ONCE IT IS BESIDE SOMETHING. It was `aspect-ratio: 5/4`
+  with a `max-height` over it, and the two fought: the cap took the height down
+  and the ratio took the width with it, so the picture came in at about half
+  the seven columns it was given and left the gap it was there to fill. A
+  fixed height and a full width cannot do that — it is the same way the band at
+  the foot has always been sized.
+
+  Stacked below `lg` it takes a ratio back, because there is nothing beside it
+  to match and a tall plate over a heading is a poster rather than a header.
+*/
+.lead {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-cream);
+  aspect-ratio: 16 / 10;
+}
+
+@media (min-width: 1024px) {
+  .lead {
+    aspect-ratio: auto;
+    height: clamp(18rem, 27vw, 25rem);
+  }
+}
+
+.photo {
+  object-fit: cover;
+  transition: transform 1400ms var(--ease-editorial);
+}
+
+/* The pictures are not links, so this is the quietest member of the tactile
+   system: the photograph leans toward the pointer and nothing else moves. */
+@media (hover: hover) {
+  .lead:hover .photo {
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo {
+    transition: none;
+  }
+
+  .lead:hover .photo {
+    transform: none;
+  }
+}

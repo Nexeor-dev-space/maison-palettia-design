@@ -1,0 +1,184 @@
+/*
+  THE ACTIVITY CARDS — see ExperienceCarousel.tsx.
+
+  One gesture, and only one: a body of the card's own paint rises from the foot
+  when you reach it, carrying the action in with it.
+
+  WHAT WAS TAKEN OUT, AND WHY. The cards used to carry two more layers — a flat
+  brand colour over the whole photograph at 82% multiply, and a second copy of
+  the picture revealed through a growing splash mask. Together they read as a
+  dark overlay sliding off the image, which is a scrim over the thing being
+  sold. The photographs are now simply themselves, at full colour, at rest and
+  on hover.
+*/
+
+/*
+  THE REST STATE — set down by hand rather than laid out on a grid.
+
+  The tilt comes from the index (see the component), so the row is stable
+  across renders and every card leans a different amount. Reaching one
+  straightens it and lifts it: two properties on one composited transform, no
+  layout, no filter.
+
+  THE PIVOT IS THE CENTRE, AND THAT IS AN OVERLAP FIX. It was `50% 90%` — near
+  the foot — so a card rotated about a point close to its bottom edge and the
+  TOP corners swung furthest, about 15px each at 1.8 degrees. Two neighbours
+  leaning together spent 30px of a 20px gap and the third card climbed onto the
+  second. Turning about the centre halves the longest radius.
+*/
+.frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  isolation: isolate;
+  transform: rotate(var(--tilt, 0deg));
+  transform-origin: 50% 50%;
+  transition: transform 520ms var(--ease-editorial);
+  will-change: transform;
+}
+
+/* The photograph, untouched. */
+.base {
+  object-fit: cover;
+}
+
+/*
+  The numeral sits on the picture, so it has to survive whatever the photograph
+  is doing underneath: White Rock with a shadow sized to the stroke rather than
+  blurred into a halo.
+*/
+.numeral {
+  color: var(--color-cream);
+  text-shadow: 0 1px 10px rgb(45 55 72 / 0.55);
+}
+
+/*
+  ==========================================================================
+  THE FLOOD — the card's own paint, thrown up over the foot
+  ==========================================================================
+
+  ONE MASKED LAYER, NOT FOUR CIRCLES. This was briefly four blobs merged by an
+  SVG gooey filter, copied from <BlobButton>. Two things were wrong with it: at
+  card scale the filter is seven elements of about 320x420 each running a 17px
+  gaussian, slow enough to hang a rasteriser outright; and four circles give a
+  scalloped edge where paint actually tears, with dabs thrown clear of the
+  main body. `--mask-splatter` in globals.css is that shape — a ragged top and
+  some thirty droplets scattered above it — so one element and one mask do
+  what the filter could not, for no rendering cost at all.
+
+  HOW FAR IT REACHES. 46% of the card. The mask is solid across its lower half
+  and droplets above, so the paint itself covers roughly the bottom quarter and
+  the dabs carry up to a little under halfway — enough to read as thrown paint,
+  and clear of the subject in every one of these photographs. It was reaching
+  past the middle and burying most of the picture.
+
+  The colour is the card's own `--paint`, the same one the brush is loaded
+  with, so the row still arrives in different colours.
+*/
+.flood {
+  position: absolute;
+  /* Past the sides and the foot, so no rounding of the frame shows a seam. */
+  left: -3%;
+  right: -3%;
+  bottom: -2%;
+  height: 46%;
+  z-index: 2;
+  pointer-events: none;
+  background-color: var(--paint, var(--color-primary));
+  /*
+    A WASH, NOT A FILL. It was the brand colour at full strength, which is
+    poster paint: it covers the photograph rather than sitting on it, and the
+    droplets thrown above the body read as stickers because nothing shows
+    through them. At 0.8 the pigment is still plainly its own colour and the
+    picture is still plainly underneath — which is the whole difference
+    between paint laid on a thing and paint hiding it.
+
+    Safe to set here: the action rides on a sibling, not a child, so it keeps
+    its own White Rock ground and its full contrast whatever this does.
+  */
+  opacity: 0.8;
+  -webkit-mask-image: var(--mask-splatter);
+  mask-image: var(--mask-splatter);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* Parked below its own height until called. `translate` rather than
+     `transform`, so the tilt on the frame is never fought over. */
+  translate: 0 104%;
+  transition: translate 620ms cubic-bezier(0.32, 0.08, 0.24, 1);
+  will-change: translate;
+}
+
+/*
+  The action, riding in on the paint. A span, not a link: the whole card is
+  already one anchor, and a second to the same page would put every activity in
+  the tab order twice. White Rock ground with Charcoal Slate on it, so it is
+  legible over whichever colour is behind it.
+*/
+.action {
+  position: absolute;
+  bottom: 1.1rem;
+  left: 50%;
+  z-index: 3;
+  translate: -50% 140%;
+  opacity: 0;
+  transition:
+    translate 520ms cubic-bezier(0.32, 0.08, 0.24, 1) 160ms,
+    opacity 260ms ease 160ms;
+}
+
+/*
+  Tailwind wraps `hover:` in `(hover: hover)` and this file cannot, so the
+  query is written out — without it a tapped card on a phone keeps the paint
+  open until something else is touched.
+*/
+@media (hover: hover) {
+  .card:hover .frame,
+  .card:focus-within .frame {
+    transform: rotate(0deg) translate3d(0, -6px, 0);
+  }
+
+  .card:hover .flood,
+  .card:focus-within .flood {
+    translate: 0 0;
+  }
+
+  .card:hover .action,
+  .card:focus-within .action {
+    translate: -50% 0;
+    opacity: 1;
+  }
+}
+
+/*
+  Touch has no hover and tapping navigates, so a reveal-on-tap would never be
+  seen: the paint and the action are simply shown.
+*/
+@media (hover: none) {
+  .flood {
+    translate: 0 0;
+  }
+
+  .action {
+    translate: -50% 0;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .flood,
+  .action {
+    transition: none;
+  }
+
+  .frame {
+    transform: none;
+  }
+
+  .card:hover .frame,
+  .card:focus-within .frame {
+    transform: none;
+  }
+}

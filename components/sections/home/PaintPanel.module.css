@@ -1,0 +1,95 @@
+/*
+  A COLOURED PANEL WHOSE MARK RUNS TO THE EDGE.
+
+  ==========================================================================
+  WHAT THIS REPLACES, AND WHY IT COULD NOT BE FIXED IN PLACE
+  ==========================================================================
+
+  The panel used to flood: at rest White Rock with charcoal on it, and on
+  hover the deck's `splash` cut-out was used as a mask and grown from one
+  corner until the colour covered the box, with the ink turning over to
+  whatever read on that colour. The timings were tuned carefully — the paint
+  led going in, the ink led coming out — and it still could not work.
+
+  A MASK THAT GROWS FROM A CORNER IS PARTLY COVERED FOR THE WHOLE OF ITS
+  TRAVEL. While it spreads, some of the panel is paint and the rest is still
+  White Rock, so there is no ink that reads on both: near-white on the flooded
+  half is right and on the unflooded half is near-invisible, and charcoal is
+  the same failure the other way round. Delaying one against the other moves
+  which half is unreadable; it cannot remove the half. The client caught it in
+  a screenshot with "Come to a table and make something" half legible.
+
+  So the colour stopped moving. Each panel simply IS its colour, the ink is
+  chosen once against that colour and never changes, and the hover is given to
+  the thing that can move without taking the words with it: the brand mark,
+  which travels out to the corner and grows until the panel clips it.
+
+  ==========================================================================
+  THE COLOURS ARE TINTS, AND THAT IS A CONTRAST RESULT
+  ==========================================================================
+
+  Measured against Charcoal Slate at full strength: Deep Lilac 2.37:1, Warm
+  Terracotta 3.84:1, Soft Lavender 6.49:1. There is no single ink for that
+  set — lilac needs a light one, lavender needs a dark one, and terracotta
+  fails the 4.5:1 body copy owes whichever is chosen.
+
+  Mixed toward White Rock the whole set clears it with room, so every panel
+  keeps Charcoal and the section keeps one ink. It also keeps the brand guide,
+  which gives Light Sage the large soft grounds and says Deep Lilac is never a
+  field. `--tint` is set per panel in the component; the fourth is Light Sage
+  at full strength, because that one is already a background colour.
+*/
+.panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--tint);
+  color: var(--color-text);
+}
+
+/*
+  The mark, at rest inside the panel and on hover out at its corner.
+
+  `overflow: hidden` on the panel is what makes this read as the shape running
+  off the edge rather than as an icon sliding about: it is clipped by the box
+  it is leaving. Nothing else moves, and the words do not move at all.
+*/
+.mark {
+  color: var(--ink-mark);
+  transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  transform-origin: 80% 20%;
+  transition:
+    transform 620ms cubic-bezier(0.34, 1.2, 0.5, 1),
+    opacity 420ms ease;
+}
+
+/*
+  `focus-within` as well as `hover`: the links inside are the reason to reach a
+  panel at all, so a keyboard arriving at one sees what a pointer does.
+  Tailwind wraps its `hover:` in `(hover: hover)` and this file cannot, so the
+  query is written out.
+*/
+@media (hover: hover) {
+  .panel:hover .mark,
+  .panel:focus-within .mark {
+    transform: translate3d(42%, -34%, 0) scale(2.6) rotate(8deg);
+    opacity: 0.55;
+  }
+}
+
+/*
+  A finger has no hover and a tap follows a link, so the travel would never be
+  seen. Touch gets the mark where it rests — the panels are already told apart
+  by their colour, which is the job the flood was doing badly.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .mark {
+    transition: none;
+  }
+
+  .panel:hover .mark,
+  .panel:focus-within .mark {
+    transform: none;
+    opacity: 1;
+  }
+}

@@ -63,6 +63,14 @@ export const BRAND_LOGO = {
   /** The file's own pixel dimensions. Set height only; the aspect follows. */
   width: 1015,
   height: 438,
+  /*
+    Where the lettering sits inside the file, as shares of its box — measured
+    from the alpha channel (ink is 986x404 at x 23–1008, y 16–419). The intro
+    draws the mark from its vector, whose box is the ink alone, and flies it
+    onto this image; without these the flight would land the letters on the
+    file's transparent margin rather than on its letters.
+  */
+  ink: { left: 23 / 1015, top: 16 / 438, width: 986 / 1015, height: 404 / 438 },
 
   /**
    * The Deep Lilac cut, for light grounds — the header once it takes its white
@@ -81,6 +89,8 @@ export const BRAND_LOGO = {
     src: "/images/scroll-logo.png",
     width: 1120,
     height: 466,
+    /** Same measurement as above: ink 986x404 at x 76–1061, y 28–431. */
+    ink: { left: 76 / 1120, top: 28 / 466, width: 986 / 1120, height: 404 / 466 },
   },
 } as const;
 
@@ -94,51 +104,35 @@ export const BRAND_LOGO = {
  * in descending order of how often they answer a question someone has before
  * booking.
  *
- * `megamenu: true` marks the entry the header opens as a panel rather than
- * navigating, so the two never drift apart — it is a flag rather than a match
- * on the path, because Workshops and Sessions deliberately share one.
+ * `menu` marks an entry the header opens as a panel rather than navigating,
+ * and names which panel — Experiences opens the programme, Private events the
+ * three programmes a host can book. It is a field rather than a match on the
+ * path, because entries deliberately share destinations.
  */
 export const MAIN_NAV: NavItem[] = [
   /*
-    Three entries, and the cut is still the point.
+    FIVE ENTRIES, SPLIT THREE AND TWO AROUND THE MARK.
 
-    It was seven — Workshops, Sessions, Gallery, About, Journal, FAQ, Contact —
-    which is a site map rather than a navigation. Workshops and Sessions were
-    two words for one page and are now one: Events, carrying the strands menu.
-    Gallery had no content behind it (public/images/gallery holds a .gitkeep),
-    so a page existed only to give the link somewhere to go. Journal and FAQ
-    are worth reading and are not what anyone arrives for; both keep their
-    routes and move to the footer.
+    The redesign brief asks the site to answer, in order: what the Maison
+    offers, how private events work, and where to find it — and then who it
+    is and how to reach it. The bar reads that way. The left track is where to
+    go in the programme; the right track, beside search, is the Maison itself
+    and the errand of contacting it.
 
-    Events leads rather than About. The studio's business is a table in a mall
-    on a fixed date, the first slot is the strongest one a bar has, and a
-    visitor who wants the story will find it in the second.
+    "Experiences", not "Events". Five of the seven activities are walk-in and
+    are never booked for a date, so calling the whole programme "Events"
+    promised a calendar most of it does not have. The route stays /events —
+    renaming a working URL to match a label would break every link to it.
 
-    Contact rejoined the bar itself rather than staying `secondary` (mobile
-    and the footer only) once it had a real page behind it — the two go
-    together: a link worth promoting to the front row is a link worth someone
-    finding something at the other end of.
-
-    IT NO LONGER CARRIES `utility`, AT THE CLIENT'S ASK. That flag sat it with
-    search on the right instead of here, on the reasoning that reaching the
-    studio was a different kind of errand from choosing where to go in the
-    programme — a real distinction, but the client wants the left-hand group
-    to read Events, About, Contact rather than have one of the three peel off
-    to the other end of the bar, so the distinction no longer earns a place in
-    the layout. `utility` is deleted from NavItem entirely rather than left
-    unset on this entry: Contact was the only thing it ever marked (its own
-    doc comment said so), nothing else in this list has a use for it, and a
-    flag with no remaining reason to flip is a trap for whoever finds it next
-    — see <HeaderBar>, which lost its right-hand cluster and the filter that
-    built it in the same change, and gained a booking action at that end of
-    the bar in its place. The mobile menu still renders this array whole and
-    in order, unfiltered, so Contact's position there is untouched. The footer
-    is unaffected for a different reason: its Visit group carries its own
-    Contact entry rather than reading MAIN_NAV, so nothing here reaches it.
+    Private events and Locations join the bar because the brief makes both
+    first-order questions. Journal, FAQ, Gallery and Passes keep their routes
+    and live in the footer and the mobile menu, which read this list in order.
   */
-  { label: "Events", href: "/events", megamenu: true },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: "Experiences", href: "/events", menu: "experiences" },
+  { label: "Private events", href: "/private-events", menu: "private-events" },
+  { label: "Locations", href: "/locations" },
+  { label: "About", href: "/about", utility: true },
+  { label: "Contact", href: "/contact", utility: true },
 ];
 
 /**
@@ -155,7 +149,23 @@ export const WORKSHOPS_HREF = "/events";
  * treatment over these until the page scrolls. Add a route here when its hero
  * lands on a dark ground.
  */
-export const DARK_HERO_ROUTES: readonly string[] = ["/", "/private-events"];
+/*
+  "/" came off this list when the homepage hero became a Light Sage
+  composition: pale ink over a light field fails contrast. It keeps a
+  transparent bar with dark ink instead — see LIGHT_HERO_ROUTES below.
+*/
+export const DARK_HERO_ROUTES: readonly string[] = ["/private-events"];
+
+/**
+ * Routes whose hero is a light colour field that runs up behind the bar. The
+ * header stays transparent over these until the page scrolls, and keeps its
+ * dark ink — the difference from DARK_HERO_ROUTES, which also invert it.
+ *
+ * The homepage banner is Light Sage and pulls itself up by the bar's height,
+ * so a ground on the bar there printed a strip of a second colour across the
+ * top of the banner. The client asked for the bar's colour to go.
+ */
+export const LIGHT_HERO_ROUTES: readonly string[] = ["/"];
 
 /**
  * The single primary call to action, reused in the header and footer.
@@ -166,8 +176,13 @@ export const DARK_HERO_ROUTES: readonly string[] = ["/", "/private-events"];
  * this one href and every surface that offers the action follows.
  */
 export const PRIMARY_CTA = {
-  label: "Book an event",
-  href: "/events",
+  /*
+    "Book a session", not "Book an event". The action points at the listing,
+    and most of what is listed there is walk-in — a button promising that
+    everything can be booked would contradict the page it opens.
+  */
+  label: "Book a session",
+  href: "/events#scheduled",
 } as const;
 
 /**
@@ -184,34 +199,33 @@ export const PRIMARY_CTA = {
  * than three near-identical blocks of markup.
  */
 export const FOOTER_NAV: NavGroup[] = [
-  {
-    title: "The Maison",
-    items: [
-      { label: "About", href: "/about" },
-      { label: "Journal", href: "/blog" },
-    ],
-  },
+  /*
+    Three groups, each a question a visitor arrives with. Every entry is a
+    route that exists; a footer link that 404s is worse than a shorter list.
+  */
   {
     title: "Create",
     items: [
-      { label: "Events", href: "/events" },
-      /* Grown, per the rule above: /loyalty is a route that exists now. It is
-         deliberately not promoted into MAIN_NAV — that list is three entries
-         by design and changing it is a navigation decision, not a side effect
-         of building a page. Same for /private-events, added on the same rule
-         when that page was built: it is a real route, so the footer carries
-         it, and the bar is left alone. */
+      { label: "All experiences", href: "/events" },
       { label: "Private events", href: "/private-events" },
       { label: "Passes", href: "/loyalty" },
       { label: "Gallery", href: "/gallery" },
     ],
   },
   {
-    title: "Visit",
+    title: "The Maison",
+    items: [
+      { label: "About", href: "/about" },
+      { label: "Locations", href: "/locations" },
+      { label: "Journal", href: "/blog" },
+    ],
+  },
+  {
+    title: "Help",
     items: [
       { label: "Contact", href: "/contact" },
-      { label: "Check a booking", href: "/booking-status" },
       { label: "FAQ", href: "/faq" },
+      { label: "Check a booking", href: "/booking-status" },
     ],
   },
 ];
@@ -273,159 +287,6 @@ export const HERO_IMAGE: ImageAsset = {
   position: "34% 38%",
 };
 
-/**
- * THE HOMEPAGE HERO — one film, looping, and nothing else behind it.
- *
- * It replaced a carousel of four photographs. A hero that turns every six
- * seconds is four openings rather than one, and it spent its whole budget
- * proving the Maison does more than one thing — which the Creative Experiences
- * menu three sections down now does properly, with a name under every picture.
- * A single film says the same thing better: hands, a brush, paint going onto
- * cloth, continuously.
- *
- * THE POSTER IS A FRAME OF THE FILM, not a photograph chosen to stand near it.
- * Cut from the video itself at three seconds, so the still and the moving
- * image are the same shot and the swap when the film starts is invisible.
- * It is also what a reader who has asked for reduced motion gets instead of
- * the video — see <Hero>, where the film is hidden outright rather than paused
- * with a play button nobody asked for.
- *
- * TODO(client): the film is 1920x1080, 20.7s, 6.0MB at 2.3Mbps. That is a
- * reasonable rate for its size and it is still six megabytes on the homepage.
- * Worth a second derivative — 1280-wide for phones, served through a <source>
- * media query — before launch.
- */
-export const HERO_VIDEO = {
-  src: "/videos/maison-banner-bg-1.mp4",
-  poster: {
-    src: "/images/hero/banner-poster.jpg",
-    alt: "Two hands painting a pale denim tote with a fine brush, a coral palette of teal, white and lilac paint on the table beside them.",
-  },
-} as const;
-
-/**
- * One photograph in the hero carousel.
- *
- * `position` is the CSS object-position for the crop, and a single value
- * serves every breakpoint on purpose. `object-fit: cover` only ever crops one
- * axis: on a tall phone it crops the sides, so the X term decides the framing;
- * on a wide desktop it crops top and bottom, so the Y term does. One
- * "X% Y%" therefore answers both without a media query — set X for the phone
- * and Y for the desktop.
- */
-export interface HeroSlide {
-  /** The activity this photograph actually shows. Caption, and control label. */
-  activity: string;
-  src: string;
-  alt: string;
-  position: string;
-  /**
-   * The line the hero sets large while this slide is showing.
-   *
-   * Not written for the hero. Every one of these is the studio's own
-   * description of that activity, already in the project — see
-   * PRIVATE_EVENT_ACTIVITIES in lib/privateEvents.ts and the same strings in
-   * lib/experiences.ts. Reusing them means the hero cannot describe an
-   * activity differently from the page that sells it, and it keeps invented
-   * hero copy out of the one place on the site most likely to be read.
-   */
-  statement: string;
-}
-
-/**
- * THE HERO CAROUSEL — four client-supplied photographs, and nothing else.
- *
- * Every file here is from public/images/hero-carousel/, which is the set the
- * client provided for this purpose. Nothing is stock, nothing is generated,
- * nothing is borrowed from another folder in this project.
- *
- * EACH FILE WAS OPENED AND ASSIGNED BY WHAT IS IN THE FRAME, not by its name.
- * That mattered when the originals were called 1–4 and said nothing, and it
- * still matters now that two are subject-named: the client asked for the new
- * crochet file to replace "the 3rd image", and the third slide in this array
- * is candle making. `3-crochet.jpg` is a crocheted rainbow, so it went to the
- * crocheting slide — the fourth — because this carousel prints the activity
- * name on screen beside the photograph and the two must agree. The "3" is the
- * client's own numbering for the file, and the crochet slide's previous file
- * was `3.jpg`, which is very likely what they were counting.
- *
- * THE ORDER is the client's stated activity priority — tote bag painting
- * first, then bedazzling, then the scheduled sessions.
- *
- * CERAMIC PAINTING IS MISSING, AND IS DELIBERATELY NOT FAKED. It is second in
- * the client's priority list and none of the four photographs shows it: there
- * is candle making, tote painting, crochet and face gems, and that is all. The
- * brief's own instruction for this case is to use the strongest available
- * images and adjust the carousel rather than invent an asset, so the carousel
- * is four slides and the ceramic slide is simply absent.
- *
- * TODO(client): supply a ceramic-painting photograph for this folder and it
- * becomes one more entry in this array — the carousel counts its own slides.
- * (A real ceramic-painting photograph does already exist elsewhere in the
- * project, at /images/creative/craft.jpg, used by the strands and the private
- * events page. It is deliberately NOT pulled in here: the brief says not to
- * take images from other folders, and a hero is exactly where a borrowed crop
- * would be noticed.)
- */
-export const HERO_CAROUSEL: readonly HeroSlide[] = [
-  {
-    activity: "Tote bag painting",
-    statement: "Fabric paint on plain cotton — the one you carry out with you.",
-    src: "/images/hero-carousel/h-1.jpg",
-    alt: "A natural cotton tote carried at someone's side, printed with a sun-faced design ringed by the words \u201cwe\u2019re in this together\u201d, against a pale blue wall.",
-    /*
-      Client replacement for 1-tote.png. 6240x4160, so a 3:2 landscape into a
-      hero that runs from 3:2 at desktop down to a tall portrait on a phone —
-      at 390 only a third of the frame's width survives, which is why X matters
-      more here than Y. The bag's centre sits at about 48% across and fills the
-      middle of the frame top to bottom, so Y stays centred and X holds the
-      design in the middle of the narrowest crop.
-
-      TODO(client): two things worth a look before launch. The design is
-      screen-printed rather than painted — crisp two-colour artwork with set
-      type — and this slide says "fabric paint on plain cotton", so the picture
-      and the sentence under it describe different things. And it carries
-      another maker's name ("NAVA & SNOW") along the bottom of the print, which
-      on a full-bleed homepage hero reads as the Maison showing somebody else's
-      product as its own work.
-    */
-    position: "48% 50%",
-  },
-  {
-    activity: "Bedazzling",
-    statement: "Stones and beads set onto something plain until it is not.",
-    src: "/images/hero-carousel/4.jpg",
-    alt: "A smiling young woman in a denim jacket, her cheeks and brows set with clusters of coloured gems and tiny rhinestone flowers.",
-    // Y is high because the eyes sit in the top third: a centred crop would
-    // cut them off the moment the viewport goes wide.
-    position: "55% 30%",
-  },
-  {
-    activity: "Candle making",
-    statement: "Wax, wick and colour, poured and left to set.",
-    src: "/images/hero-carousel/1.jpg",
-    alt: "Two hands cupping a freshly poured candle in a glass jar, its wick lit, with tealights burning on the wooden bench around it.",
-    position: "50% 40%",
-  },
-  {
-    activity: "Crocheting",
-    statement: "A hook, a ball of yarn and one stitch to start from.",
-    src: "/images/hero-carousel/h-3.jpg",
-    alt: "A crocheted granny-square blanket in teal, green, mustard and cream laid across weathered decking, with pine cones, orange lanterns and autumn leaves gathered beside it.",
-    /*
-      Client replacement for 3-crochet.jpg. 4288x2848, another 3:2 landscape.
-      The blanket runs from the left edge to about two thirds across and the
-      autumn arrangement holds the right, so X is pulled left of centre: a
-      centred crop puts the seam between the two down the middle of a phone,
-      and at 42% the narrow crop is blanket — the thing the slide is about —
-      with the arrangement arriving as the frame widens.
-
-      It measures better than the rainbow it replaces, which failed the mark at
-      1440 (2.89:1 against 3:1). See the note on the head wash below.
-    */
-    position: "42% 50%",
-  },
-] as const;
 
 /**
  * A picture that is cropped rather than placed: it carries its own
@@ -924,67 +785,33 @@ export const TESTIMONIALS_GROUND: ImageAsset = {
    no change to the component, and a table mid-afternoon moving is worth more
    here than any still.
    ========================================================================== */
-/* --------------------------------------------------------------------------
-   TODO(client): TWO OF THESE FOUR SHOW SHOP-BOUGHT MERCHANDISE, NOT MAKING.
-
-   The plates were supplied for this section and are used as supplied. Two of
-   them are a problem worth raising before launch, and the section's own line —
-   "Ordinary hands and wet paint. Nobody here has done it before either." — is
-   what makes it one:
-
-     tote-rack-new-york.jpg is a retail display. Rows of mass-produced printed
-     totes on a pegboard, most of them New York souvenir designs. It is a photo
-     of a shop, not of anybody making anything.
-
-     printed-tote-copenhagen.jpg is a commercially printed tote with the word
-     COPENHAGEN on it. The Maison teaches tote-bag painting — hands, brushes,
-     fabric paint — and a machine-printed bag from another city says the
-     opposite of that.
-
-   This is the same fault already logged against the "Create" strand in
-   lib/disciplines.ts, which uses a shop-bought Portuguese souvenir coaster:
-   another country's tourist merchandise standing in for work made here. Two
-   sections now share it.
-
-   The other two are right. Both crochet plates show real handmade work, and
-   crocheting is on the approved activity list.
-
-   What this section actually wants is four frames from the studio's own
-   sessions, in the activities the Maison runs, with hands in them. The grid
-   also takes a `video` tile with no change to the component, and a table
-   mid-afternoon is worth more here than any still.
-   -------------------------------------------------------------------------- */
 export const GALLERY_TILES: GalleryTile[] = [
   {
     kind: "image",
-    src: "/images/tile/printed-tote-copenhagen.jpg",
-    alt: "A canvas tote carried at the hip, printed with a framed botanical panel and the word Copenhagen.",
-    // Portrait into a taller-than-wide cell, so the crop is gentle. Held high:
-    // the printed panel is in the upper two thirds and the loss is spent on
-    // the paving along the foot.
-    position: "50% 42%",
+    src: "/images/experience/painting.jpg",
+    alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
+    // The tall cell is a 2:3 portrait cropped to roughly 3:2 at desktop, so
+    // two thirds of the height goes. Held high: the hand and the brush tip are
+    // in the top half, and the loss is spent on the table along the foot.
+    position: "50% 38%",
   },
   {
     kind: "image",
-    src: "/images/tile/granny-square-blanket.jpg",
-    alt: "A crocheted granny-square blanket in cream, blue, green and ochre, folded on weathered boards beside autumn leaves and a small pumpkin.",
-    // Landscape into a five-column cell. Biased left, where the crochet is —
-    // the right third is the styling prop rather than the work.
-    position: "35% 50%",
+    src: "/images/recent/late-blooms.jpg",
+    alt: "Pale blush and white lilies opening against a bare wall, petals curling back as they age.",
+    // Portrait into a 2:1 slot. Centred a little low, where the flowers are.
+    position: "50% 52%",
   },
   {
     kind: "image",
-    src: "/images/tile/tote-rack-new-york.jpg",
-    alt: "A shop display of printed canvas tote bags hung on a pegboard wall, most of them New York souvenir designs.",
+    src: "/images/workshops/watercolour-in-progress.jpg",
+    alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
     position: "50% 45%",
   },
   {
     kind: "image",
-    src: "/images/tile/crochet-rainbow.jpg",
-    alt: "A crocheted rainbow in red, orange, teal, cream and mauve, tied to black railings in front of flowering ceanothus.",
-    // Landscape into the widest cell, which is the shape it was shot in. The
-    // rainbow sits right of centre, so the crop is pulled that way.
-    position: "58% 50%",
+    src: "/images/creative/colour-in-layers.jpg",
+    alt: "Washes of yellow-green and violet laid over one another on damp paper, the colour still finding its edges.",
   },
 ];
 

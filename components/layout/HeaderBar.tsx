@@ -9,15 +9,16 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
+import { PrivateEventsMenu } from "@/components/layout/PrivateEventsMenu";
 import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
-import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { BasketLink } from "@/components/layout/BasketLink";
-import { DARK_HERO_ROUTES, MAIN_NAV, PRIMARY_CTA } from "@/lib/constants";
+import { DARK_HERO_ROUTES, LIGHT_HERO_ROUTES, MAIN_NAV } from "@/lib/constants";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
-import type { Discipline, Workshop } from "@/types";
+import type { CreativeExperience } from "@/lib/experiences";
+import type { Workshop } from "@/types";
 
 /**
  * Shared by the nav links and the menu trigger so the two are one row of type.
@@ -44,21 +45,38 @@ import type { Discipline, Workshop } from "@/types";
  * and <WorkshopsMenu>.
  */
 const NAV_LINK =
-  "group/nav inline-flex text-body tracking-[0.01em] text-current " +
+  "group/nav inline-flex whitespace-nowrap text-body tracking-[0.015em] text-current " +
   "transition-colors duration-300 ease-soft";
 
 /**
- * Events carries the one piece of weight in the row; everything else is set
- * regular.
+ * ONE WEIGHT FOR THE WHOLE ROW — Montserrat SemiBold.
  *
- * The client asked for Events to have priority without looking like a shop
- * button, and weight is the quietest way a nav can say "start here" — it is
- * the same typeface at the same size, so the row still reads as one object
- * rather than as a link beside an advert. The chevron on the entry (see
- * <WorkshopsMenu>) does the rest by showing there is more behind it.
+ * The client asked twice, and the second note corrected the first. "Improve
+ * the font weight on the navbar" was answered by raising it; that left three
+ * weights in one row, because the bar had been built to rank itself by weight
+ * — SemiBold for the two entries that open a panel, Medium for the plain
+ * links, Regular for Search, which was filed as a utility rather than a
+ * destination. The reasoning was sound and the result was not: at 17px on a
+ * pale ground, three weights across six words read as an inconsistency rather
+ * than as a hierarchy, which is exactly what the client saw.
+ *
+ * So the row is one weight. SemiBold was tried there first, on the reasoning
+ * that the first note had asked for confidence — and it was too much: the
+ * client's word was "not this much hard". Medium is the answer to both notes
+ * at once. It is a step up from the Regular the row started at, so it still
+ * reads as deliberate rather than as default, and it is light enough that six
+ * words across a masthead stay elegant.
+ *
+ * WHAT CARRIES THE HIERARCHY INSTEAD. Nothing is lost by giving up the
+ * ranking, because none of it was doing the work alone: an entry that opens a
+ * panel says so with `aria-expanded` and by drawing its rule while the panel
+ * is down, and Search keeps the icon that no other entry has. The row ranks
+ * itself by order and by behaviour now rather than by weight.
+ *
+ * Letterspacing is 0.015em against the old 0.01em: a heavier weight closes the
+ * counters, and a little more air keeps the labels as legible as they were.
  */
-const NAV_WEIGHT_PRIMARY = "font-medium";
-const NAV_WEIGHT_REST = "font-normal";
+const NAV_WEIGHT = "font-medium";
 
 /**
  * How far the page has to move before the bar leaves the document flow.
@@ -110,16 +128,24 @@ const DIRECTION_DEADBAND = 6;
  * page closing up the further someone got into it. See the height tokens in
  * globals.css, where all four numbers live.
  */
-export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[]; workshops: Workshop[] }) {
+export function HeaderBar({
+  experiences,
+  workshops,
+}: {
+  experiences: CreativeExperience[];
+  workshops: Workshop[];
+}) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   /*
-    The strands megamenu, open or not.
+    Whether a panel is down under the bar — either of them.
 
-    Held here rather than inside <WorkshopsMenu> alone because the bar has to
-    know: the panel drops on the page's white ground, and a white panel hanging
-    off a bar still transparent over the hero photograph reads as two unrelated
-    surfaces instead of one thing opening.
+    Held here rather than inside the menus because the bar has to know: a panel
+    drops on the page's white ground, and a white panel hanging off a bar still
+    transparent over the hero photograph reads as two unrelated surfaces
+    instead of one thing opening. Both menus report through the same setter —
+    only one can be open at a time, because opening either means the pointer
+    has left the other.
   */
   const [isStrandsOpen, setIsStrandsOpen] = useState(false);
   /*
@@ -254,8 +280,11 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   // everywhere else the ground is there from the first paint. Either overlay
   // forces it solid too — the mobile search panel hangs directly off the bar
   // the same way the mobile menu does, and the desktop search dropdown is the
-  // same `bg-nav` the bar itself would otherwise be fading out of.
-  const isOverHero = DARK_HERO_ROUTES.includes(pathname);
+  // same white the bar itself would otherwise be fading out of.
+  // A light hero — the homepage's Light Sage banner — earns the transparent
+  // bar too, but not the light ink: see LIGHT_HERO_ROUTES.
+  const isOverDarkHero = DARK_HERO_ROUTES.includes(pathname);
+  const isOverHero = isOverDarkHero || LIGHT_HERO_ROUTES.includes(pathname);
   const overlayOpen = isMenuOpen || isSearchOpen;
 
   /*
@@ -307,41 +336,25 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
   const hasGround = overlayOpen || isStrandsOpen || isScrolled || !isOverHero;
 
   /*
-    WHICH ground, which is not the same question as whether there is one.
+    ONE GROUND. Every panel that hangs off the bar is the page's own white —
+    the strands megamenu, the search panel, and the mobile menu, which were
+    charcoal until the client asked for each of them white — so whenever the
+    bar has a ground it is that white, and it joins whichever panel is open as
+    one field.
 
-    The mobile menu and the search panel are `bg-nav`, so the bar joins them in
-    Charcoal Slate. The strands megamenu is the page's own near-white, so the
-    bar has to join *that* instead — a charcoal bar over a white panel is the
-    same two-unrelated-surfaces problem as a white bar over a charcoal one,
-    facing the other way.
-
-    This does not reintroduce the panel on scroll. Scrolling alone still leaves
-    the bar sitting on the page with no ground of its own; the only thing added
-    here is the field the strands panel opens into.
+    Light ink only over a dark hero before the page has moved, with nothing
+    open. Every panel is white, the bar joins it, and light ink on the pair
+    would be unreadable.
   */
-  const groundIsDark = overlayOpen;
-
-  /*
-    Light ink over the hero photograph before the page has moved, and while a
-    charcoal overlay is open — because that panel is charcoal and the bar is
-    part of it. Everywhere else the bar is over a pale ground and takes
-    Charcoal Slate, and that now includes the hero itself while the strands
-    megamenu is open: the panel is near-white, the bar joins it, and light ink
-    on the pair would be unreadable.
-  */
-  const onDarkInk = overlayOpen || (isOverHero && !isScrolled && !isStrandsOpen);
+  const onDarkInk = isOverDarkHero && !isScrolled && !isStrandsOpen && !overlayOpen;
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
-  // Filtered for the desktop bar only — <MobileNav> below is handed MAIN_NAV
-  // itself, unfiltered. `secondary` is the one flag that still drops an entry
-  // from this row (nothing in MAIN_NAV sets it today); the `utility` split
-  // that used to pull Contact out to the right-hand cluster is gone along
-  // with the flag itself — see the note on MAIN_NAV in lib/constants.ts, and
-  // the booking action at the end of the right-hand track below for what
-  // took its place there.
-  const primaryNav = MAIN_NAV.filter((item) => !item.secondary);
+  // One source, split by role for the desktop bar only — the mobile menu and
+  // the footer still read MAIN_NAV whole and in order.
+  const primaryNav = MAIN_NAV.filter((item) => !item.secondary && !item.utility);
+  const utilityNav = MAIN_NAV.filter((item) => !item.secondary && item.utility);
 
   return (
     <>
@@ -377,7 +390,17 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         isDetached
           ? "transition-transform duration-[450ms] motion-reduce:transition-none"
           : "",
-        isDetached && !isPinned ? "-translate-y-full" : "translate-y-0",
+        /*
+          `translate-none` on screen, never `translate-y-0`. Tailwind 4 writes
+          these as the CSS `translate` property, and any value but `none` —
+          `0 0` included — makes the bar the containing block for `fixed`
+          descendants. The menu and search overlays are `fixed` children of
+          this element, sized top-to-bottom against the screen; contained by a
+          64px bar they measured 0px tall, so tapping the menu turned the bar
+          dark and showed nothing. `none` still transitions to and from
+          `-translate-y-full`, so the slide is unchanged.
+        */
+        isDetached && !isPinned ? "-translate-y-full" : "translate-none",
         // The focus ring follows the ink. Cream is right over the hero and
         // inside an open overlay; on the page's pale grounds it would vanish,
         // so the ring falls back to Deep Lilac there.
@@ -402,19 +425,14 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           rule inside it — and it cannot go half-done, which is what a bar of
           White Rock links over a pale section would be.
 
-          `bg-nav` for the overlay case rather than the near-white it used to
-          take: the panel hanging under it is `bg-nav`, and the two have to be
-          one field. They were not — a white bar sat above a charcoal panel.
+          The same white when a panel is open, because every panel hanging
+          under it is that white, and the two have to read as one field.
 
           Charcoal on the page measures 11.61:1; White Rock over the hero is
           held up by the photograph's own head wash, which is measured in
           <Hero>.
         */
-        hasGround
-          ? groundIsDark
-            ? "border-b border-on-dark/10 bg-nav"
-            : "border-b border-text/10 bg-surface"
-          : "bg-transparent",
+        hasGround ? "border-b border-text/10 bg-surface" : "bg-transparent",
         onDarkInk ? "text-on-dark" : "text-text",
       )}
     >
@@ -504,23 +522,44 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           aria-label="Primary"
           className="hidden self-stretch lg:col-start-1 lg:flex lg:justify-start"
         >
-          <ul className="flex items-stretch gap-7 xl:gap-10 2xl:gap-12">
+          {/*
+            24px at 1024, 44px from 1280. The labels are heavier now and the
+            row gained a fourth thing to fit; measured, 32px everywhere left
+            the 1024 track 2px short and wrapped a label. The wide screens keep
+            the air — it is only the narrow end of the desktop range that has
+            to give it up.
+          */}
+          <ul className="flex items-stretch gap-6 xl:gap-11 2xl:gap-12">
             {/*
-              Contact renders here now, same as About: a plain entry with no
-              `megamenu` flag, so it falls to the `else` below like any other
-              link. `secondary` is the only flag left that would drop an entry
-              from this row — see NavItem — and nothing in MAIN_NAV sets it.
+              Two filters, two different jobs. `secondary` entries are dropped
+              from the bar entirely and kept in the mobile menu and the footer;
+              `utility` entries stay in the bar but belong with search on the
+              right. See both flags on NavItem.
             */}
             {primaryNav.map((item) =>
-              item.megamenu ? (
+              item.menu === "private-events" ? (
+                <li key={item.href} className="flex items-center">
+                  <PrivateEventsMenu
+                    onOpenChange={setIsStrandsOpen}
+                    label={item.label}
+                    href={item.href}
+                    isActive={isActive(item.href)}
+                    linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
+                  />
+                </li>
+              ) : item.menu === "experiences" ? (
                 <li key={item.href} className="flex items-center">
                   <WorkshopsMenu
                     onOpenChange={setIsStrandsOpen}
                     label={item.label}
                     href={item.href}
-                    disciplines={disciplines}
+                    experiences={experiences}
+                    // The same dates the search panel and the listing read, so
+                    // a seat count in the menu can never disagree with one two
+                    // clicks away. Matched to an activity by slug inside.
+                    sessions={workshops}
                     isActive={isActive(item.href)}
-                    linkClassName={cn(NAV_LINK, NAV_WEIGHT_PRIMARY)}
+                    linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
                   />
                 </li>
               ) : (
@@ -528,7 +567,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
-                    className={cn(NAV_LINK, NAV_WEIGHT_REST)}
+                    className={cn(NAV_LINK, NAV_WEIGHT)}
                   >
                     <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                   </Link>
@@ -557,42 +596,26 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         {/*
           The right track: how to reach us, and how to find something.
 
-          THE WIDTH BUDGET, REOPENED AT THE CLIENT'S ASK. A booking action
-          used to sit here, pointing at /events — exactly where the Events
-          entry on the other side of the mark already goes — and it was taken
-          out for being a second control to the same destination on the tight
-          side of the bar. The client has now asked for it back regardless,
-          filled the same way it was before, so the redundancy is accepted
-          rather than re-argued: Events and this button lead to the same
-          place on purpose. What follows is that trade re-measured, not the
-          old case for leaving it out.
+          THE WIDTH BUDGET IS FIXED HERE RATHER THAN TRIMMED AGAIN. True
+          centring forces both side tracks to exactly (width − mark − gaps)/2,
+          and every previous pass solved an overrun by shaving gaps and padding
+          off this side: at 1024 the nav opposite wanted 238px of its 403 while
+          this cluster wanted all of its own and then some. Two passes had
+          already taken 4px off a gap and 8px off the action's flanks, and
+          Phase 1's type scale ate both again.
 
-          THE TRADE CLEARS BECAUSE CONTACT LEFT IN THE SAME CHANGE. Contact
-          moved into the nav opposite — see the note on MAIN_NAV in
-          lib/constants.ts — so the width one side gave up is close to what
-          the other now asks for. Both are still true `minmax(0,1fr)` tracks:
-          confirmed live at a 1024px viewport, each measures 422.8px, and the
-          wordmark's own box sits at 461.0–563.0, centred exactly on 512.
-          The nav opposite carries Events, About and Contact at 236.8px of
-          its 422.8 (three items and two 28px gaps), 186px spare. This side,
-          with an empty basket — the common case — carries Search and the
-          booking action at 285.1px of the same 422.8 (85.1 + a 28px gap +
-          172.0), 137.7px spare. `sm`, the smallest of <Button>'s three
-          sizes, is what keeps the booking action at 172px rather than wider.
+          The cause was that the bar carried two ways to do the same thing. The
+          booking action pointed at /events, which is exactly where the Events
+          entry on the other side of the mark goes — one row, one destination,
+          two controls, and the widest of them sitting on the tight side. It is
+          gone from the bar (it stays in the mobile menu, where it is the
+          panel's own primary action and there is room for it), and the budget
+          stopped being tight rather than being made to fit.
 
-          THE TIGHT CASE IS THE BASKET, NOT THIS CHANGE. <BasketLink> is not
-          in the 285.1px above because it renders nothing until something is
-          held. Measured the same way, "Booking" plus its count pill runs
-          105px at one digit and 115px at two (tabular-nums, so any run of
-          that many digits measures the same). One digit still clears the
-          track — 418px of 422.8, 4.6px spare. Two do not: 428px of 422.8, a
-          5px overrun. `minmax(0,1fr)` will not grow the column to rescue it,
-          so ten or more places or passes held, at exactly this width, spills
-          the row about 5px past its own track rather than pushing the mark
-          off centre — the fixed 24px grid gap to the mark is a separate
-          margin and stays untouched, so nothing there collides. Re-measure
-          this note, not just the paragraph above, before adding anything
-          else to this row.
+          That also answers the brief on its own terms: the client asked for
+          Events to lead without the bar looking like a shop, and a header with
+          one solid block of colour in the corner is the single thing that most
+          made it look like one.
         */}
         <div className="col-start-3 flex items-center justify-end gap-5 lg:gap-7 xl:gap-9">
           {/*
@@ -616,48 +639,31 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
           />
 
           {/*
-            THE BOOKING ACTION, BACK AT THIS END, AT THE CLIENT'S ASK — see the
-            width-budget note opposite for the last time this row carried one
-            and why it left. Filled rather than another text link: it is the
-            one thing on this side of the mark that should read as an action
-            rather than a place to go, and a fill is what says that.
-
-            Light Sage (`sage` on <Button>/<ButtonLink>): the bar's ground here
-            runs dark whenever it has one — Charcoal Slate at rest over the
-            hero and again behind either overlay (`bg-nav`, both read from the
-            one token) — and sage is the palest thing in the palette, so it is
-            the fill least likely to sit into a dark ground rather than on it.
-            Charcoal text on Light Sage measures 9.07:1, and since contrast is
-            symmetric that is also sage-on-Charcoal: the fill reads clearly
-            against the bar's own dark ground rather than disappearing into
-            it. Against the pale `bg-surface` the bar takes on scroll — itself
-            a sage tint mixed into white — the fill is still the more
-            saturated of the two and still reads as a distinct block, just
-            with far less contrast to spare; it was not asked to clear a ratio
-            there and none is claimed.
-
-            PRIMARY_CTA rather than a label written here, so the header, the
-            footer and this action can never say three different things about
-            the one thing a visitor is meant to do.
-
-            `sm`: the smallest of <Button>'s three sizes, chosen for the same
-            reason the note opposite exists at all — this is the tight side of
-            the bar, and the booking action re-entering it is exactly what
-            used up the budget last time.
-
-            Wrapped rather than given `hidden` directly, because <Button>'s own
-            base classes carry `inline-flex`: two display utilities on one
-            element are settled by their order in the generated stylesheet
-            rather than by the order they are written, and `hidden` can lose —
-            documented above on the Contact link this now stands in for, which
-            hit the same trap rendering on a 360px phone beside the menu
-            button.
+            Contact, set in the same type as the navigation opposite so the two
+            halves of the bar read as one row rather than as a nav and a
+            toolbar. Desktop only — on a phone it is in the menu with
+            everything else, and repeating it in a three-control bar would
+            crowd the one control that has to be easy to hit.
           */}
-          <div className="hidden lg:block">
-            <ButtonLink href={PRIMARY_CTA.href} variant="sage" size="sm">
-              {PRIMARY_CTA.label}
-            </ButtonLink>
-          </div>
+          {utilityNav.map((item) => (
+            /*
+              Wrapped rather than given `hidden` directly, because NAV_LINK
+              already carries `inline-flex`: two display utilities on one
+              element are settled by their order in the generated stylesheet
+              rather than by the order they are written, and `hidden` lost —
+              Contact rendered on a 360px phone beside the menu button. The
+              same trap is documented on the booking action this replaced.
+            */
+            <div key={item.href} className="hidden lg:block">
+              <Link
+                href={item.href}
+                aria-current={isActive(item.href) ? "page" : undefined}
+                className={cn(NAV_LINK, NAV_WEIGHT)}
+              >
+                <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
+              </Link>
+            </div>
+          ))}
 
           <button
             ref={menuTriggerRef}
@@ -680,7 +686,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         isOpen={isMenuOpen}
         onClose={closeMenu}
         items={MAIN_NAV}
-        disciplines={disciplines}
+        experiences={experiences}
         isActive={isActive}
       />
 
@@ -691,6 +697,7 @@ export function HeaderBar({ disciplines, workshops }: { disciplines: Discipline[
         onClose={closeSearch}
         triggerRef={searchTriggerRef}
         workshops={workshops}
+        experiences={experiences}
       />
     </header>
 

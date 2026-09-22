@@ -1,94 +1,229 @@
+import Link from "next/link";
+
 import { EventsBrowser } from "@/components/events/EventsBrowser";
+import { ExperiencePlate } from "@/components/events/ExperiencePlate";
 import { Reveal } from "@/components/motion/Reveal";
 import { Container } from "@/components/ui/Container";
+import { ModeMark } from "@/components/ui/ModeMark";
+import { DisplayHeading, Eyebrow, ScriptTitle } from "@/components/ui/SectionHeader";
+import { WORKSHOP_JOURNEY } from "@/lib/brand";
+import { getCreativeExperiences } from "@/lib/experiences";
+import { getMallPartners } from "@/lib/partners";
 import { buildMetadata } from "@/lib/seo";
 import { getAllWorkshops } from "@/lib/workshops";
 
-// TODO(content): final SEO title and description pending client copy.
 export const metadata = buildMetadata({
-  title: "Events",
+  title: "Experiences",
   description:
-    "Every upcoming Maison Palettia event — painting, ceramic painting and craft, at fixed times in malls across Dubai. Find a date, see the location, keep a place.",
+    "Every Maison Palettia creative experience — walk-in DIY activities you can enjoy at your own pace, and guided scheduled sessions you book online for a set date.",
   path: "/events",
 });
 
 /**
- * The programme — every scheduled session. Step one of the booking journey:
- * discover, understand, reserve, pay.
+ * /events — every experience, in the two groups the business runs on.
  *
- * A catalogue, not a repeat of the homepage. The homepage section gives three
- * dates equal weight as full-bleed blocks because it has to sell the idea of
- * booking at all; someone who has arrived here has already decided to look at
- * the programme, so the page behaves like an index.
+ * WHAT WAS MISSING. This page listed the scheduled sessions and nothing else,
+ * under the heading "Upcoming events". Five of the seven approved activities
+ * are walk-in, and none of them appeared on the page the navigation calls
+ * Experiences — a visitor who clicked it learned about two things the studio
+ * does and not the other five. Its introduction also said the studio runs "in
+ * malls across Dubai" and comes to "a mall near you", which overstates one
+ * confirmed destination.
  *
- * THE MASTHEAD IS DELIBERATELY SHORT. It used to open on a two-line display
- * heading at up to 4.25rem with a paragraph beside it and a 7rem gap before
- * the first session, which put the thing a visitor came for below the fold on
- * every laptop. This page is the top of a booking funnel, so it names itself
- * and gets out of the way: one line of type, one line of copy, then the
- * filters. The identity is carried by the eyebrow rule and the typography, not
- * by the height.
+ * TWO GROUPS, EACH ANCHORED. `#walk-in` and `#scheduled` are what the hero's
+ * actions and the header's "Book a session" point at, so a visitor lands on
+ * the half of the page their question belongs to. Walk-in comes first because
+ * the deck lists it first (p.5); a visitor who came to book is taken straight
+ * past it by the anchor.
  *
- * Server component. Data is fetched here and handed down; only the filtering
- * below is client-side, so the head, the metadata and the query all stay on
- * the server.
+ * NOTHING ABOUT BOOKING CHANGED. The scheduled half is the existing
+ * <EventsBrowser> — its filters, its cards, its links into the booking step —
+ * given a heading. Walk-in activities are plates that open their own pages,
+ * where no booking is ever offered.
  */
 export default async function EventsPage() {
-  const workshops = await getAllWorkshops();
+  const [experiences, workshops, partners] = await Promise.all([
+    getCreativeExperiences(),
+    getAllWorkshops(),
+    getMallPartners(),
+  ]);
+  const walkIn = experiences.filter((e) => e.kind === "diy");
+  const sessions = workshops.filter((w) => w.kind !== "diy");
+  const home = partners.length === 1 ? partners[0] : undefined;
+  const [diyStep, scheduledStep] = WORKSHOP_JOURNEY;
 
-  // The <main> landmark lives in the root layout; this is only the measure.
   return (
-    <Container className="py-[3.5rem] md:py-[4.5rem] lg:py-[5.5rem]">
-      <PageHead />
-      {workshops.length === 0 ? <NoSessions /> : <EventsBrowser workshops={workshops} />}
-    </Container>
+    <>
+      {/* ---- the head ---- */}
+      <section aria-labelledby="experiences-title" className="bg-sage">
+        <Container className="pb-12 pt-[3.5rem] md:pb-16 md:pt-[4.5rem] lg:pt-[5.5rem]">
+          <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
+            <div className="col-span-12 lg:col-span-7">
+              <Reveal>
+                <Eyebrow>Experiences</Eyebrow>
+              </Reveal>
+              <DisplayHeading
+                as="h1"
+                id="experiences-title"
+                className="mt-7 md:mt-9"
+                lines={["Choose what", "you make."]}
+              />
+            </div>
+
+            {/* Jump straight to the half of the page the question belongs to. */}
+            <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:pb-2">
+              <nav aria-label="Experience types">
+                <ul className="divide-y divide-text/20 border-y border-text/20">
+                  <JumpLink href="#walk-in" mode="diy" title="Walk-in DIY" note={diyStep.description} />
+                  <JumpLink
+                    href="#scheduled"
+                    mode="scheduled"
+                    title="Scheduled sessions"
+                    note={scheduledStep.description}
+                  />
+                </ul>
+              </nav>
+            </Reveal>
+          </div>
+        </Container>
+      </section>
+
+      {/* ---- walk-in ---- */}
+      <section
+        id="walk-in"
+        aria-labelledby="walk-in-heading"
+        className="scroll-mt-24 bg-surface py-[4.5rem] md:py-[6rem]"
+      >
+        <Container>
+          <GroupHead
+            id="walk-in-heading"
+            mode="diy"
+            title="Walk-in DIY"
+            lead="No booking needed. Choose an experience on the day and create at your own pace."
+          >
+            {home ? (
+              <p className="text-body leading-[1.7] text-text">
+                {home.name}, {home.locality}
+                <span className="block text-fine text-text/85">
+                  Where the Maison sets up for each run of dates.{" "}
+                  <Link href="/locations" className="underline decoration-primary underline-offset-4">
+                    Find us
+                  </Link>
+                </span>
+              </p>
+            ) : null}
+          </GroupHead>
+
+          <ul className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 sm:gap-x-6 md:mt-12 lg:grid-cols-5">
+            {walkIn.map((experience, i) => (
+              <Reveal as="li" key={experience.slug} variant="fadeIn" delay={i * 0.05}>
+                <ExperiencePlate
+                  experience={experience}
+                  aspect="aspect-[4/5]"
+                  sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 46vw"
+                  index={i}
+                />
+              </Reveal>
+            ))}
+          </ul>
+        </Container>
+      </section>
+
+      {/* ---- scheduled ---- */}
+      <section
+        id="scheduled"
+        aria-labelledby="scheduled-heading"
+        className="scroll-mt-24 border-t border-line bg-surface py-[4.5rem] md:py-[6rem]"
+      >
+        <Container>
+          <GroupHead
+            id="scheduled-heading"
+            mode="scheduled"
+            title="Scheduled sessions"
+            lead="Guided workshops on a set date and time, booked online. Everything is provided."
+          />
+          {sessions.length === 0 ? (
+            <Reveal className="mt-12 border-t border-line pt-10">
+              <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em]">
+                The next dates are being set.
+              </p>
+              <p className="mt-4 max-w-[32rem] text-body leading-[1.85] text-text/85">
+                Walk-in experiences are available in the meantime.
+              </p>
+            </Reveal>
+          ) : (
+            <div className="mt-10 md:mt-12">
+              <EventsBrowser workshops={sessions} />
+            </div>
+          )}
+        </Container>
+      </section>
+    </>
   );
 }
 
-/**
- * Label, title and one line of orientation, on a single band.
- *
- * The copy sits beside the heading rather than under it so the whole masthead
- * is the height of the tallest of the two rather than the sum — which is most
- * of what shortened it.
- */
-function PageHead() {
+function JumpLink({
+  href,
+  mode,
+  title,
+  note,
+}: {
+  href: string;
+  mode: "diy" | "scheduled";
+  title: string;
+  note: string;
+}) {
+  return (
+    <li>
+      <a href={href} className="group flex items-start justify-between gap-6 py-4">
+        <span>
+          <span className="flex items-center gap-2.5 text-body font-semibold text-text">
+            <ModeMark mode={mode} />
+            {title}
+          </span>
+          <span className="mt-1 block text-fine leading-[1.6] text-text/85">{note}</span>
+        </span>
+        <span
+          aria-hidden
+          className="mt-0.5 text-text transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-y-0.5"
+        >
+          &#8595;
+        </span>
+      </a>
+    </li>
+  );
+}
+
+function GroupHead({
+  id,
+  mode,
+  title,
+  lead,
+  children,
+}: {
+  id: string;
+  mode: "diy" | "scheduled";
+  title: string;
+  lead: string;
+  children?: React.ReactNode;
+}) {
   return (
     <Reveal>
       <div className="grid grid-cols-12 items-end gap-x-6 gap-y-5 lg:gap-x-10">
-        <div className="col-span-12 md:col-span-6">
-          <p className="flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow text-text">
-            <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-            The programme
-          </p>
-
-          <h1 className="mt-5 text-[1.9rem] font-light uppercase leading-[1.02] tracking-[-0.02em] sm:text-[2.25rem] lg:text-[2.5rem]">
-            Upcoming events
-          </h1>
+        <div className="col-span-12 md:col-span-7">
+          <h2
+            id={id}
+            className="flex items-center gap-3.5 heading-script text-script-compact text-text"
+          >
+            {/* Lifted to the script's x-height: its letters sit high in their
+                line box, so a centred mark read as sitting on the baseline. */}
+            <ModeMark mode={mode} className="size-3 -translate-y-[0.15em]" />
+            <ScriptTitle>{title}</ScriptTitle>
+          </h2>
+          <p className="mt-4 max-w-[34rem] text-lead leading-[1.65] text-text/85">{lead}</p>
         </div>
-
-        <p className="col-span-12 max-w-[30rem] text-body leading-[1.75] text-text/80 md:col-span-5 md:col-start-8 md:pb-1">
-          We bring the studio to a mall near you and run at fixed times. Everything is
-          provided — bring nothing but yourself.
-        </p>
+        {children ? <div className="col-span-12 md:col-span-5 md:pb-1">{children}</div> : null}
       </div>
-    </Reveal>
-  );
-}
-
-/**
- * Nothing scheduled at all — distinct from a filter that matched nothing,
- * which the browser handles. The page keeps its shape and says so plainly.
- */
-function NoSessions() {
-  return (
-    <Reveal className="mt-14 border-t border-line pt-12 md:mt-16 md:pt-16">
-      <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em] md:text-[1.75rem]">
-        The next dates are being set.
-      </p>
-      <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">
-        New events are announced as each mall is confirmed.
-      </p>
     </Reveal>
   );
 }

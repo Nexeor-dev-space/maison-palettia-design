@@ -2,11 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { BookAction } from "@/components/layout/BookAction";
 import { NavLabel } from "@/components/layout/NavLabel";
-import type { Discipline, NavItem } from "@/types";
+import { ModeMark } from "@/components/ui/ModeMark";
+import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
+import { cn } from "@/lib/utils";
+import { FindYourVibe } from "@/components/layout/FindYourVibe";
+import { VIBES, experiencesByVibe, hasVibeTags, type VibeSlug } from "@/lib/vibes";
+import type { CreativeExperience } from "@/lib/experiences";
+import type { NavItem } from "@/types";
 
 /**
  * How far apart the pieces of the menu arrive, in seconds, and the longest any
@@ -31,7 +37,7 @@ interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   items: NavItem[];
-  disciplines: Discipline[];
+  experiences: CreativeExperience[];
   isActive: (href: string) => boolean;
 }
 
@@ -63,10 +69,39 @@ export function MobileNav({
   isOpen,
   onClose,
   items,
-  disciplines,
+  experiences,
   isActive,
 }: MobileNavProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+
+  /*
+    Same contract as the desktop panel: null means unfiltered, so the menu a
+    visitor opens is always the studio's full structure until they choose a
+    mood. Reset whenever the menu reopens, alongside the reveal — a filter left
+    over from a previous visit would silently hide activities.
+  */
+  const [vibe, setVibe] = useState<VibeSlug | null>(null);
+  /*
+    Reset during render rather than in an effect — React's own pattern for
+    adjusting state when a prop changes, and the one the lint rule is pointing
+    at. An effect would paint the stale filter for a frame first, and the
+    menu opens with a clip-path reveal, so that frame is visible.
+  */
+  const [lastOpenCount, setLastOpenCount] = useState(openCount);
+  if (lastOpenCount !== openCount) {
+    setLastOpenCount(openCount);
+    setVibe(null);
+  }
+
+  const vibeCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        VIBES.map((entry) => [entry.slug, experiencesByVibe(experiences, entry.slug).length]),
+      ) as Record<VibeSlug, number>,
+    [experiences],
+  );
+
+  const shortlist = vibe ? experiencesByVibe(experiences, vibe) : experiences;
   // A route change from inside the overlay should close it. The links call
   // `onClose` directly, but a browser back/forward while it is open would
   // otherwise leave it covering the page it returned to.
@@ -92,8 +127,9 @@ export function MobileNav({
       - focus returns to the trigger when it closes, so nobody is dropped at
         the top of the document.
 
-    The panel is `hidden` when closed, so its contents are out of the tab order
-    on their own — this only has to hold the boundary while it is open.
+    The panel is `inert` when closed, so its contents are out of the tab order
+    and out of the accessibility tree on their own — this only has to hold the
+    boundary while it is open.
   */
   useEffect(() => {
     const panel = panelRef.current;
@@ -146,7 +182,29 @@ export function MobileNav({
   return (
     <div
       id={id}
-      hidden={!isOpen}
+      /*
+        THE ABRUPT DROPDOWN, WHICH IS WHAT THIS USED TO BE.
+
+        The panel was `hidden` when closed — `display: none` — and there is no
+        transition between that and a laid-out box. So the whole surface
+        appeared in one frame, fully formed, and only its contents animated:
+        the client's note was exactly right, and this was the thing it was
+        about.
+
+        It is `inert` now instead, which takes it out of the tab order, out of
+        the accessibility tree and out of reach of a pointer without ever
+        removing it from the layout — so there is something for CSS to animate
+        between. What it animates is the same gesture the two mega-menus make:
+        the surface drawn down from under the bar with a clip, at the same
+        520ms and the same easing, leaving in the same faster 240. Three ways
+        into the navigation, one movement, whatever the width.
+
+        `visibility` is in the transition list on purpose. It interpolates
+        discretely but stays at `visible` for the whole of a transition that
+        starts there, so the panel is still drawn while it is wiping away and
+        is properly hidden — not merely transparent — once it has gone.
+      */
+      inert={!isOpen}
       /*
         Lenis listens for wheel and touch on the window with `passive: false`
         and calls `preventDefault()` on anything it decides to handle — which
@@ -169,38 +227,101 @@ export function MobileNav({
       data-lenis-prevent
       ref={panelRef}
       aria-label="Site menu"
-      className="fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-nav md:top-header-lg lg:hidden"
+      className={cn(
+        "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface",
+        "md:top-[var(--spacing-header-lg)] lg:hidden",
+        // See <SearchPanel> for why this is `ease-soft` and not
+          // `ease-editorial`: the quintic curve spent five sixths of its
+          // time on the last few per cent of the travel.
+          "transition-[clip-path,opacity,visibility] ease-soft motion-reduce:transition-none",
+        isOpen
+          ? "visible opacity-100 duration-[520ms] [clip-path:inset(0_0_0_0)]"
+          : "invisible opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
+      )}
     >
       {/* Keyed so the reveal below runs again every time the menu is opened. */}
       <div key={openCount} className="px-gutter pb-16 pt-10">
-        {/* 01 — what you could do here. */}
-        <nav aria-label="Creative strands">
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-8">
-            {disciplines.map((strand, i) => (
-              <li key={strand.slug} className="animate-rise" style={riseDelay(i)}>
-                <Link href={strand.href} onClick={onClose} className="group block">
-                  <div className="relative aspect-[5/4] w-full overflow-hidden rounded-sm bg-on-dark/5">
-                    <Image
-                      src={strand.image.src}
-                      alt=""
-                      fill
-                      sizes="46vw"
-                      className="object-cover"
-                    />
-                  </div>
-                  <p className="mt-3 text-fine font-medium uppercase tracking-eyebrow text-on-dark">
-                    {strand.name}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {/*
+          01 — what you could do here, in the two groups the whole site uses.
+          A compact list rather than a grid of plates: seven activities as
+          plates ran to four screens of scrolling before the rest of the menu.
+        */}
+        {/*
+          THE SAME DISCOVERY LAYER AS THE DESKTOP PANEL, and deliberately the
+          same component — a phone visitor should not get a lesser version of
+          the idea, and two implementations of one filter is how they drift.
+
+          Tap rather than hover, which it already is: these are buttons, and
+          the chips filter the two lists underneath exactly as they do on the
+          desktop. Nothing is behind an accordion here because the row is three
+          chips and a line, and hiding that behind a disclosure would cost more
+          taps than it saves screen.
+        */}
+        {/* Not drawn while every vibe is empty — see the note in
+            <WorkshopsMenu>, which this panel mirrors exactly. */}
+        {hasVibeTags(experiences) ? (
+          <div className="animate-rise" style={riseDelay(0)}>
+            <FindYourVibe counts={vibeCounts} selected={vibe} onSelect={setVibe} size="compact" />
+          </div>
+        ) : null}
+
+        <nav aria-label="Experiences" className="mt-9">
+          {(
+            [
+              { mode: "diy", title: "Walk-in DIY" },
+              { mode: "scheduled", title: "Scheduled sessions" },
+            ] as const
+          ).map((group, gi) => {
+            const items = shortlist.filter((e) => e.kind === group.mode);
+            if (items.length === 0) return null;
+            return (
+              <div key={group.mode} className={gi > 0 ? "mt-9" : undefined}>
+                <p
+                  className="flex animate-rise items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text"
+                  style={riseDelay(gi * 4)}
+                >
+                  <ModeMark mode={group.mode} />
+                  {group.title}
+                </p>
+                <ul className="mt-3">
+                  {items.map((experience, i) => (
+                    <li key={experience.slug} className="animate-rise" style={riseDelay(gi * 4 + i + 1)}>
+                      <Link
+                        href={`/events/${experience.slug}`}
+                        onClick={onClose}
+                        className="flex items-center gap-4 py-2"
+                      >
+                        <span className="relative size-12 shrink-0 overflow-hidden rounded-sm bg-cream">
+                          {experience.image ? (
+                            <Image
+                              src={experience.image.src}
+                              alt=""
+                              fill
+                              sizes="48px"
+                              style={{ objectPosition: experience.image.position ?? "50% 50%" }}
+                              className="object-cover"
+                            />
+                          ) : null}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-body font-medium text-text">{experience.name}</span>
+                          {experience.status ? (
+                            <span className="block text-fine text-text/80">{experience.status}</span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </nav>
 
         {/* 02 — the action, given a rule of its own so it is not one of a list. */}
         <div
-          className="mt-12 animate-rise border-y border-on-dark/15 py-7"
-          style={riseDelay(disciplines.length)}
+          className="mt-12 animate-rise border-y border-text/15 py-7"
+          style={riseDelay(experiences.length)}
         >
           <BookAction size="panel" onNavigate={onClose} />
         </div>
@@ -212,8 +333,19 @@ export function MobileNav({
               <li
                 key={item.href}
                 className="animate-rise"
-                style={riseDelay(disciplines.length + 1 + i)}
+                style={riseDelay(experiences.length + 1 + i)}
               >
+                {/*
+                  PRIVATE EVENTS EXPANDS HERE RATHER THAN HANGING A PANEL.
+
+                  The bar's version is a dropdown because a pointer can hover;
+                  a finger cannot, and a desktop menu forced onto a phone is
+                  the usual way a nav becomes unusable. So the entry keeps its
+                  link — tapping the word still goes to the page — and the
+                  three programmes sit behind a disclosure beside it, which is
+                  the interaction a phone actually has. Everything else in this
+                  list is untouched.
+                */}
                 {/*
                   The same device the desktop bar uses — see <NavLabel> — kept
                   in step for a reason beyond consistency: the sage this used
@@ -222,22 +354,119 @@ export function MobileNav({
                   and weight (light, not bold, so the 22px does not earn the
                   large-text exemption) — under the 4.5:1 running text owes.
                   The drawn rule is a graphical mark rather than text and
-                  clears 3:1 comfortably against either ground, so it carries
-                  hover and current-page alone; the label stays white
-                  throughout regardless of which ground the bar is on.
+                  clears 3:1 comfortably, so it carries hover and current-page
+                  alone; the label keeps one ink throughout — Charcoal Slate,
+                  now that the menu is the page's white at the client's ask.
                 */}
-                <Link
-                  href={item.href}
-                  onClick={onClose}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-on-dark"
-                >
-                  <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
-                </Link>
+                {item.menu === "private-events" ? (
+                  <PrivateEventsGroup item={item} isActive={isActive(item.href)} onClose={onClose} />
+                ) : (
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
+                  >
+                    <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
         </nav>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The Private events entry on a phone: a link, and a disclosure beside it.
+ *
+ * Two controls rather than one, deliberately. Making the whole row a toggle
+ * would take away the page — and that page is the one place the studio's words
+ * about these programmes actually live. So the word navigates, like every
+ * other entry in this list, and the chevron opens the three programmes under
+ * it. Each of those is an anchor into that same page; none of them invents a
+ * route or a claim.
+ *
+ * `grid-rows-[0fr]` to `[1fr]` is the height transition that needs no measured
+ * pixel value and so cannot go stale when the copy changes. Closed, the region
+ * is `inert`, so its links are out of the tab order exactly as they are out of
+ * sight.
+ */
+function PrivateEventsGroup({
+  item,
+  isActive,
+  onClose,
+}: {
+  item: NavItem;
+  isActive: boolean;
+  onClose: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const panelId = "mobile-private-events";
+  const programmes = PRIVATE_EVENT_AUDIENCES.filter((a) => a.inPrivateEventsMenu);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          href={item.href}
+          onClick={onClose}
+          aria-current={isActive ? "page" : undefined}
+          className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
+        >
+          <NavLabel isActive={isActive}>{item.label}</NavLabel>
+        </Link>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-label={`${open ? "Hide" : "Show"} private event programmes`}
+          onClick={() => setOpen((v) => !v)}
+          className="-mr-2 flex size-11 shrink-0 items-center justify-center rounded-pill text-text transition-colors duration-300 ease-soft hover:bg-cream/70"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "block size-2.5 border-b-[1.5px] border-r-[1.5px] border-current transition-transform duration-300 ease-editorial motion-reduce:transition-none",
+              open ? "-translate-y-[2px] rotate-[225deg]" : "-translate-y-[3px] rotate-45",
+            )}
+          />
+        </button>
+      </div>
+
+      <div
+        id={panelId}
+        inert={!open}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-[380ms] ease-editorial motion-reduce:transition-none",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <ul className="overflow-hidden">
+          {programmes.map((programme) => (
+            <li key={programme.slug}>
+              <Link
+                href={`${item.href}#${programme.slug}`}
+                onClick={onClose}
+                className="block py-2.5 pl-4 text-body font-medium text-text/85"
+              >
+                {programme.name}
+              </Link>
+            </li>
+          ))}
+          <li className="pb-2 pl-4 pt-3">
+            <Link
+              href={PRIVATE_EVENT_ENQUIRY_HREF}
+              onClick={onClose}
+              className="inline-flex items-center gap-2 rounded-pill bg-primary px-5 py-2.5 text-action font-semibold uppercase tracking-eyebrow text-on-primary"
+            >
+              Book a private event
+              <span aria-hidden>&#8594;</span>
+            </Link>
+          </li>
+        </ul>
       </div>
     </div>
   );

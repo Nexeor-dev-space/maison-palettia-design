@@ -20,17 +20,15 @@ interface BookActionProps {
  * throughout and the two arches are the deliberate exceptions — so a pill in
  * the corner would be the one soft shape on the page.
  *
- * Filled in Light Sage, which is the same pairing the shared <Button>'s `sage`
- * variant uses and the same one this action already fell to on hover, so the
- * two read as one system rather than two ideas about what a button is. Sage
- * rather than Deep Lilac because the bar's ground is charcoal: sage is the
- * palest thing in the palette and reads instantly against it, where lilac is
- * dark and would sit into the ground rather than on it.
+ * Filled in Deep Lilac with the light `on-primary` ink — the site's primary
+ * button. It was Light Sage while the only place it appears, the mobile
+ * menu, was charcoal: sage read instantly against charcoal. The menu is the
+ * page's white now, at the client's ask, and sage on white all but loses its
+ * edge, where lilac stands clear of it.
  *
- * Charcoal on Light Sage measures 9.07:1, and the hover dims the fill to 85%
- * over the charcoal bar, which lands the same type at 6.98:1 — both far clear
- * of the 4.5:1 a label this size owes. The arrow keeps its drift so the hover
- * answers with movement as well as tone.
+ * The label on Deep Lilac measures 4.9:1, clear of the 4.5:1 a label this
+ * size owes; the hover lightens the fill slightly. The arrow keeps its drift
+ * so the hover answers with movement as well as tone.
  *
  * SIZING IS LOAD-BEARING. The bar sets its own height — see the four header
  * tokens in globals.css — so this can never push the bar taller, but it can
@@ -52,8 +50,8 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
       onClick={onNavigate}
       className={cn(
         "group inline-flex items-center justify-center gap-2.5 rounded-sm font-medium uppercase tracking-eyebrow",
-        "bg-sage text-text",
-        "transition-colors duration-300 ease-soft hover:bg-sage/85",
+        "bg-primary text-on-primary",
+        "press-in transition-colors duration-300 ease-soft hover:bg-primary/90",
         // Narrower flanks between 1024 and 1280, where the bar is at its
         // tightest: that is the band in which the inline nav exists and the
         // mark is centred, so the actions are held to exactly half of what the

@@ -171,7 +171,7 @@ export function ContactForm() {
           "group mt-12 inline-flex w-full items-center justify-center gap-2.5 rounded-sm px-8 py-5",
           "text-action font-medium uppercase leading-none tracking-eyebrow",
           "bg-primary text-on-primary transition-colors duration-300 ease-soft",
-          "hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
+          "press-in hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
         )}
       >
         {submitting ? "Sending" : "Send enquiry"}

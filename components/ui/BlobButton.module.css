@@ -1,0 +1,275 @@
+/*
+  THE BLOB BUTTON — the site's primary action, flooded on hover.
+
+  Four Charcoal Slate ellipses rise from under the button one after another,
+  80ms apart, through a gooey SVG filter — a blur, then an alpha threshold that
+  turns the blur's soft overlaps back into hard edges, so four ellipses read as
+  one liquid fill rather than four circles. The filter is <BlobGooFilter>, in
+  the root layout, so any button on any page can reach it.
+
+  This began as the banner's action, from the CodePen the client sent, and
+  lived in the hero's stylesheet. The client has now asked for the same
+  treatment on the Experiences menu's action, and a hover animation is not
+  something to keep two copies of — so it is a component, and the banner and
+  the menu both use it.
+
+  THE BLOBS ARE SIZED TO COVER WITHOUT THE FILTER, and they did not use to be.
+  `@supports (filter: url(...))` answers yes in Safari — the syntax parses —
+  but Safari then does not paint the filter, so it took the smaller ellipse
+  meant for the goo path and drew it raw. Four ellipses 25% wide at 0/30/60/90%
+  only meet in the middle of the button; at its top and bottom edges each one
+  has narrowed, and at `scale(1.4)` they fall 5.51% of the button's width short
+  of each other. That is three Deep Lilac wedges biting into the flood along
+  both edges, which is exactly what the client sent back.
+
+  So there is one size now, and it is the one that closes with or without the
+  filter. At the button's edge an ellipse is `12.5 · sqrt(scale² - 1)` per cent
+  wide either side of its centre, and the centres are 30% apart, so it takes
+  `scale >= 1.562` to meet. 1.4 gives 12.25% against the 15% needed; 1.7 gives
+  17.18% and laps its neighbour by 4.37%. The filter, where it does draw, melts
+  a shape that was already whole.
+
+  And `.flood` settles it: whatever any engine does with the filter, once the
+  rise is over the button is one flat field, which is the fill the action
+  promises.
+
+  WHEN THE FILL IS CHARCOAL AND NOT LIGHT SAGE — and it is the narrower case
+  of the two. Light Sage is the brand's hover and the fill almost everywhere.
+  The homepage redesign put every <DeckSheet> on Light Sage paper, though, and
+  on those two sheets the flood IS the ground: sampled off the composited
+  pixels, dE 1.1. The button did not change colour on hover so much as
+  disappear into the page, which is what the client reported.
+
+  MEASURE IT WITH dE AND NOT WITH A CONTRAST RATIO. WCAG contrast is
+  luminance only, and it answers this question wrongly. Light Sage on the
+  White Rock sections scores 1.01:1 — which reads as "invisible" and is not:
+  they are different hues at nearly equal lightness, dE 15.9, and the hover is
+  perfectly clear. Trusting the ratio is what briefly turned every button on
+  the site charcoal when only the two on Light Sage paper needed it. Sampled
+  dE of a Light Sage flood against the real ground behind each button: 1.1 on
+  the Light Sage sheets, 15.6-15.9 on White Rock, 17.2-17.7 on the panels.
+
+  Charcoal is what those two sheets get instead: dE 73.3 against the paper and
+  2.34:1 against the Deep Lilac underneath it. It is also already the site's
+  answer in that situation — the carousel's arrows sit on the same Light Sage
+  and are `bg-primary` with `hover:bg-text`, the same deepening.
+
+  INK. The light `on-primary` throughout — 4.90:1 on Deep Lilac at rest and
+  12.0:1 on Charcoal once flooded. It no longer changes at all, which removes
+  the thing that has to be got right when it does: an ink that crosses over
+  while the fill is still arriving leaves a moment where neither colour is
+  properly on the other.
+*/
+/*
+  THE TWO TONES ARE FOUR CUSTOM PROPERTIES, not two copies of the effect.
+
+  `lilac` is the default, and it is the exception rather than the rule: Deep
+  Lilac deepening to Charcoal Slate, for the buttons standing on Light Sage
+  paper. Everything on any other ground wants `sage`, below. (The default is
+  the minority case, which is backwards; it is left that way only because
+  flipping it means touching every call site at once. See <BlobButton>.)
+  `cream` is for the button that stands ON Deep Lilac, where a lilac button
+  cannot be seen at all: White Rock flooded with Soft Lavender, which is the
+  hover those buttons already had before this animation reached them.
+
+  INK. Neither tone changes ink mid-flood. Lilac holds the light `on-primary`
+  (4.90:1 on Deep Lilac, 12.0:1 on Charcoal); cream holds Charcoal (9.34:1 on
+  White Rock, 6.49:1 on Soft Lavender).
+*/
+.button {
+  --blob-rest: var(--color-primary);
+  --blob-flood: var(--color-sage);
+  --blob-ink: var(--color-on-primary);
+  --blob-ink-flooded: var(--color-text);
+
+  position: relative;
+  isolation: isolate;
+  color: var(--blob-ink);
+  transition: color 500ms ease;
+}
+
+.cream {
+  --blob-rest: var(--color-cream);
+  --blob-flood: var(--color-lavender);
+  --blob-ink: var(--color-text);
+  --blob-ink-flooded: var(--color-text);
+}
+
+/*
+  DEEP — the one ground Light Sage cannot be seen on.
+
+  Every <DeckSheet> is Light Sage paper, so a Light Sage flood there is the
+  ground exactly: sampled off the composited pixels, dE 1.1. The button does
+  not change colour on hover, it disappears, which is what the client
+  reported. Charcoal Slate is dE 73.3 against that paper and 2.34:1 against
+  the Deep Lilac underneath it, so the change is unmistakable both ways.
+
+  It is also already what the site does in this situation: the carousel's
+  arrows stand on the same Light Sage and are `bg-primary` with
+  `hover:bg-text` — the same Deep Lilac deepening to the same Charcoal.
+
+  THE INK NEVER CROSSES OVER HERE, which is why this tone needs none of the
+  delay `.sage` needs below. The light `on-primary` is 4.90:1 on the resting
+  Deep Lilac and 12.0:1 on the Charcoal it floods to, so it is correct for
+  the whole of the rise and there is no moment where neither colour is
+  properly on the other.
+
+  Two buttons take it: the banner's and the closing statement's. Everything
+  on any other ground wants `sage`.
+*/
+.deep {
+  --blob-rest: var(--color-primary);
+  --blob-flood: var(--color-text);
+  --blob-ink: var(--color-on-primary);
+  --blob-ink-flooded: var(--color-on-primary);
+}
+
+/*
+  ==========================================================================
+  `sage` — THE MEGAMENU PANELS, AND ONLY THEM
+  ==========================================================================
+
+  The client asked for the flood to be Light Sage again on the buttons in the
+  Experiences and Private events panels. That is the colour this button used to
+  flood with everywhere, and the note above records exactly why it stopped:
+  measured on composited pixels, a Light Sage flood landed on the Light Sage
+  sections at dE 1.1 and the button vanished on hover instead of changing
+  colour.
+
+  THAT IS TRUE OF THE LIGHT SAGE SHEETS AND OF NOTHING ELSE. Every other
+  ground this button stands on is far enough from Light Sage to read: White
+  Rock at dE 15.6-15.9, the near-white megamenu panels at 17.2-17.7. So this
+  tone is not the special case — it is the brand's own hover, and it carries
+  the two homepage sections on White Rock as well as the two panels. Only the
+  buttons actually standing on Light Sage paper deepen to Charcoal instead.
+*/
+.sage {
+  --blob-rest: var(--color-primary);
+  --blob-flood: var(--color-sage);
+  --blob-ink: var(--color-on-primary);
+  /*
+    THE ONE TONE WHOSE INK CROSSES OVER. The light `on-primary` is 4.90:1 on
+    the resting Deep Lilac and 1.28:1 on Light Sage — it cannot stay. Charcoal
+    is 9.07:1 on the flood.
+  */
+  --blob-ink-flooded: var(--color-text);
+}
+
+/*
+  AND THE DELAY THAT MAKES THE CROSSOVER SAFE.
+
+  The note at the head of this file warns about exactly this: "an ink that
+  crosses over while the fill is still arriving leaves a moment where neither
+  colour is properly on the other." Charcoal on the resting Deep Lilac is
+  2.37:1, so a label that turns dark while the button is still mostly lilac is
+  the worst it ever reads.
+
+  The fill is a known length — four blobs, 80ms apart, 450ms each, so the rise
+  is over at 690ms, and `.flood` settles between 470 and 730. Holding the ink
+  light until 540ms and turning it over in 180 puts the whole crossover inside
+  the last stretch, by which point the button is sage under the label.
+
+  Only on the way IN. Leaving, this selector stops matching and `.button`'s own
+  500ms carries the ink back, which is right: the flood drops immediately on
+  leave, so the ink should not dawdle behind it.
+*/
+.sage:hover,
+.sage:focus-visible {
+  transition: color 180ms ease 540ms;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: var(--blob-rest);
+}
+
+.blobs {
+  position: relative;
+  display: block;
+  height: 100%;
+  filter: url("#blob-goo");
+}
+
+.blob {
+  position: absolute;
+  top: 2px;
+  width: 25%;
+  height: 100%;
+  border-radius: 100%;
+  background-color: var(--blob-flood);
+  transform: translate3d(0, 150%, 0) scale(1.7);
+  transition: transform 450ms ease;
+}
+
+/*
+  The settled fill, arriving as the last blob lands — 240ms of stagger plus a
+  450ms rise. It is the blobs' own colour, so where they already cover it
+  cannot be seen; all it does is close anything they left. Leaving the button
+  it goes first and without delay, so the blobs are free to fall away.
+*/
+.flood {
+  position: absolute;
+  inset: 0;
+  background-color: var(--blob-flood);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.blob:nth-child(1) {
+  left: 0%;
+}
+
+.blob:nth-child(2) {
+  left: 30%;
+  transition-delay: 80ms;
+}
+
+.blob:nth-child(3) {
+  left: 60%;
+  transition-delay: 160ms;
+}
+
+.blob:nth-child(4) {
+  left: 90%;
+  transition-delay: 240ms;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    color: var(--blob-ink-flooded);
+  }
+
+  .button:hover .blob {
+    transform: translateZ(0) scale(1.7);
+  }
+
+  .button:hover .flood {
+    opacity: 1;
+    transition: opacity 260ms ease 470ms;
+  }
+}
+
+.button:focus-visible {
+  color: var(--blob-ink-flooded);
+}
+
+.button:focus-visible .blob {
+  transform: translateZ(0) scale(1.7);
+}
+
+.button:focus-visible .flood {
+  opacity: 1;
+  transition: opacity 260ms ease 470ms;
+}
+
+/* The flood is the whole effect, so it simply does not run. */
+@media (prefers-reduced-motion: reduce) {
+  .blob,
+  .flood {
+    transition: none;
+  }
+}
