@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { ContactForm } from "@/components/contact/ContactForm";
 import { Reveal } from "@/components/motion/Reveal";
+import { INK } from "@/components/sections/hero/composition";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import { CONTACT, SOCIAL_LINKS } from "@/lib/constants";
@@ -42,8 +44,18 @@ const STATEMENT_LINE = "block heading-script text-script-hero";
 export default function ContactPage() {
   return (
     <>
-      <Invitation />
-      <Enquiry />
+      {/*
+        ONE PAPER, THEN ONE FIELD. This page used to sit on the body's
+        near-white `surface` with a Charcoal Slate block at the foot, which is
+        the older site's arrangement: a page with no ground of its own and a
+        dark bar at the end. The homepage is Light Sage from top to bottom and
+        closes on a colour, so the invitation and the form share the paper and
+        the last beat is the one field.
+      */}
+      <div className="relative isolate overflow-hidden bg-sage pb-[5.5rem] md:pb-[8rem] lg:pb-[9rem]">
+        <Invitation />
+        <Enquiry />
+      </div>
       <EventsCta />
     </>
   );
@@ -52,7 +64,20 @@ export default function ContactPage() {
 /** 01 — the opening. A statement, a paragraph, and one photograph. */
 function Invitation() {
   return (
-    <Container as="section" aria-labelledby="contact-intro" className="pt-[4rem] md:pt-[6rem] lg:pt-[7rem]">
+    <Container
+      as="section"
+      aria-labelledby="contact-intro"
+      className="relative pt-[4rem] md:pt-[6rem] lg:pt-[7rem]"
+    >
+      {/* Breaking the right edge of the measure, the way the deck lays a
+          cut-out — never floating in clear space. */}
+      <Reveal
+        delay={0.3}
+        className="pointer-events-none absolute -right-5 top-12 hidden w-[8rem] lg:block xl:w-[9.5rem]"
+      >
+        <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={320} />
+      </Reveal>
+
       <Reveal>
         <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
           <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
@@ -98,15 +123,24 @@ function Invitation() {
 
         THIS WAS TWO CLAY-COVERED HANDS THROWING ON THE WHEEL, shared with the
         Shape strand in lib/disciplines.ts. The client has taken the brand off
-        the wheel; the strand is gone and so is the photograph. A client oil
-        landscape stands in — it is the only picture left in the project wide
-        enough for a 21:9 band that is not already on another page.
+        the wheel; the strand is gone and so is the photograph.
+
+        A CLIENT OIL LANDSCAPE STOOD IN HERE and has been replaced. It was the
+        widest picture left in the project, which was the whole argument for
+        it — but a finished landscape in heavy impasto is a painting of a
+        place, and the brief asks this site to show making: hands, materials,
+        process. It also read as stock on the one page a visitor arrives at
+        wanting to reach a person.
+
+        This frame is the Maison's own, pulled from its banner footage: ink
+        being drawn through a marbling bath, which is a real technique the
+        studio runs and is entirely material and process. It is C2PA-clean.
       */}
       <Reveal variant="maskUp" className="mt-16 md:mt-20 lg:mt-24">
         <div className="relative -mx-gutter aspect-[3/2] w-screen max-w-none overflow-hidden sm:aspect-[16/9] lg:aspect-[21/9]">
           <Image
-            src="/images/hero/i-1.jpg"
-            alt="An oil landscape worked in heavy impasto: slender trees on a hillside meadow, flowering shrubs below them, and banked clouds over distant hills."
+            src="/images/studio/marbling.jpg"
+            alt="A close view of a marbling bath: a fine needle drawn down through floating orange, teal and red inks, pulling them into feathered swirls."
             fill
             priority
             sizes="100vw"
@@ -145,8 +179,17 @@ function Enquiry() {
             </p>
           </Reveal>
 
-          <Reveal delay={0.1} className="mt-12">
-            <ContactForm />
+          {/*
+            The form is an object laid on the paper rather than type running
+            straight down it — a White Rock field, the deck's own. It is also
+            the practical reading: a sheet you write on should look like one,
+            and the inputs' own borders now sit on a ground that is not the
+            page, so the fields read as fields without needing heavier rules.
+          */}
+          <Reveal delay={0.1} className="mt-10">
+            <div className="rounded-[1.25rem] bg-cream px-6 py-8 md:rounded-[1.5rem] md:px-9 md:py-10">
+              <ContactForm />
+            </div>
           </Reveal>
         </div>
 
@@ -272,13 +315,21 @@ function EventsCta() {
   return (
     <section
       aria-labelledby="contact-cta"
-      className="mt-[5.5rem] bg-text py-[5rem] text-cream md:mt-[8rem] md:py-section lg:mt-[9rem]"
+      /*
+        Deep Lilac, and the ink that clears it. This was Charcoal Slate with
+        White Rock on it — legible, and not the language the rest of the site
+        closes in: both the homepage and /about end on the lilac field. The
+        spacing above moved to the paper's own padding, so this section no
+        longer carries a margin that only existed to separate it from a page
+        with no ground.
+      */
+      className="relative isolate overflow-hidden bg-primary py-[5rem] text-surface md:py-section"
     >
       <Container>
         <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
           <div className="col-span-12 lg:col-span-7">
             <Reveal>
-              <p className="text-label font-medium uppercase tracking-eyebrow text-cream/75">
+              <p className="text-label font-medium uppercase tracking-eyebrow text-surface/85">
                 Looking for an event?
               </p>
               <h2
@@ -293,14 +344,23 @@ function EventsCta() {
 
           <div className="col-span-12 mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0">
             <Reveal delay={0.15}>
-              <p className="max-w-[24rem] text-body leading-[1.85] text-cream/80">
+              <p /*
+                  `surface`, not White Rock. Moving this field from Charcoal
+                  Slate to Deep Lilac changed what the ink owes: White Rock on
+                  lilac is 3.95:1 and at /80 it is lower still, both under the
+                  4.5:1 body text owes. `surface` is the one light ink that
+                  clears it (4.90) — see inkFor() in <SectionHeader>. The Light
+                  Sage rule and arrow below stay: they are graphical, owing
+                  3:1, and sage on lilac is 3.83.
+                */
+                className="max-w-[24rem] text-body leading-[1.85] text-surface">
                 Every event lists its venue, its times and what you will make. If you already
                 know what you are after, it is quicker than writing to us.
               </p>
 
               <Link
                 href="/events"
-                className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-cream"
+                className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-surface"
               >
                 <span className="border-b border-sage/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
                   Explore upcoming events

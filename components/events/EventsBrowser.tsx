@@ -52,19 +52,26 @@ export function EventsBrowser({ workshops }: { workshops: Workshop[] }) {
       {visible.length === 0 ? (
         <NoMatches onReset={() => setFilters(NO_FILTERS)} />
       ) : (
-        <div className="mt-12 md:mt-14 lg:mt-16">
+        <div className="mt-10 md:mt-12">
           {months.map(({ label, id, events }) => (
-            <section key={id} aria-labelledby={id} className="mt-20 first:mt-0 md:mt-28">
+            <section key={id} aria-labelledby={id} className="mt-14 first:mt-0 md:mt-16">
+              {/*
+                The month is a folio, not a heading with a rule under it: the
+                rows below draw their own top borders, so a bordered heading
+                here would put two lines a few pixels apart.
+              */}
               <Reveal>
-                <h2
-                  id={id}
-                  className="border-t border-line pt-6 text-label font-medium uppercase tracking-eyebrow text-text/75"
-                >
+                <h2 id={id} className="text-label font-medium uppercase tracking-eyebrow text-text/60">
                   {label}
                 </h2>
               </Reveal>
 
-              <ol className="mt-10 flex flex-col gap-20 md:mt-12 md:gap-24 lg:gap-28">
+              {/*
+                No gap. Each row carries its own hairline and its own hover
+                wash, so they have to meet — a gap between them would break the
+                run into cards and put the wash on an island.
+              */}
+              <ol className="mt-5 border-b border-line md:mt-6">
                 {events.map(({ workshop, position }) => (
                   <li key={workshop.slug}>
                     <EventIndexEntry workshop={workshop} index={position} />

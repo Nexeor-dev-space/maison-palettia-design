@@ -61,7 +61,9 @@ export function PrivateEventsTeaser() {
                 </li>
               ))}
             </ul>
-            <Reveal delay={0.25}>
+            {/* `wipeUp` — a field drawn down from its top edge, the same
+                gesture the header's panels open with. */}
+            <Reveal variant="wipeUp" delay={0.25}>
               <div className="border-t border-surface/40 pt-8">
                 {/*
                   White Rock button on the lilac field: a figure standing on the

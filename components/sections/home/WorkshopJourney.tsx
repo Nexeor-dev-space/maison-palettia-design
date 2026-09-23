@@ -108,8 +108,8 @@ export function WorkshopJourney() {
               style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}
             >
               <Image
-                src="/images/studio/tote-table.jpg"
-                alt="Hands at a workshop table with brushes, a paint tray and a folded tote bag."
+                src="/images/workshop-journey.jpg"
+                alt="A child's hands colouring in a printed butterfly with an orange crayon, a second pair of hands holding the page steady alongside."
                 fill
                 sizes="(min-width: 1024px) 58vw, 100vw"
                 className={styles.photo}

@@ -4,12 +4,13 @@ import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { LocationMap } from "@/components/sections/LocationMap";
 import { Container } from "@/components/ui/Container";
+import { INK } from "@/components/sections/hero/composition";
+import type { DoodleName } from "@/components/sections/hero/doodles";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { COLLABORATIONS, EXPERIENCE_STATEMENT, OUR_APPROACH, PAST_DESTINATIONS } from "@/lib/brand";
 import { getMallPartners } from "@/lib/partners";
 import { buildMetadata } from "@/lib/seo";
-import { cn } from "@/lib/utils";
 
 export const metadata = buildMetadata({
   title: "Locations",
@@ -223,6 +224,13 @@ export default async function LocationsPage() {
  * and the colour lives in the marks, which are decorative and `aria-hidden`
  * and owe no ratio. The same division <WaysToExperience> works to.
  */
+/* One mark per card, in the order the deck lists the models. */
+const CARD_MARKS: readonly { name: DoodleName; color: string }[] = [
+  { name: "bow", color: INK.lilac },
+  { name: "splash", color: INK.terracotta },
+  { name: "starleaf", color: INK.lavender },
+];
+
 function HostMovement() {
   return (
     <section
@@ -262,13 +270,54 @@ function HostMovement() {
           </span>
         </div>
 
-        {/* ---- the chapters ---- */}
-        <Stagger as="ol" className="mt-16 md:mt-20">
-          {COLLABORATIONS.map((model, i) => (
-            <li key={model.slug}>
-              <Chapter model={model} index={i + 1} />
-            </li>
-          ))}
+        {/* ---- the three models, as three cards ---- */}
+        {/*
+          THEY WERE CHAPTERS AND THEY ARE CARDS, at the client's ask.
+
+          Each model used to be a full-measure row: a folio number out at one
+          edge, the name at display size, the line under it, a hairline above.
+          The rows alternated which side the folio sat on so three items of
+          identical anatomy read as a sequence rather than as a table. It did
+          read as a sequence — and that was the trouble. These three are not
+          steps. A mall does not do the voucher programme and then the retail
+          collaborations; it picks the one that fits its calendar. Three cards
+          side by side say "choose" where three stacked rows said "then", and
+          they put the whole offer on one screen instead of three.
+
+          The numeral stays, quiet, because the deck lists them in this order
+          and a partner reading the page twice should find them in the same
+          places. It is set in the condensed face for the reason every numeral
+          on this site is: the brand's script has no usable 7, 8 or 9.
+        */}
+        <Stagger as="ol" className="mt-14 grid gap-5 md:mt-16 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          {COLLABORATIONS.map((model, i) => {
+            const mark = CARD_MARKS[i % CARD_MARKS.length];
+            return (
+              <Reveal as="li" key={model.slug} delay={i * 0.08} className="h-full">
+                <article className="plate group flex h-full flex-col rounded-[1.5rem] bg-surface p-7 transition-colors duration-[var(--duration-hover)] ease-soft hover:bg-surface-alt md:p-8">
+                  <div className="flex items-start justify-between gap-5">
+                    <p className="text-[2.5rem] leading-[0.82] tracking-[0.01em] text-text/25 [font-family:var(--font-deck)] [font-synthesis:none]">
+                      {String(i + 1).padStart(2, "0")}
+                    </p>
+                    <span
+                      aria-hidden
+                      className="block w-10 shrink-0 transition-transform duration-[900ms] ease-editorial motion-safe:group-hover:rotate-6"
+                    >
+                      <DoodleMark name={mark.name} color={mark.color} delay={200 + i * 110} />
+                    </span>
+                  </div>
+
+                  <h3 className="mt-9 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] text-text lg:text-[1.75rem]">
+                    {model.name}
+                  </h3>
+
+                  {/* Body, not `fine`. This is the whole description of a
+                      programme a partner is deciding about. */}
+                  <p className="mt-4 text-body leading-[1.8] text-text/80">{model.description}</p>
+                </article>
+              </Reveal>
+            );
+          })}
         </Stagger>
 
         {/* ---- the door ---- */}
@@ -298,69 +347,5 @@ function HostMovement() {
         </Reveal>
       </Container>
     </section>
-  );
-}
-
-/**
- * One collaboration model, as a chapter.
- *
- * The folio changes side on the middle one and the measure steps in with it,
- * so three items of identical anatomy still read as a sequence rather than as
- * three rows of a table. Each carries one mark on its own rule — a chapter
- * ornament, not decoration scattered near it.
- */
-function Chapter({
-  model,
-  index,
-}: {
-  model: (typeof COLLABORATIONS)[number];
-  index: number;
-}) {
-  /* The middle chapter is the one that moves. Two the same and one different
-     is a rhythm; three all different is a shuffle. */
-  const flipped = index === 2;
-
-  return (
-    <Reveal delay={index * 0.07}>
-      <div className="relative grid grid-cols-12 items-start gap-x-6 border-t border-text/25 py-10 md:py-12 lg:gap-x-10">
-        <span
-          aria-hidden
-          className="absolute -top-5 left-0 block h-10 w-10 bg-cream pr-2"
-        >
-          <DoodleMark
-            name={(["bow", "splash", "starleaf"] as const)[index - 1]}
-            color="#9059A4"
-            treatment="draw"
-            delay={index * 120}
-          />
-        </span>
-
-        <p
-          className={cn(
-            "col-span-12 text-label font-semibold tabular-nums tracking-eyebrow text-text/85",
-            flipped ? "lg:order-2 lg:col-span-1 lg:col-start-12" : "lg:col-span-1",
-          )}
-        >
-          {String(index).padStart(2, "0")}
-        </p>
-
-        <div
-          className={cn(
-            "col-span-12 mt-3 lg:mt-0",
-            flipped ? "lg:order-1 lg:col-span-8 lg:col-start-3" : "lg:col-span-8 lg:col-start-3",
-          )}
-        >
-          <h3 className="text-h2 font-light leading-[1.1] tracking-[-0.015em] text-text">
-            {model.name}
-          </h3>
-          {/* Body, not `fine`. These were 13px — the role globals.css keeps
-              for actual fine print — and this is the whole description of a
-              programme a partner is deciding about. */}
-          <p className="mt-4 max-w-[34rem] text-body leading-[1.8] text-text/85">
-            {model.description}
-          </p>
-        </div>
-      </div>
-    </Reveal>
   );
 }

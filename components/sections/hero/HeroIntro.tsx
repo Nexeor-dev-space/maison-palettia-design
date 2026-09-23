@@ -14,21 +14,42 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   owns the individual transitions; this only decides when each phase begins.
 */
 /*
-  The draw phase has to outlast the last dot, not merely reach it: measured,
-  the sixth dot begins at 2032ms and its pop runs 300ms, so at 2300 the flight
-  was taking the mark away 32ms before it had finished arriving. 2400 leaves
-  the margin.
+  The draw phase has to outlast the last dot, not merely reach it. With the
+  numbers below the sixth dot leaves at 2607ms and takes 240ms to fly, so it is
+  home at 2847 and this holds 103ms past it.
 */
-const DRAW_MS = 2400; // the logo writes itself, the dots arrive, the flower draws
-const WRITE_MS = 2050; // the pen writing the mark, first stroke to last dot
+const DRAW_MS = 2950; // the logo writes itself, the dots arrive, the flower draws
 /*
-  Each palette dot in the "P", after the one before. At 55ms the six were over
-  in 275ms, which is a flicker rather than a count — the client asked twice for
-  them "one by one", and this is the number that makes it read. Six at 85ms is
-  425ms of arrivals, and DRAW_MS holds long enough for the last one's pop to
-  finish before the mark flies to the bar.
+  WRITE_MS COVERS THE LETTERS AND THE DOTS TOGETHER, which is why it moves
+  whenever DOT_STEP does. `schedule()` in <LogoReveal> subtracts the dots'
+  whole span from this before it divides what is left among the pen strokes —
+  so raising DOT_STEP alone does not slow the dots down, it speeds the
+  HANDWRITING up to pay for them. Raising this by exactly the same amount
+  keeps the ink budget where it was: the letters write at the pace they were
+  tuned to and the dots get their extra time from the phase, not from the pen.
+
+  2050 -> 2740 is that arithmetic: the dots' span goes 60 + 6x85 = 570 to
+  60 + 6x200 = 1260, and 2050 + 690 = 2740.
 */
-const DOT_STEP = 85;
+const WRITE_MS = 2740; // the pen writing the mark, first stroke to last dot
+/*
+  Each palette dot in the "P", after the one before — and the whole point is
+  that it is AFTER, not overlapping.
+
+  THIS IS THE THIRD TIME AT THIS NUMBER, so the reasoning is worth keeping. It
+  was 55, which put the six away in 275ms; then 85, which this comment used to
+  call "the number that makes it read". It did not, and the reason is that the
+  step was only ever half the story: a dot's flight is what decides whether the
+  one behind it has landed yet. At 85 against a 420ms flight all six were in
+  the air at once for most of the sequence — six dots arriving together with a
+  slight lean, which is a burst, not a count.
+
+  So the pair is set together now. The flight is 240ms (./Hero.module.css) and
+  the step is 200, so each dot is 40ms off the ground when the next one leaves
+  — near enough to sequential to count out loud, and still overlapping just
+  enough that the row does not read as six separate events.
+*/
+const DOT_STEP = 200;
 const SETTLE_MS = 2000; // doodles fly home behind the photograph, it blooms open, the words rise
 const ENTER_MS = 1400; // the short entrance on a return without a reload
 

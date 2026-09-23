@@ -266,100 +266,43 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       // See the note on the full-screen shape above for why this is `inert`
       // and not `hidden`.
       inert={!isOpen}
+      /*
+        ==================================================================
+        THE SAME CARD THE TWO MEGAMENUS OPEN — see <MenuCard>
+        ==================================================================
+
+        This was a full-bleed drawer: a field the width of the screen wiping
+        down from under the bar with a travelling Deep Lilac lip to draw the
+        movement, because one pale ground sliding over another pale ground has
+        nothing to show for itself. All three panels in this bar were built
+        that way and all three are cards now, at the client's ask.
+
+        The lip goes with the wipe. A card has an edge already — a radius and
+        the `plate` veil — so the line that existed to invent one is a rule
+        drawn across a rounded corner, which is two edge treatments arguing.
+        What draws the movement instead is the card itself: it rises six
+        pixels and settles from 98.5%, which is a thing arriving rather than a
+        field being revealed.
+
+        NARROWER THAN THE OTHER TWO. Those carry a rail and a preview and earn
+        72rem. This is one field and a row of suggestions; at that width the
+        input would be a 1100px line with a caret at one end. 44rem is the
+        measure the content actually has.
+      */
       className={cn(
-        "absolute inset-x-0 top-full overflow-hidden bg-surface",
-        // The hairline at the top is the bar's own. The Deep Lilac line along
-        // the bottom is the drawer's edge, and it is the reason the reveal
-        // reads at all: this panel's ground is `--color-surface`, which is
-        // thirty per cent sage in white and very close to the page behind it,
-        // so a wipe of one pale field over another has nothing to show for
-        // itself. The lip travels down with the clip and draws the movement.
-        // The same two borders <WorkshopsMenu> and <PrivateEventsMenu> carry.
-        "border-t border-t-text/10",
-        /*
-          THE SAME DRAWER THE TWO MEGAMENUS OPEN.
-
-          Search was the last panel in this bar that simply switched on: the
-          ground appeared in one frame and the contents played a mount
-          keyframe over the top of it, and closing was a single frame with no
-          movement at all. It now draws down from under the bar like
-          <WorkshopsMenu> and <PrivateEventsMenu>, on their timings, so the
-          three things that can drop out of this header are one gesture rather
-          than three ideas about what a menu is.
-
-          The durations are per-property in the order the list names them:
-          clip-path 520ms, opacity 0ms. Opaque from the first frame on the way
-          down — a panel that fades while it wipes is a translucent sheet
-          being switched on over the page, with the hero showing through it,
-          which is the thing that read as abrupt. On the way out one `duration`
-          covers both at 240: going up, it is better to simply stop being
-          there than to eat the content from below.
-        */
-        /*
-            THE CURVE, NOT THE DURATION, IS WHAT READ AS ABRUPT.
-
-            This used to be `ease-editorial` — cubic-bezier(0.22, 1, 0.36, 1),
-            a quintic ease-out. Measured on the real panel, it puts the wipe
-            about 85% of the way down in the first third of its 520ms and then
-            spends the remaining 350ms covering the last few per cent. So the
-            eye sees a surface snap most of the way and then a tail it cannot
-            perceive at all: nominally half a second, actually about 150ms of
-            movement. That is the abruptness, and no amount of extra duration
-            fixes it, because the duration was never being spent where it
-            showed.
-
-            `ease-soft` is cubic-bezier(0.4, 0, 0.2, 1), which reaches half its
-            distance at half its time and still lands softly. The same 520ms
-            now travels for the whole 520ms.
-
-            The quintic curve stays on the rows' own rise below: a 12px move
-            wants to arrive and settle, and it is riding on top of this.
-          */
-          "transition-[clip-path,opacity] ease-soft motion-reduce:transition-none",
+        "absolute left-1/2 top-[calc(100%+0.5rem)] z-40 -translate-x-1/2",
+        "w-[calc(100vw-2*var(--spacing-gutter))] max-w-[44rem]",
+        "plate rounded-[1.75rem] bg-cream p-2.5 md:p-3",
+        "transition-[opacity,translate,scale] ease-soft motion-reduce:transition-none",
         shown
-          ? "opacity-100 [transition-duration:520ms,0ms] [clip-path:inset(0_0_0_0)]"
-          : "opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
-        // The clipped panel is still laid out, so it would still catch a
-        // click over the top of the page behind it.
+          ? "scale-100 -translate-x-1/2 translate-y-0 opacity-100 duration-[380ms]"
+          : "-translate-x-1/2 -translate-y-1.5 scale-[0.985] opacity-0 duration-[200ms]",
         isOpen ? null : "pointer-events-none",
       )}
     >
-      {/*
-        THE DRAWER'S EDGE, WHICH THE PANEL CANNOT DRAW FOR ITSELF.
-
-        The bottom border used to sit on the panel, and the note beside it
-        claimed the line travelled down with the reveal. Photographed, it
-        does not: `clip-path: inset(0 0 X% 0)` clips the element's own
-        bottom border away for the whole of the wipe, so the line only
-        appears in the final frame. What a visitor actually saw was menu
-        text arriving over page text with no boundary between them — on
-        /about the panel's ground (`--color-surface`, thirty per cent sage
-        in white) is the same colour as the page behind it, so there was
-        nothing to mark where the menu ended. That, not the speed, is what
-        reads as abrupt.
-
-        So the edge is its own element. It is pinned to the top of the panel
-        and its `bottom` travels from 100% to 0 on the same duration and the
-        same curve as the clip, which keeps its 2px underside exactly on the
-        clip's edge for every frame. A line drawn down the page with the
-        menu filling in behind it is a drawer being pulled open.
-
-        Percentages both ends, and `bottom` rather than `height`: an
-        absolutely positioned box resolves them against its containing
-        block's padding box, which is this panel and is definite. A `height`
-        of 100% would resolve against a content-sized parent and collapse.
-      */}
-      <span
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-x-0 top-0 border-b-2 border-b-primary/30",
-          "transition-[bottom] ease-soft motion-reduce:transition-none",
-          shown ? "[bottom:0%] duration-[520ms]" : "[bottom:100%] duration-[240ms]",
-        )}
-      />
       {mounted ? (
-        <div className={cn("mx-auto w-full px-gutter py-12 lg:py-14", RISE, riseState)}>
-          <div className="mx-auto max-w-[36rem]">
+        <div className={cn("rounded-[1.35rem] bg-surface p-6 lg:p-8", RISE, riseState)}>
+          <div className="mx-auto w-full">
             <SearchExperience
               key={openCount}
               onClose={onClose}
@@ -450,7 +393,14 @@ function SearchExperience({
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 lg:mt-8" role="search">
-        <div className="flex items-center gap-3 border-b border-text/25 pb-3 transition-colors duration-300 ease-soft focus-within:border-primary">
+        {/*
+          A FILLED FIELD, NOT A RULED LINE. The panel is a card on a card now,
+          so a single hairline under a caret reads as a form left unfinished
+          in the middle of it. A rounded well with its own ground is the same
+          shape as everything else in these menus, and it says where to type
+          without a label having to.
+        */}
+        <div className="flex items-center gap-3 rounded-pill bg-cream px-5 py-4 transition-shadow duration-300 ease-soft focus-within:ring-2 focus-within:ring-primary/35">
           <Search size={20} aria-hidden className="shrink-0 text-text/70" />
           <input
             ref={inputRef}
@@ -520,7 +470,7 @@ function PopularSearches({ terms, onPick }: { terms: string[]; onPick: (term: st
             <button
               type="button"
               onClick={() => onPick(term)}
-              className="rounded-sm border border-text/25 px-4 py-2 text-fine text-text transition-colors duration-200 ease-soft hover:border-primary hover:text-primary"
+              className="rounded-pill bg-cream px-4 py-2.5 text-fine text-text transition-colors duration-200 ease-soft hover:bg-primary hover:text-on-primary"
             >
               {term}
             </button>

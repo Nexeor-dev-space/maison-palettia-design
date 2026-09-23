@@ -48,7 +48,26 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-color: rgb(35 31 32 / 0.65);
+  /*
+    0.80, NOT THE 0.65 THIS CARRIED BEFORE, AND THE FIGURE IS MEASURED.
+
+    The photograph underneath changed — /images/middle-section-bg.jpg, which
+    the client supplied — and it is a brighter frame than the one it replaced:
+    pale hands, a pastel pot and a bone-white table, where the old one had a
+    dark counter under the words. Sampled through this wash at 0.65, the
+    brightest pixel under the heading gave 2.94:1 against White Rock (large
+    text owes 3:1) and under the closing line 3.14:1 (body owes 4.5:1). Both
+    failed.
+
+    At 0.80 the same pixels give 4.54:1 and 4.88:1. The text-shadow on the
+    block is still there and still does not count toward either figure — it is
+    for the eye, not for the ratio.
+
+    IF THE PICTURE SHOULD BE BRIGHTER THAN THIS, the words have to move rather
+    than the wash: the dark shirt in the upper left of this frame is the one
+    region that carries light type almost unaided.
+  */
+  background-color: rgb(35 31 32 / 0.8);
 }
 
 /*

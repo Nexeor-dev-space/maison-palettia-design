@@ -29,6 +29,47 @@ const LEAD_MS = 60;
 const DOTS_AFTER_MS = 60;
 
 /**
+ * Where the dots come from: the middle of the palette, inside the bowl of the P.
+ *
+ * The six dots are the palette's paint wells, so their own centroid IS the
+ * middle of the palette — computed rather than written down, so it follows the
+ * artwork if logoArt.ts is ever re-exported from a new file. Measured against
+ * the glyph it sits in: the "P" spans x 68.3–128.0 and y 43.3–96.5 in the
+ * logo's units, and this lands at 114.70, 62.31 — well inside it.
+ */
+const DOT_ORIGIN = {
+  x: LOGO_DOTS.reduce((sum, d) => sum + d.cx, 0) / LOGO_DOTS.length,
+  y: LOGO_DOTS.reduce((sum, d) => sum + d.cy, 0) / LOGO_DOTS.length,
+};
+
+/**
+ * The order the wells fill in: down the palette, the top one first.
+ *
+ * `LOGO_DOTS` is in the artwork's own order, which is the order the paths
+ * happen to sit in the supplied file — 110.04, 119.11, 114.47, 116.28, 110.39,
+ * 117.93 across and 70.78, 60.26, 69.39, 55.08, 52.66, 65.68 down. Stepping
+ * the delay by the array index therefore lit them in no order anyone watching
+ * could name: bottom, top-right, bottom, upper, top, middle.
+ *
+ * This is a RANK, NOT A RE-SORT OF THE ARTWORK. The paths stay in the file's
+ * order in the markup — reordering them would change SVG paint order, which is
+ * the artwork's business and not the choreography's — and only the delay is
+ * taken from the rank. `DOT_ORDER[i]` is the position of dot `i` when the six
+ * are sorted top to bottom, so with these wells it reads 5, 2, 4, 1, 0, 3:
+ * the dot the file lists first is the lowest and so arrives last.
+ *
+ * Sorted on `cy` with `cx` breaking a tie, so two wells at the same height
+ * still resolve left to right rather than by whichever the sort happened to
+ * keep. `y` is down in the logo's units, so ascending `cy` IS top first.
+ */
+const DOT_ORDER: readonly number[] = LOGO_DOTS.map((dot, i) => ({ i, cx: dot.cx, cy: dot.cy }))
+  .sort((a, b) => a.cy - b.cy || a.cx - b.cx)
+  .reduce<number[]>((rank, entry, position) => {
+    rank[entry.i] = position;
+    return rank;
+  }, []);
+
+/**
  * The mark, written.
  *
  * WHAT IS ON SCREEN IS THE FILE. The lettering is the outline from the
@@ -164,7 +205,12 @@ export function LogoReveal({ writeMs, dotStepMs }: LogoRevealProps) {
         ))}
       </g>
 
-      {/* The six dots of the palette, one by one, once the letters are written. */}
+      {/*
+        The six dots of the palette, one by one, once the letters are written —
+        each thrown out from the middle of the palette rather than appearing
+        where it lands, and arriving top well first down to the bottom one.
+        See DOT_ORIGIN for where they come from and DOT_ORDER for the order.
+      */}
       <g className={styles.logoInk}>
         {LOGO_DOTS.map((dot, i) => (
           <path
@@ -173,8 +219,31 @@ export function LogoReveal({ writeMs, dotStepMs }: LogoRevealProps) {
             className={styles.pDot}
             style={
               {
-                "--delay": `${Math.round(lettersDone + DOTS_AFTER_MS + i * dotStepMs)}ms`,
-                transformOrigin: `${dot.cx}px ${dot.cy}px`,
+                /* The rank, not the index — see DOT_ORDER. The set of delays
+                   is unchanged, so `schedule()`'s total still holds; only
+                   which dot takes which one has moved. */
+                "--delay": `${Math.round(lettersDone + DOTS_AFTER_MS + DOT_ORDER[i] * dotStepMs)}ms`,
+                /*
+                  HOW FAR THIS DOT HAS TO TRAVEL, and in which direction: the
+                  offset from where it belongs back to the middle of the
+                  palette. The keyframes start it there and bring it home, so
+                  all six leave one point inside the P and fan out to their
+                  wells. Lengths are the logo's own user units, which is what
+                  a `translate()` on an SVG element takes.
+                */
+                "--dx": `${(DOT_ORIGIN.x - dot.cx).toFixed(2)}px`,
+                "--dy": `${(DOT_ORIGIN.y - dot.cy).toFixed(2)}px`,
+                /*
+                  CENTRE, NOT THE DOT'S OWN COORDINATES, AND THAT IS A FIX.
+                  This read `${dot.cx}px ${dot.cy}px`, which looks right and is
+                  not: `transform-box: fill-box` in Hero.module.css makes the
+                  origin relative to THIS PATH'S OWN bounding box, and that box
+                  is about 2.7 units across. An origin of 110, 70 inside it is
+                  a point far down and to the right of the dot, so `scale(0)`
+                  collapsed each dot toward open space off the mark — which is
+                  why they never looked like they came out of the P.
+                */
+                transformOrigin: "center",
               } as Vars
             }
           />

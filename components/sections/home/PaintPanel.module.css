@@ -42,7 +42,7 @@
 .panel {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: clip;
   background-color: var(--tint);
   color: var(--color-text);
 }

@@ -5,6 +5,8 @@ import panel from "@/components/sections/home/PaintPanel.module.css";
 import { Stagger } from "@/components/motion/Stagger";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { Container } from "@/components/ui/Container";
+import Image from "next/image";
+
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { ModeMark } from "@/components/ui/ModeMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
@@ -128,22 +130,51 @@ import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
   `aria-hidden`, so it owes no ratio, and it is what tells you which colour
   the panel is a tint of.
 */
+/*
+  ==========================================================================
+  EACH WAY IN NOW OPENS WITH A PHOTOGRAPH
+  ==========================================================================
+
+  The client's note was that every other section on the page is visual and
+  this one is not — and it was right. Four tinted panels of running copy is
+  the most text-dense thing on the homepage, sitting between a photographic
+  carousel above it and a photographic split below, and a reader scrolling
+  past met a wall of words exactly where the page should have been showing
+  them what the four ways look like.
+
+  So each panel opens with a picture of the thing it is describing, and the
+  copy follows underneath. Nothing was cut: the numeral, the name, the lede
+  and both doors are all still here, they simply stop being the first thing.
+
+  THE PICTURES ARE THE STUDIO'S OWN AND ALREADY ON THE SITE. Create takes a
+  ceramic table, Celebrate the glitter keepsakes from the birthday page,
+  Connect the community table the corporate rows already use, and Collaborate
+  the National Day cards from a real activation. No stock, and nothing chosen
+  that the Maison has not actually run.
+
+  `alt=""`: each one sits directly above the name of its own group, so a
+  screen reader is about to be told what it is. Describing it twice is noise.
+*/
 const CARDS = [
   {
     tint: "color-mix(in oklab, #9059A4 30%, var(--color-cream))",
     mark: "#9059A4",
+    photo: "/images/experiences/CERAMIC_PAINTING.jpg",
   }, // 6.6:1
   {
     tint: "color-mix(in oklab, #D97757 30%, var(--color-cream))",
     mark: "#D97757",
+    photo: "/images/events/glitter-keepsakes.jpg",
   }, // 7.3:1
   {
     tint: "color-mix(in oklab, #C4B5FD 30%, var(--color-cream))",
     mark: "#9059A4",
+    photo: "/images/experience/community-table.jpg",
   }, // 8.4:1
   {
     tint: "var(--color-sage)",
     mark: "#D97757",
+    photo: "/images/events/national-day-cards.jpg",
   }, // 9.07:1
 ] as const;
 
@@ -276,7 +307,17 @@ export async function WaysToExperience() {
         */}
         <Stagger
           as="ol"
-          className="mt-14 grid gap-6 md:mt-20 lg:grid-cols-2 lg:gap-8"
+          /*
+            FOUR ACROSS, NOT TWO BY TWO. At half the measure each card was
+            nearly 700px wide carrying five lines of copy, which is why they
+            read as four articles rather than four ways in. A quarter-measure
+            card is about 300px: enough for a picture, a name and two doors,
+            and not enough to tempt anything else back into it.
+
+            Two up at `md` so the step from one column to four has a stage in
+            between rather than dropping four 170px cards onto a tablet.
+          */
+          className="mt-14 grid gap-5 md:mt-20 md:grid-cols-2 lg:grid-cols-4 lg:gap-6"
         >
           {groups.map((group, i) => (
             <GroupRow key={group.name} group={group} index={i + 1} />
@@ -308,10 +349,27 @@ export async function WaysToExperience() {
 function GroupRow({ group, index }: { group: Group; index: number }) {
   const card = CARDS[(index - 1) % CARDS.length];
 
+  /*
+    `wipeUp`, and not the `settle` the collage uses.
+
+    These four are painted panels, so they fill rather than land: the clip
+    travels up from the foot and the colour arrives behind it, which is the
+    site's own flood language — the same gesture the header's menus open with
+    and the one <PaintPanel> uses on hover.
+
+    It reads correctly against the rounded corners rather than in spite of
+    them. `clip-path` intersects with the element's own border-radius instead
+    of replacing it, so the top corners stay round while the bottom edge is a
+    hard horizontal line travelling up. That straight edge IS the effect —
+    paint reaching a level.
+
+    The stagger runs 01 to 04, which in the 2x2 is left to right and then
+    down: the order the numerals already promise.
+  */
   return (
-    <Reveal as="li" delay={index * 0.06} className="h-full">
+    <Reveal as="li" variant="wipeUp" delay={index * 0.09} className="h-full">
       <div
-        className={`${panel.panel} plate h-full rounded-[1.5rem] px-7 py-8 md:px-9 md:py-10`}
+        className={`${panel.panel} plate flex h-full flex-col rounded-[1.5rem]`}
         style={
           {
             "--tint": card.tint,
@@ -319,15 +377,39 @@ function GroupRow({ group, index }: { group: Group; index: number }) {
           } as React.CSSProperties
         }
       >
+        {/*
+          FULL-BLEED TO THE PANEL'S OWN EDGES, which is why the padding moved
+          off the panel and onto the block below it. `.panel` already carries
+          `overflow: clip`, so the picture takes the card's 1.5rem radius at
+          the top two corners without a radius of its own — and the flood the
+          panel does on hover still travels over it, because that is a
+          `clip-path` on the same box.
 
+          16/9: wide enough to read as a band opening the card rather than as
+          a plate the copy is hung beneath, and short enough that all four
+          panels stay the same height when the doors below them differ by a
+          line. The panels are in a 2x2 with `h-full`, so an uneven picture
+          height would be paid for by whichever card is tallest.
+        */}
+        <span className="relative block aspect-[16/9] w-full shrink-0">
+          <Image
+            src={card.photo}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 46vw, 92vw"
+            className="object-cover"
+          />
+        </span>
+
+        <div className="flex flex-1 flex-col px-6 py-7 lg:px-7 lg:py-8">
         <div className="flex items-start justify-between gap-6">
+          {/* NO NUMERAL. It was counting four things that are not a sequence
+              — nobody does Create then Celebrate then Connect — so it read as
+              an order where there is none, and at four columns it was a line
+              of type spent on nothing. The cards keep their order; they no
+              longer claim it means something. */}
           <div className="min-w-0">
-            <p className="text-label font-semibold tabular-nums tracking-eyebrow opacity-70">
-              {String(index).padStart(2, "0")}
-            </p>
-            <h3 className="mt-2.5 text-h3 font-light tracking-[-0.02em] lg:text-h2">
-              {group.name}
-            </h3>
+            <h3 className="text-h3 font-light tracking-[-0.02em]">{group.name}</h3>
           </div>
 
           <span aria-hidden className={`${panel.mark} mt-1 block h-10 w-10 shrink-0 lg:h-12 lg:w-12`}>
@@ -335,7 +417,7 @@ function GroupRow({ group, index }: { group: Group; index: number }) {
           </span>
         </div>
 
-        <p className="mt-4 text-body leading-[1.8] opacity-85">{group.lede}</p>
+        <p className="mt-3 text-fine leading-[1.7] opacity-85">{group.lede}</p>
 
         {/*
           The two doors stack inside the panel rather than sitting side by
@@ -343,7 +425,7 @@ function GroupRow({ group, index }: { group: Group; index: number }) {
           fifteen characters a line, and the notes under them are full
           sentences from the approved copy.
         */}
-        <ul className="mt-7 flex flex-col gap-5">
+        <ul className="mt-5 flex flex-col gap-3">
           {group.doors.map((door) => (
             <li key={door.label}>
               <Link
@@ -363,15 +445,17 @@ function GroupRow({ group, index }: { group: Group; index: number }) {
                     {door.label}
                   </span>
                 </span>
-                {door.note ? (
-                  <span className="mt-2.5 block text-body leading-[1.7] opacity-85">
-                    {door.note}
-                  </span>
-                ) : null}
+                {/* THE NOTE UNDER EACH DOOR HAS GONE. It was a full sentence
+                    per door, two per card, eight on the section — the bulk of
+                    the text and the reason the cards were the size they were.
+                    Every one of them is the first line of the page the door
+                    opens, so nothing is lost: it is read a click later, where
+                    it belongs, instead of being previewed here. */}
               </Link>
             </li>
           ))}
         </ul>
+        </div>
       </div>
     </Reveal>
   );

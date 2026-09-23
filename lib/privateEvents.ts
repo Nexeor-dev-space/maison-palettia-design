@@ -114,6 +114,9 @@ const INK_MARK = {
   lilac: "#9059A4",
   lavender: "#C4B5FD",
   terracotta: "#D97757",
+  /* White Rock, for a mark on the Deep Lilac field: lilac on lilac is the
+     ground, and terracotta on it is 2.0:1. */
+  cream: "#EFE2CA",
 } as const;
 
 export const PRIVATE_EVENT_ENQUIRY_HREF = "/private-events/book";
@@ -177,6 +180,18 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
     name: "Mall & community activations",
     description:
       "Workshops tailored to an event’s theme, bringing creativity to kids and adults alike.",
+    /*
+      THE ONLY PROGRAMME WITH NO PHOTOGRAPH, and now the only one with a mark
+      instead of one. Nothing in the project photographs an activation, and
+      the three stand-ins above are the studio's own frames whose CONTENTS
+      come closest to the group named — there is no frame whose contents come
+      close to this. So it takes the fallback the type documents: a brand
+      cut-out, which claims nothing about an occasion.
+
+      Before this it carried neither, and the card rendered an empty field —
+      a slab of Deep Lilac with a heading in the corner.
+    */
+    mark: { name: "coral", color: INK_MARK.cream },
   },
 ] as const;
 

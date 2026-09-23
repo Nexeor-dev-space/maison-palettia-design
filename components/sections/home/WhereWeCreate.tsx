@@ -73,7 +73,7 @@ export async function WhereWeCreate() {
           {home ? (
             <div className="col-span-12 lg:col-span-4 lg:col-start-9">
               <Reveal variant="fadeIn">
-                <div className="arch relative aspect-[4/5] overflow-hidden bg-cream [--arch-rise:30%]">
+                <div className="arch relative aspect-[4/5] overflow-clip bg-cream [--arch-rise:30%]">
                   {/*
                     Taller than its frame and lifted by the height of Google's
                     place card, so the card sits above the arch and out of

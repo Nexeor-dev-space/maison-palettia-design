@@ -34,6 +34,7 @@ export function DoodleMark({
   name,
   color = "currentColor",
   treatment = "draw",
+  trigger = "scroll",
   on = true,
   delay = 0,
   depth = 8,
@@ -43,6 +44,20 @@ export function DoodleMark({
   /** A brand colour. Defaults to the ink around it. */
   color?: string;
   treatment?: "draw" | "stamp" | "rise";
+  /**
+   * What makes the mark draw itself.
+   *
+   *   scroll ... the default. A view timeline runs the draw off the mark's own
+   *              travel through the viewport, so a mark far down a page is
+   *              still undrawn when you reach it. See DoodleMark.module.css.
+   *   state .... the caller owns it, through `on`. For a mark inside something
+   *              that opens — a megamenu panel — where "when it is scrolled
+   *              to" is the wrong question and the view timeline cannot answer
+   *              it anyway: the panel is a scroll container, so a timeline
+   *              inside it resolves against the panel and reports the mark as
+   *              permanently covered.
+   */
+  trigger?: "scroll" | "state";
   /** Has the thing holding it arrived yet? Ignored by `stamp`. */
   on?: boolean;
   /** Milliseconds after its neighbours, so a set arrives in order. */
@@ -74,6 +89,7 @@ export function DoodleMark({
       aria-hidden
       focusable="false"
       data-on={on ? "true" : "false"}
+      data-trigger={trigger}
       style={{ "--mark-delay": `${delay}ms`, color } as React.CSSProperties}
       className={cn(styles.mark, styles[treatment], className)}
     >

@@ -186,29 +186,74 @@
   six dot paths, each scaled up from nothing in turn once the last letter is
   written, in the order the palette runs. Nothing is covered or redrawn.
 */
+/*
+  ==========================================================================
+  THE PALETTE DOTS COME OUT OF THE P
+  ==========================================================================
+
+  Each dot starts at the middle of the palette — one point inside the bowl of
+  the "P" — at no size, and travels out to its own well while it grows. All six
+  leave the same point, so the palette loads itself rather than six dots
+  switching on where they already were.
+
+  `--dx`/`--dy` are set per dot in <LogoReveal>: the offset from the dot's own
+  place back to that shared origin, in the logo's user units. A `translate()`
+  of an absolute length on an SVG element is in those units, so the artwork and
+  the animation stay in one coordinate system at every size the mark is drawn.
+
+  THE TRANSLATE COMES FIRST AND THE SCALE SECOND, which is the order that makes
+  this read as a throw. Transforms apply right to left, so the dot is scaled
+  about its own centre and THEN carried to the origin — the alternative scales
+  the offset too, which collapses the travel to nothing at `scale(0)` and gives
+  back the pop this replaces.
+*/
 .pDot {
   transform-box: fill-box;
-  transform: scale(1);
+  transform: translate(0, 0) scale(1);
   opacity: 1;
 }
 
 :global(html:not([data-intro])) .pDot,
 :global(html[data-intro="play"]) .pDot {
-  transform: scale(0);
+  transform: translate(var(--dx, 0), var(--dy, 0)) scale(0);
   opacity: 0;
 }
 
+/*
+  240ms, AND IT IS SET AGAINST DOT_STEP RATHER THAN CHOSEN ON ITS OWN.
+
+  This was 420, picked so the travel out of the P would register. It did, and
+  it also meant every dot was still in the air when the next three left: at a
+  200ms step a 420ms flight has three dots overlapping at any moment, which
+  reads as a burst however carefully the delays are ordered. The client asked
+  three times for "one by one" and this is the half of it that was wrong.
+
+  240 against DOT_STEP's 200 leaves each dot 40ms of sky to itself before the
+  next one goes. The travel still reads — the easing overshoots, so a dot
+  arrives slightly past its well and settles, paint flicked off a brush rather
+  than placed — and the six now count rather than scatter.
+
+  <HeroIntro> owns the step and the phase length; the two have to be changed
+  together, and DRAW_MS has to outlast the last dot's LAST FRAME, not its start.
+*/
 :global(html[data-intro="draw"]) .pDot {
-  animation: dotIn 300ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
+  animation: dotIn 240ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
 }
 
 @keyframes dotIn {
   from {
-    transform: scale(0);
+    transform: translate(var(--dx, 0), var(--dy, 0)) scale(0);
     opacity: 0;
   }
+
+  /* Up to full before the travel ends, so a dot is never a dot fading in —
+     it is already ink by the time anyone can see where it is going. */
+  45% {
+    opacity: 1;
+  }
+
   to {
-    transform: scale(1);
+    transform: translate(0, 0) scale(1);
     opacity: 1;
   }
 }
@@ -1042,32 +1087,99 @@
   }
 }
 
+/*
+  ==========================================================================
+  THE WAY DOWN — paint drops falling, not a line with a bead in it
+  ==========================================================================
+
+  It was a 1px rule with a 42%-tall slug travelling down it: a scrollbar in
+  miniature, and the one piece of the hero that could have been on any site.
+  It is three drops of the studio's own paint now, falling one after another
+  down the same invisible column and fading as they go, which is the gesture
+  the whole page is built out of.
+
+  THE TRACK IS GONE WITH IT. A line drawn behind falling paint is a pipe, and
+  paint does not fall down a pipe. The drops are the whole of it.
+
+  THREE, NOT ONE, AND THAT IS WHAT MAKES IT READ AS FALLING. A single repeating
+  drop is a blink at the top of an empty column; three offset by a third of the
+  cycle means one is always mid-flight, so the eye is caught by movement rather
+  than by an event it has to wait for.
+
+  Each takes a different brand colour — Terracotta, Deep Lilac, Soft Lavender —
+  so the cue is a palette emptying itself down the page.
+*/
 .cueLine {
   position: relative;
   display: block;
-  width: 1px;
-  height: 1.5rem;
-  overflow: hidden;
-  background-color: color-mix(in oklab, var(--color-text) 22%, transparent);
+  width: 0.5rem;
+  height: 2.25rem;
+}
+
+.cueLine::before,
+.cueLine::after,
+.cueDrop {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-left: -0.2rem;
+  border-radius: 9999px;
+  /*
+    A drop is not a circle: it is pulled out along the direction it travels.
+    `scaleY` in the keyframes does that at speed and lets it round off as it
+    slows, so the shape carries the motion rather than the motion carrying a
+    shape.
+  */
+  animation: cueDrop 2000ms cubic-bezier(0.5, 0, 0.75, 0.6) infinite;
+}
+
+.cueLine::before {
+  background-color: var(--color-terracotta);
 }
 
 .cueLine::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 42%;
-  background-color: var(--color-text);
-  transform: translate3d(0, -100%, 0);
-  animation: cueDrop 2200ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  background-color: var(--color-primary);
+  animation-delay: 660ms;
+}
+
+/* The third drop needs an element of its own — a pseudo-element pair is only
+   two, and two never keeps one in the air. <Hero> renders this span. */
+.cueDrop {
+  background-color: var(--color-lavender);
+  animation-delay: 1320ms;
 }
 
 @keyframes cueDrop {
   0% {
-    transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -0.4rem, 0) scaleY(0.55);
+    opacity: 0;
   }
-  65%,
+
+  18% {
+    opacity: 1;
+  }
+
+  /* Stretched at the fastest part of the fall, round again as it lands. */
+  55% {
+    transform: translate3d(0, 1.1rem, 0) scaleY(1.45);
+    opacity: 1;
+  }
+
   100% {
-    transform: translate3d(0, 240%, 0);
+    transform: translate3d(0, 2.25rem, 0) scaleY(0.9);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cueLine::before,
+  .cueLine::after,
+  .cueDrop {
+    animation: none;
+    opacity: 1;
+    transform: translate3d(0, 0.9rem, 0);
   }
 }

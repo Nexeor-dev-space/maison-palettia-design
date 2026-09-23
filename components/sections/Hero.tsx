@@ -47,13 +47,29 @@ const NO_SCRIPT_CSS = [
  */
 const HERO_IMAGE = {
   /*
-    The client's own banner artwork, supplied for this frame. Wider than it is
-    tall (1672x941, 1.78:1), so the resting card crops it vertically and the
-    open, full-bleed state shows very nearly all of it.
+    The client's own banner photograph, supplied for this frame.
+
+    THREE BY TWO (5616x3744), where the picture before it was 16:9 — a taller
+    file in the same frame, so the crop is tighter and the framing had to be
+    measured rather than guessed.
+
+    WHAT THE Y ACTUALLY DOES HERE, MEASURED RATHER THAN ASSUMED. The picture
+    is not sized to the card: it fills the whole layer and the card is a window
+    onto it (see `.window` in ./hero/Hero.module.css). At 1440 the layer covers
+    1440x900 and shows 94% of the file's height, so the Y position is dividing
+    the 6% that is left — moving it from 34% to 16% buys about one per cent of
+    the frame. The crop the visitor sees is set by where the card sits over the
+    layer, not by this number; 16% is simply the top of that small range, which
+    is the side the heads are on.
+
+    ON A PHONE the layer is a tall portrait, so a 3:2 file is cropped on the
+    WIDTH — the whole height survives and the Y does nothing at all. There the
+    X is the only lever, and 55% frames the boy rather than the gap between two
+    children (measured: the visible band is 38%-69% of the file's width).
   */
-  src: "/images/hero/bg-bg.png",
-  alt: "A girl in the studio holding up the stained-glass star she has painted, its panels in pink, orange, teal and blue, paint still on her fingers.",
-  position: { desktop: "50% 50%", mobile: "50% 50%" },
+  src: "/images/banner-section-img.jpg",
+  alt: "Children at a studio table painting ceramic figurines, brushes and pots of colour in front of them and shelves of unpainted pieces behind.",
+  position: { desktop: "50% 16%", mobile: "55% 40%" },
   lift: "-2%",
 };
 
@@ -214,7 +230,12 @@ export function Hero() {
               style={delay(380)}
             >
               Scroll down
-              <span aria-hidden className={styles.cueLine} />
+              {/* Two of the three drops are this span's own pseudo-elements;
+                  the third is the child, because there are only two to a box.
+                  See `.cueLine` in Hero.module.css. */}
+              <span aria-hidden className={styles.cueLine}>
+                <span className={styles.cueDrop} />
+              </span>
             </a>
           </div>
         </div>

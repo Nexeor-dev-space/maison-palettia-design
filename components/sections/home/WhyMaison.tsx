@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { BRAND_STORY, VISION } from "@/lib/brand";
@@ -24,12 +26,34 @@ import { BRAND_STORY, VISION } from "@/lib/brand";
  * It sits inside the layer that rises over the sticky hero, so the ground has
  * to be opaque — the hero is still pinned underneath while this arrives.
  */
+/*
+  THE AIR IN HERE IS THE POINT, AND IT WAS STILL JUST AIR.
+
+  The section runs a statement down the left and leaves the right half open,
+  which is the composition. Empty is not the same as inert, though: at
+  1440 that is roughly 700px of flat Light Sage with nothing in it, and it sits
+  directly above another section that opens the same way. Three of the studio's
+  own cut-outs, large and held low, give the space something to be.
+
+  Drifting at different rates as the section passes — see <SectionShapes> —
+  because the client asked for the gap between this and the experience section
+  to have something moving in it.
+*/
+const WHY_SHAPES: readonly ShapePlan[] = [
+  { name: "splash", color: INK.lilac, width: "22%", top: "6%", right: "4%", rotate: -10, drift: 28, opacity: 0.16 },
+  { name: "bean", color: INK.terracotta, width: "9%", top: "52%", right: "26%", rotate: 16, drift: -22, opacity: 0.18, desktopOnly: true },
+  { name: "wave", color: INK.lavender, width: "14%", bottom: "8%", right: "12%", rotate: 6, drift: 20, opacity: 0.24, desktopOnly: true },
+];
+
 export function WhyMaison() {
   return (
     <section
       aria-labelledby="why-maison"
-      className="relative bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-hidden bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
+      {/* The right half of this section is empty by design and was empty in
+          fact — see WHY_SHAPES. */}
+      <SectionShapes plan={WHY_SHAPES} />
       <Container>
         <div className="grid grid-cols-12 gap-x-6 gap-y-12 lg:gap-x-10">
           <div className="col-span-12 lg:col-span-7">
