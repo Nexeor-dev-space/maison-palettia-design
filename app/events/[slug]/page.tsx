@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { notFound } from "next/navigation";
 
 import { EventBookingBar } from "@/components/booking/EventBookingBar";
@@ -7,7 +8,7 @@ import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { INK } from "@/components/sections/hero/composition";
-import { LocationMap } from "@/components/sections/LocationMap";
+import { LocationMap, PartnerPlate } from "@/components/sections/LocationMap";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Container } from "@/components/ui/Container";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
@@ -620,18 +621,12 @@ function PrimaryAction({
 }) {
   if (bookable && detail.kind === "scheduled") {
     return (
-      <Link
+      <BlobButton
         href={bookingStepHref(detail.workshop)}
-        className="group inline-flex w-full items-center justify-center gap-3 rounded-sm bg-primary px-8 py-5 text-fine font-medium uppercase leading-none tracking-eyebrow text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto"
+        className="w-full justify-center px-8 py-5 sm:w-auto"
       >
         Book this experience
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      </Link>
+      </BlobButton>
     );
   }
 
@@ -852,22 +847,35 @@ function LocationSection({
             </h2>
           </Reveal>
 
-          <Reveal delay={0.12} className="col-span-12 md:col-span-5 md:pb-2">
-            <p className="text-lead font-medium leading-snug text-text">
-              {venue?.name ?? partner?.name}
-              <Sub>{venue?.locality ?? partner?.locality}</Sub>
-            </p>
-            {/* The centre's own line, where the studio has written one. */}
-            {partner?.descriptor ? (
-              <p className="mt-4 max-w-[30rem] text-body leading-[1.8] text-text/80">
-                {partner.descriptor}
+          {/*
+            THE DESTINATION SITS BESIDE THE HEADING, NOT UNDER THE MAP.
+
+            <LocationMap> draws this plate as its own caption, which is right
+            on /locations where the map is the page. Here it put the name of
+            the place several hundred pixels below a map that is itself below
+            the heading, so "Where the Maison sets up" and the answer to it
+            were never on screen together. The map turns its caption off and
+            the plate comes up here instead — same component, one definition;
+            see <PartnerPlate>.
+
+            It also stops the section saying it twice: this column used to
+            print the name, the city and the line, and the caption printed all
+            three again.
+          */}
+          <Reveal delay={0.12} className="col-span-12 md:col-span-5">
+            {partner ? (
+              <PartnerPlate partner={partner} />
+            ) : (
+              <p className="text-lead font-medium leading-snug text-text md:pb-2">
+                {venue?.name}
+                <Sub>{venue?.locality}</Sub>
               </p>
-            ) : null}
+            )}
           </Reveal>
         </div>
 
         {partner ? (
-          <LocationMap partners={[partner]} className="mt-12 md:mt-14" />
+          <LocationMap partners={[partner]} caption={false} className="mt-12 md:mt-14" />
         ) : (
           /*
             No partnership record for this venue, so no map. Said plainly
@@ -977,11 +985,26 @@ function MoreEvents({
   const solo = others.length === 1 ? others[0] : null;
 
   return (
-    <section aria-labelledby="more-events" className="mt-20 md:mt-28 lg:mt-32">
+    <section aria-labelledby="more-events" className="relative mt-20 md:mt-28 lg:mt-32">
+      {/*
+        ON THE RIGHT, BECAUSE THE LEFT IS OFF THE PAGE. This hung at `-left-6`
+        off the heading's shoulder, which puts it outside the measure and the
+        page clips it — half a shape against the window edge. "More events" is
+        two words and leaves the rest of its own line empty, so the mark goes
+        there instead: still breaking the line the heading sets, and entirely
+        on the page.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-8 right-2 hidden w-[4.5rem] rotate-[-14deg] lg:block"
+      >
+        <DoodleMark name="splash" color={INK.lavender} treatment="stamp" delay={200} />
+      </span>
+
       <Reveal>
         <h2
           id="more-events"
-          className="heading-script pb-[0.3em] text-script-compact text-text"
+          className="heading-script relative pb-[0.3em] text-script-compact text-text"
         >
           <ScriptTitle>More events</ScriptTitle>
         </h2>
@@ -1040,9 +1063,26 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
   return (
     <Link
       href={workshopHref(workshop)}
-      className="group press-in relative flex flex-col overflow-hidden rounded-[1.25rem] md:rounded-[1.75rem] lg:min-h-[20rem] lg:flex-row"
+      className="group press-in relative flex flex-col overflow-hidden rounded-[1.25rem] md:rounded-[1.75rem] lg:flex-row"
     >
-      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-cream lg:aspect-auto lg:w-[55%]">
+      {/*
+        A RATIO AT `lg`, NOT `aspect-auto` AND A FLOOR ON THE ROW.
+
+        This column was `lg:aspect-auto` with `h-full` on the frame inside it,
+        and the row carried `lg:min-h-[20rem]`. Two things were wrong with
+        that. The picture is `<Image fill>`, which is absolutely positioned, so
+        the frame has no in-flow content and its `h-full` resolves against a
+        parent whose height comes only from flex stretch — measured on the
+        page, the frame came back 0x0. What was actually visible was the row's
+        own 320px floor showing through, and at 55% of the measure that is a
+        3.4:1 letterbox: the client's "can't see its view".
+
+        A ratio on the column gives it a definite height of its own, the frame
+        resolves against that, and the text beside it stretches to match. 3:2
+        puts the picture at about 500px here, which is a photograph rather than
+        a band.
+      */}
+      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-cream lg:aspect-[3/2] lg:w-[55%]">
         <WorkshopPhoto
           image={workshop.image}
           aspect="h-full"

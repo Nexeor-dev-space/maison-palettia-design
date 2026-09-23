@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
@@ -1008,34 +1008,20 @@ function PlanAction({
   const onImage = tone === "onImage";
 
   return (
-    <Link
+    /*
+      The tone carries what the hand-built classes used to. On the photograph
+      it is the default Deep Lilac, whose ink `--color-on-primary` fixes at
+      4.90:1 where plain White Rock would be 3.95:1 and fail what a 12px label
+      owes. On the lilac field it is `cream`, because there the button has to
+      read as a figure standing on that ground rather than dissolve into it.
+    */
+    <BlobButton
       href={ENQUIRY_HREF}
-      className={[
-        "group inline-flex w-full items-center justify-center gap-3 rounded-sm px-8 py-5 sm:w-auto",
-        "text-action font-medium uppercase leading-none tracking-eyebrow",
-        "transition-colors duration-300 ease-soft",
-        /*
-          On the photograph: Deep Lilac with the one light ink that survives it
-          — White Rock on lilac is 3.95:1 and fails what a 12px label owes,
-          which is what `--color-on-primary` exists to fix (4.90:1).
-
-          On the lilac field: White Rock, because there the button has to read
-          as a figure standing on that ground rather than dissolve into it.
-        */
-        onImage
-          ? "press-in bg-primary text-on-primary hover:bg-primary/90"
-          : "bg-cream text-text hover:bg-surface",
-        className ?? "",
-      ].join(" ")}
+      tone={onImage ? "lilac" : "cream"}
+      className={`w-full justify-center px-8 py-5 sm:w-auto ${className ?? ""}`}
     >
       Plan a private event
-      <span
-        aria-hidden
-        className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-      >
-        &#8594;
-      </span>
-    </Link>
+    </BlobButton>
   );
 }
 

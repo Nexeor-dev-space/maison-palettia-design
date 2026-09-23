@@ -993,6 +993,34 @@
 }
 
 /*
+  A DAB OF PAINT — the loaded-brush mark that heads a named thing.
+
+  It is the same device three sections had already written for themselves: the
+  workshop journey's palette of five, the collaboration cards, and now the
+  location plate. One mask (`--mask-brush`), one colour from `--paint`, turned
+  upside down so the ragged edge is at the FOOT of the dab — paint laid on the
+  page and drying downward rather than a lid closing over it — and set a degree
+  or two off square by `--tilt`, because a row of dabs at exactly one angle
+  reads as buttons and the same row set down slightly differently reads as
+  paint.
+
+  The caller sets the size, `--paint` and `--tilt`. It is decorative every time
+  it is used, so it is always `aria-hidden` and never the only thing telling
+  two things apart.
+*/
+@utility dab {
+  display: block;
+  background-color: var(--paint, var(--color-primary));
+  transform: scaleY(-1) rotate(var(--tilt, 0deg));
+  -webkit-mask-image: var(--mask-brush);
+  mask-image: var(--mask-brush);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/*
   ==========================================================================
   A PLATE — something laid on the paper, edged without drawing a line
   ==========================================================================

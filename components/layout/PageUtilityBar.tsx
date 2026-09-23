@@ -46,7 +46,12 @@ export function PageUtilityBar({ note, links }: PageUtilityBarProps) {
     >
       <Container>
         <div className="mx-auto flex max-w-site flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
-          {note ? <p className="max-w-[34rem] text-fine text-text/75">{note}</p> : null}
+          {/* `text-body`, not `text-fine`. This is the reassurance a visitor reads
+              before deciding to book — "everything is provided, no experience
+              needed" — and it was set at 13px, the smallest size in the scale
+              and the one meant for legal notes and captions. The client has
+              said twice that copy on this site is set too small. */}
+          {note ? <p className="max-w-[38rem] text-body leading-[1.7] text-text/80">{note}</p> : null}
 
           <ul className="flex flex-wrap items-center gap-x-7 gap-y-3">
             {links.map((item) => (
