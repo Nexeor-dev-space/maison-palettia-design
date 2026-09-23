@@ -1,0 +1,164 @@
+/*
+  THE PAINTED SWATCH BEHIND A LINK.
+
+  One shape, shared by the top-level navigation and the footer, so the two can
+  never drift into being two different ideas of the same gesture.
+
+  ==========================================================================
+  WHY A MASK AND NOT A BORDER-RADIUS
+  ==========================================================================
+
+  A multi-value `border-radius` gives an organic blob cheaply, and it is the
+  usual trick — but every one of them is a smooth lozenge. Paint is not
+  smooth: a brush leaves a wobbly top edge, a different wobbly bottom edge,
+  and ends that are not the same shape as each other. That asymmetry is the
+  whole difference between "hand-painted swatch" and "rounded button", which
+  is the one thing the brief asks this not to become.
+
+  So the shape is an SVG path used as a mask. `preserveAspectRatio="none"` so
+  it stretches to whatever word sits on it — a brush stroke over a long word
+  IS longer, so stretching is correct here rather than a distortion.
+
+  ==========================================================================
+  IT SCALES, IT DOES NOT RESIZE
+  ==========================================================================
+
+  Every state below is a `transform`. Growing the swatch by animating height
+  or width would re-lay-out the bar on every hover; `scaleY` is composited and
+  costs nothing. The origin is the bottom, so the paint swells UP from under
+  the word the way a stroke thickens under a brush rather than inflating from
+  its middle.
+
+  ==========================================================================
+  THE ALPHA FALLS AS THE SWATCH GROWS
+
+  Rest is 0.2 tall at 0.58; hover is full height at 0.46. That looks backwards
+  and is not: a sliver of paint under a word touches almost none of the ink, so
+  it can afford to be strong, while a swatch behind the whole word is what the
+  text is actually read against. The paint gets bigger and lighter at the same
+  time, which is why the label never loses contrast on the way.
+
+  REST IS A LINE, NOT A SWATCH. It was 0.42, which put a lozenge of colour
+  under every link — at rest, in a column of four, that reads as a row of
+  filled shapes rather than as type that has been painted under. At 0.2 the
+  brush is a stroke: it still has the wobbly edges and mismatched ends the
+  mask gives it, and it still swells to a full swatch under the pointer, but
+  standing still it is a line. The hover is where the paint arrives; the rest
+  state only has to say that paint is coming.
+
+  THE INK IS NEVER PUT AT RISK
+  ==========================================================================
+
+  The swatch sits behind the text, so the label's contrast is measured against
+  the swatch, not against the bar — and the paints are Soft Lavender, Warm
+  Terracotta and Deep Lilac, all three of which charcoal FAILS at full
+  strength (6.49, 3.80 and 2.34).
+
+  The alpha is what makes them safe, and it is not a guess. Composited over
+  the bar and sampled off the rendered pixels, Charcoal Slate reads:
+
+      paint            rest swatch   charcoal on it
+      Soft Lavender    #c9cbdf       7.47:1
+      Warm Terracotta  #d4aa86       5.65:1
+      Deep Lilac       #ad9aaf       4.58:1   <- the one that sets the ceiling
+
+  Rest is the worst case: `current` and `hover` both run a LOWER alpha (0.55
+  and 0.46), which composites lighter over a light bar and can only raise the
+  ratio. Deep Lilac at 4.58 is the tightest of the three and the reason the
+  scale is where it is.
+
+  THE FIRST NUMBERS WERE 0.70 / 0.62 / 0.52 AND DEEP LILAC FAILED AT 3.91:1,
+  sampled off the composited pixels. Lavender was 7.18 and terracotta 5.14 at
+  the same alpha — the darkest paint is the one that sets the ceiling, so the
+  whole scale came down until IT cleared rather than until the average did.
+
+  If a paint is ever added to LINK_PAINTS, re-measure rather than reason: a
+  colour that clears at full strength can still fail once it is behind type,
+  and one that fails at full strength can be fine at 0.52.
+*/
+
+.stroke {
+  position: absolute;
+  inset-inline: -0.35em;
+  /*
+    `--seat` lifts the stroke off the bottom of its parent.
+
+    It exists because <NavLabel> reserves 6px under every word for the
+    hairline it used to draw, so in the bar the stroke's box is the word PLUS
+    that reserve — and a fixed percentage of a taller box is a thicker line.
+    The bar's strokes came out visibly fatter than the footer's for no reason
+    anyone could see. Seating them on the text makes the two match.
+  */
+  bottom: var(--seat, 0px);
+  top: -0.12em;
+  z-index: -1;
+  display: block;
+  pointer-events: none;
+
+  background-color: var(--paint, var(--color-lavender));
+
+  /*
+    The brush. A wobble along the top, a different wobble along the bottom,
+    and two ends that do not match — drawn once here rather than shipped as a
+    file, because at this size it is smaller inline than a request for it.
+  */
+  -webkit-mask-image: var(--brush);
+  mask-image: var(--brush);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  --brush: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 44' preserveAspectRatio='none'%3E%3Cpath d='M3.4 24.1c1.9-8.2 13.6-12.9 27.4-14.3 16.2-1.7 33.1.9 49.6 1.4 18.7.6 37-2.6 55.6-2.2 15.4.3 32.1 1.6 44.7 6.1 12.4 4.4 24.1 12.9 16.6 20.9-6.3 6.7-22.4 7.4-36.6 7.2-19.8-.3-39.3-3-59.1-3.1-17.6-.1-35 2.3-52.6 1.5-13.2-.6-27.6-2.5-36.1-7.9-6.4-4-10.9-6.1-9.5-9.6z' fill='%23000'/%3E%3C/svg%3E");
+
+  /* Bottom, so the paint swells up from under the word. */
+  transform-origin: 50% 100%;
+  transform: scaleY(var(--swell, 0.2));
+  opacity: var(--wet, 0.58);
+  transition:
+    transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/*
+  THE CURRENT PAGE. Stronger than a link at rest, quieter than one under the
+  pointer — so "where you are" and "what you are about to press" stay two
+  different signals rather than competing for the same one.
+*/
+.current {
+  --swell: 0.78;
+  --wet: 0.55;
+}
+
+/*
+  Tailwind wraps `hover:` in `(hover: hover)` for free; a CSS module does not,
+  and without it a tapped link on a phone keeps the paint swelled under the
+  last thing touched.
+*/
+@media (hover: hover) {
+  :global(.group\/nav):hover .stroke,
+  :global(.group\/link):hover .stroke {
+    --swell: 1;
+    --wet: 0.46;
+  }
+}
+
+:global(.group\/nav):focus-visible .stroke,
+:global(.group\/link):focus-visible .stroke,
+:global(.group\/nav):focus-within .stroke,
+:global(.group\/link):focus-within .stroke {
+  --swell: 1;
+  --wet: 0.46;
+}
+
+/*
+  Reduced motion: the paint is still there and still answers, it simply does
+  not travel. Cutting the swatch entirely would take the one thing that tells
+  a visitor which link is current.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .stroke {
+    transition: none;
+  }
+}

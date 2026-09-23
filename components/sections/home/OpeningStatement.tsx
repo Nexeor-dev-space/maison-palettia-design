@@ -100,14 +100,15 @@ export function OpeningStatement() {
       */}
       <Container className="mt-12 md:mt-16">
         <Reveal variant="fadeIn">
-          <div className="flex flex-col overflow-hidden rounded-[1.5rem] md:rounded-[2rem] lg:min-h-[22rem] lg:flex-row">
+          <div className="flex flex-col overflow-clip rounded-[1.5rem] md:rounded-[2rem] lg:min-h-[22rem] lg:flex-row">
             {/*
-              WIDER THAN THE PLATE THAT WAS HERE. The previous picture was one
-              hand on one plate, which survives any crop; this is six children
-              spread across the full width of a 16:9 frame, and at 38% of the
-              row it lost the two on the ends. 48% keeps the group whole and
-              still leaves the field the longer measure, which is the one the
-              paragraph needs.
+              48% OF THE ROW, WHICH IS A CROP DECISION AND NOT A PREFERENCE.
+              The picture before this one was six children spread across a 16:9
+              frame, and at 38% it lost the two on the ends. This one is a 3:2
+              frame with its subject dead centre and a shallow depth of field,
+              so it survives a narrower column — but the half is kept, because
+              the field beside it still needs the longer measure and nothing
+              about the paragraph has changed.
             */}
             <div
               className="relative aspect-[16/10] w-full lg:aspect-auto lg:w-[48%] lg:shrink-0"
@@ -115,8 +116,8 @@ export function OpeningStatement() {
               style={{ "--paint": "var(--color-terracotta)" } as React.CSSProperties}
             >
               <Image
-                src="/images/about-img.png"
-                alt="Six children in the studio, holding up the pictures they have coloured and their pots of colouring pencils."
+                src="/images/about-section-img.jpg"
+                alt="A wooden birdhouse painted with red tulips and a blue roof, standing on the table at an outdoor workshop with more half-painted ones behind it."
                 fill
                 sizes="(min-width: 1024px) 48vw, 100vw"
                 className="object-cover"

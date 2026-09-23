@@ -1,16 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 
-import { FindYourVibe } from "@/components/layout/FindYourVibe";
+import { MenuCard, MenuPreview, MenuRailGroup, MenuRailRow, MenuTile } from "@/components/layout/MenuCard";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
-import { BlobButton } from "@/components/ui/BlobButton";
-import { ModeMark } from "@/components/ui/ModeMark";
 import { cn } from "@/lib/utils";
-import { VIBES, experiencesByVibe, hasVibeTags, type VibeSlug } from "@/lib/vibes";
 import { formatWorkshopDate, isScarce, spotsLabel } from "@/lib/workshops";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { Workshop } from "@/types";
@@ -31,91 +26,57 @@ interface WorkshopsMenuProps {
   sessions: Workshop[];
   isActive: boolean;
   linkClassName: string;
+  /** The swatch behind the trigger word. Null over a dark hero. */
+  paint?: string | null;
   /**
-   * Told whenever the panel opens or closes.
-   *
-   * The bar needs it: the panel drops on the page's white ground, and a white
-   * panel hanging off a bar that is still transparent over the hero reads as
-   * two unrelated things rather than one opening. The bar counts this menu as
-   * a reason to take its solid state, the same way it counts the mobile
-   * overlay and the search panel.
+   * Told whenever the panel opens or closes, so the bar can take its solid
+   * state — a card dropping out of a transparent bar reads as two unrelated
+   * things rather than one opening.
    */
   onOpenChange?: (open: boolean) => void;
 }
 
-/**
- * The two ways to take part, in the order the studio puts them.
- *
- * THE SPLIT CHANGES AT 1280, AND THE NUMBERS ARE MEASURED. A row needs its
- * 48px thumbnail, a 14px gap and about 140px for the longest name — "Tote bag
- * painting" sets 141px at `--text-body`. Two sub-columns of walk-in rows
- * therefore need the group to hold 6 of the 12 at 1024 (217px a sub-column,
- * 155px for the name) and can drop to 5 once there are 1280px to divide. The
- * intro takes what is left: 3 at 1024, 4 from 1280.
- *
- * The first attempt gave the walk-in group 4 at 1024 and wrapped every second
- * name — "Tote bag / painting" — with "Booked online" breaking into the
- * heading beside it. The second gave it 4 and ran the list as one column,
- * which fitted and left a 192px hole under the scheduled group. This is the
- * arrangement where both groups end within a row of each other.
- */
+/** The two ways to take part, in the order the studio puts them. */
 const GROUPS = [
-  {
-    mode: "diy",
-    title: "Walk-in",
-    note: "No booking — come in any time and make something.",
-    span: "sm:col-span-7 lg:col-span-6 xl:col-span-5",
-  },
-  {
-    mode: "scheduled",
-    title: "Scheduled",
-    note: "A set date and time, booked online.",
-    span: "sm:col-span-5 lg:col-span-3",
-  },
+  { mode: "diy", title: "Walk-in", note: "No booking — come in any time." },
+  { mode: "scheduled", title: "Scheduled", note: "A set date and time, booked online." },
 ] as const;
 
 /**
- * The Workshops entry, which opens onto the studio's creative experiences.
+ * The Experiences entry, which opens onto the studio's creative programme.
  *
- * The point of it is discovery, not navigation. "Experiences" on its own asks
- * a visitor to take it on faith that there is something for them behind the
- * word; seven activities, split by how you take part, answer that before they
- * have clicked anything.
+ * ==========================================================================
+ * IT WAS A FIELD AND IT IS A CARD
+ * ==========================================================================
  *
- * HOW IT OPENS, AND WHY THAT IS WORTH THE CODE. The panel used to be toggled
- * with `hidden`, which is not a state anything can animate between — the menu
- * appeared, fully formed, in one frame. It now draws down: the field itself is
- * revealed top to bottom with `clip-path`, and the three columns rise into it
- * in a short left-to-right sweep, so the panel reads as one movement opening
- * rather than a block of content being switched on. Closing is deliberately
- * not the same gesture reversed — it is faster and unstaggered, because a
- * menu you have decided against should get out of the way.
+ * This panel used to run the full width of the screen: a torn sheet of Light
+ * Sage carrying three columns — an invitation, five walk-in rows in two
+ * sub-columns, two scheduled rows — with a band of cut-outs along its foot.
+ * The client has asked for the reference shape instead, and the reference is
+ * right for a reason the old one could not fix. Seven short rows spread across
+ * 1400px are seven short rows with 1100px of air between them; a visitor
+ * crosses the whole screen to read a list that would fit in a column. The card
+ * is only as wide as it earns, and the width it gives back buys the one thing
+ * the field had no room for: a picture of the activity, at a size worth
+ * looking at.
  *
- * The content mounts on the first open and stays mounted, so the seven
- * thumbnails are never fetched by a visitor who does not open the menu; the
- * `shown` flag is set a frame later, which is what gives that first open a
- * transition to run rather than a fresh element already in its final state.
+ * SO THE PANEL IS A RAIL AND A PREVIEW. Every activity is a row on the left;
+ * whichever row the pointer — or the keyboard — is on fills the right half
+ * with its photograph, its line, and whatever the data actually knows about
+ * it. Nothing is invented: a date and a seat count appear only when a session
+ * with that slug exists, a status only when the studio has set one.
  *
- * COLOUR. The panel used to be Charcoal Slate on the page's near-white and
- * nothing else — one lilac hairline in the whole field. The brand is in it
- * now, by role rather than by decoration: Deep Lilac names the section and
- * carries the one action, Light Sage bands the two group headings, White Rock
- * is the hover ground under a row and the ground behind a thumbnail, and Warm
- * Terracotta appears twice at most — the rule under the eyebrow, and the mark
- * beside a status. Charcoal Slate is still every word.
+ * WHAT CAME OUT WITH THE FIELD. The torn sheets and the splash band were the
+ * field's own furniture — a card with a radius and a veil has an edge already,
+ * and a tear along a rounded card is two edge treatments arguing. The vibe row
+ * went with them: `hasVibeTags` is false for every activity in the catalogue
+ * (see lib/vibes.ts on why inventing the tags is the one thing a mood filter
+ * cannot survive), so it has never rendered here and the card does not carry
+ * the branch.
  *
- * Behaviour, in the order it matters:
- *
- * - Trigger is a <button> with `aria-expanded`. It is a disclosure, not a
- *   link, so it never navigates on click and never traps someone who only
- *   wanted the listing — the listing is the last item inside.
- * - Opens on hover for a mouse and on focus for a keyboard, closes on Escape,
- *   on leaving the whole region, and on any click outside it.
- * - Escape returns focus to the trigger, so a keyboard visitor is put back
- *   where they were rather than at the top of the document.
- * - The closed panel is `inert`, which is what `hidden` used to do for free:
- *   its links stay out of the tab order and out of the accessibility tree
- *   while it is clipped away.
+ * Behaviour is unchanged and not in this file — see `useMenuDisclosure`. The
+ * trigger is a <button> with `aria-expanded`, the panel opens on hover and on
+ * focus, Escape returns focus to the trigger, and the closed card is `inert`.
  */
 export function WorkshopsMenu({
   label,
@@ -124,69 +85,37 @@ export function WorkshopsMenu({
   sessions,
   isActive,
   linkClassName,
+  paint = null,
   onOpenChange,
 }: WorkshopsMenuProps) {
+  const menuId = useId();
   const { isOpen, mounted, shown, trigger, openNow, closeSoon, closeNow, regionProps } =
     useMenuDisclosure(onOpenChange);
-  const menuId = useId();
-
-  /*
-    THE DISCOVERY LAYER SITS OVER THE STRUCTURE, NEVER INSTEAD OF IT.
-
-    `vibe` is null until a chip is pressed, and null means the panel is exactly
-    what it always was: every activity, in the studio's two groups. Choosing a
-    vibe narrows the same two groups rather than replacing them with a third
-    arrangement — so a visitor who arrives structural and a visitor who arrives
-    by mood are reading one panel, not two.
-
-    A group that empties under a filter drops out rather than showing a heading
-    over nothing, which is the contract every list on this site keeps.
-  */
-  const [vibe, setVibe] = useState<VibeSlug | null>(null);
-
-  const counts = useMemo(
-    () =>
-      Object.fromEntries(
-        VIBES.map((entry) => [entry.slug, experiencesByVibe(experiences, entry.slug).length]),
-      ) as Record<VibeSlug, number>,
-    [experiences],
-  );
-
-  const shortlist = vibe ? experiencesByVibe(experiences, vibe) : experiences;
 
   const groups = GROUPS.map((group) => ({
     ...group,
-    items: shortlist.filter((experience) => experience.kind === group.mode),
+    items: experiences.filter((experience) => experience.kind === group.mode),
   })).filter((group) => group.items.length > 0);
 
+  const ordered = groups.flatMap((group) => group.items);
+
   /*
-    The sweep order: the intro column is 0, then every row in the order it is
-    read, left group before right. A row's delay is its place in that order, so
-    the panel fills the way an eye crosses it rather than all at once — and on
-    the way out every delay is dropped, so it leaves in one piece.
+    WHICH ROW THE PREVIEW IS SHOWING. It starts on the first activity rather
+    than on nothing: a panel that opens with an empty right half asks the
+    visitor to hover something before it will tell them anything, which is a
+    worse first frame than simply showing them one.
   */
-  const order = new Map<string, number>();
-  for (const group of groups) {
-    for (const item of group.items) order.set(item.slug, order.size + 1);
-  }
-  const rise = (index: number) => ({ transitionDelay: shown ? `${100 + index * 32}ms` : "0ms" });
-  /*
-    `translate`, not `transform`. Tailwind v4 sets movement on the individual
-    `translate` property, so a transition list naming `transform` animates
-    nothing — the opacity faded and the 12px rise snapped, which was the exact
-    "not smooth" the client already had.
-  */
-  const RISE = "transition-[opacity,translate] duration-[460ms] ease-editorial motion-reduce:transition-none";
-  const riseState = shown ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0";
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const active = ordered.find((item) => item.slug === activeSlug) ?? ordered[0];
 
   const sessionFor = (slug: string) => sessions.find((session) => session.slug === slug);
+  const activeSession = active ? sessionFor(active.slug) : undefined;
 
   return (
     <div
       {...regionProps}
-      // `static`, so the full-bleed panel below still positions against the
-      // <header> rather than against this box. `h-full` is what removes the
-      // dead strip between the two — see the note in <HeaderBar>.
+      /* `static`, so the card positions against the <header> and can centre on
+         the page rather than hang off this word. */
       className="static flex h-full items-center"
     >
       <button
@@ -195,367 +124,116 @@ export function WorkshopsMenu({
         aria-expanded={isOpen}
         aria-controls={menuId}
         onClick={() => (isOpen ? closeNow() : openNow())}
-        className={cn(linkClassName, "cursor-pointer items-center")}
+        className={cn(linkClassName, "cursor-none items-center")}
       >
-        {/*
-          The rule is drawn while the menu is open as well as on the current
-          page. Opening a menu is the same gesture as hovering the link it
-          hangs off, and leaving the trigger unmarked while its own panel is
-          down reads as the panel belonging to nothing.
-        */}
-        {/*
-          NO MARK BESIDE THE WORD.
-
-          There was a small triangle here saying the entry had something behind
-          it. The client has asked for it to come out, and the row is better
-          for it: the trigger now sets exactly like the links either side of
-          it, which is what the arrow was quietly preventing — a flex row
-          carrying a word and a 7px glyph does not measure the same as one
-          carrying a word.
-
-          `aria-expanded` on the button still states the relationship properly,
-          so nothing is lost to a screen reader. What is lost is the visual
-          cue for a touch visitor, who now discovers the panel by tapping —
-          which is the trade the client has chosen.
-        */}
-        <NavLabel isActive={isActive || isOpen}>{label}</NavLabel>
+        <NavLabel isActive={isActive || isOpen} paint={paint}>{label}</NavLabel>
       </button>
 
-      {/*
-        Full-bleed rather than a floating card. A panel hanging under one word
-        would be a component sitting on the page; a field that runs the width
-        of the screen reads as the page opening up, which is the register the
-        rest of the site is in.
-      */}
-      <div
-        id={menuId}
-        inert={!isOpen}
-        onMouseEnter={openNow}
-        onMouseLeave={closeSoon}
-        /*
-          A WHITE FIELD NOW, NOT A CHARCOAL ONE.
-
-          The bar takes the page's own near-white the moment it stops being
-          transparent, and a panel that dropped out of it in Charcoal Slate
-          read as a second, unrelated surface arriving from somewhere else.
-          Same ground as the bar means the two are one object opening, which is
-          what a menu hanging off a masthead should be.
-
-          Charcoal on this ground is 11.61:1; the hairline at the top is the
-          bar's own. The Deep Lilac line along the bottom is the drawer's
-          edge — it travels down with the reveal, which is what makes the open
-          read as a movement rather than a fade.
-        */
-        className={cn(
-          "absolute inset-x-0 top-full overflow-hidden bg-surface",
-          "border-t border-t-text/10",
-          /*
-            THE PANEL IS OPAQUE THE WHOLE WAY DOWN, and it did not use to be.
-
-            It faded in while the clip wiped, so for the first few hundred
-            milliseconds the whole surface was semi-transparent and the page
-            behind it showed straight through — the script line and the
-            photograph bleeding into the menu. That is what "abrupt" was about:
-            not the speed, but that the panel never read as a surface arriving.
-            It read as a translucent sheet being switched on over the page.
-
-            The clip alone reveals it now. A solid ground drawn down from under
-            the bar is a drawer opening; the Deep Lilac rule along its bottom
-            is the drawer's lip, and it travels down with the edge. Nothing
-            else about the timing changed — 520ms down, 240 back up, because
-            a menu you have decided against should get out of the way.
-
-            The two durations are per-property, in the order the property list
-            names them: clip-path 520ms, opacity 0ms. On the way out one
-            `duration` covers both at 240.
-
-            Closing keeps the fade. Wiping a fully opaque panel upward off the
-            page reads as the content being eaten from below; going out it is
-            better to simply stop being there.
-          */
-          // See <SearchPanel> for why this is `ease-soft` and not
-          // `ease-editorial`: the quintic curve spent five sixths of its
-          // time on the last few per cent of the travel.
-          "transition-[clip-path,opacity] ease-soft motion-reduce:transition-none",
-          shown
-            ? "opacity-100 [transition-duration:520ms,0ms] [clip-path:inset(0_0_0_0)]"
-            : "opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
-          isOpen ? null : "pointer-events-none",
-        )}
-      >
-        {/*
-          THE DRAWER'S EDGE, WHICH THE PANEL CANNOT DRAW FOR ITSELF.
-
-          The bottom border used to sit on the panel, and the note beside it
-          claimed the line travelled down with the reveal. Photographed, it
-          does not: `clip-path: inset(0 0 X% 0)` clips the element's own
-          bottom border away for the whole of the wipe, so the line only
-          appears in the final frame. What a visitor actually saw was menu
-          text arriving over page text with no boundary between them — on
-          /about the panel's ground (`--color-surface`, thirty per cent sage
-          in white) is the same colour as the page behind it, so there was
-          nothing to mark where the menu ended. That, not the speed, is what
-          reads as abrupt.
-
-          So the edge is its own element. It is pinned to the top of the panel
-          and its `bottom` travels from 100% to 0 on the same duration and the
-          same curve as the clip, which keeps its 2px underside exactly on the
-          clip's edge for every frame. A line drawn down the page with the
-          menu filling in behind it is a drawer being pulled open.
-
-          Percentages both ends, and `bottom` rather than `height`: an
-          absolutely positioned box resolves them against its containing
-          block's padding box, which is this panel and is definite. A `height`
-          of 100% would resolve against a content-sized parent and collapse.
-        */}
-        <span
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-x-0 top-0 border-b-2 border-b-primary/30",
-            "transition-[bottom] ease-soft motion-reduce:transition-none",
-            shown ? "[bottom:0%] duration-[520ms]" : "[bottom:100%] duration-[240ms]",
-          )}
-        />
+      <MenuCard id={menuId} open={isOpen} shown={shown} onMouseEnter={openNow} onMouseLeave={closeSoon}>
         {mounted ? (
-          <div className="mx-auto w-full px-gutter py-8 lg:py-9">
+          <div className="grid grid-cols-12 gap-2.5 md:gap-3">
             {/*
-              THE PANEL SAYS HOW YOU TAKE PART BEFORE IT SAYS WHAT.
+              FOUR / FIVE / THREE, which is what the full width bought.
 
-              It used to show the four creative strands — Paint, Shape, Craft,
-              Create — which are categories, not things anyone can do, and said
-              nothing about the one distinction a visitor has to learn: most
-              activities are walk-in and never booked, and two are scheduled
-              sessions that are. So the approved activities are listed in those
-              two groups, each headed by the mark the rest of the site uses,
-              and every entry opens its own page.
-
-              Text rows with a small thumbnail rather than large plates: seven
-              entries have to scan in a glance, and a caption laid over a
-              photograph at menu size needs a scrim heavy enough to spoil it.
-
-              THE COLUMNS ARE 3 / 6 / 3, not 4 / 5 / 3. The intro was a third
-              of the panel holding four short lines, and the scheduled column
-              ran out 70px above the floor — the empty space the client marked.
-              A narrower intro, a wider walk-in column that takes its five
-              entries as two even columns, and dates on the scheduled rows
-              leave the three columns ending within a line of each other.
+              At 72rem the card had room for a rail and a preview, so the two
+              tiles had to go under one of them — and which one depended on
+              how many rows the menu had, because a card is as tall as its
+              tallest column. That asymmetry is gone: across the full measure
+              the tiles take a column of their own, stacked, and both menus
+              use the same three-part arrangement. The extra width goes
+              sideways rather than down, which is the point — a taller card
+              would have been a worse one.
             */}
-            <div className="grid grid-cols-12 gap-x-6 gap-y-8 lg:gap-x-8">
-              <div
-                className={cn("col-span-12 flex flex-col lg:col-span-3 xl:col-span-4", RISE, riseState)}
-                style={rise(0)}
-              >
-                {/*
-                  THE FIRST COLUMN ASKS BEFORE IT TELLS.
 
-                  It used to open "Experiences / Choose what you make" — the
-                  studio's own framing, which a visitor has to translate before
-                  it helps them. The vibe row takes that position and the
-                  structural line moves underneath it, so the column now reads
-                  mood first, model second: how do you feel like creating, and
-                  then, quietly, here is how taking part actually works.
-
-                  It is the same column and the same width. Nothing was added
-                  to the panel's footprint — see §1's warning about crowding.
-                */}
-                {/*
-                  THE ROW IS NOT DRAWN UNTIL SOMETHING IS BEHIND IT.
-
-                  Every vibe is empty — nothing in lib/experiences.ts carries a
-                  `vibes` tag, and lib/vibes.ts says at length why inventing
-                  them is the one thing a mood filter cannot survive. The chips
-                  were therefore rendered `disabled`, with a line underneath
-                  explaining that the sorting was still to come. The client's
-                  report on that was simply "these buttons can't be clicking",
-                  which is the correct reading: three controls that cannot
-                  respond are a broken panel, however carefully they are
-                  captioned, and the brief itself said to show these "only if
-                  they are supported by actual project data".
-
-                  `hasVibeTags` is the switch lib/vibes.ts built for this. Tag
-                  one activity in the CMS and the row appears, live, with a
-                  count on it — no change here.
-                */}
-                {hasVibeTags(experiences) ? (
-                  <FindYourVibe
-                    counts={counts}
-                    selected={vibe}
-                    onSelect={setVibe}
-                    size="compact"
-                  />
-                ) : null}
-
-                <p className="mt-6 max-w-[30ch] text-fine leading-[1.6] text-text/85">
-                  Walk in and create at your own pace, or book a guided session for a set date.
-                </p>
-                {/*
-                  The one filled control in the panel, and the only Deep Lilac
-                  ground in it. It is the banner's button — the same pill, the
-                  same flood of Light Sage rising through the gooey filter on
-                  hover — at the client's ask, so the site has one primary
-                  action rather than two that merely share a colour.
-                */}
-                <BlobButton
-                  href={href}
-                  onClick={closeNow}
-                  /* Light Sage on hover rather than the default Charcoal, at
-                     the client's ask. It is a tone rather than a change to the
-                     default because the flood measures 1.00:1 on the Light
-                     Sage sections the homepage buttons stand on, and 1.22:1
-                     on this panel's near-white — see BlobButton.module.css. */
-                  tone="sage"
-                  className="mt-6 w-fit min-h-[3.25rem] px-7"
-                >
-                  All experiences
-                </BlobButton>
-              </div>
-
+            {/* ---- the rail ------------------------------------------- */}
+            <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4">
               {groups.map((group) => (
-                <div key={group.mode} className={`col-span-12 ${group.span}`}>
-                  {/*
-                    THE HEADING SAYS WHAT THE GROUP IS FOR.
-
-                    It used to be a tab and, at the far right of the column, two
-                    words — "No booking", "Booked online". The client's note was
-                    that nobody could tell what this part of the menu was doing,
-                    and they were right: a label pushed 500px away from the tab
-                    it belongs to is not an explanation, it is a caption looking
-                    for a picture.
-
-                    So the tab keeps the mark and the one word, and directly
-                    under it, in a full sentence, is what that word means for a
-                    visitor. Both groups are built the same way, so their rules
-                    line up and the two are read as a pair — which is the one
-                    distinction this menu exists to teach.
-
-                    Charcoal on Light Sage is 9.35:1.
-                  */}
-                  <div
-                    className={cn("border-b border-line pb-2.5", RISE, riseState)}
-                    style={rise(order.get(group.items[0].slug) ?? 0)}
-                  >
-                    <p className="inline-flex items-center gap-2.5 rounded-pill bg-sage/70 px-3 py-1.5 text-label font-semibold uppercase tracking-eyebrow text-text">
-                      <ModeMark mode={group.mode} />
-                      {group.title}
-                    </p>
-                    <p className="mt-2 text-fine leading-[1.5] text-text/85">{group.note}</p>
-                  </div>
-                  <ul
-                    className={
-                      group.mode === "diy" ? "mt-2 grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6" : "mt-2"
-                    }
-                  >
-                    {group.items.map((experience) => {
-                      const session = sessionFor(experience.slug);
-                      const scarce = session ? isScarce(session) : false;
-
-                      return (
-                        <li
-                          key={experience.slug}
-                          className={cn(RISE, riseState)}
-                          style={rise(order.get(experience.slug) ?? 0)}
-                        >
-                          {/*
-                            NO UNDERLINE ON THESE ROWS. They carried the bar's
-                            own wipe under the name; the client has asked for it
-                            off here, and the menu is better for it — seven rows
-                            each drawing a line under themselves was the one
-                            place on the site where that mark was decoration
-                            rather than navigation.
-
-                            What answers a pointer instead is the row itself:
-                            the White Rock ground, the thumbnail's slow zoom and
-                            the name taking Deep Lilac. The underline in the bar
-                            above is untouched — the client likes it there.
-                          */}
-                          <Link
-                            href={`/events/${experience.slug}`}
-                            onClick={closeNow}
-                            className="group -mx-2 flex items-center gap-3.5 rounded-sm px-2 py-2 transition-colors duration-300 ease-soft hover:bg-cream/70"
-                          >
-                            <span className="relative size-12 shrink-0 overflow-hidden rounded-sm bg-cream">
-                              {experience.image ? (
-                                <Image
-                                  src={experience.image.src}
-                                  alt=""
-                                  fill
-                                  sizes="48px"
-                                  style={{ objectPosition: experience.image.position ?? "50% 50%" }}
-                                  className="object-cover transition-transform duration-700 ease-editorial motion-safe:group-hover:scale-110"
-                                />
-                              ) : null}
-                            </span>
-                            <span className="min-w-0">
-                              <span className="block text-body font-medium leading-snug text-text transition-colors duration-300 ease-soft group-hover:text-primary">
-                                {experience.name}
-                              </span>
-                              {/*
-                                WHAT THE SECOND LINE SAYS, AND WHERE IT COMES
-                                FROM. A scheduled row carries its real date and
-                                its real seat count — `formatWorkshopDate` and
-                                `spotsLabel`, the same two functions the listing
-                                and the event page call, reading `seatsAvailable`
-                                straight from the session. Nothing here is
-                                estimated: no session, no line.
-
-                                A session down to its last few seats takes Deep
-                                Lilac, the colour of the action beside it, and a
-                                dot — the studio's own way of marking scarcity.
-                                Everything else stays quiet, because a menu that
-                                marks all seven rows as urgent marks none.
-                              */}
-                              {session ? (
-                                <span className="mt-0.5 block text-fine leading-[1.45] text-text/80">
-                                  {/*
-                                    Two lines, not one with a middot between
-                                    them. The scheduled group is the narrowest
-                                    column on the widest screen — 229px at
-                                    1024 — and "Sun 11 Oct · 9 spots available"
-                                    sets at 186px, so on one line it broke
-                                    mid-phrase. A fact to a line cannot break
-                                    at all, and it gives the seat count a line
-                                    of its own, which is where the client
-                                    wanted the eye to land.
-                                  */}
-                                  <span className="block">
-                                    {formatWorkshopDate(session.startsAt)}
-                                  </span>
-                                  <span
-                                    className={cn(
-                                      "flex items-center gap-1.5",
-                                      scarce ? "font-medium text-primary" : null,
-                                    )}
-                                  >
-                                    {scarce ? (
-                                      <span
-                                        aria-hidden
-                                        className="size-1.5 shrink-0 rounded-pill bg-primary"
-                                      />
-                                    ) : null}
-                                    {spotsLabel(session)}
-                                  </span>
-                                </span>
-                              ) : experience.status ? (
-                                <span className="mt-0.5 flex items-center gap-1.5 text-fine leading-tight text-text/80">
-                                  <span
-                                    aria-hidden
-                                    className="size-1.5 shrink-0 rounded-pill bg-terracotta"
-                                  />
-                                  {experience.status}
-                                </span>
-                              ) : null}
-                            </span>
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+                <MenuRailGroup key={group.mode} title={group.title} note={group.note}>
+                  {group.items.map((experience) => {
+                    const session = sessionFor(experience.slug);
+                    return (
+                      <MenuRailRow
+                        key={experience.slug}
+                        /*
+                          `/events/<slug>`, NOT `/experiences/<slug>`. There is
+                          no experiences route: `app/events/[slug]` is the page
+                          for both an activity and a session, and it resolves
+                          every slug in lib/experiences.ts — walk-in ones
+                          included. A rewrite of this menu pointed these at a
+                          route that has never existed and every row 404'd.
+                        */
+                        href={`/events/${experience.slug}`}
+                        name={experience.name}
+                        sub={
+                          experience.status ??
+                          (session ? formatWorkshopDate(session.startsAt) : undefined)
+                        }
+                        image={experience.image}
+                        active={active?.slug === experience.slug}
+                        onActivate={() => setActiveSlug(experience.slug)}
+                      />
+                    );
+                  })}
+                </MenuRailGroup>
               ))}
+            </div>
+
+            {/* ---- the preview ---------------------------------------- */}
+            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-5">
+              {active ? (
+                /*
+                  Keyed on the slug so the block remounts as the rail moves —
+                  which is what makes this cross-fade rather than swap a
+                  photograph inside a frame that never moved.
+                */
+                <MenuPreview
+                  key={active.slug}
+                  href={`/events/${active.slug}`}
+                  eyebrow={active.kind === "diy" ? "Walk-in" : "Scheduled"}
+                  name={active.name}
+                  description={active.description}
+                  image={active.image}
+                  meta={
+                    active.status ? (
+                      <span className="flex items-center gap-2.5">
+                        <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-terracotta" />
+                        {active.status}
+                      </span>
+                    ) : activeSession ? (
+                      <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        {formatWorkshopDate(activeSession.startsAt)}
+                        <span aria-hidden className="text-text/30">
+                          &middot;
+                        </span>
+                        <span className="flex items-center gap-2">
+                          {isScarce(activeSession) ? (
+                            <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-terracotta" />
+                          ) : null}
+                          {spotsLabel(activeSession)}
+                        </span>
+                      </span>
+                    ) : null
+                  }
+                  action={active.kind === "diy" ? "See the activity" : "See the session"}
+                />
+              ) : null}
+
+            </div>
+
+            {/* ---- the two doors, in a column of their own ------------- */}
+            <div className="col-span-12 grid gap-2.5 md:gap-3 lg:col-span-3 lg:grid-rows-2">
+              <MenuTile href={href} title="All experiences" sub="The whole programme, in one place." mark="starburst" />
+              <MenuTile
+                href="/events#scheduled"
+                title="Upcoming dates"
+                mark="coral"
+                sub="Guided sessions you can book."
+                tone="accent"
+              />
             </div>
           </div>
         ) : null}
-      </div>
+      </MenuCard>
     </div>
   );
 }

@@ -7,12 +7,22 @@ import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { forScript } from "@/components/ui/SectionHeader";
 import { MISSION, TAGLINE } from "@/lib/brand";
+import { PaintStroke, linkPaint } from "@/components/layout/PaintStroke";
 import { BRAND_LOGO, CONTACT, FOOTER_NAV, LEGAL_NAV, SITE, SOCIAL_LINKS } from "@/lib/constants";
 import { getMallPartners } from "@/lib/partners";
 
-/** A footer link: the label, and a rule that draws in under it on hover. */
+/**
+ * A footer link.
+ *
+ * `text-text` at full strength, not the `/75` it was. The nav links in the
+ * groups below carry a painted swatch now, and a label is read against the
+ * swatch rather than against the footer — charcoal at 75% over paint is a
+ * different and much worse number than charcoal at 75% over White Rock.
+ * Links with no swatch keep the same ink so the footer does not end up with
+ * two weights of the same thing.
+ */
 const LINK =
-  "group/link -my-1.5 inline-flex py-1.5 text-body text-text/75 transition-colors duration-300 ease-soft hover:text-text";
+  "group/link -my-1.5 inline-flex py-1.5 text-body text-text transition-colors duration-300 ease-soft";
 
 /**
  * ==========================================================================
@@ -96,6 +106,15 @@ const LINK =
 export async function Footer() {
   const partners = await getMallPartners();
   const year = new Date().getFullYear();
+  /*
+    One counter for every painted link in the footer's groups, so the palette
+    runs across the grid rather than restarting per column. Mutated during
+    render, which is safe here because it is re-initialised on every render
+    and never read after it — the alternative is threading an offset through
+    two maps for no benefit.
+  */
+  let paintCursor = 0;
+
   const socials = SOCIAL_LINKS.filter((link): link is typeof link & { href: string } =>
     Boolean(link.href),
   );
@@ -270,10 +289,22 @@ export async function Footer() {
                 <div key={group.title}>
                   <FooterHeading>{group.title}</FooterHeading>
                   <ul className="mt-5 space-y-2.5">
+                    {/*
+                      THE FOOTER IS THE LOUDER VERSION OF THE BAR.
+
+                      Same swatch, same three paints, same interaction — see
+                      <PaintStroke>. What differs is that the footer hands the
+                      colour out ACROSS the whole grid rather than restarting
+                      it in each column: `paintCursor` keeps counting, so no
+                      two neighbours in a row share a colour and the three
+                      groups read as one palette instead of three copies of
+                      the same one.
+                    */}
                     {group.items.map((item) => (
                       <li key={item.href}>
                         <Link href={item.href} className={LINK}>
-                          <span className="border-b border-transparent pb-0.5 transition-colors duration-300 ease-soft group-hover/link:border-primary">
+                          <span className="relative inline-block">
+                            <PaintStroke paint={linkPaint(paintCursor++)} />
                             {item.label}
                           </span>
                         </Link>

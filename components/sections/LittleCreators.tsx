@@ -114,11 +114,18 @@ export function LittleCreators() {
           as="ul"
           className="mt-12 grid grid-cols-1 items-start gap-x-7 gap-y-10 sm:grid-cols-3 md:mt-16 lg:gap-x-10"
         >
+          {/* `settle` is the collage's own arrival: each photograph comes in a
+              degree off square and lands. See lib/motion.ts. */}
           {PLATES.map((plate, i) => (
-            <Reveal as="li" key={plate.src} className={`group ${plate.offset}`}>
+            <Reveal
+              as="li"
+              variant="settle"
+              key={plate.src}
+              className={`group ${plate.offset}`}
+            >
               <div className="relative">
                 <span
-                  className={`plate relative block ${plate.aspect} w-full overflow-hidden rounded-[1.25rem] bg-cream`}
+                  className={`plate relative block ${plate.aspect} w-full overflow-clip rounded-[1.25rem] bg-cream`}
                 >
                   <Image
                     src={plate.src}

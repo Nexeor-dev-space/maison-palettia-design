@@ -154,7 +154,18 @@ export const WORKSHOPS_HREF = "/events";
   composition: pale ink over a light field fails contrast. It keeps a
   transparent bar with dark ink instead — see LIGHT_HERO_ROUTES below.
 */
-export const DARK_HERO_ROUTES: readonly string[] = ["/private-events"];
+/*
+  EMPTY, AND DELIBERATELY STILL HERE.
+
+  `/private-events` was the only entry. Its banner has been removed, so there
+  is no dark hero left on the site for the bar to reverse over — and a route
+  left in this list without one would hold the bar in light ink over a light
+  page, which also suppresses the painted nav links (see <NavLabel>).
+
+  The list stays because the behaviour it drives is still correct and still
+  wired: add a route here the day a dark banner comes back.
+*/
+export const DARK_HERO_ROUTES: readonly string[] = [];
 
 /**
  * Routes whose hero is a light colour field that runs up behind the bar. The

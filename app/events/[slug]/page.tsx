@@ -6,8 +6,11 @@ import { EventCard } from "@/components/events/EventCard";
 import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
+import { INK } from "@/components/sections/hero/composition";
 import { LocationMap } from "@/components/sections/LocationMap";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Container } from "@/components/ui/Container";
+import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import {
   eventFlag,
@@ -29,6 +32,7 @@ import {
   formatPrice,
   formatSessionDate,
   getRelatedWorkshops,
+  workshopHref,
   isFullyBooked,
   isScarce,
   sessionDateParts,
@@ -165,53 +169,88 @@ export default async function EventPage({
     detail.kind === "scheduled" && !isFullyBooked(detail.workshop);
 
   return (
-    <Container className="py-[2.5rem] md:py-[3.5rem] lg:py-[4.5rem]">
-      <Breadcrumb detail={detail} />
+    /*
+      ==================================================================
+      THE PAPER, AND ONE SECTION THAT CAME OFF
+      ==================================================================
 
-      <EventHeader detail={detail} bookable={bookable} />
-      <QuickInfo detail={detail} />
-      <AboutExperience detail={detail} />
-      <LocationSection detail={detail} partner={partner} />
-      <ActionArea detail={detail} bookable={bookable} />
+      This page sat on the body's near-white `surface` with its sections
+      separated by hairlines — the arrangement the whole site has moved off.
+      Light Sage is the ground now, the way it is everywhere else, and the
+      facts column is an object laid on it rather than a column of text with
+      rules between the parts.
 
-      {related.length > 0 ? (
-        <MoreEvents sessions={related} currentSlug={slug} />
-      ) : null}
+      <AboutExperience /> IS GONE, and it was a duplication rather than a
+      design problem. It rendered `eventIntro(detail)`, which is the exact
+      string <EventHeader> has already shown as the lead — checked in
+      lib/eventDetail.ts, that function is the only descriptive text on an
+      EventDetail at all: `workshop.excerpt` for a scheduled session and
+      `experience.description` for a walk-in, and nothing longer exists.
+      So the page printed one sentence twice, the second time at 1.6rem
+      under a heading promising more.
 
-      {/* The bar's own height, given back to the page — only where a bar mounts. */}
-      {bookable ? <div aria-hidden className="h-24 md:h-28" /> : null}
+      The honest fix is to say it once. If a longer body is added to the data
+      later, this section comes back to carry it — it is the heading with
+      nothing behind it that had to go, not the idea of an "about".
+    */
+    /*
+      `overflow-x-clip`, not `overflow-hidden`. The cut-out on the facts field
+      below is positioned past the measure's right edge on purpose — that is
+      the deck's device — and without clipping it pushed the document 4px wide
+      at 1440 and 12px at 768. Measured.
 
-      <div id={CONTENT_END} aria-hidden />
+      `clip` rather than `hidden` because `hidden` makes this a scroll
+      container, which would break the sticky booking bar inside it; and the
+      x-axis only, so nothing interferes with the page scrolling normally.
+    */
+    <div className="overflow-x-clip bg-sage">
+      <Container className="relative py-[2.5rem] md:py-[3.5rem] lg:py-[4.5rem]">
+        <Breadcrumb detail={detail} />
 
-      <PageUtilityBar
-        note="Everything is provided, and no experience is needed. If something is unclear, ask before you book."
-        links={[
-          { label: "All events", href: "/events" },
-          { label: "Questions", href: "/faq" },
-          { label: "Contact", href: "/contact" },
-        ]}
-      />
+        <EventHeader detail={detail} bookable={bookable} />
+        <QuickInfo detail={detail} />
+        <LocationSection detail={detail} partner={partner} />
+        <ActionArea detail={detail} bookable={bookable} />
 
-      {/*
-        THE STICKY BAR MOUNTS FOR ONE CASE ONLY.
+        {related.length > 0 ? (
+          <MoreEvents sessions={related} currentSlug={slug} />
+        ) : null}
 
-        A walk-in activity has nothing to book, so a persistent booking bar on
-        its page would be an offer the studio cannot honour — and a sold-out
-        date has the same problem. `bookable` is the single gate, so neither
-        can reach it. Below `lg` only: the header's own column is the desktop
-        affordance and this is the phone's.
+        {/* The bar's own height, given back to the page — only where a bar mounts. */}
+        {bookable ? <div aria-hidden className="h-24 md:h-28" /> : null}
 
-        Every value is resolved here, on the server, and handed down as
-        strings. <EventBookingBar> is a client component and lib/workshops.ts
-        carries the session catalogue as well as the formatters, so importing
-        it there to borrow one would ship the catalogue to the browser.
-      */}
-      {bookable ? (
-        <div className="lg:hidden">
-          <StickyBar workshop={detail.workshop} />
-        </div>
-      ) : null}
-    </Container>
+        <div id={CONTENT_END} aria-hidden />
+
+        <PageUtilityBar
+          note="Everything is provided, and no experience is needed. If something is unclear, ask before you book."
+          links={[
+            { label: "All events", href: "/events" },
+            { label: "Questions", href: "/faq" },
+            { label: "Contact", href: "/contact" },
+          ]}
+        />
+
+        {/*
+          THE STICKY BAR MOUNTS FOR ONE CASE ONLY.
+
+          A walk-in activity has nothing to book, so a persistent booking bar on
+          its page would be an offer the studio cannot honour — and a sold-out
+          date has the same problem. `bookable` is the single gate, so neither
+          can reach it. Below `lg` only: the header's own column is the desktop
+          affordance and this is the phone's.
+
+          Every value is resolved here, on the server, and handed down as
+          strings. <EventBookingBar> is a client component and lib/workshops.ts
+          carries the session catalogue as well as the formatters, so importing
+          it there to borrow one would ship the catalogue to the browser.
+        */}
+        {bookable ? (
+          <div className="lg:hidden">
+            <StickyBar workshop={detail.workshop} />
+          </div>
+        ) : null}
+      </Container>
+    </div>
   );
 }
 
@@ -345,12 +384,26 @@ function EventHeader({
 
           <h1 id="event-title" className="mt-5">
             <Stagger>
+              {/*
+                The brand's script, as every other page title on the site is
+                set. `pb-[0.3em]` and not the 0.08em a sans needed: Hapsha's
+                capitals and swashes stand about 0.9em above the baseline
+                against a 0.8em line box, and the clearance has to sit on the
+                element carrying the font-size or it resolves against 16px and
+                the descender of the line above is cut.
+
+                <ScriptTitle> rather than the raw string: the face draws its I
+                like a J and has no alternate, so a run of capitals — "DIY" —
+                is set in the sans on the script's baseline instead of coming
+                out as "DJY". Activity names mostly have none, but the titles
+                come from data and this one cannot be checked by eye.
+              */}
               <Reveal
                 as="span"
                 variant="maskUp"
-                className="block pb-[0.08em] text-[2rem] font-light leading-[1.08] tracking-[-0.02em] sm:text-[2.5rem] lg:text-[2.9rem]"
+                className="heading-script block pb-[0.3em] text-[clamp(2.25rem,1.6rem+2.6vw,3.5rem)] leading-[1.14]"
               >
-                {eventTitle(detail)}
+                <ScriptTitle>{eventTitle(detail)}</ScriptTitle>
               </Reveal>
             </Stagger>
           </h1>
@@ -363,17 +416,43 @@ function EventHeader({
             </Reveal>
           ) : null}
 
-          <Reveal delay={0.18}>
-            {detail.kind === "scheduled" ? (
-              <ScheduledFacts workshop={detail.workshop} />
-            ) : (
-              <WalkInFacts detail={detail} />
-            )}
-          </Reveal>
+          {/*
+            THE FACTS AND THE ACTION ARE ONE OBJECT, laid on the paper.
 
-          <Reveal delay={0.26}>
-            <div className="mt-9">
-              <PrimaryAction detail={detail} bookable={bookable} />
+            They used to run down the column as loose text with a hairline
+            above them — the arrangement the rest of the site has moved off,
+            and the one that reads worst here, because these are the things a
+            visitor is actually deciding on: how it runs, when, and what
+            pressing the button does. A White Rock field groups them and
+            separates them from the description above without a rule.
+
+            It is the deck's own device rather than a "card": one field, one
+            radius, no border and no shadow. `relative` because the cut-out
+            below breaks its corner.
+          */}
+          <Reveal delay={0.18}>
+            <div className="relative mt-9 rounded-[1.25rem] bg-cream px-6 py-7 md:rounded-[1.5rem] md:px-8 md:py-8">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-4 -top-5 w-[4.5rem] rotate-[-10deg] md:w-[5.5rem]"
+              >
+                <DoodleMark
+                  name={detail.kind === "scheduled" ? "starburst" : "starleaf"}
+                  color={detail.kind === "scheduled" ? INK.lavender : INK.terracotta}
+                  treatment="stamp"
+                  delay={280}
+                />
+              </span>
+
+              {detail.kind === "scheduled" ? (
+                <ScheduledFacts workshop={detail.workshop} />
+              ) : (
+                <WalkInFacts detail={detail} />
+              )}
+
+              <div className="mt-8">
+                <PrimaryAction detail={detail} bookable={bookable} />
+              </div>
             </div>
           </Reveal>
         </div>
@@ -398,7 +477,8 @@ function ScheduledFacts({ workshop }: { workshop: Workshop }) {
 
   return (
     <>
-      <div className="mt-9 border-t border-line pt-7">
+      {/* No top rule — the field's own edge separates this from the lead. */}
+      <div>
         <span className={TERM}>When</span>
         <p className="mt-3 text-lead font-medium leading-snug text-text">
           <time dateTime={workshop.startsAt}>
@@ -480,7 +560,10 @@ function WalkInFacts({ detail }: { detail: EventDetail }) {
   const flag = eventFlag(detail);
 
   return (
-    <dl className="mt-9 grid grid-cols-2 gap-x-8 gap-y-7 border-t border-line pt-7">
+    /* No top rule: this sits inside the White Rock field now, and the
+       field's edge is the separation. The rule between the two halves of
+       the list below stays — that one divides content, not sections. */
+    <dl className="grid grid-cols-2 gap-x-8 gap-y-7">
       <div>
         <dt className={TERM}>How it runs</dt>
         <dd className="mt-3 text-lead font-medium leading-snug text-text">
@@ -695,55 +778,21 @@ function QuickInfo({ detail }: { detail: EventDetail }) {
 }
 
 /* ==========================================================================
-   SECTION 03 — ABOUT THE EXPERIENCE
+   SECTION 05 — (REMOVED) ABOUT THE EXPERIENCE
+   ==========================================================================
+
+   <AboutExperience> stood here and printed `eventIntro(detail)` under the
+   heading "About the experience". <EventHeader> already shows that string as
+   the page's lead, and lib/eventDetail.ts confirms it is the only descriptive
+   text an EventDetail has — `workshop.excerpt` for a scheduled session,
+   `experience.description` for a walk-in, and nothing longer behind either.
+   So the section restated the sentence above it at 1.6rem and added a heading
+   that promised detail the project does not hold.
+
+   Deleted rather than hidden. If the CMS grows a real body field, this comes
+   back to carry it; padding the page with the same sentence twice in the
+   meantime is the thing to avoid.
    ========================================================================== */
-
-/**
- * What it is, in the studio's own words.
- *
- * ONE SENTENCE IS ALL THERE IS, and the typography is set for that rather than
- * pretending otherwise. `Workshop` carries `excerpt` and `CreativeExperience`
- * carries an optional `description`; neither is long-form, and there is no
- * body-copy field anywhere in the schema. So the line is set large on a
- * reading measure and given air — which is what the brief asked for, and is
- * also the only honest treatment of one sentence. Padding it into paragraphs
- * would mean writing them.
- *
- * The section does not render when there is no line, which is the case for
- * mandala painting and glass painting.
- *
- * TODO(client): a paragraph per activity is the single highest-value piece of
- * copy missing from this page. Add a body field and this section grows into it
- * with no layout change.
- */
-function AboutExperience({ detail }: { detail: EventDetail }) {
-  const intro = eventIntro(detail);
-  if (!intro) return null;
-
-  return (
-    <section
-      aria-labelledby="about-experience"
-      className="mt-20 md:mt-28 lg:mt-32"
-    >
-      <div className="grid grid-cols-12 gap-x-6 border-t border-line pt-10 md:pt-14 lg:gap-x-10">
-        <Reveal className="col-span-12 md:col-span-4">
-          <h2 id="about-experience" className={TERM}>
-            About the experience
-          </h2>
-        </Reveal>
-
-        <Reveal
-          delay={0.12}
-          className="col-span-12 mt-6 md:col-span-7 md:col-start-6 md:mt-0"
-        >
-          <p className="max-w-[38rem] text-[1.375rem] font-light leading-[1.6] tracking-[-0.01em] text-text md:text-[1.6rem]">
-            {intro}
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
 
 /* ==========================================================================
    SECTION 06 — LOCATION
@@ -886,16 +935,34 @@ function ActionArea({
 }
 
 /* ==========================================================================
-   MORE EVENTS
+   SECTION 08 — MORE EVENTS
    ========================================================================== */
 
 /**
- * Other dates, as the same tiles the homepage grid uses — one card anatomy
- * across the site rather than two to keep in step.
+ * What else is on, and it adapts to how much there is.
  *
- * `getRelatedWorkshops` already excludes the current slug; the filter here is
- * belt and braces for the walk-in pages, which reach this by a slug that
- * function has never seen.
+ * ==========================================================================
+ * ONE SESSION IS THE NORMAL CASE HERE, NOT AN EDGE CASE
+ * ==========================================================================
+ *
+ * The project holds exactly two scheduled sessions. `getRelatedWorkshops`
+ * drops the one being viewed, so on any scheduled event's page this list has
+ * ONE item in it — and it was rendering that one item into a two-column grid,
+ * which left the whole right half of the section as empty Light Sage. Not a
+ * rare state to design around: the only state a scheduled page ever shows.
+ *
+ * So the count picks the composition:
+ *
+ *   ONE   a wide object — the photograph and a White Rock field side by side,
+ *         running the full measure. It reads as "here is the other session",
+ *         which is what it is, instead of as a card that lost its row.
+ *   TWO+  the pair or the row, as before. <EventCard> is unchanged and still
+ *         does the work; nothing about how a session links or books moved.
+ *
+ * THE HEADING IS THE SAME TWO WORDS IT ALWAYS WAS, set in the brand's script
+ * rather than as an 11px label, and the hairline above it is gone — a rule
+ * between sections is the device this site has moved off, and the page is one
+ * paper with objects laid on it now.
  */
 function MoreEvents({
   sessions,
@@ -907,18 +974,27 @@ function MoreEvents({
   const others = sessions.filter((session) => session.slug !== currentSlug);
   if (others.length === 0) return null;
 
+  const solo = others.length === 1 ? others[0] : null;
+
   return (
     <section aria-labelledby="more-events" className="mt-20 md:mt-28 lg:mt-32">
-      <div className="border-t border-line pt-10 md:pt-14">
-        <Reveal>
-          <h2 id="more-events" className={TERM}>
-            More events
-          </h2>
-        </Reveal>
+      <Reveal>
+        <h2
+          id="more-events"
+          className="heading-script pb-[0.3em] text-script-compact text-text"
+        >
+          <ScriptTitle>More events</ScriptTitle>
+        </h2>
+      </Reveal>
 
+      {solo ? (
+        <Reveal variant="fadeIn" className="mt-8 md:mt-10">
+          <SoloSession workshop={solo} />
+        </Reveal>
+      ) : (
         <ul
           className={cn(
-            "mt-10 grid grid-cols-1 gap-x-6 gap-y-14 lg:gap-x-10",
+            "mt-8 grid grid-cols-1 gap-x-6 gap-y-14 md:mt-10 lg:gap-x-10",
             others.length >= 3
               ? "sm:grid-cols-2 lg:grid-cols-3"
               : "sm:grid-cols-2",
@@ -938,8 +1014,97 @@ function MoreEvents({
             </Reveal>
           ))}
         </ul>
-      </div>
+      )}
     </section>
+  );
+}
+
+/**
+ * The single related session, laid wide.
+ *
+ * Built here rather than by widening <EventCard>, which is a portrait card
+ * used in three listings and should stay one. This borrows the same
+ * formatters — no date, time, price or seat count is computed differently
+ * from anywhere else on the site — and links to the same `workshopHref`.
+ *
+ * The whole object is one link. A field with a separate "view" control inside
+ * it gives a pointer two targets for one destination, and the smaller of them
+ * is the one people miss.
+ */
+function SoloSession({ workshop }: { workshop: Workshop }) {
+  const { weekday } = sessionDateParts(workshop.startsAt);
+  const { start } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
+  const scarce = isScarce(workshop);
+  const spots = spotsLabel(workshop);
+
+  return (
+    <Link
+      href={workshopHref(workshop)}
+      className="group press-in relative flex flex-col overflow-hidden rounded-[1.25rem] md:rounded-[1.75rem] lg:min-h-[20rem] lg:flex-row"
+    >
+      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-cream lg:aspect-auto lg:w-[55%]">
+        <WorkshopPhoto
+          image={workshop.image}
+          aspect="h-full"
+          sizes="(min-width: 1024px) 55vw, 100vw"
+        />
+      </div>
+
+      <div className="relative flex flex-1 flex-col justify-center bg-cream px-7 py-9 md:px-10 md:py-11">
+        {/* The cut-out, breaking the field's top-right corner — the same
+            device the facts field above uses. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-4 -top-5 w-[4.5rem] rotate-[-10deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-1 md:w-[5.5rem]"
+        >
+          <DoodleMark name="starburst" color={INK.lavender} treatment="stamp" delay={260} />
+        </span>
+
+        <span className="flex items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text">
+          <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-primary" />
+          Scheduled session
+        </span>
+
+        <span className="heading-script mt-3 block pb-[0.2em] text-script-compact leading-[1.15] text-text">
+          <ScriptTitle>{workshop.title}</ScriptTitle>
+        </span>
+
+        <span className="mt-4 block text-lead leading-[1.5] text-text">
+          {formatSessionDate(workshop.startsAt)}
+          <span aria-hidden className="px-2 text-text/60">
+            &middot;
+          </span>
+          {weekday}
+          <span aria-hidden className="px-2 text-text/60">
+            &middot;
+          </span>
+          {start}
+        </span>
+
+        <span className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-body text-text">
+          <span className="font-medium">{formatPrice(workshop.price)}</span>
+          {spots ? (
+            <span className={cn(scarce ? "text-terracotta" : "text-text/85")}>{spots}</span>
+          ) : null}
+        </span>
+
+        <span className="mt-7 inline-flex items-center gap-2 text-action font-semibold uppercase tracking-eyebrow text-primary">
+          <span className="relative inline-block pb-1.5">
+            View this session
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-full -mt-1 block h-px w-full origin-right scale-x-0 bg-current transition-transform duration-[380ms] ease-editorial group-hover:origin-left group-hover:scale-x-100 motion-reduce:transition-none"
+            />
+          </span>
+          <span
+            aria-hidden
+            className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+          >
+            &rarr;
+          </span>
+        </span>
+      </div>
+    </Link>
   );
 }
 

@@ -151,6 +151,30 @@ export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
     ref: region,
     onMouseEnter: openNow,
     onMouseLeave: closeSoon,
+    /*
+      A LINK INSIDE THE PANEL HAS TO CLOSE IT, AND NOTHING ELSE DID.
+
+      The outside-click handler above only fires for a pointerdown the region
+      does NOT contain, which is the whole point of it — and every link in the
+      panel is inside the region. The header is in the layout, so it survives a
+      client-side navigation with its state intact: the visitor picked an
+      activity, arrived on that activity's page, and found the menu they had
+      just used still hanging open over it.
+
+      `click` rather than `pointerdown`: the panel must not be dismantled
+      before the anchor's own default action has been dispatched. By the time
+      this fires the click has already bubbled through the link — React
+      dispatches to the deeper handler first — so Next has the navigation and
+      this only has to put the menu away.
+
+      It also covers the case a route watcher would miss: following a link to
+      the page you are already on, where the path never changes and the panel
+      would sit there open having apparently done nothing.
+    */
+    onClick: (event: React.MouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("a[href]")) closeNow();
+    },
     // Fires when focus leaves the region entirely, which is how a keyboard
     // visitor tabbing past the last item closes it. No grace period here —
     // focus does not drift across a gap the way a pointer does.

@@ -36,7 +36,7 @@ export function CommunityMoment() {
   return (
     <section
       aria-labelledby="community-heading"
-      className="relative isolate overflow-hidden bg-sage"
+      className="relative isolate overflow-clip bg-sage"
     >
       {/*
         ==================================================================
@@ -68,13 +68,13 @@ export function CommunityMoment() {
         and the body it drops is still set in full in <Community> on /about,
         so nothing is lost from the site.
 
-        TODO(client): the photograph is /images/hero/img.png, supplied and
-        chosen by the client. It carries C2PA content credentials signed by
-        Google LLC with `trainedAlgorithmicMedia` and a SynthID watermark —
-        it is AI-generated, and that is publicly inspectable by anyone who
-        downloads it. Flagged rather than swapped: the client asked for this
-        frame specifically. A real photograph of a Maison table would replace
-        it with a change to one `src`.
+        THE AI-GENERATED FRAME IS GONE. This was /images/hero/img.png, which
+        carried C2PA content credentials signed by Google LLC with
+        `trainedAlgorithmicMedia` and a SynthID watermark — publicly
+        inspectable by anyone who downloaded it. The client has supplied
+        /images/middle-section-bg.jpg in its place; it carries no C2PA
+        manifest and no generative markers. The TODO that stood here is
+        closed.
       */}
       {/*
         A FULL SCREEN OF PICTURE, WITH THE WORDS ON IT.
@@ -108,12 +108,14 @@ export function CommunityMoment() {
       <div className="relative isolate [clip-path:inset(0)]">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 motion-safe:fixed">
           <Image
-            src="/images/hero/img.png"
+            src="/images/middle-section-bg.jpg"
             alt=""
             fill
             sizes="100vw"
             className="object-cover"
-            style={{ objectPosition: "50% 42%" }}
+            /* The hands and the pot are just above centre in a 3:2 frame; on a
+               phone's tall crop the middle would hold the table and lose them. */
+            style={{ objectPosition: "50% 40%" }}
           />
         </div>
 

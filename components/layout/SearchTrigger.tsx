@@ -8,6 +8,8 @@ interface SearchTriggerProps {
   isOpen: boolean;
   onClick: () => void;
   panelId: string;
+  /** The swatch behind the word. Null over a dark hero. */
+  paint?: string | null;
 }
 
 /**
@@ -31,7 +33,7 @@ interface SearchTriggerProps {
  * outside-click check; see the note there on why a click that is meant to
  * close the panel would otherwise reopen it on the same gesture.
  */
-export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerProps) {
+export function SearchTrigger({ ref, isOpen, onClick, panelId, paint = null }: SearchTriggerProps) {
   return (
     <button
       ref={ref}
@@ -83,7 +85,7 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
       <span className="sr-only lg:not-sr-only">
         {/* Drawn while the panel is open as well as on hover, so the bar shows
             where you are the way a current page does. */}
-        <NavLabel isActive={isOpen}>Search</NavLabel>
+        <NavLabel isActive={isOpen} paint={paint}>Search</NavLabel>
       </span>
     </button>
   );

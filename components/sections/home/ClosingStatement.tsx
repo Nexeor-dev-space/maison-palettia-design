@@ -107,11 +107,11 @@ export function ClosingStatement() {
   return (
     <section
       aria-labelledby="closing-heading"
-      className="relative isolate overflow-hidden bg-sage py-[5rem] md:py-[7rem] lg:py-[8.5rem]"
+      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-[7rem] lg:py-[8.5rem]"
     >
       <Container>
         <div className="grid grid-cols-12 items-center gap-x-gutter">
-          <Reveal className="col-span-2 hidden lg:flex lg:justify-center">
+          <Reveal variant="settle" className="col-span-2 hidden lg:flex lg:justify-center">
             <Totem />
           </Reveal>
 
@@ -180,7 +180,7 @@ export function ClosingStatement() {
             </Reveal>
           </div>
 
-          <Reveal delay={0.06} className="col-span-2 hidden lg:flex lg:justify-center">
+          <Reveal variant="settle" delay={0.06} className="col-span-2 hidden lg:flex lg:justify-center">
             <Totem flipped />
           </Reveal>
         </div>

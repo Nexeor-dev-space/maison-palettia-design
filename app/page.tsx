@@ -1,11 +1,8 @@
 import { Hero } from "@/components/sections/Hero";
 import { ClosingStatement } from "@/components/sections/home/ClosingStatement";
 import { CollaborateTeaser } from "@/components/sections/home/CollaborateTeaser";
-import { CommunityMoment } from "@/components/sections/home/CommunityMoment";
 import { OpeningStatement } from "@/components/sections/home/OpeningStatement";
 import { ExperienceDiscovery } from "@/components/sections/home/ExperienceDiscovery";
-import { LittleCreators } from "@/components/sections/home/LittleCreators";
-import { PrivateEventsTeaser } from "@/components/sections/home/PrivateEventsTeaser";
 import { SeasonalExperiences } from "@/components/sections/home/SeasonalExperiences";
 import { TwoWaysToCreate } from "@/components/sections/home/TwoWaysToCreate";
 import { WaysToExperience } from "@/components/sections/home/WaysToExperience";
@@ -110,9 +107,34 @@ export default function HomePage() {
 
       <WorkshopJourney />
       <TwoWaysToCreate />
-      <CommunityMoment />
+
+      {/*
+        <CommunityMoment /> STOOD HERE and has been taken off the page at the
+        client's ask. It was the held picture — a screen-high photograph the
+        page scrolled over, carrying the deck's "Creating community through
+        creativity" heading and its closing line.
+
+        Nothing is lost from the site: COMMUNITY.heading, .body and .closer
+        are all still set on /about, in <Community>, which is where the deck
+        tells that part of the story anyway. The component and its stylesheet
+        are left in the tree rather than deleted, because the decision to
+        remove a section is not the same as the decision to throw the work
+        away — if it comes back, it comes back here.
+
+        One side effect worth knowing: this was the last place on the home
+        page using /images/hero/img.png, the frame that carries Google C2PA
+        credentials marking it AI-generated.
+      */}
+
       <SeasonalExperiences />
-      <LittleCreators />
+
+      {/*
+        <LittleCreators /> has MOVED TO /about rather than been removed. It is
+        about who the activities are for, which is the about page's subject,
+        and it now sits there after <Community> — where the journey thread
+        ends on family bonding, so the little creators are the next beat.
+      */}
+
       <WhereWeCreate />
       {/*
         A TEASER, NOT THE SECTION. The collaborative approach in full — the
@@ -122,7 +144,6 @@ export default function HomePage() {
         anyone it speaks to straight there. See <CollaborateTeaser>.
       */}
       <CollaborateTeaser />
-      <PrivateEventsTeaser />
       <ClosingStatement />
     </>
   );

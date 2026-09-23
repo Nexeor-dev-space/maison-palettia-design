@@ -109,12 +109,126 @@
   transform: none;
 }
 
+/* ==========================================================================
+   THE MARKS DRAW WHEN THEY ARE SEEN, NOT WHEN THE PAGE LOADS
+   ==========================================================================
+
+   `on` defaults to true, so every mark's transition fired the moment it
+   mounted. On the home page that is 117 cut-outs, and all but the handful in
+   the first screen had finished drawing long before anyone scrolled to them —
+   the one piece of brand motion the page owns, spent on an empty room.
+
+   A view timeline fixes it with no JavaScript and no change to how a mark is
+   used: the wrapper names a timeline, the ink animates along it, and the
+   progress is the mark's own travel through the viewport. It is driven off
+   the main thread, which is what makes 117 of them free; an observer per mark
+   would not be, and neither would 117 new client components.
+
+   THE FALLBACK IS THE CURRENT BEHAVIOUR. Everything here is inside
+   `@supports`, so an engine without view timelines keeps the mount
+   transition above — marks that draw early, which is what ships today.
+
+   `animation-range` starts a little after the mark appears and finishes well
+   before it leaves: `entry 15%` means it has properly arrived rather than
+   being a sliver at the bottom edge, and `cover 38%` means the drawing is
+   over while the mark is still being looked at, not completing on its way
+   out. A mark already on screen at load sits past the range and `both` holds
+   it at the end state, so nothing flashes undrawn on a reload.
+   ========================================================================== */
+
+@supports (animation-timeline: view()) {
+  .drift {
+    view-timeline-name: --mark-view;
+    view-timeline-axis: block;
+  }
+
+  .draw[data-on="true"][data-trigger="scroll"] .ink {
+    /* The mount transition is what this replaces; leaving it on would run
+       both, and the transition would win the first frame.
+
+       `[data-trigger="scroll"]` so a mark whose caller drives it — one inside
+       a megamenu, say — keeps the transition above and is not handed a
+       timeline that cannot work inside a scroll container. */
+    transition: none;
+    animation: mark-draw linear both;
+    animation-timeline: --mark-view;
+    animation-range: entry 15% cover 38%;
+    animation-delay: var(--mark-delay, 0ms);
+  }
+
+  .rise[data-on="true"][data-trigger="scroll"] {
+    transition: none;
+    animation: mark-rise linear both;
+    animation-timeline: --mark-view;
+    animation-range: entry 20% cover 34%;
+  }
+}
+
+@keyframes mark-draw {
+  /*
+    The stroke closes first and the fill arrives after it — the same order the
+    transition above runs in, where the fill is delayed 380ms into a 620ms
+    draw. Here that is 62% of the range, so the shape is outlined, then
+    filled, rather than fading in as a solid.
+  */
+  0% {
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+  }
+
+  62% {
+    stroke-dashoffset: 0;
+    fill-opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+}
+
+@keyframes mark-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0.375rem, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /*
   Reduced motion: the mark is simply there. The global rule already cuts the
   durations, but a drawn outline that snaps to filled is a flicker, so the
   stroke is dropped instead.
 */
 @media (prefers-reduced-motion: reduce) {
+  /*
+    `animation: none`, AND IT HAS TO OUT-SPECIFY THE @supports RULE.
+
+    A view-timeline animation is not a transition, so the global duration cut
+    does not reach it — and `animation-fill-mode: both` beats ordinary
+    declarations, so the static state further down this block cannot undo it
+    either. The cancel has to win on specificity.
+
+    It did not. This read `.draw[data-on="true"] .ink` (0,3,1) while the rule
+    it was cancelling is `.draw[data-on="true"][data-trigger="scroll"] .ink`
+    (0,4,1). The animation survived, held its undrawn first frame because the
+    range had not been reached, and every scroll-triggered mark on the site
+    was INVISIBLE for anyone browsing with reduced motion — the one group
+    that gets no animation to reveal it later.
+
+    Matching the selector exactly is the fix.
+  */
+  .draw[data-on="true"][data-trigger="scroll"] .ink,
+  .rise[data-on="true"][data-trigger="scroll"],
+  .draw[data-on="true"] .ink,
+  .rise[data-on="true"] {
+    animation: none;
+  }
+
   .draw .ink {
     fill-opacity: 1;
     stroke: none;

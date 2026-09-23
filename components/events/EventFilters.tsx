@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { activeFilterCount, type EventFacets, type EventFilters, type Facet } from "@/lib/eventFilters";
 import { cn } from "@/lib/utils";
@@ -9,25 +9,29 @@ import { cn } from "@/lib/utils";
 /**
  * The listing's filter bar.
  *
- * Chips rather than dropdowns. With a programme this size every option fits on
- * screen, and showing them costs one interaction less than opening a menu to
- * find out what is on offer — which is the whole question a visitor arrives
- * with. It also keeps the bar reading as type on a page rather than as a
- * control panel bolted to one.
+ * ==========================================================================
+ * IT WAS A WALL OF CHIPS AND IT IS A ROW OF SELECTS
+ * ==========================================================================
  *
- * A group is drawn only when it has more than one option behind it. A single
- * mall in the catalogue means the location control cannot narrow anything, so
- * it does not appear; the bar grows with the programme instead of standing
- * there half-useful. That is also why nothing here is hard-coded — every chip
- * comes from {@link buildFacets}, so a strand the studio has not scheduled is
- * never offered.
+ * The bar used to lay every option out as a toggle chip, one row per group,
+ * left-aligned under the lede. The argument for it was that showing the
+ * options costs one interaction less than opening a menu — true, and it is
+ * still true. What it did not account for is what three groups of chips look
+ * like: a paragraph of small grey boxes stacked above the programme, which is
+ * the shape of a search tool from 2014 and the first thing on the page after
+ * the heading.
  *
- * Toggle buttons with `aria-pressed`, not a hand-rolled radiogroup. Choosing
- * one option clears the others in its group, so it behaves as single-select,
- * but it is announced as a set of toggles — which needs no roving tabindex and
- * no arrow-key handling to be correct. Each group carries its own accessible
- * name, so the chip is announced as "Painting, toggle button, pressed" under a
- * named group rather than as a loose control.
+ * So the groups collapse into one control each, and the row moves to the
+ * right of the count rather than sitting on its own line. The page then opens
+ * on the programme with its controls beside it, instead of on its controls.
+ *
+ * WHY NOT A NATIVE `<select>`, since that is what this is. Because the menu a
+ * native select opens is drawn by the operating system, in the operating
+ * system's type, at the operating system's size — the one element on the page
+ * that cannot be made to look like the rest of it. This is the listbox
+ * pattern instead: a button that says what is chosen, a panel of options, and
+ * the keyboard behaviour a select has (arrows to move, Enter to choose, Escape
+ * to close, Home and End to jump), so nothing is lost by drawing it here.
  */
 interface EventFiltersProps {
   facets: EventFacets;
@@ -46,8 +50,6 @@ export function EventFilterBar({
   totalCount,
 }: EventFiltersProps) {
   const active = activeFilterCount(filters);
-  const [open, setOpen] = useState(false);
-  const panelId = useId();
 
   // Only the groups that can actually narrow something.
   const groups = [
@@ -59,60 +61,13 @@ export function EventFilterBar({
   if (groups.length === 0) return null;
 
   return (
-    <div className="border-t border-line pt-6 md:pt-7">
-      {/*
-        On a phone the groups start closed behind this. Expanded, three groups
-        of chips stand over 400px tall, which put the first session more than a
-        full screen below the masthead — the page would have opened on its own
-        controls. Desktop has the width to show them at rest, so the trigger is
-        `md:hidden` and the panel is always open from `md` up rather than being
-        a disclosure that happens to be expanded.
-      */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-controls={panelId}
-        className="flex min-h-[2.75rem] w-full items-center justify-between border border-line px-4 text-label font-medium uppercase tracking-eyebrow text-text md:hidden"
-      >
-        <span>
-          Filter events
-          {active > 0 ? <span className="ml-2 text-terracotta">({active})</span> : null}
-        </span>
-        <ChevronDown
-          aria-hidden
-          strokeWidth={1.5}
-          className={cn(
-            "h-4 w-4 shrink-0 transition-transform duration-300 ease-soft",
-            open && "rotate-180",
-          )}
-        />
-      </button>
-
-      <div
-        id={panelId}
-        className={cn(
-          "flex-col gap-5 md:mt-0 md:flex md:gap-6",
-          open ? "mt-6 flex" : "hidden",
-        )}
-      >
-        {groups.map((group) => (
-          <FilterGroup
-            key={group.key}
-            label={group.label}
-            options={group.options}
-            selected={filters[group.key]}
-            onSelect={(value) => onChange({ ...filters, [group.key]: value })}
-          />
-        ))}
-      </div>
-
-      <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line pt-5 md:mt-7">
+    <div className="flex flex-col gap-y-6 border-y border-line py-6 md:flex-row md:items-center md:justify-between md:gap-x-8 md:py-7">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         {/*
           The count is the bar's feedback. It is a live region because the only
-          other signal that a chip did anything is the list below the fold on a
-          phone — a visitor using a screen reader would otherwise press a
-          filter and be told nothing at all.
+          other signal that a filter did anything is the list below the fold on
+          a phone — a visitor using a screen reader would otherwise choose a
+          date and be told nothing at all.
         */}
         <p aria-live="polite" className="text-label font-medium uppercase tracking-eyebrow text-text/75">
           {resultCount === totalCount
@@ -135,82 +90,221 @@ export function EventFilterBar({
           </button>
         ) : null}
       </div>
-    </div>
-  );
-}
 
-interface FilterGroupProps {
-  label: string;
-  options: Facet[];
-  selected: string | null;
-  onSelect: (value: string | null) => void;
-}
-
-function FilterGroup({ label, options, selected, onSelect }: FilterGroupProps) {
-  const groupId = `filter-${label.toLowerCase()}`;
-
-  return (
-    <div className="flex flex-col gap-3 md:flex-row md:items-baseline md:gap-6">
-      <p
-        id={groupId}
-        className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/70 md:w-20"
-      >
-        {label}
-      </p>
-
-      <div role="group" aria-labelledby={groupId} className="flex flex-wrap gap-2.5">
-        <Chip pressed={selected === null} onClick={() => onSelect(null)}>
-          All
-        </Chip>
-
-        {options.map((option) => (
-          <Chip
-            key={option.value}
-            pressed={selected === option.value}
-            onClick={() => onSelect(selected === option.value ? null : option.value)}
-          >
-            {option.label}
-            <span aria-hidden className="ml-2 tabular-nums opacity-55">
-              {option.count}
-            </span>
-            <span className="sr-only">, {option.count} events</span>
-          </Chip>
+      {/*
+        Right of the count, and the whole width of a phone. Two of these sit
+        side by side from `sm`; below that a 3.5rem control at half width is
+        narrower than the date it has to hold.
+      */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:justify-end">
+        {groups.map((group) => (
+          <FilterSelect
+            key={group.key}
+            label={group.label}
+            options={group.options}
+            selected={filters[group.key]}
+            onSelect={(value) => onChange({ ...filters, [group.key]: value })}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-/**
- * Square corners and a hairline, to sit with the rest of the page rather than
- * with a shop. Charcoal fills the selected chip at 11.8:1 against its own ink;
- * an unselected one holds `text/75` on the warm ground, which is 5.49:1.
- */
-function Chip({
-  children,
-  pressed,
-  onClick,
-}: {
-  children: React.ReactNode;
-  pressed: boolean;
-  onClick: () => void;
-}) {
+interface FilterSelectProps {
+  label: string;
+  options: Facet[];
+  selected: string | null;
+  onSelect: (value: string | null) => void;
+}
+
+/** "All", plus the facets — the null option is a real row in the list. */
+function FilterSelect({ label, options, selected, onSelect }: FilterSelectProps) {
+  const rows: { value: string | null; label: string; count: number | null }[] = [
+    { value: null, label: "All", count: null },
+    ...options.map((o) => ({ value: o.value, label: o.label, count: o.count })),
+  ];
+
+  const [open, setOpen] = useState(false);
+  const [cursor, setCursor] = useState(0);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const labelId = useId();
+
+  const index = Math.max(0, rows.findIndex((r) => r.value === selected));
+  const current = rows[index] ?? rows[0];
+
+  /* Opening starts on what is chosen, not at the top of the list. */
+  const show = () => {
+    setCursor(index);
+    setOpen(true);
+  };
+
+  const close = (focusButton = true) => {
+    setOpen(false);
+    if (focusButton) buttonRef.current?.focus();
+  };
+
+  const choose = (value: string | null) => {
+    onSelect(value);
+    close();
+  };
+
+  /* The panel takes focus when it opens, so the arrows reach the options. */
+  useEffect(() => {
+    if (open) listRef.current?.focus();
+  }, [open]);
+
+  /*
+    A click anywhere else closes it. `pointerdown` rather than `click` so the
+    panel is gone before the thing under the pointer reacts, and no focus is
+    taken back — the visitor is already on their way somewhere else.
+  */
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (event: PointerEvent) => {
+      if (!wrapRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [open]);
+
+  const onListKeyDown = (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        setCursor((c) => Math.min(rows.length - 1, c + 1));
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        setCursor((c) => Math.max(0, c - 1));
+        break;
+      case "Home":
+        event.preventDefault();
+        setCursor(0);
+        break;
+      case "End":
+        event.preventDefault();
+        setCursor(rows.length - 1);
+        break;
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        choose(rows[cursor].value);
+        break;
+      case "Escape":
+        event.preventDefault();
+        close();
+        break;
+      case "Tab":
+        setOpen(false);
+        break;
+    }
+  };
+
   return (
-    <button
-      type="button"
-      aria-pressed={pressed}
-      onClick={onClick}
-      className={cn(
-        // The min height is a touch target, not a look: 44px is the smallest
-        // comfortable one and these sit close together on a phone.
-        "inline-flex min-h-[2.75rem] items-center rounded-sm px-4 text-label font-medium uppercase tracking-eyebrow",
-        "border transition-colors duration-300 ease-soft",
-        pressed
-          ? "border-text bg-text text-surface"
-          : "border-line text-text/75 hover:border-text/45 hover:text-text",
-      )}
-    >
-      {children}
-    </button>
+    <div ref={wrapRef} className="relative">
+      <span id={labelId} className="sr-only">
+        {label}
+      </span>
+
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? listId : undefined}
+        aria-labelledby={`${labelId} ${listId}-value`}
+        onClick={() => (open ? close(false) : show())}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            show();
+          }
+        }}
+        className={cn(
+          /*
+            3.5rem, which is the size the client asked for and also the height
+            the site's filled actions stand at — the bar then reads as part of
+            the page's own furniture rather than as a smaller class of control.
+          */
+          "group inline-flex min-h-[3.5rem] w-full items-center justify-between gap-5 rounded-pill px-6 sm:w-auto sm:min-w-[13rem]",
+          "border transition-colors duration-300 ease-soft",
+          selected
+            ? "border-text bg-text text-surface"
+            : "border-line bg-transparent text-text hover:border-text/45",
+        )}
+      >
+        <span className="flex flex-col items-start gap-0.5 text-left">
+          <span
+            className={cn(
+              "text-[0.625rem] font-semibold uppercase tracking-eyebrow",
+              selected ? "text-surface/70" : "text-text/55",
+            )}
+          >
+            {label}
+          </span>
+          <span id={`${listId}-value`} className="text-action font-semibold uppercase tracking-eyebrow">
+            {current.label}
+          </span>
+        </span>
+        <ChevronDown
+          aria-hidden
+          strokeWidth={1.75}
+          className={cn("h-4 w-4 shrink-0 transition-transform duration-300 ease-soft", open && "rotate-180")}
+        />
+      </button>
+
+      {open ? (
+        <ul
+          ref={listRef}
+          id={listId}
+          role="listbox"
+          tabIndex={-1}
+          aria-labelledby={labelId}
+          aria-activedescendant={`${listId}-${cursor}`}
+          onKeyDown={onListKeyDown}
+          className={cn(
+            "plate absolute right-0 top-[calc(100%+0.5rem)] z-30 max-h-[18rem] w-full min-w-[13rem] overflow-y-auto",
+            "rounded-md bg-surface p-1.5 focus:outline-none sm:w-max",
+          )}
+        >
+          {rows.map((row, i) => {
+            const chosen = row.value === selected;
+            return (
+              <li
+                key={row.value ?? "all"}
+                id={`${listId}-${i}`}
+                role="option"
+                aria-selected={chosen}
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  choose(row.value);
+                }}
+                onPointerEnter={() => setCursor(i)}
+                className={cn(
+                  "flex cursor-none items-center justify-between gap-6 rounded-sm px-4 py-3",
+                  "text-action font-semibold uppercase tracking-eyebrow",
+                  i === cursor ? "bg-cream text-text" : "text-text/80",
+                  chosen && "text-primary",
+                )}
+              >
+                {row.label}
+                {row.count !== null ? (
+                  <>
+                    <span aria-hidden className="tabular-nums text-text/45">
+                      {row.count}
+                    </span>
+                    <span className="sr-only">, {row.count} events</span>
+                  </>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
   );
 }

@@ -236,7 +236,17 @@ export function CollaborateTeaser() {
                 <Reveal
                   as="li"
                   key={model.slug}
-                  delay={i * 0.08}
+                  /*
+                    Dealt from above, one after the other — see `drop` in
+                    lib/motion.ts. 0.12 rather than the 0.08 this had: at 80ms
+                    against a 680ms fall the three were within a tenth of each
+                    other for the whole drop and landed as a block, which is
+                    the same mistake the palette dots in the intro made. 120ms
+                    is still an overlap — they are a hand being laid down, not
+                    three separate events — but the order is legible.
+                  */
+                  variant="drop"
+                  delay={i * 0.12}
                   className={cn("relative", card.z, card.lane)}
                 >
                   <div

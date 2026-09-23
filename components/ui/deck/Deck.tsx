@@ -179,7 +179,7 @@ export function DeckPlate({
 
   return (
     <div className={cn("relative", className)}>
-      <div className={cn("plate relative overflow-hidden bg-cream", RADIUS)}>{children}</div>
+      <div className={cn("plate relative overflow-clip bg-cream", RADIUS)}>{children}</div>
       {mark ? (
         <span
           aria-hidden
@@ -279,7 +279,7 @@ export function DeckSheet({
       id={id}
       aria-labelledby={labelledBy}
       className={cn(
-        "relative isolate overflow-hidden bg-sage",
+        "relative isolate overflow-clip bg-sage",
         "py-[4.5rem] md:py-[6rem] lg:py-[7rem]",
         binding ? "md:pl-10 lg:pl-12" : null,
         className,

@@ -20,10 +20,18 @@
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 90;
+  /*
+    ABOVE EVERYTHING THE SITE PUTS ON SCREEN. It sat at 90, which cleared the
+    header at 50 and was enough while the brush only appeared over pictures.
+    Now that it IS the cursor it must never be covered: an overlay drawn on
+    top of it would leave a visitor with nothing following the pointer at the
+    exact moment they are being asked to choose something. 200 clears the
+    grain overlay and the skip link, both at 100.
+  */
+  z-index: 200;
   display: block;
-  height: var(--brush, 2.5rem);
-  width: var(--brush, 2.5rem);
+  height: var(--brush, 2.75rem);
+  width: var(--brush, 2.75rem);
   pointer-events: none;
   opacity: 0;
   /*
@@ -39,6 +47,19 @@
   transform-origin: 0 100%;
   transform: translate3d(var(--x, 50vw), var(--y, 50vh), 0) translateY(-100%)
     rotate(calc(var(--tilt, 0) * 1deg)) scale(calc(var(--in, 0) * var(--press, 1)));
+  /*
+    NOTHING GROWS ON HOVER ANY MORE. The brush used to swell by an eighth over
+    a link or a button, standing in for the `cursor: pointer` it displaced.
+    It scaled about the bristle tip, so the tip itself never moved — but the
+    body of the brush did, and against a button's edge that reads as the whole
+    cursor jumping the moment you arrive. The client caught it, and a cursor
+    that flinches at exactly the thing you are aiming at is worse than one
+    that says nothing.
+
+    What says it instead is the paint: the brush takes the colour of whatever
+    is under it, so arriving on a button IS visible — the bristles change to
+    that button's colour. That costs no movement at all.
+  */
   transition: opacity 220ms var(--ease-soft);
   will-change: transform;
 }
@@ -55,8 +76,22 @@
 /* The bristles carry the surface's own colour; the transition is what makes
    moving between two differently-painted pictures read as reloading a brush
    rather than as a swap. */
+/*
+  THE BRISTLES ARE THE COLOUR THEY JUST PICKED UP — A SHADE OFF IT.
+
+  Exactly the picked colour is the honest answer and it looks like a mistake:
+  the head is then the same colour as the ground it is standing on, so what
+  the eye sees is a hollow outline rather than a brush with paint on it. And
+  it is not an edge case — White Rock is most of this site.
+
+  So the fill is mixed a ninth of the way toward `--halo`, which the component
+  has already set against the pick: Charcoal behind a light colour, the page's
+  near-white behind a dark one. Cream becomes a slightly deeper cream, Deep
+  Lilac a slightly lighter lilac. It is unmistakably that part's colour, and
+  it is unmistakably ON something.
+*/
 .bristles {
-  fill: var(--paint, var(--color-primary));
+  fill: color-mix(in oklab, var(--paint, var(--color-primary)) 89%, var(--halo, var(--color-text)));
   transition: fill 260ms var(--ease-soft);
 }
 
@@ -64,11 +99,30 @@
   opacity: 1;
 }
 
-/* No brush where a pointer cannot hover, and none for a reader who asked for
-   less motion — the component does not mount in either case, and this is the
-   belt to that braces. */
-@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+/* No brush where a pointer cannot hover — the component does not mount there
+   either, and this is the belt to that braces. */
+@media (pointer: coarse) {
   .brush {
     display: none;
   }
 }
+
+/*
+  A READER WHO ASKED FOR LESS MOTION STILL GETS THE BRUSH. This rule used to
+  hide it, which — once the brush became the site's cursor rather than a
+  flourish over photographs — meant that reader was handed back the plain
+  arrow the whole feature exists to replace.
+
+  What they lose is the movement, not the cursor: the component drops the
+  easing and the lean so the brush is simply on the pointer, and every
+  transition below is switched off so nothing eases, grows or fades.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .brush,
+  .bristles {
+    transition: none;
+  }
+}
+
+/* The bristles are whatever the pointer is standing on; `--halo` is set
+   against it by the component so the silhouette survives the match. */

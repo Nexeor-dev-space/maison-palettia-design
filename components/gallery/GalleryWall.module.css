@@ -1,0 +1,128 @@
+/*
+  THE WALL'S ONE INTERACTION — see GalleryWall.tsx.
+
+  A picture lifts a little and its caption arrives on it under a wash of Ink,
+  wiped up from the foot. Three rules about how it is built:
+
+  1. `scale`, NOT `transform`. Tailwind v4 sets movement on the individual
+     `scale` / `translate` properties, so a transition list naming `transform`
+     animates nothing at all — the thing jumps and the fade plays over the
+     top of it. This file is plain CSS and could name either; it names the
+     individual properties so it matches every other hover on the site.
+
+  2. THE WASH IS A GRADIENT, NOT A FLAT PANEL. A flat bar across the foot of a
+     photograph is a label stuck on it. A gradient from Ink to nothing is the
+     picture going into shadow, which is what the caption needs to be legible
+     and is the treatment the homepage's own banner uses.
+
+  3. `@media (hover: hover)` IS WRITTEN OUT. Tailwind wraps `hover:` in it
+     automatically; a CSS module does not, and without it a touch device
+     leaves the last-tapped picture stuck in its hover state.
+*/
+
+.frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 0.875rem;
+  background-color: var(--color-cream);
+}
+
+@media (min-width: 768px) {
+  .frame {
+    border-radius: 1.125rem;
+  }
+}
+
+.image {
+  object-fit: cover;
+  /*
+    Held a touch larger than the frame at rest. The lift on hover is then a
+    settle back toward true rather than a push past the edges, so nothing
+    ever shows a sliver of the ground behind the picture mid-transition.
+  */
+  scale: 1.04;
+  transition: scale 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: block;
+  padding: 1.75rem 1.25rem 1.125rem;
+  pointer-events: none;
+}
+
+.wash {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: block;
+  height: 160%;
+  background: linear-gradient(0deg, rgb(35 31 32 / 0.82) 0%, rgb(35 31 32 / 0.55) 42%, rgb(35 31 32 / 0) 100%);
+  opacity: 0;
+  transition: opacity 420ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line {
+  position: relative;
+  display: block;
+  color: var(--color-brand-cream);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.45;
+  /* The caption rises the last few pixels as it arrives, which is what makes
+     it read as coming out of the picture rather than switching on over it. */
+  translate: 0 0.5rem;
+  opacity: 0;
+  transition:
+    translate 420ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 420ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .frame:hover .image,
+  .frame:focus-within .image {
+    scale: 1;
+  }
+
+  .frame:hover .wash,
+  .frame:focus-within .wash {
+    opacity: 1;
+  }
+
+  .frame:hover .line,
+  .frame:focus-within .line {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+/*
+  Touch, and anyone who has asked for less movement: the caption is simply
+  there. A wall whose labels only exist on hover is a wall with no labels on a
+  phone, which is most of the people who will look at it.
+*/
+@media (hover: none) {
+  .wash,
+  .line {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image,
+  .wash,
+  .line {
+    transition: none;
+    scale: 1;
+  }
+
+  .wash,
+  .line {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

@@ -14,6 +14,7 @@ import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { BasketLink } from "@/components/layout/BasketLink";
+import { linkPaint } from "@/components/layout/PaintStroke";
 import { DARK_HERO_ROUTES, LIGHT_HERO_ROUTES, MAIN_NAV } from "@/lib/constants";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
@@ -406,11 +407,21 @@ export function HeaderBar({
         // so the ring falls back to Deep Lilac there.
         onDarkInk ? "[--color-focus:var(--color-cream)]" : "[--color-focus:var(--color-primary)]",
         /*
-          THE NEAR-WHITE PANEL ON SCROLL, which the bar carries from the
-          moment the page has moved at all. `bg-surface` rather than a pure
-          white: the page's own ground is #fffdf9, and a bar of #ffffff over it
-          reads as a second, colder surface laid on top rather than as the page
-          continuing up behind the type.
+          LIGHT SAGE ON SCROLL, which the bar carries from the moment the page
+          has moved at all.
+
+          It was `bg-surface` — the page's own near-white — on the argument
+          that a bar of pure white over a #fffdf9 page reads as a second,
+          colder surface laid on top. That argument was about WHITE, and it
+          still holds; the client has asked for the brand's Light Sage instead,
+          which is not a neutral at all but the palette's own soft ground, so
+          the bar now states a colour rather than trying to disappear.
+
+          THE INK STILL CLEARS EVERYTHING IT OWES. Charcoal Slate on Light Sage
+          is 9.07:1 against the 11.61 it had on the near-white — a real drop
+          and nowhere near the 4.5 it needs. The focus ring is Deep Lilac on
+          this ground at 3.83:1, past the 3:1 a ring owes, and the header's
+          Deep Lilac logo cut clears the same bar at the same figure.
 
           `border-b` IS APPLIED WITH THE GROUND, NOT KEPT AND MADE
           TRANSPARENT, and that is a layout fix rather than a tidy-up. A
@@ -425,14 +436,22 @@ export function HeaderBar({
           rule inside it — and it cannot go half-done, which is what a bar of
           White Rock links over a pale section would be.
 
-          The same white when a panel is open, because every panel hanging
-          under it is that white, and the two have to read as one field.
+          THE BAR AND THE PANELS ARE TWO GROUNDS NOW, DELIBERATELY. This note
+          used to say the bar takes the same white when a panel is open
+          "because every panel hanging under it is that white, and the two have
+          to read as one field" — and that had already stopped being true
+          before this change: <WorkshopsMenu> and <PrivateEventsMenu> are
+          `bg-cream` (White Rock), not the near-white. So the pairing is Light
+          Sage over White Rock, two of the brand's own grounds meeting on the
+          bar's hairline, rather than one field that no longer matches itself.
+          Both panels are one class away from Light Sage if the join is ever
+          wanted closed.
 
           Charcoal on the page measures 11.61:1; White Rock over the hero is
           held up by the photograph's own head wash, which is measured in
           <Hero>.
         */
-        hasGround ? "border-b border-text/10 bg-surface" : "bg-transparent",
+        hasGround ? "border-b border-text/10 bg-sage" : "bg-transparent",
         onDarkInk ? "text-on-dark" : "text-text",
       )}
     >
@@ -529,6 +548,20 @@ export function HeaderBar({
             the air — it is only the narrow end of the desktop range that has
             to give it up.
           */}
+          {/*
+            THE BAR IS A PALETTE, AND THE PAINT IS HANDED OUT BY POSITION.
+
+            Each top-level link carries a swatch behind its word — see
+            <PaintStroke>. The colour comes from the link's place in the row
+            rather than from what it means, so the bar reads left to right as
+            a palette does instead of as six colour-coded categories, which
+            would be a taxonomy nobody asked for and nobody can learn.
+
+            `onDarkInk ? null` IS THE IMPORTANT PART. Over a dark hero the bar
+            reverses to light ink, and the swatches are the light half of the
+            palette — pale paint behind pale type. Null there, and <NavLabel>
+            falls back to the hairline it has always drawn.
+          */}
           <ul className="flex items-stretch gap-6 xl:gap-11 2xl:gap-12">
             {/*
               Two filters, two different jobs. `secondary` entries are dropped
@@ -536,7 +569,7 @@ export function HeaderBar({
               `utility` entries stay in the bar but belong with search on the
               right. See both flags on NavItem.
             */}
-            {primaryNav.map((item) =>
+            {primaryNav.map((item, i) =>
               item.menu === "private-events" ? (
                 <li key={item.href} className="flex items-center">
                   <PrivateEventsMenu
@@ -545,6 +578,7 @@ export function HeaderBar({
                     href={item.href}
                     isActive={isActive(item.href)}
                     linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
+                    paint={onDarkInk ? null : linkPaint(i)}
                   />
                 </li>
               ) : item.menu === "experiences" ? (
@@ -560,6 +594,7 @@ export function HeaderBar({
                     sessions={workshops}
                     isActive={isActive(item.href)}
                     linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
+                    paint={onDarkInk ? null : linkPaint(i)}
                   />
                 </li>
               ) : (
@@ -569,7 +604,9 @@ export function HeaderBar({
                     aria-current={isActive(item.href) ? "page" : undefined}
                     className={cn(NAV_LINK, NAV_WEIGHT)}
                   >
-                    <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
+                    <NavLabel isActive={isActive(item.href)} paint={onDarkInk ? null : linkPaint(i)}>
+                      {item.label}
+                    </NavLabel>
                   </Link>
                 </li>
               ),
@@ -636,6 +673,10 @@ export function HeaderBar({
             isOpen={isSearchOpen}
             onClick={toggleSearch}
             panelId={searchPanelId}
+            /* Search keeps the same swatch as everything else — the brief is
+               explicit that it must not become a CTA, so it gets the row's
+               treatment and nothing more. */
+            paint={onDarkInk ? null : linkPaint(3)}
           />
 
           {/*
@@ -645,7 +686,7 @@ export function HeaderBar({
             everything else, and repeating it in a three-control bar would
             crowd the one control that has to be easy to hit.
           */}
-          {utilityNav.map((item) => (
+          {utilityNav.map((item, u) => (
             /*
               Wrapped rather than given `hidden` directly, because NAV_LINK
               already carries `inline-flex`: two display utilities on one
@@ -660,7 +701,9 @@ export function HeaderBar({
                 aria-current={isActive(item.href) ? "page" : undefined}
                 className={cn(NAV_LINK, NAV_WEIGHT)}
               >
-                <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
+                <NavLabel isActive={isActive(item.href)} paint={onDarkInk ? null : linkPaint(u + 4)}>
+                  {item.label}
+                </NavLabel>
               </Link>
             </div>
           ))}

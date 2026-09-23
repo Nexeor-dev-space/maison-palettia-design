@@ -1,13 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ExperienceCard } from "@/components/events/ExperienceCard";
 import styles from "@/components/sections/home/ExperienceCarousel.module.css";
-import { INK } from "@/components/sections/hero/composition";
 import { cn } from "@/lib/utils";
-import { EXPERIENCE_KIND_LABEL, type CreativeExperience } from "@/lib/experiences";
+import type { CreativeExperience } from "@/lib/experiences";
 
 /**
  * The seven activities, as a carousel you paint.
@@ -55,12 +53,71 @@ import { EXPERIENCE_KIND_LABEL, type CreativeExperience } from "@/lib/experience
   Three, then, and three divides seven without ever putting the same colour
   next to itself — 1 4 7 lilac, 2 5 terracotta, 3 6 lavender.
 */
-const WASH = [INK.lilac, INK.terracotta, INK.lavender];
 
 export function ExperienceCarousel({ experiences }: { experiences: CreativeExperience[] }) {
   const track = useRef<HTMLUListElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+
+  /*
+    ==================================================================
+    THE CARDS ARE DEALT ONTO THE TABLE
+    ==================================================================
+
+    This was the one section on the home page with no entrance at all — the
+    cards were simply there. They are the page's most hand-made object, each
+    one already rotated a degree or two and every other one dropped, so
+    arriving in sequence is the gesture they were built for.
+
+    WHY AN OBSERVER AND NOT A `view()` TIMELINE, which is what the brand marks
+    use. The track is `overflow-x: auto`, and that makes it a scroll
+    container: a view timeline inside one resolves against THAT scrollport
+    rather than the page, and a card sitting still inside a track that does
+    not scroll vertically reports as permanently covered, so the animation
+    sits finished and nothing ever plays. Measured the same way on the doodles
+    before this. One observer on the track, against the viewport, has no such
+    problem.
+
+    TWO FLAGS, NOT ONE. `armed` is set on mount and is what hides the cards in
+    the first place, so a visitor without JavaScript — or before hydration —
+    sees the cards rather than an empty rail. `shown` is what plays them.
+  */
+  /*
+    THE FLAGS ARE WRITTEN STRAIGHT TO THE NODE, NOT HELD IN STATE.
+
+    Nothing React renders depends on them — the whole deal is CSS keyed off
+    two data attributes — so putting them through `useState` would buy two
+    extra renders of a seven-card list and trip
+    `react-hooks/set-state-in-effect` on the way. The effect owns the
+    attributes and the stylesheet does the rest.
+
+    `armed` is what HIDES the cards, so it is only ever set once this has run
+    on the client: before hydration, and with JavaScript off, the rail is
+    simply visible. `shown` is what plays them.
+  */
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      el.dataset.shown = "true";
+      return;
+    }
+
+    el.dataset.armed = "true";
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        el.dataset.shown = "true";
+        io.disconnect();
+      },
+      // A little before the rail is properly on screen, so the first card is
+      // already moving by the time it is worth looking at.
+      { rootMargin: "0px 0px -12% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   /* Which arrows are usable, from the track itself rather than from a count. */
   const report = useCallback(() => {
@@ -106,156 +163,39 @@ export function ExperienceCarousel({ experiences }: { experiences: CreativeExper
             card sat on the second. See the pivot note in the stylesheet.
           */
           "flex snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain pb-4 pt-2 lg:gap-8",
-          "scroll-px-gutter [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          styles.track,
+          "scroll-px-gutter",
         )}
       >
-        {experiences.map((experience, i) => {
-          const paint = WASH[i % WASH.length];
+        {experiences.map((experience, i) => (
           /*
-            THE HAND-PLACED RHYTHM, and the reason this no longer reads as a
-            slide. Seven identical plates in a straight line is what a page
-            that cannot move has to do; a website can set them down the way a
-            person would. Every other card drops a little and each one rests at
-            a slight angle, both derived from the index so the track is stable
-            between renders rather than random on every paint.
+            THE CARD IS SHARED WITH /events NOW — see <ExperienceCard>. The
+            angle, the paint, the flood, the numeral and the caption all moved
+            there with it, because the walk-in listing was drawing its own
+            version of the same seven activities.
 
-            The angle is under two degrees and straightens as you reach the
-            card — enough to read as placed by hand, nowhere near enough to
-            look like a mistake, and it answers the client's standing note that
-            uncontrolled movement "doesn't look good or smooth".
+            `as="li"` because the deal below selects `[data-armed] > [data-card]`,
+            a direct-child rule: in this track the card has to BE the list item
+            rather than sit inside one.
+
+            What stayed here is WHERE it sits: the width at each breakpoint,
+            the snap, and the drop on every other card. `gap-8` at lg is part
+            of that — the cards are rotated, so each is wider than its box by
+            however far its corners swing, and 20px was less than two
+            neighbours leaning together spend.
           */
-          const tilt = (i % 2 === 0 ? -1 : 1) * (1.1 + (i % 3) * 0.35);
-          const drop = i % 2 === 0 ? 0 : 1;
-
-          return (
-            <li
-              key={experience.slug}
-              className={cn(
-                styles.card,
-                "group w-[74%] shrink-0 snap-start sm:w-[44%] lg:w-[29%] xl:w-[22%]",
-                drop ? "lg:mt-7" : "lg:mt-0",
-              )}
-              style={{ "--tilt": `${tilt}deg` } as React.CSSProperties}
-            >
-              <Link href={`/events/${experience.slug}`} className="block focus-visible:outline-none">
-                <span
-                  className={cn(
-                    styles.frame,
-                    /*
-                      ONE ASPECT, NOT TWO. Mixing 3:4 and 4:5 across a row that
-                      is already staggered put the seven names at four
-                      different heights, and a row you have to re-find the
-                      baseline of on every card is harder to scan than the
-                      grid it replaced. The tilt and the drop carry the
-                      hand-placed feeling on their own; the frame stays one
-                      shape so the captions land on two lines rather than four.
-                    */
-                    /*
-                      NO STROKE. The frame carried a 2.5px Charcoal outline, a
-                      device off the deck's title plates, and at seven cards it
-                      drew a hard cage around every photograph. The pictures
-                      hold their own edges — the rounded corner and the paint
-                      are the card.
-                    */
-                    "aspect-[3/4] w-full rounded-[1.25rem] bg-cream",
-                    "group-focus-visible:ring-2 group-focus-visible:ring-primary group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-sage",
-                  )}
-                  /*
-                    THE BRUSH. This is what was missing: the cards carried the
-                    splash but never told <CursorLayer> they were paintable, so
-                    the pointer stayed an arrow over the one section of the site
-                    whose whole idea is painting. `data-paint` turns it into the
-                    studio's brush and `--paint` loads it with this card's own
-                    colour — the same colour the splash is about to open in, so
-                    the brush in your hand is the paint you are applying.
-                  */
-                  data-paint
-                  style={{ "--paint": paint } as React.CSSProperties}
-                >
-                  {/*
-                    ONE PICTURE, NOT THREE LAYERS. This was the photograph, a
-                    flat brand-colour wash over all of it, and a second copy of
-                    the same photograph revealed through a growing mask — which
-                    read as a dark overlay sliding off on hover. It also fetched
-                    every activity image twice. The paint rising from the foot
-                    is the whole interaction now.
-                  */}
-                  {experience.image ? (
-                    <Image
-                      src={experience.image.src}
-                      alt={experience.image.alt}
-                      fill
-                      sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 29vw, (min-width: 640px) 44vw, 74vw"
-                      style={{ objectPosition: experience.image.position ?? "50% 50%" }}
-                      className={styles.base}
-                    />
-                  ) : null}
-
-                  {/*
-                    The flood: the card's own colour thrown up over the lower
-                    half, torn along the top with dabs scattered off it, and
-                    solid below so no picture shows through. One masked layer
-                    — see ./ExperienceCarousel.module.css.
-                  */}
-                  <span aria-hidden className={styles.flood} />
-
-                  {/*
-                    Rides in on the paint. `aria-hidden` and a span rather than
-                    a link — the card is already one anchor to this page, and
-                    the name above is what a screen reader announces.
-                  */}
-                  <span
-                    aria-hidden
-                    className={cn(
-                      styles.action,
-                      "inline-flex items-center gap-2 whitespace-nowrap rounded-pill",
-                      "bg-cream px-5 py-2.5 text-label font-semibold uppercase tracking-eyebrow text-text",
-                    )}
-                  >
-                    View details
-                    <span className="text-[0.9em] leading-none">&#8594;</span>
-                  </span>
-
-                  {/*
-                    THE NUMERAL REPLACES THE BADGE CHIP. A sticker in the corner
-                    of every card is the deck's device and says the same word
-                    seven times; the count says where you are in a row of seven,
-                    which is the thing a track actually needs. The kind is still
-                    printed — in words, under the name, where it is read rather
-                    than decoded.
-                  */}
-                  <span
-                    aria-hidden
-                    className={cn(
-                      styles.numeral,
-                      "absolute left-4 top-3 z-10 text-[2.25rem] font-bold leading-none tabular-nums",
-                    )}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                </span>
-
-                {/*
-                  Left-aligned, not centred. A centred caption under a centred
-                  plate is a slide; a name set to the same left edge as the
-                  picture reads as an entry in a list you are scrolling.
-                */}
-                <span className="mt-4 block text-[1.0625rem] font-semibold leading-snug text-text transition-colors duration-300 ease-soft group-hover:text-primary">
-                  {experience.name}
-                </span>
-
-                <span className="mt-1.5 flex items-center gap-2 text-fine text-text/75">
-                  <span
-                    aria-hidden
-                    className="h-2 w-2 shrink-0 rounded-pill"
-                    style={{ backgroundColor: paint }}
-                  />
-                  {experience.status ?? EXPERIENCE_KIND_LABEL[experience.kind]}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
+          <ExperienceCard
+            key={experience.slug}
+            experience={experience}
+            index={i}
+            sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 29vw, (min-width: 640px) 44vw, 74vw"
+            as="li"
+            className={cn(
+              "w-[74%] shrink-0 snap-start sm:w-[44%] lg:w-[29%] xl:w-[22%]",
+              i % 2 === 0 ? "lg:mt-0" : "lg:mt-7",
+            )}
+          />
+        ))}
         {/* Lets the last card snap to the rail instead of stopping short. */}
         <li aria-hidden className="w-px shrink-0 sm:w-[20%] lg:w-[8%]" />
       </ul>

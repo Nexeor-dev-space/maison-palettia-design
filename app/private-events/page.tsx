@@ -12,11 +12,75 @@ import {
 import { getMallPartners } from "@/lib/partners";
 import {
   PRIVATE_EVENT_AUDIENCES,
-  PRIVATE_EVENT_IMAGES,
   PRIVATE_EVENT_STEPS,
 } from "@/lib/privateEvents";
 import { buildMetadata } from "@/lib/seo";
+import { cn } from "@/lib/utils";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import type { MallPartner } from "@/types";
+
+/*
+  ==========================================================================
+  THE FOUR PROGRAMMES' FIELDS — see <WhoItIsFor>.
+  ==========================================================================
+
+  Keyed by slug rather than by position, so re-ordering the programmes in
+  lib/privateEvents.ts cannot silently hand the corporate field to a birthday.
+  A slug with no entry falls through to `default`, which is the section's own
+  White Rock — a programme added tomorrow gets a sane panel rather than an
+  unstyled one.
+
+  INK IS NOT A FREE CHOICE ON THIS PALETTE and each pairing here is the one
+  that clears: Charcoal Slate on Soft Lavender is 6.49:1 and on Light Sage
+  8.97:1; the near-white `surface` on Deep Lilac is 4.90:1 — the only light
+  ink that clears 4.5 on lilac — and on Charcoal Slate it is far above it.
+
+  The numerals are content, not decoration: an <ol> gives a screen reader the
+  order for free, but a sighted reader gets it from these and nowhere else, so
+  they owe the full 4.5:1 at 11px. They hold /75 on the two light fields,
+  where the measured value on this palette's pale grounds is about 4.8, and
+  full strength on the two dark ones, where /85 of `surface` on lilac would
+  drop under the line.
+*/
+const AUDIENCE_TONES: Record<
+  string,
+  { plate: string; field: string; ink: string; numeral: string }
+> = {
+  /* Celebratory. */
+  "birthday-parties": {
+    plate: "bg-cream",
+    field: "bg-lavender",
+    ink: "text-text",
+    numeral: "text-text/75",
+  },
+  /* Refined, and the one programme set in reverse. */
+  "corporate-events": {
+    plate: "bg-text",
+    field: "bg-text",
+    ink: "text-surface",
+    numeral: "text-surface",
+  },
+  /* Warm and approachable — the deck's own paper. */
+  "school-programs": {
+    plate: "bg-cream",
+    field: "bg-sage",
+    ink: "text-text",
+    numeral: "text-text/75",
+  },
+  /* Experience-led, on the brand's lead colour. */
+  "mall-and-community-activations": {
+    plate: "bg-primary",
+    field: "bg-primary",
+    ink: "text-surface",
+    numeral: "text-surface",
+  },
+  default: {
+    plate: "bg-cream",
+    field: "bg-surface",
+    ink: "text-text",
+    numeral: "text-text/75",
+  },
+};
 
 export const metadata = buildMetadata({
   title: "Private events",
@@ -38,18 +102,6 @@ const ENQUIRY_HREF = "/private-events/book";
  */
 const SECTION_LINE = "heading-script text-script-section";
 
-/**
- * The hero statement, composed per breakpoint rather than taken from
- * `text-display`.
- *
- * The token tops out at 104px, and it was 104px here until the hero was
- * measured: two lines at that size push the eyebrow to 65% of the hero's
- * height, which is above anything a foot field can reach without covering the
- * photograph entirely. At 84px the block is 40px shorter and sits inside the
- * field, which buys back a third of the picture. It is still the largest type
- * on the page by a wide margin.
- */
-const HERO_LINE = "heading-script text-script-hero";
 
 const EYEBROW =
   "flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow";
@@ -109,7 +161,14 @@ export default async function PrivateEventsPage() {
 
   return (
     <>
-      <Hero />
+      {/*
+        THE BANNER IS GONE, at the client's ask, and one other thing went with
+        it: this route was the only entry in DARK_HERO_ROUTES. That flag told
+        the bar to invert to light ink, which in turn told <NavLabel> to draw
+        no paint — pale swatches behind pale type are unreadable. With no dark
+        hero to sit over, the bar keeps its charcoal ink here like every other
+        page and the painted links appear on their own. See lib/constants.ts.
+      */}
       <Introduction />
       <WhoItIsFor />
       <Experiences experiences={experiences} />
@@ -121,147 +180,22 @@ export default async function PrivateEventsPage() {
 }
 
 /* ==========================================================================
-   01 — HERO
-   ========================================================================== */
+   (REMOVED) 01 — THE BANNER
+   ==========================================================================
 
-/**
- * A full-bleed photograph with the title standing at its foot.
- *
- * Pulled up under the sticky bar by exactly the bar's own height, the same
- * device the homepage hero uses, so the picture runs behind the navigation
- * rather than starting below it. `/private-events` is registered in
- * DARK_HERO_ROUTES, which is what inverts the bar to its light treatment here.
- *
- * ONE ACTION, AND ONLY ONE. A hero with two offers has decided nothing.
- * Everything else the page has to say is below it, where anyone who wants it
- * will find it.
- *
- * `justify-end` puts the title at the foot, which also settles the header
- * clearance question: nothing in the type block can collide with the bar
- * because the type block is at the other end of the screen.
- */
-function Hero() {
-  const image = PRIVATE_EVENT_IMAGES.hero;
+   A screen-high photograph with the page's title over it stood here, and it
+   is off at the client's ask. Its two helpers — <Hero> and <HeroLine> — went
+   with it rather than being left behind unused.
 
-  return (
-    <section
-      aria-labelledby="private-events-title"
-      className={
-        "relative isolate -mt-header flex min-h-[max(34rem,82svh)] flex-col justify-end " +
-        "overflow-hidden bg-text md:-mt-header-lg md:min-h-[88vh] lg:min-h-[92vh] " +
-        "[--color-focus:var(--color-cream)]"
-      }
-    >
-      <Image
-        src={image.src}
-        alt={image.alt}
-        fill
-        priority
-        sizes="100vw"
-        style={{ objectPosition: image.position }}
-        className="object-cover"
-      />
+   IT TOOK A FLAG WITH IT. `/private-events` was the sole entry in
+   DARK_HERO_ROUTES, which exists to tell the bar to reverse its ink over a
+   dark banner. There is no dark banner here now, so the route came out of
+   that list; leaving it would have kept the bar in light ink over a Light
+   Sage page, and kept the painted nav links suppressed.
 
-      {/*
-        TWO SCRIMS, AND THE SECOND ONE IS A FIELD RATHER THAN A WASH.
-
-        This started as the usual single gradient rising from the foot, and it
-        was measured rather than trusted: cream on the composite came back at
-        1.28:1 on the eyebrow, 1.47:1 on the title and 3.58:1 on the standfirst.
-        Not marginal — illegible.
-
-        The cause is geometry, not strength. The type block here is an eyebrow,
-        two lines of display, a standfirst and a button: about 540px of stack,
-        so its top sits around 65% of the way up the hero, in the middle of the
-        picture. A foot gradient has decayed to roughly 0.13 alpha by then, and
-        sweeping it — five strengths across six crops, then again with the title
-        at 104, 84 and 68px — never cleared 3:1 on the first line without a wash
-        heavy enough to flatten the whole photograph to charcoal. That is the
-        trade the editorial spreads already refused once.
-
-        So the foot is a defined field with a soft edge instead: ink at 0.86 or
-        better everywhere the type actually sits. That is legible by
-        construction rather than by measurement — 0.86 charcoal over pure white
-        composites to 6:1 against cream — so it holds over any crop and cannot
-        quietly stop being true when the picture is reframed.
-
-        AND IT IS TIED TO THE TYPE, NOT TO THE HERO. It was a percentage of the
-        section at first, which passed at 1440 and failed at 390: the hero
-        shrinks with the viewport but the type block does not, so the eyebrow
-        climbed out of the strong zone and measured 2.09:1 on a phone. The field
-        is now the type block's own background — it is exactly as tall as the
-        content plus the padding above it, at every width, and the fade runs out
-        through that padding. Nothing about it needs re-measuring when the
-        section's height changes.
-
-        The band at the top is the homepage hero's own, for the header rather
-        than for this type: `/private-events` is in DARK_HERO_ROUTES, so the bar
-        renders its light ink here and needs a ground to do it over.
-      */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-text/80 via-text/80 via-45% to-transparent md:h-56 md:via-40%"
-      />
-
-      <div className="relative w-full bg-gradient-to-t from-text/92 via-text/86 via-80% to-transparent">
-        <Container className="relative pb-[3.5rem] pt-[8rem] md:pb-[4.5rem] lg:pb-[5.5rem]">
-          <Reveal>
-            <p className={`${EYEBROW} text-cream`}>
-              <span aria-hidden className="h-px w-9 shrink-0 bg-sage md:w-12" />
-              Private events
-            </p>
-          </Reveal>
-
-          <h1 id="private-events-title" className="mt-7 text-cream md:mt-9">
-            {/*
-            Two masked lines, one trigger — the device the brand statement and
-            the About page both use. The explicit space between them keeps the
-            accessible name reading as a sentence rather than as two fragments.
-          */}
-            <Stagger>
-              <HeroLine>Make something</HeroLine>{" "}
-              <HeroLine>memorable together.</HeroLine>
-            </Stagger>
-          </h1>
-
-          <Reveal delay={0.25} className="mt-8 md:mt-10">
-            {/* Full strength. The scrim above was measured against cream at
-              100%, and fading the one paragraph it was measured for is how a
-              measurement quietly stops being true. */}
-            <p className="max-w-[34rem] text-lead leading-[1.7] text-cream">
-              Creative experiences designed around your people, your occasion
-              and your space.
-            </p>
-          </Reveal>
-
-          <Reveal delay={0.35}>
-            <PlanAction tone="onImage" className="mt-9 md:mt-11" />
-          </Reveal>
-        </Container>
-      </div>
-    </section>
-  );
-}
-
-/**
- * One masked line of the title.
- *
- * The mask needs its own overflow parent, and the negative margin on the
- * second line takes back the descender room the first one reserves — without
- * it the two lines set further apart than the leading asks for.
- */
-function HeroLine({ children }: { children: string }) {
-  return (
-    <span className={`script-mask ${HERO_LINE}`}>
-      <Reveal as="span" variant="maskUp" className="block">
-        {children}
-      </Reveal>
-    </span>
-  );
-}
-
-/* ==========================================================================
-   02 — INTRODUCTION
+   The page now opens on <Introduction>, which carries the same eyebrow and
+   sets the section's own heading — nothing the banner said is lost, because
+   the banner said the page's title and the page still has one.
    ========================================================================== */
 
 /**
@@ -374,46 +308,214 @@ function WhoItIsFor() {
           </Reveal>
         </div>
 
-        <ol className="mt-12 md:mt-16">
-          {PRIVATE_EVENT_AUDIENCES.map((audience, i) => (
-            /*
-              The slug is the anchor the bar's Private events menu points at.
-              Three of these programmes have no page of their own yet — the
-              proposal says their content arrives when the client is ready —
-              so the menu sends a visitor to the entry that describes it here
-              rather than to a route invented to receive them. `scroll-mt`
-              clears the fixed bar, which would otherwise cover the heading
-              the anchor just landed on.
-            */
-            <li key={audience.slug} id={audience.slug} className="scroll-mt-header md:scroll-mt-[var(--spacing-header-lg)]">
-              <Reveal delay={i * 0.06}>
-                <div className="grid grid-cols-12 items-baseline gap-x-5 border-t border-text/15 py-7 md:gap-x-8 md:py-9">
-                  {/*
-                    /75, not the pale wash a numeral like this usually gets.
-                    Measured on White Rock: /45 composites to 2.33:1, and while
-                    the <ol> gives a screen reader the order for free, a sighted
-                    reader gets it from these numerals and nowhere else — which
-                    makes them content at 11px, owing the full 4.5:1. /75 is
-                    4.81.
-                  */}
-                  <span
-                    aria-hidden
-                    className={`col-span-2 ${TERM} tabular-nums text-text/75 md:col-span-1`}
+        {/*
+          ==================================================================
+          FOUR PROGRAMMES, FOUR PERSONALITIES, ONE LANGUAGE
+          ==================================================================
+
+          These four used to be four identical rows of a numbered list:
+          numeral, name, one line, hairline, repeat. That is the arrangement
+          the brief rules out — "same cards" on every programme — and it is
+          also wrong about the content, because a birthday and a corporate
+          booking are not four flavours of one thing.
+
+          So each takes its own field, and the field is the personality:
+
+            Birthday parties ....... Soft Lavender. The palette's lightest,
+                                     warmest colour — celebratory without
+                                     reaching outside the six approved.
+            Corporate events ....... Charcoal Slate. The one restrained field
+                                     on the page; refined rather than playful,
+                                     and the only programme set in reverse.
+            School programmes ...... Light Sage. The deck's own paper, which
+                                     is the warmest and most approachable
+                                     ground the brand has.
+            Mall & activations ..... Deep Lilac. The brand's lead colour, for
+                                     the one programme the deck has an actual
+                                     track record behind (p.12).
+
+          WHAT STAYS. `id={audience.slug}` is the anchor the bar's Private
+          events menu points at, and `scroll-mt` still clears the fixed bar.
+          The <ol> stays an <ol>: the order is content, and the numeral is
+          still drawn because a sighted reader gets the sequence from it and
+          nowhere else. Every word is lib/privateEvents.ts, unchanged.
+
+          THE PHOTOGRAPHS ARE STAND-INS AND THE ALT TEXT KNOWS IT. Nothing in
+          the project photographs a birthday, a company gathering or a school
+          group; each `image` describes what is in the frame and never asserts
+          the occasion. See the note on the type. Where there is no picture at
+          all the programme shows its brand cut-out on the field instead,
+          which is the fallback `mark` exists for.
+        */}
+        {/*
+          THREE COLUMNS, AND A FOURTH THAT IS NOT ONE OF THEM.
+
+          The four ran as full-width panels, image beside field, alternating
+          sides. The client asked for cards, and three across is what the
+          measure takes — but four items in three columns leaves an orphan,
+          and an orphan is what made this read as a row that ran out rather
+          than a row that was placed.
+
+          So the split is the DATA'S, not the arithmetic's.
+          `inPrivateEventsMenu` is true for exactly three of these — a
+          birthday, a company gathering and a school visit are all things a
+          host books privately. Mall & community activations is not: the note
+          on the type says the studio is engaged by the venue rather than by a
+          guest, which is why it is kept out of a menu headed "Private
+          events". It is a different kind of thing, so it gets a different
+          shape — the full width, under the three.
+
+          A grid of four with one hanging would have been a layout accident.
+          Three and one is the content.
+
+          WHAT IS UNCHANGED. `id={audience.slug}` is still the anchor the
+          bar's menu points at, `scroll-mt` still clears the fixed bar, the
+          <ol> is still an <ol> because the order is content, and every word
+          is still lib/privateEvents.ts. The per-programme fields and their
+          ink pairings are the same ones, measured — see AUDIENCE_TONES.
+        */}
+        <ol className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mt-16 lg:grid-cols-3 lg:gap-8">
+          {PRIVATE_EVENT_AUDIENCES.map((audience, i) => {
+            const tone = AUDIENCE_TONES[audience.slug] ?? AUDIENCE_TONES.default;
+            const wide = audience.inPrivateEventsMenu !== true;
+
+            return (
+              <li
+                key={audience.slug}
+                id={audience.slug}
+                className={cn(
+                  "scroll-mt-header md:scroll-mt-[var(--spacing-header-lg)]",
+                  wide && "sm:col-span-2 lg:col-span-3",
+                )}
+              >
+                <Reveal variant="fadeIn" delay={Math.min(i, 3) * 0.06} className="h-full">
+                  <div
+                    className={cn(
+                      /*
+                        `overflow-clip`, not `overflow-hidden`. `hidden` makes
+                        this a scroll container, and a scroll container breaks
+                        the view timeline the brand marks draw on — the
+                        cut-out below rendered into the HTML and then sat at
+                        its undrawn start state, invisible. `clip` clips the
+                        same and creates no scrollport. Same trap as the home
+                        page's sections; see DoodleMark.module.css.
+                      */
+                      "relative flex h-full flex-col overflow-clip rounded-[1.25rem] md:rounded-[1.75rem]",
+                      // The wide one lies down; the three stand up.
+                      wide && "lg:min-h-[17rem]",
+                      wide && audience.image && "lg:flex-row",
+                    )}
                   >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
+                    {/*
+                      A PLATE ONLY WHERE THERE IS A PICTURE FOR IT.
 
-                  <h3 className="col-span-10 text-h3 font-light tracking-[-0.015em] text-text md:col-span-5">
-                    {audience.name}
-                  </h3>
+                      The wide card used to draw its plate either way, so the
+                      one programme with no photograph rendered a 42%-wide
+                      block of flat colour with a single small cut-out adrift
+                      in the middle of it, and a heading stranded in the
+                      corner of the rest. That is the empty slab the client
+                      marked.
 
-                  <p className="col-span-12 mt-3 max-w-[34rem] text-body leading-[1.8] text-text/80 md:col-span-6 md:mt-0">
-                    {audience.description}
-                  </p>
-                </div>
-              </Reveal>
-            </li>
-          ))}
+                      With no picture the card is ONE field across the full
+                      width, and the cut-out goes large and breaks its right
+                      edge — the deck's own device, and the thing that makes a
+                      field read as a composition instead of as a gap.
+                    */}
+                    {audience.image ? (
+                      <div
+                        className={cn(
+                          "relative w-full shrink-0",
+                          wide ? "aspect-[16/10] lg:aspect-auto lg:w-[42%]" : "aspect-[4/3]",
+                          tone.plate,
+                        )}
+                      >
+                        <Image
+                          src={audience.image.src}
+                          alt={audience.image.alt}
+                          fill
+                          sizes={
+                            wide
+                              ? "(min-width: 1024px) 42vw, 100vw"
+                              : "(min-width: 1024px) 31vw, (min-width: 640px) 46vw, 100vw"
+                          }
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : audience.mark ? (
+                      <span
+                        aria-hidden
+                        /*
+                          `z-10`, or it is not there at all. The field below
+                          is `relative` and comes after this in the DOM, so
+                          its own background paints over an absolutely placed
+                          sibling — the cut-out rendered into the HTML, drew
+                          itself correctly on scroll, and was covered the
+                          whole time. It can sit above safely because the
+                          heading and the copy are capped well short of it.
+                        */
+                        className="pointer-events-none absolute -right-10 -top-8 z-10 w-[13rem] rotate-[-12deg] opacity-90 md:-right-12 md:w-[17rem] lg:-right-8 lg:top-1/2 lg:w-[19rem] lg:-translate-y-1/2"
+                      >
+                        <DoodleMark
+                          name={audience.mark.name}
+                          color={audience.mark.color}
+                          treatment="draw"
+                          delay={220}
+                        />
+                      </span>
+                    ) : null}
+
+                    {/* The field, carrying the words. `flex-1` so three cards
+                        of different copy lengths still end level. */}
+                    <div
+                      className={cn(
+                        "relative flex flex-1 flex-col justify-center px-6 py-7 md:px-8 md:py-9",
+                        wide && "lg:px-11",
+                        /*
+                          THE CAP GOES ON THE WORDS, NOT ON THE FIELD.
+
+                          It was `max-w-[62%]` here, on the field — which is
+                          the thing carrying the colour, so the card's Deep
+                          Lilac stopped at 62% and the rest of the row showed
+                          the page through it. The card read as cut off, and
+                          the cut-out placed past that edge was outside the
+                          coloured area altogether and so invisible.
+
+                          The field fills the card; the measure below holds
+                          the text off the mark.
+                        */
+                        wide && !audience.image && "lg:py-14",
+                        tone.field,
+                        tone.ink,
+                      )}
+                    >
+                      <span aria-hidden className={cn(TERM, "tabular-nums", tone.numeral)}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+
+                      <h3
+                        className={cn(
+                          "mt-3 text-h3 font-medium tracking-[-0.015em]",
+                          // Clear of the cut-out breaking the right edge.
+                          wide && !audience.image && "lg:max-w-[58%]",
+                        )}
+                      >
+                        {audience.name}
+                      </h3>
+
+                      <p
+                        className={cn(
+                          "mt-3 max-w-[40ch] text-body leading-[1.8]",
+                          wide && !audience.image && "lg:max-w-[52%]",
+                        )}
+                      >
+                        {audience.description}
+                      </p>
+                    </div>
+                  </div>
+                </Reveal>
+              </li>
+            );
+          })}
         </ol>
       </Container>
     </section>
@@ -483,39 +585,75 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
       </div>
 
       {/*
-        One large plate and a run of smaller ones, rather than seven of a size.
+        A COLLAGE THAT TESSELLATES, at the client's ask and against their own
+        reference: tiles of several sizes packed tight into one clean
+        rectangle, the way a wall of photographs is actually hung.
 
-        The asymmetry is the composition: a grid of equal tiles is a catalogue,
-        and this page is asked to be editorial. The lead takes the full measure
-        on a phone and just over half the grid from `md`, so the difference in
-        scale survives the narrow screen instead of collapsing into a stack of
-        identical blocks.
+        WHAT THIS REPLACES, AND WHY IT COULD NOT BE NUDGED INTO SHAPE. It was
+        one `aspect-[5/4]` plate across seven columns beside a two-column stack
+        of `aspect-[3/4]` plates across five. Those two halves have no reason
+        to come to the same height and they did not: the lead ran past the foot
+        of the stack beside it, the stack's own rows broke at a third place
+        again, and the block ended on a ragged edge that read as a layout
+        accident rather than as a composition. No amount of tuning the aspects
+        fixes that — two independent columns of fixed-ratio tiles only line up
+        by coincidence, and the coincidence breaks at the next breakpoint.
+
+        SO THE TILES SHARE ONE SET OF CELLS. The grid owns the geometry: four
+        columns of equal width and rows of one fixed height, with each plate
+        spanning a whole number of both. Seven plates over twelve cells —
+        4 + 2 + 1 + 1 + 1 + 2 + 1 — which is exactly a 4x3 rectangle, so the
+        block closes flush on every side at every width. The plates fill their
+        cells (`h-full`) instead of carrying an aspect of their own, which is
+        what lets the grid decide and keeps them honest.
+
+        Auto-placement does the rest in source order, so the arrangement is in
+        the spans below and nowhere else — no explicit row or column starts to
+        keep in sync with them.
+
+        TWO COLUMNS ON A PHONE. Four 90px cells is a contact sheet, not a
+        collage: the lead keeps its 2x2 and everything else drops to a single
+        cell, which is three tidy rows under it.
+
+        The gap is 10px rising to 14px — tight, because the reference is packed
+        and a collage with section-sized gutters in it is just a grid again.
       */}
-      <div className="mt-12 grid grid-cols-12 gap-x-6 gap-y-8 md:mt-16 lg:gap-x-10">
-        <Reveal variant="fadeIn" className="col-span-12 md:col-span-7">
+      <div
+        className={cn(
+          "mt-12 grid gap-2.5 md:mt-16 md:gap-3.5",
+          "grid-cols-2 lg:grid-cols-4",
+          "auto-rows-[clamp(7rem,26vw,9rem)] lg:auto-rows-[clamp(9rem,13vw,14rem)]",
+        )}
+      >
+        <Reveal variant="fadeIn" className="col-span-2 row-span-2">
           <Plate
             experience={lead}
-            className="aspect-[4/3] md:aspect-[5/4]"
-            sizes="(min-width: 768px) 56vw, 92vw"
+            className="h-full"
+            sizes="(min-width: 1024px) 46vw, 92vw"
             large
           />
         </Reveal>
 
-        <div className="col-span-12 grid grid-cols-2 gap-x-6 gap-y-8 md:col-span-5 lg:gap-x-10">
-          {rest.map((experience, i) => (
-            <Reveal
-              key={experience.slug}
-              variant="fadeIn"
-              delay={0.08 + i * 0.05}
-            >
-              <Plate
-                experience={experience}
-                className="aspect-[3/4]"
-                sizes="(min-width: 768px) 22vw, 44vw"
-              />
-            </Reveal>
-          ))}
-        </div>
+        {rest.map((experience, i) => (
+          <Reveal
+            key={experience.slug}
+            variant="fadeIn"
+            delay={0.08 + i * 0.05}
+            /* The spans ARE the composition — see the note above. The first of
+               the six is the tall one beside the lead and the fifth is the wide
+               one along the foot; the rest are single cells. */
+            className={cn(
+              i === 0 ? "lg:row-span-2" : null,
+              i === 4 ? "lg:col-span-2" : null,
+            )}
+          >
+            <Plate
+              experience={experience}
+              className="h-full"
+              sizes="(min-width: 1024px) 24vw, 46vw"
+            />
+          </Reveal>
+        ))}
       </div>
     </Container>
   );
@@ -558,7 +696,7 @@ function Plate({
   if (!experience.image) {
     return (
       <div
-        className={`flex ${className} flex-col justify-end rounded-sm bg-surface-alt p-5 lg:p-6`}
+        className={`flex ${className} flex-col justify-end rounded-[1.25rem] bg-surface-alt p-5 lg:p-6`}
       >
         <div className="text-text">{name}</div>
         {/*
@@ -576,7 +714,11 @@ function Plate({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-sm bg-surface-alt ${className}`}
+      /* `rounded-[1.25rem]`, not the site's 8px `rounded-sm`: packed this
+         tight the corners are what separate one photograph from the next, and
+         the client's reference rounds them hard. It is the same radius the
+         activity cards already use. */
+      className={`group relative overflow-hidden rounded-[1.25rem] bg-surface-alt ${className}`}
     >
       <Image
         src={experience.image.src}

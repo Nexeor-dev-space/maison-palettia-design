@@ -1067,45 +1067,73 @@
 }
 
 /*
-  The dab replaces the system cursor over a marked picture, and only there —
-  never over a form, a button, the basket or the checkout, none of which carry
-  the attribute. The rule is scoped to `data-paint-cursor`, which
-  <CursorLayer> writes onto <html> only once it has checked for a fine pointer
-  and for reduced motion, so a visitor whose JavaScript never runs, or who is
-  on a phone, keeps the cursor they had.
-*/
-html[data-paint-cursor] [data-paint] {
-  cursor: none;
-}
+  ==========================================================================
+  THE BRUSH IS THE CURSOR FOR THE WHOLE SITE, AT THE CLIENT'S ASK
+  ==========================================================================
 
-/* A control laid over a picture keeps its own pointer. */
-html[data-paint-cursor]
-  [data-paint]
-  :where(button, input, select, textarea, label, summary, [role="button"], [contenteditable]) {
-  cursor: auto;
+  It used to replace the system cursor over a marked picture and nowhere else,
+  and the note that stood here argued for exactly that. The client has asked
+  for the brush everywhere, so the rule is now the document rather than
+  `[data-paint]`, and <CursorLayer> follows the pointer across the whole page
+  instead of entering and leaving each photograph. What `[data-paint]` still
+  does is set the COLOUR — the brush dips itself in a picture's own `--paint`
+  as it crosses one, and carries Deep Lilac everywhere else.
+
+  THE ONE EXCEPTION IS TEXT ENTRY, and it is not a matter of taste. A brush
+  tip has no I-beam to sight along, and dropping a caret between two
+  characters is the one pointing job on this site that needs the pixel — a
+  booking form, an enquiry, a card field. Those keep the cursor they were
+  built with, and the component hides the brush over them so there is never a
+  caret and a brush at once. Everything else — links, buttons, the basket, the
+  whole of checkout — carries the brush, and the brush grows a little over
+  anything clickable to replace the hand it displaced.
+
+  `cursor: none` is scoped to `data-paint-cursor`, which <CursorLayer> writes
+  onto <html> only after it has checked for a fine pointer, for hover and for
+  reduced motion. A visitor whose JavaScript never runs, who is on a phone, or
+  who has asked for less motion keeps the cursor they had — the page can never
+  end up with no cursor at all.
+*/
+html[data-paint-cursor],
+html[data-paint-cursor] * {
+  cursor: none;
 }
 
 /*
-  A link inside a paint surface follows the surface, and does not keep a hand.
-
-  The exception above is for CONTROLS — a button or a field laid over a
-  photograph keeps the pointer that says what it is, because losing it costs a
-  visitor something they need. A link is the other case. `cursor: pointer`
-  comes from the UA stylesheet on the element itself, so it beats the
-  `cursor: none` this surface inherits down, and the hand is then drawn on top
-  of the brush: two cursors at once.
-
-  It has never shown up before because of where the attribute sits — the
-  activity plates mark the frame INSIDE the anchor, so the brush has always
-  been the only cursor on them. The footer marks the whole element and is made
-  almost entirely of links, which is what surfaced it.
-
-  Guarded by `data-paint-cursor` like everything else here, so a visitor
-  without JavaScript, on a phone, or under reduced motion keeps the hand: the
-  brush that would have replaced it is never mounted for them.
+  Text entry keeps its caret. `input` is narrowed to the typing kinds: a
+  checkbox, a radio, a range or a file button is a control you aim at rather
+  than sight along, so those keep the brush like every other control.
 */
-html[data-paint-cursor] [data-paint] :where(a) {
-  cursor: none;
+html[data-paint-cursor]
+  :where(
+    input:not(
+        [type="button"],
+        [type="submit"],
+        [type="reset"],
+        [type="checkbox"],
+        [type="radio"],
+        [type="range"],
+        [type="color"],
+        [type="file"],
+        [type="image"]
+      ),
+    textarea,
+    [contenteditable=""],
+    [contenteditable="true"]
+  ) {
+  cursor: text;
+}
+
+/*
+  An iframe draws its own cursor from its own document and cannot be told
+  otherwise — the Google map embed is the one on this site. The component
+  hides the brush as the pointer crosses into one, so the map's grab hand is
+  alone in there rather than sharing the screen with a brush frozen at the
+  border. `cursor: auto` on the frame itself covers the border pixels, where
+  the element's own cursor is the one that shows.
+*/
+html[data-paint-cursor] iframe {
+  cursor: auto;
 }
 
 /*
