@@ -8,6 +8,7 @@ import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
+import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import {
@@ -114,7 +115,7 @@ export default function AboutPage() {
 function Welcome() {
   return (
     <section aria-labelledby="about-title" className="relative isolate overflow-hidden bg-sage">
-      <Container className="relative py-[5.5rem] md:py-[7rem] lg:py-[8.5rem]">
+      <Container className="relative py-[4rem] md:py-[5rem] lg:py-[6rem]">
         {/*
           Two marks, at the margins, each breaking an edge of the measure
           rather than floating in the middle of it. Hidden below `lg`, where
@@ -138,35 +139,38 @@ function Welcome() {
         </Reveal>
 
         {/*
-          THE TAGLINE, AT THE SIZE IT IS WORTH.
-
-          `pb-[0.3em]` is not decoration and it must stay on the element that
-          carries the font-size: Hapsha's capitals and swashes stand about
-          0.9em above the baseline against a 0.8em line box, so without the
-          clearance the P and the C of the line below cut through the line
-          above. Moved to a wrapper it resolves against 16px and fails again.
+          `pb-[0.3em]` on the heading below is not decoration and must stay on
+          the element carrying the font-size: Hapsha's capitals and swashes
+          stand about 0.9em above the baseline against a 0.8em line box, so
+          without the clearance the line below cuts through the line above.
+          Moved to a wrapper it resolves against 16px and fails again.
         */}
-        <Reveal delay={0.08}>
-          <h1
-            id="about-title"
-            className="heading-script mt-7 max-w-[15ch] pb-[0.3em] text-script-hero text-text md:mt-9"
-          >
-            {forScript(TAGLINE)}
-          </h1>
-        </Reveal>
-
         {/*
-          The story, dropped and pushed right — the corner. One paragraph at a
-          reading measure, because BRAND_STORY is one sentence of the deck's
-          and breaking it into fragments is what made the homepage's own
-          opening read as messy.
+          THE STORY SITS BESIDE THE TAGLINE, NOT A SCREEN BELOW IT.
+
+          It used to be dropped into an offset column under the heading — the
+          corner of the page — which gave the section a tall left margin of
+          nothing and pushed the first real content of /about below the fold.
+          The client's note was that the page was taking too much space here,
+          and the space was all in this gap.
+
+          The heading holds six columns and the paragraph takes the five
+          beside it, aligned to the bottom so the two end on the same line.
+          Nothing about either is reworded: it is still `TAGLINE` in the
+          script and `BRAND_STORY` as one sentence at a reading measure.
         */}
-        <div className="mt-10 grid grid-cols-12 md:mt-14">
-          <Reveal
-            delay={0.16}
-            className="col-span-12 md:col-span-9 md:col-start-4 lg:col-span-7 lg:col-start-6"
-          >
-            <p className="max-w-[46ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.3125rem)] font-light leading-[1.75] text-text">
+        <div className="mt-8 grid grid-cols-12 items-end gap-x-gutter gap-y-8 md:mt-10">
+          <Reveal delay={0.08} className="col-span-12 lg:col-span-6">
+            <h1
+              id="about-title"
+              className="heading-script max-w-[15ch] pb-[0.3em] text-script-hero text-text"
+            >
+              {forScript(TAGLINE)}
+            </h1>
+          </Reveal>
+
+          <Reveal delay={0.16} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
+            <p className="max-w-[46ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.25rem)] font-light leading-[1.75] text-text">
               {BRAND_STORY}
             </p>
           </Reveal>
@@ -410,20 +414,39 @@ function Apart() {
           </Reveal>
         </div>
 
-        <Stagger className="mt-12 md:mt-16">
-          <ul>
-            {WHAT_SETS_US_APART.map((point, i) => (
-              <li
-                key={point.slug}
-                /*
-                  The moving left edge. Four steps of indent at `lg`, none
-                  below it — on a phone the indent would eat the measure and
-                  the list would read as badly aligned rather than as placed.
-                */
-                className={INDENTS[i % INDENTS.length]}
-              >
-                <article className="flex gap-5 border-t border-text/20 py-7 md:gap-7 md:py-9">
-                  <span aria-hidden className="mt-1 block w-9 shrink-0 md:w-11">
+        {/*
+          ==================================================================
+          FOUR CARDS IN ONE ROW, NOT A STAGGERED LIST
+          ==================================================================
+
+          These were rows: a hairline, a mark, a name and a line, each indented
+          seven per cent further than the one above so the left edge walked
+          down the page. It was a nice figure and it cost four screens of
+          height on a page the client has already said is spending too much of
+          it — and a reader comparing four short claims wants them side by
+          side, not one after another.
+
+          So they are cards, laid out the way <CollaborateTeaser> lays its
+          three: a row of White Rock plates on the Light Sage ground, each set
+          down a degree or so off square with a dab of paint above its name.
+          Same objects, same order, one screen.
+
+          THE TILT IS PER CARD AND FIXED. Four at the same angle read as a
+          template that has been knocked; four set down slightly differently
+          read as paper somebody put there.
+        */}
+        <Stagger
+          as="ul"
+          className="mt-12 grid gap-4 sm:grid-cols-2 md:mt-16 lg:grid-cols-4 lg:gap-5"
+        >
+          {WHAT_SETS_US_APART.map((point, i) => {
+            const card = APART_CARDS[i % APART_CARDS.length];
+            return (
+              <Reveal as="li" key={point.slug} delay={i * 0.07} className="h-full">
+                <article
+                  className={`plate flex h-full flex-col rounded-[1.25rem] bg-cream px-6 py-7 ${card.tilt}`}
+                >
+                  <span aria-hidden className="block w-10 shrink-0">
                     <DoodleMark
                       name={APART_MARKS[i % APART_MARKS.length]}
                       color={APART_INKS[i % APART_INKS.length]}
@@ -432,25 +455,27 @@ function Apart() {
                     />
                   </span>
 
-                  <div>
-                    <h3 className="text-[1.125rem] font-semibold leading-snug text-text md:text-h3 md:font-medium">
-                      {point.name}
-                    </h3>
-                    <p className="mt-2.5 max-w-[46ch] text-body leading-[1.8] text-text/85">
-                      {point.description}
-                    </p>
-                  </div>
+                  <h3 className="mt-6 text-[1.0625rem] font-semibold leading-snug text-text md:text-[1.1875rem]">
+                    {point.name}
+                  </h3>
+                  <p className="mt-2.5 text-fine leading-[1.7] text-text/80">{point.description}</p>
                 </article>
-              </li>
-            ))}
-          </ul>
+              </Reveal>
+            );
+          })}
         </Stagger>
       </Container>
     </section>
   );
 }
 
-const INDENTS = ["lg:ml-0", "lg:ml-[7%]", "lg:ml-[14%]", "lg:ml-[21%]"] as const;
+/* How each card is set down — see the note above the row. */
+const APART_CARDS = [
+  { tilt: "lg:rotate-[-1.1deg]" },
+  { tilt: "lg:rotate-[0.8deg]" },
+  { tilt: "lg:rotate-[-0.6deg]" },
+  { tilt: "lg:rotate-[1.2deg]" },
+] as const;
 const APART_MARKS: readonly DoodleName[] = ["starburst", "splash", "starleaf", "wave"];
 const APART_INKS: readonly string[] = [INK.lilac, INK.terracotta, INK.lavender, INK.lilac];
 
@@ -465,9 +490,8 @@ const APART_INKS: readonly string[] = [INK.lilac, INK.terracotta, INK.lavender, 
  * from the index so they are stable between renders — a random tilt on every
  * paint is the "constant floating" the brief rules out.
  *
- * PAST_DESTINATIONS is set as a run of names rather than a list of chips.
- * They are places the Maison has been, and a typographic run reads as a
- * record where a grid of pills reads as a filter you can press.
+ * PAST_DESTINATIONS is set as paint chips — see the note on the list itself
+ * for why that replaced the run of names this comment used to describe.
  */
 function Created() {
   return (
@@ -513,10 +537,46 @@ function Created() {
                 {forScript("Tables we have set up")}
               </h2>
             </Reveal>
+            {/*
+              ==============================================================
+              THE PLACES, AS PAINT — not a run of names in a paragraph
+              ==============================================================
+
+              This was `PAST_DESTINATIONS.join(" · ")`, and the note above this
+              function argued for it: a typographic run reads as a record,
+              where a grid of pills reads as a filter you can press. The client
+              has overruled it, and on this page they are right — these are ten
+              malls the studio has actually worked in, the strongest single
+              claim /about makes, and set as one grey sentence they read as a
+              footnote.
+
+              THEY ARE PAINT, NOT BUTTONS, and that is what answers the old
+              objection. The chips are the header's own lozenge — <PaintStroke>
+              at full swell, the same device the homepage puts under "No
+              booking" and "5 activities" — drawn behind the word rather than a
+              bordered capsule around it. They are `<li>`s with no hover, no
+              cursor and nothing to press, so they cannot be mistaken for a
+              control; what they look like is a name written on a swatch.
+            */}
             <Reveal delay={0.12}>
-              <p className="mt-6 max-w-[38ch] text-body leading-[1.85] text-text/85">
-                {PAST_DESTINATIONS.join(" · ")} and more.
-              </p>
+              <ul className="mt-7 flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                {PAST_DESTINATIONS.map((place, i) => (
+                  <li
+                    key={place}
+                    /* See <TwoWaysToCreate> on why the swell is driven to 1:
+                       the shared stroke rests as a band under a word, and this
+                       is a lozenge the word sits inside. */
+                    style={{ "--swell": 1, "--wet": 0.58 } as React.CSSProperties}
+                    className="relative isolate inline-block px-3 py-2"
+                  >
+                    <PaintStroke paint={PLACE_PAINTS[i % PLACE_PAINTS.length]} />
+                    <span className="relative text-action font-semibold uppercase tracking-eyebrow text-text">
+                      {place}
+                    </span>
+                  </li>
+                ))}
+                <li className="px-2 py-2 text-fine text-text/70">and more.</li>
+              </ul>
             </Reveal>
             <Reveal delay={0.18}>
               {/* The nav bar's own hover language: no rule at rest, a
@@ -546,6 +606,31 @@ function Created() {
     </section>
   );
 }
+
+/*
+  THE CHIP PAINTS, ALL MIXED TOWARD WHITE ROCK so Charcoal reads on every one.
+  Measured against Charcoal at full strength: Deep Lilac is 2.37:1 and Warm
+  Terracotta 3.84:1 — neither can carry a word undiluted. Mixed at thirty per
+  cent the whole set clears 4.5:1 with room, which is the same solve the
+  activity panels use. Light Sage is already a background colour and goes in
+  at full strength.
+
+  WHITE ROCK WHERE THE OTHER PANELS USE LIGHT SAGE, and that is not a whim.
+  This section's ground IS Light Sage, and lib/paint.ts says it plainly: sage
+  paint on sage paper is not a quiet swatch, it is a missing one. Three of the
+  ten chips landed on that colour and came out as bare words between painted
+  neighbours — visible in the first render. White Rock is the substitute
+  `PAINTS_ON_SAGE` already names for exactly this case.
+
+  Four colours over ten places means the palette runs out and starts again,
+  which is what a palette does — it is not four groups of malls.
+*/
+const PLACE_PAINTS = [
+  "color-mix(in oklab, #C4B5FD 30%, var(--color-cream))", // 8.4:1
+  "var(--color-cream)", // 9.34:1
+  "color-mix(in oklab, #D97757 30%, var(--color-cream))", // 7.3:1
+  "color-mix(in oklab, #9059A4 30%, var(--color-cream))", // 6.6:1
+] as const;
 
 /*
   The plates' sizes and their turn. Three different shapes at three different

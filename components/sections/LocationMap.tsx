@@ -1,6 +1,11 @@
 import { Reveal } from "@/components/motion/Reveal";
+import { INK } from "@/components/sections/hero/composition";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import { cn } from "@/lib/utils";
 import type { MallPartner } from "@/types";
+
+/** The two custom properties `@utility dab` reads. */
+type CSSVars = React.CSSProperties & Record<`--${string}`, string>;
 
 /**
  * What the map is asked to find.
@@ -38,6 +43,16 @@ export function embedSrc(partner: MallPartner): string {
 interface LocationMapProps {
   partners: MallPartner[];
   className?: string;
+  /**
+   * Whether the plate naming each centre is drawn under its map.
+   *
+   * On `/locations` it is, because the map is the whole point of the page and
+   * the plate is its label. An event page wants the same plate beside its
+   * heading instead — a caption under a map that is already under a heading
+   * puts the destination's name below the fold — so it turns this off and
+   * renders {@link PartnerPlate} itself.
+   */
+  caption?: boolean;
 }
 
 /**
@@ -73,7 +88,7 @@ interface LocationMapProps {
  *
  * Server component: an iframe, two links and no state.
  */
-export function LocationMap({ partners, className }: LocationMapProps) {
+export function LocationMap({ partners, className, caption = true }: LocationMapProps) {
   if (partners.length === 0) return null;
 
   const single = partners.length === 1;
@@ -82,7 +97,22 @@ export function LocationMap({ partners, className }: LocationMapProps) {
     <div className={cn("grid gap-x-6 gap-y-14 lg:gap-x-8", single ? "" : "md:grid-cols-2", className)}>
       {partners.map((partner, i) => (
         <Reveal key={partner.slug} variant="fadeIn" delay={i * 0.08}>
-          <figure>
+          <figure className="relative">
+            {/*
+              ON THE FIGURE, NOT IN THE MAP FRAME. This sat inside the frame
+              and the frame is `overflow-hidden` for its own rounded corner, so
+              all that showed was the sliver of it that fell inside the box.
+              Hung off the figure instead, it breaks the map's bottom-left edge
+              the way it was meant to, and it still cannot sit over the tiles
+              or catch a drag.
+            */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-5 z-10 hidden w-[4rem] rotate-[12deg] md:block md:w-[5rem]"
+              style={{ top: "calc(56.25% - 2.5rem)" }}
+            >
+              <DoodleMark name="bean" color={INK.terracotta} treatment="stamp" delay={320} />
+            </span>
             <div
               className={cn(
                 "relative w-full overflow-hidden rounded-sm border border-line bg-surface-alt",
@@ -115,62 +145,104 @@ export function LocationMap({ partners, className }: LocationMapProps) {
               />
             </div>
 
-            {/*
-              The wall label. Name and city on one side, the way out on the
-              other — and on a phone they stack rather than squeezing onto one
-              line, because a 360px row holding a name, a city and a link is
-              three things fighting for the same 40 characters.
-            */}
-            <figcaption className="mt-6 flex flex-col gap-5 border-t border-line pt-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
-              <div className="min-w-0">
-                {/*
-                  An <h3>, not a paragraph that looks like one. The plate that
-                  used to head this destination is gone — its name, its city
-                  and its one line all live here now, so this is the heading
-                  for the destination and the outline should say so.
-                */}
-                <h3 className="text-h3 font-light tracking-[-0.015em] text-text">
-                  {partner.name}
-                </h3>
-                <p className="mt-2 text-fine font-medium uppercase tracking-eyebrow text-text/75">
-                  {partner.locality}
-                </p>
-                {/* The centre's one line, carried down from the plate. */}
-                <p className="mt-4 max-w-[34rem] text-body leading-[1.8] text-text/80">
-                  {partner.descriptor}
-                </p>
-              </div>
-
-              {partner.locationHref ? (
-                <a
-                  href={partner.locationHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group -my-1.5 inline-flex shrink-0 items-center gap-3 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
-                >
-                  <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-                    View location
-                  </span>
-                  {/*
-                    The corner arrow, and Charcoal rather than Warm Terracotta
-                    — the same two decisions <MallPartners> made for its own
-                    outbound link, for the same two reasons: this glyph says
-                    "this one leaves", and the accent measures 2.44:1 on White
-                    Rock, under the 3:1 a meaningful glyph owes.
-                  */}
-                  <span
-                    aria-hidden
-                    className="text-text/75 transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-y-0.5"
-                  >
-                    &#8599;
-                  </span>
-                  <span className="sr-only">(opens in a new tab)</span>
-                </a>
-              ) : null}
-            </figcaption>
+            {caption ? <PartnerPlate partner={partner} className="mt-6" /> : null}
           </figure>
         </Reveal>
       ))}
+    </div>
+  );
+}
+
+/**
+ * A destination, as a plate: the dab, the name, the city, the studio's own
+ * line about it, and the way out to a real map.
+ *
+ * ==========================================================================
+ * WHY IT IS ITS OWN COMPONENT
+ * ==========================================================================
+ *
+ * It was a `<figcaption>` inside <LocationMap>, which is the right place for
+ * it on `/locations` — the map is the page and this is its label. An event
+ * page wants it somewhere else: beside the section's heading, where a visitor
+ * reads the destination's name at the same moment as "Where the Maison sets
+ * up", rather than several hundred pixels below a map that is itself below
+ * the heading.
+ *
+ * Two callers, one object. <LocationMap caption={false}> turns the built-in
+ * one off and the page renders this where it wants it, so the plate cannot
+ * drift into two versions of itself.
+ *
+ * It keeps `<figcaption>`'s job without its element: the name is an <h3>,
+ * because a destination with a name, a city and a description is a heading
+ * with content under it whatever box it sits in.
+ */
+export function PartnerPlate({
+  partner,
+  className,
+}: {
+  partner: MallPartner;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "plate relative flex flex-col gap-5 rounded-[1.25rem] bg-cream px-6 pb-7 pt-6",
+        "sm:flex-row sm:items-start sm:justify-between sm:gap-10 md:px-7 md:pb-8 md:pt-7",
+        className,
+      )}
+    >
+      {/*
+        One cut-out breaking the plate's BOTTOM-right corner. The deck puts its
+        shapes on an edge and never in clear space. The top-right is taken —
+        "View location" sits there, and the first placement put a 5.5rem
+        lavender shape straight over it.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-5 -right-4 w-[4.5rem] rotate-[-10deg] md:w-[5.5rem]"
+      >
+        <DoodleMark name="coral" color={INK.lavender} treatment="stamp" delay={240} />
+      </span>
+
+      <div className="min-w-0">
+        <span
+          aria-hidden
+          className="dab h-9 w-[3.5rem] md:h-10 md:w-[4.25rem]"
+          style={{ "--paint": INK.terracotta, "--tilt": "-2deg" } as CSSVars}
+        />
+        <h3 className="mt-5 text-[1.0625rem] font-bold uppercase leading-[1.12] tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none] md:text-[1.25rem]">
+          {partner.name}
+        </h3>
+        <p className="mt-2 text-fine font-medium uppercase tracking-eyebrow text-text/75">
+          {partner.locality}
+        </p>
+        <p className="mt-4 max-w-[34rem] text-body leading-[1.8] text-text/80">
+          {partner.descriptor}
+        </p>
+      </div>
+
+      {partner.locationHref ? (
+        <a
+          href={partner.locationHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group -my-1.5 inline-flex shrink-0 items-center gap-3 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text sm:mt-6"
+        >
+          <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
+            View location
+          </span>
+          {/* Charcoal rather than Warm Terracotta: this glyph says "this one
+              leaves", and the accent measures 2.44:1 on White Rock, under the
+              3:1 a meaningful glyph owes. */}
+          <span
+            aria-hidden
+            className="text-text/75 transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-y-0.5"
+          >
+            &#8599;
+          </span>
+          <span className="sr-only">(opens in a new tab)</span>
+        </a>
+      ) : null}
     </div>
   );
 }

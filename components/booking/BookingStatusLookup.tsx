@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { useSearchParams } from "next/navigation";
 import { useId, useState } from "react";
 
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { findBooking, useBookings } from "@/lib/booking";
-import { cn } from "@/lib/utils";
 
 const FIELD =
   "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-lead tabular-nums " +
@@ -99,23 +99,9 @@ export function BookingStatusLookup() {
           It is on your confirmation, and looks like MP-D followed by six characters.
         </p>
 
-        <button
-          type="submit"
-          className={cn(
-            "group mt-9 inline-flex w-full items-center justify-center gap-2.5 rounded-sm px-8 py-4",
-            "text-action font-medium uppercase leading-none tracking-eyebrow",
-            "bg-primary text-on-primary transition-colors duration-300 ease-soft",
-            "press-in hover:bg-primary/90 sm:w-auto",
-          )}
-        >
+        <BlobButton type="submit" className="mt-9 w-full justify-center px-8 py-4 sm:w-auto">
           Check status
-          <span
-            aria-hidden
-            className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-          >
-            &#8594;
-          </span>
-        </button>
+        </BlobButton>
       </form>
 
       {/*

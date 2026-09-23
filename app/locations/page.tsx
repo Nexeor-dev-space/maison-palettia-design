@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
@@ -329,18 +329,9 @@ function HostMovement() {
                 what the Maison could make there.
               </p>
               <div className="col-span-12 lg:col-span-4 lg:col-start-9">
-                <Link
-                  href="/contact"
-                  className="group inline-flex min-h-12 items-center gap-3 rounded-sm bg-primary px-7 text-action font-semibold uppercase tracking-eyebrow text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90"
-                >
+                <BlobButton href="/contact" className="min-h-[3.25rem] px-7">
                   Partner with us
-                  <span
-                    aria-hidden
-                    className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                  >
-                    &#8594;
-                  </span>
-                </Link>
+                </BlobButton>
               </div>
             </div>
           </div>
