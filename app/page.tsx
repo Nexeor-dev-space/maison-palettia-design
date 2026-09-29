@@ -146,7 +146,13 @@ export default function HomePage() {
 
       <WhereWeCreate />
       {/*
-        <CollaborateTeaser /> HAS BEEN TAKEN OFF THE PAGE at the client's ask —
+        <CollaborateTeaser /> HAS BEEN TAKEN OFF THE PAGE at the client's ask,
+        AND NOW LIVES ON /about — the client asked for it back and for it to
+        move there. See the note beside it in app/about/page.tsx. The reasoning
+        below is why taking it off THIS page costs nothing; it is kept because
+        it is still true.
+
+        Originally: —
         "Let's create together", the collaborative-approach teaser with the
         three partnership cards.
 
