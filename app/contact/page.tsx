@@ -96,42 +96,72 @@ function Invitation() {
 
 
       {/*
-        THE PARAGRAPH SITS BESIDE THE STATEMENT, NOT UNDER ITS RIGHT SHOULDER.
+        ONE COLUMN: THE STATEMENT AND THE SENTENCE THAT FINISHES IT.
 
-        It was a staircase: the statement on the left, then 64px of nothing,
-        then the paragraph dropped into the second half of the measure. That
-        composition needs the drop to be doing something, and here it was not —
-        measured at 1440 it left an L of empty Light Sage about 700px wide and
-        400px tall in the middle of the first screen, which is the space the
-        client asked about.
+        The paragraph has been beside the statement and it has been under its
+        right shoulder; the client has asked for it directly under the
+        statement instead, and that is the version this page should have had
+        from the start. The two are one thought — "let's create something
+        together / whether it is a question about an upcoming event…" — and a
+        sentence that continues a heading belongs on the heading's own measure,
+        not across a gutter from it.
 
-        Levelled into one row it is the same staircase read across instead of
-        down: the statement still holds the left, the paragraph still starts at
-        the second half, and the eye still turns a corner — it just stops
-        falling through half a screen to do it.
+        WHAT THAT FREES IS THE RIGHT-HAND HALF, and it is deliberately not
+        refilled with type. The form has moved into it lower down the page (see
+        <Enquiry>), so the eye that crosses this band is already travelling
+        towards the thing it will use; what stands in the band is the brand's
+        own cut-outs, which is what the deck puts in a margin.
 
-        THE HEADING HAD TO COME INSIDE THE GRID FOR THAT TO MEAN ANYTHING. It
-        sat above as a sibling, so `items-end` had only one child to align and
-        the paragraph still opened a row of its own underneath. In the same row
-        the two are actually beside each other and `items-end` seats the
-        paragraph on the statement's LAST line rather than its first — which is
-        the staircase, kept, without the half-screen fall.
+        `script-lede` rather than a margin, because the statement is set in
+        Hapsha and its descenders hang into the gap — the same token every
+        script heading on the site pays.
       */}
-      <div className="mt-8 grid grid-cols-12 items-end gap-x-6 md:mt-10 lg:gap-x-10">
-        <h1 id="contact-intro" className="col-span-12 lg:col-span-6">
-          <Stagger>
-            <span className={STATEMENT_LINE}>Let&apos;s create</span>
-            <span className={STATEMENT_LINE}>something together.</span>
-          </Stagger>
-        </h1>
+      <div className="mt-8 grid grid-cols-12 gap-x-6 md:mt-10 lg:gap-x-10">
+        <div className="col-span-12 lg:col-span-7">
+          <h1 id="contact-intro">
+            <Stagger>
+              <span className={STATEMENT_LINE}>Let&apos;s create</span>
+              <span className={STATEMENT_LINE}>something together.</span>
+            </Stagger>
+          </h1>
 
-        <Reveal delay={0.15} className="col-span-12 mt-8 md:col-span-7 md:col-start-6 lg:col-span-5 lg:col-start-8 lg:mt-0 lg:pb-3">
-          <p className="text-lead font-light leading-[1.7] text-text md:text-[1.35rem]">
-            Whether it is a question about an upcoming event, a place you would like to keep, or
-            something you would like to make with us — write to the Maison and we will take it
-            from there.
-          </p>
-        </Reveal>
+          <Reveal delay={0.15}>
+            <p className="script-lede max-w-[44ch] text-lead font-light leading-[1.7] text-text md:text-[1.35rem]">
+              Whether it is a question about an upcoming event, a place you would like to keep, or
+              something you would like to make with us — write to the Maison and we will take it
+              from there.
+            </p>
+          </Reveal>
+        </div>
+
+        {/*
+          THE MARGIN THE PARAGRAPH LEFT, GIVEN THE DECK'S FURNITURE.
+
+          Two cut-outs from the brand sheet, in two of its six colours, placed
+          against the edges of the cell rather than floated in the middle of
+          it — the client's standing note on icons is that uncontrolled
+          scattering does not look good, and the deck's own habit is that a
+          shape crosses something: an edge, a corner, a column.
+
+          Terracotta and White Rock, because the wave already breaking the
+          measure above this is Soft Lavender and the page itself is Light
+          Sage. Four of the six colours are then in the band and none of them
+          is the ground.
+
+          `lg:` only: below that the statement runs the full measure and there
+          is no margin for them to be the margin of.
+        */}
+        <div
+          aria-hidden
+          className="pointer-events-none relative hidden self-stretch lg:col-span-4 lg:col-start-9 lg:block"
+        >
+          <Reveal delay={0.35} className="absolute left-[6%] top-[14%] w-[7.5rem] xl:w-[9rem]">
+            <DoodleMark name="starburst" color={INK.terracotta} treatment="draw" delay={420} />
+          </Reveal>
+          <Reveal delay={0.45} className="absolute -bottom-6 right-[4%] w-[8.5rem] xl:w-[10rem]">
+            <DoodleMark name="cutout" color={INK.whiteRock} treatment="draw" delay={560} />
+          </Reveal>
+        </div>
       </div>
 
       {/*
@@ -225,11 +255,32 @@ function Enquiry() {
     >
       <div className="grid grid-cols-12 gap-x-6 gap-y-14 lg:gap-x-10">
         {/*
-          The form leads and takes two thirds. It is the only working way to
-          reach the Maison on this page, so it gets the column that a sheet of
-          telephone numbers would have had.
+          ==================================================================
+          THE DETAILS LEAD THE COLUMN, THE FORM TAKES THE RIGHT-HAND SIDE
+          ==================================================================
+
+          The form used to lead and take two thirds of the left, on the
+          argument that it is the only working way to reach the Maison from
+          this page. That is still true and it is no longer the argument that
+          decides the position: the client has asked for the form on the right
+          and for "Find us" to fall under the statement's own paragraph.
+
+          Read down the page that now gives one continuous left-hand column —
+          statement, the sentence that finishes it, then where the Maison is —
+          against one object on the right, which is the thing you came to use.
+          The old arrangement had the two halves swapping sides between the
+          first screen and the second, so the eye crossed the measure twice to
+          read what is really one column of words.
+
+          `Details` IS FIRST IN THE SOURCE, NOT JUST FIRST ON THE LEFT. Reading
+          order and visual order are the same at every width — down the left
+          on a desktop, top to bottom on a phone — so nothing has to be put
+          back in place with `order-*`, and a keyboard runs the page in the
+          order it is drawn.
         */}
-        <div className="col-span-12 lg:col-span-7 xl:col-span-6">
+        <Details />
+
+        <div className="col-span-12 lg:col-span-7 lg:col-start-6 xl:col-span-6 xl:col-start-7">
           <Reveal>
             <h2
               id="contact-enquiry"
@@ -281,8 +332,6 @@ function Enquiry() {
             </div>
           </Reveal>
         </div>
-
-        <Details />
       </div>
     </Container>
   );
@@ -303,7 +352,42 @@ function Details() {
   if (!hasAddress && !CONTACT.email && !CONTACT.phone && social.length === 0) return null;
 
   return (
-    <aside aria-labelledby="contact-find-us" className="col-span-12 lg:col-span-4 lg:col-start-9">
+    <aside aria-labelledby="contact-find-us" className="relative col-span-12 lg:col-span-4">
+      {/*
+        THE FOOT OF THIS COLUMN IS AIR, AND IT IS THE FORM'S FAULT — in the
+        good sense. The row is as tall as the form beside it, and what the
+        Maison has actually published is a city and a line about venues, so
+        below the rule there is about 430px of Light Sage at 1440 that no
+        amount of writing should be invented to fill.
+
+        Two more of the deck's cut-outs stand in it instead, on the same terms
+        as the pair in the statement's margin: placed, not scattered, each one
+        against an edge — the starleaf crosses the page's left gutter the way
+        the deck lets a shape run off a page, and the bean crosses the column's
+        inner edge into the channel between it and the form. Neither floats in
+        clear space, which was the first attempt and read as a sticker dropped
+        in the middle of the band. Deep Lilac and Warm Terracotta, the two of the six that
+        the Light Sage ground shows at full strength.
+
+        The aside already stretches to the row's height (the grid sets no
+        `items-*`), so `relative` here is all these need to have a box to be
+        placed in. Decorative, `aria-hidden`, untouchable, and `lg:` only,
+        because on a phone the column is as tall as its own words and this air
+        does not exist.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -left-8 bottom-[8%] hidden w-[9rem] -rotate-6 lg:block xl:w-[10.5rem]"
+      >
+        <DoodleMark name="starleaf" color={INK.lilac} treatment="draw" delay={640} />
+      </span>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-6 bottom-[46%] hidden w-[5.5rem] rotate-[12deg] lg:block xl:w-[6.5rem]"
+      >
+        <DoodleMark name="bean" color={INK.terracotta} treatment="draw" delay={720} />
+      </span>
+
       <Reveal delay={0.2}>
         {/* A heading in the script, the pair of "Write to us" beside it. */}
         <h2 id="contact-find-us" className="heading-script text-script-compact text-text">

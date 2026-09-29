@@ -1,5 +1,7 @@
 import Image from "next/image";
-import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandStory";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { cn } from "@/lib/utils";
+import { CollaborateTeaser } from "@/components/sections/home/CollaborateTeaser";
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
@@ -13,6 +15,7 @@ import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import {
+  BRAND_STORY,
   CLOSING,
   COMMUNITY,
   EVENT_PLATES,
@@ -91,6 +94,23 @@ export default function AboutPage() {
       <LittleCreators />
       <Apart />
       <Created />
+      {/*
+        RESTORED, AND MOVED HERE FROM THE HOME PAGE at the client's ask.
+        "Let's create together" — the collaborative-approach teaser with the
+        three partnership models.
+
+        It was taken off the homepage as a safe removal, on the grounds that
+        the same content lives in full on /locations and nothing linked to the
+        teaser. The client wants it back, on this page, and that is the better
+        home for it: /about is where somebody works out what the Maison is,
+        and "we also bring this to your space" is part of that answer. On the
+        homepage it was a fourth call to action competing with three others.
+
+        It sits after <Created> and before the close, so the page runs from
+        what the Maison is, through what it makes, to who it will make it
+        with.
+      */}
+      <CollaborateTeaser />
       <Close />
     </>
   );
@@ -139,41 +159,103 @@ function Welcome() {
         </Reveal>
 
         {/*
-          `pb-[0.3em]` on the heading below is not decoration and must stay on
-          the element carrying the font-size: Hapsha's capitals and swashes
-          stand about 0.9em above the baseline against a 0.8em line box, so
-          without the clearance the line below cuts through the line above.
-          Moved to a wrapper it resolves against 16px and fails again.
+          THE PAGE'S TITLE, PUT BACK.
+
+          This section is `aria-labelledby="about-title"` and nothing carried
+          that id: the h1 had gone, so the page had no title element at all and
+          the label pointed at nothing. Restored as the tagline, which is what
+          an About page's h1 should be.
+
+          `pb-[0.3em]` is not decoration and must stay on the element carrying
+          the font-size: Hapsha's capitals and swashes stand about 0.9em above
+          the baseline against a 0.8em line box, so without the clearance the
+          line below cuts through the line above. Moved to a wrapper it
+          resolves against 16px and fails again.
+        */}
+        <Reveal delay={0.08}>
+          <h1
+            id="about-title"
+            className="heading-script mt-7 max-w-[15ch] pb-[0.3em] text-script-hero text-text md:mt-9"
+          >
+            {forScript(TAGLINE)}
+          </h1>
+        </Reveal>
+
+        {/*
+          THE ABOUT DESCRIPTION.
+
+          The typeset opening that stood here — the deck's sentence broken at
+          its punctuation, with the photograph and the lilac field under it —
+          has moved to where it belongs: it is the HOMEPAGE's opening, and the
+          client asked for this page to carry a description of its own instead.
+
+          `BRAND_STORY` is that description, and it is the client's own: one
+          sentence of the deck, whole rather than cut into parts. On the
+          homepage it is performed; here it is simply read, which is what an
+          about page is for.
         */}
         {/*
-          THE STORY, TYPESET — NOT ONE FLAT PARAGRAPH.
+          ON THE LEFT, UNDER THE TITLE, AND WIDER — at the client's ask.
 
-          This set `BRAND_STORY` as a single block of running copy pushed into
-          the corner. Same words, none of the typesetting: the sentence names
-          the brand after a word, and printing that word at the same size as
-          everything around it throws away the one thing the sentence is doing.
+          It was pushed into the right-hand corner at a 46ch measure, which is
+          the composition the old flat-paragraph version used: title top-left,
+          paragraph bottom-right, and the whole middle of the section empty.
+          Their note was that there is too much empty space here and that this
+          should move left and take more width.
 
-          The client pointed at the homepage's treatment and asked for the
-          about-us section to read like it — the lead-in, "Palette" in the
-          brand's own script, and the clause that defines it, with the rest of
-          the sentence carried by the field beside the photograph. It is the
-          same component in both places now; see <BrandStory>.
-
-          `as="p"`: this page's h1 is already the tagline, directly above. A
-          second heading of the same rank under it would be a document outline
-          claiming the page has two titles.
+          So it sits directly under the title on the same left edge, at 62ch
+          rather than 46 — still inside the 45-75 characters a line wants to be
+          for comfortable reading, and now wide enough that the sentence fills
+          the column instead of hanging off the end of it.
         */}
-        <div className="mt-10 grid grid-cols-12 md:mt-14">
-          <Reveal
-            delay={0.16}
-            className="col-span-12 md:col-span-9 md:col-start-4 lg:col-span-8 lg:col-start-5"
-          >
-            <BrandStoryLead as="p" />
-          </Reveal>
-        </div>
+        <Reveal delay={0.16} className="mt-8 block md:mt-10">
+          <p className="max-w-[62ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.3125rem)] font-light leading-[1.75] text-text">
+            {BRAND_STORY}
+          </p>
+        </Reveal>
 
-        <Reveal variant="fadeIn" delay={0.24} className="mt-12 block md:mt-16">
-          <BrandStoryObject />
+        {/*
+          AND THE PICTURE UNDER IT, with the brand's own marks on its edges.
+
+          `palette-brush.jpg` — a palette, a brush and a hand at work. It is
+          the one studio photograph not already placed somewhere on the site,
+          so the page gains an image without repeating one, and it shows the
+          making rather than the made thing, which is what the sentence above
+          it describes.
+
+          The marks break the frame's corners rather than float beside it —
+          the deck's own rule, and the same one <PartnerPlate> and the session
+          cards follow. Hung outside the box on a `relative` wrapper, so the
+          picture clips none of them.
+        */}
+        <Reveal variant="imageReveal" delay={0.24} className="relative mt-12 block md:mt-16">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-5 -top-7 z-10 hidden w-[5rem] rotate-[-12deg] md:block md:w-[6rem]"
+          >
+            <DoodleMark name="splash" color={INK.lilac} treatment="stamp" delay={220} />
+          </span>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -bottom-6 right-6 z-10 hidden w-[4.5rem] rotate-[10deg] md:block md:w-[5.5rem]"
+          >
+            <DoodleMark name="coral" color={INK.terracotta} treatment="stamp" delay={340} />
+          </span>
+
+          <span
+            className="plate relative block aspect-[16/9] w-full overflow-clip rounded-[1.5rem] md:rounded-[2rem] lg:aspect-[21/9]"
+            data-paint
+            style={{ "--paint": "var(--color-lavender)" } as React.CSSProperties}
+          >
+            <Image
+              src="/images/studio/palette-brush.jpg"
+              alt="A hand painting a silver motif onto denim with a fine brush, a red palette of mixed colour beside it."
+              fill
+              sizes="(min-width: 1024px) 88vw, 100vw"
+              className="object-cover"
+              style={{ objectPosition: "50% 55%" }}
+            />
+          </span>
         </Reveal>
       </Container>
     </section>
@@ -183,23 +265,15 @@ function Welcome() {
 /* ---- 02 purpose ---------------------------------------------------------- */
 
 /*
-  The mission is set in the script and the vision is not, and that is the
-  page's typographic rule doing its job rather than a preference.
+  THE HAND-BROKEN MISSION LINES HAVE GONE WITH THE TREATMENT THAT NEEDED THEM.
 
-  MISSION is one sentence somebody would say: "To inspire meaningful
-  connections through the joy of creativity." VISION is a description of what
-  the business intends to be — longer, and read rather than felt. Script for
-  the first, Montserrat for the second.
-
-  The line breaks are given rather than left to the measure, because where a
-  statement turns is a design decision on this site. Checked against the
-  source so a re-worded MISSION cannot silently ship as three wrong lines.
+  `MISSION_LINES` set the statement as three given lines, because where a
+  script statement turns is a design decision rather than a measure's. The
+  statement is no longer the script — the label is — so the sentence wraps to
+  its own measure like every other paragraph on the page, and a re-worded
+  MISSION can no longer ship as three wrong lines because nothing here
+  restates it.
 */
-const MISSION_LINES = ["To inspire meaningful", "connections through", "the joy of creativity."];
-
-function missionLines(): readonly string[] {
-  return MISSION_LINES.join(" ") === MISSION ? MISSION_LINES : [MISSION];
-}
 
 /**
  * Mission and vision as two fields meeting on a hard seam.
@@ -216,38 +290,52 @@ function Purpose() {
     <section aria-labelledby="purpose-heading" className="bg-sage pb-[5rem] md:pb-section lg:pb-section-lg">
       <Container>
         <Reveal variant="fadeIn">
-          <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem]">
-            <div className="flex flex-col lg:min-h-[26rem] lg:flex-row">
-              {/* The statement. Deep Lilac, with the one light ink that
-                  clears 4.5:1 on it — see inkFor() in <SectionHeader>. */}
-              <div className="flex flex-col justify-center bg-primary px-7 py-12 text-surface md:px-11 md:py-16 lg:w-[42%] lg:shrink-0 lg:px-12">
-                <Eyebrow ground="lilac">Our mission</Eyebrow>
-                <h2
-                  id="purpose-heading"
-                  className="heading-script mt-6 pb-[0.3em] text-script-compact leading-[1.22] text-surface"
-                >
-                  {missionLines().map((line) => (
-                    <span key={line} className="block">
-                      {forScript(line)}
-                    </span>
-                  ))}
-                </h2>
-              </div>
+          {/*
+            ==================================================================
+            EQUAL HALVES, ONE TREATMENT — at the client's ask
+            ==================================================================
 
-              {/* The explanation. White Rock, Montserrat, charcoal. */}
-              <div className="relative flex flex-1 flex-col justify-center bg-cream px-7 py-12 md:px-11 md:py-16 lg:px-14">
-                <Eyebrow>Our vision</Eyebrow>
-                <p className="mt-6 max-w-[42ch] text-[clamp(1.0625rem,1rem+0.3vw,1.25rem)] font-light leading-[1.75] text-text">
-                  {VISION}
-                </p>
-              </div>
+            These were 42% and 58%, and set in two different ways: the mission
+            as a script statement on Deep Lilac, the vision as Montserrat body
+            copy on White Rock. The reasoning was that a mission is something
+            somebody SAYS and a vision is something they describe — true, and
+            it produced a pair that matched in nothing: not width, not height,
+            not type, not rhythm. The client's note is that they should look
+            equal and share one style.
+
+            So both halves are now the same object: half the row each, the same
+            padding, the same script label over the same Montserrat text at the
+            same size. What still differs is the ground, and only the ground —
+            which is what keeps them a PAIR rather than one long box.
+
+            THE LABEL CARRIES THE SCRIPT, NOT THE STATEMENT. Setting the vision
+            in Hapsha to match the mission would have put four lines of running
+            copy in a display face; dropping the script from the mission would
+            have taken the brand's own voice out of the one line on this page
+            that has it. Moving it to the label gives both halves the script in
+            the same place, doing the same job, at a length it is built for.
+
+            INK, MEASURED. On Deep Lilac, Light Sage is 3.83:1 — large text
+            only, which a script heading at this size is — and the near-white
+            `surface` is 4.90:1, which carries the paragraph. On White Rock the
+            two are Deep Lilac and Charcoal.
+          */}
+          <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem]">
+            <div className="grid lg:min-h-[24rem] lg:grid-cols-2">
+              <Purposeful
+                ground="lilac"
+                label="Our mission"
+                id="purpose-heading"
+                body={MISSION}
+              />
+              <Purposeful ground="cream" label="Our vision" body={VISION} />
             </div>
 
             {/*
               On the outer corner, not on the seam. A cut-out laid over a join
-              reads as a sticker covering a joint rather than as the join
-              being made well — which is why the homepage's own two-field
-              object had its seam mark removed.
+              reads as a sticker covering a joint rather than as the join being
+              made well — which is why the homepage's own two-field object had
+              its seam mark removed.
             */}
             <span
               aria-hidden
@@ -259,6 +347,55 @@ function Purpose() {
         </Reveal>
       </Container>
     </section>
+  );
+}
+
+/**
+ * One half of the purpose pair: a script label over a paragraph.
+ *
+ * Both halves take exactly this, so the two cannot drift into different
+ * shapes — which is what the client's note was about. The only thing the
+ * caller varies is the ground, and the two inks that go with it.
+ */
+function Purposeful({
+  ground,
+  label,
+  body,
+  id,
+}: {
+  ground: "lilac" | "cream";
+  label: string;
+  body: string;
+  id?: string;
+}) {
+  const onLilac = ground === "lilac";
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col justify-center px-7 py-12 md:px-11 md:py-16 lg:px-12",
+        onLilac ? "bg-primary text-surface" : "bg-cream text-text",
+      )}
+    >
+      <p
+        id={id}
+        className={cn(
+          "heading-script pb-[0.18em] text-[clamp(1.75rem,1.45rem+1.3vw,2.4rem)] leading-[1.18]",
+          onLilac ? "text-sage" : "text-primary",
+        )}
+      >
+        {forScript(label)}
+      </p>
+
+      <p
+        className={cn(
+          "mt-5 max-w-[42ch] text-[clamp(1.0625rem,1rem+0.3vw,1.25rem)] font-light leading-[1.75]",
+          onLilac ? "text-surface" : "text-text",
+        )}
+      >
+        {body}
+      </p>
+    </div>
   );
 }
 
@@ -316,52 +453,74 @@ function Community() {
             </Reveal>
           </div>
 
-          {/* The thread. */}
+          {/*
+            ==================================================================
+            NO BOXES AT ALL — the third version, and the client is right twice
+            ==================================================================
+
+            This was a thread: a hairline down the column with a bead on it at
+            every step. Redesigned at the client's ask into laid cards, and
+            their note on those was blunt — it does not look good, "especially
+            its white boxes".
+
+            They are right, and the reason is worth keeping. The section's
+            ground is White Rock; the cards were the paler sage-white mix, so
+            five near-white boxes sat on a near-white field, each carrying a
+            soft edge and a shadow to be visible at all, each nudged off the
+            column and with a cut-out over its corner. Five faint rectangles
+            competing to be seen is what that reads as.
+
+            So there is no box. Each step is a stroke of the brand's own paint
+            with the words beside it — the loaded-brush mark the workshop
+            journey and the collaboration cards already use (`dab` in
+            globals.css), in a different colour for each step, with the step's
+            cut-out laid over it. Nothing has an edge, nothing needs a shadow
+            to exist, and the colour is doing the work the boxes were failing
+            to do.
+          */}
           <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-            <Stagger>
-              <ol className="relative">
-                {/*
-                  ONE RULE FOR THE WHOLE COLUMN, drawn once behind the items
-                  rather than as a border on each. A per-item border leaves a
-                  hairline gap at every join and the thread stops looking
-                  continuous. It stops short of the last mark's centre so the
-                  line ends ON the final step rather than running past it.
-                */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute bottom-[calc(1.5rem+1px)] left-[1.4375rem] top-6 w-px bg-text/25"
-                />
+            <Stagger as="ol" className="flex flex-col gap-9 md:gap-10">
+              {WORKSHOP_JOURNEY.map((step, i) => (
+                <Reveal as="li" key={step.slug} delay={i * 0.06} className="flex gap-5 md:gap-6">
+                  {/*
+                    THE CUT-OUT ON ITS OWN, AND THAT IS A CORRECTION.
 
-                {WORKSHOP_JOURNEY.map((step, i) => (
-                  <li key={step.slug} className="relative flex gap-5 pb-10 last:pb-0 md:gap-6">
-                    {/*
-                      The node. A White Rock disc so the rule is broken rather
-                      than crossed, with the mark inside it. Size the box, not
-                      the mark — <DoodleMark> fills whatever it is given.
-                    */}
-                    <span
-                      aria-hidden
-                      className="relative z-10 mt-0.5 grid size-12 shrink-0 place-items-center rounded-pill bg-cream p-2.5"
-                    >
-                      <DoodleMark
-                        name={JOURNEY_MARKS[i % JOURNEY_MARKS.length]}
-                        color={JOURNEY_INKS[i % JOURNEY_INKS.length]}
-                        treatment="draw"
-                        delay={200 + i * 120}
-                      />
-                    </span>
+                    This was briefly a dab of paint with the step's cut-out
+                    drawn on it in White Rock — the guideline's own two-tone
+                    construction, a coloured shape with another shape cut out
+                    of it. It did not work at this size: the dab is 9px of
+                    height and the cut-out is 44px wide, so the shape sat over
+                    the whole mark and out past its top, and what rendered was
+                    a chewed blob rather than either object.
 
-                    <div className="pt-1.5">
-                      <h3 className="text-[1.0625rem] font-semibold leading-snug text-text md:text-lead">
-                        {step.name}
-                      </h3>
-                      <p className="mt-2 max-w-[38ch] text-body leading-[1.8] text-text/85">
-                        {step.description}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+                    The two-tone icon needs the backing shape to be the larger
+                    of the two. At the size a list item can give a mark, the
+                    cut-out alone in its own colour is the honest version — and
+                    it is what every other list on this site uses.
+                  */}
+                  <span
+                    aria-hidden
+                    className="mt-0.5 block w-[2.75rem] shrink-0 md:w-[3.25rem]"
+                    style={{ rotate: `${i % 2 === 0 ? -8 : 6}deg` }}
+                  >
+                    <DoodleMark
+                      name={JOURNEY_MARKS[i % JOURNEY_MARKS.length]}
+                      color={JOURNEY_INKS[i % JOURNEY_INKS.length]}
+                      treatment="stamp"
+                      delay={200 + i * 110}
+                    />
+                  </span>
+
+                  <div>
+                    <h3 className="text-[1.0625rem] font-semibold leading-snug text-text md:text-lead">
+                      {step.name}
+                    </h3>
+                    <p className="mt-2 max-w-[40ch] text-body leading-[1.8] text-text/85">
+                      {step.description}
+                    </p>
+                  </div>
+                </Reveal>
+              ))}
             </Stagger>
           </div>
         </div>
@@ -378,8 +537,23 @@ function Community() {
   remember to add itself here. White Rock is not in the ink list — the nodes
   sit on a White Rock ground and a White Rock cut-out on it is an empty disc.
 */
-const JOURNEY_MARKS: readonly DoodleName[] = ["starleaf", "splash", "starburst", "wave"];
-const JOURNEY_INKS: readonly string[] = [INK.terracotta, INK.lilac, INK.lavender, INK.terracotta];
+const JOURNEY_MARKS: readonly DoodleName[] = [
+  "starleaf",
+  "splash",
+  "starburst",
+  "wave",
+  /* Five, because WORKSHOP_JOURNEY has five steps and a four-long list wrapped
+     — the last card came back with the first one's mark and ink, which reads
+     as a mistake rather than as a rhythm. */
+  "coral",
+];
+const JOURNEY_INKS: readonly string[] = [
+  INK.terracotta,
+  INK.lilac,
+  INK.lavender,
+  INK.terracotta,
+  INK.lilac,
+];
 
 /* ---- 04 apart ------------------------------------------------------------ */
 
@@ -398,8 +572,39 @@ const JOURNEY_INKS: readonly string[] = [INK.terracotta, INK.lilac, INK.lavender
  */
 function Apart() {
   return (
-    <section aria-labelledby="apart-heading" className="bg-sage py-[5rem] md:py-section lg:py-section-lg">
-      <Container>
+    /*
+      ==========================================================================
+      SOFT LAVENDER, AND SHAPES IN THE AIR — at the client's ask
+      ==========================================================================
+
+      Their note was that this section looks very empty, to change its ground
+      and add more doodles, and to take the colours and shapes from the brand
+      sheet.
+
+      THE GROUND. It was Light Sage, which is the page's own paper — this is
+      the fourth sage section on the page and the one with the most air in it,
+      so it read as a gap between two sections rather than as a section. Soft
+      Lavender is the guideline's own, it is the one brand colour the page had
+      nowhere else, and it steps cleanly off the White Rock above it.
+
+      MEASURED, BECAUSE THE INK HAS TO SURVIVE IT. Charcoal Slate on Soft
+      Lavender is 6.49:1, so every word here keeps the ink it had. The cards
+      stay White Rock, which is 1.54:1 against this ground — they have almost
+      no edge of their own to be seen by, which is exactly the case `plate`
+      exists for and they already carry it.
+
+      THE SHAPES. Four of the guideline's icons, at low strength and behind
+      everything, filling the band the heading leaves open to its right. They
+      are placed rather than scattered, and they are the same `SectionShapes`
+      the homepage uses — see the note there about why a plan beats a random
+      placement.
+    */
+    <section
+      aria-labelledby="apart-heading"
+      className="relative isolate overflow-hidden bg-lavender py-[5rem] md:py-section lg:py-section-lg"
+    >
+      <SectionShapes plan={APART_SHAPES} />
+      <Container className="relative">
         <div className="max-w-[30ch]">
           <Reveal>
             <Eyebrow>What sets us apart</Eyebrow>
@@ -476,6 +681,72 @@ const APART_CARDS = [
   { tilt: "lg:rotate-[-0.6deg]" },
   { tilt: "lg:rotate-[1.2deg]" },
 ] as const;
+/*
+  The shapes behind <Apart>, in the band the heading leaves open to its right.
+
+  Held low — 0.14 to 0.2 — because they sit under a row of cards and a script
+  heading, and a ground that competes with either is not a ground. Each drifts
+  at its own rate and breathes on its own clock, so four marks read as layers
+  at different distances rather than as one sheet of stickers.
+
+  White Rock is in the list and Light Sage is not: the ground is Soft Lavender
+  now, and sage on lavender is the one pair in this palette too close to tell
+  apart at this opacity.
+*/
+const APART_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "splash",
+    color: INK.lilac,
+    width: "14%",
+    right: "6%",
+    top: "6%",
+    rotate: -14,
+    drift: 24,
+    opacity: 0.2,
+    float: 13,
+    desktopOnly: true,
+  },
+  {
+    name: "coral",
+    color: INK.whiteRock,
+    width: "9%",
+    right: "22%",
+    top: "22%",
+    rotate: 10,
+    drift: -18,
+    opacity: 0.2,
+    float: 16,
+    floatDelay: 1.6,
+    desktopOnly: true,
+  },
+  {
+    name: "starburst",
+    color: INK.terracotta,
+    width: "8%",
+    left: "42%",
+    top: "4%",
+    rotate: -6,
+    drift: 20,
+    opacity: 0.16,
+    float: 11,
+    floatDelay: 0.8,
+    desktopOnly: true,
+  },
+  {
+    name: "zigzag",
+    color: INK.charcoal,
+    width: "5%",
+    left: "58%",
+    top: "24%",
+    rotate: 16,
+    drift: -22,
+    opacity: 0.14,
+    float: 14,
+    floatDelay: 2.4,
+    desktopOnly: true,
+  },
+];
+
 const APART_MARKS: readonly DoodleName[] = ["starburst", "splash", "starleaf", "wave"];
 const APART_INKS: readonly string[] = [INK.lilac, INK.terracotta, INK.lavender, INK.lilac];
 
