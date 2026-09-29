@@ -433,7 +433,12 @@ function Slide({ slide }: { slide: SessionSlide }) {
           href={slide.href}
           aria-label={`${slide.ctaLabel}: ${slide.title}`}
           className={cn(
-            "group/cta mt-8 inline-flex w-full min-h-11 items-center justify-center gap-2.5 rounded-sm",
+            /* A pill like every other action on the site. It keeps its own
+               classes rather than becoming a <BlobButton> because it has a
+               second state the component has no tone for: a closed session
+               shows an outlined control, and an outline is the one thing the
+               flood cannot sit behind. */
+            "group/cta mt-8 inline-flex w-full min-h-11 items-center justify-center gap-2.5 rounded-pill",
             "px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow",
             "transition-colors duration-300 ease-soft sm:w-auto",
             slide.closed

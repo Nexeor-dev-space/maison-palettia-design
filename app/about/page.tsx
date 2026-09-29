@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandStory";
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
@@ -12,7 +13,6 @@ import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import {
-  BRAND_STORY,
   CLOSING,
   COMMUNITY,
   EVENT_PLATES,
@@ -146,35 +146,35 @@ function Welcome() {
           Moved to a wrapper it resolves against 16px and fails again.
         */}
         {/*
-          THE STORY SITS BESIDE THE TAGLINE, NOT A SCREEN BELOW IT.
+          THE STORY, TYPESET — NOT ONE FLAT PARAGRAPH.
 
-          It used to be dropped into an offset column under the heading — the
-          corner of the page — which gave the section a tall left margin of
-          nothing and pushed the first real content of /about below the fold.
-          The client's note was that the page was taking too much space here,
-          and the space was all in this gap.
+          This set `BRAND_STORY` as a single block of running copy pushed into
+          the corner. Same words, none of the typesetting: the sentence names
+          the brand after a word, and printing that word at the same size as
+          everything around it throws away the one thing the sentence is doing.
 
-          The heading holds six columns and the paragraph takes the five
-          beside it, aligned to the bottom so the two end on the same line.
-          Nothing about either is reworded: it is still `TAGLINE` in the
-          script and `BRAND_STORY` as one sentence at a reading measure.
+          The client pointed at the homepage's treatment and asked for the
+          about-us section to read like it — the lead-in, "Palette" in the
+          brand's own script, and the clause that defines it, with the rest of
+          the sentence carried by the field beside the photograph. It is the
+          same component in both places now; see <BrandStory>.
+
+          `as="p"`: this page's h1 is already the tagline, directly above. A
+          second heading of the same rank under it would be a document outline
+          claiming the page has two titles.
         */}
-        <div className="mt-8 grid grid-cols-12 items-end gap-x-gutter gap-y-8 md:mt-10">
-          <Reveal delay={0.08} className="col-span-12 lg:col-span-6">
-            <h1
-              id="about-title"
-              className="heading-script max-w-[15ch] pb-[0.3em] text-script-hero text-text"
-            >
-              {forScript(TAGLINE)}
-            </h1>
-          </Reveal>
-
-          <Reveal delay={0.16} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
-            <p className="max-w-[46ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.25rem)] font-light leading-[1.75] text-text">
-              {BRAND_STORY}
-            </p>
+        <div className="mt-10 grid grid-cols-12 md:mt-14">
+          <Reveal
+            delay={0.16}
+            className="col-span-12 md:col-span-9 md:col-start-4 lg:col-span-8 lg:col-start-5"
+          >
+            <BrandStoryLead as="p" />
           </Reveal>
         </div>
+
+        <Reveal variant="fadeIn" delay={0.24} className="mt-12 block md:mt-16">
+          <BrandStoryObject />
+        </Reveal>
       </Container>
     </section>
   );

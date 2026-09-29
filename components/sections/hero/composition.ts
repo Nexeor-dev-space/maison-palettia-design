@@ -88,6 +88,32 @@ export interface DoodlePlan {
   mobile?: Placement;
   /** In the intro's flower: centre and width, in logo widths from its centre. */
   flower: { x: number; y: number; width: number; rotate: number };
+  /**
+   * Whether this shape takes part in the ENTRANCE, as opposed to the banner's
+   * resting collage.
+   *
+   * ==========================================================================
+   * WHY THE TWO ARE NOW SEPARATE LISTS
+   * ==========================================================================
+   *
+   * Every shape here does two jobs: it is a petal in the bouquet the intro
+   * draws around the logo, and it is a piece of the collage that sits in the
+   * margins around the photograph once the banner is at rest. Those used to be
+   * the same eighteen, because the intro simply flew the whole collage into a
+   * ring and back out again.
+   *
+   * The client asked to "dial down the brand icons around the logo". The
+   * collage is not what they are looking at — it is measured against the
+   * navigation, the tagline's own ink and the card's edges at four widths, and
+   * taking shapes out of it would undo that. The BOUQUET is what crowds the
+   * logo, so this marks the six that fly and leaves the other twelve where
+   * they belong: at rest, behind the card, until the banner arrives.
+   *
+   * Six, and their places are chosen to ring the mark rather than fill the
+   * screen — NW, N, E, SE, SW, W — across five of the guideline's six colours,
+   * with Light Sage left out because it is the ground they stand on.
+   */
+  entrance?: boolean;
   /** Ambient float period, in seconds. Distinct per shape so none move in step. */
   float: number;
 }
@@ -139,6 +165,7 @@ export interface DoodlePlan {
 export const DOODLE_PLAN: readonly DoodlePlan[] = [
   {
     id: "starburst-n",
+    entrance: true,
     name: "starburst",
     color: INK.terracotta,
     depth: 16,
@@ -203,6 +230,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
   },
   {
     id: "coral-e",
+    entrance: true,
     name: "coral",
     color: INK.lilac,
     depth: 12,
@@ -213,6 +241,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
   },
   {
     id: "zigzag-se",
+    entrance: true,
     name: "zigzag",
     color: INK.charcoal,
     depth: 18,
@@ -255,6 +284,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
   },
   {
     id: "starleaf-sw",
+    entrance: true,
     name: "starleaf",
     color: INK.whiteRock,
     depth: 8,
@@ -292,6 +322,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
   },
   {
     id: "bow-w",
+    entrance: true,
     name: "bow",
     color: INK.lilac,
     depth: 14,
@@ -305,6 +336,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
   },
   {
     id: "splash-nw",
+    entrance: true,
     name: "splash",
     color: INK.lavender,
     depth: 10,

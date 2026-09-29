@@ -1,9 +1,7 @@
 import { Hero } from "@/components/sections/Hero";
 import { ClosingStatement } from "@/components/sections/home/ClosingStatement";
-import { CollaborateTeaser } from "@/components/sections/home/CollaborateTeaser";
 import { OpeningStatement } from "@/components/sections/home/OpeningStatement";
 import { ExperienceDiscovery } from "@/components/sections/home/ExperienceDiscovery";
-import { SeasonalExperiences } from "@/components/sections/home/SeasonalExperiences";
 import { TwoWaysToCreate } from "@/components/sections/home/TwoWaysToCreate";
 import { WaysToExperience } from "@/components/sections/home/WaysToExperience";
 import { WhereWeCreate } from "@/components/sections/home/WhereWeCreate";
@@ -126,7 +124,18 @@ export default function HomePage() {
         credentials marking it AI-generated.
       */}
 
-      <SeasonalExperiences />
+      {/*
+        <SeasonalExperiences /> HAS BEEN TAKEN OFF THE PAGE at the client's
+        ask — "A different season, every season", the limited-time run with
+        Valentine's Day, Ramadan, Mother's Day and Christmas.
+
+        Nothing has moved: this section had no other home and no other page
+        links to it, so the seasonal moments are simply not shown. Its copy is
+        still in `SEASONAL_MOMENTS` and `SEASONAL_INTRO` in lib/brand.ts, and
+        the component and its stylesheet are left in the tree — the same rule
+        <CommunityMoment /> is kept under above. Removing a section is not the
+        same decision as throwing the work away.
+      */}
 
       {/*
         <LittleCreators /> has MOVED TO /about rather than been removed. It is
@@ -137,13 +146,19 @@ export default function HomePage() {
 
       <WhereWeCreate />
       {/*
-        A TEASER, NOT THE SECTION. The collaborative approach in full — the
-        deck's three partnership models and the approach beneath them — has
-        moved to /locations, where a mall deciding whether to host the Maison
-        already reads. This keeps the invitation on the homepage and sends
-        anyone it speaks to straight there. See <CollaborateTeaser>.
+        <CollaborateTeaser /> HAS BEEN TAKEN OFF THE PAGE at the client's ask —
+        "Let's create together", the collaborative-approach teaser with the
+        three partnership cards.
+
+        THE CONTENT IS NOT LOST, which is why this is a safe removal: the
+        collaborative approach in full — the deck's three partnership models
+        and the approach beneath them — already lives on /locations, where a
+        mall deciding whether to host the Maison actually reads. This teaser
+        was only the invitation to go there, and nothing on the site links to
+        it, so taking it off costs the partnership content no route in.
+
+        The component and its stylesheet stay in the tree, as above.
       */}
-      <CollaborateTeaser />
       <ClosingStatement />
     </>
   );
