@@ -2,147 +2,99 @@
 
 import { useLayoutEffect, useRef } from "react";
 
-import { DOODLE_PLAN, DRAW_ORDER } from "@/components/sections/hero/composition";
-import { DOODLES } from "@/components/sections/hero/doodles";
+import {
+  DOODLE_PLAN,
+  DRAW_ORDER,
+  RING_ORDER,
+  type DoodlePlan,
+} from "@/components/sections/hero/composition";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { LogoReveal } from "@/components/sections/hero/LogoReveal";
 import { BRAND_LOGO } from "@/lib/constants";
 import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
 
 /*
-  The sequence, in milliseconds. These must agree with Hero.module.css, which
-  owns the individual transitions; this only decides when each phase begins.
+  ==========================================================================
+  THE ENTRANCE, AS THE CLIENT STORYBOARDED IT
+  ==========================================================================
+
+  "I'd like to explore a different direction for the opening screen/entrance
+  animation... The entrance should be short, playful and seamless,
+  transitioning naturally into the main website." Six frames came with it, and
+  these numbers are those frames:
+
+    0.0 - 0.2s   the background is clean, and the logo fades in at the centre
+    0.2 - 0.6s   the icons burst out from behind the logo, spreading outward
+                 in a smooth, quick motion
+    0.6 - 0.8s   all icons are now in place, around the logo
+    0.8 - 1.0s   the logo gently moves up from the centre towards the bar
+    1.0 - 1.3s   as the logo settles in the bar, the icons gently drift
+                 outward and scatter across the screen
+    1.3 - 1.5s   the website is fully loaded, the logo in the top bar and the
+                 icons continuing to live throughout the design
+
+  WHAT THIS REPLACES, AND WHY NONE OF IT SURVIVES. The entrance before it ran
+  for five seconds: the mark wrote itself from its own vector, letter by
+  letter, while eighteen cut-outs waited off-screen and flew in one at a time —
+  and a visitor could sweep a paintbrush cursor across the screen to call them
+  in early, each one stamping a splash where it landed. It was a good moment
+  and it is the wrong one now. Every part of it contradicts the note above:
+  handwriting cannot be short, an invitation to paint cannot be seamless, and
+  a canvas that waits for a hand is the opposite of transitioning naturally
+  into the site. So the pen, the splashes, the brush cursor and the clock that
+  fed them are gone rather than retimed.
+
+  WHAT IS KEPT. The artwork — the mark is still the client's own vector and the
+  icons are still the deck's own cut-outs, in the six approved colours (see
+  ./logoArt.ts and ./doodles.ts). The landing is still measured rather than
+  guessed: the mark flies to the exact box of the logo in the header bar. And
+  an escape is still offered, because an intro must never hold someone who
+  wants to be in — see `attach()`.
+
+  These are starts, in milliseconds from the first frame. ./Hero.module.css
+  owns every individual transition; this only decides when each phase begins.
 */
-/*
-  The draw phase has to outlast the last dot, not merely reach it. With the
-  numbers below the sixth dot leaves at 2607ms and takes 240ms to fly, so it is
-  home at 2847 and this holds 103ms past it.
-*/
-const DRAW_MS = 2950; // the logo writes itself, the dots arrive, the flower draws
-/*
-  WRITE_MS COVERS THE LETTERS AND THE DOTS TOGETHER, which is why it moves
-  whenever DOT_STEP does. `schedule()` in <LogoReveal> subtracts the dots'
-  whole span from this before it divides what is left among the pen strokes —
-  so raising DOT_STEP alone does not slow the dots down, it speeds the
-  HANDWRITING up to pay for them. Raising this by exactly the same amount
-  keeps the ink budget where it was: the letters write at the pace they were
-  tuned to and the dots get their extra time from the phase, not from the pen.
-
-  2050 -> 2740 is that arithmetic: the dots' span goes 60 + 6x85 = 570 to
-  60 + 6x200 = 1260, and 2050 + 690 = 2740.
-*/
-const WRITE_MS = 2740; // the pen writing the mark, first stroke to last dot
-/*
-  Each palette dot in the "P", after the one before — and the whole point is
-  that it is AFTER, not overlapping.
-
-  THIS IS THE THIRD TIME AT THIS NUMBER, so the reasoning is worth keeping. It
-  was 55, which put the six away in 275ms; then 85, which this comment used to
-  call "the number that makes it read". It did not, and the reason is that the
-  step was only ever half the story: a dot's flight is what decides whether the
-  one behind it has landed yet. At 85 against a 420ms flight all six were in
-  the air at once for most of the sequence — six dots arriving together with a
-  slight lean, which is a burst, not a count.
-
-  So the pair is set together now. The flight is 240ms (./Hero.module.css) and
-  the step is 200, so each dot is 40ms off the ground when the next one leaves
-  — near enough to sequential to count out loud, and still overlapping just
-  enough that the row does not read as six separate events.
-*/
-const DOT_STEP = 200;
-const SETTLE_MS = 2000; // doodles fly home behind the photograph, it blooms open, the words rise
-const ENTER_MS = 1400; // the short entrance on a return without a reload
-
-/*
-  THE BEATS ARE SET BY THE LAST PETAL, NOT THE FIRST.
-
-  Eighteen shapes now trace the flower, five more than the ring was tuned for,
-  and a stagger is a multiplication: at the old 65ms the eighteenth shape began
-  at 1265ms, its pop ran to 1965ms and its fill to 2145ms — both past the
-  1800ms `settle` then took the flower apart at, so the last two petals would
-  have snapped rather than finished. 44ms puts the last one's delay at 908ms,
-  its outline home at 1668ms and its fill at 1808ms — the whole bouquet drawn
-  before anything moves.
-
-  The draw now holds to 2050ms, for the mark rather than the flower: written
-  from its vector, letter by letter, it needs 1.8s to read as a hand and not
-  as a wipe, and the flower simply rests, finished, for the last quarter
-  second.
-
-  THE MARK IS OPAQUE FROM THE FIRST FRAME. Its container used to fade and
-  scale in over 800ms while the writing started underneath, so the first
-  letters arrived half-transparent — a fade doing the revealing, which is the
-  one thing the client ruled out. The mask hides everything until the pen
-  moves, so the container has nothing to hide and no longer fades at all.
-*/
-const DRAW_START = 140; // first piece the clock sends in, if no hand has
-/*
-  78ms, AND THE ARITHMETIC IS THE FLIGHT'S.
-
-  A piece takes 780ms to come in from off-screen (./Hero.module.css owns that
-  number), and DRAW_MS ends the phase at 2400 — set by the last dot in the
-  mark, not by the collage. So the last of the eighteen has to leave by 1620ms
-  to be home in time, and 140 + 17 × 78 = 1466 lands it at 2246, with 154ms of
-  rest before anything moves.
-
-  It is deliberately most of the phase. The cadence before the collage was 44ms
-  and had the whole bouquet finished by 1670 — the clock was winning a race it
-  is not supposed to be in, and anyone who reached for it after a second and a
-  half found nothing left to bring in.
-*/
-const DRAW_STEP = 78; // each following piece, this much later
+const BURST_AT = 200; // frame 2: the icons leave the logo
+const LIFT_AT = 800; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 720; // frame 6: ... and the page is composed by 1520ms
 
 /*
-  THE CANVAS — what a hand does, and what happens if none arrives.
+  One icon after another on the way out, and again on the way back.
 
-  SPLATS is the pool of marks, used round-robin. Ten covers the fastest sweep
-  anyone can make across the ring inside one mark's 620ms life; an eleventh
-  would only ever replace one already faded.
-
-  REACH is how far the hand's pull carries, from the logo's own measured width
-  so it holds the same proportion of the ring on a phone as on a desktop —
-  clamped, because a very small logo would otherwise want a pull too fine to
-  aim and a very large one a pull that takes the whole collage in a stroke.
-
-  AWAY is where a piece waits before it is sent for, as a share of the screen's
-  diagonal: 0.62 of it from the middle clears every corner at every ratio I
-  tested, so nothing is ever seen hanging at an edge.
-
-  WRITE_TAIL is the mark's last dot finishing after the pen stops, and is what
-  the early finish waits for: painting the bouquet quickly is rewarded, but not
-  by cutting the logo's writing short, which is the one thing the client asked
-  twice to keep.
+  DELIBERATELY SMALL. At 40ms the nine read as a queue leaving a door; the
+  client's word is "burst", and a burst is nine things leaving together with
+  just enough lag to see which went first. 12ms puts the last one 96ms behind
+  the first, so the whole ring is in the air inside a tenth of a second and
+  every icon is home by 696ms — inside the 0.6-0.8s the storyboard gives frame
+  3 for them to be in place.
 */
-const SPLATS = 10;
+const BURST_STEP = 12;
 /*
-  THE BRUSH, AS AN ACTUAL CURSOR.
+  The scatter, which is the same gesture reversed. It starts 150ms into the
+  last phase rather than with it, so the eye follows the mark up to the bar
+  first and the icons move once it has arrived — frame 5 is explicit that the
+  drift happens "as the logo settles in the navigation bar", not before it.
 
-  The client asked to explore a paintbrush or colour-dropper pointer, and the
-  brand rules say the visual language is the deck's cut-outs — so the pointer
-  is one. `splash` is drawn at CURSOR_PX into a data URI and handed to the CSS
-  `cursor` property, filled with the colour of the next piece due to land: a
-  brush already loaded with the colour it is about to lay down, which is the
-  dropper idea and the brush idea in the same mark.
-
-  A real cursor rather than an element chasing the pointer, which is the whole
-  reason to do it this way: the compositor draws it, so it cannot lag behind
-  the hand, and it costs nothing per frame. The string is rebuilt only when the
-  next colour changes — at most eighteen times in the life of the intro.
-
-  26px because a cursor bitmap over about 32px is ignored by some browsers, and
-  the hotspot is its middle so the mark sits where the pointer actually is.
+  150 + 8 x 11 = 238, so the last icon leaves at 1038ms and is home at 1438ms.
 */
-const CURSOR_PX = 26;
-const REACH_SHARE = 0.42;
-const REACH_MIN = 96;
-const REACH_MAX = 240;
-const TAP_REACH = 1.3;
-const AWAY = 0.62;
-const TURN = 21; // degrees a piece is turned off its resting angle, in flight
-const WRITE_TAIL = 240;
-const KEY_STROKE = 2; // shapes a key press lays down
-const SETTLE_STEP = 22; // flights leave in the same order, a beat apart
-const ENTER_STEP = 28; // the short entrance's shapes, a beat apart
+const SCATTER_AT = 150;
+const SCATTER_STEP = 11;
+/*
+  And the shapes that are NOT in the ring come up later still, behind the
+  photograph as it opens over them. See where this is written.
+*/
+const TUCKED_AT = 400;
+
+/*
+  The short entrance, for the homepage shown again by a link inside the site.
+
+  It has always been a different, quieter thing than the opening — nobody
+  arriving from another page should be made to watch the logo fly — and it is
+  now cut to match the opening's own pace. It is the icons settling in, and
+  nothing else.
+*/
+const ENTER_MS = 900;
+const ENTER_STEP = 20;
 
 /*
   How much of the frame's hold the opening takes; it rests fully open for the
@@ -231,28 +183,28 @@ function nextPaint(fn: () => void): () => void {
 }
 
 /**
- * The intro — the logo, and the bouquet the doodles draw around it before they
- * fly home behind the banner's photograph — and, once it is over, the banner's
- * opening on scroll and the doodles' pointer depth.
+ * The entrance — the mark, and the ring of the brand's icons that bursts out
+ * from behind it and then scatters into the page — and, once it is over, the
+ * banner's opening on scroll and the icons' pointer depth.
  *
  * The only part of the banner that needs JavaScript. Everything it animates is
- * server-rendered by <Hero> — the photograph, the words, and the doodles
- * around it — and this finds them in the DOM, measures them once, and then
- * only ever changes `data-intro` on <html> and two pointer variables. The
- * stylesheet does the rest.
+ * server-rendered by <Hero> — the photograph, the words, and the icons around
+ * it — and this finds them in the DOM, measures them once, and then only ever
+ * changes `data-intro` on <html> and two pointer variables. The stylesheet
+ * does the rest, so the whole second and a half runs on the compositor.
  *
- * Measured, not placed: each doodle is laid out in its place behind the card
- * from the first render; before anything shows, its box is measured and the
- * transform that would put it in a bouquet around the centre of the screen is
- * written onto it. The flight home is that transform transitioning back to
- * none, so the bouquet is centred on any screen and every shape lands exactly.
+ * MEASURED, NOT PLACED. Each icon is laid out in its place in the finished
+ * page from the first render; before anything shows, its box is measured and
+ * two transforms are written onto it — the one that stacks it behind the mark
+ * at the middle of the screen, and the one that puts it in the ring. The
+ * scatter is those transforms falling back to none, so the ring is centred on
+ * any screen and every icon lands exactly where the design wants it.
  *
- * Under reduced motion there is no intro and no depth. The banner is simply
+ * Under reduced motion there is no entrance and no depth. The banner is simply
  * shown composed.
  */
 export function HeroIntro() {
   const logoRef = useRef<HTMLDivElement>(null);
-  const splatsRef = useRef<HTMLDivElement>(null);
 
   /* ------------------------------------------------------------------ fit */
   // First, so the intro below measures the doodles in the card's final place.
@@ -366,7 +318,7 @@ export function HeroIntro() {
 
     /* ---- the intro ---- */
     // At the top before anything is measured, and instantly: the page's
-    // `scroll-behavior: smooth` would otherwise glide it up under the bouquet.
+    // `scroll-behavior: smooth` would otherwise glide it up under the ring.
     // It can only have moved if someone scrolled while it was still loading.
     if (window.scrollY !== 0) window.scrollTo({ top: 0, behavior: "instant" });
     html.dataset.intro = "play";
@@ -377,54 +329,135 @@ export function HeroIntro() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     /*
-      The flower is measured in widths of the logo at its centre, so the petals
-      keep the same close ring around it at every size. `offsetWidth` is its
-      laid-out width — the entrance animation is still scaling it — and the
-      fallback only covers a logo that has somehow not been laid out.
+      The ring is measured in widths of the logo at its centre, so it keeps the
+      same close orbit around the mark at every size. `offsetWidth` is its
+      laid-out width — the fade above changes opacity only, never the box — and
+      the fallback only covers a logo that has somehow not been laid out.
     */
     const unit = logo?.offsetWidth || Math.min(vw, vh) * 0.4;
-    /*
-      How far out the petals sit, as a multiple of the measured radius.
-
-      One on anything but a phone. On a narrow screen the ring was 98.5% of the
-      width with its outermost petals 9px past both edges — measured at 375 and
-      390 — so the flower was being cropped by the screen rather than framed by
-      it. Drawing it in a little is what a tighter bouquet needs there, and it
-      costs nothing at the sizes where the ring already has room.
-    */
-    const ring = vw < 640 ? 0.93 : 1;
     const plans = new Map(DOODLE_PLAN.map((plan) => [plan.id, plan]));
     /*
-      Where every shape will sit, kept as it is placed rather than measured
-      again later — the same arithmetic, the same filter. A shape with no box
-      is one the width has taken out of the layout (`desktopOnly` below 768),
-      and it must be left out of both, or the bouquet could never be finished.
+      THE RING IS NOW A SUBSET, so every shape has to be told which it is.
+
+      `data-ring` is what the stylesheet branches on: an icon carrying it
+      bursts out of the logo and scatters back; an icon without it is simply
+      not part of the entrance and waits, invisible, at its resting place until
+      the page composes around it. Nine of the eighteen, chosen by the rule in
+      ./composition.ts.
+
+      It is written here rather than in the markup because it is a property of
+      the entrance, not of the shape — <Hero> renders the same collage whether
+      this component runs or not.
     */
-    const targets: { el: HTMLElement; color: string; x: number; y: number }[] = [];
-    const away = Math.hypot(vw, vh) * AWAY;
+    const inRing = (el: HTMLElement) => plans.get(el.dataset.doodle ?? "")?.ring === true;
+    const ringOrder = (el: HTMLElement) => RING_ORDER.indexOf(el.dataset.doodle ?? "");
+
     /*
-      EVERY PIECE IS MEASURED WHERE IT LIES, NOT WHERE IT IS WAITING.
+      Where every icon waits, and where it is going.
 
-      `play` now carries the away transform, which means an element that has
-      been through this once is translated off-screen and scaled when the loop
-      below reads its box — and React runs this effect twice in development,
-      and again on any remount. Measured that way, `--fx` is the distance from
-      a position off the screen to the ring, so every piece "lands" somewhere
-      out at the edges: the collage assembles into nothing at all.
+      A shape with no box is one the width has taken out of the layout
+      (`desktopOnly` below 768) and is left out of both, or the ring could
+      never be finished.
 
-      The flight's own properties therefore come off first, in one pass over
-      all of them, so the single forced layout the next line triggers is paid
-      once rather than eighteen times.
+      EVERY ICON IS MEASURED WHERE IT LIES, NOT WHERE IT IS WAITING. `play`
+      carries the behind-the-logo transform, which means an element that has
+      been through this once is translated to the middle of the screen and
+      scaled down when the loop below reads its box — and React runs this
+      effect twice in development, and again on any remount. The flight's own
+      properties therefore come off first, in one pass over all of them, so the
+      single forced layout the next line triggers is paid once rather than
+      eighteen times.
     */
-    const FLIGHT_VARS = ["--ax", "--ay", "--ar", "--fx", "--fy", "--fs"] as const;
+    const FLIGHT_VARS = ["--bx", "--by", "--br", "--fx", "--fy", "--fs", "--fr"] as const;
     for (const el of doodles) {
       for (const prop of FLIGHT_VARS) el.style.removeProperty(prop);
+      delete el.dataset.ring;
     }
+
+    const measured: { el: HTMLElement; plan: DoodlePlan; box: DOMRect }[] = [];
     for (const el of doodles) {
       const plan = plans.get(el.dataset.doodle ?? "");
       const box = el.getBoundingClientRect();
       if (!plan || box.width === 0) continue;
-      const i = order(el);
+      measured.push({ el, plan, box });
+    }
+
+    /*
+      HOW FAR OUT THE RING SITS, MEASURED RATHER THAN GUESSED.
+
+      This was a constant with a breakpoint in it — 0.93 of the radius below
+      640 and 1 above — and the constant was wrong in the way constants of this
+      kind always are. At 375 the coral, which is both the widest icon and the
+      one furthest out, still finished 11px past the right edge: pulling the
+      ring in moves an icon's CENTRE and does nothing to its WIDTH, so the
+      shape at the edge keeps occupying half of itself past whatever radius it
+      is given. Turning 0.93 into 0.90 made it worse, not better, because the
+      figure was never about the radius.
+
+      So the radius is derived from the shapes instead. Every icon's box in the
+      ring is known before anything moves — the width is `flower.width` in
+      units of the mark and the height follows from the shape's own aspect —
+      and an icon turned by `flower.rotate` needs the box that turn sweeps out,
+      which for a w x h box at an angle is (w|cos| + h|sin|) across and
+      (w|sin| + h|cos|) down. From there the largest radius that still leaves
+      every icon inside the screen is arithmetic, and the ring takes it.
+
+      THIS FITS WHERE THE ICONS COME TO REST, NOT THE TOP OF THEIR BOUNCE, and
+      that is a deliberate choice rather than an oversight. The burst eases on
+      `--ease-pop`, a spring that carries a shape 9.78% past its target before
+      settling back, so at 375 the coral — the widest icon and the one furthest
+      out — swings about 9px past the right edge for roughly a tenth of a
+      second at the top of its arc. Fitting the ring to that peak instead was
+      tried and is worse: it pulls the radius to 0.85 and the coral then SITS
+      against the end of "Palettia" for the whole of frames 3 and 4. A ring
+      resting on the mark is a composition problem; a decorative shape grazing
+      the edge at the top of a bounce is what a spring looks like.
+
+      It is capped at 1, so on a screen with room this changes nothing at all
+      and the composition is the one the client has already approved — at 1440
+      it computes to 1 and the ring is untouched. At 375 it lands on 0.94,
+      which is within a point of the 0.93 that was hand-tuned there, and that
+      agreement is the reason to trust the arithmetic on the widths nobody
+      measured by hand. The floor of 0.6 is a guard against a screen so small
+      that the honest answer would be to collapse the ring into the mark.
+    */
+    const RING_MARGIN = 8;
+    let ring = 1;
+    for (const { plan, box } of measured) {
+      if (!plan.ring) continue;
+      const w = plan.flower.width * unit;
+      const h = w * (box.height / box.width);
+      const turn = (plan.flower.rotate * Math.PI) / 180;
+      const halfW = (w * Math.abs(Math.cos(turn)) + h * Math.abs(Math.sin(turn))) / 2;
+      const halfH = (w * Math.abs(Math.sin(turn)) + h * Math.abs(Math.cos(turn))) / 2;
+      const reachX = Math.abs(plan.flower.x) * unit;
+      const reachY = Math.abs(plan.flower.y) * unit;
+      if (reachX > 0) ring = Math.min(ring, (vw / 2 - halfW - RING_MARGIN) / reachX);
+      if (reachY > 0) ring = Math.min(ring, (vh / 2 - halfH - RING_MARGIN) / reachY);
+    }
+    ring = Math.max(0.6, ring);
+
+    for (const { el, plan, box } of measured) {
+      if (!inRing(el)) {
+        /*
+          Not in the entrance, and not meant to be seen arriving either.
+
+          Every shape outside the ring rests wholly behind the photograph — that
+          is the rule that decides the ring in the first place — so it is held
+          invisible and then faded up BEHIND THE BLOOM rather than in front of
+          it. At `SCATTER_AT` it came up while the picture was still opening,
+          and for about 170ms a handful of pale cut-outs stood in the middle of
+          the screen with nothing covering them yet.
+
+          The bloom finishes at 1440ms; this starts the fade at 1200 and ends
+          it at 1520, by which time the photograph is over them. See `.flip` in
+          ./Hero.module.css.
+        */
+        el.style.setProperty("--settle-delay", `${TUCKED_AT}ms`);
+        continue;
+      }
+      el.dataset.ring = "";
+      const i = ringOrder(el);
       const x = vw / 2 + plan.flower.x * unit * ring;
       const y = vh / 2 + plan.flower.y * unit * ring;
       const cx = box.left + box.width / 2;
@@ -433,34 +466,24 @@ export function HeroIntro() {
       el.style.setProperty("--fy", `${y - cy}px`);
       el.style.setProperty("--fs", `${(plan.flower.width * unit) / box.width}`);
       el.style.setProperty("--fr", `${plan.flower.rotate}deg`);
-      el.style.setProperty("--settle-delay", `${i * SETTLE_STEP}ms`);
       /*
-        WHERE IT WAITS. On the ray from the middle of the screen through its
-        own place in the ring, pushed out past every corner — so a piece flies
-        in along the line it will end up on rather than across the composition,
-        and eighteen of them arriving read as one gathering rather than as
-        traffic. A place in the ring that is almost dead centre has no ray of
-        its own to speak of, so it takes an angle from its position in the
-        order instead; normalising a near-zero vector would send it anywhere.
+        BEHIND THE LOGO, WHICH IS THE WHOLE OF FRAME 2. Not off-screen, which
+        is where these used to wait: the storyboard says the icons "burst out
+        from behind the logo", so every one of them starts stacked at the
+        middle of the screen, under the mark. `.introLogo` is z-index 50 and a
+        doodle is 20 while the entrance runs, so the mark genuinely covers them
+        until they leave it.
       */
-      const dx = x - vw / 2;
-      const dy = y - vh / 2;
-      const len = Math.hypot(dx, dy);
-      const angle = len > 1 ? Math.atan2(dy, dx) : ((i / DRAW_ORDER.length) * Math.PI * 2);
-      const ux = len > 1 ? dx / len : Math.cos(angle);
-      const uy = len > 1 ? dy / len : Math.sin(angle);
-      el.style.setProperty("--ax", `${vw / 2 + ux * away - cx}px`);
-      el.style.setProperty("--ay", `${vh / 2 + uy * away - cy}px`);
+      el.style.setProperty("--bx", `${vw / 2 - cx}px`);
+      el.style.setProperty("--by", `${vh / 2 - cy}px`);
       /*
-        And turned off its resting angle on the way, alternating, so the pieces
-        turn into place instead of sliding — a collage laid by hand, not a grid
-        snapping shut. Deterministic, from the order: nothing here is random.
+        And turned off its resting angle on the way, alternating, so the icons
+        turn out of the mark rather than sliding out of it. Deterministic, from
+        the order: nothing here is random.
       */
-      el.style.setProperty(
-        "--ar",
-        `${plan.flower.rotate + (i % 2 ? -1 : 1) * (TURN + (i % 3) * 6)}deg`,
-      );
-      targets.push({ el, color: plan.color, x, y });
+      el.style.setProperty("--br", `${plan.flower.rotate + (i % 2 ? -1 : 1) * 26}deg`);
+      el.style.setProperty("--burst-delay", `${i * BURST_STEP}ms`);
+      el.style.setProperty("--settle-delay", `${SCATTER_AT + i * SCATTER_STEP}ms`);
     }
 
     // Where the logo lands: the logo in the header bar, measured while the bar
@@ -494,187 +517,71 @@ export function HeroIntro() {
       logo.style.setProperty("--logo-s", `${to.width / from.width}`);
     };
 
-    /* ---------------------------------------------- the canvas, and the hand */
     /*
-      WHAT A VISITOR IS ACTUALLY DOING HERE. The eighteen pieces of the collage
-      wait off-screen, whole and in their own colours. Any piece whose place in
-      the ring falls under the hand is sent for early — it flies in and lands,
-      and leaves one of the deck's splash cut-outs, in its own colour, where it
-      touched down. Sweep once and half the composition comes in behind you.
+      THE WAY OUT, AND IT IS THE ONLY THING A HAND CAN DO HERE NOW.
 
-      THE MARKS ARE YOURS, AND ONLY YOURS. A piece the clock sends for lands
-      silently; a piece a hand calls in leaves a splash. Doing nothing gives a
-      clean composition assembling itself, and taking part leaves something on
-      the page that would not otherwise be there — which is the whole of what
-      the client asked this moment to say.
+      The entrance before this one was a canvas: a paintbrush cursor, pieces
+      called in by sweeping, a splash stamped wherever one landed. None of that
+      belongs to a movement that is over in a second and a half, and the client
+      has asked for it to be seamless rather than interactive.
 
-      It is one attribute per piece. The stylesheet owns every millisecond of
-      what that attribute means (see ./Hero.module.css), nothing is measured
-      per frame, and no animation loop runs — which is why an interaction this
-      direct costs less than the timer it replaced.
-    */
-    const splats = splatsRef.current;
-    const reach = Math.min(REACH_MAX, Math.max(REACH_MIN, unit * REACH_SHARE));
-
-    let inked = 0;
-    let mark = 0;
-    let wrote = false;
-
-    /*
-      The pointer, carrying the next colour. `encodeURIComponent` rather than a
-      raw SVG: a cut-out path is full of `#` and `,`, either of which ends a
-      `url()` early and leaves the cursor silently unset.
-    */
-    const splash = DOODLES.splash;
-    const cursorFor = (color: string) =>
-      `url("data:image/svg+xml,${encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="${CURSOR_PX}" height="${CURSOR_PX}" viewBox="0 0 ${splash.w} ${splash.h}"><path d="${splash.d}" fill="${color}"/></svg>`,
-      )}") ${CURSOR_PX / 2} ${CURSOR_PX / 2}, crosshair`;
-
-    let loaded = "";
-    /* Whatever the clock or the hand will reach for next, in the bouquet's order. */
-    const reload = () => {
-      const next = targets.find((t) => t.el.dataset.landed === undefined);
-      const color = next?.color ?? "";
-      if (color === loaded) return;
-      loaded = color;
-      html.style.cursor = color ? cursorFor(color) : "";
-    };
-
-    /* The brand's own splash cut-out, in the colour of whatever just landed. */
-    const burst = (x: number, y: number, color: string) => {
-      const pool = splats?.children;
-      if (!pool?.length) return;
-      const node = pool[mark % pool.length] as HTMLElement;
-      mark += 1;
-      node.style.color = color;
-      node.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${(mark * 53) % 360}deg)`;
-      delete node.dataset.burst;
-      void node.offsetWidth; // so the same node can throw a second mark
-      node.dataset.burst = "";
-    };
-
-    /* `byHand` is what decides whether a landing leaves a mark. */
-    const land = (target: (typeof targets)[number], byHand: boolean) => {
-      if (target.el.dataset.landed !== undefined) return false;
-      target.el.dataset.landed = "";
-      inked += 1;
-      if (byHand) burst(target.x, target.y, target.color);
-      reload();
-      return true;
-    };
-
-    /*
-      Painting it quickly is rewarded, but not by cutting the mark's writing
-      short — that is the one thing the client has asked twice to keep. So the
-      moment ends when the bouquet is finished AND the pen has stopped, and in
-      any case at DRAW_MS.
-    */
-    const finished = () => {
-      if (wrote && inked >= targets.length) settle();
-    };
-
-    /*
-      A pull. Every waiting piece whose place falls under the hand is sent for
-      at once, so a sweep brings in a handful rather than one. A touch that
-      reaches nothing still calls the nearest piece — a tap that did nothing at
-      all would read as a broken page rather than as a miss, and the brief
-      asked for an immediate visual response.
-    */
-    const pull = (x: number, y: number, radius: number) => {
-      let hit = false;
-      let nearest: (typeof targets)[number] | undefined;
-      let best = Infinity;
-      for (const target of targets) {
-        if (target.el.dataset.landed !== undefined) continue;
-        const gap = Math.hypot(target.x - x, target.y - y);
-        if (gap < best) {
-          best = gap;
-          nearest = target;
-        }
-        if (gap <= radius && land(target, true)) hit = true;
-      }
-      if (!hit && nearest) land(nearest, true);
-      finished();
-    };
-
-    const onMove = (event: PointerEvent) => {
-      pull(event.clientX, event.clientY, reach);
-    };
-    const onDown = (event: PointerEvent) => {
-      pull(event.clientX, event.clientY, reach * TAP_REACH);
-    };
-    /*
-      A keyboard calls pieces in too, in the order the collage was always laid
-      in, so nobody is shut out of the moment for not having a pointer. Escape
-      ends it outright, and a wheel says the same in the language of a mouse:
-      the one thing an intro must never do is hold someone who wants to be in.
+      What is kept is the escape. Anything that says "I want to be in the site"
+      — a key, a wheel, a tap — ends the entrance where it stands and composes
+      the page. At 1.5s almost nobody will reach for it, and the one thing an
+      intro must never do is hold someone who did.
     */
     const onKey = (event: KeyboardEvent) => {
       if (["Shift", "Control", "Alt", "Meta", "Tab"].includes(event.key)) return;
-      if (event.key === "Escape") {
-        settle();
-        return;
-      }
-      let laid = 0;
-      for (const target of targets) {
-        if (target.el.dataset.landed !== undefined) continue;
-        land(target, true);
-        if (++laid === KEY_STROKE) break;
-      }
-      finished();
+      lift();
     };
-    const onWheel = () => settle();
+    const onWheel = () => lift();
+    const onDown = () => lift();
 
     const attach = () => {
-      window.addEventListener("pointermove", onMove, { passive: true });
-      window.addEventListener("pointerdown", onDown, { passive: true });
       window.addEventListener("keydown", onKey);
       window.addEventListener("wheel", onWheel, { passive: true });
+      window.addEventListener("pointerdown", onDown, { passive: true });
     };
     const detach = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
-      html.style.removeProperty("cursor");
+      window.removeEventListener("pointerdown", onDown);
     };
 
-    function settle() {
+    /*
+      Frames 4 to 6, which are one movement: the mark lifts to the bar, the
+      icons scatter to their places behind it, the photograph blooms open and
+      the words rise. The stylesheet holds each of those on its own delay
+      inside this phase.
+    */
+    let lifted = false;
+    function lift() {
+      if (lifted) return;
+      lifted = true;
       timers.forEach(clearTimeout);
       timers.length = 0;
       detach();
       aimLogo();
       html.dataset.intro = "settle";
       // Every flight is relative to layout, not to the screen, so the page may
-      // scroll while the shapes finish arriving.
+      // scroll while the icons finish arriving.
       unlock();
       later(finish, SETTLE_MS);
     }
 
     cancelPaint = nextPaint(() => {
-      html.dataset.intro = "draw";
-      attach();
-      reload();
       /*
-        THE CLOCK IS THE FALLBACK, NOT THE POINT. Anyone who does nothing sees
-        the collage assemble itself, piece by piece, and every frame of it is
-        whole. Anyone who moves gets there first, and the clock finds those
-        pieces already landed and does nothing. `false`: the clock's pieces
-        land silently, because the splashes belong to the hand.
+        Frame 1 is the state change itself: `play` fades the mark up at the
+        centre over 200ms against the clean Light Sage ground, with the ring
+        stacked invisibly behind it.
       */
-      targets.forEach((target, i) =>
-        later(() => {
-          land(target, false);
-          finished();
-        }, DRAW_START + i * DRAW_STEP),
-      );
+      attach();
+      /* Frame 2 and 3: the icons leave the mark and take their places. */
       later(() => {
-        wrote = true;
-        finished();
-      }, WRITE_MS + WRITE_TAIL);
-      /* However it goes, it is over by here. */
-      later(settle, DRAW_MS);
+        html.dataset.intro = "burst";
+      }, BURST_AT);
+      /* Frames 4, 5 and 6. */
+      later(lift, LIFT_AT);
     });
 
     // Teardown never forces `done`: a development remount must be free to
@@ -685,10 +592,10 @@ export function HeroIntro() {
       cancelPaint();
       timers.forEach(clearTimeout);
       detach();
-      // A remount must find the pieces exactly as this effect first found
-      // them: at rest in the collage, with none of the flight written on them.
+      // A remount must find the icons exactly as this effect first found
+      // them: at rest, with none of the flight written on them.
       doodles.forEach((el) => {
-        delete el.dataset.landed;
+        delete el.dataset.ring;
         for (const prop of FLIGHT_VARS) el.style.removeProperty(prop);
       });
       unlock();
@@ -835,33 +742,16 @@ export function HeroIntro() {
   return (
     <>
       {/*
-        The official artwork, never redrawn — now from the client's Illustrator
-        file rather than a PNG. It writes itself: each letter is uncovered along
-        the path a pen would take, in writing order, and the six dots in the "P"
-        arrive one by one at the end. See <LogoReveal>. The box is the
-        lettering's own; the flight above aims at the header's letters, not its
-        file, so the two still meet exactly.
-
-        UNTOUCHED BY THIS PASS. The canvas around it changed; the mark did not.
+        The official artwork, never redrawn — from the client's Illustrator
+        file. It fades up at the centre of a clean ground (frame 1), the icons
+        burst out from behind it (frame 2), and it then flies to the exact box
+        of the logo in the header bar and hands over to it (frames 4 and 5).
+        See <LogoReveal>; the flight aims at the header's letters, not its
+        file, so the two meet exactly.
       */}
       <div ref={logoRef} aria-hidden className={styles.introLogo}>
-        <LogoReveal writeMs={WRITE_MS} dotStepMs={DOT_STEP} />
+        <LogoReveal />
       </div>
-
-      {/* The marks a hand leaves — see ./Hero.module.css. */}
-      <div ref={splatsRef} aria-hidden className={styles.splats}>
-        {Array.from({ length: SPLATS }, (_, i) => (
-          <svg
-            key={i}
-            viewBox={`0 0 ${DOODLES.splash.w} ${DOODLES.splash.h}`}
-            className={styles.splat}
-            focusable="false"
-          >
-            <path d={DOODLES.splash.d} fill="currentColor" />
-          </svg>
-        ))}
-      </div>
-
     </>
   );
 }

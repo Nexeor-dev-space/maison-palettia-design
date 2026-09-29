@@ -348,25 +348,33 @@ function WhoItIsFor() {
           which is the fallback `mark` exists for.
         */}
         {/*
-          THREE COLUMNS, AND A FOURTH THAT IS NOT ONE OF THEM.
+          FOUR COLUMNS, FOUR PROGRAMMES, ONE ROW.
 
-          The four ran as full-width panels, image beside field, alternating
-          sides. The client asked for cards, and three across is what the
-          measure takes — but four items in three columns leaves an orphan,
-          and an orphan is what made this read as a row that ran out rather
-          than a row that was placed.
+          These ran first as full-width panels, then as three cards with the
+          fourth laid on its side beneath them. Four columns is what the
+          client asked for and it is also what the content is: the row says
+          "these are the four kinds of group" in a single glance, instead of
+          making the reader work out why one of them sits apart.
 
-          So the split is the DATA'S, not the arithmetic's.
-          `inPrivateEventsMenu` is true for exactly three of these — a
-          birthday, a company gathering and a school visit are all things a
-          host books privately. Mall & community activations is not: the note
-          on the type says the studio is engaged by the venue rather than by a
-          guest, which is why it is kept out of a menu headed "Private
-          events". It is a different kind of thing, so it gets a different
-          shape — the full width, under the three.
+          THE ODD ONE OUT KEEPS ITS DIFFERENCE — IN COLOUR, NOT IN SHAPE.
+          Mall & community activations is still not a thing a host books
+          privately (the note on the type: the studio is engaged by the venue
+          rather than by a guest), which is why it stays out of a menu headed
+          "Private events", and it is still the only programme with no
+          photograph. Where the other three carry a picture in the top block
+          it carries its brand cut-out on Deep Lilac, so it occupies the same
+          cell as its neighbours and still reads as its own kind of thing.
 
-          A grid of four with one hanging would have been a layout accident.
-          Three and one is the content.
+          ONE CELL SHAPE, SO THE FIELDS CANNOT DRIFT. Every card is an
+          `aspect-[4/3]` block over a field that takes whatever is left
+          (`flex-1`), and grid items stretch, so four cards of unequal copy
+          still end level. The numerals sit at the top of their fields rather
+          than centred with the text, which is what keeps them reading as one
+          row of four rather than four things at four heights.
+
+          TWO ACROSS BELOW lg. A quarter of a tablet is narrower than these
+          headings take, so `sm:grid-cols-2` holds two tidy rows until there
+          is width for the single one.
 
           WHAT IS UNCHANGED. `id={audience.slug}` is still the anchor the
           bar's menu points at, `scroll-mt` still clears the fixed bar, the
@@ -374,116 +382,87 @@ function WhoItIsFor() {
           is still lib/privateEvents.ts. The per-programme fields and their
           ink pairings are the same ones, measured — see AUDIENCE_TONES.
         */}
-        <ol className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mt-16 lg:grid-cols-3 lg:gap-8">
+        <ol className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mt-16 lg:grid-cols-4 lg:gap-6">
           {PRIVATE_EVENT_AUDIENCES.map((audience, i) => {
             const tone = AUDIENCE_TONES[audience.slug] ?? AUDIENCE_TONES.default;
-            const wide = audience.inPrivateEventsMenu !== true;
 
             return (
               <li
                 key={audience.slug}
                 id={audience.slug}
-                className={cn(
-                  "scroll-mt-header md:scroll-mt-[var(--spacing-header-lg)]",
-                  wide && "sm:col-span-2 lg:col-span-3",
-                )}
+                className="scroll-mt-header md:scroll-mt-[var(--spacing-header-lg)]"
               >
                 <Reveal variant="fadeIn" delay={Math.min(i, 3) * 0.06} className="h-full">
                   <div
-                    className={cn(
-                      /*
-                        `overflow-clip`, not `overflow-hidden`. `hidden` makes
-                        this a scroll container, and a scroll container breaks
-                        the view timeline the brand marks draw on — the
-                        cut-out below rendered into the HTML and then sat at
-                        its undrawn start state, invisible. `clip` clips the
-                        same and creates no scrollport. Same trap as the home
-                        page's sections; see DoodleMark.module.css.
-                      */
-                      "relative flex h-full flex-col overflow-clip rounded-[1.25rem] md:rounded-[1.75rem]",
-                      // The wide one lies down; the three stand up.
-                      wide && "lg:min-h-[17rem]",
-                      wide && audience.image && "lg:flex-row",
-                    )}
+                    /*
+                      `overflow-clip`, not `overflow-hidden`. `hidden` makes
+                      this a scroll container, and a scroll container breaks
+                      the view timeline the brand marks draw on — the cut-out
+                      below rendered into the HTML and then sat at its undrawn
+                      start state, invisible. `clip` clips the same and creates
+                      no scrollport. Same trap as the home page's sections; see
+                      DoodleMark.module.css.
+                    */
+                    className="relative flex h-full flex-col overflow-clip rounded-[1.25rem] md:rounded-[1.75rem]"
                   >
                     {/*
-                      A PLATE ONLY WHERE THERE IS A PICTURE FOR IT.
+                      A BLOCK AT THE TOP OF EVERY CARD, PICTURE OR NOT.
 
-                      The wide card used to draw its plate either way, so the
-                      one programme with no photograph rendered a 42%-wide
-                      block of flat colour with a single small cut-out adrift
-                      in the middle of it, and a heading stranded in the
-                      corner of the rest. That is the empty slab the client
-                      marked.
+                      The programme with no photograph used to drop this block
+                      altogether and lay its field out flat instead, which is
+                      why it could never stand in a column beside the other
+                      three. It keeps the cell and fills it with its own field
+                      colour and its cut-out — the deck's device, at the size
+                      a quarter-width column actually takes, rather than the
+                      19rem mark that was sized for a full-width panel.
 
-                      With no picture the card is ONE field across the full
-                      width, and the cut-out goes large and breaks its right
-                      edge — the deck's own device, and the thing that makes a
-                      field read as a composition instead of as a gap.
+                      THE PHOTOGRAPHS ARE STAND-INS AND THE ALT TEXT KNOWS IT.
+                      Nothing in the project photographs a birthday, a company
+                      gathering or a school group; each `image` describes what
+                      is in the frame and never asserts the occasion. See the
+                      note on the type.
                     */}
-                    {audience.image ? (
-                      <div
-                        className={cn(
-                          "relative w-full shrink-0",
-                          wide ? "aspect-[16/10] lg:aspect-auto lg:w-[42%]" : "aspect-[4/3]",
-                          tone.plate,
-                        )}
-                      >
+                    <div className={cn("relative aspect-[4/3] w-full shrink-0", tone.plate)}>
+                      {audience.image ? (
                         <Image
                           src={audience.image.src}
                           alt={audience.image.alt}
                           fill
-                          sizes={
-                            wide
-                              ? "(min-width: 1024px) 42vw, 100vw"
-                              : "(min-width: 1024px) 31vw, (min-width: 640px) 46vw, 100vw"
-                          }
+                          sizes="(min-width: 1024px) 23vw, (min-width: 640px) 46vw, 100vw"
                           className="object-cover"
                         />
-                      </div>
-                    ) : audience.mark ? (
-                      <span
-                        aria-hidden
-                        /*
-                          `z-10`, or it is not there at all. The field below
-                          is `relative` and comes after this in the DOM, so
-                          its own background paints over an absolutely placed
-                          sibling — the cut-out rendered into the HTML, drew
-                          itself correctly on scroll, and was covered the
-                          whole time. It can sit above safely because the
-                          heading and the copy are capped well short of it.
-                        */
-                        className="pointer-events-none absolute -right-10 -top-8 z-10 w-[13rem] rotate-[-12deg] opacity-90 md:-right-12 md:w-[17rem] lg:-right-8 lg:top-1/2 lg:w-[19rem] lg:-translate-y-1/2"
-                      >
-                        <DoodleMark
-                          name={audience.mark.name}
-                          color={audience.mark.color}
-                          treatment="draw"
-                          delay={220}
-                        />
-                      </span>
-                    ) : null}
+                      ) : audience.mark ? (
+                        <span
+                          aria-hidden
+                          /*
+                            SIZED BY THE BOX, NOT BY A WIDTH. These marks are
+                            portrait — `coral` is 218 x 339 — so a width of
+                            "about two thirds of the card" came out half again
+                            taller than a 4:3 cell and lost its head and its
+                            foot to the clip. The span takes the whole cell and
+                            the svg inside it is `height: 100%; width: 100%`
+                            over a viewBox, so the default `xMidYMid meet`
+                            fits the mark to whichever edge binds first and
+                            centres it. The inset is what keeps it off the
+                            corners once it is turned.
+                          */
+                          className="pointer-events-none absolute inset-0 rotate-[-8deg] p-5 md:p-6"
+                        >
+                          <DoodleMark
+                            name={audience.mark.name}
+                            color={audience.mark.color}
+                            treatment="draw"
+                            delay={220}
+                          />
+                        </span>
+                      ) : null}
+                    </div>
 
-                    {/* The field, carrying the words. `flex-1` so three cards
+                    {/* The field, carrying the words. `flex-1` so four cards
                         of different copy lengths still end level. */}
                     <div
                       className={cn(
-                        "relative flex flex-1 flex-col justify-center px-6 py-7 md:px-8 md:py-9",
-                        wide && "lg:px-11",
-                        /*
-                          THE CAP GOES ON THE WORDS, NOT ON THE FIELD.
-
-                          It was `max-w-[62%]` here, on the field — which is
-                          the thing carrying the colour, so the card's Deep
-                          Lilac stopped at 62% and the rest of the row showed
-                          the page through it. The card read as cut off, and
-                          the cut-out placed past that edge was outside the
-                          coloured area altogether and so invisible.
-
-                          The field fills the card; the measure below holds
-                          the text off the mark.
-                        */
-                        wide && !audience.image && "lg:py-14",
+                        "relative flex flex-1 flex-col px-6 py-7 md:px-7 md:py-8",
                         tone.field,
                         tone.ink,
                       )}
@@ -492,22 +471,11 @@ function WhoItIsFor() {
                         {String(i + 1).padStart(2, "0")}
                       </span>
 
-                      <h3
-                        className={cn(
-                          "mt-3 text-h3 font-medium tracking-[-0.015em]",
-                          // Clear of the cut-out breaking the right edge.
-                          wide && !audience.image && "lg:max-w-[58%]",
-                        )}
-                      >
+                      <h3 className="mt-3 text-h3 font-medium tracking-[-0.015em]">
                         {audience.name}
                       </h3>
 
-                      <p
-                        className={cn(
-                          "mt-3 max-w-[40ch] text-body leading-[1.8]",
-                          wide && !audience.image && "lg:max-w-[52%]",
-                        )}
-                      >
+                      <p className="mt-3 max-w-[40ch] text-body leading-[1.8]">
                         {audience.description}
                       </p>
                     </div>
@@ -730,14 +698,51 @@ function Plate({
       />
 
       {/*
-        The type sits on the picture, so the picture is made to carry it. These
-        are the stops the strands menu arrived at after measuring against the
-        palest plate in the project — and these are the same photographs, so
-        the measurement transfers rather than being guessed at again.
+        A SCRIM AT THE FOOT, NOT A WASH OVER THE PHOTOGRAPH.
+
+        The type sits on the picture, so the picture has to carry it — but the
+        scrim that did the carrying reached 85% of the way up the tile and only
+        thinned slowly on the way, so on a collage this tight it read as a grey
+        cast over the whole wall. The client's note is exactly that: too much
+        dark. It is the reach that was wrong, not the strength.
+
+        SO THE STRENGTH STAYS WHERE THE WORDS ARE AND THE REACH IS CUT. /80 is
+        the stop the strands menu arrived at after measuring against the palest
+        plate in the project, and these are the same photographs, so the
+        measurement transfers rather than being guessed at again. It now holds
+        all the way to 44% rather than thinning from 42%, which on a desktop
+        single-cell tile is measured at the top line of a two-line description
+        — the band that actually carries type is no lighter than it was, and
+        just above it is a shade darker. Everything above that band is lighter,
+        which is the point: the fall to clear is finished by 60%, so the top
+        two-fifths of every tile is untouched photograph where it used to be
+        the top seventh.
+
+        The foot comes down from /95 to /88, which still leaves White Rock at
+        better than 6:1 over even a white frame and takes the bottom edge off
+        reading as a black bar.
+
+        FOUR STOPS, WRITTEN OUT, BECAUSE THREE LEAVES AN EDGE. Falling from
+        /80 straight to nothing over sixteen points of height is a change of
+        slope sharp enough to see — a pale band ruled across the middle of the
+        larger tiles, which is the same trap StudioFilm's veil notes: an edge
+        crossing the frame is more conspicuous than the contrast problem it
+        solves. The fourth stop takes the fall in two stages instead, and the
+        faint one is over by 74% and never worth more than /30. Utilities only
+        carry three stops, so it is set here, on the same tokens, the way that
+        veil is.
       */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-text/95 via-text/80 via-42% to-transparent to-85%"
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to top, " +
+            "color-mix(in oklab, var(--color-text) 88%, transparent) 0%, " +
+            "color-mix(in oklab, var(--color-text) 80%, transparent) 44%, " +
+            "color-mix(in oklab, var(--color-text) 30%, transparent) 60%, " +
+            "transparent 74%)",
+        }}
       />
 
       <div className="absolute inset-x-0 bottom-0 p-5 text-on-dark lg:p-6">

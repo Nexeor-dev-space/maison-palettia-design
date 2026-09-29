@@ -464,11 +464,33 @@
   --text-script-hero: clamp(3rem, 2.2rem + 3.6vw, 6.25rem);
   --text-script-hero--line-height: 1.24;
 
+  /*
+     TIGHTENED AT THE CLIENT'S ASK — "titles should look somewhat like [the
+     mockup], as there is so much of spacing between the lines".
+
+     1.28 and 1.32 held every line clear of the one below it: Hapsha's
+     descenders drop 0.28em and its ascender loops stand 0.22em above the line
+     box, so anything under about 1.20 lets two lines share vertical space.
+     That clearance is what the client is reading as too much air — a script
+     set with no overlap reads as two separate statements rather than as one
+     written phrase, and the mockup's title is plainly interlocked.
+
+     So these now sit BELOW that threshold on purpose. The lines overlap by
+     roughly 0.2em and the face carries it, which is what a script is drawn to
+     do. Every multi-line script heading on the site was rendered and checked
+     for an actual glyph collision at these values, at 390, 768 and 1440 —
+     see the audit in the same pass. Going further (0.90 was tried) still
+     clears on this page and starts to look precarious on the three-line
+     headings, which is why it stops here.
+
+     THE BANNER'S OWN IS DELIBERATELY NOT TOUCHED. `--text-script-hero` was
+     tuned against the client's earlier note on the banner and approved at
+     that value; this annotation is on a section title. */
   --text-script-section: clamp(2.6rem, 1.9rem + 2.9vw, 5rem);
-  --text-script-section--line-height: 1.28;
+  --text-script-section--line-height: 1.02;
 
   --text-script-compact: clamp(2.2rem, 1.7rem + 1.9vw, 3.4rem);
-  --text-script-compact--line-height: 1.32;
+  --text-script-compact--line-height: 1.06;
 
   /* --- Spacing rhythm (section-level) ------------------------------------ */
   --spacing-section: 6rem;
@@ -1252,7 +1274,7 @@ html.lenis.lenis-stopped {
 */
 html:not([data-intro]) body:has([data-hero-intro]),
 html[data-intro="play"] body:has([data-hero-intro]),
-html[data-intro="draw"] body:has([data-hero-intro]),
+html[data-intro="burst"] body:has([data-hero-intro]),
 html[data-intro="settle"] body:has([data-hero-intro]) {
   /* Held through `settle` too: the bar fades back in over it, and releasing
      the tint any earlier flashed a pale strip above the hero. Light Sage
@@ -1263,12 +1285,13 @@ html[data-intro="settle"] body:has([data-hero-intro]) {
 
 html:not([data-intro]) body:has([data-hero-intro]) > header,
 html[data-intro="play"] body:has([data-hero-intro]) > header,
-html[data-intro="draw"] body:has([data-hero-intro]) > header {
+html[data-intro="burst"] body:has([data-hero-intro]) > header {
   opacity: 0;
   visibility: hidden;
   /* A fail-safe, not a timing: if the script never runs, the bar still
-     arrives. The intro replaces this long before it would fire. */
-  animation: intro-failsafe 0.01s 4.5s forwards;
+     arrives. The intro replaces this long before it would fire — it is done
+     at 1.5s now, so this came down from 4.5s with it. */
+  animation: intro-failsafe 0.01s 2.5s forwards;
 }
 
 /*
@@ -1281,24 +1304,25 @@ html[data-intro="draw"] body:has([data-hero-intro]) > header {
 */
 html:not([data-intro]) body:has([data-hero-intro]) > div > footer,
 html[data-intro="play"] body:has([data-hero-intro]) > div > footer,
-html[data-intro="draw"] body:has([data-hero-intro]) > div > footer,
+html[data-intro="burst"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   visibility: hidden;
-  animation: intro-failsafe 0.01s 4.5s forwards;
+  animation: intro-failsafe 0.01s 2.5s forwards;
 }
 
 /*
-  The bar comes in as the logo lands, not after it. The flight runs 820ms on a
-  strong ease-in-out, so the mark is all but home by 600ms: from there the bar
-  fades up around it, and the flying mark fades out over the bar's own at the
-  same place and size.
+  FRAME 5: "As the logo settles in the navigation bar..." The bar comes in as
+  the mark lands, not after it. The flight runs 440ms on a strong ease-in-out,
+  so the mark is all but home by 300ms: from there the bar fades up around it,
+  and the flying mark fades out over the bar's own at the same place and size.
+  Fully there at 1140ms from the first frame, inside frame 5's window.
 */
 html[data-intro="settle"] body:has([data-hero-intro]) > header {
   opacity: 1;
   visibility: visible;
   transition:
-    opacity 380ms ease 600ms,
-    visibility 0s 600ms;
+    opacity 240ms ease 300ms,
+    visibility 0s 300ms;
 }
 
 @keyframes intro-failsafe {

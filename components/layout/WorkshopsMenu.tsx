@@ -36,10 +36,21 @@ interface WorkshopsMenuProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-/** The two ways to take part, in the order the studio puts them. */
+/**
+ * The two ways to take part, in the order the studio puts them.
+ *
+ * THE NAMES ARE THE CLIENT'S. "Walk-in" and "Scheduled" described the booking
+ * mechanism; "Create Anytime" and "Create Together" describe what you get, and
+ * the client has asked for the menu to say the second. The notes under them
+ * still carry the mechanism, so nothing a visitor needs to know has gone.
+ *
+ * `mode` is untouched and stays `diy` / `scheduled` — it is the key everything
+ * from lib/experiences.ts to the event routes is filtered on, and none of that
+ * was part of the ask.
+ */
 const GROUPS = [
-  { mode: "diy", title: "Walk-in", note: "No booking — come in any time." },
-  { mode: "scheduled", title: "Scheduled", note: "A set date and time, booked online." },
+  { mode: "diy", title: "Create Anytime", note: "No booking — come in any time." },
+  { mode: "scheduled", title: "Create Together", note: "A set date and time, booked online." },
 ] as const;
 
 /**
@@ -189,7 +200,9 @@ export function WorkshopsMenu({
                 <MenuPreview
                   key={active.slug}
                   href={`/events/${active.slug}`}
-                  eyebrow={active.kind === "diy" ? "Walk-in" : "Scheduled"}
+                  /* The same two names as the groups above it — this panel
+                     would otherwise call one thing two things at once. */
+                  eyebrow={active.kind === "diy" ? "Create Anytime" : "Create Together"}
                   name={active.name}
                   description={active.description}
                   image={active.image}

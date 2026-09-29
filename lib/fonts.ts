@@ -1,15 +1,63 @@
-import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 
 /**
  * Primary UI + editorial face. Used for navigation, headings, body copy,
  * buttons, forms and all interface text.
+ *
+ * ==========================================================================
+ * SELF-HOSTED, AND IT HAS TO BE — THE DEPLOY DEPENDED ON IT
+ * ==========================================================================
+ *
+ * This was `Montserrat` from `next/font/google`, which reads well and is what
+ * the guideline names, but it is not a build-time-free choice: that loader
+ * contacts fonts.googleapis.com for the stylesheet and fonts.gstatic.com for
+ * every file, DURING `next build`. So the production build could only succeed
+ * if the build container could reach Google, and on the deploy host it could
+ * not. Turbopack does not say so. It reports twenty-five copies of
+ *
+ *   Module not found: Can't resolve
+ *   '@vercel/turbopack-next/internal/font/google/font'
+ *   next/font/google queries have exactly one entry
+ *
+ * — one per weight and subset — which names neither fonts nor the network, and
+ * which reproduces on no developer machine, because a machine that can reach
+ * Google builds fine. The same build passes locally and fails in the image.
+ *
+ * The file below removes the dependency rather than working around it. There
+ * is no fetch in the build any more, so the deploy cannot fail on somebody
+ * else's uptime, and no visitor's browser is handed to Google either.
+ *
+ * WHAT IS IN THE FILE, AND WHY ONE FILE IS ENOUGH.
+ *
+ *   It is the VARIABLE face, wght 100-900, so the five weights this site used
+ *   to request separately (300/400/500/600/700) all come out of one 35KB
+ *   download instead of five. `weight: "100 900"` is what tells next/font it
+ *   is an axis and not a single cut.
+ *
+ *   It is the LATIN subset, which is the subset this file already asked for.
+ *   Measured against every non-ASCII character in the project, exactly three
+ *   fall outside it — the Greek delta and the two arrows — and none of those
+ *   are in latin-ext, cyrillic or vietnamese either, so they were already
+ *   being drawn by the fallback face before this change and still are. That
+ *   is also why this is one `src` and not several: next/font/local writes no
+ *   `unicode-range`, so a second subset declared here would not narrow itself
+ *   to its own characters — it would be a second @font-face with the same
+ *   family, weight and style, and one of the two would simply win.
+ *
+ * Montserrat is licensed under the SIL Open Font License 1.1, which permits
+ * redistribution, so the file is committed with the project. See
+ * public/fonts/README.md.
  */
-export const montserrat = Montserrat({
-  subsets: ["latin"],
+export const montserrat = localFont({
+  src: [
+    {
+      path: "../public/fonts/Montserrat-Variable-latin.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
   display: "swap",
   variable: "--font-montserrat",
-  weight: ["300", "400", "500", "600", "700"],
 });
 
 
