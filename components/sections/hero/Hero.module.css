@@ -44,6 +44,7 @@
 
 :global(html:not([data-intro])) .hero,
 :global(html[data-intro="play"]) .hero,
+:global(html[data-intro="dots"]) .hero,
 :global(html[data-intro="burst"]) .hero,
 :global(html[data-intro="settle"]) .hero {
   z-index: 30;
@@ -118,6 +119,7 @@
   in — the mark arrives rather than appears.
 */
 :global(html[data-intro="play"]) .introLogo,
+:global(html[data-intro="dots"]) .introLogo,
 :global(html[data-intro="burst"]) .introLogo {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
@@ -142,6 +144,82 @@
   stroke: var(--color-primary);
   stroke-width: 0.5;
   stroke-linejoin: round;
+}
+
+/*
+  ==========================================================================
+  THE SIX PAINT WELLS IN THE "P" — the beat between the mark and the icons
+  ==========================================================================
+
+  The client asked for these back: the mark fades up, the wells fill one at a
+  time, and only then do the icons burst out from behind it. They were part of
+  the original opening and went when the handwriting did; the handwriting is
+  not coming back, but this is, because it is the one piece of the logo that
+  moves and it belongs to the logo rather than to the ring.
+
+  `transform-box: fill-box` makes every transform below relative to the dot's
+  own 2.7-unit box rather than to the whole 300-unit artwork — which is what
+  lets `scale(0)` collapse a dot into itself. <LogoReveal> sets the origin to
+  `center` for the same reason; see the note there, which is a real bug's
+  epitaph.
+*/
+.pDot {
+  transform-box: fill-box;
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+}
+
+/* Before they are thrown: collapsed at the middle of the palette. */
+:global(html:not([data-intro])) .pDot,
+:global(html[data-intro="play"]) .pDot {
+  transform: translate(var(--dx, 0), var(--dy, 0)) scale(0);
+  opacity: 0;
+}
+
+/*
+  240ms, AND IT IS SET AGAINST THE STEP RATHER THAN CHOSEN ON ITS OWN.
+
+  This was 420 in the old opening, picked so the travel out of the P would
+  register. It did, and it also meant every dot was still in the air when the
+  next three left: at a 200ms step a 420ms flight has three dots overlapping
+  at any moment, which reads as a burst however carefully the delays are
+  ordered. The client asked three times for "one by one" and this was the half
+  of it that was wrong.
+
+  The step is now 62ms, not 200 — the whole entrance is under two seconds and
+  six dots at 200 apart would be a second on their own. 240 against 62 does
+  overlap, but a dot is 74% of the way home when the next leaves, so the six
+  still arrive in a countable order rather than together. The easing overshoots,
+  so a dot lands slightly past its well and settles: paint flicked off a brush
+  rather than placed.
+
+  `both`, so the last frame holds. When the state moves on to `burst` this rule
+  stops matching and `.pDot` above takes over at exactly the same values, so
+  nothing flickers at the handover.
+
+  <HeroIntro> owns the step and when this phase ends; the two move together,
+  and the phase has to outlast the last dot's LAST FRAME, not its start.
+*/
+:global(html[data-intro="dots"]) .pDot {
+  animation: dotIn 240ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
+}
+
+@keyframes dotIn {
+  from {
+    transform: translate(var(--dx, 0), var(--dy, 0)) scale(0);
+    opacity: 0;
+  }
+
+  /* Up to full before the travel ends, so a dot is never a dot fading in —
+     it is already ink by the time anyone can see where it is going. */
+  45% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
 }
 
 /*
@@ -386,6 +464,7 @@
 
 :global(html:not([data-intro])) .bloom,
 :global(html[data-intro="play"]) .bloom,
+:global(html[data-intro="dots"]) .bloom,
 :global(html[data-intro="burst"]) .bloom,
 :global(html[data-intro="skip"]) .bloom {
   clip-path: circle(0% at 50% calc(100% - var(--wb)));
@@ -393,6 +472,7 @@
 
 :global(html:not([data-intro])) .cardImage,
 :global(html[data-intro="play"]) .cardImage,
+:global(html[data-intro="dots"]) .cardImage,
 :global(html[data-intro="burst"]) .cardImage,
 :global(html[data-intro="skip"]) .cardImage {
   transform: translate3d(0, var(--lift-now), 0) scale(1.16);
@@ -501,7 +581,8 @@
    puts them UNDER the mark (z-index 50), so frame 2 reads as a burst from
    behind the logo rather than from in front of it. */
 :global(html[data-intro="burst"]) .doodle,
-:global(html[data-intro="play"]) .doodle {
+:global(html[data-intro="play"]) .doodle ,
+:global(html[data-intro="dots"]) .doodle {
   z-index: 20;
 }
 
@@ -563,19 +644,22 @@
   ./composition.ts for which nine of the eighteen take part and why.
 */
 :global(html:not([data-intro])) .flip,
-:global(html[data-intro="play"]) .flip {
+:global(html[data-intro="play"]) .flip ,
+:global(html[data-intro="dots"]) .flip {
   opacity: 0;
   transform: none;
 }
 
 :global(html:not([data-intro])) .flip[data-ring],
-:global(html[data-intro="play"]) .flip[data-ring] {
+:global(html[data-intro="play"]) .flip[data-ring] ,
+:global(html[data-intro="dots"]) .flip[data-ring] {
   transform: translate(var(--bx, 0px), var(--by, 0px))
     scale(calc(var(--fs, 1) * 0.34)) rotate(var(--br, 0deg));
 }
 
 :global(html:not([data-intro])) .ink,
-:global(html[data-intro="play"]) .ink {
+:global(html[data-intro="play"]) .ink ,
+:global(html[data-intro="dots"]) .ink {
   stroke-dashoffset: 0;
   fill-opacity: 1;
   stroke-opacity: 0;
@@ -719,6 +803,7 @@
 
 :global(html:not([data-intro])) .reveal,
 :global(html[data-intro="play"]) .reveal,
+:global(html[data-intro="dots"]) .reveal,
 :global(html[data-intro="burst"]) .reveal,
 :global(html[data-intro="skip"]) .reveal {
   opacity: 0;
@@ -858,6 +943,7 @@
 
 :global(html:not([data-intro])) .lineInner,
 :global(html[data-intro="play"]) .lineInner,
+:global(html[data-intro="dots"]) .lineInner,
 :global(html[data-intro="burst"]) .lineInner,
 :global(html[data-intro="skip"]) .lineInner {
   transform: translate3d(0, 1.55em, 0);

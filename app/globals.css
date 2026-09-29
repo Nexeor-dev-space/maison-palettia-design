@@ -1319,6 +1319,7 @@ html.lenis.lenis-stopped {
 */
 html:not([data-intro]) body:has([data-hero-intro]),
 html[data-intro="play"] body:has([data-hero-intro]),
+html[data-intro="dots"] body:has([data-hero-intro]),
 html[data-intro="burst"] body:has([data-hero-intro]),
 html[data-intro="settle"] body:has([data-hero-intro]) {
   /* Held through `settle` too: the bar fades back in over it, and releasing
@@ -1330,6 +1331,7 @@ html[data-intro="settle"] body:has([data-hero-intro]) {
 
 html:not([data-intro]) body:has([data-hero-intro]) > header,
 html[data-intro="play"] body:has([data-hero-intro]) > header,
+html[data-intro="dots"] body:has([data-hero-intro]) > header,
 html[data-intro="burst"] body:has([data-hero-intro]) > header {
   opacity: 0;
   visibility: hidden;
@@ -1349,6 +1351,7 @@ html[data-intro="burst"] body:has([data-hero-intro]) > header {
 */
 html:not([data-intro]) body:has([data-hero-intro]) > div > footer,
 html[data-intro="play"] body:has([data-hero-intro]) > div > footer,
+html[data-intro="dots"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="burst"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   visibility: hidden;

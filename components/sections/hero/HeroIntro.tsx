@@ -46,9 +46,24 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   These are starts, in milliseconds from the first frame. ./Hero.module.css
   owns every individual transition; this only decides when each phase begins.
 */
-const BURST_AT = 200; // frame 2: the icons leave the logo
-const LIFT_AT = 800; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 720; // frame 6: ... and the page is composed by 1520ms
+/*
+  AND A BEAT BETWEEN THE MARK AND THE ICONS, at the client's ask: "we need the
+  dots animation we used before for the letter P, after that the doodle pop
+  come." The six paint wells in the "P" were part of the opening before the
+  handwriting was replaced by a fade, and they went with it. They are back,
+  and they are their own phase rather than something running under the burst —
+  the note is explicit that the icons come AFTER them.
+
+  It costs about 380ms, so the entrance runs to roughly 1.9s rather than the
+  storyboard's 1.5. That is the trade the ask makes, and it is the cheapest
+  version of it: the wells are stepped at 62ms rather than the 200 the old
+  opening used, which would have cost a second on its own.
+*/
+const DOTS_AT = 180; // the mark is up; the wells start filling
+const DOT_STEP = 62; // one well after another — see `.pDot` in Hero.module.css
+const BURST_AT = 560; // frame 2: the icons leave the logo
+const LIFT_AT = 1160; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 720; // frame 6: ... and the page is composed by 1880ms
 
 /*
   One icon after another on the way out, and again on the way back.
@@ -582,11 +597,15 @@ export function HeroIntro() {
     cancelPaint = nextPaint(() => {
       /*
         Frame 1 is the state change itself: `play` fades the mark up at the
-        centre over 200ms against the clean Light Sage ground, with the ring
-        stacked invisibly behind it.
+        centre over 180ms against the clean Light Sage ground, with the wells
+        collapsed inside the "P" and the ring stacked invisibly behind it.
       */
       attach();
-      /* Frame 2 and 3: the icons leave the mark and take their places. */
+      /* The wells fill, one at a time, out of the middle of the palette. */
+      later(() => {
+        html.dataset.intro = "dots";
+      }, DOTS_AT);
+      /* Frames 2 and 3: the icons leave the mark and take their places. */
       later(() => {
         html.dataset.intro = "burst";
       }, BURST_AT);
@@ -760,7 +779,7 @@ export function HeroIntro() {
         file, so the two meet exactly.
       */}
       <div ref={logoRef} aria-hidden className={styles.introLogo}>
-        <LogoReveal />
+        <LogoReveal dotStepMs={DOT_STEP} />
       </div>
     </>
   );
