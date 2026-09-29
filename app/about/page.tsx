@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandStory";
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
@@ -11,7 +12,6 @@ import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import {
-  BRAND_STORY,
   CLOSING,
   COMMUNITY,
   EVENT_PLATES,
@@ -156,21 +156,35 @@ function Welcome() {
         </Reveal>
 
         {/*
-          The story, dropped and pushed right — the corner. One paragraph at a
-          reading measure, because BRAND_STORY is one sentence of the deck's
-          and breaking it into fragments is what made the homepage's own
-          opening read as messy.
+          THE STORY, TYPESET — NOT ONE FLAT PARAGRAPH.
+
+          This set `BRAND_STORY` as a single block of running copy pushed into
+          the corner. Same words, none of the typesetting: the sentence names
+          the brand after a word, and printing that word at the same size as
+          everything around it throws away the one thing the sentence is doing.
+
+          The client pointed at the homepage's treatment and asked for the
+          about-us section to read like it — the lead-in, "Palette" in the
+          brand's own script, and the clause that defines it, with the rest of
+          the sentence carried by the field beside the photograph. It is the
+          same component in both places now; see <BrandStory>.
+
+          `as="p"`: this page's h1 is already the tagline, directly above. A
+          second heading of the same rank under it would be a document outline
+          claiming the page has two titles.
         */}
         <div className="mt-10 grid grid-cols-12 md:mt-14">
           <Reveal
             delay={0.16}
-            className="col-span-12 md:col-span-9 md:col-start-4 lg:col-span-7 lg:col-start-6"
+            className="col-span-12 md:col-span-9 md:col-start-4 lg:col-span-8 lg:col-start-5"
           >
-            <p className="max-w-[46ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.3125rem)] font-light leading-[1.75] text-text">
-              {BRAND_STORY}
-            </p>
+            <BrandStoryLead as="p" />
           </Reveal>
         </div>
+
+        <Reveal variant="fadeIn" delay={0.24} className="mt-12 block md:mt-16">
+          <BrandStoryObject />
+        </Reveal>
       </Container>
     </section>
   );

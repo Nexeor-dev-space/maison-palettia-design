@@ -42,7 +42,7 @@ export function WhatsAppWidget() {
       className={
         "fixed right-[max(1rem,env(safe-area-inset-right))] z-30 " +
         "bottom-[max(1rem,env(safe-area-inset-bottom))] " +
-        "inline-flex size-12 items-center justify-center rounded-sm bg-primary text-on-primary " +
+        "inline-flex size-12 items-center justify-center rounded-pill bg-primary text-on-primary " +
         // Charcoal Slate at 18%, through the token. It was rgba(35,31,32,.18) —
         // the near-black the palette dropped for not being in the guidelines,
         // left behind in a shadow where nobody looks for a colour.

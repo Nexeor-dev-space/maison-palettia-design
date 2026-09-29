@@ -18,7 +18,7 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   numbers below the sixth dot leaves at 2607ms and takes 240ms to fly, so it is
   home at 2847 and this holds 103ms past it.
 */
-const DRAW_MS = 2950; // the logo writes itself, the dots arrive, the flower draws
+const DRAW_MS = 1700; // the logo writes itself, the dots arrive, the flower draws
 /*
   WRITE_MS COVERS THE LETTERS AND THE DOTS TOGETHER, which is why it moves
   whenever DOT_STEP does. `schedule()` in <LogoReveal> subtracts the dots'
@@ -31,7 +31,7 @@ const DRAW_MS = 2950; // the logo writes itself, the dots arrive, the flower dra
   2050 -> 2740 is that arithmetic: the dots' span goes 60 + 6x85 = 570 to
   60 + 6x200 = 1260, and 2050 + 690 = 2740.
 */
-const WRITE_MS = 2740; // the pen writing the mark, first stroke to last dot
+const WRITE_MS = 1560; // the pen writing the mark, first stroke to last dot
 /*
   Each palette dot in the "P", after the one before — and the whole point is
   that it is AFTER, not overlapping.
@@ -50,7 +50,7 @@ const WRITE_MS = 2740; // the pen writing the mark, first stroke to last dot
   enough that the row does not read as six separate events.
 */
 const DOT_STEP = 200;
-const SETTLE_MS = 2000; // doodles fly home behind the photograph, it blooms open, the words rise
+const SETTLE_MS = 1000; // doodles fly home behind the photograph, it blooms open, the words rise
 const ENTER_MS = 1400; // the short entrance on a return without a reload
 
 /*
@@ -75,6 +75,27 @@ const ENTER_MS = 1400; // the short entrance on a return without a reload
   one thing the client ruled out. The mask hides everything until the pen
   moves, so the container has nothing to hide and no longer fades at all.
 */
+/*
+  ==========================================================================
+  SHORT, AT THE CLIENT'S ASK — and the arithmetic that makes it hold
+  ==========================================================================
+
+  "The entrance should be short, playful and seamless." It was 2950ms of draw
+  and 2000ms of settle: very nearly five seconds before the site began.
+
+  It is now 1700 + 1000 = 2.7s, and two changes pay for it. The bouquet is six
+  petals rather than eighteen, so the stagger costs 5 x 88 = 440ms instead of
+  17 x 78 = 1326ms — the last petal leaves at 580ms and is home at 1360, well
+  inside the 1700 the phase now ends at. And the settle no longer has to take
+  eighteen shapes apart, because twelve of them never moved.
+
+  WHAT WAS TRADED. The mark's writing is 1560ms, under the 1800 the note below
+  argues is the floor for it to read as a hand rather than as a wipe. That was
+  my figure and the client's brief now outranks it; at six petals there is
+  nothing else competing for the eye while the pen moves, which is what makes
+  the shorter write survive. If it ever reads as a wipe again, this is the
+  number to put back up first.
+*/
 const DRAW_START = 140; // first piece the clock sends in, if no hand has
 /*
   78ms, AND THE ARITHMETIC IS THE FLIGHT'S.
@@ -90,7 +111,7 @@ const DRAW_START = 140; // first piece the clock sends in, if no hand has
   is not supposed to be in, and anyone who reached for it after a second and a
   half found nothing left to bring in.
 */
-const DRAW_STEP = 78; // each following piece, this much later
+const DRAW_STEP = 88; // each following piece, this much later
 
 /*
   THE CANVAS — what a hand does, and what happens if none arrives.
@@ -202,10 +223,26 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
   if (window.matchMedia(REDUCED).matches) {
     foot = gap + copy.offsetHeight + rem;
   } else {
-    const line = copy.querySelector("p");
+    /*
+      THE LAST PARAGRAPH, NOT THE FIRST.
+
+      This was `copy.querySelector("p")`, which is the first one — correct for
+      as long as there was exactly one line under the script. There are two
+      now: the client's mock-up sets "There's no wrong shade of creativity."
+      above the sentence, and the foot went on being reserved down to the
+      bottom of THAT, leaving the sentence below it uncounted. The words then
+      sat in space the card had not been told to give them, and ran straight
+      into the scroll cue.
+
+      Measuring to the bottom of the last one is the version that does not
+      care how many there are, which is what this should have been.
+    */
+    const lines = copy.querySelectorAll("p");
+    const line = lines.length ? lines[lines.length - 1] : null;
     const words = line ? line.offsetTop + line.offsetHeight : copy.offsetHeight;
     // `lineHeight` computes to a pixel length in every engine that matters; if
-    // it ever answers `normal`, the floor below is what applies.
+    // it ever answers `normal`, the floor below is what applies. It is the
+    // LAST line's, because that is the one the cue has to clear.
     const lead = line ? parseFloat(getComputedStyle(line).lineHeight) : NaN;
     const clearance = Math.max(CUE_CLEARANCE_MIN, Math.round((lead || 0) * CUE_CLEARANCE_RATIO));
     const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
@@ -320,7 +357,23 @@ export function HeroIntro() {
     const play = html.dataset.intro === "play";
 
     const doodles = Array.from(hero.querySelectorAll<HTMLElement>("[data-doodle]"));
-    const order = (el: HTMLElement) => DRAW_ORDER.indexOf(el.dataset.doodle ?? "");
+    /*
+      THE BOUQUET IS SIX OF THE EIGHTEEN, at the client's ask to dial the icons
+      around the logo down. The other twelve are the banner's resting collage
+      and never leave their places — see `entrance` in ./composition.ts, and
+      the rule in ./Hero.module.css that keeps them out of sight until the
+      banner they belong to arrives.
+    */
+    const petals = doodles.filter((el) => el.dataset.entrance !== undefined);
+    /* Position in the BOUQUET, so the stagger counts six rather than eighteen
+       and a petal's delay is its own place in the ring. */
+    const entranceOrder = DRAW_ORDER.filter((id) =>
+      DOODLE_PLAN.some((plan) => plan.id === id && plan.entrance),
+    );
+    const order = (el: HTMLElement) => {
+      const i = entranceOrder.indexOf(el.dataset.doodle ?? "");
+      return i === -1 ? DRAW_ORDER.indexOf(el.dataset.doodle ?? "") : i;
+    };
 
     let locked = false;
     const unlock = () => {
@@ -420,7 +473,7 @@ export function HeroIntro() {
     for (const el of doodles) {
       for (const prop of FLIGHT_VARS) el.style.removeProperty(prop);
     }
-    for (const el of doodles) {
+    for (const el of petals) {
       const plan = plans.get(el.dataset.doodle ?? "");
       const box = el.getBoundingClientRect();
       if (!plan || box.width === 0) continue;
@@ -446,7 +499,7 @@ export function HeroIntro() {
       const dx = x - vw / 2;
       const dy = y - vh / 2;
       const len = Math.hypot(dx, dy);
-      const angle = len > 1 ? Math.atan2(dy, dx) : ((i / DRAW_ORDER.length) * Math.PI * 2);
+      const angle = len > 1 ? Math.atan2(dy, dx) : ((i / entranceOrder.length) * Math.PI * 2);
       const ux = len > 1 ? dx / len : Math.cos(angle);
       const uy = len > 1 ? dy / len : Math.sin(angle);
       el.style.setProperty("--ax", `${vw / 2 + ux * away - cx}px`);

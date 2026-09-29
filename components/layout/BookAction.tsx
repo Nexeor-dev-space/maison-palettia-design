@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 
 import { PRIMARY_CTA } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -45,13 +45,11 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
   const bar = size === "bar";
 
   return (
-    <Link
+    <BlobButton
       href={PRIMARY_CTA.href}
       onClick={onNavigate}
       className={cn(
-        "group inline-flex items-center justify-center gap-2.5 rounded-sm font-medium uppercase tracking-eyebrow",
-        "bg-primary text-on-primary",
-        "press-in transition-colors duration-300 ease-soft hover:bg-primary/90",
+        "justify-center font-medium",
         // Narrower flanks between 1024 and 1280, where the bar is at its
         // tightest: that is the band in which the inline nav exists and the
         // mark is centred, so the actions are held to exactly half of what the
@@ -67,12 +65,6 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
       )}
     >
       {PRIMARY_CTA.label}
-      <span
-        aria-hidden
-        className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-      >
-        &#8594;
-      </span>
-    </Link>
+    </BlobButton>
   );
 }

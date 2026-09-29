@@ -60,6 +60,39 @@ export const BRAND_STORY_SET = {
     "Blending elegance with playfulness, the brand celebrates creativity, mindfulness, and meaningful human connection, encouraging people to slow down, unplug, and embrace the art of intentional living.",
 } as const;
 
+/*
+  ==========================================================================
+  THE OPENING STATEMENT — the client's words, not the deck's
+  ==========================================================================
+
+  `BRAND_STORY` above is the deck's sentence about what the brand IS: a
+  creative lifestyle brand, inspired by the word Palette, celebrating
+  creativity and mindfulness. It is corporate-facing and it is still the
+  copy /about opens on.
+
+  What the homepage's "what this is" block carries now is different, and it
+  is supplied by the client verbatim in their feedback: an invitation rather
+  than a definition. It says what a person can come in and do, in the second
+  person, and it closes on a line short enough to remember.
+
+  THE PANEL'S WORDS ARE THE SAME INSTRUCTION, and they belong to the same
+  block, so they live in the same constant rather than in a second one that
+  could drift from it. Only the sign-off survives from what was there before.
+
+  Not one word here is written for the layout. Anything in this object that
+  is not in the client's feedback is a bug.
+*/
+export const OPENING_STATEMENT = {
+  heading: "A Little Space for Big Creativity.",
+  body: "Maison Palettia is a place to make, experiment and unwind. Pick a palette, get your hands busy and turn a little bit of imagination into something that’s yours.",
+  closer: "Come curious. Leave creative.",
+  panel: {
+    heading: "Create your Way.",
+    body: "Pick an activity, bring your people or come on your own. There’s no right way to be creative here, just your palette, your hands and whatever you feel like making.",
+    signOff: "Welcome to Maison Palettia.",
+  },
+} as const;
+
 /** Deck p.3, as assigned by the redesign brief — see the TODO above. */
 export const MISSION = "To inspire meaningful connections through the joy of creativity.";
 

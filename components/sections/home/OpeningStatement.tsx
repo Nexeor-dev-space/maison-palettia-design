@@ -1,11 +1,10 @@
-import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
 import { DeckSheet } from "@/components/ui/deck/Deck";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { BRAND_STORY_SET } from "@/lib/brand";
+import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandStory";
 
 /**
  * What Maison Palettia is — the first words after the banner.
@@ -70,75 +69,14 @@ export function OpeningStatement() {
           </p>
         </Reveal>
 
-        {/*
-          The sentence. `leading-[1.5]` is not a preference: Hapsha's capitals
-          stand 0.9em above their baseline, so at 1.5em inline the P reaches
-          about 1.35em over the line it sits on. A tighter measure than this
-          and the swash goes through the line above — which is exactly what the
-          old 17vw setting did.
-        */}
         <Reveal delay={0.08}>
-          <h2
-            id="opening-statement"
-            className="mt-8 max-w-[34ch] text-[clamp(1.5rem,1.05rem+1.9vw,2.6rem)] font-light leading-[1.5] tracking-[-0.015em] text-text md:mt-10"
-          >
-            {BRAND_STORY_SET.leadIn}{" "}
-            <span className="heading-script inline-block text-[1.5em] leading-[0.75] text-primary">
-              {BRAND_STORY_SET.word}
-            </span>
-            {/* Non-breaking, so the dash never starts a line on a narrow
-                screen — it belongs to the word it follows. */}
-            {"\u00a0"}&mdash; {BRAND_STORY_SET.defines}
-          </h2>
+          <BrandStoryLead id="opening-statement" className="mt-8 md:mt-10" />
         </Reveal>
       </Container>
 
-      {/*
-        THE OBJECT. Photograph and field, flush, sharing one edge and one
-        height: `items-stretch` and a minimum on the row, so the picture covers
-        whatever height the copy turns out to need.
-      */}
       <Container className="mt-12 md:mt-16">
         <Reveal variant="fadeIn">
-          <div className="flex flex-col overflow-clip rounded-[1.5rem] md:rounded-[2rem] lg:min-h-[22rem] lg:flex-row">
-            {/*
-              48% OF THE ROW, WHICH IS A CROP DECISION AND NOT A PREFERENCE.
-              The picture before this one was six children spread across a 16:9
-              frame, and at 38% it lost the two on the ends. This one is a 3:2
-              frame with its subject dead centre and a shallow depth of field,
-              so it survives a narrower column — but the half is kept, because
-              the field beside it still needs the longer measure and nothing
-              about the paragraph has changed.
-            */}
-            <div
-              className="relative aspect-[16/10] w-full lg:aspect-auto lg:w-[48%] lg:shrink-0"
-              data-paint
-              style={{ "--paint": "var(--color-terracotta)" } as React.CSSProperties}
-            >
-              <Image
-                src="/images/about-section-img.jpg"
-                alt="A wooden birdhouse painted with red tulips and a blue roof, standing on the table at an outdoor workshop with more half-painted ones behind it."
-                fill
-                sizes="(min-width: 1024px) 48vw, 100vw"
-                className="object-cover"
-                style={{ objectPosition: "50% 50%" }}
-              />
-            </div>
-
-            <div className="flex flex-1 flex-col justify-center bg-primary px-7 py-11 text-surface md:px-12 md:py-14 lg:px-14">
-              <p className="max-w-[48ch] text-[clamp(1rem,0.94rem+0.3vw,1.1875rem)] leading-[1.8]">
-                {BRAND_STORY_SET.carries}
-              </p>
-
-              {/* The sign-off, in the sage that reads on Deep Lilac. */}
-              <p className="mt-7 flex items-center gap-3 text-[1.0625rem] font-medium text-sage">
-                <span aria-hidden className="block w-5 shrink-0">
-                  <DoodleMark name="splash" color={INK.lavender} delay={220} />
-                </span>
-                Welcome to Maison Palettia.
-              </p>
-            </div>
-          </div>
+          <BrandStoryObject />
         </Reveal>
       </Container>
     </DeckSheet>

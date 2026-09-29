@@ -180,8 +180,10 @@ export default async function LocationsPage() {
  * it has delivered at over the past year — so the models belong at the end of
  * that argument rather than at a new address with nothing leading to it.
  *
- * The homepage keeps a one-statement teaser that links straight to
- * `#collaborate` below. See <CollaborateTeaser>.
+ * The homepage USED to keep a one-statement teaser pointing here; it has been
+ * taken off at the client's ask, so this section is now the only place the
+ * partnership models are shown. Nothing else changed — the models were always
+ * hosted here, and the teaser was only an inbound link.
  *
  * ==========================================================================
  * WHAT IT REPLACES
