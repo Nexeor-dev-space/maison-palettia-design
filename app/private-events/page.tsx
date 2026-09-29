@@ -5,7 +5,6 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
-import { Signature } from "@/components/ui/Signature";
 import {
   getCreativeExperiences,
   type CreativeExperience,
@@ -211,57 +210,211 @@ export default async function PrivateEventsPage() {
    ========================================================================== */
 
 /**
- * What a private event is, in one short passage.
+ * What a private event is, in one short passage — and the first thing on the
+ * page a reader actually looks at.
  *
- * Deliberately brief. The hero has already said what it is for; this says what
- * it is, and everything after it is evidence. A page that explains itself for
- * three paragraphs before showing anything is a brochure.
+ * ==========================================================================
+ * LIGHT SAGE, THE BAR'S OWN GROUND, AT THE CLIENT'S ASK
+ * ==========================================================================
  *
- * The statement holds the left and the paragraph sits low and right, so the
- * eye crosses the measure before it starts down the page — the masthead
- * arrangement the homepage sections use.
+ * It stood on the page ground — Light Sage taken 30% into white — directly
+ * under a bar that is full-strength Light Sage. Two greens a few percent
+ * apart, meeting on a hairline, read as a rendering fault rather than as two
+ * surfaces. The client asked for this section to take the bar's colour, and
+ * that is the better answer for a page that opens with no banner: the bar and
+ * the opening statement become one field of the brand's own green, and the
+ * page begins at the White Rock seam below it instead of nowhere.
+ *
+ * Charcoal Slate on Light Sage is 8.97:1, so nothing here changes ink.
+ *
+ * ==========================================================================
+ * THE PARAGRAPH CAME BACK TO THE STATEMENT, AND A PICTURE TOOK ITS PLACE
+ * ==========================================================================
+ *
+ * The paragraph sat low and right, four columns away from the heading, with
+ * the whole middle of the section empty between them — the masthead
+ * arrangement this page uses elsewhere. It does not survive being the first
+ * thing on a page: there is no picture above it to hold the width, so what a
+ * reader met was two islands of type with a hole in the middle. The
+ * paragraph now sits under the statement it belongs to, at a reading measure,
+ * and the right-hand half carries a photograph.
+ *
+ * THE PHOTOGRAPH IS ONE OF THE FOUR THAT ARE REALLY THE STUDIO'S. It is a
+ * frame from the studio's own film (`maison-banner.mp4` at 0:49) — two pairs
+ * of hands at one table, one holding the palette while the other paints a
+ * tote. That is this section's sentence in a picture: people brought together
+ * through making, and something to take home. Hands only, no identifiable
+ * face, and it is used nowhere else on the site. Nothing captions it as a
+ * private event, because it is a workshop frame and this page must not imply
+ * an event it cannot evidence.
+ *
+ * It is cut into one of the deck's blob shapes rather than framed in a
+ * rectangle: the brand's pictures are cut-outs, and a 16:9 video frame set
+ * square at the top of a page is a screenshot. Four marks break its outline,
+ * which is the standing rule for this brand's icons — none floats in clear
+ * space.
  */
 function Introduction() {
   return (
-    <Container
-      as="section"
+    <section
       aria-labelledby="private-events-intro"
-      className="py-[5rem] md:py-section lg:py-section-lg"
+      /* `overflow-clip`, not `hidden`: a scroll container breaks the view
+         timeline the brand marks draw on, and four of them hang off the
+         picture's edges here. Same trap as everywhere else on this page. */
+      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
-      <div className="grid grid-cols-12 gap-x-6 gap-y-8 lg:gap-x-10">
-        <div className="col-span-12 lg:col-span-7">
-          <Reveal>
-            <p className={`${EYEBROW} text-text`}>
+      <SectionShapes plan={INTRO_SHAPES} />
+      <Container className="relative">
+        <div className="grid grid-cols-12 items-center gap-x-6 gap-y-12 lg:gap-x-12">
+          {/* ---- the statement, and the sentence under it ---------------- */}
+          <div className="col-span-12 lg:col-span-6">
+            <Reveal>
+              <p className={`${EYEBROW} text-text`}>
+                <span
+                  aria-hidden
+                  className="h-px w-9 shrink-0 bg-terracotta md:w-12"
+                />
+                Creative experiences, made for your moment
+              </p>
+            </Reveal>
+
+            <h2 id="private-events-intro" className="mt-8 md:mt-10">
+              <Stagger>
+                <SectionLine>Bring people together</SectionLine>{" "}
+                <SectionLine>through making.</SectionLine>
+              </Stagger>
+            </h2>
+
+            <Reveal delay={0.2}>
+              {/* `script-lede` rather than a margin: the gap under a script
+                  heading is a token, because Hapsha's descenders hang into
+                  it. */}
+              <p className="script-lede max-w-[46ch] text-body leading-[1.9] text-text/80">
+                From team gatherings to celebrations, Maison Palettia creates
+                hands-on experiences that give people a reason to sit down
+                together, make something, and take it home.
+              </p>
+            </Reveal>
+          </div>
+
+          {/* ---- the picture, cut out and broken by four marks ----------- */}
+          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
+            <div className="relative mx-auto w-full max-w-[34rem]">
+              <Reveal variant="imageReveal" delay={0.24} className="relative block">
+                {/*
+                  3:2 out of a 16:9 frame, which is the widest the column can
+                  take without the picture turning into a letterbox strip —
+                  and it matters, because the subject runs the full width of
+                  the source: the palette and the second pair of hands at the
+                  left edge, the brush and the tote in the middle, the painting
+                  hand at the right. A 4:3 crop was tried first and it cut one
+                  end off whichever way it was positioned, which left a
+                  photograph of a palette rather than of two people at a
+                  table. 3:2 takes 16% off the width and keeps all of it.
+
+                  `overflow-clip` on the cut: `clip` honours a radius exactly
+                  as `hidden` does and makes no scroll container, which the
+                  marks hanging off this box depend on.
+                */}
+                <span
+                  className="blob relative block aspect-[3/2] w-full overflow-clip"
+                  style={{ "--blob": "42% 30% 38% 34% / 34% 40% 30% 38%" } as React.CSSProperties}
+                >
+                  <Image
+                    src="/images/hero/tote-painting.jpg"
+                    alt="Two pairs of hands at one table: one holds a red paint palette, the other paints a silver and teal design onto a pale denim tote bag."
+                    fill
+                    sizes="(min-width: 1024px) 544px, 92vw"
+                    style={{ objectPosition: "50% 50%" }}
+                    className="object-cover"
+                  />
+                </span>
+              </Reveal>
+
+              {/*
+                The four marks, placed rather than scattered — the client's
+                standing note — and every one of them crossing the picture's
+                outline. Lilac, terracotta and lavender: the three of the six
+                that can be seen on Light Sage.
+              */}
               <span
                 aria-hidden
-                className="h-px w-9 shrink-0 bg-terracotta md:w-12"
-              />
-              Creative experiences, made for your moment
-            </p>
-          </Reveal>
-
-          <h2 id="private-events-intro" className="mt-8 md:mt-10">
-            <Stagger>
-              <SectionLine>Bring people together</SectionLine>{" "}
-              <SectionLine>through making.</SectionLine>
-            </Stagger>
-          </h2>
+                className="pointer-events-none absolute -right-5 -top-8 w-[5rem] md:w-[6.5rem]"
+              >
+                <DoodleMark name="starburst" color={INK.terracotta} treatment="draw" delay={240} />
+              </span>
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -left-4 top-[28%] w-[2.25rem] md:w-[2.75rem]"
+              >
+                <DoodleMark name="bow" color={INK.lilac} treatment="draw" delay={380} />
+              </span>
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -bottom-7 -left-6 w-[8.5rem] md:w-[10.5rem]"
+              >
+                <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={460} />
+              </span>
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-3 bottom-[18%] w-[2.75rem] md:w-[3.5rem]"
+              >
+                <DoodleMark name="splash" color={INK.lilac} treatment="draw" delay={540} />
+              </span>
+            </div>
+          </div>
         </div>
-
-        <Reveal
-          delay={0.2}
-          className="col-span-12 lg:col-span-4 lg:col-start-9 lg:self-end lg:pb-2"
-        >
-          <p className="max-w-[30rem] text-body leading-[1.9] text-text/80">
-            From team gatherings to celebrations, Maison Palettia creates
-            hands-on experiences that give people a reason to sit down together,
-            make something, and take it home.
-          </p>
-        </Reveal>
-      </div>
-    </Container>
+      </Container>
+    </section>
   );
 }
+
+/*
+  The shapes behind <Introduction>.
+
+  TWO, AND BOTH OF THEM LOW AND LEFT. The right half of this section is a
+  photograph, and a mark behind a photograph is a mark nobody sees. Light Sage
+  and White Rock are not in the list for the reason <CreateWithUs>'s plan
+  already gives: on this ground they are invisible at any opacity a background
+  can afford.
+
+  THERE WAS A THIRD AND IT HAD TO GO. A small charcoal zigzag sat in the open
+  gap between the heading and the picture, and at a ground's opacity charcoal
+  on a warm green is not ink — it is grey. What it read as was a stray hair on
+  the screen, which is the exact failure the client has already named twice:
+  no wavy lines, nothing scattered.
+
+  The lilac shape is cut by the section's own bottom-left corner rather than
+  floating clear of it. A mark that breaks an edge is placed; the same mark in
+  open space is a smudge.
+*/
+const INTRO_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "splash",
+    color: INK.lilac,
+    width: "13%",
+    left: "-3%",
+    bottom: "-8%",
+    rotate: -12,
+    drift: 22,
+    opacity: 0.22,
+    float: 13,
+    desktopOnly: true,
+  },
+  {
+    name: "starburst",
+    color: INK.terracotta,
+    width: "6%",
+    left: "33%",
+    bottom: "8%",
+    rotate: 12,
+    drift: 18,
+    opacity: 0.22,
+    float: 11,
+    floatDelay: 0.6,
+    desktopOnly: true,
+  },
+];
 
 /* ==========================================================================
    03 — WHO IT IS FOR
@@ -849,70 +1002,104 @@ function Plate({
  * points, which is none.
  */
 /*
-  THE CUT-OUTS ON THIS SECTION'S OWN PAPER.
+  ==========================================================================
+  FOUR SHAPES, PLACED AGAINST THE MEASURED CLEAR GROUND
+  ==========================================================================
 
-  "Use any doodles here." The section is a heading on the left, a short
-  paragraph on the right and about two thirds of a screen of flat Light Sage
-  between them — the emptiest band on the page, and the one place the brand's
-  shapes were doing nothing.
+  The client's note was that these overlapped and wanted aligning. They did,
+  and not by a little: sampled as a fraction of the section's own box, every
+  one of the four sat on something.
 
-  WHICH COLOURS SHOW ON LIGHT SAGE, measured: Deep Lilac 3.83:1, Charcoal
-  9.36, Warm Terracotta 2.36, White Rock 1.03, Soft Lavender 1.44. The last
-  two are invisible on this ground at any opacity a background can afford, so
-  the four here are lilac, terracotta and one charcoal — and the charcoal is
-  the smallest of them, because at a ground's opacity charcoal on a warm green
-  reads as grey rather than as ink.
+      coral      over the eyebrow and the heading's column
+      splash     over "Maison Palettia brings creative experiences..."
+      starburst  over the destination card AND over the card's own cut-out
+      zigzag     over the paragraph
 
-  They sit in the empty middle and low along the foot, never behind the
-  heading or the card. Four is the ceiling <SectionShapes> sets.
+  The old note above this list claimed they sat "in the empty middle and low
+  along the foot, never behind the heading or the card". That was the
+  intention and it was simply not what the numbers said — which is the reason
+  the placements below are derived rather than chosen by eye.
+
+  THE CLEAR GROUND, as percentages of the section box at 1440x600:
+
+      top strip        t 0-24      full width, above the eyebrow
+      centre channel   l 48.6-59.6 full height, between the two columns
+      under the words  t 76-100    l 1.4-48.6, below the paragraph
+      beside the words l 34.7-48.6 t 65-100, right of the paragraph's measure
+      above the card   l 48.6-100  t 0-35.3
+
+  Each shape below sits inside one of those with a margin, and its HEIGHT is
+  computed rather than hoped for: `width` is a percentage of the section's
+  width, and each doodle's own aspect then decides how far down it reaches —
+  coral is 1.55 times as tall as it is wide, splash 0.84, starburst 1.08,
+  zigzag 1.28. That ratio is what made the old coral, nominally 12% wide, run
+  from 7% to 57% of the section's height and swallow the heading.
+
+  One per band, so they read as four marks placed around the type rather than
+  as a texture behind it, and none of them touches another.
 */
 const WHERE_SHAPES: readonly ShapePlan[] = [
+  /* Above the card, in the top-right. The width is set by where it ENDS:
+     coral is 1.55 times as tall as it is wide and `width` is a share of the
+     section's WIDTH, so on a wide, short section it reaches much further down.
+     At 1920 the box is 1920x618 and the card's top is at 36.8%, so 5.5% (106px
+     wide, 164px tall) lands at 27.5% and leaves room for the drift. 8% put it
+     at 44.6% and straight through the card. */
   {
     name: "coral",
     color: INK.lilac,
-    width: "12%",
-    left: "40%",
-    top: "8%",
-    rotate: -14,
-    drift: 24,
-    opacity: 0.2,
+    width: "5.5%",
+    left: "64%",
+    top: "1%",
+    rotate: -12,
+    drift: 22,
+    opacity: 0.18,
     float: 13,
     desktopOnly: true,
   },
+  /* Under the words. Same arithmetic in the other direction, and the same
+     trap: at 1920 the paragraph ends at 76.7% and 9% of the width was 145px
+     tall, which started the shape at 73%. 6% is 97px and starts it at 83%,
+     which still clears once the float has moved it. */
   {
     name: "splash",
     color: INK.lilac,
-    width: "15%",
-    left: "6%",
-    bottom: "4%",
+    width: "6%",
+    left: "5%",
+    bottom: "1%",
     rotate: 10,
-    drift: -20,
+    drift: -18,
     opacity: 0.16,
     float: 15,
     floatDelay: 1.4,
     desktopOnly: true,
   },
+  /* Beside the words rather than on the card — the paragraph's measure ends
+     at 34.7% and the card begins at 59.6%, so 38% is the middle of a band
+     with nothing in it. */
   {
     name: "starburst",
     color: INK.terracotta,
-    width: "7%",
-    left: "56%",
-    bottom: "12%",
+    width: "6%",
+    left: "38%",
+    bottom: "6%",
     rotate: 12,
-    drift: 18,
-    opacity: 0.24,
+    drift: 16,
+    opacity: 0.22,
     float: 11,
     floatDelay: 0.6,
   },
+  /* In the channel, at half height: the smallest of the four, because the
+     channel is 158px wide and anything larger plugs it. */
   {
     name: "zigzag",
     color: INK.charcoal,
-    width: "4%",
-    left: "30%",
-    bottom: "22%",
+    width: "3.5%",
+    left: "52%",
+    top: "45%",
     rotate: -8,
-    drift: -14,
-    opacity: 0.16,
+    drift: -12,
+    opacity: 0.14,
     float: 17,
     floatDelay: 2.1,
     desktopOnly: true,
@@ -925,7 +1112,7 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
   return (
     <section
       aria-labelledby="private-events-where"
-      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-clip bg-cream py-[5rem] md:py-section lg:py-section-lg"
     >
       {/*
         `overflow-clip`, not `hidden`: a scroll container breaks the view
@@ -982,14 +1169,26 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
 
             THE MARK IS WHITE ROCK, 3.95:1 on lilac — under what type owes and
             well over what a decorative shape does. It breaks the bottom-left
-            corner, which is the deck's own placement and the one corner the
-            words do not reach.
+            corner, which is the deck's own placement.
+
+            AND IT IS PUSHED CLEAR OF THE LAST LINE. The note here used to say
+            this was "the one corner the words do not reach", and measured, it
+            was not: the mark sat 454-526 against a descriptor ending at 465,
+            so it took a bite out of "Maison sets up for each run of dates."
+
+            The offset is derived rather than nudged, which is why it holds at
+            any width: the mark's height is 0.84 of its width (splash is 386 by
+            323) and the card keeps a fixed 32/36px of padding under the text,
+            so `bottom` has to be at least markHeight − padding for the two to
+            stop touching. 60 − 32 at base and 70 − 36 at md, plus 8px to stand
+            in, which is -bottom-10 and -bottom-11. Nothing here depends on how
+            the descriptor happens to wrap.
           */}
           <Reveal delay={0.24} className="col-span-12 lg:col-span-5 lg:col-start-8">
             <div className="plate relative rounded-[1.5rem] bg-primary px-7 py-8 md:px-8 md:py-9 lg:rotate-[-1.2deg]">
               <span
                 aria-hidden
-                className="pointer-events-none absolute -bottom-6 -left-5 w-[4.5rem] md:w-[5.25rem]"
+                className="pointer-events-none absolute -bottom-10 -left-5 w-[4.5rem] md:-bottom-11 md:w-[5.25rem]"
               >
                 <DoodleMark name="splash" color={INK.whiteRock} treatment="stamp" delay={260} />
               </span>
@@ -1055,6 +1254,15 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
   decorative and `aria-hidden` — the order is already in the <ol> — so it can
   sit under what type owes.
 
+  AND THE EDGE MARKS HANG BELOW THE LAST LINE, NOT ACROSS IT. Two of the three
+  were taking a bite out of their own card's closing sentence — measured, not
+  guessed. A mark pinned by `bottom` clears the text when its offset is at
+  least its own HEIGHT minus the card's bottom padding, and the height is the
+  doodle's aspect times the width given here: splash is 0.84 of its width and
+  starburst 1.08, against 32px of padding at base and 36 at md. That puts
+  splash at 9 and starburst at 12, with 8px to stand in. The wave on the third
+  card hangs off the TOP and never had the problem.
+
   THE MARKS ARE MEASURED THE SAME WAY. On Deep Lilac only White Rock (3.95),
   Light Sage (3.83) and Soft Lavender (2.74) show; on Light Sage, Deep Lilac
   (3.83) and Warm Terracotta (2.36); on Soft Lavender, Deep Lilac (2.74) and
@@ -1079,17 +1287,29 @@ const STEP_STOCK: readonly {
     body: "text-surface",
     folio: "text-sage/50",
     head: { name: "bow", color: INK.whiteRock },
-    edge: { name: "splash", color: SAGE_MARK, place: "-bottom-6 -left-5", size: "w-[4.5rem]" },
+    edge: { name: "splash", color: SAGE_MARK, place: "-bottom-9 -left-5", size: "w-[4.5rem]" },
     tilt: "lg:rotate-[-1.4deg]",
     lift: "",
   },
   {
-    ground: "bg-sage",
+    /*
+      WHITE ROCK, NOT THE LIGHT SAGE THIS ROW USED TO TAKE, and the reason is
+      the field under it: this section is Light Sage now at the client's ask,
+      and a Light Sage card on a Light Sage ground is not a card. All `plate`
+      would leave of it is a hairline of Charcoal at a tenth.
+
+      It is the one place this row steps out of /locations' order, and it is
+      forced rather than chosen. The ink is better for it: Charcoal at 85% on
+      White Rock measures 6.26:1 against 6.14 on Light Sage, and the two marks
+      still hold — Deep Lilac on White Rock and Warm Terracotta on it are both
+      well clear of what a decorative shape owes.
+    */
+    ground: "bg-cream",
     heading: "text-text",
     body: "text-text/85",
     folio: "text-primary/35",
     head: { name: "splash", color: INK.lilac },
-    edge: { name: "starburst", color: INK.terracotta, place: "-bottom-7 right-10", size: "w-[4rem]" },
+    edge: { name: "starburst", color: INK.terracotta, place: "-bottom-12 right-10", size: "w-[4rem]" },
     tilt: "lg:rotate-[0.9deg]",
     lift: "lg:mt-14",
   },
@@ -1107,11 +1327,19 @@ const STEP_STOCK: readonly {
 
 function HowItWorks() {
   return (
-    <Container
-      as="section"
+    /*
+      A FIELD, NOT A CONTAINER, because the colour has to reach the window's
+      edge. This was `<Container as="section">` and a `bg-` on that paints the
+      measure and stops — <Container> carries a max-width, so the colour would
+      have ended in a band down the middle with the page ground either side.
+      The section holds the ground and the padding; the container holds the
+      gutter, as it does in <CreateWithUs> above.
+    */
+    <section
       aria-labelledby="private-events-process"
-      className="py-[5rem] md:py-section lg:py-section-lg"
+      className="bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
+      <Container>
       <Reveal>
         <p className={`${EYEBROW} text-text`}>
           <span
@@ -1203,7 +1431,8 @@ function HowItWorks() {
           );
         })}
       </ol>
-    </Container>
+      </Container>
+    </section>
   );
 }
 
@@ -1225,31 +1454,36 @@ function EnquiryCta() {
       aria-labelledby="private-events-enquiry"
       className="bg-primary py-[5.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
     >
-      <Container>
-        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-10 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-7">
-            <Reveal>
-              {/*
-                The ink on Deep Lilac is not a free choice, and it is not the
-                one the rest of the site's dark grounds use. Measured on this
-                field: Light Sage 3.83:1, White Rock (--color-on-dark) 3.95:1,
-                --color-surface 4.90:1. The first two are fine for display type
-                and both fail the 4.5:1 a 12px label owes, so everything read at
-                body size or below in this section is set in `surface`.
+      {/*
+        ONE CENTRED COLUMN, AT THE CLIENT'S ASK. This was the page's two-column
+        close — the statement in the left seven columns, the button parked at
+        the right edge, and the signature line centred under both — which put
+        the one action a screen's width from the words that ask for it. It is
+        now the shape the /about and /locations closes already take: a centred
+        stack with the button directly under the sentence.
 
-                The rule keeps Light Sage: it is a graphical object, owes 3:1,
-                and clears it.
-              */}
-              <p className={`${EYEBROW} text-surface`}>
-                <span
-                  aria-hidden
-                  className="h-px w-9 shrink-0 bg-sage md:w-12"
-                />
-                Have an event in mind?
-              </p>
-            </Reveal>
-
-            <h2 id="private-events-enquiry" className="mt-8 md:mt-10">
+        AND IT IS DOWN TO THREE PARTS. The label over the heading and the
+        signature line under the button both came out at the client's ask, so
+        what is left is the heading, the sentence and the action — which is
+        what this field was spent on in the first place.
+      */}
+      <Container className="text-center">
+        <div className="mx-auto max-w-[44rem]">
+          <div>
+            {/*
+              The ink on Deep Lilac is not a free choice, and it is not the one
+              the rest of the site's dark grounds use. Measured on this field:
+              Light Sage 3.83:1, White Rock (--color-on-dark) 3.95:1,
+              --color-surface 4.90:1. The first two are fine for display type
+              and both fail the 4.5:1 a 12px label owes, so everything read at
+              body size or below in this section is set in `surface`.
+            */}
+            {/* NO EYEBROW, AND NO TOP MARGIN WHERE ONE USED TO BE. The label
+                over this heading came out at the client's ask; the heading is
+                the first thing in the column now, so the `mt-8` that used to
+                hold it off the label would print as a gap under the section's
+                own padding. */}
+            <h2 id="private-events-enquiry">
               <Stagger>
                 <SectionLine tone="light">Let&apos;s make</SectionLine>{" "}
                 <SectionLine tone="light">something together.</SectionLine>
@@ -1261,8 +1495,21 @@ function EnquiryCta() {
                 Full strength, not /90. Faded to 90% this lands at 4.31:1 —
                 under the bar — which is the kind of miss an opacity modifier
                 makes easy to ship.
+
+                TWO LINES, AT THE CLIENT'S ASK, AND 44rem IS WHERE IT BREAKS.
+                The sentence is 1270px set on one line, so half of it is 635 —
+                but 40rem (640) still came out as three, because a line breaks
+                at a word and not at the halfway mark. 44rem is the first width
+                that takes it to two, and it is also the column this sits in,
+                so the cap is really just the paragraph no longer being
+                narrower than its own parent.
+
+                `text-balance` then evens the two: without it the first line
+                runs to the full measure and the second sits about 130px
+                short, which under a centred script heading reads as a
+                paragraph that ran out rather than as two lines.
               */}
-              <p className="mt-9 max-w-[34rem] text-body leading-[1.9] text-surface">
+              <p className="mx-auto mt-9 max-w-[44rem] text-balance text-body leading-[1.9] text-surface">
                 Tell us what you are planning — roughly when, roughly how many,
                 and what you would like everyone to make. We will help you shape
                 the experience.
@@ -1270,19 +1517,11 @@ function EnquiryCta() {
             </Reveal>
           </div>
 
-          <Reveal
-            delay={0.3}
-            className="col-span-12 lg:col-span-4 lg:col-start-9 lg:justify-self-end"
-          >
+          <Reveal delay={0.3} className="mt-10 flex justify-center md:mt-12">
             <PlanAction tone="onLilac" />
           </Reveal>
         </div>
 
-        <Reveal variant="fadeIn" delay={0.4} className="mt-16 md:mt-20">
-          <Signature ground="lilac" className="text-center">
-            come and make something
-          </Signature>
-        </Reveal>
       </Container>
     </section>
   );

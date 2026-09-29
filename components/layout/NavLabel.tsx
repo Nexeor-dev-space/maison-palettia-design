@@ -55,7 +55,31 @@ export function NavLabel({
   paint?: string | null;
 }) {
   return (
-    <span className="relative inline-block pb-1.5">
+    <span
+      /*
+        THE BRUSH PICKS THE BLOT UP FROM HERE.
+
+        <CursorLayer> loads the brush from the nearest `[data-paint]` ancestor
+        of whatever is under the pointer, and falls back to the first painted
+        background above it. The swatch was already a `--paint` — but it is set
+        on <PaintStroke>, which is a CHILD of this span drawn behind the word,
+        and `closest()` walks up rather than down. So the brush never found it
+        and loaded the bar's own Light Sage instead: over every nav item, one
+        colour, regardless of the blot swelling underneath it.
+
+        Published here, on the ancestor both the stroke and the word share, the
+        brush carries the same paint the item is wearing — terracotta over
+        Private events, lavender over Experiences, lilac over Locations.
+
+        ONLY WHEN THERE IS A PAINT. `paint` is null on the routes where the bar
+        sits over a dark hero and no swatch is drawn at all; marking those
+        would load the brush with a colour the visitor cannot see, so the
+        attribute is absent and the fallback does its job.
+      */
+      data-paint={paint ? "" : undefined}
+      style={paint ? ({ "--paint": paint } as React.CSSProperties) : undefined}
+      className="relative inline-block pb-1.5"
+    >
       {/*
         Behind the word, and behind it in both senses: `-z-10` in the
         stylesheet, and drawn before the text so the swatch can never be the
@@ -64,6 +88,20 @@ export function NavLabel({
       <PaintStroke
         paint={paint}
         isCurrent={isActive}
+        /*
+          THE BLOT, NOT THE BRUSH, at the client's ask — the bar's hover paint
+          should read as the swatch the chips use rather than as a smeared
+          lozenge.
+
+          The brush is drawn 200 by 44, four and a half to one, for a stroke
+          that sits UNDER a word. A hovered nav item swells it to `--swell: 1`,
+          where it stops being a line under the word and becomes a field behind
+          one at about three to one — and `preserveAspectRatio: none` turns the
+          gentle wobble it was drawn with into the soft lumps the client marked.
+          The blot is drawn at the proportion it is actually used at. See
+          `shape` on <PaintStroke>.
+        */
+        shape="blot"
         /* The 6px this label reserves below the word for its rule. Without
            it the stroke is measured against the padded box and the bar's
            lines come out fatter than the footer's. */

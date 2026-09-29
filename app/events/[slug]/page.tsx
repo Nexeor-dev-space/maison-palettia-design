@@ -205,7 +205,13 @@ export default async function EventPage({
       x-axis only, so nothing interferes with the page scrolling normally.
     */
     <div className="overflow-x-clip bg-sage">
-      <Container className="relative py-[2.5rem] md:py-[3.5rem] lg:py-[4.5rem]">
+      {/* `pb-0`: <PageUtilityBar> is the last thing in this container and it
+          is a Deep Lilac field of its own now, with its own vertical padding.
+          The container's bottom padding printed a strip of the page's Light
+          Sage between that field and the footer's wave — on the About page
+          the same wave rises straight out of the lilac, which is the join the
+          client asked this section to match. */}
+      <Container className="relative pb-0 pt-[2.5rem] md:pt-[3.5rem] lg:pt-[4.5rem]">
         <Breadcrumb detail={detail} />
 
         <EventHeader detail={detail} bookable={bookable} />
@@ -836,57 +842,144 @@ function LocationSection({
       className="mt-20 md:mt-28 lg:mt-32"
     >
       <div className="border-t border-line pt-10 md:pt-14">
-        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6 lg:gap-x-10">
-          <Reveal className="col-span-12 md:col-span-7">
-            <p className={TERM}>Location</p>
-            <h2
-              id="event-location"
-              className="mt-4 heading-script text-script-compact"
-            >
-              {heading}
-            </h2>
-          </Reveal>
+        {/*
+          ==================================================================
+          /locations' OWN ARRANGEMENT, AT THE CLIENT'S ASK
+          ==================================================================
 
-          {/*
-            THE DESTINATION SITS BESIDE THE HEADING, NOT UNDER THE MAP.
+          This was a heading on the left, the destination beside it on the
+          right, and the map run full width underneath — which put the answer
+          level with the question but sent the map to a band of its own below
+          both. The client has asked for the shape /locations uses, and the
+          two sections are the same section: a place, said in words, with a
+          map of it.
 
-            <LocationMap> draws this plate as its own caption, which is right
-            on /locations where the map is the page. Here it put the name of
-            the place several hundred pixels below a map that is itself below
-            the heading, so "Where the Maison sets up" and the answer to it
-            were never on screen together. The map turns its caption off and
-            the plate comes up here instead — same component, one definition;
-            see <PartnerPlate>.
+          So the words take one column and the map takes the other. The
+          heading, the destination and its line read straight down the left;
+          the map holds the right at a shape that fits half a measure rather
+          than the whole one.
 
-            It also stops the section saying it twice: this column used to
-            print the name, the city and the line, and the caption printed all
-            three again.
-          */}
-          <Reveal delay={0.12} className="col-span-12 md:col-span-5">
+          FIVE AND SIX OF TWELVE, the same split /locations settles on, and
+          for the same reason: the heading is set in the script and a sixth
+          column forces its line to turn where the measure decides rather
+          than where the design does.
+
+          ==================================================================
+          THE TWO COLUMNS END LEVEL, AND NOT BY A FIXED NUMBER
+          ==================================================================
+
+          The client asked for the halves to match, and offered a doodle or a
+          line of subtext under the heading to pad the short one. Neither
+          works, because the difference is not a constant — it is a function
+          of the width, and it CHANGES SIGN. Measured, right column minus
+          left: +306px at 1920, +205 at 1728, +135 at 1536, +69 at 1440, −8 at
+          1280, −241 at 1024. The map keeps an aspect, so it gets taller as it
+          gets wider; the words wrap less as they get wider, so they get
+          shorter. Any fixed padding fixes one screen and breaks the rest.
+
+          So the row stretches and the LEFT CARD TAKES UP THE SLACK. `plate` is
+          already a flex column, so `flex-1` on it fills whatever the heading
+          above it leaves, at any width, with no number here to maintain. The
+          card's own cut-out then sits on the bottom corner of the column,
+          which is the doodle the client asked for — placed by the layout
+          rather than positioned against it.
+
+          `items-stretch`, not the `items-start` this had: with the map the
+          taller of the two, top-aligning them is what left the short column
+          hanging in the first place.
+        */}
+        <div className="grid grid-cols-12 items-stretch gap-x-6 gap-y-10 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-5 lg:flex lg:flex-col">
+            <Reveal>
+              <p className={TERM}>Location</p>
+              <h2
+                id="event-location"
+                className="mt-4 heading-script text-script-compact"
+              >
+                {heading}
+              </h2>
+            </Reveal>
+
+            {/*
+              THE DESTINATION UNDER THE HEADING THAT ASKS FOR IT.
+
+              <LocationMap> draws this plate as its own caption, and the map
+              turns that off here — same component, one definition; see
+              <PartnerPlate>. It also stops the section saying it twice: this
+              column prints the name, the city and the line, and the caption
+              would print all three again.
+            */}
+            <Reveal delay={0.12} className="mt-8 block md:mt-10 lg:flex lg:flex-1 lg:flex-col">
+              {partner ? (
+                /*
+                  `lg:h-full` fills the column; `lg:justify-between` is what
+                  stops that reading as a tall card with a hole in it — the
+                  name and the line stay at the top and "View location" drops
+                  to the foot, so the extra height is the space between two
+                  things rather than emptiness under one.
+
+                  AND IT STACKS UNTIL 2xl. <PartnerPlate> turns to a row at
+                  `sm`, which keys off the VIEWPORT and not off the column it
+                  is in — and this column is five of twelve. At 1024 that put
+                  the blurb and the link side by side in 385px and the card
+                  came out 477px tall, taller than the map beside it, which is
+                  the other half of why these two never matched. Stacked, the
+                  words get the whole column.
+                */
+                <PartnerPlate
+                  partner={partner}
+                  className="lg:h-full lg:flex-col lg:justify-between lg:gap-8 2xl:flex-row 2xl:items-start 2xl:gap-10"
+                />
+              ) : (
+                <p className="text-lead font-medium leading-snug text-text">
+                  {venue?.name}
+                  <Sub>{venue?.locality}</Sub>
+                </p>
+              )}
+            </Reveal>
+          </div>
+
+          <div className="col-span-12 lg:col-span-6 lg:col-start-7 lg:self-start">
             {partner ? (
-              <PartnerPlate partner={partner} />
-            ) : (
-              <p className="text-lead font-medium leading-snug text-text md:pb-2">
-                {venue?.name}
-                <Sub>{venue?.locality}</Sub>
-              </p>
-            )}
-          </Reveal>
-        </div>
+              /*
+                THE SHAPE IS SET HERE BECAUSE THE WIDTH IS SET HERE — the same
+                note /locations carries. In half the measure the component's
+                own `lg:aspect-[2/1]` is a letterbox under 300px tall, which
+                is not a map anyone can find a turning on.
+              */
+              /*
+                THE LADDER IS SET SO THE MAP IS NEVER THE SHORTER COLUMN, and
+                that is the whole trick: the stretch above only works one way.
+                The words fill the map's height; the map cannot fill theirs,
+                because its height comes from a ratio rather than from the
+                row. So wherever the map is taller the two end level for free,
+                and wherever it is SHORTER they cannot.
 
-        {partner ? (
-          <LocationMap partners={[partner]} caption={false} className="mt-12 md:mt-14" />
-        ) : (
-          /*
-            No partnership record for this venue, so no map. Said plainly
-            rather than left as a gap where a map obviously belongs.
-          */
-          <Reveal className="mt-10">
-            <p className="max-w-[34rem] text-fine leading-[1.75] text-text/75">
-              Full directions for this centre are confirmed with your booking.
-            </p>
-          </Reveal>
-        )}
+                At 1024 a 4:3 was 352px against a 486px column and the map
+                stopped short. Square is 470 there, which clears it, and by
+                1280 the same ratio is 600 — comfortably over, so the words
+                stretch instead. Then 4:3 and 16:10 bring it back down as the
+                column widens: a 4:3 at 1920 is 685px tall, the largest object
+                on the page, for a map of one shop unit.
+              */
+              <LocationMap
+                partners={[partner]}
+                caption={false}
+                aspect="aspect-[4/5] sm:aspect-[16/10] lg:aspect-square xl:aspect-[4/3] 2xl:aspect-[16/10]"
+              />
+            ) : (
+              /*
+                No partnership record for this venue, so no map. Said plainly
+                rather than left as a gap where a map obviously belongs.
+              */
+              <Reveal>
+                <p className="max-w-[34rem] text-fine leading-[1.75] text-text/75">
+                  Full directions for this centre are confirmed with your booking.
+                </p>
+              </Reveal>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

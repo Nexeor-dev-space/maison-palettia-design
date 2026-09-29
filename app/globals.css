@@ -144,6 +144,25 @@
   --color-cream: var(--color-brand-cream);
   --color-terracotta: var(--color-brand-terracotta);
   --color-lavender: var(--color-brand-lavender);
+  /* ------------------------------------------------------------------------
+     Soft Lavender, quieted — Soft Lavender with White Rock mixed into it.
+
+     A MIX OF TWO OF THE SIX, WHICH IS WHAT THE NOTE ABOVE PROVIDES FOR, and
+     it exists because the client read the full-strength colour as too loud.
+     `bg-lavender` is a saturated periwinkle; as a whole section's ground,
+     between two Light Sage fields, it was the one band on /about that arrived
+     as a colour rather than as paper. At 60% into White Rock it lands on
+     #d4c8ea: unmistakably the same lavender, printed rather than lit, and
+     warm enough to sit with the White Rock objects laid on it.
+
+     MEASURED. Charcoal Slate reads 7.56:1 on it, up from 6.49 on the full
+     strength — quieting the ground made the type safer, not riskier. Deep
+     Lilac is 3.19:1, so display type only and never a label, which is the
+     same rule that already applies on the full-strength colour (2.74 there).
+     A White Rock plate on it is 1.24:1, which is the case `@utility plate`
+     exists for and is how the cards on it are already separated.
+     ------------------------------------------------------------------------ */
+  --color-lavender-soft: color-mix(in oklab, var(--color-brand-lavender) 60%, var(--color-brand-cream));
   --color-text: var(--color-brand-charcoal);
 
   /* ------------------------------------------------------------------------
@@ -880,6 +899,42 @@
 
 @utility arch {
   border-radius: 50% 50% 0 0 / var(--arch-rise, 20%) var(--arch-rise, 20%) 0 0;
+}
+
+/*
+  A CUT-OUT SHAPE FOR A PHOTOGRAPH — the deck's own way of framing one.
+
+  The brand sheet never puts a picture in a rectangle: it puts it in a shape
+  that has been cut out by hand, and the reference the client gave for the
+  About page is exactly that — a photograph in an irregular cut, with a
+  second, paler one sitting behind it half a step off.
+
+  A CUT SQUARE, NOT A ROUND. The first version of this was an oval: every
+  corner took about half its side, which is the definition of an ellipse, so
+  the shape had no straight run anywhere and read as a printer's vignette
+  rather than as paper somebody cut. The client's reference is squarer — four
+  unequal corners with FLAT EDGES BETWEEN THEM.
+
+  That is what the numbers below are doing, and it is the one thing to
+  understand before retuning them: on each side the two radii that meet there
+  are a percentage of that side, so what is left over is straight. The top is
+  46 + 34, so a fifth of it is flat; the other three sides leave about a
+  third. Push any pair to 100 and that side becomes a curve again and the
+  whole shape rounds back into an egg.
+
+  It is one `border-radius` with eight values rather than a `clip-path`, and
+  that is deliberate. A radius is a real corner, so it clips a child `<Image>`
+  with `overflow: clip`, it takes a `plate` veil or a shadow along its own
+  edge, and it costs nothing to animate against. A clip-path does none of the
+  first two — see the note on the drawer that learned it.
+
+  `--blob` retunes it per use without a second utility, which is what the
+  reference needs: the shape behind the picture must NOT be the picture's
+  outline offset, or the pair reads as a drop shadow rather than as two cut
+  pieces of paper.
+*/
+@utility blob {
+  border-radius: var(--blob, 46% 34% 30% 38% / 40% 34% 36% 30%);
 }
 
 /*

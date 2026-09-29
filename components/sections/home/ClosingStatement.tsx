@@ -70,13 +70,20 @@ import { cn } from "@/lib/utils";
   ornament beside the words at every screen instead of a share of an unbounded
   column.
 
-  The colours are unchanged: the palette's two purples with White Rock breaking
-  them up, which is the deck's own arrangement.
+  THE COLOURS MOVED WITH THE GROUND. The totem read Deep Lilac, White Rock,
+  Soft Lavender while the section was Light Sage. The section is Deep Lilac
+  now, so the first of those is the ground itself and the mark carrying it
+  disappeared entirely — the same trap the About page's close documents.
+
+  What is left is the three brand colours the field does show: Soft Lavender
+  at the top, White Rock in the middle, Light Sage at the foot. None of them
+  is the field, and the widths are untouched, so the totem is the same object
+  in the colours this ground can carry.
 */
 const TOTEM: readonly { name: DoodleName; color: string; width: string }[] = [
-  { name: "starburst", color: INK.lilac, width: "w-[clamp(3.25rem,5vw,5rem)]" },
+  { name: "starburst", color: INK.lavender, width: "w-[clamp(3.25rem,5vw,5rem)]" },
   { name: "cutout", color: INK.whiteRock, width: "w-[clamp(5.5rem,8.4vw,8.5rem)]" },
-  { name: "coral", color: INK.lavender, width: "w-[clamp(2.25rem,3.4vw,3.5rem)]" },
+  { name: "coral", color: "var(--color-sage)", width: "w-[clamp(2.25rem,3.4vw,3.5rem)]" },
 ];
 
 function Totem({ flipped = false }: { flipped?: boolean }) {
@@ -107,7 +114,21 @@ export function ClosingStatement() {
   return (
     <section
       aria-labelledby="closing-heading"
-      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-[7rem] lg:py-[8.5rem]"
+      /*
+        DEEP LILAC, AT THE CLIENT'S ASK — the About page's own closing field.
+
+        This closed on Light Sage with the statement in Deep Lilac, which made
+        it the fourth sage section in the last third of the page: the same
+        paper the seasonal band, the little-creators stripe and the
+        collaboration teaser are printed on. The About page ends on the
+        opposite — the ink and the ground swapped, the lilac becoming the
+        field — and the client has asked for this page to end the same way.
+
+        It costs nothing structurally and it earns the page its one focal
+        field: Deep Lilac is spent once on the homepage, and this is now the
+        place it is spent.
+      */
+      className="relative isolate overflow-clip bg-primary py-[5rem] md:py-[7rem] lg:py-[8.5rem]"
     >
       <Container>
         <div className="grid grid-cols-12 items-center gap-x-gutter">
@@ -117,7 +138,12 @@ export function ClosingStatement() {
 
           <div className="col-span-12 text-center lg:col-span-8">
             <Reveal>
-              <p className="text-label font-semibold uppercase tracking-eyebrow text-text/60">
+              {/* FULL STRENGTH, NOT `/75`. The near-white `surface` is the one
+                  light ink that clears 4.5:1 on Deep Lilac — it measures
+                  4.67 — and holding it back a quarter drops a 12px semibold
+                  label to 3.38:1, which is under what a label of that size
+                  owes. The design system makes the same call in `inkFor`. */}
+              <p className="text-label font-semibold uppercase tracking-eyebrow text-surface">
                 {TAGLINE}
               </p>
             </Reveal>
@@ -131,14 +157,14 @@ export function ClosingStatement() {
             <Reveal delay={0.08}>
               <h2
                 id="closing-heading"
-                className="heading-script mt-7 text-[clamp(2.5rem,1.1rem+5.4vw,5rem)] leading-[1.06] text-primary"
+                className="heading-script mt-7 text-[clamp(2.5rem,1.1rem+5.4vw,5rem)] leading-[1.06] text-surface"
               >
                 {forScript(CLOSING.heading)}
               </h2>
             </Reveal>
 
             <Reveal delay={0.14}>
-              <p className="mx-auto mt-8 max-w-[44ch] text-[1.0625rem] leading-[1.75] text-text/85 md:text-[1.1875rem]">
+              <p className="mx-auto mt-8 max-w-[44ch] text-[1.0625rem] leading-[1.75] text-surface md:text-[1.1875rem]">
                 {CLOSING.body}
               </p>
             </Reveal>
@@ -153,26 +179,28 @@ export function ClosingStatement() {
     so the space around it is the only thing separating it from the
     pill — the banner gives the same pair the same room. */}
               <div className="mt-10 flex flex-wrap items-center justify-center gap-x-9 gap-y-4">
-                {/* Light Sage sheet, so the flood deepens instead — a sage
-                    flood here is the paper itself (dE 1.1). */}
-                <BlobButton href="/events" tone="deep" className="min-h-[3.25rem] px-8">
+                {/* `cream` is the tone for a button standing ON Deep Lilac —
+                    a lilac one cannot be seen at all, which is the same call
+                    the About page's close makes. See <BlobButton>. */}
+                <BlobButton href="/events" tone="cream" className="min-h-[3.25rem] px-8">
                   Explore experiences
                 </BlobButton>
                 {/*
                   NOT A SECOND PILL. These are the banner's two actions, word
-                  for word, on the banner's own Light Sage — so they are given
-                  the banner's own treatment: one filled, and the other as a
-                  link under the hand-drawn rule that wipes in on hover.
+                  for word, so they keep the banner's own treatment: one
+                  filled, and the other as a link under the hand-drawn rule
+                  that wipes in on hover.
 
-                  It is also the only honest way out of the outline here. A
-                  quieter pill needs a ground quieter than Deep Lilac, and
-                  there is not one: White Rock on Light Sage is 1.03:1 and
-                  Soft Lavender 1.40:1, so a second pill is either as loud as
-                  the first or invisible. A link has no ground to lose.
+                  The reasoning survives the ground changing under it. A
+                  quieter pill needs a quieter ground than the field it sits
+                  on, and on Deep Lilac there is not one: White Rock and Light
+                  Sage are both within a hair of the cream pill beside it, so
+                  a second pill is either as loud as the first or a smudge. A
+                  link has no ground to lose.
                 */}
                 <Link
                   href={PRIVATE_EVENT_ENQUIRY_HREF}
-                  className="group/nav inline-flex min-h-[3.25rem] items-center text-action font-bold uppercase tracking-eyebrow text-text"
+                  className="group/nav inline-flex min-h-[3.25rem] items-center text-action font-bold uppercase tracking-eyebrow text-surface"
                 >
                   <NavLabel isActive={false}>Plan a private event</NavLabel>
                 </Link>
@@ -190,12 +218,15 @@ export function ClosingStatement() {
           so the mirror lies down instead: one pair, side by side, under the
           words. The reflection survives; only its axis changes.
         */}
+        {/* White Rock, following the totem's own cutout rather than its own
+            old colour: Soft Lavender on Light Sage was a clear mark and on
+            Deep Lilac it is the ground's own family, two shades apart. */}
         <Reveal delay={0.24} className="mt-14 flex items-end justify-center gap-10 lg:hidden">
           <span className="block w-[clamp(4rem,18vw,5.5rem)]">
-            <DoodleMark name="cutout" color={INK.lavender} delay={260} />
+            <DoodleMark name="cutout" color={INK.whiteRock} delay={260} />
           </span>
           <span className="block w-[clamp(4rem,18vw,5.5rem)] -scale-x-100">
-            <DoodleMark name="cutout" color={INK.lavender} delay={340} />
+            <DoodleMark name="cutout" color={INK.whiteRock} delay={340} />
           </span>
         </Reveal>
       </Container>

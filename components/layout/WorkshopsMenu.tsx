@@ -111,6 +111,14 @@ export function WorkshopsMenu({
   const ordered = groups.flatMap((group) => group.items);
 
   /*
+    ONE GROUP PER COLUMN, so they are found by mode rather than by index:
+    `groups` drops any group with nothing in it, so `groups[1]` is only the
+    scheduled one while both happen to be filled.
+  */
+  const walkIn = groups.find((group) => group.mode === "diy");
+  const scheduled = groups.find((group) => group.mode === "scheduled");
+
+  /*
     WHICH ROW THE PREVIEW IS SHOWING. It starts on the first activity rather
     than on nothing: a panel that opens with an empty right half asks the
     visitor to hover something before it will tell them anything, which is a
@@ -121,6 +129,39 @@ export function WorkshopsMenu({
 
   const sessionFor = (slug: string) => sessions.find((session) => session.slug === slug);
   const activeSession = active ? sessionFor(active.slug) : undefined;
+
+  /*
+    One group's rows, rendered the same way in either column. It was written
+    inline when both groups lived in one rail; split across two columns it has
+    to be a function or the row markup is duplicated, and two copies of a row
+    is two places for a `href` to go wrong.
+  */
+  const renderGroup = (group: (typeof groups)[number]) => (
+    <MenuRailGroup key={group.mode} title={group.title}>
+      {group.items.map((experience) => {
+        const session = sessionFor(experience.slug);
+        return (
+          <MenuRailRow
+            key={experience.slug}
+            /*
+              `/events/<slug>`, NOT `/experiences/<slug>`. There is no
+              experiences route: `app/events/[slug]` is the page for both an
+              activity and a session, and it resolves every slug in
+              lib/experiences.ts — walk-in ones included. A rewrite of this
+              menu pointed these at a route that has never existed and every
+              row 404'd.
+            */
+            href={`/events/${experience.slug}`}
+            name={experience.name}
+            sub={experience.status ?? (session ? formatWorkshopDate(session.startsAt) : undefined)}
+            image={experience.image}
+            active={active?.slug === experience.slug}
+            onActivate={() => setActiveSlug(experience.slug)}
+          />
+        );
+      })}
+    </MenuRailGroup>
+  );
 
   return (
     <div
@@ -144,69 +185,65 @@ export function WorkshopsMenu({
         {mounted ? (
           <div className="grid grid-cols-12 gap-2.5 md:gap-3">
             {/*
-              FOUR / FIVE / THREE, which is what the full width bought.
+              ==========================================================
+              FOUR / FOUR / FOUR — THREE COLUMNS THAT CARRY THE SAME WEIGHT
+              ==========================================================
 
-              At 72rem the card had room for a rail and a preview, so the two
-              tiles had to go under one of them — and which one depended on
-              how many rows the menu had, because a card is as tall as its
-              tallest column. That asymmetry is gone: across the full measure
-              the tiles take a column of their own, stacked, and both menus
-              use the same three-part arrangement. The extra width goes
-              sideways rather than down, which is the point — a taller card
-              would have been a worse one.
+              It was a rail of both groups, a preview across eight columns and
+              the two doors on a strip along the foot. The client has asked for
+              three equal columns instead, with the scheduled group and the two
+              doors together in the middle and the picture on the right.
+
+              WHAT MAKES THEM "LOOK EQUAL" IS NOT THE WIDTHS. Equal thirds are
+              the easy half; the hard half is that all three FILL the row, and
+              each column does it a different way:
+
+                one ... five rows, and the tallest of the three at about 344px,
+                        so it is usually the column setting the height.
+                two ... two rows, then the doors pushed to the foot by
+                        `mt-auto`, which is what closes the gap the shorter
+                        group would otherwise leave.
+                three . the preview, whose picture is `flex-1` (see
+                        <MenuPreview>) and therefore takes whatever height the
+                        other two settle on.
+
+              THE CEILING STAYS ON COLUMN ONE ONLY. It is the column that can
+              grow — a longer catalogue adds rows there — and it is the only
+              one that can safely be a scroll container: the doors in column
+              two carry cut-outs that animate off a view timeline, and a view
+              timeline inside a scroll container resolves against that box and
+              never completes. Column one holds nothing of the sort.
             */}
 
-            {/* ---- the rail ------------------------------------------- */}
-            {/*
-              AND A CEILING ON THE RAIL, which is the second half of the
-              client's note: "keep a ceiling above which the thing doesnt
-              increase". The rail is now the only column that can make the
-              card taller — see the note on the preview's picture in
-              <MenuCard> — so capping the rail caps the card. 38rem clears
-              the longest menu the site has (Experiences, 596px of rows), and
-              the viewport term takes over on a short screen, where a panel
-              that runs off the bottom is worse than one that scrolls.
-
-              `overflow-y-auto` is safe HERE and would not be on the card: the
-              card's `::before` bridges the gap up to the bar and a scroll
-              container would clip it, and the tiles' cut-outs animate off a
-              view timeline that a scroll container resolves against itself.
-              The rail holds neither.
-            */}
+            {/* ---- 1. walk in, any time ------------------------------- */}
             <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4 lg:max-h-[min(38rem,calc(100vh-8.5rem))] lg:overflow-y-auto lg:overscroll-contain">
-              {groups.map((group) => (
-                <MenuRailGroup key={group.mode} title={group.title}>
-                  {group.items.map((experience) => {
-                    const session = sessionFor(experience.slug);
-                    return (
-                      <MenuRailRow
-                        key={experience.slug}
-                        /*
-                          `/events/<slug>`, NOT `/experiences/<slug>`. There is
-                          no experiences route: `app/events/[slug]` is the page
-                          for both an activity and a session, and it resolves
-                          every slug in lib/experiences.ts — walk-in ones
-                          included. A rewrite of this menu pointed these at a
-                          route that has never existed and every row 404'd.
-                        */
-                        href={`/events/${experience.slug}`}
-                        name={experience.name}
-                        sub={
-                          experience.status ??
-                          (session ? formatWorkshopDate(session.startsAt) : undefined)
-                        }
-                        image={experience.image}
-                        active={active?.slug === experience.slug}
-                        onActivate={() => setActiveSlug(experience.slug)}
-                      />
-                    );
-                  })}
-                </MenuRailGroup>
-              ))}
+              {walkIn ? renderGroup(walkIn) : null}
             </div>
 
-            {/* ---- the preview ---------------------------------------- */}
-            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-8">
+            {/* ---- 2. the dated sessions, and the two doors ------------ */}
+            <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4">
+              {scheduled ? renderGroup(scheduled) : null}
+
+              {/*
+                `mt-auto` rather than a spacer: the doors sit at the foot of
+                whatever height the row turns out to be, so this column reads
+                as full at any catalogue length instead of leaving a hole
+                under two rows.
+              */}
+              <div className="mt-auto grid gap-2.5 md:gap-3">
+                <MenuDoor href={href} title="All experiences" sub="The whole programme, in one place." mark="starburst" />
+                <MenuDoor
+                  href="/events#scheduled"
+                  title="Upcoming dates"
+                  mark="coral"
+                  sub="Guided sessions you can book."
+                  tone="accent"
+                />
+              </div>
+            </div>
+
+            {/* ---- 3. the preview ------------------------------------- */}
+            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-4">
               {active ? (
                 /*
                   Keyed on the slug so the block remounts as the rail moves —
@@ -216,7 +253,7 @@ export function WorkshopsMenu({
                 <MenuPreview
                   key={active.slug}
                   href={`/events/${active.slug}`}
-                  /* The same two names as the groups above it — this panel
+                  /* The same two names as the groups beside it — this panel
                      would otherwise call one thing two things at once. */
                   eyebrow={active.kind === "diy" ? "Create Anytime" : "Create Together"}
                   name={active.name}
@@ -246,27 +283,6 @@ export function WorkshopsMenu({
                   action={active.kind === "diy" ? "See the activity" : "See the session"}
                 />
               ) : null}
-
-            </div>
-
-            {/* ---- the two doors, along the foot ----------------------- */}
-            {/*
-              THEY HAD A COLUMN AND NOW THEY HAVE A STRIP. The client's note on
-              the pair was that the CTA "doesn't need to be this big" and
-              "doesn't feel necessarily needed" — so they are neither tall nor
-              in the way. The third of the card they were holding has gone to
-              the preview (5 columns to 8), which is the thing a visitor opens
-              this menu to see. See <MenuDoor>.
-            */}
-            <div className="col-span-12 grid gap-2.5 md:gap-3 sm:grid-cols-2">
-              <MenuDoor href={href} title="All experiences" sub="The whole programme, in one place." mark="starburst" />
-              <MenuDoor
-                href="/events#scheduled"
-                title="Upcoming dates"
-                mark="coral"
-                sub="Guided sessions you can book."
-                tone="accent"
-              />
             </div>
           </div>
         ) : null}
