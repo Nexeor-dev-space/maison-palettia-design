@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -312,24 +312,13 @@ function Complete({
           "Pay" or "Buy now": nothing is charged here, and a button that names
           a payment is a promise the flow does not keep.
         */}
-        <button
+        <BlobButton
           type="submit"
           disabled={submitting}
-          className={cn(
-            "group inline-flex w-full items-center justify-center gap-2.5 rounded-sm",
-            "bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow",
-            "text-on-dark transition-colors duration-300 ease-soft",
-            "press-in hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70 sm:w-auto",
-          )}
+          className="w-full justify-center px-8 py-5 sm:w-auto"
         >
           {submitting ? "Confirming…" : "Confirm booking"}
-          <span
-            aria-hidden
-            className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-          >
-            &#8594;
-          </span>
-        </button>
+        </BlobButton>
       </div>
 
       {/*
@@ -380,22 +369,9 @@ function EmptyCart() {
         Nothing is held yet. Choose an event and it will appear here with everything you need to
         complete the booking.
       </p>
-      <Link
-        href="/events"
-        className={cn(
-          "group mt-9 inline-flex items-center justify-center gap-2.5 rounded-sm",
-          "bg-primary px-8 py-5 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90",
-        )}
-      >
+      <BlobButton href="/events" className="mt-9 justify-center px-8 py-5">
         Explore events
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      </Link>
+      </BlobButton>
     </Reveal>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { useSearchParams } from "next/navigation";
 
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
@@ -55,18 +56,9 @@ export function Confirmation() {
       ) : null}
 
       <div className="mt-11 flex flex-wrap items-center gap-x-9 gap-y-5">
-        <Link
-          href="/events"
-          className="group inline-flex items-center gap-3 rounded-sm bg-primary px-7 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90"
-        >
+        <BlobButton href="/events" className="px-7 py-4">
           View events
-          <span
-            aria-hidden
-            className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-          >
-            &#8594;
-          </span>
-        </Link>
+        </BlobButton>
 
         <Link
           href={`/booking-status?ref=${encodeURIComponent(record.reference)}`}
