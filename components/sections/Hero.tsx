@@ -308,7 +308,6 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
       data-doodle={plan.id}
       /* Only the six that ring the logo fly in the intro — see `entrance` in
          ./hero/composition.ts. The rest wait at their resting places. */
-      data-entrance={plan.entrance ? "" : undefined}
       className={cn(styles.doodle, styles.flip, plan.mobile ? undefined : styles.desktopOnly)}
       style={vars}
     >

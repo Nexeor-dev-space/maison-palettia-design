@@ -268,8 +268,10 @@ export function MobileNav({
         <nav aria-label="Experiences" className="mt-9">
           {(
             [
-              { mode: "diy", title: "Walk-in DIY" },
-              { mode: "scheduled", title: "Scheduled sessions" },
+              /* The client's names, the same two the desktop menu now uses —
+                 see GROUPS in <WorkshopsMenu>, which this panel mirrors. */
+              { mode: "diy", title: "Walk-in — Create Anytime" },
+              { mode: "scheduled", title: "Scheduled — Create Together" },
             ] as const
           ).map((group, gi) => {
             const items = shortlist.filter((e) => e.kind === group.mode);

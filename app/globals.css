@@ -144,6 +144,25 @@
   --color-cream: var(--color-brand-cream);
   --color-terracotta: var(--color-brand-terracotta);
   --color-lavender: var(--color-brand-lavender);
+  /* ------------------------------------------------------------------------
+     Soft Lavender, quieted — Soft Lavender with White Rock mixed into it.
+
+     A MIX OF TWO OF THE SIX, WHICH IS WHAT THE NOTE ABOVE PROVIDES FOR, and
+     it exists because the client read the full-strength colour as too loud.
+     `bg-lavender` is a saturated periwinkle; as a whole section's ground,
+     between two Light Sage fields, it was the one band on /about that arrived
+     as a colour rather than as paper. At 60% into White Rock it lands on
+     #d4c8ea: unmistakably the same lavender, printed rather than lit, and
+     warm enough to sit with the White Rock objects laid on it.
+
+     MEASURED. Charcoal Slate reads 7.56:1 on it, up from 6.49 on the full
+     strength — quieting the ground made the type safer, not riskier. Deep
+     Lilac is 3.19:1, so display type only and never a label, which is the
+     same rule that already applies on the full-strength colour (2.74 there).
+     A White Rock plate on it is 1.24:1, which is the case `@utility plate`
+     exists for and is how the cards on it are already separated.
+     ------------------------------------------------------------------------ */
+  --color-lavender-soft: color-mix(in oklab, var(--color-brand-lavender) 60%, var(--color-brand-cream));
   --color-text: var(--color-brand-charcoal);
 
   /* ------------------------------------------------------------------------
@@ -477,11 +496,37 @@
   --text-script-hero: clamp(3rem, 2.2rem + 3.6vw, 6.25rem);
   --text-script-hero--line-height: 1.08;
 
+  /*
+     TIGHTENED AT THE CLIENT'S ASK — "titles should look somewhat like [the
+     mockup], as there is so much of spacing between the lines".
+
+     1.28 and 1.32 held every line clear of the one below it: Hapsha's
+     descenders drop 0.28em and its ascender loops stand 0.22em above the line
+     box, so anything under about 1.20 lets two lines share vertical space.
+     That clearance is what the client is reading as too much air — a script
+     set with no overlap reads as two separate statements rather than as one
+     written phrase, and the mockup's title is plainly interlocked.
+
+     So these now sit BELOW that threshold on purpose. The lines overlap by
+     roughly 0.2em and the face carries it, which is what a script is drawn to
+     do. Every multi-line script heading on the site was rendered and checked
+     for an actual glyph collision at these values, at 390, 768 and 1440 —
+     see the audit in the same pass. Going further (0.90 was tried) still
+     clears on this page and starts to look precarious on the three-line
+     headings, which is why it stops here.
+
+     THE BANNER CAME DOWN IN THE SAME PASS, to 1.08 above — the two halves of
+     this were answered on separate branches and met in a merge. Read them as
+     one family: the banner is the largest type on the site and takes the
+     tightest leading, the section titles sit just under it, and the compact
+     size is loosest because it is the smallest. Two values were proposed for
+     the section size, 1.02 and 1.1; 1.02 is kept because it is the one that
+     was measured against the client's mockup and audited for collisions. */
   --text-script-section: clamp(2.6rem, 1.9rem + 2.9vw, 5rem);
-  --text-script-section--line-height: 1.1;
+  --text-script-section--line-height: 1.02;
 
   --text-script-compact: clamp(2.2rem, 1.7rem + 1.9vw, 3.4rem);
-  --text-script-compact--line-height: 1.16;
+  --text-script-compact--line-height: 1.06;
 
   /* --- Spacing rhythm (section-level) ------------------------------------ */
   --spacing-section: 6rem;
@@ -854,6 +899,42 @@
 
 @utility arch {
   border-radius: 50% 50% 0 0 / var(--arch-rise, 20%) var(--arch-rise, 20%) 0 0;
+}
+
+/*
+  A CUT-OUT SHAPE FOR A PHOTOGRAPH — the deck's own way of framing one.
+
+  The brand sheet never puts a picture in a rectangle: it puts it in a shape
+  that has been cut out by hand, and the reference the client gave for the
+  About page is exactly that — a photograph in an irregular cut, with a
+  second, paler one sitting behind it half a step off.
+
+  A CUT SQUARE, NOT A ROUND. The first version of this was an oval: every
+  corner took about half its side, which is the definition of an ellipse, so
+  the shape had no straight run anywhere and read as a printer's vignette
+  rather than as paper somebody cut. The client's reference is squarer — four
+  unequal corners with FLAT EDGES BETWEEN THEM.
+
+  That is what the numbers below are doing, and it is the one thing to
+  understand before retuning them: on each side the two radii that meet there
+  are a percentage of that side, so what is left over is straight. The top is
+  46 + 34, so a fifth of it is flat; the other three sides leave about a
+  third. Push any pair to 100 and that side becomes a curve again and the
+  whole shape rounds back into an egg.
+
+  It is one `border-radius` with eight values rather than a `clip-path`, and
+  that is deliberate. A radius is a real corner, so it clips a child `<Image>`
+  with `overflow: clip`, it takes a `plate` veil or a shadow along its own
+  edge, and it costs nothing to animate against. A clip-path does none of the
+  first two — see the note on the drawer that learned it.
+
+  `--blob` retunes it per use without a second utility, which is what the
+  reference needs: the shape behind the picture must NOT be the picture's
+  outline offset, or the pair reads as a drop shadow rather than as two cut
+  pieces of paper.
+*/
+@utility blob {
+  border-radius: var(--blob, 46% 34% 30% 38% / 40% 34% 36% 30%);
 }
 
 /*
@@ -1293,7 +1374,8 @@ html.lenis.lenis-stopped {
 */
 html:not([data-intro]) body:has([data-hero-intro]),
 html[data-intro="play"] body:has([data-hero-intro]),
-html[data-intro="draw"] body:has([data-hero-intro]),
+html[data-intro="dots"] body:has([data-hero-intro]),
+html[data-intro="burst"] body:has([data-hero-intro]),
 html[data-intro="settle"] body:has([data-hero-intro]) {
   /* Held through `settle` too: the bar fades back in over it, and releasing
      the tint any earlier flashed a pale strip above the hero. Light Sage
@@ -1304,12 +1386,14 @@ html[data-intro="settle"] body:has([data-hero-intro]) {
 
 html:not([data-intro]) body:has([data-hero-intro]) > header,
 html[data-intro="play"] body:has([data-hero-intro]) > header,
-html[data-intro="draw"] body:has([data-hero-intro]) > header {
+html[data-intro="dots"] body:has([data-hero-intro]) > header,
+html[data-intro="burst"] body:has([data-hero-intro]) > header {
   opacity: 0;
   visibility: hidden;
   /* A fail-safe, not a timing: if the script never runs, the bar still
-     arrives. The intro replaces this long before it would fire. */
-  animation: intro-failsafe 0.01s 4.5s forwards;
+     arrives. The intro replaces this long before it would fire — it is done
+     at 1.5s now, so this came down from 4.5s with it. */
+  animation: intro-failsafe 0.01s 2.5s forwards;
 }
 
 /*
@@ -1322,24 +1406,26 @@ html[data-intro="draw"] body:has([data-hero-intro]) > header {
 */
 html:not([data-intro]) body:has([data-hero-intro]) > div > footer,
 html[data-intro="play"] body:has([data-hero-intro]) > div > footer,
-html[data-intro="draw"] body:has([data-hero-intro]) > div > footer,
+html[data-intro="dots"] body:has([data-hero-intro]) > div > footer,
+html[data-intro="burst"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   visibility: hidden;
-  animation: intro-failsafe 0.01s 4.5s forwards;
+  animation: intro-failsafe 0.01s 2.5s forwards;
 }
 
 /*
-  The bar comes in as the logo lands, not after it. The flight runs 820ms on a
-  strong ease-in-out, so the mark is all but home by 600ms: from there the bar
-  fades up around it, and the flying mark fades out over the bar's own at the
-  same place and size.
+  FRAME 5: "As the logo settles in the navigation bar..." The bar comes in as
+  the mark lands, not after it. The flight runs 440ms on a strong ease-in-out,
+  so the mark is all but home by 300ms: from there the bar fades up around it,
+  and the flying mark fades out over the bar's own at the same place and size.
+  Fully there at 1140ms from the first frame, inside frame 5's window.
 */
 html[data-intro="settle"] body:has([data-hero-intro]) > header {
   opacity: 1;
   visibility: visible;
   transition:
-    opacity 380ms ease 600ms,
-    visibility 0s 600ms;
+    opacity 240ms ease 300ms,
+    visibility 0s 300ms;
 }
 
 @keyframes intro-failsafe {

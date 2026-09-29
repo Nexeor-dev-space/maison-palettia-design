@@ -118,10 +118,11 @@ export async function TwoWaysToCreate() {
             read as a pair rather than as one longer than the other. */}
         <Road
           index={1}
-          ground="cream"
+          ground="terracotta"
           eyebrow="No booking"
           title="Walk in"
-          dot={INK.terracotta}
+          /* Not Terracotta any more — that is the ground it would sit on. */
+          dot={INK.whiteRock}
           plate={walkInPlate}
           line={`${count(walkIn.length, "activity", "activities")}, any time you come in.`}
           /*
@@ -163,9 +164,11 @@ export async function TwoWaysToCreate() {
       */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden w-[9rem] -translate-x-1/2 -translate-y-1/2 lg:block"
+        className="pointer-events-none absolute left-1/2 top-[29%] z-10 hidden w-[9rem] -translate-x-1/2 -translate-y-1/2 lg:block"
       >
-        <DoodleMark name="splash" color={INK.terracotta} delay={300} />
+        {/* White Rock, not Terracotta: this mark straddles the seam, and half
+            of it now lies on a Terracotta ground. */}
+        <DoodleMark name="splash" color={INK.whiteRock} delay={300} />
       </span>
     </section>
   );
@@ -183,22 +186,47 @@ export async function TwoWaysToCreate() {
  * which is what makes two blocks of this little text read as a considered
  * choice rather than as a thin card.
  *
- * THE PHOTOGRAPH IS A PHOTOGRAPH AGAIN. It was a 240px band across a 660px
- * column, nearly 3:1, which is a banner — you read it as decoration above the
- * content rather than as a picture of the thing. At 4:3 it is the first thing
- * in the half and it carries its own weight, and it can, because there is now
- * room for it.
+ * THE PHOTOGRAPH IS A PHOTOGRAPH, AND THE SECTION IS ONE SCREEN. It was a
+ * 240px band across a 660px column, nearly 3:1, which is a banner — you read
+ * it as decoration above the content rather than as a picture of the thing.
+ * It then went to 4:3, and 4:3 is what made the client call the section
+ * "very tall": measured, the whole thing ran 1025px at 1440×900 and 1141px at
+ * 2000×1030, with the button under the fold at both. A 4:3 frame that is
+ * 42vw wide is 615px tall on a 2000px screen before a word is set.
+ *
+ * So it is 16:9 — still a picture, the ratio every photograph on a phone
+ * already is — and on a desktop it is capped at 21rem, because the frame is
+ * sized off the WIDTH of the screen and the section has to fit its HEIGHT.
+ * `max-height` alone does that: `aspect-ratio` only resolves the auto
+ * dimension, so the frame keeps its full width and the picture, which is
+ * `object-cover`, simply shows a little less of its top and bottom on a very
+ * wide screen. With the vertical padding brought from 6rem to 4rem and the
+ * gaps between the four things tightened by a step each, the section is
+ * about 820px at 1440×900 and 750px at 2000×1030 — inside the window, button
+ * included. The seam mark moved with it: `top-[29%]` is the centre of the
+ * photo band, where `top-1/2` used to land before the frames got shorter.
  *
  * ==========================================================================
- * INK, AND WHY THE TWO HALVES DIFFER
+ * INK, AND WHY NEITHER HALF SOFTENS IT
  * ==========================================================================
  *
- * Deep Lilac is the hardest ground in this palette: the near-white it carries
- * reads 4.67:1 at full strength and 3.61:1 at 80%, under the 4.5:1 body copy
- * owes. So the lilac half softens nothing — its line is full-strength
- * `text-surface`. The same 80% as charcoal on White Rock is 5.5:1, so the pale
- * half can afford `text-text/80` and takes it, because there the line is
- * genuinely secondary to the name above it.
+ * Both grounds are saturated now — the left half was White Rock and is Warm
+ * Terracotta at the client's ask — so both carry the same near-white ink at
+ * FULL strength. There is no room to soften either: the left half used to run
+ * its line at `text-text/80`, which was 5.5:1 on White Rock and is nothing
+ * like that on Terracotta.
+ *
+ * WARM TERRACOTTA IS A LIGHT GROUND, AND THIS IS THE ONE THING TO KNOW ABOUT
+ * IT. #D97757 has a relative luminance of 0.286 — nearly twice Deep Lilac's
+ * 0.158 — so a near-white on it reads 2.88:1 where the same ink on the lilac
+ * half reads 4.67:1. Body copy owes 4.5:1 and large text 3:1, and 2.88 is
+ * under both. Charcoal on it is 3.84:1, which is also under 4.5.
+ *
+ * There is no ink that clears 4.5:1 on neat #D97757; the ground itself is the
+ * variable. Deepening it to about 75% Terracotta in Charcoal would take the
+ * near-white over 4.5:1 and keep the hue, at the cost of the colour the client
+ * named. That is a decision about the brand, not about the code, so this ships
+ * the colour as asked and the note is here so the number is not rediscovered.
  */
 /*
   ==========================================================================
@@ -226,6 +254,25 @@ const CHIP_PAINTS = [
   "color-mix(in oklab, #D97757 30%, var(--color-cream))", // 7.3:1
 ] as const;
 
+/*
+  AND A THIRD COLOUR FOR THE TERRACOTTA HALF, because a chip also has to be
+  told apart from the FIELD IT SITS ON, which is a second constraint the list
+  above never had to answer: both halves used to be pale.
+
+  The third paint is Warm Terracotta cut into White Rock, and on a Warm
+  Terracotta ground that is the same colour twice — it separates at about
+  2.0:1 and reads as a slightly paler patch rather than as a chip. White Rock
+  neat separates at 2.4:1, is crisper than the number suggests because it is a
+  flat cream against a saturated orange, and carries Charcoal at 9.4:1, which
+  is the best of the four. Only the third changes: the first two are a mauve
+  and a green and were never at risk here.
+*/
+const CHIP_PAINTS_ON_TERRACOTTA = [
+  CHIP_PAINTS[0],
+  CHIP_PAINTS[1],
+  "var(--color-cream)", // 9.4:1
+] as const;
+
 function Road({
   index,
   ground,
@@ -238,7 +285,7 @@ function Road({
   action,
 }: {
   index: number;
-  ground: "cream" | "lilac";
+  ground: "terracotta" | "lilac";
   eyebrow: string;
   title: string;
   dot: string;
@@ -247,18 +294,19 @@ function Road({
   facts: readonly string[];
   action: { label: string; href: string; tone: "sage" | "cream" };
 }) {
-  const pale = ground === "cream";
+  const warm = ground === "terracotta";
+  const chips = warm ? CHIP_PAINTS_ON_TERRACOTTA : CHIP_PAINTS;
 
   return (
     <div
       className={
-        pale
-          ? "relative bg-cream px-gutter py-[4rem] text-text md:py-[5rem] lg:py-[6rem] lg:pl-[10%] lg:pr-[8%]"
-          : "relative bg-primary px-gutter py-[4rem] text-surface md:py-[5rem] lg:py-[6rem] lg:pl-[8%] lg:pr-[10%]"
+        warm
+          ? "relative bg-terracotta px-gutter py-[3.5rem] text-surface md:py-[4rem] lg:pl-[10%] lg:pr-[8%]"
+          : "relative bg-primary px-gutter py-[3.5rem] text-surface md:py-[4rem] lg:pl-[8%] lg:pr-[10%]"
       }
     >
       <Reveal variant="imageReveal">
-        <span className="plate relative block aspect-[4/3] w-full overflow-clip rounded-[1.5rem]">
+        <span className="plate relative block aspect-[16/9] w-full overflow-clip rounded-[1.5rem] lg:max-h-[21rem]">
           {plate ? (
             <Image
               src={plate.src}
@@ -276,7 +324,7 @@ function Road({
         {/* The numeral and the label on one line: the numeral says there are
             two of these before a word is read, and the label says which one
             this is. Together they are four words. */}
-        <p className="mt-9 flex items-center gap-3 text-label font-bold uppercase tracking-eyebrow">
+        <p className="mt-7 flex items-center gap-3 text-label font-bold uppercase tracking-eyebrow">
           <span aria-hidden className="block w-4 shrink-0">
             <DoodleMark name="dot" color={dot} />
           </span>
@@ -288,17 +336,13 @@ function Road({
       </Reveal>
 
       <Reveal delay={0.12}>
-        <h3 className="mt-4 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
+        <h3 className="mt-3 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
           {title}
         </h3>
       </Reveal>
 
       <Reveal delay={0.16}>
-        <p
-          className={`mt-4 max-w-[34ch] text-lead font-light leading-[1.5] tracking-[-0.01em] ${
-            pale ? "text-text/80" : "text-surface"
-          }`}
-        >
+        <p className="mt-3 max-w-[34ch] text-lead font-light leading-[1.5] tracking-[-0.01em] text-surface">
           {line}
         </p>
       </Reveal>
@@ -320,11 +364,18 @@ function Road({
         panel has turned instead of stating a colour that only works on one.
       */}
       {/*
-        EACH FACT ON ITS OWN BRUSHSTROKE — the treatment the header already
-        gives the current nav item, at the client's ask. <PaintStroke> is that
-        component: one wobble along the top, a different one along the bottom
-        and two ends that do not match, so three chips in a row are plainly
-        painted rather than three identical pills.
+        EACH FACT ON ITS OWN PAINT — the treatment the header already gives the
+        current nav item, at the client's ask. <PaintStroke> is that component,
+        so three chips in a row are plainly painted rather than three identical
+        pills.
+
+        `shape="blot"`, NOT THE DEFAULT BRUSH. The brush is drawn for a nav
+        underline and comes out lumpy when it is stretched into a chip's
+        proportion — the client's word for it was "odd", and they were looking
+        at a shape doing a job it was not drawn for. The blot is the same paint
+        and the same swell in a shape drawn at this proportion: chopped ends,
+        two separately drifting long edges, a fleck off each end. The note in
+        PaintStroke.module.css has the arithmetic.
 
         SOFT LAVENDER ON BOTH SIDES, WHICH IS THE ONLY WAY IT WORKS. The mark
         that used to sit here took the side's own accent — Terracotta on the
@@ -340,7 +391,7 @@ function Road({
         told about or the chips come out fatter here than in the bar.
       */}
       <Reveal delay={0.2}>
-        <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-3">
+        <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-3">
           {facts.map((fact, i) => (
             /*
               `isolate` IS LOAD-BEARING. <PaintStroke> sits at `z-index: -1` so
@@ -382,7 +433,7 @@ function Road({
               {/* No `seat`: that prop exists to lift the stroke off a reserve
                   the bar keeps under its words. Here the blob is meant to
                   cover the chip, so it runs to the bottom of the box. */}
-              <PaintStroke paint={CHIP_PAINTS[i % CHIP_PAINTS.length]} />
+              <PaintStroke paint={chips[i % chips.length]} shape="blot" />
               <span className="relative text-action font-semibold uppercase tracking-eyebrow text-text">
                 {fact}
               </span>
@@ -392,7 +443,7 @@ function Road({
       </Reveal>
 
       <Reveal delay={0.28}>
-        <BlobButton href={action.href} tone={action.tone} className="mt-9 min-h-[3.25rem] px-7">
+        <BlobButton href={action.href} tone={action.tone} className="mt-7 min-h-[3.25rem] px-7">
           {action.label}
         </BlobButton>
       </Reveal>

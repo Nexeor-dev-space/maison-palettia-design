@@ -2,6 +2,14 @@ import Image from "next/image";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { cn } from "@/lib/utils";
 import { CollaborateTeaser } from "@/components/sections/home/CollaborateTeaser";
+/*
+  THE CARD AND THE DAB COME FROM THE TEASER ITSELF — see <Apart>. The client
+  asked for that section's object here, and one stylesheet for both is the
+  only way the two stay the same object: the file is two rules, it carries no
+  colour of its own, and a second copy would drift the first time either is
+  touched.
+*/
+import swatch from "@/components/sections/home/CollaborateTeaser.module.css";
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
@@ -13,7 +21,7 @@ import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
+import { DisplayHeading, Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import {
   BRAND_STORY,
   CLOSING,
@@ -26,6 +34,7 @@ import {
   WHAT_SETS_US_APART,
   WORKSHOP_JOURNEY,
 } from "@/lib/brand";
+import { PAINTS_ON_CREAM, paintAt } from "@/lib/paint";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -134,129 +143,191 @@ export default function AboutPage() {
  */
 function Welcome() {
   return (
-    <section aria-labelledby="about-title" className="relative isolate overflow-hidden bg-sage">
+    /*
+      `overflow-clip`, NOT `overflow-hidden`, AND IT IS A BUG FIX.
+
+      `DoodleMark`'s draw runs on a CSS view timeline, and a view timeline
+      resolves against the nearest SCROLL CONTAINER. `overflow: hidden` makes
+      one; the box never scrolls inside itself, so a mark near its foot sits at
+      the start of its own timeline for good — outline drawn, fill never
+      arriving. The starburst at this section's bottom-left was measured that
+      way at `fill-opacity: 0` at every scroll position. `overflow: clip` makes
+      no scroll container, clips the same, and still respects a radius.
+    */
+    <section aria-labelledby="about-title" className="relative isolate overflow-clip bg-sage">
       <Container className="relative py-[4rem] md:py-[5rem] lg:py-[6rem]">
         {/*
-          Two marks, at the margins, each breaking an edge of the measure
-          rather than floating in the middle of it. Hidden below `lg`, where
-          the air they sit in does not exist.
+          The section's own mark, breaking the left margin. The lavender wave
+          that used to break the right one has gone with the space it lived in
+          — the picture is there now, and the wave is part of its arrangement
+          rather than the page's.
+        */}
+        {/*
+          AT THE FOOT, NOT AT 3rem OFF IT. The description moved into six
+          columns when the picture took the other half, so it is four lines
+          taller than it was and it now reaches y624 of a 720px section. This
+          mark sat at `bottom-[3rem]` — x-24 to 80, y559 to 672 — which is
+          across "of intentional living." Dropped past the section's floor it
+          clears the last line by 24px and still crosses the left gutter,
+          which is the half of it that matters.
         */}
         <Reveal
-          delay={0.3}
-          className="pointer-events-none absolute -right-4 top-[4.5rem] hidden w-[9rem] lg:block xl:w-[11rem]"
-        >
-          <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={320} />
-        </Reveal>
-        <Reveal
           delay={0.42}
-          className="pointer-events-none absolute -left-6 bottom-[3rem] hidden w-[6.5rem] lg:block"
+          className="pointer-events-none absolute -bottom-8 -left-8 hidden w-[6rem] lg:block"
         >
           <DoodleMark name="starburst" color={INK.terracotta} treatment="draw" delay={460} />
         </Reveal>
 
-        <Reveal>
-          <Eyebrow>About the Maison</Eyebrow>
-        </Reveal>
-
         {/*
-          THE PAGE'S TITLE, PUT BACK.
+          ==================================================================
+          THE PICTURE COMES UP BESIDE THE WORDS INSTEAD OF UNDER THEM
+          ==================================================================
 
-          This section is `aria-labelledby="about-title"` and nothing carried
-          that id: the h1 had gone, so the page had no title element at all and
-          the label pointed at nothing. Restored as the tagline, which is what
-          an About page's h1 should be.
+          It was a 21:9 band across the foot of the section, which left the
+          whole right-hand half of the first screen empty — the client's note.
+          Moved into that half it does two jobs at once: it fills the space
+          and it stops the section being a column of type with a picture
+          appended.
 
-          `pb-[0.3em]` is not decoration and must stay on the element carrying
-          the font-size: Hapsha's capitals and swashes stand about 0.9em above
-          the baseline against a 0.8em line box, so without the clearance the
-          line below cuts through the line above. Moved to a wrapper it
-          resolves against 16px and fails again.
+          `items-center` seats the object against the middle of the statement
+          rather than its top, because the text column is the taller of the
+          two and a picture hung from the eyebrow's line would read as the
+          start of a second column rather than as the statement's companion.
         */}
-        <Reveal delay={0.08}>
-          <h1
-            id="about-title"
-            className="heading-script mt-7 max-w-[15ch] pb-[0.3em] text-script-hero text-text md:mt-9"
-          >
-            {forScript(TAGLINE)}
-          </h1>
-        </Reveal>
+        <div className="grid grid-cols-12 items-center gap-x-6 gap-y-12 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-6">
+            <Reveal>
+              <Eyebrow>About the Maison</Eyebrow>
+            </Reveal>
 
-        {/*
-          THE ABOUT DESCRIPTION.
+            {/*
+              THE PAGE'S TITLE. `pb-[0.3em]` is not decoration and must stay on
+              the element carrying the font-size: Hapsha's capitals and swashes
+              stand about 0.9em above the baseline against a 0.8em line box, so
+              without the clearance the line below cuts through the line above.
+              Moved to a wrapper it resolves against 16px and fails again.
+            */}
+            <Reveal delay={0.08}>
+              <h1
+                id="about-title"
+                className="heading-script mt-7 max-w-[15ch] pb-[0.3em] text-script-hero text-text md:mt-9"
+              >
+                {forScript(TAGLINE)}
+              </h1>
+            </Reveal>
 
-          The typeset opening that stood here — the deck's sentence broken at
-          its punctuation, with the photograph and the lilac field under it —
-          has moved to where it belongs: it is the HOMEPAGE's opening, and the
-          client asked for this page to carry a description of its own instead.
+            {/*
+              `BRAND_STORY` is the client's own description — one sentence of
+              the deck, whole rather than cut into parts. On the homepage it is
+              performed; here it is simply read, which is what an about page is
+              for. The 62ch measure was their ask when it sat full width; in
+              six columns the column reaches it first at 1440 and falls short
+              below, which is the same sentence at a comfortable measure rather
+              than a different decision.
+            */}
+            <Reveal delay={0.16} className="mt-8 block md:mt-10">
+              <p className="max-w-[62ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.3125rem)] font-light leading-[1.75] text-text">
+                {BRAND_STORY}
+              </p>
+            </Reveal>
+          </div>
 
-          `BRAND_STORY` is that description, and it is the client's own: one
-          sentence of the deck, whole rather than cut into parts. On the
-          homepage it is performed; here it is simply read, which is what an
-          about page is for.
-        */}
-        {/*
-          ON THE LEFT, UNDER THE TITLE, AND WIDER — at the client's ask.
+          {/*
+            ==================================================================
+            THE OBJECT, BUILT THE WAY THE CLIENT'S REFERENCE BUILDS IT
+            ==================================================================
 
-          It was pushed into the right-hand corner at a 46ch measure, which is
-          the composition the old flat-paragraph version used: title top-left,
-          paragraph bottom-right, and the whole middle of the section empty.
-          Their note was that there is too much empty space here and that this
-          should move left and take more width.
+            Two parts now, and the order they are written in is the order
+            they stack: the photograph, which arrives already cut, and the
+            marks over its edges.
 
-          So it sits directly under the title on the same left edge, at 62ch
-          rather than 46 — still inside the 45-75 characters a line wants to be
-          for comfortable reading, and now wide enough that the sentence fills
-          the column instead of hanging off the end of it.
-        */}
-        <Reveal delay={0.16} className="mt-8 block md:mt-10">
-          <p className="max-w-[62ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.3125rem)] font-light leading-[1.75] text-text">
-            {BRAND_STORY}
-          </p>
-        </Reveal>
+            THE PHOTOGRAPH ARRIVES ALREADY CUT. `about-page-img.png` is the
+            client's own file (a Figma export, 1950×1950): the picture inside a
+            wavy outline on a transparent ground. So the CSS cut has come OFF
+            the picture — clipping a shape that already has one gave it two
+            outlines — and stays on the backing only. The frame is 4:5 with
+            `object-cover`: the file is square with about 15% of clear ground
+            either side of the cutting, and covering a 4:5 box takes 10% off
+            each side, so the whole outline shows with a little air around it.
+            The photograph itself carries no provenance record; it is not
+            known to be the studio's own, so nothing captions it as such.
 
-        {/*
-          AND THE PICTURE UNDER IT, with the brand's own marks on its edges.
+            THE PALER PIECE BEHIND IT HAS GONE, at the client's ask. It was a
+            second cutting in `surface` — Light Sage mixed 30% into white —
+            offset down and to the left, the way the deck lays paper on paper.
+            It did not read that way here: the photograph's own outline is
+            irregular and the backing's is a different irregular, so the two
+            agreed along part of their edge and parted along the rest, and what
+            showed through was a pale card behind the picture. The cutting
+            stands on the section's own Light Sage instead, which is the ground
+            the file was cut for.
 
-          `palette-brush.jpg` — a palette, a brush and a hand at work. It is
-          the one studio photograph not already placed somewhere on the site,
-          so the page gains an image without repeating one, and it shows the
-          making rather than the made thing, which is what the sentence above
-          it describes.
+            IT TOOK THE ROOM THE BACKING GAVE UP. Six columns rather than five
+            and capped at 34rem rather than 28 — about a fifth larger on the
+            widest screens and the full width of its column below them. Every
+            mark is placed in percentages of this box, so all four keep hugging
+            the outline at the new size.
 
-          The marks break the frame's corners rather than float beside it —
-          the deck's own rule, and the same one <PartnerPlate> and the session
-          cards follow. Hung outside the box on a `relative` wrapper, so the
-          picture clips none of them.
-        */}
-        <Reveal variant="imageReveal" delay={0.24} className="relative mt-12 block md:mt-16">
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -left-5 -top-7 z-10 hidden w-[5rem] rotate-[-12deg] md:block md:w-[6rem]"
-          >
-            <DoodleMark name="splash" color={INK.lilac} treatment="stamp" delay={220} />
-          </span>
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -bottom-6 right-6 z-10 hidden w-[4.5rem] rotate-[10deg] md:block md:w-[5.5rem]"
-          >
-            <DoodleMark name="coral" color={INK.terracotta} treatment="stamp" delay={340} />
-          </span>
+            THE MARKS ARE THE REFERENCE'S OWN ARRANGEMENT: the terracotta
+            starburst over the top-right corner, two small lilac cut-outs on
+            opposite edges, and the lavender wave running off the bottom-right.
+            All four break the picture's outline — none floats clear of it,
+            which is the standing note on this brand's icons.
+          */}
+          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
+            {/* Capped and centred in its column: the cutting is portrait, and
+                past 34rem a 4:5 frame stands taller than the statement beside
+                it. The marks are inside this box, so they keep hugging the
+                picture whatever its size. */}
+            <div className="relative mx-auto max-w-[34rem]">
+            <Reveal variant="imageReveal" delay={0.24} className="relative block">
+              <span
+                className="relative block aspect-[4/5] w-full"
+                data-paint
+                style={{ "--paint": "var(--color-lavender)" } as React.CSSProperties}
+              >
+                <Image
+                  src="/images/about-page-img.png"
+                  /* The section's own picture and, now that it is six columns
+                     wide, the page's largest contentful paint — Next says so
+                     in the console. Eager, so the one thing anybody waits for
+                     on /about is not queued behind the lazy loader. */
+                  priority
+                  alt="Two hands holding a small ceramic pot painted in blocks of soft blue, lilac, pink, yellow and green, a fine brush adding the last line."
+                  fill
+                  sizes="(min-width: 1024px) 544px, 92vw"
+                  className="object-cover"
+                />
+              </span>
+            </Reveal>
 
-          <span
-            className="plate relative block aspect-[16/9] w-full overflow-clip rounded-[1.5rem] md:rounded-[2rem] lg:aspect-[21/9]"
-            data-paint
-            style={{ "--paint": "var(--color-lavender)" } as React.CSSProperties}
-          >
-            <Image
-              src="/images/studio/palette-brush.jpg"
-              alt="A hand painting a silver motif onto denim with a fine brush, a red palette of mixed colour beside it."
-              fill
-              sizes="(min-width: 1024px) 88vw, 100vw"
-              className="object-cover"
-              style={{ objectPosition: "50% 55%" }}
-            />
-          </span>
-        </Reveal>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-5 -top-7 w-[5rem] md:w-[6.5rem]"
+            >
+              <DoodleMark name="starburst" color={INK.terracotta} treatment="draw" delay={240} />
+            </span>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-3 top-[34%] w-[2.25rem] md:w-[2.75rem]"
+            >
+              <DoodleMark name="bow" color={INK.lilac} treatment="draw" delay={380} />
+            </span>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-3 bottom-[22%] w-[1.75rem] md:w-[2.25rem]"
+            >
+              <DoodleMark name="bow" color={INK.lilac} treatment="draw" delay={460} />
+            </span>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -bottom-9 -right-8 w-[10rem] md:w-[12.5rem]"
+            >
+              <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={520} />
+            </span>
+            </div>
+          </div>
+        </div>
       </Container>
     </section>
   );
@@ -574,132 +645,238 @@ function Apart() {
   return (
     /*
       ==========================================================================
-      SOFT LAVENDER, AND SHAPES IN THE AIR — at the client's ask
+      THE TEASER'S COMPOSITION, WHICH IS WHAT THE CLIENT ASKED FOR
       ==========================================================================
 
-      Their note was that this section looks very empty, to change its ground
-      and add more doodles, and to take the colours and shapes from the brand
-      sheet.
+      Their note was to make this section look like the collaboration teaser
+      further down the page, and it is a fair read of what was wrong with it.
+      This was a heading in the top-left corner with four equal cards run
+      across the foot underneath — a header over a grid, which is the shape
+      every section takes when the composition has not been decided. The
+      teaser is the better object: the claim stands on the left as plain type,
+      and the things being claimed are dealt out on the right as swatch cards,
+      each set down a degree or two off square with a dab of paint above its
+      name.
 
-      THE GROUND. It was Light Sage, which is the page's own paper — this is
-      the fourth sage section on the page and the one with the most air in it,
-      so it read as a gap between two sections rather than as a section. Soft
-      Lavender is the guideline's own, it is the one brand colour the page had
-      nowhere else, and it steps cleanly off the White Rock above it.
+      SO THE OBJECTS ARE THE TEASER'S, LITERALLY — `CollaborateTeaser.module.css`
+      rather than a second copy of its two rules. See the note on that import.
 
-      MEASURED, BECAUSE THE INK HAS TO SURVIVE IT. Charcoal Slate on Soft
-      Lavender is 6.49:1, so every word here keeps the ink it had. The cards
-      stay White Rock, which is 1.54:1 against this ground — they have almost
-      no edge of their own to be seen by, which is exactly the case `plate`
-      exists for and they already carry it.
+      IT IS STILL NOT THE SAME SECTION TWICE, and the differences are the ones
+      that read at a glance. The ground stays lavender: the client asked for
+      that colour, and it is the one the page has nowhere else — so this is
+      White Rock cards on lavender where the teaser is Light Sage cards on
+      White Rock. There are four of them rather than three, dealt two at a time
+      rather than fanned in a row. And nothing here is a door: the page's calls
+      to action are in <Close> below, and these four cards are for reading, not
+      pressing.
 
-      THE SHAPES. Four of the guideline's icons, at low strength and behind
-      everything, filling the band the heading leaves open to its right. They
-      are placed rather than scattered, and they are the same `SectionShapes`
-      the homepage uses — see the note there about why a plan beats a random
-      placement.
+      THE LAVENDER IS THE QUIETED ONE, ALSO AT THE CLIENT'S ASK — `bg-lavender-soft`,
+      Soft Lavender with White Rock mixed into it, defined and measured in
+      globals.css. Their note on the full-strength colour was that it was too
+      much contrast, and it was: a saturated periwinkle band between two Light
+      Sage fields arrives as a colour rather than as paper, and every White
+      Rock object laid on it had to fight it.
+
+      MEASURED, BECAUSE THE INK HAS TO SURVIVE IT. Charcoal Slate is 7.56:1 on
+      this ground and 9.36:1 on the cards, so every word keeps the ink it had —
+      and the quieter ground is the safer one, not the riskier. The heading
+      does NOT take the teaser's Deep Lilac: lilac here is 3.19:1, which is
+      display-only, and a section heading that cannot also be a label is a
+      heading waiting to be copied into one.
     */
     <section
       aria-labelledby="apart-heading"
-      className="relative isolate overflow-hidden bg-lavender py-[5rem] md:py-section lg:py-section-lg"
+      /*
+        `overflow-x-clip`, NOT `overflow-hidden`. The cards are tilted and lap
+        their own column, and a shape reaching past the gutter on a narrow
+        screen gives the whole page a horizontal scrollbar. `hidden` would stop
+        that too — and would also make a scroll container, which leaves every
+        mark inside it parked at the start of its own view timeline, outline
+        drawn and fill never arriving. `clip` clips without making one.
+      */
+      /* The extra 2.5rem at the foot is exactly what the right-hand pair of
+         cards is translated down by: without it the fan hangs 40px closer to
+         the colour seam below than the heading does to the one above, and the
+         section reads as sitting low in its own band. */
+      className="relative isolate overflow-x-clip bg-lavender-soft py-[4.5rem] md:py-[6rem] lg:py-[7rem] lg:pb-[9.5rem]"
     >
       <SectionShapes plan={APART_SHAPES} />
       <Container className="relative">
-        <div className="max-w-[30ch]">
-          <Reveal>
-            <Eyebrow>What sets us apart</Eyebrow>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <h2
+        <div className="grid grid-cols-12 items-start gap-x-gutter gap-y-14 lg:items-center">
+          {/* ---- the claim, as plain type on the page -------------------- */}
+          <div className="col-span-12 lg:col-span-5">
+            <Reveal>
+              {/*
+                The teaser's own label rather than <Eyebrow>: charcoal type
+                with the colour carried by the mark beside it. The mark is
+                decorative and `aria-hidden`, so it owes no ratio, and the
+                label is not asked to be lilac on lavender.
+              */}
+              <p className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text">
+                <span aria-hidden className="block w-4 shrink-0">
+                  <DoodleMark name="dot" color={INK.lilac} />
+                </span>
+                What sets us apart
+              </p>
+            </Reveal>
+
+            {/*
+              The house heading rather than an `h2` with the script set on it
+              by hand — this one gets the masked line reveal the teaser's
+              statement has, and where it breaks is a decision rather than
+              whatever the measure does.
+            */}
+            <DisplayHeading
               id="apart-heading"
-              className="heading-script mt-6 pb-[0.3em] text-script-section text-text"
-            >
-              {forScript("Why it feels different")}
-            </h2>
-          </Reveal>
-        </div>
+              size="section"
+              className="mt-6 md:mt-7"
+              lines={["Why it feels", "different"]}
+            />
+          </div>
 
-        {/*
-          ==================================================================
-          FOUR CARDS IN ONE ROW, NOT A STAGGERED LIST
-          ==================================================================
+          {/* ---- the four points, dealt two at a time -------------------- */}
+          <Stagger
+            as="ul"
+            className="col-span-12 grid gap-5 sm:grid-cols-2 lg:col-span-7 lg:col-start-6 lg:gap-x-0 lg:gap-y-6"
+          >
+            {WHAT_SETS_US_APART.map((point, i) => {
+              const card = APART_CARDS[i % APART_CARDS.length];
 
-          These were rows: a hairline, a mark, a name and a line, each indented
-          seven per cent further than the one above so the left edge walked
-          down the page. It was a nice figure and it cost four screens of
-          height on a page the client has already said is spending too much of
-          it — and a reader comparing four short claims wants them side by
-          side, not one after another.
-
-          So they are cards, laid out the way <CollaborateTeaser> lays its
-          three: a row of White Rock plates on the Light Sage ground, each set
-          down a degree or so off square with a dab of paint above its name.
-          Same objects, same order, one screen.
-
-          THE TILT IS PER CARD AND FIXED. Four at the same angle read as a
-          template that has been knocked; four set down slightly differently
-          read as paper somebody put there.
-        */}
-        <Stagger
-          as="ul"
-          className="mt-12 grid gap-4 sm:grid-cols-2 md:mt-16 lg:grid-cols-4 lg:gap-5"
-        >
-          {WHAT_SETS_US_APART.map((point, i) => {
-            const card = APART_CARDS[i % APART_CARDS.length];
-            return (
-              <Reveal as="li" key={point.slug} delay={i * 0.07} className="h-full">
-                <article
-                  className={`plate flex h-full flex-col rounded-[1.25rem] bg-cream px-6 py-7 ${card.tilt}`}
+              return (
+                <Reveal
+                  as="li"
+                  key={point.slug}
+                  /* Dealt from above, one after the other — `drop` in
+                     lib/motion.ts, at the 0.12 the teaser settled on: at 80ms
+                     against a 680ms fall four cards land as a block. */
+                  variant="drop"
+                  delay={i * 0.12}
+                  className={cn("relative", card.z, card.lane)}
                 >
-                  <span aria-hidden className="block w-10 shrink-0">
-                    <DoodleMark
-                      name={APART_MARKS[i % APART_MARKS.length]}
-                      color={APART_INKS[i % APART_INKS.length]}
-                      treatment="draw"
-                      delay={180 + i * 130}
+                  <div
+                    className={cn(
+                      swatch.card,
+                      "plate h-full rounded-[1.25rem] bg-cream px-5 pb-7 pt-6 md:px-6 md:pb-8 md:pt-7",
+                      card.lap,
+                    )}
+                    style={{ "--tilt": card.tilt } as React.CSSProperties}
+                  >
+                    {/*
+                      The dab, at the size the workshop journey settled on. It
+                      is the only thing carrying colour here, and it is
+                      decorative: nothing in this section is told apart by
+                      colour alone. `PAINTS_ON_CREAM` is three colours over
+                      four cards, so the palette starts again rather than two
+                      neighbours matching — and Light Sage is not in it,
+                      because sage on White Rock is 1.03:1 and a swatch nobody
+                      can see is a missing swatch.
+                    */}
+                    <span
+                      aria-hidden
+                      className={cn(swatch.dab, "h-9 w-[3.5rem] md:h-10 md:w-[4.25rem]")}
+                      style={
+                        {
+                          "--paint": paintAt(i, PAINTS_ON_CREAM),
+                          "--tilt": card.dab,
+                        } as React.CSSProperties
+                      }
                     />
-                  </span>
 
-                  <h3 className="mt-6 text-[1.0625rem] font-semibold leading-snug text-text md:text-[1.1875rem]">
-                    {point.name}
-                  </h3>
-                  <p className="mt-2.5 text-fine leading-[1.7] text-text/80">{point.description}</p>
-                </article>
-              </Reveal>
-            );
-          })}
-        </Stagger>
+                    {/*
+                      The deck's condensed face in caps, which is what every
+                      named thing taken straight off the deck is set in — these
+                      four are deck p.11. One weight only, so
+                      `font-synthesis: none`.
+                    */}
+                    <h3 className="mt-5 text-[1.0625rem] font-bold uppercase leading-[1.12] tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none] md:text-[1.25rem]">
+                      {point.name}
+                    </h3>
+
+                    <p className="mt-2.5 text-[0.9375rem] leading-[1.65] text-text/85 md:text-body">
+                      {point.description}
+                    </p>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </Stagger>
+        </div>
       </Container>
     </section>
   );
 }
 
-/* How each card is set down — see the note above the row. */
+/*
+  HOW EACH CARD IS DEALT — the teaser's `CARDS`, at four instead of three.
+
+  `tilt` and `dab` are the two angles, fixed per card: four objects at one
+  angle read as a template that has been knocked, four set down differently
+  read as paper somebody put there.
+
+  `lane` is where a card sits in its pair. The right-hand two lap 4% into the
+  left-hand two and drop 2.5rem below them, and that lap is what turns a
+  two-by-two grid into a hand rather than a table. It is also the teaser's
+  measured failure and its fix: a card on top covered the first letter of the
+  words under it, so every lapped card carries 36px of left padding at `lg`
+  while the lap itself is about 10px of a 265px column — what a neighbour
+  covers is always padding and never a letter, and anything added to these
+  cards has to stay inside it.
+
+  THE DROP IS `translate-y` ON PURPOSE. In Tailwind v4 that compiles to the
+  `translate` property rather than to `transform`, so it composes with both the
+  card's own rotation and the deal animation instead of overwriting either.
+
+  `z` keeps the left of each pair on top, so the right card tucks under it.
+
+  Written as complete class strings because Tailwind reads source literally:
+  anything assembled at runtime never reaches the stylesheet. The lap and the
+  drop are `lg:`-prefixed, so at `sm` this is a plain two-up grid and below
+  that the four simply stack.
+*/
 const APART_CARDS = [
-  { tilt: "lg:rotate-[-1.1deg]" },
-  { tilt: "lg:rotate-[0.8deg]" },
-  { tilt: "lg:rotate-[-0.6deg]" },
-  { tilt: "lg:rotate-[1.2deg]" },
+  { tilt: "-2.4deg", dab: "-7deg", lane: "", z: "z-40", lap: "" },
+  { tilt: "1.7deg", dab: "5deg", lane: "lg:-ml-[4%] lg:translate-y-10", z: "z-30", lap: "lg:pl-9" },
+  { tilt: "1.1deg", dab: "-4deg", lane: "", z: "z-20", lap: "" },
+  {
+    tilt: "-1.6deg",
+    dab: "6deg",
+    lane: "lg:-ml-[4%] lg:translate-y-10",
+    z: "z-10",
+    lap: "lg:pl-9",
+  },
 ] as const;
 /*
-  The shapes behind <Apart>, in the band the heading leaves open to its right.
+  The shapes behind <Apart>.
 
-  Held low — 0.14 to 0.2 — because they sit under a row of cards and a script
-  heading, and a ground that competes with either is not a ground. Each drifts
-  at its own rate and breathes on its own clock, so four marks read as layers
-  at different distances rather than as one sheet of stickers.
+  THEY HAVE MOVED WITH THE CARDS. The plan put all four in the band to the
+  right of the heading, which was open when the cards sat across the foot and
+  is now where the cards are — four marks under four opaque plates is four
+  marks nobody sees. Two are on the left now, around the statement, and two
+  keep the corners the cards do not reach.
 
-  White Rock is in the list and Light Sage is not: the ground is Soft Lavender
-  now, and sage on lavender is the one pair in this palette too close to tell
-  apart at this opacity.
+  Held low — 0.14 to 0.2 — because a ground that competes with a script
+  heading is not a ground. Each drifts at its own rate and breathes on its own
+  clock, so four marks read as layers at different distances rather than as one
+  sheet of stickers.
+
+  White Rock is in the list and Light Sage is not: the ground is lavender, and
+  sage on lavender is the one pair in this palette too close to tell apart at
+  this opacity. White Rock is now the faintest of the four, because the ground
+  it is drawn on has White Rock mixed into it — it is the one mark here that is
+  a texture rather than a shape, which is the right job for it behind a script
+  heading.
+
+  The per-card marks that used to sit in each plate have gone with the plate
+  that held them — the card carries a dab of paint above its name now, which is
+  the teaser's object and the thing the client asked for.
 */
 const APART_SHAPES: readonly ShapePlan[] = [
   {
     name: "splash",
     color: INK.lilac,
     width: "14%",
-    right: "6%",
-    top: "6%",
+    left: "2%",
+    bottom: "8%",
     rotate: -14,
     drift: 24,
     opacity: 0.2,
@@ -710,8 +887,8 @@ const APART_SHAPES: readonly ShapePlan[] = [
     name: "coral",
     color: INK.whiteRock,
     width: "9%",
-    right: "22%",
-    top: "22%",
+    left: "28%",
+    top: "14%",
     rotate: 10,
     drift: -18,
     opacity: 0.2,
@@ -723,7 +900,7 @@ const APART_SHAPES: readonly ShapePlan[] = [
     name: "starburst",
     color: INK.terracotta,
     width: "8%",
-    left: "42%",
+    right: "3%",
     top: "4%",
     rotate: -6,
     drift: 20,
@@ -736,8 +913,8 @@ const APART_SHAPES: readonly ShapePlan[] = [
     name: "zigzag",
     color: INK.charcoal,
     width: "5%",
-    left: "58%",
-    top: "24%",
+    right: "9%",
+    bottom: "9%",
     rotate: 16,
     drift: -22,
     opacity: 0.14,
@@ -746,9 +923,6 @@ const APART_SHAPES: readonly ShapePlan[] = [
     desktopOnly: true,
   },
 ];
-
-const APART_MARKS: readonly DoodleName[] = ["starburst", "splash", "starleaf", "wave"];
-const APART_INKS: readonly string[] = [INK.lilac, INK.terracotta, INK.lavender, INK.lilac];
 
 /* ---- 05 created ---------------------------------------------------------- */
 
@@ -768,7 +942,16 @@ function Created() {
   return (
     <section
       aria-labelledby="created-heading"
-      className="relative isolate overflow-hidden bg-sage pb-[5rem] md:pb-section lg:pb-section-lg"
+      /*
+        TOP PADDING, WHICH THIS SECTION SPENT A WHILE WITHOUT — the client's
+        note. It carried `pb` only, and that was right while <Apart> above it
+        was Light Sage too: two sage sections running together are one field,
+        and the gap between them was the one Apart's own foot left. Apart is
+        Soft Lavender now, so there is a hard colour seam directly above this
+        collage and nothing between the two. `py` puts the section's own
+        measure back on top of it.
+      */
+      className="relative isolate overflow-hidden bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
       <Container>
         <div className="grid grid-cols-12 items-center gap-x-6 gap-y-12 lg:gap-x-12">
@@ -840,7 +1023,11 @@ function Created() {
                     style={{ "--swell": 1, "--wet": 0.58 } as React.CSSProperties}
                     className="relative isolate inline-block px-3 py-2"
                   >
-                    <PaintStroke paint={PLACE_PAINTS[i % PLACE_PAINTS.length]} />
+                    {/* `shape="blot"`, for the reason <TwoWaysToCreate> gives:
+                        at `--swell: 1` this is a field the word is read on,
+                        not a band under it, and the brush was drawn for the
+                        second. */}
+                    <PaintStroke paint={PLACE_PAINTS[i % PLACE_PAINTS.length]} shape="blot" />
                     <span className="relative text-action font-semibold uppercase tracking-eyebrow text-text">
                       {place}
                     </span>

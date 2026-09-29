@@ -8,14 +8,21 @@
   below, so the sequence runs on the compositor.
 
     (none) ... not yet decided: styled as `play`
-    play ..... every page load of the homepage: sage canvas, header hidden,
-               shapes not yet drawn — see ./intro.ts
-    draw ..... the logo fades in and the doodles draw themselves as a bouquet
-    settle ... doodles fly home behind the photograph, the photograph blooms
-               open, the words rise, the logo flies into the header
+    play ..... 0.0-0.2s. Every page load of the homepage: a clean Light Sage
+               ground, the header hidden, and the mark fading up at the centre
+               with the ring stacked invisibly behind it — see ./intro.ts
+    burst .... 0.2-0.8s. The icons burst out from behind the mark and take
+               their places around it, then hold there
+    settle ... 0.8-1.5s. The mark lifts to the navigation bar, the icons
+               scatter outward to their places in the page, the photograph
+               blooms open and the words rise
     skip ..... the homepage again without a reload, just before its entrance
     enter .... the short entrance that return gets instead of the intro
     done ..... at rest: drift, and pointer depth
+
+  THE WHOLE THING IS 1.5 SECONDS, and every number below is one of the six
+  frames the client storyboarded. <HeroIntro> holds the frame list and the
+  arithmetic; this file holds the motion.
 
   Separately, `--p` (0–1) is written onto the frame as the page scrolls — see
   <HeroIntro>. The frame is held still while it runs: the photograph opens from
@@ -37,7 +44,8 @@
 
 :global(html:not([data-intro])) .hero,
 :global(html[data-intro="play"]) .hero,
-:global(html[data-intro="draw"]) .hero,
+:global(html[data-intro="dots"]) .hero,
+:global(html[data-intro="burst"]) .hero,
 :global(html[data-intro="settle"]) .hero {
   z-index: 30;
 }
@@ -80,20 +88,21 @@
   width: min(56vw, 30rem, 62svh);
   height: auto;
   /*
-    Opaque from the first frame. The mask over the artwork shows nothing until
-    the pen moves, so the box has nothing to hide; fading it in as well would
-    put the first letters on screen half-transparent, and the reveal has to be
-    the writing, never a fade.
+    FRAME 1: "The background is clean, and the Maison Palettia logo fades in
+    at the centre." It used to be opaque from the first frame, because the
+    reveal was the pen writing the letters and a fade was the one thing ruled
+    out. The client has asked for a fade, so the box does the fading and the
+    artwork under it is simply the file — see <LogoReveal>.
   */
-  opacity: 1;
-  transform: translate(-50%, -50%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.94);
   pointer-events: none;
 }
 
 /*
   A smaller share once the ring is drawn at its full radius.
 
-  Below 640 the petals are pulled in to 0.93 of a radius (see <HeroIntro>), so
+  Below 640 the icons are pulled in to 0.93 of a radius (see <HeroIntro>), so
   56vw fits there; above it they are not, and 56vw put the ring 18px past both
   edges of a 768 tablet — measured. 52vw is the share that fits, and it changes
   nothing on a desktop, where the 30rem cap binds long before either.
@@ -105,11 +114,23 @@
 }
 
 /*
-  THE MARK WRITES ITSELF — FROM ITS OWN VECTOR. The client sent the Illustrator
-  file, so the intro no longer sweeps a mask across a PNG: the lettering is the
-  file's outlines, and each letter is uncovered along the path a pen takes to
-  write it (see <LogoReveal> and ./logoArt.ts). Every rule below is about the
-  mask over the artwork; the artwork itself never changes.
+  The fade itself: 200ms, which is the frame's own length. The hair of scale
+  under it is what stops a pure opacity fade reading as a stuck image loading
+  in — the mark arrives rather than appears.
+*/
+:global(html[data-intro="play"]) .introLogo,
+:global(html[data-intro="dots"]) .introLogo,
+:global(html[data-intro="burst"]) .introLogo {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 260ms var(--ease-out);
+}
+
+/*
+  THE MARK IS THE CLIENT'S OWN FILE, never redrawn. Every rule below is about
+  how it arrives and where it goes; the artwork itself never changes.
 */
 .logoArt {
   display: block;
@@ -126,86 +147,21 @@
 }
 
 /*
-  A pen path in the mask: white where the artwork shows through, drawn along
-  its length by a dash the size of the path sliding into view. Its width is
-  the letter's own stroke plus a margin, set on the element.
-*/
-.pen {
-  fill: none;
-  stroke: #fff;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: var(--len) var(--len);
-  stroke-dashoffset: 0;
-}
-
-/* Once a letter is written, its whole outline joins the mask — see <LogoReveal>. */
-.penCover {
-  fill: #fff;
-  opacity: 1;
-}
-
-:global(html:not([data-intro])) .pen,
-:global(html[data-intro="play"]) .pen {
-  stroke-dashoffset: var(--len);
-}
-
-:global(html:not([data-intro])) .penCover,
-:global(html[data-intro="play"]) .penCover {
-  opacity: 0;
-}
-
-:global(html[data-intro="draw"]) .pen {
-  animation: penDraw var(--dur, 100ms) linear var(--delay, 0ms) both;
-}
-
-:global(html[data-intro="draw"]) .penCover {
-  animation: coverIn 140ms ease var(--delay, 0ms) both;
-}
-
-@keyframes penDraw {
-  from {
-    stroke-dashoffset: var(--len);
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes coverIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/*
-  THE DOTS IN THE "P", ONE BY ONE — the client's ask. They are the file's own
-  six dot paths, each scaled up from nothing in turn once the last letter is
-  written, in the order the palette runs. Nothing is covered or redrawn.
-*/
-/*
   ==========================================================================
-  THE PALETTE DOTS COME OUT OF THE P
+  THE SIX PAINT WELLS IN THE "P" — the beat between the mark and the icons
   ==========================================================================
 
-  Each dot starts at the middle of the palette — one point inside the bowl of
-  the "P" — at no size, and travels out to its own well while it grows. All six
-  leave the same point, so the palette loads itself rather than six dots
-  switching on where they already were.
+  The client asked for these back: the mark fades up, the wells fill one at a
+  time, and only then do the icons burst out from behind it. They were part of
+  the original opening and went when the handwriting did; the handwriting is
+  not coming back, but this is, because it is the one piece of the logo that
+  moves and it belongs to the logo rather than to the ring.
 
-  `--dx`/`--dy` are set per dot in <LogoReveal>: the offset from the dot's own
-  place back to that shared origin, in the logo's user units. A `translate()`
-  of an absolute length on an SVG element is in those units, so the artwork and
-  the animation stay in one coordinate system at every size the mark is drawn.
-
-  THE TRANSLATE COMES FIRST AND THE SCALE SECOND, which is the order that makes
-  this read as a throw. Transforms apply right to left, so the dot is scaled
-  about its own centre and THEN carried to the origin — the alternative scales
-  the offset too, which collapses the travel to nothing at `scale(0)` and gives
-  back the pop this replaces.
+  `transform-box: fill-box` makes every transform below relative to the dot's
+  own 2.7-unit box rather than to the whole 300-unit artwork — which is what
+  lets `scale(0)` collapse a dot into itself. <LogoReveal> sets the origin to
+  `center` for the same reason; see the note there, which is a real bug's
+  epitaph.
 */
 .pDot {
   transform-box: fill-box;
@@ -213,6 +169,7 @@
   opacity: 1;
 }
 
+/* Before they are thrown: collapsed at the middle of the palette. */
 :global(html:not([data-intro])) .pDot,
 :global(html[data-intro="play"]) .pDot {
   transform: translate(var(--dx, 0), var(--dy, 0)) scale(0);
@@ -220,23 +177,30 @@
 }
 
 /*
-  240ms, AND IT IS SET AGAINST DOT_STEP RATHER THAN CHOSEN ON ITS OWN.
+  240ms, AND IT IS SET AGAINST THE STEP RATHER THAN CHOSEN ON ITS OWN.
 
-  This was 420, picked so the travel out of the P would register. It did, and
-  it also meant every dot was still in the air when the next three left: at a
-  200ms step a 420ms flight has three dots overlapping at any moment, which
-  reads as a burst however carefully the delays are ordered. The client asked
-  three times for "one by one" and this is the half of it that was wrong.
+  This was 420 in the old opening, picked so the travel out of the P would
+  register. It did, and it also meant every dot was still in the air when the
+  next three left: at a 200ms step a 420ms flight has three dots overlapping
+  at any moment, which reads as a burst however carefully the delays are
+  ordered. The client asked three times for "one by one" and this was the half
+  of it that was wrong.
 
-  240 against DOT_STEP's 200 leaves each dot 40ms of sky to itself before the
-  next one goes. The travel still reads — the easing overshoots, so a dot
-  arrives slightly past its well and settles, paint flicked off a brush rather
-  than placed — and the six now count rather than scatter.
+  The step is now 62ms, not 200 — the whole entrance is under two seconds and
+  six dots at 200 apart would be a second on their own. 240 against 62 does
+  overlap, but a dot is 74% of the way home when the next leaves, so the six
+  still arrive in a countable order rather than together. The easing overshoots,
+  so a dot lands slightly past its well and settles: paint flicked off a brush
+  rather than placed.
 
-  <HeroIntro> owns the step and the phase length; the two have to be changed
-  together, and DRAW_MS has to outlast the last dot's LAST FRAME, not its start.
+  `both`, so the last frame holds. When the state moves on to `burst` this rule
+  stops matching and `.pDot` above takes over at exactly the same values, so
+  nothing flickers at the handover.
+
+  <HeroIntro> owns the step and when this phase ends; the two move together,
+  and the phase has to outlast the last dot's LAST FRAME, not its start.
 */
-:global(html[data-intro="draw"]) .pDot {
+:global(html[data-intro="dots"]) .pDot {
   animation: dotIn 240ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
 }
 
@@ -258,35 +222,21 @@
   }
 }
 
-/* Reduced motion: the mark is simply there, dots and all. */
-@media (prefers-reduced-motion: reduce) {
-  .pen,
-  .penCover,
-  .pDot {
-    animation: none;
-  }
-
-  .pen {
-    stroke-dashoffset: 0;
-  }
-
-  .penCover,
-  .pDot {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /*
+  FRAMES 4 AND 5: "The logo gently moves up from the centre towards the
+  navigation bar", and then settles in it.
+
   THE FLIGHT IS AN ANIMATION, NOT A TRANSITION. It used to be a transform
   transition taking over from the entrance animation above, and in Chrome that
-  handover does not travel: cancelling `logoIn` in the same style change as
+  handover does not travel: cancelling the entrance in the same style change as
   the transition began meant the transition had nothing to start from, and
-  the mark appeared at the header's position at once — then sat there alone,
-  measured for about 750ms, until the bar faded in around it. A keyframe
-  animation owns both of its ends, so it always flies.
+  the mark appeared at the header's position at once. A keyframe animation owns
+  both of its ends, so it always flies.
 
-  Opacity is held at 1 through the flight and faded by its own animation at
+  440ms rather than the 820 it was. The storyboard gives the move frame 4 alone
+  — two tenths of a second — and lets it settle through frame 5; 440 on a
+  strong ease-in-out covers most of the distance inside frame 4 and is home at
+  1240ms, inside frame 5. Opacity is held at 1 through the flight and faded at
   the end, once the bar has come in underneath it at the same place and size.
 */
 :global(html[data-intro="settle"]) .introLogo {
@@ -294,8 +244,8 @@
   transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px)))
     scale(var(--logo-s, 1));
   animation:
-    logoFly 820ms var(--ease-flight) forwards,
-    logoOut 220ms ease 880ms forwards;
+    logoFly 440ms var(--ease-flight) forwards,
+    logoOut 160ms ease 360ms forwards;
 }
 
 @keyframes logoFly {
@@ -514,26 +464,39 @@
 
 :global(html:not([data-intro])) .bloom,
 :global(html[data-intro="play"]) .bloom,
-:global(html[data-intro="draw"]) .bloom,
+:global(html[data-intro="dots"]) .bloom,
+:global(html[data-intro="burst"]) .bloom,
 :global(html[data-intro="skip"]) .bloom {
   clip-path: circle(0% at 50% calc(100% - var(--wb)));
 }
 
 :global(html:not([data-intro])) .cardImage,
 :global(html[data-intro="play"]) .cardImage,
-:global(html[data-intro="draw"]) .cardImage,
+:global(html[data-intro="dots"]) .cardImage,
+:global(html[data-intro="burst"]) .cardImage,
 :global(html[data-intro="skip"]) .cardImage {
   transform: translate3d(0, var(--lift-now), 0) scale(1.16);
 }
 
+/*
+  FRAME 6: "The website fully loads." The photograph opens while the icons are
+  still scattering, so the page is composed by the time the mark reaches the
+  bar rather than after it — which is what "transitioning naturally into the
+  main website" asks for. 120 + 520 = 1440ms from the first frame.
+
+  It was 220 + 1250, tuned for an entrance five seconds long where the bloom
+  had a second and a half of its own to breathe in. At this pace a 1250ms
+  opening would still be moving well after everything else had stopped, which
+  reads as the page lagging rather than as a flourish.
+*/
 :global(html[data-intro="settle"]) .bloom,
 :global(html[data-intro="enter"]) .bloom {
-  transition: clip-path 1250ms var(--ease-flight) var(--bloom-delay, 220ms);
+  transition: clip-path 520ms var(--ease-flight) var(--bloom-delay, 120ms);
 }
 
 :global(html[data-intro="settle"]) .cardImage,
 :global(html[data-intro="enter"]) .cardImage {
-  transition: transform 1700ms var(--ease-out) var(--bloom-delay, 220ms);
+  transition: transform 700ms var(--ease-out) var(--bloom-delay, 120ms);
 }
 
 /*
@@ -583,7 +546,7 @@
 
 /*
   Five nested boxes, each owning one transform so no motion overwrites
-  another: `flip` the flight from the bouquet, `drift` the scroll, `parallax`
+  another: `flip` the entrance's flight, `drift` the scroll, `parallax`
   the pointer, `float` the idle drift, and the <svg> its resting rotation.
   All of them sit under the photograph.
 */
@@ -613,10 +576,13 @@
   }
 }
 
-/* While the bouquet is drawn the photograph is not there yet; the shapes sit
-   above where it will be, and drop behind it as it opens. */
-:global(html[data-intro="draw"]) .doodle,
-:global(html[data-intro="play"]) .doodle {
+/* While the entrance runs the photograph is not there yet; the icons sit
+   above where it will be, and drop behind it as it opens. This is also what
+   puts them UNDER the mark (z-index 50), so frame 2 reads as a burst from
+   behind the logo rather than from in front of it. */
+:global(html[data-intro="burst"]) .doodle,
+:global(html[data-intro="play"]) .doodle ,
+:global(html[data-intro="dots"]) .doodle {
   z-index: 20;
 }
 
@@ -663,196 +629,121 @@
   stroke-opacity: 0;
 }
 
-/* ---- play: nothing drawn, and nothing where it will end up ---------------- */
+/* ---- play: the ring stacked behind the mark ------------------------------ */
 
 /*
-  Already waiting out beyond the edge of the screen, and invisible — so that
-  entering `draw` changes nothing but opacity and no piece is ever seen flying
-  the wrong way. <HeroIntro> writes --ax/--ay/--ar while the state is `play`.
+  FRAME 1. Every icon of the ring is already at the middle of the screen,
+  scaled down to a third of the size it will take and invisible — so entering
+  `burst` changes nothing but the direction of travel, and no icon is ever seen
+  moving the wrong way. <HeroIntro> writes --bx/--by/--br while the state is
+  `play`.
+
+  THE SHAPES THAT ARE NOT IN THE RING sit still at their resting places with
+  nothing written on them, and are simply not shown. They belong to the
+  collage behind the photograph, not to the entrance — see `ring` in
+  ./composition.ts for which nine of the eighteen take part and why.
 */
 :global(html:not([data-intro])) .flip,
-:global(html[data-intro="play"]) .flip {
+:global(html[data-intro="play"]) .flip ,
+:global(html[data-intro="dots"]) .flip {
   opacity: 0;
-  transform: translate(var(--ax, 0px), var(--ay, 0px)) scale(var(--fs, 1))
-    rotate(var(--ar, 0deg));
+  transform: none;
+}
+
+:global(html:not([data-intro])) .flip[data-ring],
+:global(html[data-intro="play"]) .flip[data-ring] ,
+:global(html[data-intro="dots"]) .flip[data-ring] {
+  transform: translate(var(--bx, 0px), var(--by, 0px))
+    scale(calc(var(--fs, 1) * 0.34)) rotate(var(--br, 0deg));
 }
 
 :global(html:not([data-intro])) .ink,
-:global(html[data-intro="play"]) .ink {
+:global(html[data-intro="play"]) .ink ,
+:global(html[data-intro="dots"]) .ink {
   stroke-dashoffset: 0;
   fill-opacity: 1;
   stroke-opacity: 0;
 }
 
-/* ---- draw: the collage, laid down piece by piece ------------------------ */
+/* ---- burst: out from behind the logo, and into place -------------------- */
 
 /*
-  THE COMPOSITION ASSEMBLES; IT IS NOT COLOURED IN.
+  FRAMES 2 AND 3: "The icons burst out from behind the logo, spreading outward
+  in a smooth, quick motion", and then "all icons are now in place, around the
+  logo".
 
-  The pass before this had each shape trace its own outline where it would end
-  up and then flood with colour, and a hand could bring that on early. It was
-  interactive and it was not beautiful, for a reason worth writing down: every
-  intermediate frame held a mixture of pale unfinished outlines and solid
-  shapes, which does not read as a composition being made. It reads as a page
-  that has failed to load.
+  ONE MOVEMENT, NOT A SEQUENCE OF ARRIVALS. Every icon leaves the mark inside a
+  tenth of a second of the one before it (`--burst-delay`, 12ms apart) and
+  takes 400ms to reach its place, so the ring opens like a hand rather than
+  filling like a list. The last is home at 696ms, inside frame 3's window.
 
-  So nothing is ever half-drawn. Every piece is whole and in its own colour
-  from the first frame it exists; what changes is where it is. Each waits out
-  beyond the edge of the screen, on the ray running from the middle of the
-  screen through its own place in the ring and turned a little off its resting
-  angle, and flies in along that ray to land — the brand deck's collage laid
-  down around the mark, a piece at a time.
+  `--ease-pop` overshoots a little at the end. That overshoot is the whole of
+  "playful": without it nine shapes slide to a stop together, which is smooth
+  and completely inert.
 
-  A hand brings the nearest waiting pieces in early; see <HeroIntro>. It is one
-  attribute per shape, and this stylesheet owns every millisecond of what that
-  attribute means. `transform` is the only property that changes, so a flight
-  is a compositor's job: nothing is laid out or painted again on the way in.
+  The fade is 140ms against a 400ms flight, which is what makes them read as
+  coming out from BEHIND the mark rather than appearing beside it — for the
+  first third of the movement they are still inside the logo's own footprint,
+  and the logo is above them (z-index 50 against 20).
+
+  Nothing is ever half-drawn: every icon is whole and in its own colour from
+  the first frame it exists. `transform` and `opacity` are the only properties
+  that change, so the whole burst is a compositor's job.
 */
-
-:global(html[data-intro="draw"]) .ink {
+:global(html[data-intro="burst"]) .ink {
   stroke-dashoffset: 0;
   fill-opacity: 1;
   stroke-opacity: 0;
 }
 
-/* Waiting: whole, coloured, off-screen — the transform `play` already held. */
-:global(html[data-intro="draw"]) .flip {
-  opacity: 1;
-  transform: translate(var(--ax, 0px), var(--ay, 0px)) scale(var(--fs, 1))
-    rotate(var(--ar, 0deg));
-  transition: transform 780ms var(--ease-land);
-}
-
-/* Landed: its place in the ring, at its resting angle. */
-:global(html[data-intro="draw"]) .flip[data-landed] {
-  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1))
-    rotate(var(--fr, 0deg));
-}
-
-/*
-  THE TWELVE THAT ARE NOT IN THE BOUQUET STAY OUT OF THE ENTRANCE.
-
-  Every shape here belongs to the banner's resting collage; six of them are
-  also petals in the ring the intro draws round the logo (see `entrance` in
-  ./composition.ts, at the client's ask to dial the icons around the logo
-  down). The rest have no business on the opening screen: they are the margins
-  of a card that has not arrived yet.
-
-  So they are simply not shown until it does. No transform of their own —
-  `settle` already puts every shape back to `transform: none`, which is its
-  place in the collage — only the opacity, which arrives with the photograph.
-*/
-:global(html[data-intro="play"]) .flip:not([data-entrance]),
-:global(html[data-intro="draw"]) .flip:not([data-entrance]) {
+/* Not in the ring: still waiting for the page to compose around it. */
+:global(html[data-intro="burst"]) .flip {
   opacity: 0;
   transform: none;
-  transition: none;
 }
 
-:global(html[data-intro="settle"]) .flip:not([data-entrance]) {
+:global(html[data-intro="burst"]) .flip[data-ring] {
   opacity: 1;
-  transition: opacity 620ms var(--ease-out) var(--settle-delay, 0ms);
+  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1))
+    rotate(var(--fr, 0deg));
+  transition:
+    transform 400ms var(--ease-pop) var(--burst-delay, 0ms),
+    opacity 140ms ease var(--burst-delay, 0ms);
 }
 
+/* ---- settle: scattered across the page ---------------------------------- */
 
 /*
-  NO POINTER HALO. There was one here — a soft round of Soft Lavender light
-  that followed the hand — and the colour was approved but the shape was not.
-  A radial gradient is not in this brand's vocabulary: the guideline's visual
-  language is flat paper cut-outs in six flat colours, and a glow is the one
-  thing on the screen that could not have been cut out of paper.
+  FRAME 5: "As the logo settles in the navigation bar, the icons gently drift
+  outward and scatter across the screen."
 
-  What answers the hand instead is the brand's own material. A piece flies in
-  and lands the moment you reach it, and it leaves one of the deck's splash
-  cut-outs where it touched down — feedback made of the same shapes as the
-  composition it is building.
+  The same movement as the burst, reversed and slower — out of the ring and
+  away to the places they hold in the finished design, which for eight of the
+  nine is a margin of the banner where they stay in view. `--settle-delay`
+  holds each one back until the mark is on its way up, so the eye follows the
+  logo first and the ring only lets go once it has.
 */
-
 /*
-  THE MARKS A HAND LEAVES. The brand's own `splash` cut-out, in the colour of
-  whichever piece has just landed — not a circle, not a particle system. Ten
-  are rendered once and used round-robin, so a sweep that brings eight pieces
-  in at once costs eight transform writes and no allocation.
-
-  ONLY A HAND MAKES THESE. A piece the clock sends for lands silently, so the
-  composition that assembles itself is clean and the marks on the page are
-  exactly the ones a visitor made. Above the pieces, so a mark reads as ink
-  thrown onto the collage rather than as something behind it.
+  FRAME 6, for the shapes that were never in the ring: they are part of the
+  design the page composes into, so they fade up with it rather than arriving
+  from anywhere. Every one of them rests behind the photograph, so this is only
+  ever seen in the moment before the bloom covers them.
 */
-.splats {
-  position: fixed;
-  inset: 0;
-  z-index: 25;
-  pointer-events: none;
-}
-
-/*
-  Smaller and firmer than it first was. At 6rem and 52% it expanded into a
-  pale ghost roughly the size of the cut-outs around it — and since the deck's
-  splash is a cousin of the starburst already in the composition, a faint one
-  beside a solid one read as a rendering fault rather than as a mark somebody
-  made. At 4.5rem and 62% it stamps: smaller than the pieces, definite enough
-  to be deliberate, and gone inside two thirds of a second.
-*/
-.splat {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 4.5rem;
-  height: auto;
-  margin: -2.25rem 0 0 -2.25rem;
-  opacity: 0;
-}
-
-/*
-  `scale` rather than a scale inside `transform`: <HeroIntro> owns `transform`
-  for the position, and the two properties compose without either overwriting
-  the other.
-*/
-.splat[data-burst] {
-  animation: splat 620ms var(--ease-out) both;
-}
-
-@keyframes splat {
-  0% {
-    opacity: 0;
-    scale: 0.22;
-  }
-  20% {
-    opacity: 0.62;
-  }
-  100% {
-    opacity: 0;
-    scale: 1.05;
-  }
-}
-
-/* ---- settle: home, behind the photograph -------------------------------- */
-
 :global(html[data-intro="settle"]) .flip {
   opacity: 1;
   transform: none;
-  transition: transform 1050ms var(--ease-flight) var(--settle-delay, 0ms);
+  transition: opacity 320ms ease var(--settle-delay, 0ms);
+}
+
+:global(html[data-intro="settle"]) .flip[data-ring] {
+  opacity: 1;
+  transform: none;
+  transition: transform 400ms var(--ease-flight) var(--settle-delay, 0ms);
 }
 
 /*
-  A SHAPE THAT WAS NEVER PAINTED FINISHES ITSELF ON THE WAY HOME.
-
-  The canvas can now be left part-done — Escape and a wheel both end the moment
-  wherever it has got to, and they are meant to. Before this, the three
-  properties simply took their settled values with only `stroke-opacity`
-  transitioned, so every shape the visitor had not reached snapped from nothing
-  to solid colour in one frame: a dozen shapes appearing at once, which is a
-  worse thing than the moment they were escaping.
-
-  Given the same trace and flood, quicker, they complete as they fly. A shape
-  already painted is at these values and transitions nothing.
-*/
-/*
-  Nothing left to finish: every piece has been whole since it existed, so the
-  ink is already at these values and this transitions nothing. A piece that
-  never landed simply flies home from wherever off-screen it was waiting, which
-  is what makes Escape and a wheel safe to offer at any moment of the collage.
+  Nothing left to finish: every icon has been whole since it existed, so the
+  ink is already at these values and this transitions nothing.
 */
 :global(html[data-intro="settle"]) .ink {
   stroke-dashoffset: 0;
@@ -912,7 +803,8 @@
 
 :global(html:not([data-intro])) .reveal,
 :global(html[data-intro="play"]) .reveal,
-:global(html[data-intro="draw"]) .reveal,
+:global(html[data-intro="dots"]) .reveal,
+:global(html[data-intro="burst"]) .reveal,
 :global(html[data-intro="skip"]) .reveal {
   opacity: 0;
   transform: translate3d(0, 1.1rem, 0);
@@ -920,8 +812,8 @@
 
 :global(html[data-intro="settle"]) .reveal {
   transition:
-    opacity 700ms ease calc(var(--reveal-delay, 0ms) + 650ms),
-    transform 900ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 650ms);
+    opacity 360ms ease calc(var(--reveal-delay, 0ms) + 240ms),
+    transform 440ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 240ms);
 }
 
 :global(html[data-intro="enter"]) .reveal {
@@ -1051,13 +943,14 @@
 
 :global(html:not([data-intro])) .lineInner,
 :global(html[data-intro="play"]) .lineInner,
-:global(html[data-intro="draw"]) .lineInner,
+:global(html[data-intro="dots"]) .lineInner,
+:global(html[data-intro="burst"]) .lineInner,
 :global(html[data-intro="skip"]) .lineInner {
   transform: translate3d(0, 1.55em, 0);
 }
 
 :global(html[data-intro="settle"]) .lineInner {
-  transition: transform 1100ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 600ms);
+  transition: transform 480ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 220ms);
 }
 
 :global(html[data-intro="enter"]) .lineInner {

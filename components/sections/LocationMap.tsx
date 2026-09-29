@@ -53,6 +53,21 @@ interface LocationMapProps {
    * renders {@link PartnerPlate} itself.
    */
   caption?: boolean;
+  /**
+   * The map frame's shape, as Tailwind aspect utilities.
+   *
+   * THE DEFAULT ASSUMES THE FULL MEASURE and stops being right the moment a
+   * caller puts the map in a column. `/locations` now sets it beside the
+   * page's heading rather than under it, and the default's `lg:aspect-[2/1]`
+   * in half the width is a letterbox about 290px tall — a map you cannot read
+   * a street from, which is the one thing this component exists to avoid.
+   *
+   * So the shape is the caller's, because the caller is the only one that
+   * knows how wide the map will be. Omit it and nothing changes: the string
+   * below is exactly what was hard-wired here before, count-aware branch and
+   * all, so the event pages render the same frame they always did.
+   */
+  aspect?: string;
 }
 
 /**
@@ -88,7 +103,7 @@ interface LocationMapProps {
  *
  * Server component: an iframe, two links and no state.
  */
-export function LocationMap({ partners, className, caption = true }: LocationMapProps) {
+export function LocationMap({ partners, className, caption = true, aspect }: LocationMapProps) {
   if (partners.length === 0) return null;
 
   const single = partners.length === 1;
@@ -99,27 +114,56 @@ export function LocationMap({ partners, className, caption = true }: LocationMap
         <Reveal key={partner.slug} variant="fadeIn" delay={i * 0.08}>
           <figure className="relative">
             {/*
-              ON THE FIGURE, NOT IN THE MAP FRAME. This sat inside the frame
-              and the frame is `overflow-hidden` for its own rounded corner, so
-              all that showed was the sliver of it that fell inside the box.
-              Hung off the figure instead, it breaks the map's bottom-left edge
-              the way it was meant to, and it still cannot sit over the tiles
-              or catch a drag.
+              A WRAPPER AROUND THE FRAME, FOR ONE REASON: the mark has to hang
+              off the map's own edge, and neither the frame nor the figure can
+              hold it there.
+
+              Not the frame, because the frame is `overflow-hidden` for its own
+              rounded corner, so all that showed was the sliver of the mark
+              that fell inside the box.
+
+              Not the figure either, which is what this used to be. The figure
+              is the map PLUS the caption plate under it, so "the map's bottom"
+              is not an edge it has — the mark was pinned with
+              `top: calc(56.25% - 2.5rem)`, 56.25% being 9/16, i.e. the frame's
+              own height written out by hand. That held exactly as long as the
+              frame stayed 16:9. `aspect` above now lets a caller change it,
+              and on the first such caller the mark landed in the middle of the
+              tiles.
+
+              A box that is the frame and nothing else has the edge, at every
+              aspect, with no arithmetic. The mark still cannot sit over the
+              tiles or catch a drag.
+
+              THE LEFT EDGE AT MID-HEIGHT, AND NOT A CORNER. Google puts its
+              own furniture in three of the four: the place card top-left, the
+              satellite thumbnail bottom-left, the attribution and the
+              fullscreen control bottom-right. A cut-out on the bottom-left
+              corner landed squarely on the thumbnail and read as a smear
+              across the map rather than as a shape laid over its edge. The
+              middle of the left edge is the one stretch of frame that is
+              only ever tiles. `top` as a percentage so it stays there at
+              whatever aspect the caller asks for.
+
+              `-left-5` is the offset this always had, and it stays: on a
+              full-width map the frame's left edge IS the page gutter, so
+              every extra pixel of hang is a pixel the section clips away.
+              Only the vertical position needed fixing.
             */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -left-5 z-10 hidden w-[4rem] rotate-[12deg] md:block md:w-[5rem]"
-              style={{ top: "calc(56.25% - 2.5rem)" }}
-            >
-              <DoodleMark name="bean" color={INK.terracotta} treatment="stamp" delay={320} />
-            </span>
-            <div
-              className={cn(
-                "relative w-full overflow-hidden rounded-sm border border-line bg-surface-alt",
-                "aspect-[4/5] sm:aspect-[16/9]",
-                single ? "lg:aspect-[2/1]" : "lg:aspect-[16/10]",
-              )}
-            >
+            <div className="relative">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -left-5 top-[54%] z-10 hidden w-[4rem] rotate-[12deg] md:block md:w-[5rem]"
+              >
+                <DoodleMark name="bean" color={INK.terracotta} treatment="stamp" delay={320} />
+              </span>
+              <div
+                className={cn(
+                  "relative w-full overflow-hidden rounded-sm border border-line bg-surface-alt",
+                  aspect ??
+                    cn("aspect-[4/5] sm:aspect-[16/9]", single ? "lg:aspect-[2/1]" : "lg:aspect-[16/10]"),
+                )}
+              >
               <iframe
                 /*
                   Titled, because an iframe is announced by its title and
@@ -143,6 +187,7 @@ export function LocationMap({ partners, className, caption = true }: LocationMap
                 referrerPolicy="strict-origin-when-cross-origin"
                 className="absolute inset-0 h-full w-full border-0"
               />
+              </div>
             </div>
 
             {caption ? <PartnerPlate partner={partner} className="mt-6" /> : null}
@@ -179,14 +224,37 @@ export function LocationMap({ partners, className, caption = true }: LocationMap
 export function PartnerPlate({
   partner,
   className,
+  tone = "cream",
 }: {
   partner: MallPartner;
   className?: string;
+  /**
+   * Which of the two neutral grounds the plate is cut from.
+   *
+   *   cream ... White Rock. The default, and what the event page needs: its
+   *             own ground is Light Sage, and a sage plate on it is 1.0:1 —
+   *             not a card, a patch of the same paper.
+   *   sage .... Light Sage, for a plate laid on White Rock. /locations takes
+   *             this, at the client's ask, now that the section around it is
+   *             the cream one.
+   *
+   * IT IS A PROP RATHER THAN A `className`, and that is not fussiness: `cn`
+   * here is plain concatenation, so a `bg-sage` handed in through className
+   * does not override the `bg-cream` below — the two are the same kind of
+   * utility and the stylesheet's own order decides which wins, whatever order
+   * the caller wrote them in. <DisplayHeading> carries the same note for the
+   * same reason.
+   *
+   * Charcoal reads on both: 9.07:1 on Light Sage, 10.6:1 on White Rock, so
+   * nothing inside has to change with the ground.
+   */
+  tone?: "cream" | "sage";
 }) {
   return (
     <div
       className={cn(
-        "plate relative flex flex-col gap-5 rounded-[1.25rem] bg-cream px-6 pb-7 pt-6",
+        "plate relative flex flex-col gap-5 rounded-[1.25rem] px-6 pb-7 pt-6",
+        tone === "sage" ? "bg-sage" : "bg-cream",
         "sm:flex-row sm:items-start sm:justify-between sm:gap-10 md:px-7 md:pb-8 md:pt-7",
         className,
       )}

@@ -30,6 +30,7 @@ export function PaintStroke({
   paint,
   isCurrent = false,
   seat,
+  shape = "brush",
   className,
 }: {
   /** A brand paint, or null to draw nothing — see above. */
@@ -44,6 +45,21 @@ export function PaintStroke({
    * reserve, and comes out the same weight as one that has no reserve.
    */
   seat?: string;
+  /**
+   * Which shape the paint takes.
+   *
+   *   brush ... the default: a long, shallow stroke drawn to sit UNDER a
+   *             word. Neither the bar nor the footer takes it any more —
+   *             both hover into a field rather than a longer line — so what
+   *             is left on it is any caller that genuinely wants an
+   *             underline.
+   *   blot .... a squarer, chopped swatch with flecks, drawn to sit BEHIND
+   *             one. Pick this whenever the paint is a field the text is read
+   *             on rather than a line beneath it — the brush is drawn at 200
+   *             by 44 and stretching it into a chip's proportion is what makes
+   *             it come out lumpy. See PaintStroke.module.css.
+   */
+  shape?: "brush" | "blot";
   className?: string;
 }) {
   if (!paint) return null;
@@ -51,7 +67,12 @@ export function PaintStroke({
   return (
     <span
       aria-hidden
-      className={cn(styles.stroke, isCurrent && styles.current, className)}
+      className={cn(
+        styles.stroke,
+        shape === "blot" && styles.blot,
+        isCurrent && styles.current,
+        className,
+      )}
       style={{ "--paint": paint, ...(seat ? { "--seat": seat } : {}) } as React.CSSProperties}
     />
   );

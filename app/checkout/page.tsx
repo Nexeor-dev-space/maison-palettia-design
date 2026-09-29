@@ -28,7 +28,10 @@ export const metadata = buildMetadata({
  */
 export default function CheckoutPage() {
   return (
-    <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
+    /* `pb-0` — see the note on the same change in app/events/[slug]: the
+       utility bar closes this page as a Deep Lilac field and meets the
+       footer's wave directly. */
+    <Container className="pb-0 pt-[3.5rem] md:pt-[5rem] lg:pt-[6rem]">
       <Reveal>
         <Link
           href="/events"

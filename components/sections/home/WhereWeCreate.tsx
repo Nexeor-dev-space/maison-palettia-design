@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Reveal } from "@/components/motion/Reveal";
 import { embedSrc } from "@/components/sections/LocationMap";
 import { Container } from "@/components/ui/Container";
@@ -18,10 +16,12 @@ import { getMallPartners } from "@/lib/partners";
  * instead, so what is left is the statement and the studio you can walk into
  * this week. See the note on the column below.
  *
- * THE MAP IN AN ARCH. The Maison's entrances and signage are arches, and the
- * same shape framing the map is what stops a Google embed looking like an
- * afterthought pasted into the page. It is the project's existing keyless
- * embed, built from the partner record — no coordinates are invented.
+ * THE MAP AND THE ADDRESS ARE ONE OBJECT. It was an arch over a separate
+ * card, which is the Maison's own shape but read as two things stacked; on the
+ * client's ask the map now carries the card's radius, so the pair is a map
+ * with its address under it. The map is also the link — see the note on the
+ * frame. It is the project's existing keyless embed, built from the partner
+ * record: no coordinates are invented.
  */
 export async function WhereWeCreate() {
   const partners = await getMallPartners();
@@ -104,7 +104,7 @@ export async function WhereWeCreate() {
           cell is `lg:block` and the row is the statement and the map.
         */}
         <div className="grid grid-cols-12 items-start gap-x-6 gap-y-12 lg:items-center lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-6">
+          <div className="col-span-12 lg:col-span-5">
             <Reveal>
               <Eyebrow>Our experience</Eyebrow>
             </Reveal>
@@ -113,14 +113,16 @@ export async function WhereWeCreate() {
               className="mt-8 md:mt-10"
               lines={["Where we’ve", "created."]}
             />
-            {/* 54 characters, not the 46 this was set to. That figure was
-                cut for a four-column block; in six columns it left 140px of
-                its own column empty on top of the channel beside it, which
-                is the fault this section was already pulled up on. 54 is
-                still well inside the measure — the note on the old
-                arrangement put the ceiling at about 75. */}
+            {/* 60 characters, and the figure has moved twice for the same
+                reason: it has to fill the column it is actually in or the
+                dead ground it leaves behind reads as the section being
+                empty, which is the note this section keeps getting. It was
+                46 for a four-column block and 54 for six. At five columns
+                the measure is about 480px and so is 60ch, so the paragraph
+                now reaches its own edge instead of stopping 350px short of
+                it on a wide screen. The ceiling is still about 75. */}
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[54ch] text-body leading-[1.85] text-text/85">
+              <p className="mt-8 max-w-[60ch] text-body leading-[1.85] text-text/85">
                 {EXPERIENCE_STATEMENT}
               </p>
             </Reveal>
@@ -144,7 +146,7 @@ export async function WhereWeCreate() {
           */}
           <div
             aria-hidden
-            className="pointer-events-none relative hidden self-stretch lg:col-span-2 lg:col-start-7 lg:block"
+            className="pointer-events-none relative hidden self-stretch lg:col-span-2 lg:col-start-6 lg:block"
           >
             {/*
               SIZED TO LEAVE THE CHANNEL VISIBLE, which is the difference
@@ -165,7 +167,7 @@ export async function WhereWeCreate() {
           </div>
 
           {home ? (
-            <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+            <div className="col-span-12 lg:col-span-5 lg:col-start-8">
               {/*
                 ==========================================================
                 SMALLER, AND WITH AN EDGE OF ITS OWN
@@ -176,16 +178,24 @@ export async function WhereWeCreate() {
 
                 Both halves are fixed here. It was a 4:5 portrait across four
                 columns — about 360x450 on a 1440 screen, the largest object
-                in the section and taller than the words beside it. 5:4 across
-                five columns is wider but a third shorter, which is the shape
-                a map of one place wants anyway.
+                in the section and taller than the words beside it. 5:4 is
+                wider but a third shorter, which is the shape a map of one
+                place wants anyway.
+
+                AND IT IS FIVE COLUMNS AGAIN, at the client's later ask to
+                widen it — but at 5:4, not the 4:5 that made it too big the
+                first time. Five columns of 4:5 was 560x700; five columns of
+                5:4 is about 480x380, which is wider than the four-column
+                version and still shorter than it was originally. The width
+                is what the client asked for and the height is what the
+                earlier note protects.
 
                 THE EDGE IS `plate`, NOT A BORDER. The site's answer to a pale
                 object on a pale ground is a hairline of Charcoal at a tenth
                 plus a soft veil, and it follows whatever radius it is given —
-                including this one, which is an arch. A drawn border heavy
-                enough to hold would be the loudest mark in the section, which
-                is the note the client already gave about hard strokes
+                including the rounded rectangle this is now. A drawn border
+                heavy enough to hold would be the loudest mark in the section,
+                which is the note the client already gave about hard strokes
                 elsewhere.
 
                 AND THE GREY CAME OFF. The embed was desaturated 35%, which on
@@ -194,24 +204,75 @@ export async function WhereWeCreate() {
                 note on this section at the same time.
               */}
               <Reveal variant="fadeIn">
-                <div className="arch plate relative aspect-[5/4] overflow-clip bg-surface [--arch-rise:22%]">
+                {/*
+                  A ROUNDED RECTANGLE ON THE BOX'S OWN RADIUS, at the client's
+                  ask, in place of the arch. `rounded-[1.25rem]` is not a new
+                  number: it is exactly what the address card below carries, so
+                  the two now read as one object in two parts rather than as an
+                  arch with a card parked under it. `plate` follows whatever
+                  radius it is given, so the hairline and veil come with it.
+                */}
+                <div className="plate relative aspect-[5/4] overflow-clip rounded-[1.25rem] bg-surface">
                   {/*
                     Taller than its frame and lifted by the height of Google's
-                    place card, so the card sits above the arch and out of
-                    sight. The card carries a star rating and a review count —
+                    place card, so the card sits above the frame and out of
+                    sight. 11rem, not the 7 this was, and the reason is the
+                    widening: below about 450px Google draws only the pin, and
+                    above it the full place card — so widening this frame
+                    turned a card that was not there into a 157px one carrying
+                    the rating, and the old crop left the stars showing.
+
+                    Lifting the frame rather than shrinking it keeps the
+                    BOTTOM pinned, which is the half that matters: Google's
+                    logo and terms sit at the foot of the embed and have to
+                    stay visible, so whatever comes off the top, nothing comes
+                    off the bottom. The card carries a star rating and a review count —
                     Google's, not the studio's, but on this page it would read
                     as a rating the Maison is showing, which the brief rules
                     out. Only the top is cropped: Google's logo and terms sit
                     at the foot of the embed and stay visible, as the embed's
                     terms require.
+
+                    `pointer-events-none`, WHICH IS WHAT MAKES THE MAP A LINK.
+                    The client's note was that the map "is not redirect to
+                    anywhere" — and it could not, because an iframe eats every
+                    click inside its own box, so a map that looks pressable did
+                    nothing when pressed. The frame is now inert and the anchor
+                    below covers it, which costs the embed's own pan and zoom
+                    and buys the one behaviour that was asked for. `tabIndex`
+                    keeps the dead frame out of the tab order; the title stays,
+                    so the map still announces itself.
                   */}
                   <iframe
                     title={`Map showing ${home.name}, ${home.locality}`}
                     src={embedSrc(home)}
                     loading="lazy"
+                    tabIndex={-1}
                     referrerPolicy="no-referrer-when-downgrade"
-                    className="absolute inset-x-0 -top-28 h-[calc(100%+7rem)] w-full border-0"
+                    className="pointer-events-none absolute inset-x-0 -top-44 h-[calc(100%+11rem)] w-full border-0"
                   />
+
+                  {/*
+                    The link is a sibling that covers the frame rather than a
+                    wrapper around it: an anchor with an iframe inside it is
+                    interactive content nested in interactive content, and the
+                    overlay gets the same hit area without that. Its own name
+                    is the sr-only line, because the thing it covers is a
+                    picture of a map and "map" is not a destination.
+                  */}
+                  {home.locationHref ? (
+                    <a
+                      href={home.locationHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute inset-0 rounded-[1.25rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >
+                      <span className="sr-only">
+                        Open {home.name}, {home.locality} in Google Maps (opens
+                        in a new tab)
+                      </span>
+                    </a>
+                  ) : null}
                 </div>
               </Reveal>
 
@@ -233,33 +294,6 @@ export async function WhereWeCreate() {
                     {home.name}
                   </p>
                   <p className="mt-1 text-body text-text/85">{home.locality}</p>
-                  <div className="mt-5 flex flex-wrap gap-x-7 gap-y-3">
-                    <Link
-                      href="/locations"
-                      className="group -my-1.5 inline-flex items-baseline gap-3 py-1.5 text-action font-semibold uppercase tracking-eyebrow text-text"
-                    >
-                      <span className="border-b border-primary pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
-                        Locations
-                      </span>
-                      <span aria-hidden className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">
-                        &#8594;
-                      </span>
-                    </Link>
-                    {home.locationHref ? (
-                      <a
-                        href={home.locationHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group -my-1.5 inline-flex items-baseline gap-3 py-1.5 text-action font-semibold uppercase tracking-eyebrow text-text"
-                      >
-                        <span className="border-b border-text/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
-                          Directions
-                        </span>
-                        <span className="sr-only">(opens Google Maps in a new tab)</span>
-                        <span aria-hidden>&#8599;</span>
-                      </a>
-                    ) : null}
-                  </div>
                 </div>
               </Reveal>
             </div>

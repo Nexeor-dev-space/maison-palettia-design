@@ -299,17 +299,66 @@ export async function Footer() {
                       two neighbours in a row share a colour and the three
                       groups read as one palette instead of three copies of
                       the same one.
+
+                      `shape="blot"` FOR THE SAME REASON THE BAR TAKES IT. The
+                      brush mask is drawn 200 by 44 for a stroke that sits
+                      UNDER a word; hovering swells it to a field BEHIND one,
+                      and stretching a four-and-a-half-to-one drawing into a
+                      three-to-one chip is what made the bar's hover read as a
+                      smeared lozenge — the client's word for it. The blot is
+                      drawn at the proportion it is actually used at, so it
+                      swells into the chip the swatches use. At rest the two
+                      shapes are the same thin line under the word; the
+                      difference is only visible on hover, which is where the
+                      note was.
                     */}
-                    {group.items.map((item) => (
-                      <li key={item.href}>
-                        <Link href={item.href} className={LINK}>
-                          <span className="relative inline-block">
-                            <PaintStroke paint={linkPaint(paintCursor++)} />
-                            {item.label}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
+                    {group.items.map((item) => {
+                      /*
+                        HOISTED, BECAUSE TWO THINGS NEED IT NOW. The swatch
+                        draws the blot and the span publishes it to the brush
+                        — see below — and `linkPaint(paintCursor++)` written
+                        twice would hand out two different colours and advance
+                        the run by two.
+                      */
+                      const paint = linkPaint(paintCursor++);
+                      return (
+                        <li key={item.href}>
+                          <Link href={item.href} className={LINK}>
+                            {/*
+                              THE BRUSH TAKES THE LINK'S OWN PAINT HERE TOO.
+
+                              <CursorLayer> loads the brush from the nearest
+                              `[data-paint]` ancestor of whatever is under the
+                              pointer. The footer sets one on ITSELF — Deep
+                              Lilac, so the bristles are visible on White Rock
+                              — and without this that is what every link in it
+                              handed the brush: one colour over ten links each
+                              wearing a different one. Marked here, the nearest
+                              ancestor is the link's own span and the brush
+                              carries the blot swelling under the word.
+
+                              THE PALE ONE IS SAFE, which is what held this
+                              back when the bar got the same treatment. Soft
+                              Lavender is 1.44:1 on White Rock and would be a
+                              ghost on its own — but the brush is drawn twice,
+                              and `dip()` picks the outline off the loaded
+                              colour's luminance: lavender measures 0.51,
+                              above the 0.42 midpoint, so it takes the
+                              Charcoal outline and reads as a shape whatever
+                              the ground does.
+                            */}
+                            <span
+                              className="relative inline-block"
+                              data-paint
+                              style={{ "--paint": paint } as CSSProperties}
+                            >
+                              <PaintStroke paint={paint} shape="blot" />
+                              {item.label}
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))}

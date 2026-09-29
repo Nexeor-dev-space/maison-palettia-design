@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 
-import { MenuCard, MenuPreview, MenuRailGroup, MenuRailRow, MenuTile } from "@/components/layout/MenuCard";
+import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/components/layout/MenuCard";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
@@ -126,7 +126,22 @@ export function PrivateEventsMenu({
             </div>
 
             {/* ---- the preview ---------------------------------------- */}
-            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-5">
+            {/*
+              FOUR COLUMNS, NOT FIVE — and the rail takes the one it loses.
+
+              The preview's picture fills whatever height the row has left and
+              crops to it (`object-cover`, see <MenuPreview>). Across five of
+              twelve columns that box came out wide and short, so a subject
+              held in somebody's hands was cropped to a band across its middle
+              — the client's "expanded and not visible properly". Narrowing the
+              card narrows the box against the same height, so the crop keeps
+              more of the picture's own proportion and the badge is whole.
+
+              The column goes to the rail beside it rather than to the list,
+              which is the other half of what they asked for: the two doors
+              were the narrowest things in the menu at three columns.
+            */}
+            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-4">
               {active ? (
                 <MenuPreview
                   key={active.slug}
@@ -141,9 +156,27 @@ export function PrivateEventsMenu({
             </div>
 
             {/* ---- the two doors, in a column of their own ------------- */}
-            <div className="col-span-12 grid gap-2.5 md:gap-3 lg:col-span-3 lg:grid-rows-2">
-              <MenuTile href={href} title="All private events" sub="Every programme, in one place." mark="bow" />
-              <MenuTile
+            {/*
+              BACK ON THE RIGHT, WHICH IS WHERE THIS MENU HAD THEM.
+
+              They were moved to a strip along the foot to match the
+              Experiences menu, on the argument that the same component in the
+              same place should do the same thing in both. The client has
+              asked for this one to keep its old shape, and the argument does
+              not survive the difference between the two menus: Experiences
+              carries seven rows in two groups and needed its third column for
+              them, this one carries three rows in one group and has the
+              column to spare.
+
+              `grid-rows-2` shares the row's height between the pair, so the
+              two doors are the same size as each other whatever the rail
+              turns out to be — and the rail is what sets the height now (see
+              the note on the preview's picture in <MenuCard>), so they are no
+              longer the 290px fields the client called too big.
+            */}
+            <div className="col-span-12 grid gap-2.5 md:gap-3 lg:col-span-4 lg:grid-rows-2">
+              <MenuDoor href={href} title="All private events" sub="Every programme, in one place." mark="bow" />
+              <MenuDoor
                 href={PRIVATE_EVENT_ENQUIRY_HREF}
                 title="Plan a private event"
                 mark="splash"

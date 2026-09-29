@@ -122,6 +122,37 @@
 }
 
 /*
+  ==========================================================================
+  THE BLOT — A SECOND SHAPE, FOR PAINT A WORD SITS INSIDE
+  ==========================================================================
+
+  The brush above is drawn for a nav underline: a 200x44 lozenge, four and a
+  half times wider than it is tall, with a wobble of about seven units in
+  forty-four. Stretched over a chip — which is nearer two and a half to one —
+  `preserveAspectRatio: none` scales that wobble vertically by about 1.7, and
+  the gentle brush edge comes out as lumps. That is the "odd" the client is
+  looking at: the shape is not wrong, it is being asked to be a proportion it
+  was never drawn at.
+
+  So the blot is drawn at the proportion it is actually used at, 220x74, and
+  it is a different gesture rather than the same one re-tuned: a flat brush
+  loaded and pressed down, so the ends are near-vertical and chopped instead
+  of round, the two long edges carry their own separate drift, and two flecks
+  come off it where the brush left the paper. Squarer, wetter, and plainly
+  hand-made — which a pill with wavy sides never quite is.
+
+  THE FLECKS SIT ON THE EDGE, NOT OFF IT. Drawn further out they read at chip
+  size as two specks of dirt rather than as paint; tucked against the outline
+  they read as the paint squeezing past it, which is the thing they are for.
+
+  The paint is unchanged, and so is everything about how it is sized, swelled
+  and faded: this is only the mask.
+*/
+.blot {
+  --brush: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 74' preserveAspectRatio='none'%3E%3Cpath d='M5 17c21-7 43-4 67-6 26-3 52 2 78-1 22-2 48-4 64 1 4 2 5 10 4 20-1 12 1 25-4 32-20 6-44 0-68 2-26 2-52-4-78-1-22 3-46 1-60-5-4-3-4-14-4-24 0-8-2-15 1-18z' fill='%23000'/%3E%3Cellipse cx='15' cy='11' rx='4.2' ry='2.4' transform='rotate(12 15 11)' fill='%23000'/%3E%3Cellipse cx='206' cy='67' rx='5.2' ry='2.8' transform='rotate(-14 206 67)' fill='%23000'/%3E%3C/svg%3E");
+}
+
+/*
   THE CURRENT PAGE. Stronger than a link at rest, quieter than one under the
   pointer — so "where you are" and "what you are about to press" stay two
   different signals rather than competing for the same one.

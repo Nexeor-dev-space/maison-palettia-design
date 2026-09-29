@@ -147,6 +147,19 @@ export function MenuRailGroup({
 }) {
   return (
     <div>
+      {/*
+        THE NOTE IS OPTIONAL, AND THE EXPERIENCES MENU NO LONGER PASSES ONE.
+
+        Its two groups carried a title and a sentence under it — "Walk-in" over
+        "No booking — come in any time." The client has replaced both with a
+        single line that names the group twice, mechanism first and invitation
+        second: "Walk-in — Create Anytime". The sentence is gone with the
+        change, which is what they asked for; the mechanism it explained is
+        still the first half of the title.
+
+        It stays a prop because the Private events menu has one group and a
+        real sentence under it, and that menu was not part of the note.
+      */}
       <p className="px-3 text-label font-semibold uppercase tracking-eyebrow text-text/55">{title}</p>
       {note ? <p className="mt-1.5 px-3 text-fine leading-[1.5] text-text/60">{note}</p> : null}
       <ul className="mt-2 flex flex-col">{children}</ul>
@@ -190,7 +203,23 @@ export function MenuRailRow({
         className={cn(
           "group flex items-center gap-3.5 rounded-[0.9rem] px-3 py-2.5",
           "transition-colors duration-[var(--duration-hover)] ease-soft",
-          active ? "bg-surface" : "hover:bg-surface/70",
+          /*
+            LIGHT SAGE ON HOVER, NOT A VEIL OF THE PANEL'S OWN NEAR-WHITE.
+            The row under the pointer showed `surface` — the same near-white
+            the panel is cut from — and the client's note was that a hovered
+            card "becomes the megamenu's bg colour". Light Sage (#D1E7BE) is
+            the brand's own hover and the one field that is unmistakably not
+            the panel; Charcoal on it is 9.07:1.
+
+            THE ACTIVE ROW IS THE HOVERED ROW, so the active ground has to be
+            the hover colour or the hover colour never shows: `onPointerEnter`
+            makes a row active the moment the pointer arrives, and the
+            `hover:` rule would only ever paint the frame between the two. So
+            both states are Light Sage. Keyboard focus activates the same way
+            and gets the same field. The `hover:` is kept for the pointer that
+            crosses a row faster than React re-renders it.
+          */
+          active ? "bg-sage" : "hover:bg-sage",
         )}
       >
         <span className="relative size-11 shrink-0 overflow-hidden rounded-[0.65rem] bg-surface-alt">
@@ -209,8 +238,11 @@ export function MenuRailRow({
         <span className="min-w-0 flex-1">
           <span
             className={cn(
-              "block truncate text-body font-medium leading-snug transition-colors duration-300 ease-soft",
-              active ? "text-primary" : "text-text",
+              /* Charcoal in both states. The active name was Deep Lilac on
+                 the near-white; on Light Sage that pairing is 3.9:1, under the
+                 4.5:1 a 16px name owes. The arrow below keeps the lilac and
+                 says which row is chosen — it is decorative and owes none. */
+              "block truncate text-body font-medium leading-snug text-text transition-colors duration-300 ease-soft",
             )}
           >
             {name}
@@ -264,7 +296,7 @@ export function MenuPreview({
   return (
     <Link
       href={href}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-surface p-3 transition-colors duration-300 ease-soft hover:bg-surface-alt"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-surface p-3 transition-colors duration-300 ease-soft hover:bg-sage"
     >
       {/*
         ==================================================================
@@ -287,13 +319,30 @@ export function MenuPreview({
         below 7rem, where a photograph stops being one, and it is the ONLY
         thing in the preview that grows — see the note on the type below it.
       */}
-      <span className="relative block min-h-[7rem] w-full flex-1 overflow-hidden rounded-[1rem] bg-surface-alt">
+      {/*
+        THE FLOOR IS 9REM, NOT 7, AND THAT IS A MEASUREMENT.
+
+        The picture takes whatever height the row has left, which in this menu
+        is not much: measured at 1440, the rail set the row and the frame came
+        out 427x112 — 3.81:1 — against private-event photographs that are
+        324x432, or 0.75:1. `object-cover` on that pair keeps about a fifth of
+        the picture's height, which is the band the client saw and called
+        "expanded and not visible properly".
+
+        Narrowing the card helped and did not fix it, because the fault was the
+        HEIGHT. 9rem takes the frame to roughly 2.4:1, which is the shallowest
+        a portrait subject survives, and it costs the panel about 32px — the
+        preview then sets the row and the rail's two doors share the extra
+        between them, which is what `grid-rows-2` is there for.
+      */}
+      <span className="relative block min-h-[9rem] w-full flex-1 overflow-hidden rounded-[1rem] bg-surface-alt">
         {image ? (
           <Image
             src={image.src}
             alt={image.alt}
             fill
-            sizes="(min-width: 1024px) 38vw, 90vw"
+            /* The preview is four of twelve columns now, not five. */
+            sizes="(min-width: 1024px) 30vw, 90vw"
             style={{ objectPosition: image.position ?? "50% 50%" }}
             className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.04]"
           />
@@ -323,8 +372,21 @@ export function MenuPreview({
           {name}
         </span>
 
+        {/*
+            CHARCOAL AT FULL STRENGTH, AND UP A SIZE. The client marked this
+            line: "for the descriptions use #2D3748" — which is `--color-text`,
+            the brand's Charcoal Slate — and "the font size of that
+            descriptions are very small". It was 13px at 75% of that ink, which
+            on White Rock measures about 7:1 and still reads as a caption
+            rather than as the sentence that tells you what the activity is.
+
+            Full-strength `text-text` IS #2D3748, and `text-body` is the same
+            size the rest of the site sets a sentence at. The measure comes in
+            to 30ch with it, so the block stays three lines at most and the
+            preview's height does not move.
+        */}
         {description ? (
-          <span className="mt-2.5 block max-w-[34ch] text-fine leading-[1.7] text-text/75">
+          <span className="mt-2.5 block max-w-[30ch] text-body leading-[1.6] text-text">
             {description}
           </span>
         ) : null}
@@ -348,20 +410,37 @@ export function MenuPreview({
 }
 
 /**
- * The second door — a tile in the card's third column.
+ * A door out of the menu: to the whole programme, or to the dates.
  *
- * IT CARRIES A CUT-OUT, AND THAT IS A LAYOUT FIX RATHER THAN DECORATION. The
- * tiles share a column with the preview beside them, so each one is half of
- * whatever height that preview takes — around 290px for two lines of text and
- * an arrow. Left plain they were two large empty rectangles with a word in the
- * corner of each. A brand mark, drawn big and allowed to run off the bottom
- * corner, is what the deck does with exactly this kind of space: the tile
- * reads as a designed field rather than as a card that failed to fill.
+ * ==========================================================================
+ * IT WAS TWO LARGE CARDS AND IT IS NOW A ROW
+ * ==========================================================================
  *
- * Decorative and `aria-hidden`, so it owes no contrast ratio — which is why it
- * can sit at a low opacity in the tile's own colour family.
+ * These were two tiles stacked in a column of their own, each as tall as half
+ * the preview beside them — about 290px apiece — carrying a word, a sentence
+ * and an arrow, with a brand cut-out drawn big in the corner to fill what was
+ * otherwise empty. The client's note is exactly that: "A good CTA, but i don't
+ * think it needs to be this big, This doesnt feel necessarily needed."
+ *
+ * Both halves of that are answered rather than one. NOT THIS BIG: a door is
+ * now a single row about 60px tall, so the pair costs roughly a fifth of the
+ * height the column did. NOT NECESSARILY NEEDED: they no longer take a column
+ * at all. The third of the card they were holding goes to the preview, which
+ * is the thing that makes the menu worth opening — the picture gets bigger
+ * and the two doors drop to a quiet strip along the foot, which is where a
+ * "see everything" link belongs.
+ *
+ * THE CUT-OUT SHRINKS WITH THEM. It was a decorative fill for a large empty
+ * field; at this height there is no empty field, so it sits at the head of the
+ * row at 28px, in the tile's own colour family, doing the job a mark does on
+ * the deck — marking the line rather than filling the space. Still decorative
+ * and `aria-hidden`, so it owes no contrast ratio.
+ *
+ * The accent tone is kept for the second door. One of the two is the studio's
+ * bookable dates and it should still read as the warmer of the pair; at this
+ * size Deep Lilac is a bar of colour along the foot rather than a slab.
  */
-export function MenuTile({
+export function MenuDoor({
   href,
   title,
   sub,
@@ -378,20 +457,23 @@ export function MenuTile({
     <Link
       href={href}
       className={cn(
-        "group relative flex flex-col justify-between gap-6 overflow-hidden rounded-[1.1rem] p-5",
+        "group relative flex items-center gap-3.5 overflow-hidden rounded-[0.9rem] px-4 py-3",
         "transition-colors duration-300 ease-soft",
         tone === "accent"
           ? "bg-primary text-on-primary hover:bg-text"
-          : "bg-surface text-text hover:bg-surface-alt",
+          /* Light Sage, not `surface-alt`: that is White Rock, which is the
+             panel's own ground, so the door vanished on hover. Same rule as
+             <MenuRailRow>. */
+          : "bg-surface text-text hover:bg-sage",
       )}
     >
       {mark ? (
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none absolute -bottom-6 -right-6 w-28 transition-transform duration-[900ms] ease-editorial",
-            "motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:rotate-6",
-            tone === "accent" ? "opacity-30" : "opacity-25",
+            "pointer-events-none w-7 shrink-0 transition-transform duration-[900ms] ease-editorial",
+            "motion-safe:group-hover:rotate-6",
+            tone === "accent" ? "opacity-70" : "opacity-55",
           )}
         >
           <DoodleMark
@@ -403,11 +485,11 @@ export function MenuTile({
         </span>
       ) : null}
 
-      <span className="relative">
+      <span className="min-w-0 flex-1">
         <span className="block text-body font-medium leading-snug">{title}</span>
         <span
           className={cn(
-            "mt-1.5 block max-w-[22ch] text-fine leading-[1.6]",
+            "block text-fine leading-[1.5]",
             tone === "accent" ? "text-on-primary/80" : "text-text/70",
           )}
         >
@@ -417,7 +499,7 @@ export function MenuTile({
 
       <span
         aria-hidden
-        className="relative text-action transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+        className="shrink-0 text-action transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
       >
         &#8594;
       </span>
