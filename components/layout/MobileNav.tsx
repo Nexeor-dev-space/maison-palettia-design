@@ -270,8 +270,8 @@ export function MobileNav({
             [
               /* The client's names, the same two the desktop menu now uses —
                  see GROUPS in <WorkshopsMenu>, which this panel mirrors. */
-              { mode: "diy", title: "Create Anytime" },
-              { mode: "scheduled", title: "Create Together" },
+              { mode: "diy", title: "Walk-in — Create Anytime" },
+              { mode: "scheduled", title: "Scheduled — Create Together" },
             ] as const
           ).map((group, gi) => {
             const items = shortlist.filter((e) => e.kind === group.mode);

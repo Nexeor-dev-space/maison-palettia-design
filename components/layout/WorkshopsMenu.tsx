@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 
-import { MenuCard, MenuPreview, MenuRailGroup, MenuRailRow, MenuTile } from "@/components/layout/MenuCard";
+import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/components/layout/MenuCard";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { cn } from "@/lib/utils";
@@ -49,8 +49,8 @@ interface WorkshopsMenuProps {
  * was part of the ask.
  */
 const GROUPS = [
-  { mode: "diy", title: "Create Anytime", note: "No booking — come in any time." },
-  { mode: "scheduled", title: "Create Together", note: "A set date and time, booked online." },
+  { mode: "diy", title: "Walk-in — Create Anytime" },
+  { mode: "scheduled", title: "Scheduled — Create Together" },
 ] as const;
 
 /**
@@ -175,7 +175,7 @@ export function WorkshopsMenu({
             */}
             <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4 lg:max-h-[min(38rem,calc(100vh-8.5rem))] lg:overflow-y-auto lg:overscroll-contain">
               {groups.map((group) => (
-                <MenuRailGroup key={group.mode} title={group.title} note={group.note}>
+                <MenuRailGroup key={group.mode} title={group.title}>
                   {group.items.map((experience) => {
                     const session = sessionFor(experience.slug);
                     return (
@@ -206,7 +206,7 @@ export function WorkshopsMenu({
             </div>
 
             {/* ---- the preview ---------------------------------------- */}
-            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-5">
+            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-8">
               {active ? (
                 /*
                   Keyed on the slug so the block remounts as the rail moves —
@@ -249,10 +249,18 @@ export function WorkshopsMenu({
 
             </div>
 
-            {/* ---- the two doors, in a column of their own ------------- */}
-            <div className="col-span-12 grid gap-2.5 md:gap-3 lg:col-span-3 lg:grid-rows-2">
-              <MenuTile href={href} title="All experiences" sub="The whole programme, in one place." mark="starburst" />
-              <MenuTile
+            {/* ---- the two doors, along the foot ----------------------- */}
+            {/*
+              THEY HAD A COLUMN AND NOW THEY HAVE A STRIP. The client's note on
+              the pair was that the CTA "doesn't need to be this big" and
+              "doesn't feel necessarily needed" — so they are neither tall nor
+              in the way. The third of the card they were holding has gone to
+              the preview (5 columns to 8), which is the thing a visitor opens
+              this menu to see. See <MenuDoor>.
+            */}
+            <div className="col-span-12 grid gap-2.5 md:gap-3 sm:grid-cols-2">
+              <MenuDoor href={href} title="All experiences" sub="The whole programme, in one place." mark="starburst" />
+              <MenuDoor
                 href="/events#scheduled"
                 title="Upcoming dates"
                 mark="coral"

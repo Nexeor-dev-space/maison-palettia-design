@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 
-import { MenuCard, MenuPreview, MenuRailGroup, MenuRailRow, MenuTile } from "@/components/layout/MenuCard";
+import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/components/layout/MenuCard";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
@@ -126,7 +126,7 @@ export function PrivateEventsMenu({
             </div>
 
             {/* ---- the preview ---------------------------------------- */}
-            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-5">
+            <div className="col-span-12 flex flex-col gap-2.5 md:gap-3 lg:col-span-8">
               {active ? (
                 <MenuPreview
                   key={active.slug}
@@ -140,10 +140,15 @@ export function PrivateEventsMenu({
               ) : null}
             </div>
 
-            {/* ---- the two doors, in a column of their own ------------- */}
-            <div className="col-span-12 grid gap-2.5 md:gap-3 lg:col-span-3 lg:grid-rows-2">
-              <MenuTile href={href} title="All private events" sub="Every programme, in one place." mark="bow" />
-              <MenuTile
+            {/* ---- the two doors, along the foot ----------------------- */}
+            {/* The same strip as the Experiences menu. The client's note was
+                written against that one, but this is the same component in the
+                same place doing the same job — leaving one menu with two tall
+                tiles and the other with a strip would read as an oversight.
+                See <MenuDoor>. */}
+            <div className="col-span-12 grid gap-2.5 md:gap-3 sm:grid-cols-2">
+              <MenuDoor href={href} title="All private events" sub="Every programme, in one place." mark="bow" />
+              <MenuDoor
                 href={PRIVATE_EVENT_ENQUIRY_HREF}
                 title="Plan a private event"
                 mark="splash"
