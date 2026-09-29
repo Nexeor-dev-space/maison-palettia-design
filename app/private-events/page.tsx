@@ -632,8 +632,14 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
         className={cn(
           "mt-12 grid gap-2.5 md:mt-16 md:gap-3.5",
           "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
-          "auto-rows-[clamp(9.5rem,42vw,12rem)]",
-          "sm:auto-rows-[clamp(7rem,26vw,9rem)]",
+          /*
+            THE TRACKS GREW BY ABOUT A FIFTH when the captions came off the
+            pictures — the foot is a fixed block and it has to come from
+            somewhere, and taking it out of the photograph would have left the
+            single-cell tiles as strips. See <Plate>.
+          */
+          "auto-rows-[clamp(13rem,52vw,16rem)]",
+          "sm:auto-rows-[clamp(10.5rem,30vw,12.5rem)]",
           /*
             THREE EXPLICIT TRACKS AT lg, NOT THREE EQUAL ONES.
 
@@ -648,7 +654,15 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
             takes about 4/3 of it. The lead spans the first two and is
             unchanged; only the foot grows.
           */
-          "lg:auto-rows-auto lg:grid-rows-[repeat(2,clamp(9rem,13vw,14rem))_clamp(12rem,17.5vw,19rem)]",
+          /*
+            THE FLOOR IS WHAT 1024 NEEDS, NOT WHAT 1440 LOOKS BEST AT. At four
+            columns a 1024 screen gives each tile 236px of width, so a
+            two-sentence line wraps to three — and with the old 11rem floor the
+            Bedazzling tile had 176px to hold a 156px caption, which left 20px
+            of photograph. The floor now clears the tallest caption at the
+            narrowest four-column width, measured.
+          */
+          "lg:auto-rows-auto lg:grid-rows-[repeat(2,clamp(14rem,16vw,17rem))_clamp(16.5rem,20vw,22rem)]",
         )}
       >
         <Reveal variant="fadeIn" className="row-span-2 sm:col-span-2">
@@ -686,15 +700,39 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
 }
 
 /**
- * One experience.
+ * One experience: a photograph with its name written under it.
  *
- * The name sits on the photograph where there is one and under it where there
- * is not, so an entry with no picture is a quiet typographic block rather than
- * a grey rectangle pretending to be a plate.
+ * ==========================================================================
+ * THE WORDS CAME OFF THE PICTURE, AND THAT IS WHAT MAKES BOTH ASKS POSSIBLE
+ * ==========================================================================
  *
- * `alt=""` on the image because the name is set in text directly beneath it:
- * the photograph is illustrative of a label a screen reader is about to read,
- * and describing it again would say the same thing twice.
+ * "Remove this overlay and increase the font size of that title and
+ * description inside these images." Those two pull in opposite directions for
+ * as long as the words sit ON the photograph: the names are set in White Rock,
+ * White Rock on a white ceramic plate is about 1.4:1, and the only thing that
+ * ever made them readable was the wash the client keeps — rightly — asking to
+ * be rid of. Bigger type on a photograph needs MORE shade under it, not less.
+ * Three passes were spent tuning that shade and every one of them was a
+ * compromise between two things that cannot both be had.
+ *
+ * So the words come off the picture. Each tile is now a photograph with a
+ * White Rock foot under it, and the name and the line are set on that in
+ * Charcoal Slate — 9.36:1, which is not a number that needs defending and,
+ * more to the point, does not care how large the type is or how bright the
+ * frame above it is. The type grows because there is now somewhere for it to
+ * grow into.
+ *
+ * WHAT IS LEFT ON THE PHOTOGRAPH is the one thing the client did ask for: a
+ * 13% Charcoal tint, and nothing else. No gradient, no band, no edge. Seven
+ * pictures taken on seven different days still read as one set, and every one
+ * of them is otherwise exactly the photograph.
+ *
+ * THE TILES STILL TESSELLATE. The foot is a fixed block and the picture takes
+ * whatever the cell has left (`flex-1`), so a tile that spans two rows gets a
+ * taller photograph rather than a taller caption, and the grid closes flush
+ * the way it did. The tracks grew by about a fifth to pay for the foot.
+ *
+ * An entry with no photograph is the same card with the picture left out.
  */
 function Plate({
   experience,
@@ -707,33 +745,52 @@ function Plate({
   sizes: string;
   large?: boolean;
 }) {
-  const name = (
-    <p
-      className={
-        large
-          ? "text-lead font-medium leading-tight"
-          : "text-body font-medium leading-tight"
-      }
-    >
-      {experience.name}
-    </p>
+  /*
+    UP A STEP, AT THE CLIENT'S ASK, and the lead goes up two because it is
+    four times the area of the tiles beside it and was set only one step above
+    them. Charcoal on White Rock carries any of these.
+  */
+  const caption = (
+    <div className="shrink-0 px-5 pb-5 pt-4 lg:px-6 lg:pb-6 lg:pt-5">
+      <p
+        className={cn(
+          "font-medium leading-tight text-text",
+          large ? "text-[1.375rem] lg:text-[1.625rem]" : "text-[1.125rem] lg:text-[1.25rem]",
+        )}
+      >
+        {experience.name}
+      </p>
+      {experience.description ? (
+        /*
+          FLUID ON THE SMALL TILES, FIXED ON THE LEAD. `text-body` is 17px and
+          on a 236px tile at 1024 that is three lines of caption under a
+          115px photograph. The clamp holds 15px there and reaches 17px by
+          1440, where the tiles are wide enough for two. Either way it is well
+          clear of the 13px this was before the client asked for it to grow.
+        */
+        <p
+          className={cn(
+            "mt-2 max-w-[34rem] leading-[1.55] text-text/80",
+            large ? "text-body" : "text-[clamp(0.9375rem,0.55rem+0.6vw,1.0625rem)]",
+          )}
+        >
+          {experience.description}
+        </p>
+      ) : null}
+      {/*
+        The studio's own flag where it has set one, and nothing at all where it
+        has not — never an invented "available on request".
+      */}
+      {experience.status ? (
+        <p className="mt-1.5 text-fine leading-snug text-text/70">{experience.status}</p>
+      ) : null}
+    </div>
   );
 
   if (!experience.image) {
     return (
-      <div
-        className={`flex ${className} flex-col justify-end rounded-[1.25rem] bg-surface-alt p-5 lg:p-6`}
-      >
-        <div className="text-text">{name}</div>
-        {/*
-          The studio's own flag where it has set one, and nothing at all where
-          it has not — never an invented "available on request".
-        */}
-        {experience.status ? (
-          <p className="mt-1.5 text-fine leading-snug text-text/75">
-            {experience.status}
-          </p>
-        ) : null}
+      <div className={`flex ${className} flex-col justify-end rounded-[1.25rem] bg-surface-alt`}>
+        {caption}
       </div>
     );
   }
@@ -741,94 +798,35 @@ function Plate({
   return (
     <div
       /* `rounded-[1.25rem]`, not the site's 8px `rounded-sm`: packed this
-         tight the corners are what separate one photograph from the next, and
-         the client's reference rounds them hard. It is the same radius the
+         tight the corners are what separate one tile from the next, and the
+         client's reference rounds them hard. It is the same radius the
          activity cards already use. */
-      className={`group relative overflow-hidden rounded-[1.25rem] bg-surface-alt ${className}`}
+      className={`group flex flex-col overflow-clip rounded-[1.25rem] bg-surface-alt ${className}`}
     >
-      <Image
-        src={experience.image.src}
-        alt=""
-        fill
-        sizes={sizes}
-        style={{ objectPosition: experience.image.position ?? "50% 50%" }}
-        className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.04]"
-      />
-
       {/*
-        ==================================================================
-        A TINT ON THE PICTURE, AND A SEAT UNDER THE WORDS
-        ==================================================================
-
-        "This overlay looks very bad, remove it and use very slight colour
-        overlay on the image." The thing being pointed at is a slab: the shade
-        was a box as tall as the caption plus a run-up, filled from 95% Ink to
-        nothing across its own height, and because that fall happened inside a
-        short box it had a top EDGE you could see — a straight grey line ruled
-        across every tile. That edge is what made it read as a panel bolted
-        over a photograph rather than as a photograph.
-
-        WHAT IS HERE INSTEAD IS TWO THINGS, AND NEITHER HAS AN EDGE.
-
-        The tint is the client's: Charcoal Slate at 14% over the whole frame,
-        the same on every tile. It is slight enough that the pictures keep
-        their colour — a tenth of a stop, not a wash — and it does the job a
-        tint does in a collage of photographs taken by different people on
-        different days, which is to make seven of them look like one set.
-
-        The seat is the concession, and it is worth being honest about: White
-        Rock on a white ceramic plate is about 1.4:1, so the names need
-        something under them or they are not readable at all. It is a gradient
-        over the WHOLE tile rather than over a caption-sized box, which is the
-        change — spread over 380px of lead it has no discernible start, where
-        the same fall over 90px was the line the client marked. It reaches
-        nothing by 55%, so the top half of every picture carries the tint and
-        nothing else.
-
-        THE FOUR STOPS ARE MEASURED, NOT CHOSEN. Every tile was rendered with
-        the type made transparent and the composited pixels behind each caption
-        sampled at the 95th percentile — the brightest a letter actually has to
-        sit on. Four candidates were run; this is the lightest that clears 4.5
-        on all seven:
-
-            tile               at the top of its caption
-            Bedazzling              4.63:1   <- the one that sets the numbers
-            Crocheting              6.00
-            Candle making           6.17
-            Tote bag painting       6.45
-            Glass painting          6.56
-            Ceramic painting        6.65
-            Mandala painting        7.11
-
-        Bedazzling is the case: a bright pink frame carrying a name AND two
-        lines, on one of the short tiles, so its caption starts almost halfway
-        up. Anything lighter than this fails there first.
-
-        Utilities carry three stops, so it is set here, on the same token the
-        rest of the page uses.
+        `min-h-0` with `flex-1`: without it a flex child will not shrink below
+        its content's intrinsic height, and an absolutely-filled <Image> in a
+        fixed-height grid cell is exactly the case where that bites.
       */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-text/[0.13]" />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to top, " +
-            "color-mix(in oklab, var(--color-text) 90%, transparent) 0%, " +
-            "color-mix(in oklab, var(--color-text) 78%, transparent) 36%, " +
-            "color-mix(in oklab, var(--color-text) 24%, transparent) 58%, " +
-            "transparent 78%)",
-        }}
-      />
-
-      <div className="absolute inset-x-0 bottom-0 px-5 pb-5 text-on-dark lg:px-6 lg:pb-6">
-        {name}
-        {experience.description ? (
-          <p className="mt-1.5 max-w-[26rem] text-fine leading-snug text-on-dark/90">
-            {experience.description}
-          </p>
-        ) : null}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        <Image
+          src={experience.image.src}
+          alt=""
+          fill
+          sizes={sizes}
+          style={{ objectPosition: experience.image.position ?? "50% 50%" }}
+          className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.04]"
+        />
+        {/*
+          The whole of what is on the picture now: Charcoal Slate at 13%, flat,
+          the same on every tile. It is what makes seven photographs taken on
+          seven different days read as one set, and it is slight enough that
+          they keep their colour.
+        */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-text/[0.13]" />
       </div>
+
+      {caption}
     </div>
   );
 }
