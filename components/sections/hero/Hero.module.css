@@ -278,11 +278,14 @@
   */
   --copy-gap: 2.25rem;
   /* A fallback until <HeroIntro> has measured the foot: two lines of tagline
-     on a phone, one from `md`, plus the supporting line and the cue.
+     on a phone, one from `md`, plus the TWO supporting lines and the cue.
 
      The multiplier is the tagline's line count times its line-height, so it
-     tracks `.headline` — 2 x 1.24. It was 2.16 while that was 1.08. */
-  --wb: calc(11.75rem + 2.48 * var(--headline-size));
+     tracks `.headline` — 2 x 1.24. It was 2.16 while that was 1.08. The fixed
+     part carries the lines under it, and gained 3.25rem when the client's
+     mock-up added the second of them: without that the first paint reserves a
+     foot one line short and the words jump when the measurement lands. */
+  --wb: calc(15rem + 2.48 * var(--headline-size));
 }
 
 @media (min-width: 768px) {
@@ -297,8 +300,9 @@
     */
     --wt: calc(var(--spacing-header-lg) + 1.25rem);
     --copy-gap: 3rem;
-    /* One line, at `.headline`'s line-height — was 1.08. */
-    --wb: calc(12.75rem + 1.24 * var(--headline-size));
+    /* One line, at `.headline`'s line-height — was 1.08. Plus the second
+       supporting line, as above. */
+    --wb: calc(15.5rem + 1.24 * var(--headline-size));
   }
 }
 

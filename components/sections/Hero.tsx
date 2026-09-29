@@ -47,32 +47,51 @@ const NO_SCRIPT_CSS = [
  */
 const HERO_IMAGE = {
   /*
-    The client's own banner photograph, supplied for this frame.
+    NOT THE STUDIO'S OWN PHOTOGRAPH — SAY SO BEFORE REUSING IT.
 
-    THREE BY TWO (5616x3744), where the picture before it was 16:9 — a taller
-    file in the same frame, so the crop is tighter and the framing had to be
-    measured rather than guessed.
+    This is `banner-img.jpg`, supplied on 2026-09-29, and it is the same scene
+    as the `hero/studio-laughter.jpg` it replaces: two women laughing in a
+    craft studio, one with a painted mug and one with a painted dish. That
+    picture was generated with ElevenLabs (bytedance-seedream-5-pro) at the
+    client's instruction, because the feedback PDF asked for exactly this and
+    supplied a reference for it — "the current image makes the experience feel
+    quite kids-focused, whereas we want the visuals to appeal to a wider
+    audience, including young adults and adults" — and this file is the same
+    composition, so it is to be treated the same way until someone says
+    otherwise: NOT the studio's own photograph, NOT its own guests, and never
+    captioned as either. Nothing on the page claims it is.
 
-    WHAT THE Y ACTUALLY DOES HERE, MEASURED RATHER THAN ASSUMED. The picture
-    is not sized to the card: it fills the whole layer and the card is a window
-    onto it (see `.window` in ./hero/Hero.module.css). At 1440 the layer covers
-    1440x900 and shows 94% of the file's height, so the Y position is dividing
-    the 6% that is left — moving it from 34% to 16% buys about one per cent of
-    the frame. The crop the visitor sees is set by where the card sits over the
-    layer, not by this number; 16% is simply the top of that small range, which
-    is the side the heads are on.
+    Its metadata says only that it has been through an Adobe tool: an XMP
+    record pointing at a CAI manifest on cai-manifests.adobe.com, which is
+    remote and has not been read. That is consistent with a crop and proves
+    nothing either way about how the frame was made. See the
+    `image-provenance` note for the rest of the site's picture record, and
+    replace this with a real frame the moment there is one.
 
-    ON A PHONE the layer is a tall portrait, so a 3:2 file is cropped on the
-    WIDTH — the whole height survives and the Y does nothing at all. There the
-    X is the only lever, and 55% frames the boy rather than the gap between two
-    children (measured: the visible band is 38%-69% of the file's width).
+    THE CROP IS THE ONE THING THAT CHANGED. 1600x669 is 2.39:1 against the old
+    file's 1.78:1 — a cinema band rather than a wide photograph — so the
+    resting card now shows very nearly the whole frame and it is the OPEN,
+    full-bleed state that crops, taking the top and bottom off a tall window
+    instead of the sides.
+
+    `position` STILL DIFFERS BY BREAKPOINT, and this crop makes the phone's
+    case worse rather than better. A 2.39:1 source in a full-bleed portrait
+    window is fitted by height, so what a 390px screen sees is about 19% of
+    the file's width — 308px of 1600, against 26% for the 1.78:1 file this
+    replaces. Centred, that slice lands on the join between the two heads and
+    shows half of each face and neither painted piece.
+
+    So the phone takes the left-hand subject whole: 42% puts the slice at
+    x528-836, which holds her face and the whole of the dotted mug she is
+    holding. One complete subject beats two halves, which is the same call
+    the old file's note made for the same reason. The desktop card is wide
+    enough to hold the pair and stays centred.
   */
-  src: "/images/banner-section-img.jpg",
-  alt: "Children at a studio table painting ceramic figurines, brushes and pots of colour in front of them and shelves of unpainted pieces behind.",
-  position: { desktop: "50% 16%", mobile: "55% 40%" },
+  src: "/images/banner-img.jpg",
+  alt: "Two women laughing side by side in a craft studio, one holding up a mug she has painted with coloured dots and squiggles, the other a scallop-edged dish painted with small pink flowers, with shelves of yarn and paint pots behind them.",
+  position: { desktop: "50% 50%", mobile: "42% 50%" },
   lift: "-2%",
 };
-
 /**
  * ==========================================================================
  * Homepage banner — a photograph that opens, and the words it takes inside
@@ -157,41 +176,59 @@ export function Hero() {
           {/* ---- the words: under the card, then inside the picture ---- */}
           <div data-hero-copy className={styles.copy}>
             <h1 id="hero-heading" className={cn(styles.headline, "heading-script")}>
+              {/* TITLE CASE, AT THE CLIENT'S ASK — "make sure these are
+                  capitalize like this", against a mock-up that sets the line
+                  as "A Palette of Creativity for Everyone." The small words
+                  stay lower case, which is what their own mock-up does and
+                  what title case means. */}
               <span className={styles.line} style={delay(0)}>
-                <span className={styles.lineInner}>A palette of</span>
+                <span className={styles.lineInner}>A Palette of</span>
               </span>{" "}
               <span className={styles.line} style={delay(90)}>
-                <span className={cn(styles.lineInner, styles.accent)}>creativity</span>
+                <span className={cn(styles.lineInner, styles.accent)}>Creativity</span>
               </span>{" "}
               <span className={styles.line} style={delay(180)}>
-                <span className={styles.lineInner}>for everyone.</span>
+                <span className={styles.lineInner}>for Everyone.</span>
               </span>
             </h1>
+
+            {/*
+              TWO LINES NOW, BOTH THE CLIENT'S OWN WORDS.
+
+              Their mock-up sets a short line in italic under the headline —
+              "There's no wrong shade of creativity." — and then rewrites the
+              sentence beneath it. The old line ("Hands-on experiences that
+              blend art, mindfulness, and community.") is replaced outright,
+              which is what "text can be changed to this" asked for.
+
+              `script-lede` rather than a margin of its own: the gap between a
+              script heading and the sans under it is one decision, made in
+              globals.css. It stays on the FIRST of the two, because that is
+              the one now sitting under the script.
+            */}
+            <p
+              className={cn(
+                styles.reveal,
+                styles.sub,
+                "script-lede mx-auto max-w-[42rem] italic",
+                "text-[clamp(1.0625rem,0.92rem+0.6vw,1.375rem)] leading-[1.5]",
+              )}
+              style={delay(240)}
+            >
+              There&rsquo;s no wrong shade of creativity.
+            </p>
 
             <p
               className={cn(
                 styles.reveal,
                 styles.sub,
-                // `script-lede` rather than a margin of its own: the gap
-                // between a script heading and the sans under it is one
-                // decision, made in globals.css, and this is the line the
-                // client was looking at when they asked for it. It was
-                // `mt-1.5 md:mt-2` — 6px under an 85px script whose
-                // descenders already hang 24px into that gap.
-                "script-lede mx-auto max-w-[42rem] text-[clamp(1.1875rem,1rem+0.72vw,1.625rem)] leading-[1.5]",
+                "mx-auto mt-3 max-w-[46rem] md:mt-4",
+                "text-[clamp(1.1875rem,1rem+0.72vw,1.625rem)] leading-[1.5]",
               )}
-              style={delay(260)}
+              style={delay(320)}
             >
-              {/*
-                BROKEN WHERE THE CLIENT ASKED, not where the browser would.
-                `text-balance` put the turn after "blend"; the second line is
-                to start at "mindfulness". The rule is only worth keeping while
-                the first line fits, so below `sm` it comes out and the line
-                wraps on its own.
-              */}
-              Hands-on experiences that blend art,{" "}
-              <br aria-hidden className="hidden sm:inline" />
-              mindfulness, and community.
+              Pick your palette, get your hands busy and make something that&rsquo;s
+              completely yours.
             </p>
 
             <div data-hero-actions className={styles.actions}>
@@ -269,6 +306,8 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     <div
       aria-hidden
       data-doodle={plan.id}
+      /* Only the six that ring the logo fly in the intro — see `entrance` in
+         ./hero/composition.ts. The rest wait at their resting places. */
       className={cn(styles.doodle, styles.flip, plan.mobile ? undefined : styles.desktopOnly)}
       style={vars}
     >

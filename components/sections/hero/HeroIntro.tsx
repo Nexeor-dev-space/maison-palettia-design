@@ -14,15 +14,7 @@ import { BRAND_LOGO } from "@/lib/constants";
 import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
 
 /*
-  ==========================================================================
-  THE ENTRANCE, AS THE CLIENT STORYBOARDED IT
-  ==========================================================================
-
-  "I'd like to explore a different direction for the opening screen/entrance
-  animation... The entrance should be short, playful and seamless,
-  transitioning naturally into the main website." Six frames came with it, and
-  these numbers are those frames:
-
+  ===================================================================
     0.0 - 0.2s   the background is clean, and the logo fades in at the centre
     0.2 - 0.6s   the icons burst out from behind the logo, spreading outward
                  in a smooth, quick motion
@@ -154,10 +146,26 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
   if (window.matchMedia(REDUCED).matches) {
     foot = gap + copy.offsetHeight + rem;
   } else {
-    const line = copy.querySelector("p");
+    /*
+      THE LAST PARAGRAPH, NOT THE FIRST.
+
+      This was `copy.querySelector("p")`, which is the first one — correct for
+      as long as there was exactly one line under the script. There are two
+      now: the client's mock-up sets "There's no wrong shade of creativity."
+      above the sentence, and the foot went on being reserved down to the
+      bottom of THAT, leaving the sentence below it uncounted. The words then
+      sat in space the card had not been told to give them, and ran straight
+      into the scroll cue.
+
+      Measuring to the bottom of the last one is the version that does not
+      care how many there are, which is what this should have been.
+    */
+    const lines = copy.querySelectorAll("p");
+    const line = lines.length ? lines[lines.length - 1] : null;
     const words = line ? line.offsetTop + line.offsetHeight : copy.offsetHeight;
     // `lineHeight` computes to a pixel length in every engine that matters; if
-    // it ever answers `normal`, the floor below is what applies.
+    // it ever answers `normal`, the floor below is what applies. It is the
+    // LAST line's, because that is the one the cue has to clear.
     const lead = line ? parseFloat(getComputedStyle(line).lineHeight) : NaN;
     const clearance = Math.max(CUE_CLEARANCE_MIN, Math.round((lead || 0) * CUE_CLEARANCE_RATIO));
     const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
@@ -272,6 +280,8 @@ export function HeroIntro() {
     const play = html.dataset.intro === "play";
 
     const doodles = Array.from(hero.querySelectorAll<HTMLElement>("[data-doodle]"));
+    /* The collage's own order, which is what the short in-site entrance
+       staggers on. The ring has its own order — see RING_ORDER below. */
     const order = (el: HTMLElement) => DRAW_ORDER.indexOf(el.dataset.doodle ?? "");
 
     let locked = false;

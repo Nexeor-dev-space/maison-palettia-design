@@ -461,8 +461,21 @@
      The other half of the client's note, the layering, is spacing between the
      script and the sans that follows it; `script-lede` below is the shared
      answer, and the call sites that need it say so. */
+  /*
+    THE LEADING IS TIGHT, AND THAT IS THE CLIENT'S NOTE. These sat at 1.24,
+    1.28 and 1.32 — generous values chosen so Hapsha's ascender loops and
+    descenders could never meet. Set on a two-line statement at 80px they put
+    a whole line of daylight between "Pick a colour," and "pick a table.", and
+    the client's read of that was simply "there is so much of spacing between
+    the lines". They are right: a script statement is one gesture, and leading
+    that wide breaks it into two unrelated lines.
+
+    The clearance the old values bought is now bought by `script-mask` below,
+    which lets the ink overflow its line box in both directions instead —
+    cheaper, and it does not push the lines apart to do it.
+  */
   --text-script-hero: clamp(3rem, 2.2rem + 3.6vw, 6.25rem);
-  --text-script-hero--line-height: 1.24;
+  --text-script-hero--line-height: 1.08;
 
   /*
      TIGHTENED AT THE CLIENT'S ASK — "titles should look somewhat like [the
@@ -483,9 +496,13 @@
      clears on this page and starts to look precarious on the three-line
      headings, which is why it stops here.
 
-     THE BANNER'S OWN IS DELIBERATELY NOT TOUCHED. `--text-script-hero` was
-     tuned against the client's earlier note on the banner and approved at
-     that value; this annotation is on a section title. */
+     THE BANNER CAME DOWN IN THE SAME PASS, to 1.08 above — the two halves of
+     this were answered on separate branches and met in a merge. Read them as
+     one family: the banner is the largest type on the site and takes the
+     tightest leading, the section titles sit just under it, and the compact
+     size is loosest because it is the smallest. Two values were proposed for
+     the section size, 1.02 and 1.1; 1.02 is kept because it is the one that
+     was measured against the client's mockup and audited for collisions. */
   --text-script-section: clamp(2.6rem, 1.9rem + 2.9vw, 5rem);
   --text-script-section--line-height: 1.02;
 
@@ -937,8 +954,8 @@
 @utility script-mask {
   display: block;
   overflow: hidden;
-  padding: 0.25em 0.15em 0;
-  margin: -0.25em -0.15em 0;
+  padding: 0.25em 0.15em 0.18em;
+  margin: -0.25em -0.15em -0.18em;
 }
 
 /* ==========================================================================
@@ -1012,6 +1029,34 @@
     transform: scaleX(1);
     transform-origin: left;
   }
+}
+
+/*
+  A DAB OF PAINT — the loaded-brush mark that heads a named thing.
+
+  It is the same device three sections had already written for themselves: the
+  workshop journey's palette of five, the collaboration cards, and now the
+  location plate. One mask (`--mask-brush`), one colour from `--paint`, turned
+  upside down so the ragged edge is at the FOOT of the dab — paint laid on the
+  page and drying downward rather than a lid closing over it — and set a degree
+  or two off square by `--tilt`, because a row of dabs at exactly one angle
+  reads as buttons and the same row set down slightly differently reads as
+  paint.
+
+  The caller sets the size, `--paint` and `--tilt`. It is decorative every time
+  it is used, so it is always `aria-hidden` and never the only thing telling
+  two things apart.
+*/
+@utility dab {
+  display: block;
+  background-color: var(--paint, var(--color-primary));
+  transform: scaleY(-1) rotate(var(--tilt, 0deg));
+  -webkit-mask-image: var(--mask-brush);
+  mask-image: var(--mask-brush);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 /*

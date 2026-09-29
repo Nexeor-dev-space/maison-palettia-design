@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
@@ -303,18 +303,19 @@ function BookButton({
   const where = workshop.venue ? ` at ${formatVenueLine(workshop.venue)}` : "";
 
   return (
-    <Link
+    <BlobButton
       href={bookSessionHref(workshop)}
-      aria-label={`Book ${workshop.title}${where} on ${formatSessionDate(workshop.startsAt)}`}
-      className={`mt-8 rounded-sm inline-flex items-center justify-center gap-2.5 bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90 ${className ?? ""}`}
+      className={`mt-8 justify-center px-8 py-4 ${className ?? ""}`}
     >
       Book event
-      <span
-        aria-hidden
-        className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-      >
-        &#8594;
+      {/* The label used to be an `aria-label` on the link, which replaces the
+          visible text outright. As a visually-hidden span it EXTENDS it, so a
+          screen reader hears "Book event: Candle Making at Times Square
+          Center, Dubai on 11 October 2026" rather than losing the two words a
+          sighted visitor reads. */}
+      <span className="sr-only">
+        {`: ${workshop.title}${where} on ${formatSessionDate(workshop.startsAt)}`}
       </span>
-    </Link>
+    </BlobButton>
   );
 }

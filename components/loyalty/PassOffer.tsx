@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { BlobButton } from "@/components/ui/BlobButton";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -257,11 +258,7 @@ function Action({
           what they can see ("add to booking") actually hits the control.
         */
         aria-label={`Add to booking: ${pass.name}`}
-        className={cn(
-          "group mt-6 inline-flex w-full min-h-11 items-center justify-center gap-2.5 rounded-sm",
-          "bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90 sm:w-auto",
-        )}
+        className="mt-6 min-h-11 w-full justify-center px-8 py-4 sm:w-auto"
       >
         Add to booking
         <span
@@ -329,22 +326,9 @@ function NoPasses() {
         The Maison is between offers. Every session in the programme can still be booked on its
         own in the meantime.
       </p>
-      <Link
-        href="/events"
-        className={cn(
-          "group mt-8 inline-flex min-h-11 items-center justify-center gap-2.5 rounded-sm",
-          "bg-primary px-8 py-4 text-action font-medium uppercase leading-none tracking-eyebrow",
-          "text-on-primary press-in transition-colors duration-300 ease-soft hover:bg-primary/90",
-        )}
-      >
+      <BlobButton href="/events" className="mt-8 min-h-11 justify-center px-8 py-4">
         Explore events
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      </Link>
+      </BlobButton>
     </Reveal>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { sendEnquiry, type EnquiryResult } from "@/lib/enquiry";
@@ -413,28 +414,16 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
         ) : null}
       </div>
 
-      <button
+      {/* The ink is the component's now. `--color-on-primary` is the one light
+          ink that clears Deep Lilac (4.90:1, against 3.95:1 for plain White
+          Rock), and <BlobButton> carries it for every tone. */}
+      <BlobButton
         type="submit"
         disabled={submitting}
-        className={cn(
-          "group mt-12 inline-flex w-full items-center justify-center gap-2.5 rounded-sm px-8 py-5",
-          "text-action font-medium uppercase leading-none tracking-eyebrow",
-          // `on-primary`, the one light ink that clears Deep Lilac (4.90:1).
-          // This was `text-white` — correct on contrast and off-palette, which
-          // is now unnecessary: the token says the same thing in the brand's
-          // own material. It was the last hard-coded colour in the codebase.
-          "bg-primary text-on-primary transition-colors duration-300 ease-soft",
-          "press-in hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
-        )}
+        className="mt-12 w-full justify-center px-8 py-5 sm:w-auto"
       >
         {submitting ? "Sending" : "Send enquiry"}
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      </button>
+      </BlobButton>
 
       {/* The honest outcome while there is nowhere for a message to go. */}
       {result?.status === "unconfigured" ? (

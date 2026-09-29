@@ -157,7 +157,23 @@ export function WorkshopsMenu({
             */}
 
             {/* ---- the rail ------------------------------------------- */}
-            <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4">
+            {/*
+              AND A CEILING ON THE RAIL, which is the second half of the
+              client's note: "keep a ceiling above which the thing doesnt
+              increase". The rail is now the only column that can make the
+              card taller — see the note on the preview's picture in
+              <MenuCard> — so capping the rail caps the card. 38rem clears
+              the longest menu the site has (Experiences, 596px of rows), and
+              the viewport term takes over on a short screen, where a panel
+              that runs off the bottom is worse than one that scrolls.
+
+              `overflow-y-auto` is safe HERE and would not be on the card: the
+              card's `::before` bridges the gap up to the bar and a scroll
+              container would clip it, and the tiles' cut-outs animate off a
+              view timeline that a scroll container resolves against itself.
+              The rail holds neither.
+            */}
+            <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4 lg:max-h-[min(38rem,calc(100vh-8.5rem))] lg:overflow-y-auto lg:overscroll-contain">
               {groups.map((group) => (
                 <MenuRailGroup key={group.mode} title={group.title} note={group.note}>
                   {group.items.map((experience) => {

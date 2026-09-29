@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { useId, useState } from "react";
 
 import { ENQUIRY_TOPICS, sendEnquiry, type EnquiryResult, type EnquiryTopic } from "@/lib/enquiry";
@@ -164,24 +165,13 @@ export function ContactForm() {
         </div>
       </div>
 
-      <button
+      <BlobButton
         type="submit"
         disabled={submitting}
-        className={cn(
-          "group mt-12 inline-flex w-full items-center justify-center gap-2.5 rounded-sm px-8 py-5",
-          "text-action font-medium uppercase leading-none tracking-eyebrow",
-          "bg-primary text-on-primary transition-colors duration-300 ease-soft",
-          "press-in hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
-        )}
+        className="mt-12 w-full justify-center px-8 py-5 sm:w-auto"
       >
         {submitting ? "Sending" : "Send enquiry"}
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      </button>
+      </BlobButton>
 
       {/*
         The honest outcome. `role="status"` so it is announced rather than

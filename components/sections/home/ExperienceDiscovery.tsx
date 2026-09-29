@@ -182,13 +182,21 @@ export async function ExperienceDiscovery() {
                 few pixels of the coral behind it — two terracotta marks doing
                 one job. The coral is now placed against this paragraph (see
                 EXPERIENCE_SHAPES) and the copy starts on its own measure. */}
-            {/* THE CLIENT'S OWN LINE, replacing the counted one. It used to
-                read "{n} to walk in and make any time, {m} guided sessions
-                with a date. Reach a card to paint it." — the two figures came
-                from the approved list, so they were never invented, but the
-                client has written this in their place and it says the same two
-                things as an invitation rather than as a tally. The counts are
-                no longer derived here because nothing reads them. */}
+            {/*
+              THE CLIENT'S OWN LINE, replacing the one that was here.
+
+              It used to count the catalogue — "five to walk in and make any
+              time, two guided sessions with a date. Reach a card to paint
+              it." Accurate, and a ledger: two numbers and an instruction. The
+              client has supplied the sentence they want in its place, which
+              says the same thing as an invitation.
+
+              THE COUNTS ARE GONE WITH IT, and the two derived totals that fed
+              them are off the component, so no number here can drift from the
+              catalogue. The two ways in are still named — "walk in" and
+              "a guided session" — which is the distinction the section
+              exists to teach.
+            */}
             <p className="text-[clamp(1.25rem,1.05rem+0.6vw,1.6rem)] leading-[1.55] text-text/85">
               Walk in, pick your palette and start creating, or book a guided session and make
               something new with us.

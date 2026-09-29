@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { useId, useState } from "react";
 
 import { saveBookingDetails, toCartLine, useCart } from "@/lib/cart";
@@ -166,23 +167,9 @@ export function BookingForm({ workshop }: { workshop: Workshop }) {
         </div>
       </div>
 
-      <button
-        type="submit"
-        className={cn(
-          "group mt-12 inline-flex w-full items-center justify-center gap-2.5 rounded-sm px-8 py-5",
-          "text-action font-medium uppercase leading-none tracking-eyebrow",
-          "bg-primary text-on-primary transition-colors duration-300 ease-soft",
-          "press-in hover:bg-primary/90 sm:w-auto",
-        )}
-      >
+      <BlobButton type="submit" className="mt-12 w-full justify-center px-8 py-5 sm:w-auto">
         Continue to checkout
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      </button>
+      </BlobButton>
     </form>
   );
 }

@@ -32,35 +32,33 @@ export function BlobGooFilter() {
 }
 
 interface BlobButtonProps {
-  href: string;
+  /**
+   * Where it goes. Omit it and this renders a <button> instead of a link —
+   * which is what every form on the site needs, and the reason the primary
+   * action could not be one object before: half the site's calls to action
+   * submit something rather than navigate, so they were all hand-built
+   * rectangles with a colour fade while the homepage had the pill and the
+   * flood.
+   */
+  href?: string;
   children: ReactNode;
   onClick?: () => void;
+  /** Button mode only. `submit` is the common case; that is why it defaults. */
+  type?: "button" | "submit";
+  /** Button mode only. A disabled control owes no contrast ratio, so this is
+   *  simply dimmed and the flood is left alone — it cannot be hovered. */
+  disabled?: boolean;
   /**
-   * Which ground the button is standing on, not which colour it fancies.
-   *
-   *   sage .... Deep Lilac flooded with LIGHT SAGE — the brand's own hover,
-   *             and the right answer on every ground except one. White Rock
-   *             sections, the near-white megamenu panels, a photograph.
-   *   cream ... for a button ON Deep Lilac, where a lilac one is invisible.
-   *             White Rock, flooded with Soft Lavender.
-   *   lilac ... the default, and the exception: for a button standing on the
-   *             Light Sage sheets themselves, where a Light Sage flood is the
-   *             ground exactly and the button does not change colour on hover
-   *             so much as disappear. Deep Lilac deepening to CHARCOAL SLATE.
-   *
-   * MEASURE THIS WITH dE, NOT WITH A CONTRAST RATIO. WCAG contrast is
-   * luminance only, and it gets this question wrong in both directions: Light
-   * Sage on White Rock scores 1.01:1 and looks completely fine, because they
-   * are different hues at nearly the same lightness (dE 15.9). Trusting the
-   * ratio is what briefly turned every one of these buttons charcoal, when
-   * only the two on Light Sage paper needed it. Sampled dE of the Light Sage
-   * flood against the real composited ground: 1.1 on the Light Sage sheets
-   * (invisible), 15.6-15.9 on White Rock, 17.2-17.7 on the panels.
+   * The travelling arrow. On by default, because an action that goes
+   * somewhere says so. Turned off where the label already ends in its own
+   * glyph or a pending spinner takes the slot.
    */
+  arrow?: boolean;
   tone?: "lilac" | "cream" | "sage" | "deep";
   /** Sizing and any extra layout; the colour and the flood are the component's. */
   className?: string;
 }
+
 
 /**
  * The site's primary action: Deep Lilac, flooded with Light Sage on hover —
@@ -75,23 +73,31 @@ interface BlobButtonProps {
  * The arrow is part of the component for the same reason: it travels on hover
  * in both places, or in neither.
  */
-export function BlobButton({ href, children, onClick, tone = "lilac", className }: BlobButtonProps) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={cn(
-        styles.button,
-        tone === "cream" ? styles.cream : null,
-        tone === "deep" ? styles.deep : null,
-        tone === "sage" ? styles.sage : null,
-        // The press is the site's, the flood is this component's: one answers
-        // the finger, the other the pointer.
-        "press-in group inline-flex items-center gap-3 rounded-[900px] text-action font-semibold uppercase tracking-eyebrow",
-        className,
-      )}
-    >
-      {/* The fill, and the blobs that flood it — see ./BlobButton.module.css. */}
+export function BlobButton({
+  href,
+  children,
+  onClick,
+  type = "submit",
+  disabled,
+  arrow = true,
+  tone = "lilac",
+  className,
+}: BlobButtonProps) {
+  const shell = cn(
+    styles.button,
+    tone === "cream" ? styles.cream : null,
+    tone === "deep" ? styles.deep : null,
+    tone === "sage" ? styles.sage : null,
+    // The press is the site's, the flood is this component's: one answers
+    // the finger, the other the pointer.
+    "press-in group inline-flex items-center gap-3 rounded-[900px] text-action font-semibold uppercase tracking-eyebrow",
+    disabled ? "cursor-not-allowed opacity-55" : null,
+    className,
+  );
+
+  /* The fill, and the blobs that flood it — see ./BlobButton.module.css. */
+  const inner = (
+    <>
       <span aria-hidden className={styles.fill}>
         <span className={styles.blobs}>
           <span className={styles.blob} />
@@ -103,12 +109,28 @@ export function BlobButton({ href, children, onClick, tone = "lilac", className 
         <span className={styles.flood} />
       </span>
       {children}
-      <span
-        aria-hidden
-        className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-      >
-        &#8594;
-      </span>
+      {arrow ? (
+        <span
+          aria-hidden
+          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+        >
+          &#8594;
+        </span>
+      ) : null}
+    </>
+  );
+
+  if (href === undefined) {
+    return (
+      <button type={type} onClick={onClick} disabled={disabled} className={shell}>
+        {inner}
+      </button>
+    );
+  }
+
+  return (
+    <Link href={href} onClick={onClick} className={shell}>
+      {inner}
     </Link>
   );
 }

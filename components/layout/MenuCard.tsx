@@ -266,7 +266,28 @@ export function MenuPreview({
       href={href}
       className="group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-surface p-3 transition-colors duration-300 ease-soft hover:bg-surface-alt"
     >
-      <span className="relative block aspect-[16/9] w-full overflow-hidden rounded-[1rem] bg-surface-alt">
+      {/*
+        ==================================================================
+        THE PICTURE TAKES WHAT IS LEFT, IT DOES NOT SET THE HEIGHT
+        ==================================================================
+
+        This was `aspect-[16/9]`, which meant the image's height was its
+        column's width — 318px across five columns of a 1400px card — and the
+        preview was therefore the tallest thing in the row whatever the rail
+        beside it contained. In the Experiences menu that is harmless: seven
+        rows and two group headings come to 596px and the rail wins anyway.
+        In Private events it is the whole fault the client marked: three rows
+        end 260px above the card's floor, and every one of those pixels
+        belongs to a picture insisting on a shape.
+
+        `flex-1` inside the preview's own column makes it the opposite — it
+        takes whatever height the row has left after the type, so the rail
+        decides and the image fits itself to the answer. The two bounds are
+        what keep that from going silly in either direction: it never falls
+        below 7rem, where a photograph stops being one, and it is the ONLY
+        thing in the preview that grows — see the note on the type below it.
+      */}
+      <span className="relative block min-h-[7rem] w-full flex-1 overflow-hidden rounded-[1rem] bg-surface-alt">
         {image ? (
           <Image
             src={image.src}
@@ -279,7 +300,18 @@ export function MenuPreview({
         ) : null}
       </span>
 
-      <span className="flex flex-1 flex-col px-2 pb-1 pt-4">
+      {/*
+        AND THE TYPE IS ITS OWN HEIGHT, WHICH IS THE OTHER HALF OF IT. This
+        carried `flex-1` too, so the picture and the words split the column's
+        spare height between them — and because the action is pinned to the
+        foot of this block with `mt-auto`, the words' half opened as a gap
+        under the description: 160px of it in the Experiences menu, which is
+        the same fault the client marked on the panel as a whole, one box in.
+        Left at its natural height it takes what it needs, the action closes
+        up under the description, and every pixel of slack goes to the one
+        element that can use it.
+      */}
+      <span className="flex flex-col px-2 pb-1 pt-4">
         {eyebrow ? (
           <span className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text/60">
             <span aria-hidden className="h-px w-5 shrink-0 bg-terracotta" />
