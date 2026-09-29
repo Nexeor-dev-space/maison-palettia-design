@@ -2,6 +2,7 @@ import Image from "next/image";
 import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import { Signature } from "@/components/ui/Signature";
@@ -17,6 +18,17 @@ import {
 import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import type { DoodleName } from "@/components/sections/hero/doodles";
+import { INK } from "@/components/sections/hero/composition";
+
+/*
+  Light Sage as a literal, because INK is not the place for it. That palette is
+  documented as "the deck's shapes on the six approved colours, FOR A LIGHT
+  SAGE GROUND" — sage is absent from it precisely because everything it colours
+  is standing on sage. Here it is a mark on a Deep Lilac card, which is the
+  brand sheet's own pairing, and it measures 3.83:1 on that ground.
+*/
+const SAGE_MARK = "#D1E7BE";
 import type { MallPartner } from "@/types";
 
 /*
@@ -622,7 +634,21 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
           "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
           "auto-rows-[clamp(9.5rem,42vw,12rem)]",
           "sm:auto-rows-[clamp(7rem,26vw,9rem)]",
-          "lg:auto-rows-[clamp(9rem,13vw,14rem)]",
+          /*
+            THREE EXPLICIT TRACKS AT lg, NOT THREE EQUAL ONES.
+
+            The composition reads as two rows rather than three: the lead and
+            its neighbours occupy tracks 1 and 2 as one block, and the three
+            wide tiles along the foot are the second row. At a uniform
+            `auto-rows` that foot was a third the height of the block above it
+            and its pictures were strips — the client's note is to give them
+            more room.
+
+            So the first two tracks keep the height they had, and the third
+            takes about 4/3 of it. The lead spans the first two and is
+            unchanged; only the foot grows.
+          */
+          "lg:auto-rows-auto lg:grid-rows-[repeat(2,clamp(9rem,13vw,14rem))_clamp(12rem,17.5vw,19rem)]",
         )}
       >
         <Reveal variant="fadeIn" className="row-span-2 sm:col-span-2">
@@ -731,41 +757,71 @@ function Plate({
 
       {/*
         ==================================================================
-        THE SHADE IS SHORTER NOW, NOT WEAKER — AND IT IS THE CAPTION'S OWN
+        A TINT ON THE PICTURE, AND A SEAT UNDER THE WORDS
         ==================================================================
 
-        The client's note was "don't use this much dark overlay". They are
-        right about what it looked like and the fix is not the obvious one.
+        "This overlay looks very bad, remove it and use very slight colour
+        overlay on the image." The thing being pointed at is a slab: the shade
+        was a box as tall as the caption plus a run-up, filled from 95% Ink to
+        nothing across its own height, and because that fall happened inside a
+        short box it had a top EDGE you could see — a straight grey line ruled
+        across every tile. That edge is what made it read as a panel bolted
+        over a photograph rather than as a photograph.
 
-        It ran `from-text/95 via-text/80 via-42% to-transparent to-85%` — a
-        wash still at four fifths strength most of the way up the tile and not
-        clearing until 85%. So the photograph was dimmed almost end to end,
-        and the pictures are the reason this section exists.
+        WHAT IS HERE INSTEAD IS TWO THINGS, AND NEITHER HAS AN EDGE.
 
-        SIMPLY LIGHTENING IT BREAKS THE CAPTION, and that is measurable rather
-        than cautious. The names sit on the picture in White Rock. Against the
-        brightest pixels these frames actually carry — a white ceramic plate,
-        the lit wax of the candles — White Rock needs about 0.88 of Ink under
-        it to hold 4.5:1; at 0.68 it lands near 3:1 and the words go soft on
-        exactly the two tiles a visitor looks at first.
+        The tint is the client's: Charcoal Slate at 14% over the whole frame,
+        the same on every tile. It is slight enough that the pictures keep
+        their colour — a tenth of a stop, not a wash — and it does the job a
+        tint does in a collage of photographs taken by different people on
+        different days, which is to make seven of them look like one set.
 
-        So the strength stays where the words are and the REACH is cut.
+        The seat is the concession, and it is worth being honest about: White
+        Rock on a white ceramic plate is about 1.4:1, so the names need
+        something under them or they are not readable at all. It is a gradient
+        over the WHOLE tile rather than over a caption-sized box, which is the
+        change — spread over 380px of lead it has no discernible start, where
+        the same fall over 90px was the line the client marked. It reaches
+        nothing by 55%, so the top half of every picture carries the tint and
+        nothing else.
 
-        AND THE SHADE IS THE CAPTION'S OWN BACKDROP, not a separate box of
-        some chosen height. That was the part that took three goes. A per-cent
-        gradient clears at a different place on a 380px lead than on the 185px
-        tiles beside it, and the short ones carry their caption in the same
-        90-odd pixels at the foot — so the names went soft. A fixed 9rem band
-        fixed that at desktop and then swamped a 164px tile on a phone, where
-        9rem is most of the picture.
+        THE FOUR STOPS ARE MEASURED, NOT CHOSEN. Every tile was rendered with
+        the type made transparent and the composited pixels behind each caption
+        sampled at the 95th percentile — the brightest a letter actually has to
+        sit on. Four candidates were run; this is the lightest that clears 4.5
+        on all seven:
 
-        Hanging it on the caption itself settles both: the band is exactly as
-        tall as the words plus the run-up in `pt-14`, so it covers what it has
-        to cover and nothing else, at every tile size and every width, with no
-        number here to keep in sync with the type. The fade finishes inside
-        that box, so the photograph above it is untouched.
+            tile               at the top of its caption
+            Bedazzling              4.63:1   <- the one that sets the numbers
+            Crocheting              6.00
+            Candle making           6.17
+            Tote bag painting       6.45
+            Glass painting          6.56
+            Ceramic painting        6.65
+            Mandala painting        7.11
+
+        Bedazzling is the case: a bright pink frame carrying a name AND two
+        lines, on one of the short tiles, so its caption starts almost halfway
+        up. Anything lighter than this fails there first.
+
+        Utilities carry three stops, so it is set here, on the same token the
+        rest of the page uses.
       */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-text/95 via-text/88 via-62% to-transparent px-5 pt-14 pb-5 text-on-dark lg:px-6 lg:pt-16 lg:pb-6">
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-text/[0.13]" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to top, " +
+            "color-mix(in oklab, var(--color-text) 90%, transparent) 0%, " +
+            "color-mix(in oklab, var(--color-text) 78%, transparent) 36%, " +
+            "color-mix(in oklab, var(--color-text) 24%, transparent) 58%, " +
+            "transparent 78%)",
+        }}
+      />
+
+      <div className="absolute inset-x-0 bottom-0 px-5 pb-5 text-on-dark lg:px-6 lg:pb-6">
         {name}
         {experience.description ? (
           <p className="mt-1.5 max-w-[26rem] text-fine leading-snug text-on-dark/90">
@@ -794,17 +850,95 @@ function Plate({
  * the foot of the page, and a page with two saturated fields has two focal
  * points, which is none.
  */
+/*
+  THE CUT-OUTS ON THIS SECTION'S OWN PAPER.
+
+  "Use any doodles here." The section is a heading on the left, a short
+  paragraph on the right and about two thirds of a screen of flat Light Sage
+  between them — the emptiest band on the page, and the one place the brand's
+  shapes were doing nothing.
+
+  WHICH COLOURS SHOW ON LIGHT SAGE, measured: Deep Lilac 3.83:1, Charcoal
+  9.36, Warm Terracotta 2.36, White Rock 1.03, Soft Lavender 1.44. The last
+  two are invisible on this ground at any opacity a background can afford, so
+  the four here are lilac, terracotta and one charcoal — and the charcoal is
+  the smallest of them, because at a ground's opacity charcoal on a warm green
+  reads as grey rather than as ink.
+
+  They sit in the empty middle and low along the foot, never behind the
+  heading or the card. Four is the ceiling <SectionShapes> sets.
+*/
+const WHERE_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "coral",
+    color: INK.lilac,
+    width: "12%",
+    left: "40%",
+    top: "8%",
+    rotate: -14,
+    drift: 24,
+    opacity: 0.2,
+    float: 13,
+    desktopOnly: true,
+  },
+  {
+    name: "splash",
+    color: INK.lilac,
+    width: "15%",
+    left: "6%",
+    bottom: "4%",
+    rotate: 10,
+    drift: -20,
+    opacity: 0.16,
+    float: 15,
+    floatDelay: 1.4,
+    desktopOnly: true,
+  },
+  {
+    name: "starburst",
+    color: INK.terracotta,
+    width: "7%",
+    left: "56%",
+    bottom: "12%",
+    rotate: 12,
+    drift: 18,
+    opacity: 0.24,
+    float: 11,
+    floatDelay: 0.6,
+  },
+  {
+    name: "zigzag",
+    color: INK.charcoal,
+    width: "4%",
+    left: "30%",
+    bottom: "22%",
+    rotate: -8,
+    drift: -14,
+    opacity: 0.16,
+    float: 17,
+    floatDelay: 2.1,
+    desktopOnly: true,
+  },
+];
+
 function CreateWithUs({ partner }: { partner?: MallPartner }) {
   if (!partner) return null;
 
   return (
     <section
       aria-labelledby="private-events-where"
-      className="bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
-      <Container>
-        <div className="grid grid-cols-12 gap-x-6 gap-y-8 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-7">
+      {/*
+        `overflow-clip`, not `hidden`: a scroll container breaks the view
+        timeline the brand marks draw on. Same trap as everywhere else on this
+        page — see the note in <WhoItIsFor>.
+      */}
+      <SectionShapes plan={WHERE_SHAPES} />
+
+      <Container className="relative">
+        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-10 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-6">
             <Reveal>
               <p className={`${EYEBROW} text-text`}>
                 <span
@@ -821,30 +955,56 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
                 <SectionLine>already gather.</SectionLine>
               </Stagger>
             </h2>
+
+            <Reveal delay={0.15}>
+              <p className="mt-8 max-w-[30rem] text-body leading-[1.9] text-text/85">
+                Maison Palettia brings creative experiences to spaces where
+                people already gather.
+              </p>
+            </Reveal>
           </div>
 
-          <Reveal
-            delay={0.2}
-            className="col-span-12 lg:col-span-4 lg:col-start-9 lg:self-end"
-          >
-            <p className="max-w-[30rem] text-body leading-[1.9] text-text/80">
-              Maison Palettia brings creative experiences to spaces where people
-              already gather.
-            </p>
+          {/*
+            ==================================================================
+            THE DESTINATION IS A CARD NOW, ON THE ROW'S OWN PAPER
+            ==================================================================
 
-            {/*
-              A description list rather than a card: one entry set as a fact,
-              not as a tile with three-quarters of a grid empty beside it.
-            */}
-            <dl className="mt-9 border-t border-text/20 pt-6">
-              <dt className={`${TERM} text-text/75`}>Our home</dt>
-              <dd className="mt-2 text-lead font-medium leading-snug text-text">
+            It was a description list under a hairline: an eyebrow, a name and
+            a city, set on the section's own Light Sage. The client has asked
+            for it as one of the cards the collaboration row uses on
+            /locations — a coloured plate, set down slightly out of true, with
+            a cut-out breaking its edge.
+
+            DEEP LILAC, AND THE INK IS MEASURED FOR IT. `--color-surface` on
+            Deep Lilac is 4.90:1, the one light ink on this palette that clears
+            4.5 on that ground — White Rock is 3.95 and fails. So the name and
+            the line take `text-surface` at full strength and nothing here
+            carries an alpha, which is the same rule CARD_STOCK keeps on
+            /locations.
+
+            THE MARK IS WHITE ROCK, 3.95:1 on lilac — under what type owes and
+            well over what a decorative shape does. It breaks the bottom-left
+            corner, which is the deck's own placement and the one corner the
+            words do not reach.
+          */}
+          <Reveal delay={0.24} className="col-span-12 lg:col-span-5 lg:col-start-8">
+            <div className="plate relative rounded-[1.5rem] bg-primary px-7 py-8 md:px-8 md:py-9 lg:rotate-[-1.2deg]">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -bottom-6 -left-5 w-[4.5rem] md:w-[5.25rem]"
+              >
+                <DoodleMark name="splash" color={INK.whiteRock} treatment="stamp" delay={260} />
+              </span>
+
+              <p className={`${TERM} text-surface`}>Our home</p>
+              <p className="mt-4 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] text-surface lg:text-[1.75rem]">
                 {partner.name}
-                <span className="mt-1 block text-fine font-normal text-text/75">
-                  {partner.locality}
-                </span>
-              </dd>
-            </dl>
+              </p>
+              <p className="mt-2 text-body leading-[1.7] text-surface">{partner.locality}</p>
+              <p className="mt-5 max-w-[26rem] text-fine leading-[1.7] text-surface">
+                {partner.descriptor}
+              </p>
+            </div>
           </Reveal>
         </div>
       </Container>
@@ -869,6 +1029,84 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
  * deliberately not been added to it — no response times, no coordinator, no
  * site visit, because each of those is a commitment somebody has to keep.
  */
+/*
+  ==========================================================================
+  THE THREE STEPS AS THREE PAPERS — the row the client pointed at
+  ==========================================================================
+
+  They were three ruled columns: a hairline, a large grey numeral, a title and
+  a line, three times. That is the arrangement a specification sheet uses, and
+  on a page whose whole argument is "this is made by hand" it was the one
+  block that looked typeset rather than laid out.
+
+  The client has asked for this section to be built like the collaboration row
+  on /locations, so the tokens below are that row's, kept deliberately in step
+  with it — same three grounds in the same order, same tilt-and-lift, same
+  cut-out in the head and one breaking an edge. Two sections of this site now
+  say "here are three things, choose the one that fits" in one voice.
+
+  EVERY INK IS THE MEASURED ONE, carried across rather than re-picked:
+
+      ground            ink            ratio
+      Deep Lilac        surface        4.90   <- only at FULL strength
+      Light Sage        charcoal/85    6.14
+      Soft Lavender     charcoal/85    4.73
+
+  So the lilac card's body takes no alpha at all and the two light grounds
+  take /85 rather than the /80 used elsewhere on this page. The folio is
+  decorative and `aria-hidden` — the order is already in the <ol> — so it can
+  sit under what type owes.
+
+  THE MARKS ARE MEASURED THE SAME WAY. On Deep Lilac only White Rock (3.95),
+  Light Sage (3.83) and Soft Lavender (2.74) show; on Light Sage, Deep Lilac
+  (3.83) and Warm Terracotta (2.36); on Soft Lavender, Deep Lilac (2.74) and
+  Charcoal (6.49). Warm Terracotta on Soft Lavender is 1.69 and would vanish,
+  so it is the one pairing this row does not use.
+*/
+const STEP_STOCK: readonly {
+  ground: string;
+  heading: string;
+  body: string;
+  folio: string;
+  head: { name: DoodleName; color: string };
+  edge: { name: DoodleName; color: string; place: string; size: string };
+  /* `lg:` only — a phone stacks these, and a stack of tilted, offset cards is
+     a mess rather than a composition. */
+  tilt: string;
+  lift: string;
+}[] = [
+  {
+    ground: "bg-primary",
+    heading: "text-surface",
+    body: "text-surface",
+    folio: "text-sage/50",
+    head: { name: "bow", color: INK.whiteRock },
+    edge: { name: "splash", color: SAGE_MARK, place: "-bottom-6 -left-5", size: "w-[4.5rem]" },
+    tilt: "lg:rotate-[-1.4deg]",
+    lift: "",
+  },
+  {
+    ground: "bg-sage",
+    heading: "text-text",
+    body: "text-text/85",
+    folio: "text-primary/35",
+    head: { name: "splash", color: INK.lilac },
+    edge: { name: "starburst", color: INK.terracotta, place: "-bottom-7 right-10", size: "w-[4rem]" },
+    tilt: "lg:rotate-[0.9deg]",
+    lift: "lg:mt-14",
+  },
+  {
+    ground: "bg-lavender",
+    heading: "text-text",
+    body: "text-text/85",
+    folio: "text-primary/40",
+    head: { name: "starleaf", color: INK.lilac },
+    edge: { name: "wave", color: INK.charcoal, place: "-left-6 -top-7", size: "w-[3.75rem]" },
+    tilt: "lg:rotate-[-0.7deg]",
+    lift: "lg:mt-6",
+  },
+];
+
 function HowItWorks() {
   return (
     <Container
@@ -893,34 +1131,79 @@ function HowItWorks() {
         </Stagger>
       </h2>
 
-      <ol className="mt-12 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-3 md:mt-16 lg:gap-x-10">
-        {PRIVATE_EVENT_STEPS.map((step, i) => (
-          <li key={step.number}>
-            <Reveal delay={i * 0.08}>
-              <div className="border-t border-line pt-6">
-                {/*
-                  /60, not the pale wash a numeral like this usually gets. At
-                  48px these are large text and owe 3:1; the faint values
-                  measured 1.59:1 on this ground, which is not pale as a choice,
-                  it is illegible. /60 is 3.57 and still reads as the quiet
-                  layer under the step title.
-                */}
-                <p
-                  aria-hidden
-                  className="text-[2.5rem] font-light leading-none tabular-nums tracking-[-0.03em] text-text/60 md:text-[3rem]"
+      {/*
+        `items-start`, so a card that is lifted stays lifted: a stretched row
+        would pull all three to the tallest and the offset would be lost, which
+        is the whole of the arrangement. Extra bottom room because the cut-outs
+        hang past the cards' edges and the row is the last thing before the
+        enquiry.
+      */}
+      <ol className="mt-14 grid grid-cols-1 items-start gap-6 sm:grid-cols-3 md:mt-16 lg:gap-7 lg:pb-8">
+        {PRIVATE_EVENT_STEPS.map((step, i) => {
+          const stock = STEP_STOCK[i % STEP_STOCK.length];
+          return (
+            <li key={step.number} className={stock.lift}>
+              <Reveal delay={i * 0.08}>
+                <article
+                  className={cn(
+                    "plate group relative flex flex-col rounded-[1.5rem] px-7 py-8 md:px-8 md:py-9",
+                    "transition-transform duration-[var(--duration-hover)] ease-soft",
+                    "motion-safe:hover:-translate-y-1",
+                    stock.ground,
+                    stock.tilt,
+                  )}
                 >
-                  {step.number}
-                </p>
-                <h3 className="mt-6 text-lead font-medium leading-snug text-text">
-                  {step.title}
-                </h3>
-                <p className="mt-3 text-body leading-[1.8] text-text/80">
-                  {step.detail}
-                </p>
-              </div>
-            </Reveal>
-          </li>
-        ))}
+                  {/* The cut-out that breaks the card's edge. `overflow` is
+                      deliberately NOT clipped on the card, so it can. */}
+                  <span
+                    aria-hidden
+                    className={cn("pointer-events-none absolute", stock.edge.place, stock.edge.size)}
+                  >
+                    <DoodleMark
+                      name={stock.edge.name}
+                      color={stock.edge.color}
+                      treatment="stamp"
+                      delay={300 + i * 120}
+                    />
+                  </span>
+
+                  <div className="flex items-start justify-between gap-5">
+                    <p
+                      aria-hidden
+                      className={cn(
+                        "text-[2.5rem] leading-[0.82] tracking-[0.01em] [font-family:var(--font-deck)] [font-synthesis:none]",
+                        stock.folio,
+                      )}
+                    >
+                      {step.number}
+                    </p>
+                    <span
+                      aria-hidden
+                      className="block w-10 shrink-0 transition-transform duration-[900ms] ease-editorial motion-safe:group-hover:rotate-6"
+                    >
+                      <DoodleMark
+                        name={stock.head.name}
+                        color={stock.head.color}
+                        delay={200 + i * 110}
+                      />
+                    </span>
+                  </div>
+
+                  <h3
+                    className={cn(
+                      "mt-9 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] lg:text-[1.75rem]",
+                      stock.heading,
+                    )}
+                  >
+                    {step.title}
+                  </h3>
+
+                  <p className={cn("mt-4 text-body leading-[1.8]", stock.body)}>{step.detail}</p>
+                </article>
+              </Reveal>
+            </li>
+          );
+        })}
       </ol>
     </Container>
   );
