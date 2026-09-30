@@ -115,7 +115,7 @@ const SECTION_LINE = "heading-script text-script-section";
 
 
 const EYEBROW =
-  "flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow";
+  "flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow";
 const TERM = "text-label font-medium uppercase tracking-eyebrow";
 
 /**
@@ -280,8 +280,8 @@ function Introduction() {
 
             <h2 id="private-events-intro" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine>Bring people together</SectionLine>{" "}
-                <SectionLine>through making.</SectionLine>
+                <SectionLine>Bring People Together</SectionLine>{" "}
+                <SectionLine>Through Making.</SectionLine>
               </Stagger>
             </h2>
 
@@ -460,7 +460,7 @@ function WhoItIsFor() {
             <h2 id="private-events-audiences" className="mt-8 md:mt-10">
               <Stagger>
                 <SectionLine>Groups of</SectionLine>{" "}
-                <SectionLine>every kind.</SectionLine>
+                <SectionLine>Every Kind.</SectionLine>
               </Stagger>
             </h2>
           </div>
@@ -657,7 +657,7 @@ function WhoItIsFor() {
                         {String(i + 1).padStart(2, "0")}
                       </span>
 
-                      <h3 className="mt-3 text-[1.375rem] font-medium tracking-[-0.015em] md:text-h3">
+                      <h3 className="mt-3 text-h3 font-medium tracking-[-0.015em]">
                         {audience.name}
                       </h3>
 
@@ -705,11 +705,28 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
   const [lead, ...rest] = experiences;
 
   return (
-    <Container
-      as="section"
+    /*
+      LIGHT SAGE, AT THE CLIENT'S ASK — "#D1E7BE in bg". It was the page's own
+      pale ground, which put three near-white bands in a row through the middle
+      of the page. With this the run alternates properly and no two sections
+      touching each other share a ground:
+
+        Introduction ..... Light Sage
+        Who it is for .... White Rock
+        The experiences .. LIGHT SAGE   <- here
+        Create with us ... White Rock
+        How it works ..... Light Sage
+        Enquire .......... Deep Lilac
+
+      `as="section"` with a `bg-` on it would paint only the measure and leave
+      the gutters pale, so the colour goes on a real <section> and the
+      container sits inside it.
+    */
+    <section
       aria-labelledby="private-events-experiences"
-      className="py-[5rem] md:py-section lg:py-section-lg"
+      className="bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
+     <Container>
       <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6 lg:gap-x-10">
         <div className="col-span-12 md:col-span-7">
           <Reveal>
@@ -724,8 +741,8 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
 
           <h2 id="private-events-experiences" className="mt-8 md:mt-10">
             <Stagger>
-              <SectionLine>Choose what</SectionLine>{" "}
-              <SectionLine>you make.</SectionLine>
+              <SectionLine>Choose What</SectionLine>{" "}
+              <SectionLine>You Make.</SectionLine>
             </Stagger>
           </h2>
         </div>
@@ -823,6 +840,7 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
             experience={lead}
             className="h-full"
             sizes="(min-width: 1024px) 46vw, 92vw"
+            paint={0}
             large
           />
         </Reveal>
@@ -844,13 +862,141 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
               experience={experience}
               className="h-full"
               sizes="(min-width: 1024px) 24vw, (min-width: 640px) 46vw, 92vw"
+              /* `i + 1`, so the lead is the first paint and the six after it
+                 carry on the rotation rather than restarting it. */
+              paint={i + 1}
             />
           </Reveal>
         ))}
       </div>
-    </Container>
+     </Container>
+    </section>
   );
 }
+
+/*
+  ==========================================================================
+  THE PAINT THE CAPTION IS WRITTEN ON — scattered, not a rectangle
+  ==========================================================================
+
+  "Redesign that style like the second card's colour scattered style. Use
+  different colours for that parts." The reference is a photograph with paint
+  run across its foot: an irregular top edge rather than a ruled one, and a
+  few drops thrown clear of it onto the picture above.
+
+  SO THE FOOT IS TWO PIECES. A flat field carrying the words, and above it a
+  band whose top edge is a wave — one SVG at `preserveAspectRatio: none`, which
+  is right for a wave and would be wrong for anything with a recognisable
+  shape. The drops are separate and NOT stretched: they are their own small
+  ellipses at fixed sizes, so they stay round on a 1052px lead and on a 236px
+  tile alike. Stretching them with the band is the one thing that would make
+  this read as a gradient with a wobble rather than as paint.
+
+  THE COLOURS ARE MEASURED, WHICH IS WHY THERE ARE THREE AND NOT SIX.
+
+      ground          ink            ratio
+      Soft Lavender   charcoal       6.49
+      Soft Lavender   charcoal/85    4.73   <- the supporting line
+      Soft Lavender   charcoal/80    4.30          fails
+      White Rock      charcoal       9.36
+      White Rock      charcoal/85    6.14
+      Deep Lilac      surface        4.90   <- the only light ink that clears
+                                             lilac; it takes no alpha at all
+
+  The /85 is why the supporting line is not the /80 this page uses everywhere
+  else: Soft Lavender is the ground that sets the figure, and at /80 the
+  description measures 4.30 and fails. The same rule CARD_STOCK keeps on
+  /locations, for the same reason.
+
+  The three the palette does not offer here are Light Sage, which is now the
+  section's own ground and would make a tile look as though its foot were
+  missing; and Warm Terracotta, which carries no body text at any ink —
+  charcoal on it is 3.84 and white 3.12, and both fail what a caption owes.
+
+  THE WAVE AND THE DROPS TAKE THE FIELD'S OWN COLOUR, not a second one. They
+  are the same paint: the wave is the field's top edge and the drops are what
+  came off it, so a contrasting colour there would read as two separate
+  decorations rather than as one gesture. `paint` is that colour as an ink, for
+  `currentColor` in <PaintEdge>.
+
+  They rotate by position rather than by name, so a tile added or reordered
+  takes the next colour rather than needing an entry of its own.
+*/
+const PAINTS: readonly {
+  field: string;
+  ink: string;
+  soft: string;
+  paint: string;
+}[] = [
+  { field: "bg-lavender", ink: "text-text", soft: "text-text/85", paint: "text-lavender" },
+  { field: "bg-surface-alt", ink: "text-text", soft: "text-text/85", paint: "text-surface-alt" },
+  { field: "bg-primary", ink: "text-surface", soft: "text-surface", paint: "text-primary" },
+];
+
+/**
+ * The wave along the top of a foot, and the drops thrown above it.
+ *
+ * `currentColor` throughout, so the caller sets `color` once and the whole
+ * gesture takes the tile's paint. The band is `preserveAspectRatio: none` and
+ * the drops are not — see the note on PAINTS.
+ */
+function PaintEdge({ className }: { className: string }) {
+  return (
+    <span aria-hidden className={cn("pointer-events-none absolute inset-x-0", className)}>
+      {/* The drops: fixed sizes, deterministic positions, scattered up the
+          picture. Percentages across, pixels down, so they spread with the
+          tile's width and stay clear of its foot. */}
+      {DROPS.map((drop, i) => (
+        <span
+          key={i}
+          className="absolute rounded-pill bg-current"
+          style={{
+            left: `${drop.x}%`,
+            bottom: `${drop.y}px`,
+            width: `${drop.w}px`,
+            height: `${drop.h}px`,
+            opacity: drop.o,
+          }}
+        />
+      ))}
+
+      <svg
+        className="absolute inset-x-0 bottom-0 block h-[2.25rem] w-full lg:h-[2.75rem]"
+        viewBox="0 0 240 44"
+        preserveAspectRatio="none"
+        focusable="false"
+      >
+        <path
+          d="M0 24c14-11 30-13 46-7 15 6 26 1 40-4 16-6 31-3 44 3 12 6 26 7 40 2 13-5 28-9 42-3 10 4 20 5 28 2v31H0z"
+          fill="currentColor"
+        />
+      </svg>
+    </span>
+  );
+}
+
+/*
+  Nine drops, thrown once and then fixed: nothing here is random, so the server
+  and the client draw the same picture.
+
+  SIZED TO BE SEEN. The first pass ran 5 to 12px at 0.6 to 0.9 and vanished —
+  a 5px speck at 60% over a photograph is not paint, it is a dust mark on the
+  lens. These run 8 to 20px and the smallest is at 0.7, which is the size the
+  reference's own drops take against their picture. They rise to 92px above
+  the foot, roughly twice the wave's own height, so the throw has somewhere to
+  travel rather than sitting in a line along the edge.
+*/
+const DROPS: readonly { x: number; y: number; w: number; h: number; o: number }[] = [
+  { x: 6, y: 48, w: 14, h: 11, o: 0.95 },
+  { x: 17, y: 72, w: 8, h: 7, o: 0.8 },
+  { x: 25, y: 54, w: 20, h: 15, o: 0.9 },
+  { x: 39, y: 88, w: 9, h: 7, o: 0.7 },
+  { x: 47, y: 58, w: 12, h: 10, o: 0.95 },
+  { x: 58, y: 80, w: 8, h: 6, o: 0.75 },
+  { x: 68, y: 52, w: 17, h: 13, o: 0.9 },
+  { x: 80, y: 76, w: 9, h: 7, o: 0.8 },
+  { x: 90, y: 56, w: 13, h: 10, o: 0.95 },
+];
 
 /**
  * One experience: a photograph with its name written under it.
@@ -891,24 +1037,31 @@ function Plate({
   experience,
   className,
   sizes,
+  paint = 0,
   large = false,
 }: {
   experience: CreativeExperience;
   className: string;
   sizes: string;
+  /** Which of PAINTS this tile takes — its position in the collage. */
+  paint?: number;
   large?: boolean;
 }) {
+  const stock = PAINTS[paint % PAINTS.length];
   /*
     UP A STEP, AT THE CLIENT'S ASK, and the lead goes up two because it is
     four times the area of the tiles beside it and was set only one step above
     them. Charcoal on White Rock carries any of these.
   */
   const caption = (
-    <div className="shrink-0 px-5 pb-5 pt-4 lg:px-6 lg:pb-6 lg:pt-5">
+    <div className={cn("relative shrink-0 px-5 pb-5 pt-4 lg:px-6 lg:pb-6 lg:pt-5", stock.field)}>
       <p
         className={cn(
-          "font-medium leading-tight text-text",
-          large ? "text-[1.375rem] lg:text-[1.625rem]" : "text-[1.125rem] lg:text-[1.25rem]",
+          "font-medium leading-tight",
+          stock.ink,
+          /* The lead tile takes the card-title step and the rest the compact
+             one — two steps from the scale, not four hand-set sizes. */
+          large ? "text-h3" : "text-h4",
         )}
       >
         {experience.name}
@@ -923,8 +1076,9 @@ function Plate({
         */
         <p
           className={cn(
-            "mt-2 max-w-[34rem] leading-[1.55] text-text/80",
-            large ? "text-body" : "text-[clamp(0.9375rem,0.55rem+0.6vw,1.0625rem)]",
+            "mt-2 max-w-[34rem] leading-[1.55]",
+            stock.soft,
+            "text-body",
           )}
         >
           {experience.description}
@@ -935,14 +1089,14 @@ function Plate({
         has not — never an invented "available on request".
       */}
       {experience.status ? (
-        <p className="mt-1.5 text-fine leading-snug text-text/70">{experience.status}</p>
+        <p className={cn("mt-1.5 text-fine leading-snug", stock.soft)}>{experience.status}</p>
       ) : null}
     </div>
   );
 
   if (!experience.image) {
     return (
-      <div className={`flex ${className} flex-col justify-end rounded-[1.25rem] bg-surface-alt`}>
+      <div className={cn("flex flex-col justify-end overflow-clip rounded-[1.25rem]", className)}>
         {caption}
       </div>
     );
@@ -977,6 +1131,16 @@ function Plate({
           they keep their colour.
         */}
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-text/[0.13]" />
+
+        {/*
+          THE PAINT, RUN UP OVER THE FOOT OF THE PICTURE. It sits inside the
+          picture's own box rather than on the caption, so the wave and the
+          drops are over the photograph — which is what makes it read as paint
+          thrown at a print rather than as a decorated edge on a panel. The
+          field below carries the words. `text-<paint>` here is what
+          `currentColor` in <PaintEdge> resolves to.
+        */}
+        <PaintEdge className={cn("bottom-0 h-[8rem]", stock.paint)} />
       </div>
 
       {caption}
@@ -1136,8 +1300,8 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
 
             <h2 id="private-events-where" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine>Where people</SectionLine>{" "}
-                <SectionLine>already gather.</SectionLine>
+                <SectionLine>Where People</SectionLine>{" "}
+                <SectionLine>Already Gather.</SectionLine>
               </Stagger>
             </h2>
 
@@ -1194,7 +1358,7 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
               </span>
 
               <p className={`${TERM} text-surface`}>Our home</p>
-              <p className="mt-4 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] text-surface lg:text-[1.75rem]">
+              <p className="mt-4 text-h3 font-light tracking-[-0.02em] text-surface">
                 {partner.name}
               </p>
               <p className="mt-2 text-body leading-[1.7] text-surface">{partner.locality}</p>
@@ -1269,6 +1433,67 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
   Charcoal (6.49). Warm Terracotta on Soft Lavender is 1.69 and would vanish,
   so it is the one pairing this row does not use.
 */
+/*
+  The shapes in <Process>'s masthead — see the note in the section.
+
+  Sized and placed as a share of the section (1440x914 at this width), so the
+  arrangement holds as it scales. Light Sage is not among them: it is the
+  ground they stand on.
+*/
+const PROCESS_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "splash",
+    color: INK.lilac,
+    width: "12%",
+    left: "32%",
+    top: "15%",
+    rotate: -13,
+    drift: 24,
+    opacity: 0.2,
+    float: 13,
+    desktopOnly: true,
+  },
+  {
+    name: "coral",
+    color: INK.terracotta,
+    width: "8%",
+    left: "48%",
+    top: "20%",
+    rotate: 10,
+    drift: -18,
+    opacity: 0.17,
+    float: 16,
+    floatDelay: 1.5,
+    desktopOnly: true,
+  },
+  {
+    name: "starburst",
+    color: INK.lavender,
+    width: "10%",
+    left: "63%",
+    top: "14%",
+    rotate: -6,
+    drift: 21,
+    opacity: 0.22,
+    float: 11,
+    floatDelay: 0.7,
+    desktopOnly: true,
+  },
+  {
+    name: "zigzag",
+    color: INK.charcoal,
+    width: "6%",
+    left: "80%",
+    top: "26%",
+    rotate: 16,
+    drift: -22,
+    opacity: 0.15,
+    float: 14,
+    floatDelay: 2.3,
+    desktopOnly: true,
+  },
+];
+
 const STEP_STOCK: readonly {
   ground: string;
   heading: string;
@@ -1337,9 +1562,26 @@ function HowItWorks() {
     */
     <section
       aria-labelledby="private-events-process"
-      className="bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-hidden bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
-      <Container>
+      {/*
+        THE BAND BESIDE THE HEADING, FILLED — at the client's ask that this
+        section looks very empty.
+
+        Measured at 1440: the section is 1440x914, the heading's ink stops at
+        about x 280 though its box runs the full width, and the cards do not
+        begin until y 426. That leaves roughly 1000 x 290 of nothing between
+        the two — the whole right of the masthead — which is what reads as
+        empty rather than as air.
+
+        Four marks fill it, placed against that box rather than scattered, and
+        solved against their own travel the same way every other plan on this
+        site is: worst case each stays inside x 420-1400 and clears the cards'
+        top edge. Low opacity and behind everything, because a script heading
+        and three coloured cards are what this section is for.
+      */}
+      <SectionShapes plan={PROCESS_SHAPES} />
+      <Container className="relative">
       <Reveal>
         <p className={`${EYEBROW} text-text`}>
           <span
@@ -1352,8 +1594,8 @@ function HowItWorks() {
 
       <h2 id="private-events-process" className="mt-8 md:mt-10">
         <Stagger>
-          <SectionLine>Three steps,</SectionLine>{" "}
-          <SectionLine>then the day.</SectionLine>
+          <SectionLine>Three Steps,</SectionLine>{" "}
+          <SectionLine>Then the Day.</SectionLine>
         </Stagger>
       </h2>
 
@@ -1397,7 +1639,7 @@ function HowItWorks() {
                     <p
                       aria-hidden
                       className={cn(
-                        "text-[2.5rem] leading-[0.82] tracking-[0.01em] [font-family:var(--font-deck)] [font-synthesis:none]",
+                        "text-folio tracking-[0.01em] [font-family:var(--font-deck)] [font-synthesis:none]",
                         stock.folio,
                       )}
                     >
@@ -1417,7 +1659,7 @@ function HowItWorks() {
 
                   <h3
                     className={cn(
-                      "mt-9 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] lg:text-[1.75rem]",
+                      "mt-9 text-h3 font-light tracking-[-0.02em]",
                       stock.heading,
                     )}
                   >
@@ -1485,8 +1727,8 @@ function EnquiryCta() {
                 own padding. */}
             <h2 id="private-events-enquiry">
               <Stagger>
-                <SectionLine tone="light">Let&apos;s make</SectionLine>{" "}
-                <SectionLine tone="light">something together.</SectionLine>
+                <SectionLine tone="light">Let&apos;s Make</SectionLine>{" "}
+                <SectionLine tone="light">Something Together.</SectionLine>
               </Stagger>
             </h2>
 

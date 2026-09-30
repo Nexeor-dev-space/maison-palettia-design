@@ -3,9 +3,8 @@
 import { useMemo, useState } from "react";
 
 import { EventFilterBar } from "@/components/events/EventFilters";
-import { LocationDiscovery } from "@/components/events/LocationDiscovery";
 import { Reveal } from "@/components/motion/Reveal";
-import { EventIndexEntry } from "@/components/workshops/EventIndexEntry";
+import { EventCard } from "@/components/workshops/EventCard";
 import {
   applyFilters,
   buildFacets,
@@ -67,14 +66,16 @@ export function EventsBrowser({ workshops }: { workshops: Workshop[] }) {
               </Reveal>
 
               {/*
-                No gap. Each row carries its own hairline and its own hover
-                wash, so they have to meet — a gap between them would break the
-                run into cards and put the wash on an island.
+                CARDS, TWO UP, at the client's ask — see <EventCard> for what
+                these were and why a run of rows stopped working at this
+                length. `items-stretch` is the grid's default and the card
+                takes `h-full`, so two cards in a row are the same height
+                however long one of the names runs.
               */}
-              <ol className="mt-5 border-b border-line md:mt-6">
+              <ol className="mt-5 grid gap-6 md:mt-6 md:grid-cols-2 lg:gap-8">
                 {events.map(({ workshop, position }) => (
-                  <li key={workshop.slug}>
-                    <EventIndexEntry workshop={workshop} index={position} />
+                  <li key={workshop.slug} className="h-full">
+                    <EventCard workshop={workshop} index={position} />
                   </li>
                 ))}
               </ol>
@@ -84,16 +85,22 @@ export function EventsBrowser({ workshops }: { workshops: Workshop[] }) {
       )}
 
       {/*
-        Always the whole catalogue, never the filtered view: this is how a
-        visitor finds the mall they want, so hiding the other three because
-        they have already narrowed to one would close the door they came
-        through. It writes into the same filter state the bar does.
+        WHERE THE STUDIO SETS UP HAS LEFT THIS COMPONENT. It was the last
+        thing in the browser — a bordered list of malls that wrote back into
+        the filter state above, so pressing one narrowed the listing. The
+        client has asked for that section to become the page's closing panel,
+        which means a full-bleed Deep Lilac field, and a field cannot be
+        full-bleed from inside this component's <Container>.
+
+        It is <WhereWeSetUp> now, rendered by the page after this section.
+        WHAT THAT COSTS is the filter link: choosing a mall no longer narrows
+        the list. With one mall in the catalogue it narrowed nothing, and the
+        copy that offered it ("pick a location to see what is on there") has
+        gone with the behaviour rather than being left as a promise the page
+        does not keep. If the studio adds a second destination, the way back
+        is to give that component an optional `onSelect` again and render it
+        from here — the summary it draws is unchanged.
       */}
-      <LocationDiscovery
-        workshops={workshops}
-        filters={filters}
-        onSelect={(venue) => setFilters({ ...filters, venue })}
-      />
     </>
   );
 }
@@ -105,7 +112,7 @@ export function EventsBrowser({ workshops }: { workshops: Workshop[] }) {
 function NoMatches({ onReset }: { onReset: () => void }) {
   return (
     <div className="mt-16 border-t border-line pt-12 md:mt-20 md:pt-16">
-      <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em] md:text-[1.75rem]">
+      <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">
         No events match those filters.
       </p>
       <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">

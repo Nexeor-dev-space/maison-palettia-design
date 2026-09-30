@@ -367,7 +367,7 @@ export function MobileNav({
                     href={item.href}
                     onClick={onClose}
                     aria-current={isActive(item.href) ? "page" : undefined}
-                    className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
+                    className="group/nav block py-3.5 text-statement font-light uppercase tracking-[0.02em] text-text"
                   >
                     <NavLabel isActive={isActive(item.href)}>{item.label}</NavLabel>
                   </Link>
@@ -416,7 +416,7 @@ function PrivateEventsGroup({
           href={item.href}
           onClick={onClose}
           aria-current={isActive ? "page" : undefined}
-          className="group/nav block py-3.5 text-[1.35rem] font-light uppercase tracking-[0.02em] text-text"
+          className="group/nav block py-3.5 text-statement font-light uppercase tracking-[0.02em] text-text"
         >
           <NavLabel isActive={isActive}>{item.label}</NavLabel>
         </Link>

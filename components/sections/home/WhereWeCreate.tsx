@@ -39,7 +39,16 @@ export async function WhereWeCreate() {
     */
     <section
       aria-labelledby="where-heading"
-      className="relative isolate overflow-hidden bg-cream py-[4rem] md:py-[5.5rem] lg:py-[6.5rem]"
+      /*
+        `overflow-clip`, NOT `hidden`, and it is the difference between a mark
+        that fills and one that never does. `hidden` makes this a scroll
+        container, and a scroll container breaks the view timeline the brand
+        marks draw on — the cut-outs render into the HTML and then sit at their
+        undrawn outline state forever. The wave behind the map was drawn as a
+        wireframe for exactly this reason. `clip` clips the same and creates no
+        scrollport. Same trap as the hero's sections; see DoodleMark.module.css.
+      */
+      className="relative isolate overflow-clip bg-cream py-[4rem] md:py-[5.5rem] lg:py-[6.5rem]"
     >
       {/*
         TWO ON THE SECTION'S OWN EDGES, and two in the channel inside it — see
@@ -104,14 +113,53 @@ export async function WhereWeCreate() {
           cell is `lg:block` and the row is the statement and the map.
         */}
         <div className="grid grid-cols-12 items-start gap-x-6 gap-y-12 lg:items-center lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-5">
+          {/*
+            ==================================================================
+            THE MARKS SIT ON THE TWO THINGS, NOT IN THE GAP BETWEEN THEM
+            ==================================================================
+
+            They were four cut-outs in a two-column channel of their own
+            between the statement and the map — a strip of ground with nothing
+            in it but shapes. The client's note is that they read as disorderly
+            there, and they are right about why: a mark in open ground has
+            nothing to be near, so four of them stepping down an empty channel
+            is four strays rather than one gesture. The deck never does that —
+            every cut-out on that sheet crosses the edge of something.
+
+            So the channel is gone and the marks are on the two objects the
+            section actually has. Two beside the heading, in the clear ground
+            to its right where no line of type reaches; two on the map, tucked
+            behind its corners at `-z-10` so they show only as much as its
+            edges leave uncovered, which is what "just behind" means.
+
+            WHAT IS KEPT. `depth` and `pointer-lift` — the lean toward the
+            pointer and the swell as it nears — because those were never about
+            where the marks sat. The section's own two edge marks are
+            untouched: they cross the gutters, which was always right.
+          */}
+          <div className="relative col-span-12 lg:col-span-5">
+            <span
+              aria-hidden
+              className="pointer-lift pointer-events-none absolute -right-2 -top-10 hidden w-[22%] -rotate-6 lg:block xl:-right-6"
+              style={{ "--ax": 0.3, "--lift": 0.18 } as React.CSSProperties}
+            >
+              <DoodleMark name="coral" color={INK.lilac} treatment="draw" delay={260} depth={14} />
+            </span>
+            <span
+              aria-hidden
+              className="pointer-lift pointer-events-none absolute right-[16%] top-[30%] hidden w-[7%] lg:block"
+              style={{ "--ax": 0.26, "--lift": 0.3 } as React.CSSProperties}
+            >
+              <DoodleMark name="dot" color={INK.terracotta} treatment="draw" delay={560} depth={26} />
+            </span>
+
             <Reveal>
               <Eyebrow>Our experience</Eyebrow>
             </Reveal>
             <DisplayHeading
               id="where-heading"
               className="mt-8 md:mt-10"
-              lines={["Where we’ve", "created."]}
+              lines={["Where We’ve", "Created."]}
             />
             {/* 60 characters, and the figure has moved twice for the same
                 reason: it has to fill the column it is actually in or the
@@ -131,43 +179,46 @@ export async function WhereWeCreate() {
           {/*
             THE MARKS ARE PLACED, NOT SCATTERED — the client's earlier note on
             this was "uncontrolled icon scattering did not look good", and it
-            still governs. These two are anchored to the channel's own edges,
-            one high on its left and one low on its right, so the pair reads
-            as a column of air with something in it rather than as two
-            stickers dropped in the gap. The other two break the section's
-            gutters, which is the deck's own rule for a cut-out.
+            still governs. Every mark below is anchored to this cell, which is
+            a column with no words in it at any width, so none of them can ever
+            be measured against a line of type.
 
-            AND NEITHER OF THEM CAN SIT ON A WORD, which is the fault the
-            last arrangement had: the starburst was inside the statement's
-            column and became its first line the moment the blocks were
-            centred against each other. A mark that has to be checked against
-            the text it floats over belongs somewhere there is no text, and
-            this cell is that place by construction.
+            ==================================================================
+            ONE FAMILY, AND THE SPIKY ONE IS GONE
+            ==================================================================
+
+            It was a starburst high on the left and a bean low on the right —
+            two marks, far apart, and one of them the only hard-edged shape in
+            a section whose other cut-outs are a coral and a wave. The client's
+            words were that it "looks separated", and both halves of that are
+            fair: a pair at opposite corners of a tall channel is not a group,
+            and a starburst does not belong to the same set as a coral.
+
+            So it is four SMOOTH shapes now — coral, bean, wave, dot — the
+            rounded end of the brand's sheet and the same two the section's own
+            gutters already carry. They step down the channel rather than
+            sitting at its corners, each overlapping the last one's band a
+            little, so the eye reads a run of marks instead of two strays.
+
+            ==================================================================
+            AND THEY ANSWER THE POINTER — BOTH WAYS
+            ==================================================================
+
+            `depth` is the lean <DoodleMark> already had: the mark translates
+            toward the pointer, and each one takes a different figure so the
+            group parts rather than sliding as a sheet.
+
+            `pointer-lift` is the other half the client asked for — the mark
+            GROWS as the pointer comes near its column. `--ax` is where each
+            one sits across the window, `--lift` how much bigger it gets at
+            nought distance. The two strongest are the two in the middle of the
+            run, so the growth reads as the group swelling toward the cursor
+            rather than four things inflating at once. See the utility's note
+            in globals.css for why the distance is measured across only.
           */}
-          <div
-            aria-hidden
-            className="pointer-events-none relative hidden self-stretch lg:col-span-2 lg:col-start-6 lg:block"
-          >
-            {/*
-              SIZED TO LEAVE THE CHANNEL VISIBLE, which is the difference
-              between filling a space and plugging it. At 92% and 76% of a
-              200px cell the two marks spanned it edge to edge — 186px and
-              152px of solid colour with no ground showing between them, which
-              reads as a third column of shapes rather than as air with marks
-              standing in it. At these figures they are about 140px and 108px
-              at 1440, staggered on opposite corners, and the channel is still
-              a channel.
-            */}
-            <span className="absolute left-0 top-[8%] w-[70%] -rotate-6 xl:w-[62%]">
-              <DoodleMark name="starburst" color={INK.lilac} treatment="draw" delay={260} />
-            </span>
-            <span className="absolute bottom-[10%] right-0 w-[54%] rotate-[10deg] xl:w-[48%]">
-              <DoodleMark name="bean" color={INK.lavender} treatment="draw" delay={460} />
-            </span>
-          </div>
-
           {home ? (
-            <div className="col-span-12 lg:col-span-5 lg:col-start-8">
+            <div className="relative col-span-12 lg:col-span-5 lg:col-start-8">
+
               {/*
                 ==========================================================
                 SMALLER, AND WITH AN EDGE OF ITS OWN
@@ -212,6 +263,36 @@ export async function WhereWeCreate() {
                   arch with a card parked under it. `plate` follows whatever
                   radius it is given, so the hairline and veil come with it.
                 */}
+              {/*
+                BEHIND THE MAP'S OWN FRAME, not behind its column. Hung off
+                the column they landed against whatever the column happened to
+                end with — the address card below the map — which is a
+                different object and half a section away from the thing they
+                are meant to be tucked under. This wrapper is the map and
+                nothing else.
+
+                `-z-10` is what makes them read as behind it: the frame is
+                opaque, so only as much of each mark shows as its corners
+                leave uncovered. And the frame itself is `overflow-clip`, so
+                the marks cannot live inside it — they sit in a `relative`
+                wrapper around it instead.
+              */}
+              <div className="relative">
+                <span
+                  aria-hidden
+                  className="pointer-lift pointer-events-none absolute -right-7 -top-8 -z-10 hidden w-[20%] rotate-[12deg] lg:block"
+                  style={{ "--ax": 0.78, "--lift": 0.22 } as React.CSSProperties}
+                >
+                  <DoodleMark name="bean" color={INK.lavender} treatment="draw" delay={360} depth={22} />
+                </span>
+                <span
+                  aria-hidden
+                  className="pointer-lift pointer-events-none absolute -bottom-8 -left-8 -z-10 hidden w-[24%] -rotate-[10deg] lg:block"
+                  style={{ "--ax": 0.62, "--lift": 0.2 } as React.CSSProperties}
+                >
+                  <DoodleMark name="wave" color={INK.lilac} treatment="draw" delay={460} depth={18} />
+                </span>
+
                 <div className="plate relative aspect-[5/4] overflow-clip rounded-[1.25rem] bg-surface">
                   {/*
                     Taller than its frame and lifted by the height of Google's
@@ -274,6 +355,7 @@ export async function WhereWeCreate() {
                     </a>
                   ) : null}
                 </div>
+              </div>
               </Reveal>
 
               {/*
@@ -290,7 +372,7 @@ export async function WhereWeCreate() {
                     </span>
                     Find us now
                   </h3>
-                  <p className="mt-3 text-[1.375rem] font-light leading-tight tracking-[-0.01em] text-text">
+                  <p className="mt-3 text-h3 font-light tracking-[-0.01em] text-text">
                     {home.name}
                   </p>
                   <p className="mt-1 text-body text-text/85">{home.locality}</p>

@@ -54,6 +54,28 @@ import type { DoodleName } from "@/components/sections/hero/doodles";
  * line-like shape, the zigzag.
  */
 
+/*
+  ==========================================================================
+  THE RING IS EIGHT DIFFERENT ICONS, AND THAT IS WHY SOME OF THESE READ ODDLY
+  ==========================================================================
+
+  A plan's `name` and `color` no longer describe a drawing and a paint: the
+  set is the client's ten brand icons in their own colours, so the colour
+  picks which pair and the name picks the loose one or the one on a slab.
+  See ../hero/doodles.ts.
+
+  Which means two plans that ask for the same colour and the same kind get
+  the SAME icon. The entrance is the one place on the site where that shows
+  at a glance — nine marks in one ring, three of them lilac — so three plans
+  here are set against their old names to spread it: the ring now draws eight
+  of the ten, and the two it leaves out are the Light Sage pair, which cannot
+  be seen on this page's pale green ground.
+
+  BALANCED, AND COUNTED. Eighteen marks over eight icons plus the two dots is
+  exactly two of each, and no icon's pair sits on the same side of the ring.
+  The first pass was not: the Soft Lavender slab was on four marks and the
+  Deep Lilac one on a single mark, which reads as a set with a favourite.
+*/
 export const INK = {
   lilac: "#9059A4",
   lavender: "#C4B5FD",
@@ -260,8 +282,10 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     float: 9.5,
   },
   {
+    /* A SLAB WORD RATHER THAN A LOOSE ONE, at lilac — see the note on the
+       ring's spread below. */
     id: "coral-e",
-    name: "coral",
+    name: "bean",
     color: INK.lilac,
     depth: 12,
     desktop: { left: 100.2, top: 18, width: 4.2, rotate: 10 },
@@ -271,9 +295,13 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     float: 8,
   },
   {
+    /* Terracotta rather than Charcoal Slate: the set has no charcoal icon —
+       it uses charcoal once, as the waves on the lavender slab — so a
+       charcoal mark resolves to the lilac pair, and there were already two
+       of those in the ring. */
     id: "zigzag-se",
     name: "zigzag",
-    color: INK.charcoal,
+    color: INK.terracotta,
     depth: 18,
     desktop: { left: 100.4, top: 52, width: 3.2, rotate: -12 },
     mobile: { left: -5, top: 55, width: 9, rotate: -12 },
@@ -284,8 +312,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
   {
     /* tucked */
     id: "starburst-sse",
-    name: "starburst",
-    color: INK.lilac,
+    name: "zigzag",
+    color: INK.whiteRock,
     depth: 12,
     desktop: { left: 28, top: 42, width: 8, rotate: 14 },
     mobile: { left: 28, top: 42, width: 13, rotate: 14 },
@@ -306,9 +334,12 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     float: 5.5,
   },
   {
+    /* Lilac rather than lavender: the lavender slab was on four of the
+       eighteen marks and the lilac one on a single mark — see the note on
+       the spread above. */
     id: "wave-s",
     name: "wave",
-    color: INK.lavender,
+    color: INK.lilac,
     depth: 14,
     desktop: { left: 93.5, top: 104, width: 8.5, rotate: 3 },
     mobile: { left: 80, top: 72, width: 30, rotate: 3 },
@@ -371,6 +402,19 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     float: 7.5,
   },
   {
+    /*
+      SMALLER IN THE RING, BECAUSE IT WAS NOT SHOWING ITS OWN SHAPE.
+
+      At 0.44 of the ring's box this was nearly half as wide again as the
+      next mark, and at that size the top-left corner of the ring is off the
+      section: the coral was cut by the edge and overlapped by the wordmark,
+      so what a visitor saw was a lavender mass rather than the client's
+      coral. It is the mark they circled, and the fault was the size and the
+      placement, not the drawing.
+
+      0.24 is in the range the rest of the ring sits in (0.13 to 0.32), and
+      the whole outline clears the edge.
+    */
     id: "splash-nw",
     name: "splash",
     color: INK.lavender,
@@ -378,7 +422,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: -1.5, top: 103, width: 7.5, rotate: -10 },
     mobile: { left: -10, top: 0.5, width: 34, rotate: -10 },
     ring: true,
-    flower: { x: -0.5, y: -0.4, width: 0.44, rotate: -20 },
+    flower: { x: -0.46, y: -0.34, width: 0.24, rotate: -20 },
     float: 9,
   },
   {
@@ -395,9 +439,10 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
   },
   {
     /* tucked */
+    /* A loose terracotta mark, for the same reason as `wave-s`. */
     id: "starburst-nw",
-    name: "starburst",
-    color: INK.lavender,
+    name: "zigzag",
+    color: INK.terracotta,
     depth: 16,
     desktop: { left: 46, top: 24, width: 8, rotate: 16 },
     mobile: { left: 46, top: 24, width: 14, rotate: 16 },

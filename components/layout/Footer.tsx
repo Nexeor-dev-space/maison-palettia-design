@@ -269,7 +269,7 @@ export async function Footer() {
               Light Sage on Charcoal is 9.07:1, the strongest pairing in the
               palette — see the note at the head of this file.
             */}
-            <p className="mt-7 heading-script max-w-[34rem] text-[clamp(1.9rem,1.35rem+1.6vw,2.75rem)] leading-[1.22] text-primary">
+            <p className="mt-7 heading-script max-w-[34rem] text-script-panel text-primary">
               {forScript(TAGLINE)}
             </p>
 

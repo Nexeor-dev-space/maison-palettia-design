@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { EventsBrowser } from "@/components/events/EventsBrowser";
 import { WalkInDiscovery } from "@/components/events/WalkInDiscovery";
+import { WhereWeSetUp } from "@/components/events/WhereWeSetUp";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
@@ -160,7 +161,7 @@ export default async function EventsPage() {
               as="h1"
               id="experiences-title"
               className="mt-7 md:mt-9"
-              lines={["Choose what", "you make."]}
+              lines={["Choose What", "You Make."]}
             />
           </div>
 
@@ -169,7 +170,7 @@ export default async function EventsPage() {
               <Door
                 href="#walk-in"
                 mode="diy"
-                title="Walk-in DIY"
+                title="Walk-In DIY"
                 note={diyStep.description}
                 tone="cream"
                 mark="starleaf"
@@ -178,7 +179,7 @@ export default async function EventsPage() {
               <Door
                 href="#scheduled"
                 mode="scheduled"
-                title="Scheduled sessions"
+                title="Scheduled Sessions"
                 note={scheduledStep.description}
                 tone="lilac"
                 mark="starburst"
@@ -208,7 +209,7 @@ export default async function EventsPage() {
           <GroupHead
             id="walk-in-heading"
             mode="diy"
-            title="Walk-in DIY"
+            title="Walk-In DIY"
             lead="No booking needed. Choose an experience on the day and create at your own pace."
           >
             {home ? (
@@ -223,12 +224,15 @@ export default async function EventsPage() {
               </p>
             ) : null}
           </GroupHead>
-
-          {/* The vibe chips and the editorial rhythm both live in
-              <WalkInDiscovery>; the filtering is client state and the plates
-              still link to their own pages, never to a checkout. */}
-          <WalkInDiscovery experiences={walkIn} />
         </Container>
+
+        {/* OUTSIDE THE CONTAINER ON PURPOSE. The vibe chips and the card track
+            both live in <WalkInDiscovery>, and the track is the home page's —
+            it holds the left rail and runs off the right of the screen, which
+            it cannot do from inside a measure. The component keeps the chips
+            in a <Container> of their own. The filtering is client state and
+            the cards still link to their own pages, never to a checkout. */}
+        <WalkInDiscovery experiences={walkIn} />
       </section>
 
       {/* ---- scheduled ---- */}
@@ -242,12 +246,12 @@ export default async function EventsPage() {
           <GroupHead
             id="scheduled-heading"
             mode="scheduled"
-            title="Scheduled sessions"
+            title="Scheduled Sessions"
             lead="Guided workshops on a set date and time, booked online. Everything is provided."
           />
           {sessions.length === 0 ? (
             <Reveal className="mt-12 border-t border-line pt-10">
-              <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em]">
+              <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">
                 The next dates are being set.
               </p>
               <p className="mt-4 max-w-[32rem] text-body leading-[1.85] text-text/85">
@@ -261,6 +265,23 @@ export default async function EventsPage() {
           )}
         </Container>
       </section>
+
+      {/*
+        ==================================================================
+        THE PAGE CLOSES ON WHERE, at the client's ask
+        ==================================================================
+
+        This was the last block inside <EventsBrowser> — a bordered list of
+        malls that filtered the listing above. It is the page's closing panel
+        now, built the way /about closes: a Deep Lilac field, everything
+        centred, two of the brand's marks in the corners, one door. The
+        footer's wave is drawn at the foot of <main> in White Rock, so it
+        rises straight out of this field exactly as it does on /about.
+
+        It sits outside the White Rock section deliberately: a full-bleed
+        field cannot be one from inside that section's <Container>.
+      */}
+      <WhereWeSetUp workshops={sessions} />
     </>
   );
 }
@@ -354,7 +375,7 @@ function Door({
           <span className="max-w-[26ch] text-body leading-[1.7]">{note}</span>
           <span
             aria-hidden
-            className="shrink-0 text-[1.375rem] leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-y-1"
+            className="shrink-0 text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-y-1"
           >
             &#8595;
           </span>

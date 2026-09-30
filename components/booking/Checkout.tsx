@@ -362,7 +362,7 @@ function LoadingBasket() {
 function EmptyCart() {
   return (
     <Reveal className="mt-14 border-t border-line pt-12 md:mt-16 md:pt-14">
-      <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25] tracking-[-0.015em] md:text-[1.75rem]">
+      <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">
         Your booking is empty.
       </p>
       <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">

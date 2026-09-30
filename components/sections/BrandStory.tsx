@@ -77,7 +77,15 @@ export function BrandStoryLead({
           carries one: Hapsha's descenders drop below the line box, and without
           the clearance the "p" of "Space" is cut by whatever follows.
         */
-        className="heading-script max-w-[22ch] pb-[0.18em] text-script-section text-primary"
+        /*
+          CHARCOAL, NOT DEEP LILAC, at the client's ask. Every other section
+          heading on this site takes its ground's reading ink — that is what
+          <DisplayHeading> does with `ground`, and `tone="accent"` is the
+          documented exception for "a statement set as a brand moment rather
+          than as a heading". This is a section heading, so it takes the ink,
+          and the page stops carrying one heading in a colour of its own.
+        */
+        className="heading-script max-w-[22ch] pb-[0.18em] text-script-section text-text"
       >
         {forScript(OPENING_STATEMENT.heading)}
       </Tag>
@@ -89,11 +97,11 @@ export function BrandStoryLead({
         it heavier than the page's running text, which is what tells you it is
         still part of the opening rather than the start of the article.
       */}
-      <p className="script-lede max-w-[62ch] text-[clamp(1.0625rem,0.98rem+0.4vw,1.25rem)] font-medium leading-[1.7] text-text">
+      <p className="script-lede max-w-[62ch] text-lead font-medium leading-[1.7] text-text">
         {OPENING_STATEMENT.body}
       </p>
 
-      <p className="mt-6 text-[clamp(1.0625rem,0.98rem+0.4vw,1.25rem)] font-semibold leading-[1.5] text-text">
+      <p className="mt-6 text-lead font-semibold leading-[1.5] text-text">
         {OPENING_STATEMENT.closer}
       </p>
     </div>
@@ -154,16 +162,16 @@ export function BrandStoryObject({ className }: { className?: string }) {
           sage the client's mock shows is safe here — and the paragraph under
           it stays `surface` for exactly the same reason.
         */}
-        <p className="heading-script pb-[0.14em] text-[clamp(1.75rem,1.4rem+1.4vw,2.35rem)] leading-[1.15] text-sage">
+        <p className="heading-script pb-[0.14em] text-script-panel text-sage">
           {forScript(OPENING_STATEMENT.panel.heading)}
         </p>
 
-        <p className="script-lede max-w-[48ch] text-[clamp(1rem,0.94rem+0.3vw,1.1875rem)] leading-[1.8]">
+        <p className="script-lede max-w-[48ch] text-body leading-[1.8]">
           {OPENING_STATEMENT.panel.body}
         </p>
 
         {/* The sign-off, in the sage that reads on Deep Lilac. */}
-        <p className="mt-7 flex items-center gap-3 text-[1.0625rem] font-medium text-sage">
+        <p className="mt-7 flex items-center gap-3 text-body font-medium text-sage">
           <span aria-hidden className="block w-5 shrink-0">
             <DoodleMark name="splash" color={INK.lavender} delay={220} />
           </span>

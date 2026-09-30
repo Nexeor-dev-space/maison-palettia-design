@@ -89,15 +89,15 @@ export function LittleCreators() {
             <Reveal delay={0.06}>
               <h2
                 id="little-creators-heading"
-                className="heading-script mt-5 text-[clamp(2.25rem,1.35rem+3.2vw,3.75rem)] leading-[1.14] text-text"
+                className="heading-script mt-5 text-script-section leading-[1.14] text-text"
               >
-                {forScript("For our little creators.")}
+                {forScript("For Our Little Creators.")}
               </h2>
             </Reveal>
           </div>
 
           <Reveal delay={0.12} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
-            <p className="max-w-[36ch] text-[1.0625rem] leading-[1.75] text-text/85">
+            <p className="max-w-[36ch] text-body leading-[1.75] text-text/85">
               Three activities cut to a smaller pair of hands, so a child and a parent can sit at
               the same table and both come away with something.
             </p>
@@ -148,7 +148,7 @@ export function LittleCreators() {
                 ) : null}
               </div>
 
-              <p className="mt-4 text-[1.0625rem] font-bold uppercase leading-[1.1] tracking-[0.015em] text-text transition-colors duration-300 ease-soft [font-family:var(--font-deck)] [font-synthesis:none] group-hover:text-primary md:text-[1.375rem]">
+              <p className="mt-4 text-h4 font-bold uppercase tracking-[0.015em] text-text transition-colors duration-300 ease-soft [font-family:var(--font-deck)] [font-synthesis:none] group-hover:text-primary">
                 {LITTLE_CREATORS[i]?.name}
               </p>
             </Reveal>

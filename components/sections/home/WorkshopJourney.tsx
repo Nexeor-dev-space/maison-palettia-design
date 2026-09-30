@@ -86,7 +86,7 @@ export function WorkshopJourney() {
             </Reveal>
             <DisplayHeading
               id="journey-heading"
-              lines={["The workshop", "journey."]}
+              lines={["The Workshop", "Journey."]}
               className="mt-6 md:mt-8"
             />
           </div>

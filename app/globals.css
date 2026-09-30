@@ -419,6 +419,32 @@
      per breakpoint stay composed per breakpoint — see ADOPTION above.
      ------------------------------------------------------------------------ */
 
+  /* ------------------------------------------------------------------------
+     THE FOUR STEPS BELOW WERE ADDED BY THE TYPOGRAPHY AUDIT, and each one
+     exists because a ROLE was being set at four or five different sizes with
+     no step to land on. They are named for the job, not for the number.
+
+     Audited across every page: 134 hand-written `text-[…]` values, of which
+     these four roles accounted for about half. The sizes are not new — each
+     is the range the role was already being set at, made into one step.
+     ------------------------------------------------------------------------ */
+
+  /* Compact titles: a plate, a small card, a list entry. Was being written as
+     1.0625 / 1.0625->1.25 / 1.0625->1.375 in seven components. */
+  --text-h4: clamp(1.0625rem, 1rem + 0.28vw, 1.25rem);
+  --text-h4--line-height: 1.25;
+
+  /* The one-sentence statement that opens or closes a section — bigger than a
+     lede, smaller than a heading. Was 1.1875->1.625, 1.25->1.6 and 1.5->2.1. */
+  --text-statement: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --text-statement--line-height: 1.45;
+
+  /* A decorative numeral: a step's folio, a date's day, a card's index. Set in
+     `--font-deck` and `aria-hidden` wherever it appears. Was 2.25 / 2.5 /
+     2.75->3.5. */
+  --text-folio: clamp(2.25rem, 2.05rem + 0.9vw, 2.75rem);
+  --text-folio--line-height: 0.85;
+
   /* Card, entry and panel headings. The commonest heading on the site. */
   --text-h3: clamp(1.5rem, 1.35rem + 0.65vw, 1.75rem);
   --text-h3--line-height: 1.2;
@@ -527,6 +553,13 @@
 
   --text-script-compact: clamp(2.2rem, 1.7rem + 1.9vw, 3.4rem);
   --text-script-compact--line-height: 1.06;
+
+  /* The smallest script step: a panel heading, a footer tagline, a question
+     over a form — script used INSIDE a block rather than over a section. It
+     was hand-written five ways (1.75->2.35, 1.75->2.4, 1.75->2.5, 1.9->2.75)
+     in five components that never saw each other. */
+  --text-script-panel: clamp(1.75rem, 1.42rem + 1.45vw, 2.5rem);
+  --text-script-panel--line-height: 1.16;
 
   /* --- Spacing rhythm (section-level) ------------------------------------ */
   --spacing-section: 6rem;
@@ -902,6 +935,63 @@
 }
 
 /*
+  A MARK THAT GROWS AS THE POINTER COMES NEAR IT.
+
+  <DoodleMark> already LEANS toward the pointer — `depth` times the `--mx` /
+  `--my` <PointerField> publishes on <html>. This is the other half the client
+  asked for: the mark also gets BIGGER as the pointer approaches, so a band of
+  shapes answers the cursor instead of sitting there.
+
+  ==========================================================================
+  WHY IT IS THE X AXIS ONLY
+  ==========================================================================
+
+  `--mx` / `--my` are the pointer in the WINDOW, from -1 at one edge to +1 at
+  the other. Horizontal nearness is a fair question to ask of them: a mark's
+  column does not move. Vertical nearness is not, because the mark's place in
+  the window depends on the scroll, and `--my` knows nothing about that — a
+  `--ay` written here would be right at one scroll position and wrong at every
+  other. So the distance is measured across, and the lean supplies the rest.
+
+  `--ax` is where the mark sits on that axis (-1 left edge, 0 centre, +1
+  right). `--reach` is how far away the pointer can be and still count, and
+  `--lift` is how much bigger the mark gets at nought distance: 0.14 is a
+  mark that breathes, 0.3 one that plainly answers you.
+
+  `max(x, -1 * x)` is the absolute value — `abs()` is too new to rely on here.
+*/
+@utility pointer-lift {
+  --distance: max(
+    calc(var(--mx, 0) - var(--ax, 0)),
+    calc(var(--ax, 0) - var(--mx, 0))
+  );
+  /* `--pointer` gates it: at rest, and before the pointer has ever moved, it
+     is 0 and every mark sits at the size it is drawn. Without that gate an
+     unset `--mx` reads as the pointer being dead centre, which is the NEAREST
+     it can be — so the marks would start fully grown and shrink when someone
+     moved to the edge, which is the effect backwards. */
+  --near: calc(
+    var(--pointer, 0) * clamp(0, calc(1 - var(--distance) / var(--reach, 0.85)), 1)
+  );
+
+  display: block;
+  /* The standalone property, not a `transform`: <DoodleMark>'s own drift owns
+     the transform on the element inside this one, and two rules writing the
+     same property is how that movement would be lost. */
+  scale: calc(1 + var(--lift, 0.16) * var(--near));
+  transform-origin: 50% 50%;
+  transition: scale 420ms var(--ease-soft);
+  will-change: scale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pointer-lift {
+    scale: 1;
+    transition: none;
+  }
+}
+
+/*
   A CUT-OUT SHAPE FOR A PHOTOGRAPH — the deck's own way of framing one.
 
   The brand sheet never puts a picture in a rectangle: it puts it in a shape
@@ -1011,6 +1101,37 @@
   overflow: hidden;
   padding: 0.25em 0.15em 0.18em;
   margin: -0.25em -0.15em -0.18em;
+}
+
+/*
+  ==========================================================================
+  WHY THE LEADING WAS NEVER WHAT THE TOKEN SAID
+  ==========================================================================
+
+  Each mask above pads itself so the reveal has room for Hapsha's ascenders
+  and descenders — 0.25em over, 0.18em under — and cancels that padding with
+  an equal negative margin, so ONE line occupies exactly its line-height.
+
+  Between TWO of them the cancellation is wrong, and measurably so: adjacent
+  siblings' vertical margins COLLAPSE, and collapsing takes the most negative
+  of the two rather than their sum. The -0.18em under the first line and the
+  -0.25em over the second resolved to -0.25em, not -0.43em, so every
+  multi-line script heading on the site carried the leftover 0.18em as leading
+  it never asked for. Measured on "Where we've created." at 1440: 87px of
+  advance against a 73.6px line-height.
+
+  The rule below is the whole fix. A second mask asks for the FULL -0.43em, so
+  the collapse — still taking the most negative — now lands on the figure the
+  padding actually needs. One line is untouched; a run of them leads exactly
+  as the token says, which makes the token the knob it always claimed to be.
+
+  It is a sibling selector rather than a utility on the parent because the
+  parent varies: <DisplayHeading> wraps its lines in <Stagger>, /private-events
+  has its own <SectionLine>, /contact hand-builds the pair. Keying off the
+  masks themselves fixes every one of them without finding them first.
+*/
+.script-mask + .script-mask {
+  margin-top: -0.43em;
 }
 
 /* ==========================================================================

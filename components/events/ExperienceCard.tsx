@@ -129,7 +129,7 @@ export function ExperienceCard({
             aria-hidden
             className={cn(
               styles.numeral,
-              "absolute left-4 top-3 z-10 text-[2.25rem] font-bold leading-none tabular-nums",
+              "absolute left-4 top-3 z-10 text-folio font-bold leading-none tabular-nums",
             )}
           >
             {String(index + 1).padStart(2, "0")}
@@ -138,7 +138,7 @@ export function ExperienceCard({
 
         {/* Left-aligned, to the picture's own edge: a centred caption under a
             centred plate is a slide, this is an entry in a list. */}
-        <span className="mt-4 block text-[1.0625rem] font-semibold leading-snug text-text transition-colors duration-300 ease-soft group-hover:text-primary">
+        <span className="mt-4 block text-h4 font-semibold text-text transition-colors duration-300 ease-soft group-hover:text-primary">
           {experience.name}
         </span>
 

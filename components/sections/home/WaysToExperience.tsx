@@ -1,15 +1,12 @@
-import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
-import panel from "@/components/sections/home/PaintPanel.module.css";
-import { Stagger } from "@/components/motion/Stagger";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { Container } from "@/components/ui/Container";
-import Image from "next/image";
 
-import { DoodleMark } from "@/components/ui/DoodleMark";
-import { ModeMark } from "@/components/ui/ModeMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
+import { WaysTrail } from "@/components/sections/home/WaysTrail";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { INK } from "@/components/sections/hero/composition";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
 
@@ -159,25 +156,86 @@ const CARDS = [
   {
     tint: "color-mix(in oklab, #9059A4 30%, var(--color-cream))",
     mark: "#9059A4",
+    trail: "coral" as const,
     photo: "/images/experiences/CERAMIC_PAINTING.jpg",
   }, // 6.6:1
   {
     tint: "color-mix(in oklab, #D97757 30%, var(--color-cream))",
     mark: "#D97757",
+    trail: "starleaf" as const,
     photo: "/images/events/glitter-keepsakes.jpg",
   }, // 7.3:1
   {
     tint: "color-mix(in oklab, #C4B5FD 30%, var(--color-cream))",
     mark: "#9059A4",
+    trail: "bow" as const,
     photo: "/images/experience/community-table.jpg",
   }, // 8.4:1
   {
     tint: "var(--color-sage)",
     mark: "#D97757",
+    trail: "zigzag" as const,
     photo: "/images/events/national-day-cards.jpg",
   }, // 9.07:1
 ] as const;
 
+
+/*
+  Placed in the bands the cards alternate away from: the right half high up
+  where the first card is on the left, the left half lower down where the
+  second is on the right, and so on. Sizes are a share of the section's WIDTH
+  and each doodle's own aspect decides its height — the number to watch on a
+  section this tall.
+*/
+const WAYS_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "coral",
+    color: INK.lilac,
+    width: "5%",
+    right: "6%",
+    top: "9%",
+    rotate: -14,
+    drift: 26,
+    opacity: 0.16,
+    float: 14,
+  },
+  {
+    name: "splash",
+    color: INK.terracotta,
+    width: "6%",
+    left: "4%",
+    top: "34%",
+    rotate: 12,
+    drift: -22,
+    opacity: 0.14,
+    float: 16,
+    floatDelay: 1.3,
+  },
+  {
+    name: "starleaf",
+    color: INK.lavender,
+    width: "5.5%",
+    right: "5%",
+    top: "58%",
+    rotate: 8,
+    drift: 20,
+    opacity: 0.18,
+    float: 12,
+    floatDelay: 2.2,
+  },
+  {
+    name: "bow",
+    color: INK.lilac,
+    width: "4.5%",
+    left: "5%",
+    bottom: "8%",
+    rotate: -10,
+    drift: -18,
+    opacity: 0.16,
+    float: 15,
+    floatDelay: 0.7,
+  },
+];
 
 export async function WaysToExperience() {
   const experiences = await getCreativeExperiences();
@@ -266,7 +324,12 @@ export async function WaysToExperience() {
   return (
     <section
       aria-labelledby="ways-to-experience"
-      className="relative bg-cream py-[5rem] md:py-section lg:py-section-lg"
+      /* `overflow-x-clip`, not `hidden`: `hidden` would make this a scroll
+         container and a scroll container is what stops <DoodleMark>'s draw
+         ever filling for a mark inside it. The x-axis only, so the page still
+         scrolls normally — the same rule every other section on this site
+         that moves something sideways follows. */
+      className="relative isolate overflow-x-clip bg-cream py-[5rem] md:py-section lg:py-section-lg"
     >
       <Container>
         {/* The question, asked once across the whole measure. */}
@@ -278,7 +341,7 @@ export async function WaysToExperience() {
             <DisplayHeading
               id="ways-to-experience"
               className="mt-8 md:mt-10"
-              lines={["There is more", "than one way in."]}
+              lines={["There Is More", "Than One Way In."]}
             />
           </div>
 
@@ -291,173 +354,70 @@ export async function WaysToExperience() {
         </div>
 
         {/*
-          TWO ACROSS, NOT FOUR DOWN.
+          ==================================================================
+          A TRAIL, NOT A ROW OF FOUR — the client's ask for this section
+          ==================================================================
 
-          Each way in was a full-measure row: a name column, a lede column and
-          two door columns strung across 1400px, four times. Nothing shared a
-          baseline, the eye had to cross the whole page to finish one group,
-          and the four of them ran to about eleven hundred pixels of scrolling
-          on a laptop — which is the "a lot of content, messy to scroll" the
-          client is describing.
+          It has now been three shapes. Four full-measure rows, which was the
+          "messy to scroll" the client first called out; then four cards
+          across, which fixed the height and made the section a grid of
+          articles; and now a path with the four ways hanging off it, which is
+          what the client asked for in so many words: "each card comes within
+          a path", "the path colours fill when you scroll".
 
-          Paired, each group becomes a block you read in one go instead of a
-          line you track across, and the section comes in at roughly half the
-          height. Nothing was cut to do it: all four groups, all eight doors
-          and every line of approved copy are still here.
+          NOTHING WAS CUT TO DO IT. All four groups, all eight doors, every
+          photograph and every line of approved copy are the ones that were
+          here — the same `groups` array below feeds it, and the tints are the
+          measured ones in CARDS with their ratios still recorded beside them.
+          What changed is the arrangement and the way it arrives.
+
+          See <WaysTrail> for how the path stays right at every width without
+          measuring the DOM.
         */}
-        <Stagger
-          as="ol"
-          /*
-            FOUR ACROSS, NOT TWO BY TWO. At half the measure each card was
-            nearly 700px wide carrying five lines of copy, which is why they
-            read as four articles rather than four ways in. A quarter-measure
-            card is about 300px: enough for a picture, a name and two doors,
-            and not enough to tempt anything else back into it.
+        {/*
+          THE GROUND THE FLOW CROSSES. With the cards alternating and the link
+          swinging out through the open half, the measure opposite each card is
+          the one part of this section with nothing in it — the client asked
+          for marks there and it is the right place for them: no type at any
+          width, by construction.
 
-            Two up at `md` so the step from one column to four has a stage in
-            between rather than dropping four 170px cards onto a tablet.
-          */
-          className="mt-14 grid gap-5 md:mt-20 md:grid-cols-2 lg:grid-cols-4 lg:gap-6"
-        >
-          {groups.map((group, i) => (
-            <GroupRow key={group.name} group={group} index={i + 1} />
-          ))}
-        </Stagger>
+          Four, which is <SectionShapes>' ceiling, all from the smooth end of
+          the sheet, and all `desktopOnly` because below lg the cards take the
+          full measure and there is no open half to fill.
+        */}
+        <SectionShapes plan={WAYS_SHAPES} className="hidden lg:block" />
+
+        <WaysTrail
+          items={groups.map((group, i) => {
+            const card = CARDS[i % CARDS.length];
+            return {
+              name: group.name,
+              lede: group.lede,
+              doors: group.doors.map((door) => ({
+                label: door.label,
+                href: door.href,
+                mode: door.mode,
+              })),
+              mark: group.mark,
+              /* A SECOND, SMALLER SHAPE per way in — it is the node on the
+                 trail and the mark at the foot of the text box, so the line
+                 and the card are marked with the same cut-out.
+
+                 ALL FOUR ARE "LOOSE" SHAPES, and that is not a preference.
+                 The icon set splits into loose cut-outs and SLABS — a shape
+                 sitting on a coloured tile — and a slab used as a node reads
+                 as a small cropped square pinned to the line rather than as a
+                 mark. See WEIGHT in sections/hero/doodles.ts for which is
+                 which; coral, starleaf, bow and zigzag are loose. */
+              trailMark: card.trail,
+              tint: card.tint,
+              paint: card.mark,
+              photo: card.photo,
+            };
+          })}
+        />
       </Container>
     </section>
-  );
-}
-
-/**
- * One way in, as a panel that floods with paint.
- *
- * The client asked for these boxed and given a painted treatment, and the
- * paint language already exists on this page — the activity carousel reveals
- * a photograph through the deck's `splash` cut-out used as a mask. This is the
- * same mechanic on a colour: at rest the panel is White Rock with charcoal on
- * it, and reaching it spreads one approved colour out of the corner the
- * cut-out sits in, with the ink turning over to whatever reads on that colour.
- *
- * Every text node here uses `currentColor` and opacity rather than a colour
- * utility. A `text-text/85` would pin that line to charcoal and it would go
- * invisible the moment the panel floods — the whole point is that the panel
- * turns as one thing and nothing inside it has to know which colour it is on.
- *
- * See ./PaintPanel.module.css; it is pure CSS, so this stays a server
- * component.
- */
-function GroupRow({ group, index }: { group: Group; index: number }) {
-  const card = CARDS[(index - 1) % CARDS.length];
-
-  /*
-    `wipeUp`, and not the `settle` the collage uses.
-
-    These four are painted panels, so they fill rather than land: the clip
-    travels up from the foot and the colour arrives behind it, which is the
-    site's own flood language — the same gesture the header's menus open with
-    and the one <PaintPanel> uses on hover.
-
-    It reads correctly against the rounded corners rather than in spite of
-    them. `clip-path` intersects with the element's own border-radius instead
-    of replacing it, so the top corners stay round while the bottom edge is a
-    hard horizontal line travelling up. That straight edge IS the effect —
-    paint reaching a level.
-
-    The stagger runs 01 to 04, which in the 2x2 is left to right and then
-    down: the order the numerals already promise.
-  */
-  return (
-    <Reveal as="li" variant="wipeUp" delay={index * 0.09} className="h-full">
-      <div
-        className={`${panel.panel} plate flex h-full flex-col rounded-[1.5rem]`}
-        style={
-          {
-            "--tint": card.tint,
-            "--ink-mark": card.mark,
-          } as React.CSSProperties
-        }
-      >
-        {/*
-          FULL-BLEED TO THE PANEL'S OWN EDGES, which is why the padding moved
-          off the panel and onto the block below it. `.panel` already carries
-          `overflow: clip`, so the picture takes the card's 1.5rem radius at
-          the top two corners without a radius of its own — and the flood the
-          panel does on hover still travels over it, because that is a
-          `clip-path` on the same box.
-
-          16/9: wide enough to read as a band opening the card rather than as
-          a plate the copy is hung beneath, and short enough that all four
-          panels stay the same height when the doors below them differ by a
-          line. The panels are in a 2x2 with `h-full`, so an uneven picture
-          height would be paid for by whichever card is tallest.
-        */}
-        <span className="relative block aspect-[16/9] w-full shrink-0">
-          <Image
-            src={card.photo}
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 46vw, 92vw"
-            className="object-cover"
-          />
-        </span>
-
-        <div className="flex flex-1 flex-col px-6 py-7 lg:px-7 lg:py-8">
-        <div className="flex items-start justify-between gap-6">
-          {/* NO NUMERAL. It was counting four things that are not a sequence
-              — nobody does Create then Celebrate then Connect — so it read as
-              an order where there is none, and at four columns it was a line
-              of type spent on nothing. The cards keep their order; they no
-              longer claim it means something. */}
-          <div className="min-w-0">
-            <h3 className="text-h3 font-light tracking-[-0.02em]">{group.name}</h3>
-          </div>
-
-          <span aria-hidden className={`${panel.mark} mt-1 block h-10 w-10 shrink-0 lg:h-12 lg:w-12`}>
-            <DoodleMark name={group.mark} treatment="draw" delay={index * 110} />
-          </span>
-        </div>
-
-        <p className="mt-3 text-fine leading-[1.7] opacity-85">{group.lede}</p>
-
-        {/*
-          The two doors stack inside the panel rather than sitting side by
-          side: a half-width cell split again would give each door about
-          fifteen characters a line, and the notes under them are full
-          sentences from the approved copy.
-        */}
-        <ul className="mt-5 flex flex-col gap-3">
-          {group.doors.map((door) => (
-            <li key={door.label}>
-              <Link
-                href={door.href}
-                className="group/door -my-1 block py-1 text-current focus-visible:outline-none"
-              >
-                <span className="flex items-center gap-2.5 text-action font-semibold uppercase tracking-eyebrow">
-                  {door.mode ? <ModeMark mode={door.mode} /> : null}
-                  {/*
-                    A rule at rest, not only on hover: these are links inside
-                    running copy and a reader has to see that without moving a
-                    pointer over them. It is `currentColor` at 45% so it holds
-                    its contrast against the ink whichever way the panel has
-                    turned, and it goes solid on hover.
-                  */}
-                  <span className="border-b border-current/45 pb-1 transition-[border-color] duration-[var(--duration-hover)] ease-editorial group-hover/door:border-current group-focus-visible/door:border-current">
-                    {door.label}
-                  </span>
-                </span>
-                {/* THE NOTE UNDER EACH DOOR HAS GONE. It was a full sentence
-                    per door, two per card, eight on the section — the bulk of
-                    the text and the reason the cards were the size they were.
-                    Every one of them is the first line of the page the door
-                    opens, so nothing is lost: it is read a click later, where
-                    it belongs, instead of being previewed here. */}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        </div>
-      </div>
-    </Reveal>
   );
 }
 

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { cn } from "@/lib/utils";
-import { CollaborateTeaser } from "@/components/sections/home/CollaborateTeaser";
 /*
   THE CARD AND THE DAB COME FROM THE TEASER ITSELF — see <Apart>. The client
   asked for that section's object here, and one stylesheet for both is the
@@ -19,16 +18,13 @@ import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
-import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import {
   BRAND_STORY,
   CLOSING,
   COMMUNITY,
-  EVENT_PLATES,
   MISSION,
-  PAST_DESTINATIONS,
   TAGLINE,
   VISION,
   WHAT_SETS_US_APART,
@@ -102,24 +98,6 @@ export default function AboutPage() {
       */}
       <LittleCreators />
       <Apart />
-      <Created />
-      {/*
-        RESTORED, AND MOVED HERE FROM THE HOME PAGE at the client's ask.
-        "Let's create together" — the collaborative-approach teaser with the
-        three partnership models.
-
-        It was taken off the homepage as a safe removal, on the grounds that
-        the same content lives in full on /locations and nothing linked to the
-        teaser. The client wants it back, on this page, and that is the better
-        home for it: /about is where somebody works out what the Maison is,
-        and "we also bring this to your space" is part of that answer. On the
-        homepage it was a fourth call to action competing with three others.
-
-        It sits after <Created> and before the close, so the page runs from
-        what the Maison is, through what it makes, to who it will make it
-        with.
-      */}
-      <CollaborateTeaser />
       <Close />
     </>
   );
@@ -226,7 +204,7 @@ function Welcome() {
               than a different decision.
             */}
             <Reveal delay={0.16} className="mt-8 block md:mt-10">
-              <p className="max-w-[62ch] text-[clamp(1.0625rem,0.98rem+0.42vw,1.3125rem)] font-light leading-[1.75] text-text">
+              <p className="max-w-[62ch] text-lead font-light leading-[1.75] text-text">
                 {BRAND_STORY}
               </p>
             </Reveal>
@@ -451,7 +429,7 @@ function Purposeful({
       <p
         id={id}
         className={cn(
-          "heading-script pb-[0.18em] text-[clamp(1.75rem,1.45rem+1.3vw,2.4rem)] leading-[1.18]",
+          "heading-script pb-[0.18em] text-script-panel",
           onLilac ? "text-sage" : "text-primary",
         )}
       >
@@ -460,7 +438,7 @@ function Purposeful({
 
       <p
         className={cn(
-          "mt-5 max-w-[42ch] text-[clamp(1.0625rem,1rem+0.3vw,1.25rem)] font-light leading-[1.75]",
+          "mt-5 max-w-[42ch] text-lead font-light leading-[1.75]",
           onLilac ? "text-surface" : "text-text",
         )}
       >
@@ -583,7 +561,7 @@ function Community() {
                   </span>
 
                   <div>
-                    <h3 className="text-[1.0625rem] font-semibold leading-snug text-text md:text-lead">
+                    <h3 className="text-h4 font-semibold text-text">
                       {step.name}
                     </h3>
                     <p className="mt-2 max-w-[40ch] text-body leading-[1.8] text-text/85">
@@ -730,7 +708,7 @@ function Apart() {
               id="apart-heading"
               size="section"
               className="mt-6 md:mt-7"
-              lines={["Why it feels", "different"]}
+              lines={["Why It Feels", "Different"]}
             />
           </div>
 
@@ -788,11 +766,11 @@ function Apart() {
                       four are deck p.11. One weight only, so
                       `font-synthesis: none`.
                     */}
-                    <h3 className="mt-5 text-[1.0625rem] font-bold uppercase leading-[1.12] tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none] md:text-[1.25rem]">
+                    <h3 className="mt-5 text-h4 font-bold uppercase tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none]">
                       {point.name}
                     </h3>
 
-                    <p className="mt-2.5 text-[0.9375rem] leading-[1.65] text-text/85 md:text-body">
+                    <p className="mt-2.5 text-body leading-[1.65] text-text/85">
                       {point.description}
                     </p>
                   </div>
@@ -923,183 +901,6 @@ const APART_SHAPES: readonly ShapePlan[] = [
     desktopOnly: true,
   },
 ];
-
-/* ---- 05 created ---------------------------------------------------------- */
-
-/**
- * Where the Maison has created — the plates, and the places.
- *
- * An offset collage rather than a row of equal thumbnails: three photographs
- * at their own sizes, dropped and turned by a little, which is the homepage's
- * treatment of its own real photographs. The angles and offsets are derived
- * from the index so they are stable between renders — a random tilt on every
- * paint is the "constant floating" the brief rules out.
- *
- * PAST_DESTINATIONS is set as paint chips — see the note on the list itself
- * for why that replaced the run of names this comment used to describe.
- */
-function Created() {
-  return (
-    <section
-      aria-labelledby="created-heading"
-      /*
-        TOP PADDING, WHICH THIS SECTION SPENT A WHILE WITHOUT — the client's
-        note. It carried `pb` only, and that was right while <Apart> above it
-        was Light Sage too: two sage sections running together are one field,
-        and the gap between them was the one Apart's own foot left. Apart is
-        Soft Lavender now, so there is a hard colour seam directly above this
-        collage and nothing between the two. `py` puts the section's own
-        measure back on top of it.
-      */
-      className="relative isolate overflow-hidden bg-sage py-[5rem] md:py-section lg:py-section-lg"
-    >
-      <Container>
-        <div className="grid grid-cols-12 items-center gap-x-6 gap-y-12 lg:gap-x-12">
-          {/* The collage. */}
-          <div className="col-span-12 lg:col-span-7">
-            <Stagger>
-              <div className="flex items-start justify-center gap-4 md:gap-6 lg:justify-start">
-                {EVENT_PLATES.map((plate, i) => (
-                  <figure
-                    key={plate.src}
-                    className={`relative overflow-hidden rounded-[0.875rem] bg-cream md:rounded-[1.125rem] ${PLATE_SIZES[i % PLATE_SIZES.length]}`}
-                  >
-                    <Image
-                      src={plate.src}
-                      alt={plate.alt}
-                      width={plate.width}
-                      height={plate.height}
-                      sizes="(min-width: 1024px) 22vw, 30vw"
-                      className="h-full w-full object-cover"
-                    />
-                  </figure>
-                ))}
-              </div>
-            </Stagger>
-          </div>
-
-          {/* The record. */}
-          <div className="col-span-12 lg:col-span-5">
-            <Reveal>
-              <Eyebrow>Where we have created</Eyebrow>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <h2
-                id="created-heading"
-                className="heading-script mt-6 max-w-[13ch] pb-[0.3em] text-script-compact text-text"
-              >
-                {forScript("Tables we have set up")}
-              </h2>
-            </Reveal>
-            {/*
-              ==============================================================
-              THE PLACES, AS PAINT — not a run of names in a paragraph
-              ==============================================================
-
-              This was `PAST_DESTINATIONS.join(" · ")`, and the note above this
-              function argued for it: a typographic run reads as a record,
-              where a grid of pills reads as a filter you can press. The client
-              has overruled it, and on this page they are right — these are ten
-              malls the studio has actually worked in, the strongest single
-              claim /about makes, and set as one grey sentence they read as a
-              footnote.
-
-              THEY ARE PAINT, NOT BUTTONS, and that is what answers the old
-              objection. The chips are the header's own lozenge — <PaintStroke>
-              at full swell, the same device the homepage puts under "No
-              booking" and "5 activities" — drawn behind the word rather than a
-              bordered capsule around it. They are `<li>`s with no hover, no
-              cursor and nothing to press, so they cannot be mistaken for a
-              control; what they look like is a name written on a swatch.
-            */}
-            <Reveal delay={0.12}>
-              <ul className="mt-7 flex flex-wrap items-center gap-x-1.5 gap-y-2">
-                {PAST_DESTINATIONS.map((place, i) => (
-                  <li
-                    key={place}
-                    /* See <TwoWaysToCreate> on why the swell is driven to 1:
-                       the shared stroke rests as a band under a word, and this
-                       is a lozenge the word sits inside. */
-                    style={{ "--swell": 1, "--wet": 0.58 } as React.CSSProperties}
-                    className="relative isolate inline-block px-3 py-2"
-                  >
-                    {/* `shape="blot"`, for the reason <TwoWaysToCreate> gives:
-                        at `--swell: 1` this is a field the word is read on,
-                        not a band under it, and the brush was drawn for the
-                        second. */}
-                    <PaintStroke paint={PLACE_PAINTS[i % PLACE_PAINTS.length]} shape="blot" />
-                    <span className="relative text-action font-semibold uppercase tracking-eyebrow text-text">
-                      {place}
-                    </span>
-                  </li>
-                ))}
-                <li className="px-2 py-2 text-fine text-text/70">and more.</li>
-              </ul>
-            </Reveal>
-            <Reveal delay={0.18}>
-              {/* The nav bar's own hover language: no rule at rest, a
-                  hairline wiping in from the left. */}
-              <Link
-                href="/locations"
-                className="group/nav mt-7 inline-flex items-center gap-2 text-action font-semibold uppercase tracking-eyebrow text-primary"
-              >
-                <span className="relative inline-block pb-1.5">
-                  Find a studio
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute left-0 top-full -mt-1 block h-px w-full origin-right scale-x-0 bg-current transition-transform duration-[380ms] ease-editorial group-hover/nav:origin-left group-hover/nav:scale-x-100 group-focus-visible/nav:origin-left group-focus-visible/nav:scale-x-100 motion-reduce:transition-none"
-                  />
-                </span>
-                <span
-                  aria-hidden
-                  className="transition-transform duration-500 ease-editorial motion-safe:group-hover/nav:translate-x-1"
-                >
-                  &rarr;
-                </span>
-              </Link>
-            </Reveal>
-          </div>
-        </div>
-      </Container>
-    </section>
-  );
-}
-
-/*
-  THE CHIP PAINTS, ALL MIXED TOWARD WHITE ROCK so Charcoal reads on every one.
-  Measured against Charcoal at full strength: Deep Lilac is 2.37:1 and Warm
-  Terracotta 3.84:1 — neither can carry a word undiluted. Mixed at thirty per
-  cent the whole set clears 4.5:1 with room, which is the same solve the
-  activity panels use. Light Sage is already a background colour and goes in
-  at full strength.
-
-  WHITE ROCK WHERE THE OTHER PANELS USE LIGHT SAGE, and that is not a whim.
-  This section's ground IS Light Sage, and lib/paint.ts says it plainly: sage
-  paint on sage paper is not a quiet swatch, it is a missing one. Three of the
-  ten chips landed on that colour and came out as bare words between painted
-  neighbours — visible in the first render. White Rock is the substitute
-  `PAINTS_ON_SAGE` already names for exactly this case.
-
-  Four colours over ten places means the palette runs out and starts again,
-  which is what a palette does — it is not four groups of malls.
-*/
-const PLACE_PAINTS = [
-  "color-mix(in oklab, #C4B5FD 30%, var(--color-cream))", // 8.4:1
-  "var(--color-cream)", // 9.34:1
-  "color-mix(in oklab, #D97757 30%, var(--color-cream))", // 7.3:1
-  "color-mix(in oklab, #9059A4 30%, var(--color-cream))", // 6.6:1
-] as const;
-
-/*
-  The plates' sizes and their turn. Three different shapes at three different
-  heights, so the row has a top edge that moves — a collage rather than a
-  strip. Fixed per position and derived from nothing at render time.
-*/
-const PLATE_SIZES = [
-  "w-[34%] rotate-[-3deg] md:w-[32%]",
-  "mt-8 w-[30%] rotate-[2deg] md:mt-12 md:w-[28%]",
-  "mt-3 w-[32%] rotate-[-1.5deg] md:w-[30%]",
-] as const;
 
 /* ---- 06 close ------------------------------------------------------------ */
 

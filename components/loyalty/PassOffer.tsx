@@ -149,7 +149,7 @@ function PassRow({
 
           <h3
             id={headingId}
-            className="mt-3 text-[1.6rem] font-light leading-[1.15] tracking-[-0.015em] text-text md:text-[1.85rem]"
+            className="mt-3 text-h3 font-light tracking-[-0.015em] text-text"
           >
             {pass.name}
           </h3>
@@ -243,7 +243,7 @@ function Action({
 
   return (
     <div className="mt-8 border-t border-line pt-7">
-      <p className="text-[1.5rem] font-medium leading-none tabular-nums tracking-[-0.01em] text-text">
+      <p className="text-h3 font-medium leading-none tabular-nums tracking-[-0.01em] text-text">
         {formatMoney(pass.price.amount, pass.price.currency)}
       </p>
 
@@ -319,7 +319,7 @@ function Action({
 function NoPasses() {
   return (
     <Reveal className="mt-10 border-t border-line pt-10 md:mt-12 md:pt-12">
-      <p className="max-w-[32rem] text-[1.35rem] font-light leading-[1.3] tracking-[-0.015em] text-text md:text-[1.5rem]">
+      <p className="max-w-[32rem] text-h3 font-light tracking-[-0.015em] text-text">
         There are no passes on offer just now.
       </p>
       <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">

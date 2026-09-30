@@ -79,8 +79,8 @@ export function FindYourVibe({
         className={cn(
           "mt-3.5 font-light leading-[1.15] tracking-[-0.02em] text-text",
           size === "full"
-            ? "text-[clamp(1.75rem,1.2rem+1.6vw,2.5rem)]"
-            : "text-[clamp(1.25rem,1.05rem+0.6vw,1.6rem)]",
+            ? "text-script-panel"
+            : "text-statement",
         )}
       >
         {VIBE_QUESTION}

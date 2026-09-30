@@ -408,7 +408,7 @@ function EventHeader({
               <Reveal
                 as="span"
                 variant="maskUp"
-                className="heading-script block pb-[0.3em] text-[clamp(2.25rem,1.6rem+2.6vw,3.5rem)] leading-[1.14]"
+                className="heading-script block pb-[0.3em] text-script-compact leading-[1.14]"
               >
                 <ScriptTitle>{eventTitle(detail)}</ScriptTitle>
               </Reveal>
@@ -493,7 +493,7 @@ function ScheduledFacts({ workshop }: { workshop: Workshop }) {
           </time>
           <Sub>{weekday}</Sub>
         </p>
-        <p className="mt-4 flex items-center gap-4 text-[1.6rem] font-light leading-none tracking-[-0.01em] text-text md:text-[1.9rem]">
+        <p className="mt-4 flex items-center gap-4 text-h3 font-light leading-none tracking-[-0.01em] text-text">
           <span className="tabular-nums">{start}</span>
           <span aria-hidden className="h-px w-6 shrink-0 bg-text/30" />
           <span className="sr-only">to</span>

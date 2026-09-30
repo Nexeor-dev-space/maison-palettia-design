@@ -866,3 +866,91 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
       "Choose a date from the programme, open it, and keep your place from that page. Each event shows how many places are left before you start.",
   },
 ];
+
+/* ==========================================================================
+   /faq — the same questions, grouped, plus the ones the rest of the site
+   already answers somewhere else.
+
+   ==========================================================================
+   EVERY ANSWER HERE IS A SENTENCE THE SITE ALREADY STANDS BEHIND
+   ==========================================================================
+
+   The four in {@link HOMEPAGE_FAQ} above are reused verbatim rather than
+   rewritten, and the six added to them are each lifted from the place that
+   already says it:
+
+     "no experience is needed"  .... the note at the foot of an event page
+     walking in vs booking ......... the two roads on the homepage, and the
+                                     `kind` split lib/workshops.ts describes
+     "nothing is charged" .......... the note at the foot of checkout
+     "no account to create" ........ the loyalty page's own line
+     what a pass is ................ the loyalty page's own line
+     private events ................ the page that exists for it
+
+   Nothing is paraphrased into a new claim. Where two places said the same
+   thing in different words, the longer of the two is the one kept.
+
+   TODO(client): the answers a studio normally needs and this one has still
+   not written down — MINIMUM AGE, WHETHER CHILDREN CAN ATTEND, ACCESSIBILITY
+   AT EACH MALL, WHAT HAPPENS IF YOU CANNOT MAKE IT, and WHETHER PIECES ARE
+   FIRED AND COLLECTED LATER. They are the five most-asked questions a craft
+   studio gets and not one of them can be answered from anything in this
+   project, so none of them appears below. Add the studio's own wording to a
+   group here and the page renders it with no other edit.
+   ========================================================================== */
+export interface FaqGroup {
+  /** What this run of questions is about. A label, never a claim. */
+  title: string;
+  items: FaqItem[];
+}
+
+export const FAQ_GROUPS: readonly FaqGroup[] = [
+  {
+    title: "Coming to an event",
+    items: [
+      HOMEPAGE_FAQ[0],
+      HOMEPAGE_FAQ[1],
+      HOMEPAGE_FAQ[2],
+      {
+        question: "Do I need any experience?",
+        answer:
+          "Everything is provided, and no experience is needed. If something is unclear, ask before you book.",
+      },
+    ],
+  },
+  {
+    title: "Booking a place",
+    items: [
+      {
+        question: "What is the difference between walking in and booking a seat?",
+        answer:
+          "The Maison runs two kinds of thing. DIY activities you walk in and do, any time you come in — there is nothing to book. Scheduled sessions are guided, each runs on a set date, and those are the ones you book online.",
+      },
+      HOMEPAGE_FAQ[3],
+      {
+        question: "Am I charged when I book?",
+        answer:
+          "Your place is held when you reserve it. Nothing is charged through this site yet.",
+      },
+      {
+        question: "Do I need an account?",
+        answer: "No — you check out as a guest. There is no account to create.",
+      },
+    ],
+  },
+  {
+    title: "Groups and passes",
+    items: [
+      {
+        question: "Can you run something for my group?",
+        answer:
+          "Yes. The Maison brings creative experiences to spaces where people already gather, and shapes the activity around the group once you have told us about it. Tell us what you are planning — roughly when, roughly how many, and what you would like everyone to make.",
+      },
+      {
+        question: "What is a pass?",
+        answer:
+          "A pass holds your sessions in advance, so when a date comes round the only decision left is what to make. Choose one, add it to your booking, and check out as a guest.",
+      },
+    ],
+  },
+];

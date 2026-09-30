@@ -168,7 +168,7 @@ export async function ExperienceDiscovery() {
             <DisplayHeading
               id="experiences-heading"
               className="mt-7 md:mt-9"
-              lines={["Pick a colour,", "pick a table."]}
+              lines={["Pick a Colour,", "Pick a Table."]}
             />
           </div>
 
@@ -197,7 +197,7 @@ export async function ExperienceDiscovery() {
               "a guided session" — which is the distinction the section
               exists to teach.
             */}
-            <p className="text-[clamp(1.25rem,1.05rem+0.6vw,1.6rem)] leading-[1.55] text-text/85">
+            <p className="text-statement leading-[1.55] text-text/85">
               Walk in, pick your palette and start creating, or book a guided session and make
               something new with us.
             </p>

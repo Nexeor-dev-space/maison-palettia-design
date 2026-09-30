@@ -4,7 +4,7 @@ import Link from "next/link";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { DOODLE_PLAN, DRAW_ORDER, type DoodlePlan } from "@/components/sections/hero/composition";
-import { DOODLES } from "@/components/sections/hero/doodles";
+import { resolveIcon } from "@/components/sections/hero/doodles";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { HeroIntro } from "@/components/sections/hero/HeroIntro";
 import { cn } from "@/lib/utils";
@@ -211,7 +211,7 @@ export function Hero() {
                 styles.reveal,
                 styles.sub,
                 "script-lede mx-auto max-w-[42rem] italic",
-                "text-[clamp(1.0625rem,0.92rem+0.6vw,1.375rem)] leading-[1.5]",
+                "text-lead leading-[1.5]",
               )}
               style={delay(240)}
             >
@@ -223,7 +223,7 @@ export function Hero() {
                 styles.reveal,
                 styles.sub,
                 "mx-auto mt-3 max-w-[46rem] md:mt-4",
-                "text-[clamp(1.1875rem,1rem+0.72vw,1.625rem)] leading-[1.5]",
+                "text-statement leading-[1.5]",
               )}
               style={delay(320)}
             >
@@ -283,7 +283,9 @@ export function Hero() {
 
 /** One doodle, in its five boxes — see `.doodle` in Hero.module.css. Decorative. */
 function DoodleShape({ plan }: { plan: DoodlePlan }) {
-  const shape = DOODLES[plan.name];
+  /* The colour the composition gives this icon chooses which of the client's
+     ten arrives, in its own colours — see ./hero/doodles.ts. */
+  const shape = resolveIcon(plan.name, plan.color);
   const mobile = plan.mobile ?? plan.desktop;
   // Which way it drifts as the card opens over it: away from the card's centre.
   const dirx = plan.desktop.left + plan.desktop.width / 2 < 50 ? -1 : 1;
@@ -320,13 +322,17 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
               style={{ "--rotate": `${plan.desktop.rotate}deg` } as Vars}
               focusable="false"
             >
-              <path
-                d={shape.d}
-                pathLength={1}
-                fill={plan.color}
-                stroke={plan.color}
-                className={styles.ink}
-              />
+              {/* The sheet's own colours, one path per part. */}
+              {shape.parts.map((part, i) => (
+                <path
+                  key={i}
+                  d={part.d}
+                  pathLength={1}
+                  fill={part.fill}
+                  stroke={part.fill}
+                  className={styles.ink}
+                />
+              ))}
             </svg>
           </div>
         </div>

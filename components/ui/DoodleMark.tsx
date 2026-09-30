@@ -1,4 +1,4 @@
-import { DOODLES, type DoodleName } from "@/components/sections/hero/doodles";
+import { resolveIcon, type DoodleName } from "@/components/sections/hero/doodles";
 import styles from "@/components/ui/DoodleMark.module.css";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +21,28 @@ import { cn } from "@/lib/utils";
  *   stamp .... a fast press and settle when the card it sits in is hovered.
  *   rise ..... a few pixels up into place, for a mark beside running text.
  *
- * The shapes themselves are the vectors read out of the client's brand deck
- * (see ../sections/hero/doodles.ts); nothing here draws a new one.
+ * The shapes themselves are the vectors read out of the client's brand
+ * GUIDELINES sheet (see ../sections/hero/doodles.ts); nothing here draws a
+ * new one.
+ *
+ * ==========================================================================
+ * THE COLOUR PICKS THE ICON NOW — IT DOES NOT PAINT ONE
+ * ==========================================================================
+ *
+ * These arrive in the colours the brand sheet draws them in, and nothing
+ * here repaints them: that was the client's note, and it was fair — a Light
+ * Sage slab carrying a Soft Lavender starburst, drawn instead in terracotta
+ * and White Rock, is not their icon however right the outline is.
+ *
+ * `color` has not gone away and means what it always meant to a placement:
+ * which colour reads on this ground. It now chooses WHICH of the ten icons
+ * arrives rather than what one is painted with — the set holds two icons in
+ * each of five colours, so there is always one to answer with. See
+ * `resolveIcon`. Every measured placement on the site therefore still gets a
+ * mark dominated by the colour it asked for.
+ *
+ * The one exception is `dot`, which is a bullet rather than an icon and
+ * keeps the colour it is handed.
  *
  * `on` is what starts `draw` and `rise` — a panel opening, a section arriving.
  * `stamp` ignores it and answers the nearest `.group` instead.
@@ -41,7 +61,13 @@ export function DoodleMark({
   className,
 }: {
   name: DoodleName;
-  /** A brand colour. Defaults to the ink around it. */
+  /**
+   * Which of the palette's colours should dominate this mark.
+   *
+   * It picks the icon rather than painting it — see the note above and
+   * `resolveIcon`. Left out, the shape word alone decides and the icon
+   * arrives in whatever colour the sheet draws it.
+   */
   color?: string;
   treatment?: "draw" | "stamp" | "rise";
   /**
@@ -73,7 +99,7 @@ export function DoodleMark({
   depth?: number;
   className?: string;
 }) {
-  const shape = DOODLES[name];
+  const shape = resolveIcon(name, color);
 
   return (
     /*
@@ -93,7 +119,21 @@ export function DoodleMark({
       style={{ "--mark-delay": `${delay}ms`, color } as React.CSSProperties}
       className={cn(styles.mark, styles[treatment], className)}
     >
-      <path d={shape.d} fill={color} pathLength={1} className={styles.ink} />
+      {shape.parts.map((part, i) => (
+        <path
+          key={i}
+          d={part.d}
+          fill={part.fill}
+          pathLength={1}
+          /* `.ink` strokes with `currentColor` while the outline draws
+             itself, so each part carries its own — otherwise a two-tone icon
+             would be outlined in one colour and the second would appear out
+             of nowhere when the fill arrived. The dot's part is
+             `currentColor`, which resolves to the `color` set on the svg. */
+          style={{ color: part.fill }}
+          className={styles.ink}
+        />
+      ))}
     </svg>
     </span>
   );

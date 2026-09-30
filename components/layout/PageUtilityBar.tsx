@@ -171,7 +171,7 @@ export function PageUtilityBar({ note, links }: PageUtilityBarProps) {
                   <span>{item.label}</span>
                   <span
                     aria-hidden
-                    className="shrink-0 text-[1.125rem] leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+                    className="shrink-0 text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
                   >
                     &#8594;
                   </span>

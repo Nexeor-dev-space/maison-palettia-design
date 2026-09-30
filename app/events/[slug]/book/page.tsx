@@ -86,7 +86,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
 
         <div className="col-span-12 mt-12 lg:col-span-7 lg:col-start-1 lg:row-start-1 lg:mt-0">
           <Reveal>
-            <h1 className="text-[1.75rem] font-light leading-[1.1] tracking-[-0.02em] md:text-[2.25rem]">
+            <h1 className="text-h1 font-light tracking-[-0.02em]">
               Hold your place.
             </h1>
             <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/80">

@@ -60,14 +60,26 @@ export default async function LocationsPage() {
         break the `view()` timelines the marks inside it draw off.
       */}
       {/*
-        WHITE ROCK, AT THE CLIENT'S ASK. This was `surface` — a pale
-        sage-white — which made the page open on very nearly the same colour
-        as the Light Sage section under it, and put a White Rock plate on a
-        ground it was a shade away from. The two have swapped: the section is
-        the cream and the plate is the sage, so the card is plainly an object
-        laid on the paper rather than a lighter patch of it.
+        LIGHT SAGE, AT THE CLIENT'S ASK — and the page's three grounds were
+        set together: Light Sage here, White Rock for "Where we've created"
+        below it, Light Sage again for the partner section, then the Deep
+        Lilac door. The page alternates from the top instead of opening on
+        two neighbouring warm fields.
+
+        It was White Rock, and before that the pale sage-white `surface`. Each
+        change takes the objects standing on it with it, which is the only
+        part of a ground swap that is not a one-word edit:
+
+          the destination plate ... was Light Sage on the cream. Sage on sage
+            is 1.03:1 — not a card, a patch of the same paper — so it is the
+            White Rock one again (`PartnerPlate`'s default).
+          the two cut-outs ....... unchanged. Deep Lilac reads 3.83:1 on this
+            ground and Warm Terracotta 2.36:1, which is what they were doing
+            on the cream.
+
+        Charcoal Slate is 9.07:1 here, so no word on the section changes ink.
       */}
-      <section aria-labelledby="locations-title" className="overflow-clip bg-cream">
+      <section aria-labelledby="locations-title" className="overflow-clip bg-sage">
         <Container className="py-[3.5rem] md:py-[4.5rem] lg:py-[5.5rem]">
           {/*
             ==============================================================
@@ -105,7 +117,7 @@ export default async function LocationsPage() {
                 as="h1"
                 id="locations-title"
                 className="mt-7 md:mt-9"
-                lines={["Where to", "find us."]}
+                lines={["Where to", "Find Us."]}
               />
               <Reveal delay={0.15}>
                 <p className="mt-6 max-w-[30rem] text-lead leading-[1.7] text-text/85 md:mt-8">
@@ -138,7 +150,10 @@ export default async function LocationsPage() {
               <Reveal delay={0.22}>
                 <div className="mt-10 flex flex-col gap-4 md:mt-12">
                   {partners.map((partner) => (
-                    <PartnerPlate key={partner.slug} partner={partner} tone="sage" />
+                    /* White Rock — the default. The section around it is Light
+                       Sage again, and a sage plate on it would be a patch of
+                       the paper rather than a card. */
+                    <PartnerPlate key={partner.slug} partner={partner} />
                   ))}
                 </div>
               </Reveal>
@@ -183,14 +198,13 @@ export default async function LocationsPage() {
                     band can hold.
 
                     MEASURED, AS EVERY MARK ON THIS SITE IS — and re-measured
-                    when the ground changed. Against White Rock the two that
-                    carry are the same two: Deep Lilac at 3.94:1 and Warm
-                    Terracotta at 2.45:1, both a little softer than they were
-                    on the old pale sage-white (4.67 and 2.88) and both still
-                    plainly shapes. Soft Lavender is 1.44 here and Light Sage
-                    1.23 — the plate beside them is the sage now, and a mark
-                    in it would read as a smudge of the card rather than as a
-                    cut-out.
+                    each time the ground has changed. On this Light Sage the
+                    two that carry are the same two they have always been:
+                    Deep Lilac at 3.83:1 and Warm Terracotta at 2.36:1, both
+                    plainly shapes. Soft Lavender is 1.51 here and White Rock
+                    1.03 — the plate beside them is the White Rock now, and a
+                    mark in that colour would read as a smudge of the card
+                    rather than as a cut-out.
 
                     Decorative and `aria-hidden`, `lg:` only: below that the
                     columns stack and there is no band for them to sit in.
@@ -209,7 +223,7 @@ export default async function LocationsPage() {
                 </>
               ) : (
                 <Reveal className="border-t border-line pt-10 lg:mt-12">
-                  <p className="max-w-[30rem] text-[1.5rem] font-light leading-[1.25]">
+                  <p className="max-w-[30rem] text-h3 font-light">
                     The next destination is being confirmed.
                   </p>
                 </Reveal>
@@ -220,7 +234,14 @@ export default async function LocationsPage() {
       </section>
 
       {/* ---- before ---- */}
-      <section aria-labelledby="past-heading" className="bg-sage py-[5rem] md:py-section lg:py-section-lg">
+      {/*
+        WHITE ROCK, so the page alternates from the top — see the note on the
+        masthead above, where the client set all three grounds at once. There
+        is nothing in this section to re-measure: it is type and hairlines,
+        all of it Charcoal Slate, which reads 9.36:1 on White Rock against the
+        9.07 it had on the sage.
+      */}
+      <section aria-labelledby="past-heading" className="bg-cream py-[5rem] md:py-section lg:py-section-lg">
         <Container>
           <div className="grid grid-cols-12 gap-x-6 gap-y-12 lg:gap-x-10">
             <div className="col-span-12 lg:col-span-5">
@@ -231,7 +252,7 @@ export default async function LocationsPage() {
                 id="past-heading"
                 size="compact"
                 className="mt-8 md:mt-10"
-                lines={["Where we’ve", "created."]}
+                lines={["Where We’ve", "Created."]}
               />
               <Reveal delay={0.15}>
                 <p className="mt-7 max-w-[30rem] text-body leading-[1.85] text-text">
@@ -270,7 +291,7 @@ export default async function LocationsPage() {
                         >
                           {String(i + 1).padStart(2, "0")}
                         </span>
-                        <span className="text-[1.3rem] font-light leading-tight tracking-[-0.01em] text-text md:text-[1.55rem]">
+                        <span className="text-h3 font-light tracking-[-0.01em] text-text">
                           {name}
                         </span>
                       </p>
@@ -447,7 +468,10 @@ const CARD_STOCK: readonly {
     lift: "",
   },
   {
-    ground: "bg-sage",
+    /* WHITE ROCK, NOT LIGHT SAGE — the section's own ground is the sage now,
+       and a sage card on it is 1.03:1: not a card, a patch of the paper. The
+       ink is unchanged, Charcoal reading 9.36:1 on this one. */
+    ground: "bg-cream",
     heading: "text-text",
     body: "text-text/85",
     folio: "text-primary/35",
@@ -471,11 +495,12 @@ const CARD_STOCK: readonly {
 /*
   The shapes on the section's own paper, behind everything.
 
-  White Rock is a warm near-neutral and only three of the palette have a step
-  against it — Deep Lilac 3.95, Warm Terracotta 2.44, Charcoal 9.36. Light
-  Sage is 1.03 and Soft Lavender 1.44, so at the opacities a ground can
-  afford they would be invisible. Those two are on the cards instead, where
-  they are the paper rather than a mark on it.
+  The ground is Light Sage now and the arithmetic comes out the same way it
+  did on the White Rock: Deep Lilac 3.83, Warm Terracotta 2.36, Charcoal
+  9.07, and the two that cannot be seen are White Rock at 1.03 and Soft
+  Lavender at 1.51. Those two are on the cards instead, where they are the
+  paper rather than a mark on it — which is why none of the four below had to
+  change when the ground did.
 
   AND OF THE THREE THAT DO SHOW, CHARCOAL IS STILL WRONG HERE — see the note
   on the zigzag. Contrast says it works; what it actually looks like at a
@@ -559,7 +584,12 @@ function HostMovement() {
     <section
       id="collaborate"
       aria-labelledby="host-heading"
-      className="relative isolate scroll-mt-header overflow-clip bg-cream py-[5rem] md:py-section lg:py-section-lg md:scroll-mt-[var(--spacing-header-lg)]"
+      /* LIGHT SAGE, at the client's ask — the third of the three grounds set
+         together; see the masthead. The card that was Light Sage moved to
+         White Rock with it, because a sage card on a sage ground is 1.03:1.
+         The four ground marks did not have to move: Deep Lilac is 3.83:1 here
+         and Warm Terracotta 2.36:1, which is what they were on the cream. */
+      className="relative isolate scroll-mt-header overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg md:scroll-mt-[var(--spacing-header-lg)]"
     >
       <SectionShapes plan={HOST_SHAPES} />
       <Container className="relative">
@@ -573,7 +603,7 @@ function HostMovement() {
             <DisplayHeading
               id="host-heading"
               className="col-span-12 lg:col-span-7"
-              lines={["Bring the Maison", "to your space."]}
+              lines={["Bring the Maison", "to Your Space."]}
             />
 
             <Reveal delay={0.15} className="col-span-12 lg:col-span-4 lg:col-start-9 lg:pb-4">
@@ -647,7 +677,7 @@ function HostMovement() {
                   <div className="flex items-start justify-between gap-5">
                     <p
                       className={cn(
-                        "text-[2.5rem] leading-[0.82] tracking-[0.01em] [font-family:var(--font-deck)] [font-synthesis:none]",
+                        "text-folio tracking-[0.01em] [font-family:var(--font-deck)] [font-synthesis:none]",
                         stock.folio,
                       )}
                     >
@@ -667,7 +697,7 @@ function HostMovement() {
 
                   <h3
                     className={cn(
-                      "mt-9 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] lg:text-[1.75rem]",
+                      "mt-9 text-h3 font-light tracking-[-0.02em]",
                       stock.heading,
                     )}
                   >
@@ -762,7 +792,7 @@ function PartnerClose() {
         </span>
 
         <Reveal>
-          <p className="mx-auto max-w-[30ch] text-[clamp(1.5rem,1.15rem+1.15vw,2.1rem)] font-light leading-[1.35] tracking-[-0.01em] text-surface">
+          <p className="mx-auto max-w-[30ch] text-statement font-light leading-[1.35] tracking-[-0.01em] text-surface">
             Tell us about your space and what you have coming up, and we will come back with what
             the Maison could make there.
           </p>

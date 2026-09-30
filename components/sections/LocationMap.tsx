@@ -234,9 +234,12 @@ export function PartnerPlate({
    *   cream ... White Rock. The default, and what the event page needs: its
    *             own ground is Light Sage, and a sage plate on it is 1.0:1 —
    *             not a card, a patch of the same paper.
-   *   sage .... Light Sage, for a plate laid on White Rock. /locations takes
-   *             this, at the client's ask, now that the section around it is
-   *             the cream one.
+   *   sage .... Light Sage, for a plate laid on White Rock. Nothing passes it
+   *             today: /locations took it while its masthead was the cream
+   *             one, and that section is Light Sage again, so the plate is
+   *             back on the default. The tone stays because the pairing is
+   *             the point — whichever of the two neutrals the section is,
+   *             the plate is the other.
    *
    * IT IS A PROP RATHER THAN A `className`, and that is not fussiness: `cn`
    * here is plain concatenation, so a `bg-sage` handed in through className
@@ -278,10 +281,10 @@ export function PartnerPlate({
           className="dab h-9 w-[3.5rem] md:h-10 md:w-[4.25rem]"
           style={{ "--paint": INK.terracotta, "--tilt": "-2deg" } as CSSVars}
         />
-        <h3 className="mt-5 text-[1.0625rem] font-bold uppercase leading-[1.12] tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none] md:text-[1.25rem]">
+        <h3 className="mt-5 text-h4 font-bold uppercase tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none]">
           {partner.name}
         </h3>
-        <p className="mt-2 text-fine font-medium uppercase tracking-eyebrow text-text/75">
+        <p className="mt-2 text-label font-medium uppercase tracking-eyebrow text-text/75">
           {partner.locality}
         </p>
         <p className="mt-4 max-w-[34rem] text-body leading-[1.8] text-text/80">

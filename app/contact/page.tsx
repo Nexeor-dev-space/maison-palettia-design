@@ -121,13 +121,13 @@ function Invitation() {
 
           <h1 id="contact-intro" className="mt-8 md:mt-10">
             <Stagger>
-              <span className={STATEMENT_LINE}>Let&apos;s create</span>
-              <span className={STATEMENT_LINE}>something together.</span>
+              <span className={STATEMENT_LINE}>Let&apos;s Create</span>
+              <span className={STATEMENT_LINE}>Something Together.</span>
             </Stagger>
           </h1>
 
           <Reveal delay={0.15}>
-            <p className="script-lede max-w-[44ch] text-lead font-light leading-[1.7] text-text md:text-[1.35rem]">
+            <p className="script-lede max-w-[44ch] text-lead font-light leading-[1.7] text-text">
               Whether it is a question about an upcoming event, a place you would like to keep, or
               something you would like to make with us — write to the Maison and we will take it
               from there.
