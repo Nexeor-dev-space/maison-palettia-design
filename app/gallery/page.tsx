@@ -1,8 +1,8 @@
 import { GalleryWall, type WallItem } from "@/components/gallery/GalleryWall";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
-import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import { EVENT_PLATES } from "@/lib/brand";
 import { getCreativeExperiences } from "@/lib/experiences";
@@ -81,17 +81,45 @@ export default async function GalleryPage() {
   const items: WallItem[] = interleave(activityItems, plateItems, STUDIO_FRAMES);
 
   return (
-    <section aria-labelledby="gallery-title" className="relative isolate overflow-hidden bg-sage">
-      <Container className="relative pb-[5rem] pt-[3.5rem] md:pb-section md:pt-[4.5rem] lg:pb-section-lg lg:pt-[5.5rem]">
-        {/* One mark in the margin, breaking the measure's right edge. */}
-        <Reveal
-          delay={0.28}
-          className="pointer-events-none absolute -right-5 top-10 hidden w-[7.5rem] lg:block xl:w-[9rem]"
-        >
-          <DoodleMark name="splash" color={INK.lavender} treatment="draw" delay={300} />
-        </Reveal>
+    <section
+      aria-labelledby="gallery-title"
+      /* `overflow-clip`, not `hidden`: a scroll container breaks the view
+         timeline the brand marks draw on. Same trap as everywhere else. */
+      className="relative isolate overflow-clip bg-sage"
+    >
+      {/*
+        THE SHAPES BEHIND THE WALL. "Use doodles here to make this section more
+        engaged" — and the reference puts them exactly here, at the edges of
+        the block rather than over it: a large cut-out breaking the top right,
+        smaller ones running down the left margin and along the foot.
 
-        <div className="max-w-[26ch]">
+        WHICH COLOURS SHOW ON LIGHT SAGE, measured: Deep Lilac 3.83:1, Charcoal
+        9.36, Warm Terracotta 2.36, White Rock 1.03, Soft Lavender 1.44. The
+        last two are invisible on this ground at any opacity a background can
+        afford, so these are lilac and terracotta with one small charcoal.
+
+        They sit in the head's empty right half and in the page's two margins,
+        never behind the pictures — a mark half-covered by a photograph reads
+        as a rendering fault rather than as a layer.
+      */}
+      <SectionShapes plan={WALL_SHAPES} />
+
+      <Container className="relative pb-[5rem] pt-[3.5rem] md:pb-section md:pt-[4rem] lg:pb-section-lg lg:pt-[4.5rem]">
+        {/*
+          THE HEAD WAS A NARROW COLUMN AND THREE QUARTERS OF A SCREEN OF
+          NOTHING. `max-w-[26ch]` broke "A look inside the studio" over three
+          lines of script in the left quarter of the page, and the eye had to
+          cross an empty Light Sage band the height of the viewport before it
+          reached a photograph.
+
+          IT IS A REM MEASURE RATHER THAN A `ch` ONE, and that is the fix
+          rather than a preference. `ch` is the width of a "0", and Hapsha's
+          is narrow while its letters are wide and heavily joined — 26ch
+          measured about 380px against lines that want 490. Set against the
+          type's own measured run, 33rem takes "A look inside" and "the
+          studio" and nothing more.
+        */}
+        <div className="max-w-[33rem]">
           <Reveal>
             <Eyebrow>Gallery</Eyebrow>
           </Reveal>
@@ -105,13 +133,79 @@ export default async function GalleryPage() {
           </Reveal>
         </div>
 
-        <div className="mt-12 md:mt-16">
+        <div className="mt-10 md:mt-12">
           <GalleryWall items={items} />
         </div>
       </Container>
     </section>
   );
 }
+
+/*
+  Four is the ceiling <SectionShapes> sets. The big lilac splash is the one the
+  reference leads with — top right, breaking the measure — and the rest are
+  smaller and lower so the page has shapes at both ends rather than a cluster
+  at one.
+*/
+const WALL_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "splash",
+    color: INK.lilac,
+    width: "16%",
+    right: "-2%",
+    top: "1%",
+    rotate: -12,
+    drift: 22,
+    opacity: 0.24,
+    float: 13,
+    desktopOnly: true,
+  },
+  {
+    /*
+      IN THE HEAD, NOT THE MARGIN. This sat at `left: -1%, top: 34%` and was
+      invisible: the page runs full-bleed to a 20px gutter, so there is no
+      margin to put a shape in, and at a third of the way down it was simply
+      behind the first column of photographs. The head's right half is the one
+      piece of open Light Sage this page has.
+    */
+    name: "coral",
+    color: INK.lilac,
+    width: "8%",
+    left: "46%",
+    top: "3%",
+    rotate: 14,
+    drift: -18,
+    opacity: 0.18,
+    float: 15,
+    floatDelay: 1.3,
+    desktopOnly: true,
+  },
+  {
+    name: "starburst",
+    color: INK.terracotta,
+    width: "7%",
+    right: "1%",
+    bottom: "8%",
+    rotate: 10,
+    drift: 18,
+    opacity: 0.22,
+    float: 11,
+    floatDelay: 0.7,
+  },
+  {
+    name: "zigzag",
+    color: INK.charcoal,
+    width: "3.5%",
+    left: "6%",
+    bottom: "3%",
+    rotate: -8,
+    drift: -14,
+    opacity: 0.16,
+    float: 17,
+    floatDelay: 2.1,
+    desktopOnly: true,
+  },
+];
 
 /*
   The two studio frames, described where they were first used — /about's
