@@ -179,9 +179,13 @@ export function CollaborateTeaser() {
             <DisplayHeading
               id="collaborate-teaser"
               size="section"
-              tone="accent"
+              /* INK, NOT THE ACCENT. `tone="accent"` is documented for "a
+                 statement set as a brand moment rather than as a heading";
+                 this is the section's heading, and with the opening statement
+                 moved to the ink it was the last one on /about wearing a
+                 colour of its own. */
               className="mt-6 md:mt-7"
-              lines={["Let’s create", "together."]}
+              lines={["Let’s Create", "Together."]}
             />
 
             <Reveal delay={0.12}>
@@ -280,11 +284,11 @@ export function CollaborateTeaser() {
                       weight only, so `font-synthesis: none`: a browser faking a
                       bold out of a condensed face thickens it unevenly.
                     */}
-                    <h3 className="mt-5 text-[1.0625rem] font-bold uppercase leading-[1.12] tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none] md:text-[1.25rem]">
+                    <h3 className="mt-5 text-h4 font-bold uppercase tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none]">
                       {model.name}
                     </h3>
 
-                    <p className="mt-2.5 text-[0.9375rem] leading-[1.65] text-text/85 md:text-body">
+                    <p className="mt-2.5 text-body leading-[1.65] text-text/85">
                       {model.description}
                     </p>
                   </div>

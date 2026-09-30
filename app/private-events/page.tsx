@@ -115,7 +115,7 @@ const SECTION_LINE = "heading-script text-script-section";
 
 
 const EYEBROW =
-  "flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow";
+  "flex items-center gap-4 text-label font-medium uppercase tracking-eyebrow";
 const TERM = "text-label font-medium uppercase tracking-eyebrow";
 
 /**
@@ -280,8 +280,8 @@ function Introduction() {
 
             <h2 id="private-events-intro" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine>Bring people together</SectionLine>{" "}
-                <SectionLine>through making.</SectionLine>
+                <SectionLine>Bring People Together</SectionLine>{" "}
+                <SectionLine>Through Making.</SectionLine>
               </Stagger>
             </h2>
 
@@ -460,7 +460,7 @@ function WhoItIsFor() {
             <h2 id="private-events-audiences" className="mt-8 md:mt-10">
               <Stagger>
                 <SectionLine>Groups of</SectionLine>{" "}
-                <SectionLine>every kind.</SectionLine>
+                <SectionLine>Every Kind.</SectionLine>
               </Stagger>
             </h2>
           </div>
@@ -657,7 +657,7 @@ function WhoItIsFor() {
                         {String(i + 1).padStart(2, "0")}
                       </span>
 
-                      <h3 className="mt-3 text-[1.375rem] font-medium tracking-[-0.015em] md:text-h3">
+                      <h3 className="mt-3 text-h3 font-medium tracking-[-0.015em]">
                         {audience.name}
                       </h3>
 
@@ -741,8 +741,8 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
 
           <h2 id="private-events-experiences" className="mt-8 md:mt-10">
             <Stagger>
-              <SectionLine>Choose what</SectionLine>{" "}
-              <SectionLine>you make.</SectionLine>
+              <SectionLine>Choose What</SectionLine>{" "}
+              <SectionLine>You Make.</SectionLine>
             </Stagger>
           </h2>
         </div>
@@ -1059,7 +1059,9 @@ function Plate({
         className={cn(
           "font-medium leading-tight",
           stock.ink,
-          large ? "text-[1.375rem] lg:text-[1.625rem]" : "text-[1.125rem] lg:text-[1.25rem]",
+          /* The lead tile takes the card-title step and the rest the compact
+             one — two steps from the scale, not four hand-set sizes. */
+          large ? "text-h3" : "text-h4",
         )}
       >
         {experience.name}
@@ -1076,7 +1078,7 @@ function Plate({
           className={cn(
             "mt-2 max-w-[34rem] leading-[1.55]",
             stock.soft,
-            large ? "text-body" : "text-[clamp(0.9375rem,0.55rem+0.6vw,1.0625rem)]",
+            "text-body",
           )}
         >
           {experience.description}
@@ -1298,8 +1300,8 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
 
             <h2 id="private-events-where" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine>Where people</SectionLine>{" "}
-                <SectionLine>already gather.</SectionLine>
+                <SectionLine>Where People</SectionLine>{" "}
+                <SectionLine>Already Gather.</SectionLine>
               </Stagger>
             </h2>
 
@@ -1356,7 +1358,7 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
               </span>
 
               <p className={`${TERM} text-surface`}>Our home</p>
-              <p className="mt-4 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] text-surface lg:text-[1.75rem]">
+              <p className="mt-4 text-h3 font-light tracking-[-0.02em] text-surface">
                 {partner.name}
               </p>
               <p className="mt-2 text-body leading-[1.7] text-surface">{partner.locality}</p>
@@ -1431,6 +1433,67 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
   Charcoal (6.49). Warm Terracotta on Soft Lavender is 1.69 and would vanish,
   so it is the one pairing this row does not use.
 */
+/*
+  The shapes in <Process>'s masthead — see the note in the section.
+
+  Sized and placed as a share of the section (1440x914 at this width), so the
+  arrangement holds as it scales. Light Sage is not among them: it is the
+  ground they stand on.
+*/
+const PROCESS_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "splash",
+    color: INK.lilac,
+    width: "12%",
+    left: "32%",
+    top: "15%",
+    rotate: -13,
+    drift: 24,
+    opacity: 0.2,
+    float: 13,
+    desktopOnly: true,
+  },
+  {
+    name: "coral",
+    color: INK.terracotta,
+    width: "8%",
+    left: "48%",
+    top: "20%",
+    rotate: 10,
+    drift: -18,
+    opacity: 0.17,
+    float: 16,
+    floatDelay: 1.5,
+    desktopOnly: true,
+  },
+  {
+    name: "starburst",
+    color: INK.lavender,
+    width: "10%",
+    left: "63%",
+    top: "14%",
+    rotate: -6,
+    drift: 21,
+    opacity: 0.22,
+    float: 11,
+    floatDelay: 0.7,
+    desktopOnly: true,
+  },
+  {
+    name: "zigzag",
+    color: INK.charcoal,
+    width: "6%",
+    left: "80%",
+    top: "26%",
+    rotate: 16,
+    drift: -22,
+    opacity: 0.15,
+    float: 14,
+    floatDelay: 2.3,
+    desktopOnly: true,
+  },
+];
+
 const STEP_STOCK: readonly {
   ground: string;
   heading: string;
@@ -1499,9 +1562,26 @@ function HowItWorks() {
     */
     <section
       aria-labelledby="private-events-process"
-      className="bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-hidden bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
-      <Container>
+      {/*
+        THE BAND BESIDE THE HEADING, FILLED — at the client's ask that this
+        section looks very empty.
+
+        Measured at 1440: the section is 1440x914, the heading's ink stops at
+        about x 280 though its box runs the full width, and the cards do not
+        begin until y 426. That leaves roughly 1000 x 290 of nothing between
+        the two — the whole right of the masthead — which is what reads as
+        empty rather than as air.
+
+        Four marks fill it, placed against that box rather than scattered, and
+        solved against their own travel the same way every other plan on this
+        site is: worst case each stays inside x 420-1400 and clears the cards'
+        top edge. Low opacity and behind everything, because a script heading
+        and three coloured cards are what this section is for.
+      */}
+      <SectionShapes plan={PROCESS_SHAPES} />
+      <Container className="relative">
       <Reveal>
         <p className={`${EYEBROW} text-text`}>
           <span
@@ -1514,8 +1594,8 @@ function HowItWorks() {
 
       <h2 id="private-events-process" className="mt-8 md:mt-10">
         <Stagger>
-          <SectionLine>Three steps,</SectionLine>{" "}
-          <SectionLine>then the day.</SectionLine>
+          <SectionLine>Three Steps,</SectionLine>{" "}
+          <SectionLine>Then the Day.</SectionLine>
         </Stagger>
       </h2>
 
@@ -1559,7 +1639,7 @@ function HowItWorks() {
                     <p
                       aria-hidden
                       className={cn(
-                        "text-[2.5rem] leading-[0.82] tracking-[0.01em] [font-family:var(--font-deck)] [font-synthesis:none]",
+                        "text-folio tracking-[0.01em] [font-family:var(--font-deck)] [font-synthesis:none]",
                         stock.folio,
                       )}
                     >
@@ -1579,7 +1659,7 @@ function HowItWorks() {
 
                   <h3
                     className={cn(
-                      "mt-9 text-[1.5rem] font-light leading-[1.15] tracking-[-0.02em] lg:text-[1.75rem]",
+                      "mt-9 text-h3 font-light tracking-[-0.02em]",
                       stock.heading,
                     )}
                   >
@@ -1647,8 +1727,8 @@ function EnquiryCta() {
                 own padding. */}
             <h2 id="private-events-enquiry">
               <Stagger>
-                <SectionLine tone="light">Let&apos;s make</SectionLine>{" "}
-                <SectionLine tone="light">something together.</SectionLine>
+                <SectionLine tone="light">Let&apos;s Make</SectionLine>{" "}
+                <SectionLine tone="light">Something Together.</SectionLine>
               </Stagger>
             </h2>
 

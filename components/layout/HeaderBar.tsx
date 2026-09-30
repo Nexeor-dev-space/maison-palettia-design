@@ -586,7 +586,6 @@ export function HeaderBar({
                   <WorkshopsMenu
                     onOpenChange={setIsStrandsOpen}
                     label={item.label}
-                    href={item.href}
                     experiences={experiences}
                     // The same dates the search panel and the listing read, so
                     // a seat count in the menu can never disagree with one two

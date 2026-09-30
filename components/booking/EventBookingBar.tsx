@@ -193,7 +193,7 @@ function Facts({
           </p>
         ) : (
           <>
-            <p className="text-[1.05rem] font-medium leading-none tracking-[-0.01em] text-cream">
+            <p className="text-body font-medium leading-none tracking-[-0.01em] text-cream">
               {priceLabel}
             </p>
             <p className="mt-1.5 flex items-center gap-2 text-fine leading-none text-cream/75">
@@ -208,7 +208,7 @@ function Facts({
 
       {/* --- md and up: the whole line ------------------------------------ */}
       <div className="hidden min-w-0 flex-1 items-center gap-8 md:flex">
-        <p className="min-w-0 truncate text-[1.05rem] font-medium leading-tight tracking-[-0.01em] text-cream">
+        <p className="min-w-0 truncate text-body font-medium leading-tight tracking-[-0.01em] text-cream">
           {title}
         </p>
 

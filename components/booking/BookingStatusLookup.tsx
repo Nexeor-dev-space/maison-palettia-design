@@ -113,8 +113,12 @@ export function BookingStatusLookup() {
       <div aria-live="polite" className="mt-12">
         {record ? <BookingSummaryCard record={record} /> : null}
 
+        {/* A plate, like every other card on the site, rather than a hard left
+            rule on a half-transparent cream. White Rock on Light Sage is
+            1.03:1, so the soft edge is what makes it a card at all — see the
+            note on the utility in globals.css. */}
         {submitted && !record ? (
-          <div className="max-w-[38rem] border-l-2 border-terracotta bg-cream/60 p-7 md:p-9">
+          <div className="plate max-w-[38rem] rounded-[1.25rem] bg-cream p-7 md:p-9">
             <p className="text-label font-medium uppercase tracking-eyebrow text-text">
               No booking found
             </p>

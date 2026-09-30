@@ -60,8 +60,16 @@ export function EventFilterBar({
 
   if (groups.length === 0) return null;
 
+  /*
+    `border-b`, not `border-y` — the rule above this bar is gone at the
+    client's ask. It sat directly under the group's own lede, which already
+    ends where it ends, so it was drawing a line under something that did not
+    need underlining. The one BELOW stays: it is the edge between the controls
+    and the results they filter, which is a measure beginning, and that is the
+    only thing a rule on this site is for (see globals.css).
+  */
   return (
-    <div className="flex flex-col gap-y-6 border-y border-line py-6 md:flex-row md:items-center md:justify-between md:gap-x-8 md:py-7">
+    <div className="flex flex-col gap-y-6 border-b border-line py-6 md:flex-row md:items-center md:justify-between md:gap-x-8 md:py-7">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         {/*
           The count is the bar's feedback. It is a live region because the only
@@ -232,16 +240,42 @@ function FilterSelect({ label, options, selected, onSelect }: FilterSelectProps)
           */
           "group inline-flex min-h-[3.5rem] w-full items-center justify-between gap-5 rounded-pill px-6 sm:w-auto sm:min-w-[13rem]",
           "border transition-colors duration-300 ease-soft",
+          /*
+            FILLED IN BOTH STATES, at the client's ask — "it is not visible
+            now". At rest this was a hairline in `--color-line` on transparent,
+            which on the events page's White Rock ground is a control you have
+            to look for: the client could not see the one thing on the row that
+            does anything.
+
+            Deep Lilac at rest, which is the colour they named, with
+            `--color-on-primary` on it — the one light ink that clears that
+            ground at 4.90:1 where plain White Rock is 3.95 and fails what a
+            12px label owes. A CHOSEN filter deepens to Charcoal Slate, so the
+            two states still differ by more than a word: the control is always
+            visible, and whether it is filtering anything is still legible at a
+            glance.
+          */
           selected
-            ? "border-text bg-text text-surface"
-            : "border-line bg-transparent text-text hover:border-text/45",
+            ? "border-text bg-text text-surface hover:bg-text/90"
+            : "border-primary bg-primary text-on-primary hover:bg-text hover:border-text",
         )}
       >
         <span className="flex flex-col items-start gap-0.5 text-left">
           <span
             className={cn(
-              "text-[0.625rem] font-semibold uppercase tracking-eyebrow",
-              selected ? "text-surface/70" : "text-text/55",
+              "text-label font-semibold uppercase tracking-eyebrow",
+              /*
+                FULL STRENGTH ON THE LILAC, AND THAT IS MEASURED. The other
+                state can afford to hold its label back — White Rock at 70% on
+                Charcoal Slate is 6.32:1 — but Deep Lilac has no headroom:
+                `--color-on-primary` is 4.89:1 on it at full strength, and this
+                label is 12px, which owes 4.5. At 75% it measures 3.51 and even
+                90% only reaches 4.31, so any softening at all fails.
+
+                The hierarchy between the label and the value below it is
+                carried by size and tracking instead, which costs no contrast.
+              */
+              selected ? "text-surface/70" : "text-on-primary",
             )}
           >
             {label}

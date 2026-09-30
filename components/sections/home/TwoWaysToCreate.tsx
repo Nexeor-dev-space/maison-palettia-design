@@ -3,6 +3,8 @@ import Image from "next/image";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
+import { Container } from "@/components/ui/Container";
+import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { getCreativeExperiences } from "@/lib/experiences";
@@ -65,6 +67,34 @@ import { getUpcomingWorkshops } from "@/lib/workshops";
  * site's own for this distinction, which <WorkshopsMenu> already gives as
  * "No booking — come in any time and make something." and "A set date and
  * time, booked online."
+ *
+ * ==========================================================================
+ * THE HEADING WAS THERE ALL ALONG AND ONLY A SCREEN READER GOT IT
+ * ==========================================================================
+ *
+ * The client's note is that the section arrives with no heading and no
+ * description, and they are right about what is on screen: it opened cold on
+ * two colour fields, and a reader met "01 NO BOOKING / WALK IN" with nothing
+ * having told them what the two halves are for.
+ *
+ * It was not that the heading was missing. It was `sr-only` — "Walk in, or
+ * book a seat", announced to a screen reader and drawn for nobody — on the
+ * argument that two fields, two names and two buttons say it themselves. They
+ * do not, and a heading that only one kind of visitor gets is the wrong kind
+ * of difference anyway. It is now the section's visible statement, in the
+ * brand's script, and the accessible name is unchanged because it is the same
+ * words on the same element.
+ *
+ * THE SENTENCE UNDER IT IS THE SITE'S OWN, recombined rather than written:
+ * the walk-in half of <WorkshopsMenu> says "come in any time and make
+ * something", the scheduled half "a set date". Nothing new is claimed, and it
+ * keeps the one distinction that must never blur — the walk-in activities are
+ * not booked online, and this line does not imply they are.
+ *
+ * WHITE ROCK FOR THE BAND, so the two colour fields become an object laid
+ * between two cream surfaces: <WhereWeCreate> below is White Rock too, and
+ * the sheet above is Light Sage, so the header is not a third pale green
+ * meeting a second one.
  */
 export async function TwoWaysToCreate() {
   const [experiences, sessions] = await Promise.all([
@@ -106,12 +136,38 @@ export async function TwoWaysToCreate() {
     <section
       id="two-ways"
       aria-labelledby="two-ways-heading"
-      className="relative isolate overflow-hidden"
+      /* `overflow-clip`, not `hidden`: `hidden` makes a scroll container, and
+         the cut-out straddling the seam below draws on a view timeline, which
+         resolves against the nearest one — inside a scroll container it is
+         reported as permanently out of view and never fills. */
+      className="relative isolate overflow-clip"
     >
-      <h2 id="two-ways-heading" className="sr-only">
-        Walk in, or book a seat
-      </h2>
+      {/* ---- what the two halves are, before you meet them --------------- */}
+      <div className="bg-cream pb-[3rem] pt-[4rem] md:pb-[3.5rem] md:pt-[5.5rem] lg:pb-[4.5rem] lg:pt-[6.5rem]">
+        <Container>
+          <Reveal>
+            <Eyebrow>How to take part</Eyebrow>
+          </Reveal>
 
+          <DisplayHeading
+            id="two-ways-heading"
+            size="section"
+            className="mt-6 md:mt-7"
+            lines={["Walk In, or Book a Seat"]}
+          />
+
+          <Reveal delay={0.12}>
+            {/* `script-lede` rather than a margin: the gap under a script
+                heading is a token, because Hapsha's descenders hang into it. */}
+            <p className="script-lede max-w-[54ch] text-body leading-[1.8] text-text/80">
+              Come in any time and make something, or take a seat at a session on a set date.
+            </p>
+          </Reveal>
+        </Container>
+      </div>
+
+      {/* ---- the fork ---------------------------------------------------- */}
+      <div className="relative">
       <div className="grid grid-cols-1 lg:grid-cols-2">
         {/* The two lines are held to one line each and to about the same
             length, so the two buttons land on the same baseline and the halves
@@ -161,6 +217,12 @@ export async function TwoWaysToCreate() {
         The one thing belonging to both halves, sitting across the join. On a
         phone the halves stack, so it lands on the horizontal seam instead —
         the same job, the other axis.
+
+        IT IS POSITIONED AGAINST THE FORK, NOT AGAINST THE SECTION, and that
+        is why the fork has a wrapper of its own. `top-29%` was measured
+        against a section that began at the first photograph; with a header
+        band above it the same figure lands a third of the way down the
+        heading instead.
       */}
       <span
         aria-hidden
@@ -170,6 +232,7 @@ export async function TwoWaysToCreate() {
             of it now lies on a Terracotta ground. */}
         <DoodleMark name="splash" color={INK.whiteRock} delay={300} />
       </span>
+      </div>
     </section>
   );
 }

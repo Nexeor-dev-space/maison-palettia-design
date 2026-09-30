@@ -12,7 +12,18 @@ import type { Workshop } from "@/types";
 
 interface WorkshopsMenuProps {
   label: string;
-  href: string;
+  /*
+    THE PANEL NO LONGER TAKES AN `href`, and that is the tail of the client's
+    ask rather than a tidy-up. Its one consumer was the "All experiences"
+    door, which has been removed; the trigger beside it is a disclosure
+    BUTTON, not a link, so nothing else here ever navigated to /events.
+
+    WHICH MEANS THE LISTING IS NOW REACHED FROM THIS PANEL ONLY THROUGH
+    "Upcoming dates" — the same page, anchored to its scheduled half. The
+    rows go to individual activities. If the word itself should navigate
+    again, the honest way back is this prop and a door, not a button that
+    both opens a panel and follows a link.
+  */
   /** The approved activities, grouped in the panel by walk-in or scheduled. */
   experiences: CreativeExperience[];
   /**
@@ -91,7 +102,6 @@ const GROUPS = [
  */
 export function WorkshopsMenu({
   label,
-  href,
   experiences,
   sessions,
   isActive,
@@ -137,7 +147,7 @@ export function WorkshopsMenu({
     is two places for a `href` to go wrong.
   */
   const renderGroup = (group: (typeof groups)[number]) => (
-    <MenuRailGroup key={group.mode} title={group.title}>
+    <MenuRailGroup key={group.mode} title={group.title} fill={group.mode === "diy"}>
       {group.items.map((experience) => {
         const session = sessionFor(experience.slug);
         return (
@@ -198,14 +208,24 @@ export function WorkshopsMenu({
               the easy half; the hard half is that all three FILL the row, and
               each column does it a different way:
 
-                one ... five rows, and the tallest of the three at about 344px,
-                        so it is usually the column setting the height.
-                two ... two rows, then the doors pushed to the foot by
-                        `mt-auto`, which is what closes the gap the shorter
-                        group would otherwise leave.
+                one ... the walk-in rows, spread down the column (`fill` on
+                        <MenuRailGroup>). Fixed-height rows cannot grow, so
+                        without it the slack collects under the last one and
+                        the column ends about 30px short of the other two —
+                        the ragged foot the client asked about. Divided
+                        between the rows it is a few pixels each.
+                two ... two rows, then the door taking everything under them
+                        (`fill` on <MenuDoor>).
                 three . the preview, whose picture is `flex-1` (see
                         <MenuPreview>) and therefore takes whatever height the
                         other two settle on.
+
+              AND NO VERTICAL PADDING ON ANY OF THEM. Columns one and two
+              carried `py-2.5` and column three none, so even with all three
+              boxes the same height their contents started and finished on
+              three different lines. The panel's own padding is what holds
+              this block off the card's edge; a second inset on two of the
+              three columns was only ever making them disagree.
 
               THE CEILING STAYS ON COLUMN ONE ONLY. It is the column that can
               grow — a longer catalogue adds rows there — and it is the only
@@ -216,28 +236,41 @@ export function WorkshopsMenu({
             */}
 
             {/* ---- 1. walk in, any time ------------------------------- */}
-            <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4 lg:max-h-[min(38rem,calc(100vh-8.5rem))] lg:overflow-y-auto lg:overscroll-contain">
+            <div className="col-span-12 flex flex-col gap-5 lg:col-span-4 lg:max-h-[min(38rem,calc(100vh-8.5rem))] lg:overflow-y-auto lg:overscroll-contain">
               {walkIn ? renderGroup(walkIn) : null}
             </div>
 
             {/* ---- 2. the dated sessions, and the two doors ------------ */}
-            <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4">
+            <div className="col-span-12 flex flex-col gap-5 lg:col-span-4">
               {scheduled ? renderGroup(scheduled) : null}
 
               {/*
-                `mt-auto` rather than a spacer: the doors sit at the foot of
-                whatever height the row turns out to be, so this column reads
-                as full at any catalogue length instead of leaving a hole
-                under two rows.
+                ONE DOOR, NOT TWO — at the client's ask.
+
+                "All experiences" stood above this one and went to /events —
+                "the whole programme, in one place", offered by a panel that
+                IS the whole programme in one place, every activity listed in
+                the column beside it. A third of this column was spent on a
+                door to a page the reader was already looking at.
+
+                The door that stays goes somewhere the panel does not: the
+                dated sessions at /events#scheduled. Note what that leaves —
+                see the note on the props above.
+
+                `flex-1` rather than `mt-auto`: with two doors the pair filled
+                the space under the rows, and one door pushed to the foot
+                would leave the hole between. It takes the space instead, and
+                its content is centred, so it reads as a panel rather than as
+                a stretched button.
               */}
-              <div className="mt-auto grid gap-2.5 md:gap-3">
-                <MenuDoor href={href} title="All experiences" sub="The whole programme, in one place." mark="starburst" />
+              <div className="mt-auto flex min-h-0 flex-1 flex-col">
                 <MenuDoor
                   href="/events#scheduled"
                   title="Upcoming dates"
                   mark="coral"
                   sub="Guided sessions you can book."
                   tone="accent"
+                  fill
                 />
               </div>
             </div>

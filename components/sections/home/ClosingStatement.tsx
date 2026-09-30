@@ -157,14 +157,14 @@ export function ClosingStatement() {
             <Reveal delay={0.08}>
               <h2
                 id="closing-heading"
-                className="heading-script mt-7 text-[clamp(2.5rem,1.1rem+5.4vw,5rem)] leading-[1.06] text-surface"
+                className="heading-script mt-7 text-script-section leading-[1.06] text-surface"
               >
                 {forScript(CLOSING.heading)}
               </h2>
             </Reveal>
 
             <Reveal delay={0.14}>
-              <p className="mx-auto mt-8 max-w-[44ch] text-[1.0625rem] leading-[1.75] text-surface md:text-[1.1875rem]">
+              <p className="mx-auto mt-8 max-w-[44ch] text-lead leading-[1.75] text-surface">
                 {CLOSING.body}
               </p>
             </Reveal>

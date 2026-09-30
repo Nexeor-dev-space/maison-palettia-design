@@ -4,28 +4,41 @@ import { useMemo, useState } from "react";
 
 import { FindYourVibe } from "@/components/layout/FindYourVibe";
 import { Reveal } from "@/components/motion/Reveal";
-import { ExperienceCard } from "@/components/events/ExperienceCard";
+import { ExperienceCarousel } from "@/components/sections/home/ExperienceCarousel";
+import { Container } from "@/components/ui/Container";
 import type { CreativeExperience } from "@/lib/experiences";
 import { experiencesByVibe, hasVibeTags, vibeCounts, type VibeSlug } from "@/lib/vibes";
-import { cn } from "@/lib/utils";
 
 /**
  * The walk-in half of /events — discovery, not a product grid.
  *
  * ==========================================================================
- * WHY THIS IS NOT FIVE EQUAL COLUMNS
+ * THE SAME TRACK THE HOME PAGE RUNS — at the client's ask
  * ==========================================================================
  *
- * It was: `grid-cols-5` with one aspect ratio and one size, which is the
- * arrangement a shop uses for stock. These are not stock. They are five
- * things you can walk in and make, they are never booked and never bought
- * online, and a row of identical thumbnails says the opposite of all of that.
+ * These five sat on a twelve-column field at three sizes with three of them
+ * dropped, in a repeating rhythm of five: an editorial spread rather than a
+ * shelf, which was the argument for it. The client's word for the result is
+ * "disorganised", and they have asked for this to look like "Pick a colour,
+ * pick a table." on the home page instead.
  *
- * So the plates run at three sizes on a twelve-column field, in a repeating
- * rhythm of five. The top edge moves, the shapes differ, and the eye reads a
- * spread rather than a shelf. The rhythm is keyed off the index, so filtering
- * down to two activities still produces a composition and not two orphans in
- * a five-wide row.
+ * They are right, and the reason is worth keeping. A spread works when the
+ * pictures are the composition; here they are a CATALOGUE — five things you
+ * can come in and make — and a reader is comparing them, not admiring the
+ * arrangement. Four different widths, four aspect ratios and three different
+ * top edges mean no two cards can be compared without the eye re-measuring
+ * them, and with a vibe filter on top the whole composition reshuffles when
+ * a chip is pressed.
+ *
+ * So it is <ExperienceCarousel>, the same object, with the same cards, the
+ * same paint flood and the same arrows: one width, one proportion, every
+ * other card dropped by a fixed amount. A visitor meets the seven activities
+ * on the home page and the five walk-in ones here as the same thing.
+ *
+ * THE TRACK BLEEDS AND THE CHIPS DO NOT, which is why this component owns its
+ * own gutters rather than sitting inside the page's <Container>: the cards run
+ * off the right of the screen so it is visible that there are more of them,
+ * exactly as <ExperienceDiscovery> sets it up.
  *
  * DISCOVERY SITS OVER THE LISTING, NEVER INSTEAD OF IT. `vibe` is null until
  * a chip is pressed and null means every walk-in activity, in order. Choosing
@@ -59,9 +72,11 @@ export function WalkInDiscovery({ experiences }: { experiences: CreativeExperien
   return (
     <>
       {offersVibes ? (
-        <Reveal delay={0.1} className="mt-9 md:mt-11">
-          <FindYourVibe counts={counts} selected={vibe} onSelect={setVibe} size="full" />
-        </Reveal>
+        <Container>
+          <Reveal delay={0.1} className="mt-9 md:mt-11">
+            <FindYourVibe counts={counts} selected={vibe} onSelect={setVibe} size="full" />
+          </Reveal>
+        </Container>
       ) : null}
 
       {/*
@@ -73,66 +88,23 @@ export function WalkInDiscovery({ experiences }: { experiences: CreativeExperien
         {shown.length} walk-in {shown.length === 1 ? "experience" : "experiences"} shown
       </p>
 
-      <ul className="mt-10 grid grid-cols-12 gap-x-4 gap-y-10 sm:gap-x-6 md:mt-12 md:gap-y-14">
-        {shown.map((experience, i) => {
-          const beat = RHYTHM[i % RHYTHM.length];
-          return (
-            <Reveal
-              as="li"
-              key={experience.slug}
-              variant="fadeIn"
-              delay={Math.min(i, 5) * 0.05}
-              className={cn(beat.span, beat.lift)}
-            >
-              {/*
-                THE SAME CARD THE HOME PAGE SHOWS. This drew <ExperiencePlate>
-                — its own frame, its own hover, its own caption — so the seven
-                activities looked like two different products depending on
-                whether you met them here or in the carousel. One component
-                now; see <ExperienceCard>.
-              */}
-              <ExperienceCard
-                experience={experience}
-                index={i}
-                aspect={beat.aspect}
-                sizes="(min-width: 1024px) 30vw, (min-width: 640px) 44vw, 46vw"
-              />
-            </Reveal>
-          );
-        })}
-      </ul>
-
       {shown.length === 0 ? (
-        <p className="mt-10 max-w-[34rem] text-body leading-[1.85] text-text/85">
-          Nothing is tagged that way yet. Clear the filter to see every walk-in experience.
-        </p>
-      ) : null}
+        <Container>
+          <p className="mt-10 max-w-[34rem] text-body leading-[1.85] text-text/85">
+            Nothing is tagged that way yet. Clear the filter to see every walk-in experience.
+          </p>
+        </Container>
+      ) : (
+        /*
+          `pl-gutter` and nothing on the right: the track keeps the page's
+          left rail and runs off the screen, which is what says there is more
+          of it without a label saying so. The carousel restates the gutter on
+          its own arrow row, so those still land on the section's right rail.
+        */
+        <div className="mt-10 pl-gutter md:mt-12">
+          <ExperienceCarousel experiences={shown} />
+        </div>
+      )}
     </>
   );
 }
-
-/*
-  The rhythm: five beats, four widths, four shapes, three of them dropped.
-
-  THE SPANS TILE TO TWELVE IN PAIRS OF ROWS — 5+4+3, then 7+5. The first
-  version ran 5+4+3 then 4+5, which is nine, and left a three-column hole
-  beside the tallest plate at the end of the run. Editorial white space is
-  space you placed; a hole left by arithmetic is not, and it read as the page
-  having run out.
-
-  The fourth beat is therefore the wide one. It is the largest image on the
-  page and it lands at the start of the second row, which is where a spread
-  wants its big picture — and it closes the row with the fifth.
-
-  Below `lg` it settles to halves: a phone has no room for a five-part
-  composition, and a 2-up of mixed aspects still reads as placed rather than
-  as a grid. `lift` is what moves the top edge, and it is off on whichever
-  beat opens a row so a row never starts mid-air.
-*/
-const RHYTHM = [
-  { span: "col-span-6 lg:col-span-5", aspect: "aspect-[4/5]", lift: "" },
-  { span: "col-span-6 lg:col-span-4", aspect: "aspect-square", lift: "lg:mt-10" },
-  { span: "col-span-6 lg:col-span-3", aspect: "aspect-[3/4]", lift: "lg:mt-20" },
-  { span: "col-span-6 lg:col-span-7", aspect: "aspect-[16/10]", lift: "" },
-  { span: "col-span-6 lg:col-span-5", aspect: "aspect-[4/5]", lift: "lg:mt-8" },
-] as const;

@@ -36,7 +36,7 @@
  */
 
 /** Deck p.1 and the studio's email signature. */
-export const TAGLINE = "A palette of creativity for everyone";
+export const TAGLINE = "A Palette of Creativity for Everyone";
 
 /** Deck p.2, verbatim. */
 export const BRAND_STORY =
@@ -105,7 +105,7 @@ export const VISION =
  * sentences and drops "increasing dwell time", which is addressed to malls.
  */
 export const COMMUNITY = {
-  heading: "Creating community through creativity",
+  heading: "Creating Community Through Creativity",
   body: "Maison Palettia brings a fresh, creative energy through hands-on experiences that blend art, mindfulness, and community. With rotating themes and seasonal activities, it offers a calm, engaging space beyond traditional retail.",
   closer: "It’s more than an activity. It’s an experience that keeps you coming back.",
 } as const;
@@ -333,7 +333,7 @@ export const OUR_APPROACH: readonly string[] = [
 
 /** Deck p.15, the closing page. */
 export const CLOSING = {
-  heading: "Let’s craft a community together.",
+  heading: "Let’s Craft a Community Together.",
   body: "Maison Palettia is ready to bring art, creativity, and meaningful engagement.",
 } as const;
 

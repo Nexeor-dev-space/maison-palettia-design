@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
+import { INK } from "@/components/sections/hero/composition";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 
 import { BookingStatusLookup } from "@/components/booking/BookingStatusLookup";
 import { Reveal } from "@/components/motion/Reveal";
@@ -24,36 +27,115 @@ export const metadata = buildMetadata({
  */
 export default function BookingStatusPage() {
   return (
-    <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
-      <Reveal>
-        <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
-          <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-          Your booking
-        </p>
-        <h1 className="mt-9 max-w-[20ch] text-h1 font-light uppercase tracking-[-0.02em]">
-          Check your booking.
-        </h1>
-        <p className="mt-8 max-w-[34rem] text-body leading-[1.85] text-text/80">
-          Enter the reference from your confirmation and we will show you where that booking
-          stands.
-        </p>
-      </Reveal>
+    /*
+      ==========================================================================
+      ON THE SITE'S OWN PAPER, IN THE SITE'S OWN HEADING — at the client's ask
+      ==========================================================================
 
-      {/*
-        A real fallback rather than `null`, because the lookup is client-only —
-        it reads a store that exists solely in the browser — so there is a
-        frame where the page would otherwise show a heading, an instruction,
-        and then nothing at all where the form belongs.
-      */}
-      <Suspense
-        fallback={
-          <p role="status" className="mt-12 text-body text-text/75 md:mt-14">
-            Loading the lookup&hellip;
+      This page was the odd one out and in three ways at once. It had no
+      section at all, only a <Container> on whatever the body's ground happened
+      to be, so it floated on a near-white the rest of the site never uses. Its
+      eyebrow was hand-built rather than the shared <Eyebrow>. And its title
+      was a plain uppercase sans — `text-h1 font-light uppercase` — where every
+      other page on this site opens on an eyebrow and a script statement, which
+      is the heading system the client asked for across the board.
+
+      So it takes Light Sage, the deck's one ground, and the same two
+      components every other opening uses. Nothing about the lookup changed:
+      this is the frame around it.
+
+      THE FORM KEEPS THE MEASURE AND THE MARKS TAKE THE REST. A reference field
+      is a narrow thing and the page is a wide one, which is where the empty
+      half came from. The shapes fill it the way the rest of the site fills a
+      masthead — placed, low, behind everything.
+    */
+    <section
+      aria-labelledby="booking-status-title"
+      className="relative isolate overflow-hidden bg-sage py-[4rem] md:py-section lg:py-section-lg"
+    >
+      <SectionShapes plan={STATUS_SHAPES} />
+
+      <Container className="relative">
+        <Reveal>
+          <Eyebrow>Your booking</Eyebrow>
+        </Reveal>
+
+        <DisplayHeading
+          as="h1"
+          id="booking-status-title"
+          className="mt-7 md:mt-9"
+          lines={["Check Your", "Booking."]}
+        />
+
+        <Reveal delay={0.08}>
+          <p className="mt-7 max-w-[34rem] text-body leading-[1.85] text-text/80">
+            Enter the reference from your confirmation and we will show you where that booking
+            stands.
           </p>
-        }
-      >
-        <BookingStatusLookup />
-      </Suspense>
-    </Container>
+        </Reveal>
+
+        {/*
+          A real fallback rather than `null`, because the lookup is client-only
+          — it reads a store that exists solely in the browser — so there is a
+          frame where the page would otherwise show a heading, an instruction,
+          and nothing to act on.
+        */}
+        <Suspense
+          fallback={
+            <p className="mt-12 text-body text-text/75 md:mt-14">Loading the lookup&hellip;</p>
+          }
+        >
+          <BookingStatusLookup />
+        </Suspense>
+      </Container>
+    </section>
   );
 }
+
+/*
+  The shapes behind the lookup, in the half the form does not use.
+
+  Held low and desktop-only, the same as every other plan on the site: they sit
+  under a script heading and a form, and a ground that competes with either is
+  not a ground. Light Sage is not among them — it is the ground.
+*/
+const STATUS_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "splash",
+    color: INK.lilac,
+    width: "13%",
+    right: "8%",
+    top: "8%",
+    rotate: -12,
+    drift: 24,
+    opacity: 0.2,
+    float: 13,
+    desktopOnly: true,
+  },
+  {
+    name: "coral",
+    color: INK.terracotta,
+    width: "8%",
+    right: "26%",
+    top: "30%",
+    rotate: 9,
+    drift: -18,
+    opacity: 0.16,
+    float: 16,
+    floatDelay: 1.4,
+    desktopOnly: true,
+  },
+  {
+    name: "zigzag",
+    color: INK.lavender,
+    width: "6%",
+    right: "14%",
+    top: "56%",
+    rotate: 15,
+    drift: 20,
+    opacity: 0.18,
+    float: 11,
+    floatDelay: 2.2,
+    desktopOnly: true,
+  },
+];

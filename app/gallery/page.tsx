@@ -70,7 +70,6 @@ export default async function GalleryPage() {
     .map((experience) => ({
       src: experience.image!.src,
       alt: experience.image!.alt,
-      caption: experience.name,
     }));
 
   const plateItems: WallItem[] = EVENT_PLATES.map((plate) => ({

@@ -10,16 +10,6 @@ import { cn } from "@/lib/utils";
 export interface WallItem {
   src: string;
   alt: string;
-  /**
-   * The line shown on hover, and optional on purpose.
-   *
-   * A caption is content. Where the source data names the thing — the seven
-   * activities each carry a `name` — that name is the caption. Where it does
-   * not, there is no caption, because the alternative is writing one, and a
-   * line invented to fill a hover is exactly the kind of copy the brief rules
-   * out. Those pictures simply lift.
-   */
-  caption?: string;
 }
 
 /**
@@ -66,34 +56,59 @@ export interface WallItem {
  * same photograph reads differently at 3:2 than at 1:1, and choosing which is
  * the work.
  *
- * THE HOVER REVEALS RATHER THAN DECORATES. The caption is not printed under
- * the picture — it arrives on it, under a wash of the brand's own colour,
- * wiped up from the foot. Nothing moves until a pointer is on it and nothing
- * moves at all under `prefers-reduced-motion`, where the caption is simply
- * always there. See ./GalleryWall.module.css.
+ * NO NAME ON THE PICTURE, at the client's ask. A figure here used to carry a
+ * `<figcaption>` that arrived on hover — the activity's own name, under a wash
+ * of Ink dark enough to read against — and that is gone: the wall is
+ * photographs, and a visitor moving a pointer across it does not want a label
+ * on each one.
  *
- * DOODLE ANNOTATIONS, AT INTERVALS. Every fourth picture carries a mark on a
- * corner, breaking its edge the way the deck lays a cut-out over a plate.
- * Fixed by position rather than scattered, so the wall has a rhythm of marks
- * instead of a sprinkle of them. The larger shapes behind the whole block are
- * the page's, not the wall's — see /gallery.
+ * THE WASH WENT WITH IT, and had to. It existed for one reason, to make the
+ * caption legible, so with no caption it is a dark scrim sliding over a
+ * photograph on hover — which is the exact effect the client asked to have
+ * taken off the activity cards ("we dont need that dark effect").
  *
- * TWO COLUMNS BELOW lg, AND NO SPANS THERE. A twelfth of a phone is four
- * pixels; and a mosaic of row spans in two columns leaves holes wherever a
- * tall one lands. Below the breakpoint it is a plain even grid, which is the
- * same pictures read one pair at a time.
+ * What is left is the lift: the picture rises a little and settles back. The
+ * name a screen reader needs was never the caption anyway — it is `alt`, on
+ * the image, and that is untouched.
  */
 export function GalleryWall({ items }: { items: readonly WallItem[] }) {
   const spans = layout(items.length);
 
   return (
     <ul
+      /*
+        ==================================================================
+        THE ROW HEIGHT IS THE PICTURE HEIGHT — raised, at the client's ask
+        ==================================================================
+
+        The grid owns the geometry here (see the note above), so a picture is
+        exactly as tall as the row it spans and nothing else decides it. The
+        old figures made every landscape cell about 2.1:1 — a letterbox strip
+        rather than a photograph, which is what the client is seeing.
+
+        THE CAP WAS THE REAL FAULT, not the vw. <Container> has no ceiling:
+        the page runs the full width of the display. So the columns keep
+        growing while `13.5rem` held the rows still, and the wider the screen
+        the flatter the pictures got — 2.1:1 at 1440 and worse beyond it. The
+        cap is now high enough to be out of the way on ordinary displays and
+        the vw does the work, so a cell keeps its proportion instead of
+        stretching.
+
+        MEASURED AGAINST THE FOUR-COLUMN CELL, which is the wall's commonest
+        size. At 1440 the container is 1400, a column is 105.7 and a 4-column
+        cell is 459 wide; 19.8vw puts the row at 285, which is 1.61:1 — near
+        enough 3:2, the proportion these photographs were taken at. At 1024 it
+        is 320 by 203, or 1.58:1. The same picture, the same shape, at both.
+
+        The tall cell spans two rows and a gap, so it grows with them: 459 by
+        582 at 1440, a true portrait rather than a slightly tall square.
+      */
       className={cn(
         "grid gap-2.5 md:gap-3",
         "grid-cols-1 sm:grid-cols-2 lg:grid-cols-12",
-        "auto-rows-[clamp(13rem,58vw,17rem)]",
-        "sm:auto-rows-[clamp(10rem,28vw,13rem)]",
-        "lg:auto-rows-[clamp(9.5rem,15.5vw,13.5rem)]",
+        "auto-rows-[clamp(14rem,64vw,20rem)]",
+        "sm:auto-rows-[clamp(12rem,32vw,20rem)]",
+        "lg:auto-rows-[clamp(12rem,19.8vw,24rem)]",
       )}
     >
       {items.map((item, i) => {
@@ -116,15 +131,6 @@ export function GalleryWall({ items }: { items: readonly WallItem[] }) {
                 sizes="(min-width: 1024px) 34vw, (min-width: 640px) 48vw, 92vw"
                 className={styles.image}
               />
-
-              {/* The wash and the caption travel together, and neither is
-                  drawn at all where the data does not name the picture. */}
-              {item.caption ? (
-                <figcaption className={styles.caption}>
-                  <span className={styles.wash} aria-hidden />
-                  <span className={styles.line}>{item.caption}</span>
-                </figcaption>
-              ) : null}
             </figure>
 
             {mark ? (

@@ -9,6 +9,17 @@ import { useEffect } from "react";
  *
  * Writes two custom properties onto <html>:
  *
+ *   --pointer ... 1 while the pointer is in the window, 0 before it has ever
+ *                 moved and 0 again once it leaves.
+ *
+ *                 IT EXISTS BECAUSE 0,0 IS AMBIGUOUS. For a LEAN, the resting
+ *                 centre and "no pointer" are the same answer — no lean — so
+ *                 `--mx: 0` says both and nothing is lost. For anything keyed
+ *                 to NEARNESS they are opposites: dead centre is as close as
+ *                 the pointer gets, and a mark that grows with proximity would
+ *                 sit at full size before the visitor had moved at all. See
+ *                 `pointer-lift` in globals.css.
+ *
  *   --mx ... -1 at the left edge of the window, +1 at the right
  *   --my ... -1 at the top, +1 at the bottom
  *
@@ -45,16 +56,19 @@ export function PointerField() {
     let frame = 0;
     let x = 0;
     let y = 0;
+    let present = false;
 
     const write = () => {
       frame = 0;
       root.style.setProperty("--mx", x.toFixed(3));
       root.style.setProperty("--my", y.toFixed(3));
+      root.style.setProperty("--pointer", present ? "1" : "0");
     };
 
     const onMove = (event: PointerEvent) => {
       x = (event.clientX / window.innerWidth) * 2 - 1;
       y = (event.clientY / window.innerHeight) * 2 - 1;
+      present = true;
       if (!frame) frame = requestAnimationFrame(write);
     };
 
@@ -64,6 +78,7 @@ export function PointerField() {
     const onLeave = () => {
       x = 0;
       y = 0;
+      present = false;
       if (!frame) frame = requestAnimationFrame(write);
     };
 
@@ -78,6 +93,7 @@ export function PointerField() {
       window.removeEventListener("blur", onLeave);
       root.style.removeProperty("--mx");
       root.style.removeProperty("--my");
+      root.style.removeProperty("--pointer");
     };
   }, []);
 

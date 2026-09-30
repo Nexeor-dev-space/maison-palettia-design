@@ -52,7 +52,7 @@ export default function CheckoutPage() {
       <Steps current={2} />
 
       <Reveal className="mt-12 md:mt-14">
-        <h1 className="text-[1.75rem] font-light leading-[1.1] tracking-[-0.02em] md:text-[2.25rem]">
+        <h1 className="text-h1 font-light tracking-[-0.02em]">
           Complete your booking.
         </h1>
       </Reveal>

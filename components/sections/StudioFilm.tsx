@@ -134,7 +134,7 @@ export function StudioFilm() {
             >
               {/* The maker, then the work — the reference's order, and the
                   only order that lets the larger line be the statement. */}
-              <p className="text-fine font-medium uppercase tracking-eyebrow text-cream/80">
+              <p className="text-label font-medium uppercase tracking-eyebrow text-cream/80">
                 {SITE.name}
               </p>
               <h2

@@ -95,7 +95,7 @@ function Intro() {
       </Reveal>
 
       <Reveal variant="subtleReveal">
-        <h1 className="mt-8 max-w-[20ch] text-[2rem] font-light leading-[1.1] tracking-[-0.02em] text-text md:mt-10 md:text-[2.6rem] lg:text-[3rem]">
+        <h1 className="mt-8 max-w-[20ch] text-h1 font-light tracking-[-0.02em] text-text md:mt-10">
           Come more than once.
         </h1>
       </Reveal>

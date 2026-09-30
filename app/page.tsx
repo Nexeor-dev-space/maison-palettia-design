@@ -2,10 +2,10 @@ import { Hero } from "@/components/sections/Hero";
 import { ClosingStatement } from "@/components/sections/home/ClosingStatement";
 import { OpeningStatement } from "@/components/sections/home/OpeningStatement";
 import { ExperienceDiscovery } from "@/components/sections/home/ExperienceDiscovery";
+import { StudioInterlude } from "@/components/sections/home/StudioInterlude";
 import { TwoWaysToCreate } from "@/components/sections/home/TwoWaysToCreate";
 import { WaysToExperience } from "@/components/sections/home/WaysToExperience";
 import { WhereWeCreate } from "@/components/sections/home/WhereWeCreate";
-import { WorkshopJourney } from "@/components/sections/home/WorkshopJourney";
 
 /**
  * ==========================================================================
@@ -32,7 +32,7 @@ import { WorkshopJourney } from "@/components/sections/home/WorkshopJourney";
  *   02 Creative experiences ....... near-white       the photographs carry it
  *   02b Ways to take part ......... White Rock       the four ways in
  *   03 Why Maison Palettia ........ Light Sage       the deck's own ground
- *   04 What we offer .............. White Rock
+ *   04 Two pictures ............... Light Sage       a breath, and no words
  *   05 Walk in, or book ........... Light Sage
  *   06 The Maison experience ...... photograph, then near-white
  *   07 Seasonal ................... White Rock
@@ -103,7 +103,21 @@ export default function HomePage() {
       */}
       <WaysToExperience />
 
-      <WorkshopJourney />
+      {/*
+        <WorkshopJourney /> HAS BEEN TAKEN OFF THE PAGE at the client's ask —
+        "what we offer", the five ways a visit can go set as a row of paint
+        dabs under the heading. Two photographs they supplied stand in its
+        slot instead; the reasoning is in <StudioInterlude>.
+
+        NOTHING IS LOST: WORKSHOP_JOURNEY is set in full on /about, in
+        <Community>, and has been since the journey thread moved there. The
+        component and its stylesheet stay in the tree, the same rule
+        <CommunityMoment /> and <SeasonalExperiences /> are kept under below.
+
+        One side effect worth knowing: this was the only place on the site
+        using /images/workshop-journey.jpg.
+      */}
+      <StudioInterlude />
       <TwoWaysToCreate />
 
       {/*

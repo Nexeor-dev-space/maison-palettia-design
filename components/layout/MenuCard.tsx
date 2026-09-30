@@ -140,13 +140,30 @@ export function MenuRailGroup({
   title,
   note,
   children,
+  fill = false,
 }: {
   title: string;
   note?: string;
   children: ReactNode;
+  /**
+   * Spread the rows down the whole column rather than letting them stop
+   * wherever they end.
+   *
+   * The three columns of a mega-menu are a grid row, so they are already
+   * exactly as tall as each other — what is not equal is where each one's
+   * CONTENT stops, and the client's note is about the ragged foot that
+   * leaves. A rail of fixed-height rows is the column that ends short: it
+   * cannot grow, so the slack collects under the last row. With this the
+   * slack is divided between the rows instead, a few pixels each, and the
+   * last row lands on the same line as the card beside it.
+   *
+   * Off by default: it is only right where a column is one of several that
+   * have to agree. A rail on its own should keep its rows together.
+   */
+  fill?: boolean;
 }) {
   return (
-    <div>
+    <div className={fill ? "flex min-h-0 flex-1 flex-col" : undefined}>
       {/*
         THE NOTE IS OPTIONAL, AND THE EXPERIENCES MENU NO LONGER PASSES ONE.
 
@@ -162,7 +179,7 @@ export function MenuRailGroup({
       */}
       <p className="px-3 text-label font-semibold uppercase tracking-eyebrow text-text/55">{title}</p>
       {note ? <p className="mt-1.5 px-3 text-fine leading-[1.5] text-text/60">{note}</p> : null}
-      <ul className="mt-2 flex flex-col">{children}</ul>
+      <ul className={cn("mt-2 flex flex-col", fill && "flex-1 justify-between")}>{children}</ul>
     </div>
   );
 }
@@ -368,7 +385,7 @@ export function MenuPreview({
           </span>
         ) : null}
 
-        <span className="mt-3 block text-[1.375rem] font-light leading-[1.15] tracking-[-0.02em] text-text md:text-[1.5rem]">
+        <span className="mt-3 block text-h3 font-light tracking-[-0.02em] text-text">
           {name}
         </span>
 
@@ -446,19 +463,48 @@ export function MenuDoor({
   sub,
   mark,
   tone = "quiet",
+  fill = false,
 }: {
   href: string;
   title: string;
   sub: string;
   mark?: DoodleName;
   tone?: "quiet" | "accent";
+  /**
+   * Take whatever height is left under the rows above, instead of sitting at
+   * the foot of the column at the door's own height.
+   *
+   * For the column that carries one door rather than two: without it the
+   * single door keeps the height a door wants and the space the second one
+   * used to fill becomes a hole in the middle of the column. The content is
+   * centred in the box, so a taller door reads as a panel rather than as a
+   * stretched button — and `min-h` keeps it a door if the list above ever
+   * grows enough to squeeze it.
+   */
+  fill?: boolean;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "group relative flex items-center gap-3.5 overflow-hidden rounded-[0.9rem] px-4 py-3",
+        /*
+          THE TYPE IS SIZED FOR THE BOX IT ENDED UP IN. These doors are
+          `grid-rows-2` inside the panel, so their height is whatever the rail
+          beside them turns out to be — about 170px each — and they were
+          carrying a 17px title over a 13px line, which is the size they would
+          be at if they were rows in a list. The client's word for the result
+          was "empty", and it was a mismatch between the type and the box
+          rather than too much padding.
+
+          So the pair steps up one place on the scale: `text-h4` for the title
+          (the compact-card step) over `text-body` for the line, which is the
+          same pairing every card on the site uses. The mark and the arrow go
+          up with them, because a 28px cut-out beside 20px type reads as an
+          icon that was left behind.
+        */
+        "group relative flex items-center gap-4 overflow-hidden rounded-[0.9rem] px-5 py-4",
         "transition-colors duration-300 ease-soft",
+        fill && "min-h-[6.5rem] flex-1",
         tone === "accent"
           ? "bg-primary text-on-primary hover:bg-text"
           /* Light Sage, not `surface-alt`: that is White Rock, which is the
@@ -471,7 +517,7 @@ export function MenuDoor({
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none w-7 shrink-0 transition-transform duration-[900ms] ease-editorial",
+            "pointer-events-none w-10 shrink-0 transition-transform duration-[900ms] ease-editorial",
             "motion-safe:group-hover:rotate-6",
             tone === "accent" ? "opacity-70" : "opacity-55",
           )}
@@ -486,11 +532,17 @@ export function MenuDoor({
       ) : null}
 
       <span className="min-w-0 flex-1">
-        <span className="block text-body font-medium leading-snug">{title}</span>
+        <span className="block text-h4 font-medium">{title}</span>
         <span
           className={cn(
-            "block text-fine leading-[1.5]",
-            tone === "accent" ? "text-on-primary/80" : "text-text/70",
+            "mt-1 block text-body leading-[1.5]",
+            /* FULL STRENGTH ON THE LILAC DOOR. `--color-on-primary` is the one
+               light ink that clears 4.5:1 on Deep Lilac, and it clears it at
+               4.90 — there is no headroom to spend on an alpha. At /80 this
+               line measured under the bar at 13px and would still be under it
+               at 17px, since 17px is not large text. The quiet door keeps its
+               /70, which is charcoal on a near-white and has room to spare. */
+            tone === "accent" ? "text-on-primary" : "text-text/70",
           )}
         >
           {sub}
@@ -499,7 +551,7 @@ export function MenuDoor({
 
       <span
         aria-hidden
-        className="shrink-0 text-action transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+        className="shrink-0 text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
       >
         &#8594;
       </span>
