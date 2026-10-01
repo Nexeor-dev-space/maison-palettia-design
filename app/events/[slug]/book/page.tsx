@@ -14,6 +14,7 @@ import {
   getAllWorkshops,
   getWorkshopBySlug,
   isFullyBooked,
+  isScarce,
   sessionDateParts,
   sessionTimeRange,
   workshopHref,
@@ -21,7 +22,7 @@ import {
 import type { Workshop } from "@/types";
 
 /**
- * Step three — reserve.
+ * Step one of two — your details.
  *
  * The session is already chosen, so the page is deliberately narrow: a
  * reminder of what was picked, how many places, and who is coming. Nothing
@@ -30,6 +31,13 @@ import type { Workshop } from "@/types";
  *
  * A full session never reaches this page: the route sends it back to the
  * session itself rather than rendering a form that cannot be honoured.
+ *
+ * THE PAGE STAYS ON THE SERVER. Everything that is a fact about the session —
+ * the intro, the card's face, the phone's strip, whether it is nearly gone — is
+ * drawn here and handed to <BookingForm> as rendered slots and values, the
+ * interleaving pattern in node_modules/next/dist/docs/01-app/01-getting-started/
+ * 05-server-and-client-components.md. The form is the only client tree, and it
+ * never imports lib/workshops; see the note on <BookingForm>.
  */
 export async function generateStaticParams() {
   const workshops = await getAllWorkshops();
@@ -53,12 +61,19 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
   if (!workshop) notFound();
   if (isFullyBooked(workshop)) notFound();
 
+  // Resolved here, so the client form never needs lib/workshops. `isScarce`
+  // is the site's one rule for when availability takes the accent; the form
+  // repeats it rather than writing its own threshold.
+  const scarce = isScarce(workshop);
+
   return (
     <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
       <Reveal>
+        {/* `-my-3 py-3` grows the hit area to 47px — over the 44px touch
+            target — without moving the link or anything around it. */}
         <Link
           href={workshopHref(workshop)}
-          className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
+          className="group inline-flex items-center gap-3 -my-3 py-3 text-action font-medium uppercase tracking-eyebrow text-text"
         >
           <span
             aria-hidden
@@ -74,106 +89,183 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
 
       <Steps current={1} />
 
-      <div className="mt-12 grid grid-cols-12 gap-x-6 md:mt-16 lg:gap-x-10">
-        {/*
-          The summary sits first in the DOM so a phone shows what is being
-          booked before asking for anything, and moves to the right-hand column
-          at `lg` where a form reads better on the left.
-        */}
-        <aside className="col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1">
-          <SessionSummary workshop={workshop} />
-        </aside>
-
-        <div className="col-span-12 mt-12 lg:col-span-7 lg:col-start-1 lg:row-start-1 lg:mt-0">
-          <Reveal>
-            <h1 className="text-h1 font-light tracking-[-0.02em]">
-              Hold your place.
-            </h1>
-            <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/80">
-              Two minutes and you are booked. We only ask for what the studio needs on the day.
-            </p>
-          </Reveal>
-
-          <BookingForm workshop={workshop} />
-        </div>
-      </div>
+      <BookingForm
+        workshop={workshop}
+        intro={<Intro />}
+        summary={<SessionSummary workshop={workshop} />}
+        strip={<SessionStrip workshop={workshop} />}
+        scarce={scarce}
+      />
     </Container>
   );
 }
 
 /**
- * What is being booked, kept compact.
+ * The heading and its one sentence.
+ *
+ * "Two minutes and you are booked" is what this used to say, and at this step
+ * it was not true: nothing is booked until the next page, and the line was
+ * promising the visitor an outcome the button does not deliver. What replaces
+ * it says what happens here and what happens next.
+ */
+function Intro() {
+  return (
+    <Reveal>
+      <h1 className="text-h1 font-light tracking-[-0.02em]">Hold your place.</h1>
+      <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/80">
+        Choose your places and tell us who&rsquo;s coming. You&rsquo;ll see everything once more
+        before you confirm.
+      </p>
+    </Reveal>
+  );
+}
+
+/**
+ * What is being booked — the face of the place card on a desktop.
  *
  * Every fact here is one the visitor has already seen on the session's own
  * page. It repeats because a form is a moment of doubt, and the answer to "wait
  * — which Saturday was this?" should never be the back button.
+ *
+ * KEPT SHORT ENOUGH TO STICK. The card stays in view beside the form while it
+ * is filled in (see `stickyCard` in PaintBooking.module.css), which only works
+ * while the whole card fits the window: a 2:1 photograph rather than 3:2 —
+ * capped at 10rem, so a wide column letterboxes it rather than growing it —
+ * and When and Price side by side rather than stacked, are what buy that
+ * height.
+ *
+ * No ground of its own: the card it sits in supplies the White Rock, and the
+ * notches cut into it are the card's too.
  */
 function SessionSummary({ workshop }: { workshop: Workshop }) {
   const { weekday } = sessionDateParts(workshop.startsAt);
   const { start, end } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
 
   return (
+    <div>
+      <div className="relative aspect-[2/1] max-h-[10rem] w-full overflow-hidden rounded-t-[1.5rem]">
+        <Image
+          src={workshop.image.src}
+          alt={workshop.image.alt}
+          fill
+          sizes="(min-width: 1024px) 31vw, 100vw"
+          style={{ objectPosition: workshop.image.position ?? "50% 50%" }}
+          className="object-cover"
+        />
+      </div>
+
+      <div className="px-6 pb-5 pt-5">
+        <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
+          {workshop.category}
+        </p>
+        <h2 className="mt-2 text-lead font-medium leading-snug tracking-[-0.01em]">
+          {workshop.title}
+        </h2>
+
+        <dl className="mt-4 grid grid-cols-[1.25fr_1fr] gap-x-5 gap-y-3.5 border-t border-text/15 pt-4">
+          <Row term="When">
+            <time dateTime={workshop.startsAt}>
+              {weekday} {formatSessionDate(workshop.startsAt)}
+            </time>
+            <span className="mt-1 block whitespace-nowrap text-fine font-normal text-text/75">
+              <span className="tabular-nums">{start}</span>
+              <span aria-hidden> &ndash; </span>
+              <span className="sr-only">to</span>
+              <span className="tabular-nums">{end}</span>
+            </span>
+          </Row>
+          <Row term="Price">
+            {formatPrice(workshop.price)}
+            <span className="mt-1 block text-fine font-normal text-text/75">
+              per person &middot; {formatDuration(workshop.durationMinutes)}
+            </span>
+          </Row>
+          {workshop.venue ? (
+            <Row term="Where" className="col-span-2">
+              {workshop.venue.name}
+              <span className="font-normal text-text/75">, {workshop.venue.locality}</span>
+            </Row>
+          ) : null}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * What is being booked, on a phone — a strip rather than a card.
+ *
+ * The desktop card leads with a photograph, and a full-width photograph first
+ * on a phone pushes the form's first question below the fold. This is the
+ * same facts in a 72px thumbnail's height, so the visitor sees what they are
+ * booking and the places they are choosing on one screen.
+ *
+ * The thumbnail's alt is empty on purpose: it is a reminder beside the title,
+ * which says what it shows, and a long description read ahead of the title
+ * would be the first thing a screen reader met on the page.
+ */
+function SessionStrip({ workshop }: { workshop: Workshop }) {
+  const { weekday } = sessionDateParts(workshop.startsAt);
+  const { start, end } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
+
+  return (
     <Reveal variant="fadeIn">
-      <div className="bg-cream">
-        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-sm">
+      <section
+        aria-label="What you're booking"
+        className="blob plate flex items-center gap-4 bg-cream p-3 pr-5"
+        style={{ "--blob": "1.25rem 1.5rem 1.25rem 1.375rem / 1.375rem 1.25rem 1.5rem 1.25rem" } as React.CSSProperties}
+      >
+        <div className="relative size-[72px] shrink-0 overflow-hidden rounded-[0.875rem]">
           <Image
             src={workshop.image.src}
-            alt={workshop.image.alt}
+            alt=""
             fill
-            sizes="(min-width: 1024px) 32vw, 100vw"
+            sizes="72px"
             style={{ objectPosition: workshop.image.position ?? "50% 50%" }}
             className="object-cover"
           />
         </div>
-
-        <div className="p-7 md:p-8">
+        <div className="min-w-0">
           <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
             {workshop.category}
           </p>
-          <h2 className="mt-3 text-lead font-medium leading-snug tracking-[-0.01em]">
-            {workshop.title}
-          </h2>
-
-          <dl className="mt-7 flex flex-col gap-5 border-t border-text/15 pt-6">
-            {workshop.venue ? (
-              <Row term="Where">
-                {workshop.venue.name}
-                <span className="mt-1 block text-fine font-normal text-text/75">
-                  {workshop.venue.locality}
-                </span>
-              </Row>
-            ) : null}
-            <Row term="When">
-              <time dateTime={workshop.startsAt}>
-                {weekday} {formatSessionDate(workshop.startsAt)}
-              </time>
-              <span className="mt-1 block text-fine font-normal text-text/75">
-                <span className="tabular-nums">{start}</span>
-                <span aria-hidden> &ndash; </span>
-                <span className="sr-only">to</span>
-                <span className="tabular-nums">{end}</span>
-                <span aria-hidden className="px-1.5 text-text/35">
-                  &middot;
-                </span>
-                {formatDuration(workshop.durationMinutes)}
-              </span>
-            </Row>
-            <Row term="Price">
-              {formatPrice(workshop.price)}
-              <span className="mt-1 block text-fine font-normal text-text/75">per person</span>
-            </Row>
-          </dl>
+          <p className="mt-0.5 text-body font-medium leading-snug text-text">{workshop.title}</p>
+          <p className="mt-1 text-fine text-text/75">
+            <time dateTime={workshop.startsAt}>
+              {weekday} {formatSessionDate(workshop.startsAt)}
+            </time>
+            <span aria-hidden> &middot; </span>
+            <span className="sr-only">, </span>
+            {/* One unit, so a narrow phone breaks before the range, not in it. */}
+            <span className="whitespace-nowrap">
+              <span className="tabular-nums">{start}</span>
+              <span aria-hidden> &ndash; </span>
+              <span className="sr-only">to</span>
+              <span className="tabular-nums">{end}</span>
+            </span>
+          </p>
+          {workshop.venue ? (
+            <p className="text-fine text-text/75">{workshop.venue.name}</p>
+          ) : null}
         </div>
-      </div>
+      </section>
     </Reveal>
   );
 }
 
-function Row({ term, children }: { term: string; children: React.ReactNode }) {
+function Row({
+  term,
+  children,
+  className,
+}: {
+  term: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div>
+    <div className={className}>
       <dt className="text-label font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
-      <dd className="mt-2 text-body font-medium leading-snug text-text">{children}</dd>
+      <dd className="mt-1.5 text-body font-medium leading-snug text-text">{children}</dd>
     </div>
   );
 }

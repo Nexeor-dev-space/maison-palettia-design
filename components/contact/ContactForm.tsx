@@ -8,7 +8,9 @@ import { ENQUIRY_TOPICS, sendEnquiry, type EnquiryResult, type EnquiryTopic } fr
 import { cn } from "@/lib/utils";
 
 /**
- * Field chrome, lifted verbatim from <BookingForm> rather than restyled.
+ * Field chrome, lifted verbatim from the `Field` in <Checkout> rather than
+ * restyled. (It was <BookingForm>'s until the booking step took the painted
+ * field — see <PaintedField> — and Checkout is now the plain original.)
  *
  * A hairline under the input instead of a box around it — the same rule this
  * site draws under every link — so a form reads as part of the page rather

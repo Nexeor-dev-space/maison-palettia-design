@@ -25,7 +25,7 @@ const STATEMENT_LINE = "block heading-script text-script-hero";
  *
  * Built from the same parts as the rest of the site rather than from a contact
  * template: the statement is set in the About page's own display line, the
- * inputs are <BookingForm>'s inputs, and the closing panel is the About page's
+ * inputs are <Checkout>'s inputs, and the closing panel is the About page's
  * closing panel. Nothing here is a new idea about what this brand looks like.
  *
  * WHAT THIS PAGE MAY SAY IS LIMITED BY WHAT THE PROJECT KNOWS. `CONTACT.email`

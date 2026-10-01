@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 
 /**
  * Field chrome, lifted verbatim from <ContactForm> — which lifted it from
- * <BookingForm>. A hairline under the input rather than a box around it, so a
- * form reads as part of the page. Three forms on one site that disagree about
- * what an input looks like is two forms too many.
+ * the `Field` in <Checkout>. A hairline under the input rather than a box
+ * around it, so a form reads as part of the page. Three forms on one site that
+ * disagree about what an input looks like is two forms too many.
  */
 const FIELD =
   "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-body text-text " +

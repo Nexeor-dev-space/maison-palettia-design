@@ -8,6 +8,8 @@ import { CartSummary } from "@/components/booking/CartSummary";
 import { Reveal } from "@/components/motion/Reveal";
 import { PAYMENT_CONFIGURED, placeBooking } from "@/lib/booking";
 import {
+  BOOKING_FIELD_ORDER,
+  clearBookingDetails,
   saveBookingDetails,
   useBookingDetails,
   useCart,
@@ -22,9 +24,6 @@ const FIELD =
   "w-full border-0 border-b bg-transparent px-0 py-3 text-body text-text " +
   "placeholder:text-text/40 transition-colors duration-300 ease-soft " +
   "focus:outline-none focus:ring-0";
-
-/** The order errors are read in, so focus lands on the first one down the page. */
-const FIELD_ORDER = ["firstName", "lastName", "email", "phone"] as const;
 
 /**
  * Checkout — the basket, the details and the last action, on one page.
@@ -71,7 +70,7 @@ export function Checkout() {
     something is wrong; this is what makes it actionable.
   */
   useEffect(() => {
-    const first = FIELD_ORDER.find((name) => errors[name]);
+    const first = BOOKING_FIELD_ORDER.find((name) => errors[name]);
     if (!first || !formRef.current) return;
     formRef.current.querySelector<HTMLInputElement>(`[name="${first}"]`)?.focus();
   }, [errors]);
@@ -133,8 +132,11 @@ export function Checkout() {
 
       // Cleared before navigating, not after: the confirmation reads the
       // record by reference, and leaving the basket filled would put a stale
-      // "Booking" link in the header over a booking already placed.
+      // "Booking" link in the header over a booking already placed. The
+      // details go with it, so the next booking in this tab — often the next
+      // person at the counter — starts from an empty form.
       clear();
+      clearBookingDetails();
       router.push(`/payment-success?ref=${encodeURIComponent(outcome.record.reference)}`);
     } catch {
       // Nothing here can throw today — `placeBooking` writes to this browser
