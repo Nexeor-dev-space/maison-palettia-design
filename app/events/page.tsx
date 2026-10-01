@@ -170,7 +170,7 @@ export default async function EventsPage() {
               <Door
                 href="#walk-in"
                 mode="diy"
-                title="Walk-In DIY"
+                title="Create Anytime"
                 note={diyStep.description}
                 tone="cream"
                 mark="starleaf"
@@ -179,7 +179,7 @@ export default async function EventsPage() {
               <Door
                 href="#scheduled"
                 mode="scheduled"
-                title="Scheduled Sessions"
+                title="Create Together"
                 note={scheduledStep.description}
                 tone="lilac"
                 mark="starburst"
@@ -209,7 +209,7 @@ export default async function EventsPage() {
           <GroupHead
             id="walk-in-heading"
             mode="diy"
-            title="Walk-In DIY"
+            title="Create Anytime"
             lead="No booking needed. Choose an experience on the day and create at your own pace."
           >
             {home ? (
@@ -246,7 +246,7 @@ export default async function EventsPage() {
           <GroupHead
             id="scheduled-heading"
             mode="scheduled"
-            title="Scheduled Sessions"
+            title="Create Together"
             lead="Guided workshops on a set date and time, booked online. Everything is provided."
           />
           {sessions.length === 0 ? (

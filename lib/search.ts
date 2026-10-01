@@ -115,7 +115,16 @@ export function searchWorkshops(workshops: Workshop[], rawQuery: string): Worksh
  * searched — see lib/vibes.ts.
  */
 function experienceHaystack(experience: CreativeExperience): string {
-  return [experience.name, experience.description, experience.kind === "diy" ? "walk-in diy" : "scheduled"]
+  /* BOTH NAMINGS ARE IN THE HAYSTACK ON PURPOSE. The two ways in are called
+     "Create Anytime" and "Create Together" everywhere a visitor reads them,
+     and that is what the suggestion chip offers — but somebody who types
+     "walk-in" or "scheduled" is asking the same question, and the mechanism
+     is still the word the rest of the world uses. Both find the same rows. */
+  return [
+    experience.name,
+    experience.description,
+    experience.kind === "diy" ? "walk-in diy create anytime" : "scheduled create together",
+  ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -169,13 +178,15 @@ export function getPopularSearches(
   const suggestions = [...categories];
 
   /*
-    "WALK-IN DIY", AND ONLY BECAUSE IT IS TRUE.
+    "CREATE ANYTIME", AND ONLY BECAUSE IT IS TRUE.
 
     The brief offers three experiential tags to seed this row —
     "Glow-in-the-dark", "Group Jam" and "Walk-in DIY" — and instructs that they
     appear only where the data supports them. Exactly one does: `kind` on
     CreativeExperience already marks five activities walk-in, so this term
-    finds real rows the moment it is pressed.
+    finds real rows the moment it is pressed. It is offered under the name the
+    client now gives that way in, and the haystack above holds both, so the
+    chip and the word "walk-in" reach the same five.
 
     The other two are not here and should not be added by hand. Nothing in the
     project records whether any activity glows in the dark or is run as a group
@@ -185,7 +196,7 @@ export function getPopularSearches(
     studio can describe those, they arrive as vibes (lib/vibes.ts) or as a
     further derived term here, and this row picks them up with no edit.
   */
-  if (experiences.some((experience) => experience.kind === "diy")) suggestions.push("Walk-in DIY");
+  if (experiences.some((experience) => experience.kind === "diy")) suggestions.push("Create Anytime");
 
   if (workshops.some(isWeekendWorkshop)) suggestions.push("Weekend");
   suggestions.push(...localities);

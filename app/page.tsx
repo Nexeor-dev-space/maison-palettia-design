@@ -2,7 +2,6 @@ import { Hero } from "@/components/sections/Hero";
 import { ClosingStatement } from "@/components/sections/home/ClosingStatement";
 import { OpeningStatement } from "@/components/sections/home/OpeningStatement";
 import { ExperienceDiscovery } from "@/components/sections/home/ExperienceDiscovery";
-import { StudioInterlude } from "@/components/sections/home/StudioInterlude";
 import { TwoWaysToCreate } from "@/components/sections/home/TwoWaysToCreate";
 import { WaysToExperience } from "@/components/sections/home/WaysToExperience";
 import { WhereWeCreate } from "@/components/sections/home/WhereWeCreate";
@@ -29,18 +28,18 @@ import { WhereWeCreate } from "@/components/sections/home/WhereWeCreate";
  * THE GROUNDS, top to bottom:
  *
  *   01 Banner ..................... Light Sage       runs up behind the bar
- *   02 Creative experiences ....... near-white       the photographs carry it
- *   02b Ways to take part ......... White Rock       the four ways in
- *   03 Why Maison Palettia ........ Light Sage       the deck's own ground
- *   04 Two pictures ............... Light Sage       a breath, and no words
- *   05 Walk in, or book ........... Light Sage
- *   06 The Maison experience ...... photograph, then near-white
- *   07 Seasonal ................... White Rock
- *   08 Little creators ............ Light Sage + stripe
- *   09 Where we've created ........ near-white
- *   10 Collaborate teaser ......... White Rock, with a Light Sage panel
- *   11 Private events ............. DEEP LILAC       the one focal field
- *   12 Closing statement .......... the brand stripe
+ *   02 Opening statement .......... Light Sage       a deck sheet
+ *   03 The Maison experience ...... Light Sage       the card track
+ *   04 Ways to take part .......... White Rock       the four ways in
+ *   05 Create anytime / together .. White Rock head, then Terracotta | Lilac
+ *   06 Where we set up ............ White Rock       the map and the studio
+ *   07 Closing statement .......... DEEP LILAC       the one focal field
+ *
+ * SHORTER THAN IT WAS, and the list is the record of it. Five sections have
+ * come off at the client's ask rather than been rearranged: the workshop
+ * journey, the seasonal band, the little creators, the collaboration teaser
+ * and the private-events teaser. Section 06 kept its map and lost the
+ * year-in-review framing that used to head it — see <WhereWeCreate>.
  *
  * Light Sage returns every third section, the way the brand guide describes
  * it — the structural base — and Deep Lilac is spent once. No two neighbours
@@ -104,20 +103,44 @@ export default function HomePage() {
       <WaysToExperience />
 
       {/*
-        <WorkshopJourney /> HAS BEEN TAKEN OFF THE PAGE at the client's ask —
-        "what we offer", the five ways a visit can go set as a row of paint
-        dabs under the heading. Two photographs they supplied stand in its
-        slot instead; the reasoning is in <StudioInterlude>.
+        NOTHING STANDS HERE NOW, and two things came off this slot in a row at
+        the client's ask — which is worth recording together, because the
+        second removal is only legible against the first.
 
-        NOTHING IS LOST: WORKSHOP_JOURNEY is set in full on /about, in
-        <Community>, and has been since the journey thread moved there. The
-        component and its stylesheet stay in the tree, the same rule
-        <CommunityMoment /> and <SeasonalExperiences /> are kept under below.
+        <WorkshopJourney /> WENT FIRST — "what we offer", the five ways a
+        visit can go, set as a row of paint dabs under a script heading.
+        Nothing left the site with it: WORKSHOP_JOURNEY is set in full on
+        /about in <Community>, and has been since the journey thread moved
+        there, so this page was carrying the second and weaker copy.
 
-        One side effect worth knowing: this was the only place on the site
-        using /images/workshop-journey.jpg.
+        <StudioInterlude /> WENT SECOND. It was built to stand here in its
+        place — two photographs the client supplied, on the Light Sage ground
+        with the cut-outs breaking their edges, and no words at all. They
+        looked at it and asked for it off too.
+
+        SO THE PAGE NOW RUNS <WaysToExperience> STRAIGHT INTO
+        <TwoWaysToCreate>, and this is the one place the grounds rule above
+        does not hold. <TwoWaysToCreate> carries no ground of its own — the
+        section is transparent and its header sits on the page's White Rock —
+        so the join is White Rock into White Rock, and the Light Sage that
+        used to separate them is what has gone.
+
+        IT IS NOT A SEAM, because there is nothing to see: one field of paper
+        runs from the last card of the trail, through a screen of air, to
+        "Create Anytime, or Create Together.", and the colour only arrives at the two
+        panels below that. Checked at 1440 — the two sections read as one
+        long sheet rather than as two that failed to change. What is actually
+        lost is the breath, not the boundary: four ways in, all type, now run
+        into a heading and then into two full panels of colour with no picture
+        anywhere between them. If that reads as too much at once, the fix is a
+        quieter beat in this slot — not either of the two that came out of it.
+
+        Both components and their stylesheets stay in the tree, the same rule
+        <CommunityMoment /> and <SeasonalExperiences /> are kept under below —
+        removing a section is not the same decision as throwing the work away.
+        /images/workshop-journey.jpg, /images/1-2.jpg and /images/i-1.jpg are
+        all now referenced only from those unmounted files.
       */}
-      <StudioInterlude />
       <TwoWaysToCreate />
 
       {/*

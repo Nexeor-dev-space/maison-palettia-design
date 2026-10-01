@@ -62,8 +62,12 @@ export interface TrailItem {
  * so consecutive rows join wherever the rows happen to fall. The trail is
  * continuous because the geometry is relative, not because anything measured
  * it. `preserveAspectRatio="none"` lets the cell be 3.5rem wide on a phone
- * and 7rem on a desktop with the bow compressing to match, and
- * `vector-effect: non-scaling-stroke` keeps the line one weight through it.
+ * and 7rem on a desktop with the bow compressing to match.
+ *
+ * THE STROKE SCALES WITH THE CELL, and it has to — see the note on the path
+ * itself. `vector-effect: non-scaling-stroke` held it to one weight and, in
+ * the same breath, stopped the line reaching the next card on any screen
+ * wider than the viewBox.
  *
  * ==========================================================================
  * IT DEGRADES TO THE FINISHED STATE, NOT TO NOTHING
@@ -123,7 +127,22 @@ function TrailRow({
   */
   const { scrollYProgress } = useScroll({
     target: row,
-    offset: ["start 80%", "end 45%"],
+    /*
+      IT HAS TO BE CLOSED BY THE TIME THE JOIN IS LOOKED AT. At "end 45%" the
+      line only reached 100% once the row's foot was near the top of the
+      window — measured at 1440x900, the next card's top had to be 20% down
+      the screen before the path finished, and at the natural reading position
+      (that card's top around 40%) the stroke was 80% drawn and stopped in
+      clear paper. The client's note was that the first path does not touch,
+      and this was most of why: it does touch, several hundred pixels of
+      scrolling after you have stopped looking.
+
+      "end 72%" finishes it with the next card's top between 44% and 53% of
+      the window across 800-1200px of viewport height — in view, mid-screen,
+      which is when the join has to be made. The draw still runs the length of
+      a card, so nothing about the pace changes.
+    */
+    offset: ["start 85%", "end 72%"],
   });
   const draw = useTransform(scrollYProgress, [0, 1], [0.001, 1]);
   const nodeIn = useTransform(scrollYProgress, [0.55, 0.85], [0, 1]);
@@ -208,7 +227,44 @@ function TrailRow({
             stroke={item.paint}
             strokeWidth={6}
             strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
+            /*
+              ================================================================
+              NO `vector-effect`, AND THAT IS THE BUG THE CLIENT SAW
+              ================================================================
+
+              It was `vectorEffect="non-scaling-stroke"`, to hold the line to
+              one weight through `preserveAspectRatio="none"`. It also stops
+              the line ever reaching the next card.
+
+              `pathLength` draws by normalising the path to 1 and animating a
+              `stroke-dasharray` against it — but under non-scaling-stroke
+              Chrome measures the dash in SCREEN space while the
+              normalisation is in USER space, and `preserveAspectRatio="none"`
+              makes those two differ by the cell's stretch. The ink covers
+              1/stretch of the path, however finished the animation says it is.
+
+              Measured at 1920x1000 with the draw reported complete
+              (stroke-dasharray 1px, stroke-dashoffset 0): the path's own
+              rendered box reached y 474 and the next card's top edge was at
+              399 — but the last inked pixel was at 304. Ninety-five pixels of
+              geometry with no paint on it. Removing the attribute and
+              re-measuring the same frame put the last inked pixel at 398, on
+              the card's edge.
+
+              THE SCALE IS WHY IT LOOKED FINE ON SOME SCREENS. The svg is
+              1400 user units wide, so at a 1400px-wide container the stretch
+              is 1.0 and nothing is lost; at 1920 it is 1.33 and a fifth of
+              every line goes missing. That is the whole of "the first path is
+              not touching" — it was never a scroll position or a coordinate,
+              it was the viewport.
+
+              WHAT IT COSTS. The stroke now scales with the cell, so 6 units
+              is about 4.3px at 1024 and 8px at 1920, and it is a little
+              wider where the curve runs flat than where it runs steep. On a
+              line that is meant to read as drawn by hand that is a brush, not
+              a defect — and it is the cheaper of the two, by a long way,
+              against a connector that does not connect.
+            */
             style={reduced ? { pathLength: 1 } : { pathLength: draw }}
           />
         </svg>
@@ -285,11 +341,41 @@ const TRAIL_MARKS_BY_LINK: readonly { x: number; y: number; w: number }[] = [
 function linkPath(index: number): string {
   switch (index) {
     case 0:
-      return "M 640 280 C 850 120, 1060 160, 1000 380";
+      /*
+        IT ENDED 9px INSIDE CARD 2 and that is not a tuck, it is a graze. The
+        tail has to finish far enough under the next card that the junction is
+        hidden at every width, and how far down the card's top edge falls is
+        not fixed: the -14rem pull is 224 CONSTANT pixels against a row whose
+        height scales, so in this 600-unit viewBox the next card's top lands
+        at 331 on a short row and 402 on a tall one. An end at y 380 is inside
+        the card at 1440 by nine pixels and OUTSIDE it on anything taller.
+
+        470 clears the deepest of those by 68 and the shallowest by 139. The
+        two control points are moved with it so the visible arc is unchanged —
+        its midpoint was (921, 188) and is now (927, 188) — and the start goes
+        from 640 to 600 for the same reason as the tail: 640 is 18 units inside
+        the left card's edge, which is under the card but with nothing to
+        spare.
+      */
+      return "M 600 300 C 855 108, 1080 138, 1010 470";
     case 1:
-      return "M 900 250 C 700 340, 500 380, 300 430";
+      /*
+        The straight tail is the cubic's own tangent carried on — (-200, +50)
+        at the end, and (140, 470) is (-160, +40) from it, the same 4:1 — so
+        the curve is not changed by a pixel, it just keeps going under the
+        card. Measured, this one entered card 3 only 35px below its top edge
+        at 1920 and would have missed it outright around 2500.
+      */
+      return "M 900 250 C 700 340, 500 380, 300 430 L 140 470";
     case 2:
-      return "M 350 545 C 480 700, 700 640, 820 430";
+      /*
+        This one is hidden by card 4's LEFT edge rather than its top — the
+        swoop crosses x 742 at about y 600, well inside the card vertically —
+        so only the very tip was at risk, poking out above the card's top on a
+        very wide screen. The end moves 20 right and 50 down; the visible part
+        of the swoop drops seven units, which is under a pixel on the page.
+      */
+      return "M 350 545 C 480 700, 700 640, 840 480";
     default:
       return "";
   }

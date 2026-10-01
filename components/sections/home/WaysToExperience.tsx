@@ -255,13 +255,13 @@ export async function WaysToExperience() {
       lede: "Come to a table and make something — on the day, or on a date you book.",
       doors: [
         {
-          label: "Walk-in DIY",
+          label: "Create Anytime",
           note: `${walkIn} activities, no booking`,
           href: "/events",
           mode: "diy",
         },
         {
-          label: "Scheduled sessions",
+          label: "Create Together",
           note: `${scheduled} guided sessions`,
           href: "/events",
           mode: "scheduled",

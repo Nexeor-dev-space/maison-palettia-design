@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
@@ -74,9 +75,24 @@ const PLATES = [
 export function LittleCreators() {
   return (
     <DeckSheet labelledBy="little-creators-heading" className="overflow-x-clip">
+      <SectionShapes plan={KIDS_SHAPES} />
+
       <Container className="relative">
         <div className="grid grid-cols-12 items-end gap-x-gutter gap-y-6">
-          <div className="col-span-12 lg:col-span-6">
+          <div className="relative col-span-12 lg:col-span-6">
+            {/*
+              Pinned above the label, hanging a little off the left margin.
+              The deck never sets a cut-out down in clear paper — it puts them
+              over the edge of something — and up here the only edge going is
+              the page's own.
+            */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-7 -top-[4.5rem] hidden w-[4.25rem] rotate-[-14deg] lg:block"
+            >
+              <DoodleMark name="coral" color={INK.lilac} delay={120} depth={12} />
+            </span>
+
             <Reveal>
               <p className="flex items-center gap-3 text-label font-bold uppercase tracking-eyebrow text-terracotta">
                 <span aria-hidden className="block w-4 shrink-0">
@@ -94,9 +110,31 @@ export function LittleCreators() {
                 {forScript("For Our Little Creators.")}
               </h2>
             </Reveal>
+
+            {/* Past the end of the script, straddling its last line — which is
+                the one edge this half of the header has to offer. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -bottom-5 right-[6%] hidden w-[3.5rem] rotate-[14deg] lg:block"
+            >
+              <DoodleMark name="starburst" color={INK.terracotta} delay={300} depth={10} />
+            </span>
           </div>
 
-          <Reveal delay={0.12} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
+          <Reveal
+            delay={0.12}
+            className="relative col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3"
+          >
+            {/* And one on the standfirst's top-left corner, so the right half
+                of the header is punctuated like the left. It is held clear of
+                the first letter: at -left-9 it sat on the "T" of "Three". */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-14 -top-11 hidden w-[3.25rem] rotate-[-10deg] lg:block"
+            >
+              <DoodleMark name="bow" color={INK.lilac} delay={420} depth={10} />
+            </span>
+
             <p className="max-w-[36ch] text-body leading-[1.75] text-text/85">
               Three activities cut to a smaller pair of hands, so a child and a parent can sit at
               the same table and both come away with something.
@@ -158,3 +196,100 @@ export function LittleCreators() {
     </DeckSheet>
   );
 }
+
+/*
+  THE PAPER BEHIND THEM.
+
+  This section is a script heading on half a line, a standfirst on the other
+  half, and three photographs — which leaves two wide bands of bare Light Sage
+  it never uses. Measured at 1440: 112px across the full width above the
+  label, and 112px below the names, plus the channel between the heading and
+  the standfirst. The field is placed into those and nowhere else.
+
+  It is a WASH, not a set of cut-outs. These sit at `-z-10`, so the three
+  plates cover whatever strays under them, and the marks meant to be read at
+  full strength are the <DoodleMark>s above, on the edges of things.
+
+  `color` HERE IS A HINT, NOT A TINT, and that is worth knowing before anyone
+  tunes these. The doodles are the brand sheet's own icons and most of them
+  are printed in more than one colour — <DoodleMark> walks `shape.parts` and
+  gives each part the fill the sheet prints it in, taking the caller's colour
+  only for the parts the sheet leaves as `currentColor`. So `wave` arrives
+  carrying its own Deep Lilac whatever is asked for here, and setting White
+  Rock on it changes one part of it and nothing else.
+
+  What this plan actually controls, then, is placement, size, angle and how
+  far down the paper each icon is pulled — not its hue. Chasing a colour
+  through these values is wasted work; the sheet decides, and the sheet is
+  right. The colours are still written out because they are what the parts
+  that DO follow `color` take, and because they are what this file renders on
+  the other branch, where <DoodleMark> is still one path filled with `color`.
+
+  The opacities are set by eye against that: terracotta and White Rock
+  icons sit low because they are quiet to begin with, and `wave` is held down
+  at 0.45 because its lilac is the strongest thing the sheet prints and at
+  two thirds it stopped being a ground and started being a mark.
+*/
+const KIDS_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "splash",
+    color: INK.terracotta,
+    width: "13%",
+    left: "-5%",
+    /*
+      A WHISKER INSIDE, NOT OUTSIDE, and the sign matters more than the
+      number. These offsets are percentages of the SECTION, and the section is
+      1063px tall at 1440 and 2027px at 375 — so `top: -3%` is 32px above the
+      edge on a desktop and 61px above it on a phone. Both are outside a box
+      that clips, which is why the two marks that survive to mobile were
+      invisible there and this section had nothing on it below `lg` but the
+      dot in the label. Vertical offsets stay positive; the horizontal ones
+      may bleed, because the section is clipped on x only at its own margins
+      and a mark running off the side is the deck's own habit.
+    */
+    top: "0.5%",
+    rotate: -14,
+    drift: 20,
+    opacity: 0.26,
+    float: 12,
+  },
+  {
+    name: "wave",
+    color: INK.whiteRock,
+    width: "14%",
+    right: "-3%",
+    top: "-1%",
+    rotate: 12,
+    drift: -16,
+    opacity: 0.45,
+    float: 14,
+    floatDelay: 1.8,
+    desktopOnly: true,
+  },
+  {
+    name: "cutout",
+    color: INK.terracotta,
+    width: "16%",
+    right: "3%",
+    /* Positive, for the reason on `splash` above. */
+    bottom: "1%",
+    rotate: -10,
+    drift: 18,
+    opacity: 0.22,
+    float: 15,
+    floatDelay: 2.6,
+  },
+  {
+    name: "zigzag",
+    color: INK.whiteRock,
+    width: "9%",
+    left: "6%",
+    bottom: "-1%",
+    rotate: -6,
+    drift: -22,
+    opacity: 0.55,
+    float: 11,
+    floatDelay: 3.2,
+    desktopOnly: true,
+  },
+];

@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
@@ -9,6 +10,60 @@ import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { getUpcomingWorkshops } from "@/lib/workshops";
+
+/*
+  THE MASTHEAD'S RIGHT HALF, which is the one part of this section with
+  nothing in it. The heading and its lede are held to the left measure, so
+  everything right of about 45% is clear cream at every width above `lg` —
+  no type to sit behind, by construction.
+
+  LOOSE SHAPES ONLY, and three of them. A slab is a shape on a coloured tile
+  and reads as an object pinned to the page; these are meant to be air in an
+  empty half, which is what the loose cut-outs do. The colour picks the
+  drawing — lilac gives the bow, terracotta the splash, lavender the coral —
+  so three colours is also three different marks. See FAMILY in
+  sections/hero/doodles.ts.
+
+  `hidden lg:block`, because below `lg` the heading takes the full measure
+  and there is no empty half for them to fill.
+*/
+const TWO_WAYS_SHAPES: readonly ShapePlan[] = [
+  {
+    name: "coral",
+    color: INK.lilac,
+    width: "5.5%",
+    right: "9%",
+    top: "14%",
+    rotate: -12,
+    drift: 22,
+    opacity: 0.18,
+    float: 13,
+  },
+  {
+    name: "splash",
+    color: INK.terracotta,
+    width: "4.5%",
+    right: "30%",
+    top: "44%",
+    rotate: 14,
+    drift: -18,
+    opacity: 0.16,
+    float: 15,
+    floatDelay: 1.1,
+  },
+  {
+    name: "starleaf",
+    color: INK.lavender,
+    width: "6%",
+    right: "17%",
+    bottom: "12%",
+    rotate: 8,
+    drift: 20,
+    opacity: 0.2,
+    float: 11,
+    floatDelay: 2,
+  },
+];
 
 /**
  * ==========================================================================
@@ -77,8 +132,8 @@ import { getUpcomingWorkshops } from "@/lib/workshops";
  * two colour fields, and a reader met "01 NO BOOKING / WALK IN" with nothing
  * having told them what the two halves are for.
  *
- * It was not that the heading was missing. It was `sr-only` — "Walk in, or
- * book a seat", announced to a screen reader and drawn for nobody — on the
+ * It was not that the heading was missing. It was `sr-only` — the two
+ * names, announced to a screen reader and drawn for nobody — on the
  * argument that two fields, two names and two buttons say it themselves. They
  * do not, and a heading that only one kind of visitor gets is the wrong kind
  * of difference anyway. It is now the section's visible statement, in the
@@ -143,7 +198,13 @@ export async function TwoWaysToCreate() {
       className="relative isolate overflow-clip"
     >
       {/* ---- what the two halves are, before you meet them --------------- */}
-      <div className="bg-cream pb-[3rem] pt-[4rem] md:pb-[3.5rem] md:pt-[5.5rem] lg:pb-[4.5rem] lg:pt-[6.5rem]">
+      {/* `isolate`, and it is load-bearing. <SectionShapes> paints at -z-10;
+          with no stacking context here that -10 escapes to the section's own
+          `isolate` and the marks land BEHIND this band's cream background,
+          where they cannot be seen. Isolating keeps them above the cream and
+          below the type. */}
+      <div className="relative isolate bg-cream pb-[3rem] pt-[4rem] md:pb-[3.5rem] md:pt-[5.5rem] lg:pb-[4.5rem] lg:pt-[6.5rem]">
+        <SectionShapes plan={TWO_WAYS_SHAPES} className="hidden lg:block" />
         <Container>
           <Reveal>
             <Eyebrow>How to take part</Eyebrow>
@@ -153,7 +214,7 @@ export async function TwoWaysToCreate() {
             id="two-ways-heading"
             size="section"
             className="mt-6 md:mt-7"
-            lines={["Walk In, or Book a Seat"]}
+            lines={["Create Anytime,", "or Create Together."]}
           />
 
           <Reveal delay={0.12}>
@@ -176,7 +237,7 @@ export async function TwoWaysToCreate() {
           index={1}
           ground="terracotta"
           eyebrow="No booking"
-          title="Walk in"
+          title="Create Anytime"
           /* Not Terracotta any more — that is the ground it would sit on. */
           dot={INK.whiteRock}
           plate={walkInPlate}
@@ -198,7 +259,7 @@ export async function TwoWaysToCreate() {
           index={2}
           ground="lilac"
           eyebrow="A date and a seat"
-          title="Book a seat"
+          title="Create Together"
           dot={INK.lavender}
           plate={scheduledPlate}
           line={`${count(scheduled.length, "session", "sessions")}, each on a set date.`}

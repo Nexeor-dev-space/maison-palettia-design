@@ -361,7 +361,7 @@ function EventHeader({
   const typeLabel =
     detail.kind === "scheduled"
       ? detail.workshop.category
-      : "Walk-in experience";
+      : "Create Anytime";
 
   return (
     <section aria-labelledby="event-title" className="mt-9 md:mt-12">
@@ -574,7 +574,12 @@ function WalkInFacts({ detail }: { detail: EventDetail }) {
       <div>
         <dt className={TERM}>How it runs</dt>
         <dd className="mt-3 text-lead font-medium leading-snug text-text">
-          Walk in
+          {/* THE MECHANISM, NOT THE NAME. The eyebrow over the title already
+              says "Create Anytime" and the statement below says it again; a
+              third would be a label repeating itself. This row answers "how
+              does it run", and the honest answer to that is the mechanism —
+              which is where the client asked for the old words to stay. */}
+          Walk-in
           <Sub>No booking needed</Sub>
         </dd>
       </div>
@@ -660,7 +665,7 @@ function PrimaryAction({
   return (
     <div>
       <p className="text-h3 font-light tracking-[-0.015em] text-text">
-        Walk in and create.
+        Create anytime.
       </p>
       <p className="mt-3 max-w-[30rem] text-body leading-[1.8] text-text/85">
         This one runs as a walk-in activity — there is no date to book and
