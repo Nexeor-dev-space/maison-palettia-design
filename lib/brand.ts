@@ -131,12 +131,17 @@ export interface JourneyStep {
 export const WORKSHOP_JOURNEY: readonly JourneyStep[] = [
   {
     slug: "walk-in-diy",
-    name: "Walk-in DIY",
+    /* RENAMED BY THE CLIENT, site-wide: the two ways in are "Create Anytime"
+       and "Create Together" wherever they are named. The deck's own words for
+       the mechanism — walk-in, scheduled — stay in the descriptions, which is
+       what they asked for. The slugs are keys and nothing reads them as copy,
+       so they are left alone. */
+    name: "Create Anytime",
     description: "Visitors choose an experience and enjoy it at their own pace.",
   },
   {
     slug: "scheduled-sessions",
-    name: "Scheduled sessions",
+    name: "Create Together",
     description: "Guided workshops that allow people to learn techniques and socialise.",
   },
   {

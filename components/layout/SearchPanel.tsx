@@ -567,7 +567,7 @@ function ActivityResults({
                 ) : null}
               </span>
               <span className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/70">
-                {experience.kind === "diy" ? "Walk-in" : "Scheduled"}
+                {experience.kind === "diy" ? "Create Anytime" : "Create Together"}
               </span>
             </Link>
           </li>

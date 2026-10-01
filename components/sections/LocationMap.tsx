@@ -158,8 +158,25 @@ export function LocationMap({ partners, className, caption = true, aspect }: Loc
                 <DoodleMark name="bean" color={INK.terracotta} treatment="stamp" delay={320} />
               </span>
               <div
+                /*
+                  `plate` AND A WIDER RADIUS, at the client's ask: "this
+                  doesn't need to be SO big, or maybe give it a border cuz it
+                  blends with the background".
+
+                  It had a hairline in `--color-line`, which is Light Sage
+                  with a little Soft Lavender — a rule drawn to disappear into
+                  this site's pale grounds, which is exactly what it did
+                  against a map whose own tiles are pale grey. `plate` is the
+                  device this project already uses for an object that cannot
+                  be seen against its ground: a 10% Charcoal ring and the
+                  shared veil under it. The radius matches <PartnerPlate>
+                  beside it, so the map and the destination read as a pair.
+
+                  The other half of the note — the size — is the caller's:
+                  `aspect` is a prop, and /locations passes a shorter one.
+                */
                 className={cn(
-                  "relative w-full overflow-hidden rounded-sm border border-line bg-surface-alt",
+                  "plate relative w-full overflow-hidden rounded-[1.25rem] border border-line bg-surface-alt",
                   aspect ??
                     cn("aspect-[4/5] sm:aspect-[16/9]", single ? "lg:aspect-[2/1]" : "lg:aspect-[16/10]"),
                 )}

@@ -165,17 +165,18 @@ export function MenuRailGroup({
   return (
     <div className={fill ? "flex min-h-0 flex-1 flex-col" : undefined}>
       {/*
-        THE NOTE IS OPTIONAL, AND THE EXPERIENCES MENU NO LONGER PASSES ONE.
+        THE NOTE IS OPTIONAL, AND IT HAS BEEN BOTH WAYS.
 
-        Its two groups carried a title and a sentence under it — "Walk-in" over
-        "No booking — come in any time." The client has replaced both with a
-        single line that names the group twice, mechanism first and invitation
-        second: "Walk-in — Create Anytime". The sentence is gone with the
-        change, which is what they asked for; the mechanism it explained is
-        still the first half of the title.
+        The experiences menu's two groups carried a title over a sentence —
+        "Walk-in" above "No booking — come in any time." — then one combined
+        line, "Walk-in — Create Anytime", when the client asked for the
+        mechanism and the invitation together. They have since renamed the two
+        ways in: the title is now the invitation alone, "Create Anytime", and
+        the mechanism is back here under it, which is what they asked for
+        ("you can use walk-in and scheduled workshops in the descriptions").
 
-        It stays a prop because the Private events menu has one group and a
-        real sentence under it, and that menu was not part of the note.
+        The Private events menu has always passed one, and was never part of
+        any of those notes.
       */}
       <p className="px-3 text-label font-semibold uppercase tracking-eyebrow text-text/55">{title}</p>
       {note ? <p className="mt-1.5 px-3 text-fine leading-[1.5] text-text/60">{note}</p> : null}

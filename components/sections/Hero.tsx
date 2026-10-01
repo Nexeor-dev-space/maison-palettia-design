@@ -49,47 +49,42 @@ const HERO_IMAGE = {
   /*
     NOT THE STUDIO'S OWN PHOTOGRAPH — SAY SO BEFORE REUSING IT.
 
-    This is `banner-img.jpg`, supplied on 2026-09-29, and it is the same scene
-    as the `hero/studio-laughter.jpg` it replaces: two women laughing in a
-    craft studio, one with a painted mug and one with a painted dish. That
-    picture was generated with ElevenLabs (bytedance-seedream-5-pro) at the
-    client's instruction, because the feedback PDF asked for exactly this and
-    supplied a reference for it — "the current image makes the experience feel
-    quite kids-focused, whereas we want the visuals to appeal to a wider
-    audience, including young adults and adults" — and this file is the same
-    composition, so it is to be treated the same way until someone says
-    otherwise: NOT the studio's own photograph, NOT its own guests, and never
-    captioned as either. Nothing on the page claims it is.
+    This is `image.png`, supplied 2026-10-01 at the client's ask, and it
+    replaces `banner-img.jpg`. Same scene family as its predecessor — two
+    women laughing behind the ceramics they have painted — but a closer,
+    more playful frame: a mug dotted in blue and a scallop-edged tray in
+    small pink flowers, held up over their faces, with shelves of plain
+    ware behind them.
 
-    Its metadata says only that it has been through an Adobe tool: an XMP
-    record pointing at a CAI manifest on cai-manifests.adobe.com, which is
-    remote and has not been read. That is consistent with a crop and proves
-    nothing either way about how the frame was made. See the
-    `image-provenance` note for the rest of the site's picture record, and
-    replace this with a real frame the moment there is one.
+    ITS ORIGIN IS UNKNOWN. Checked with `strings`: no C2PA manifest, no XMP
+    record, no Adobe, Figma or SynthID marker. That absence proves nothing
+    either way — the two frames it follows were both AI-generated — so it
+    is treated exactly as they were: NOT the studio's own photograph, NOT
+    its own guests, and never captioned as either. Nothing on the page
+    claims it is. See the `image-provenance` note, and replace this with a
+    real frame the moment there is one.
 
-    THE CROP IS THE ONE THING THAT CHANGED. 1600x669 is 2.39:1 against the old
-    file's 1.78:1 — a cinema band rather than a wide photograph — so the
-    resting card now shows very nearly the whole frame and it is the OPEN,
-    full-bleed state that crops, taking the top and bottom off a tall window
-    instead of the sides.
+    THE CROP CHANGED BACK TO A WIDE PHOTOGRAPH. 1920x1080 is 1.78:1 against
+    the old file's 2.39:1, so the resting card now crops the sides rather
+    than showing very nearly the whole frame, and the OPEN, full-bleed
+    state has half again as much height to work with — the case the cinema
+    band made worst.
 
-    `position` STILL DIFFERS BY BREAKPOINT, and this crop makes the phone's
-    case worse rather than better. A 2.39:1 source in a full-bleed portrait
-    window is fitted by height, so what a 390px screen sees is about 19% of
-    the file's width — 308px of 1600, against 26% for the 1.78:1 file this
-    replaces. Centred, that slice lands on the join between the two heads and
-    shows half of each face and neither painted piece.
+    `position` STILL DIFFERS BY BREAKPOINT, and the wider source eases the
+    phone rather than fixing it. A 1.78:1 source in a full-bleed portrait
+    window is fitted by height, so a 390px screen sees about 26% of the
+    file's width — 500px of 1920. Centred, that slice lands on the join
+    between the two heads and shows half of each face and neither piece.
 
-    So the phone takes the left-hand subject whole: 42% puts the slice at
-    x528-836, which holds her face and the whole of the dotted mug she is
-    holding. One complete subject beats two halves, which is the same call
-    the old file's note made for the same reason. The desktop card is wide
-    enough to hold the pair and stays centred.
+    So the phone takes the left-hand subject whole: 38% puts the slice at
+    x480-980, which holds her face and the whole of the dotted mug. One
+    complete subject beats two halves, which is the call both earlier files'
+    notes made for the same reason. The desktop card is wide enough to hold
+    the pair and stays centred.
   */
-  src: "/images/banner-img.jpg",
-  alt: "Two women laughing side by side in a craft studio, one holding up a mug she has painted with coloured dots and squiggles, the other a scallop-edged dish painted with small pink flowers, with shelves of yarn and paint pots behind them.",
-  position: { desktop: "50% 50%", mobile: "42% 50%" },
+  src: "/images/image.png",
+  alt: "Two women laughing behind the ceramics they have painted, one holding up a mug dotted with small blue flowers, the other a scallop-edged tray patterned with little pink blooms, with shelves of plain crockery behind them.",
+  position: { desktop: "50% 50%", mobile: "38% 50%" },
   lift: "-2%",
 };
 /**

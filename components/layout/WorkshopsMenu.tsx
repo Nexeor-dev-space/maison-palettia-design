@@ -60,8 +60,16 @@ interface WorkshopsMenuProps {
  * was part of the ask.
  */
 const GROUPS = [
-  { mode: "diy", title: "Walk-in — Create Anytime" },
-  { mode: "scheduled", title: "Scheduled — Create Together" },
+  {
+    mode: "diy",
+    title: "Create Anytime",
+    note: "Walk-in — no booking needed.",
+  },
+  {
+    mode: "scheduled",
+    title: "Create Together",
+    note: "Scheduled workshops, booked online.",
+  },
 ] as const;
 
 /**
@@ -147,7 +155,12 @@ export function WorkshopsMenu({
     is two places for a `href` to go wrong.
   */
   const renderGroup = (group: (typeof groups)[number]) => (
-    <MenuRailGroup key={group.mode} title={group.title} fill={group.mode === "diy"}>
+    <MenuRailGroup
+      key={group.mode}
+      title={group.title}
+      note={group.note}
+      fill={group.mode === "diy"}
+    >
       {group.items.map((experience) => {
         const session = sessionFor(experience.slug);
         return (

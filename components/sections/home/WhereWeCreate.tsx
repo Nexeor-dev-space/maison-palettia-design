@@ -4,7 +4,6 @@ import { Container } from "@/components/ui/Container";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
-import { EXPERIENCE_STATEMENT } from "@/lib/brand";
 import { getMallPartners } from "@/lib/partners";
 
 /**
@@ -153,25 +152,45 @@ export async function WhereWeCreate() {
               <DoodleMark name="dot" color={INK.terracotta} treatment="draw" delay={560} depth={26} />
             </span>
 
+            {/*
+              ==============================================================
+              THE PAST-YEAR FRAMING HAS GONE — at the client's ask
+              ==============================================================
+
+              This was "Our experience / Where We've Created." over the
+              deck's year-in-review sentence, and under it a run of ten malls
+              the studio has worked in. The destinations came off first; the
+              heading and the sentence are the rest of the same note, which
+              asks for that record to leave the main pages and live on a
+              Brands & Malls page if it is wanted at all.
+
+              WHAT THE SECTION IS FOR SURVIVES IT, because what it actually
+              holds is the map and the destination the studio sets up in —
+              present tense, and the one thing the client asked to keep. So
+              the words become that: "Find us" over "Where We Set Up.", which
+              is the phrase /events already uses for the same idea, and the
+              sentence is the one /locations opens with rather than a new
+              claim written to fill the space.
+
+              `EXPERIENCE_STATEMENT` is untouched in lib/brand.ts and nothing
+              reads it now — it is one import away from a collaboration page.
+            */}
             <Reveal>
-              <Eyebrow>Our experience</Eyebrow>
+              <Eyebrow>Find us</Eyebrow>
             </Reveal>
             <DisplayHeading
               id="where-heading"
               className="mt-8 md:mt-10"
-              lines={["Where We’ve", "Created."]}
+              lines={["Where We", "Set Up."]}
             />
-            {/* 60 characters, and the figure has moved twice for the same
-                reason: it has to fill the column it is actually in or the
-                dead ground it leaves behind reads as the section being
-                empty, which is the note this section keeps getting. It was
-                46 for a four-column block and 54 for six. At five columns
-                the measure is about 480px and so is 60ch, so the paragraph
-                now reaches its own edge instead of stopping 350px short of
-                it on a wide screen. The ceiling is still about 75. */}
+            {/* 60 characters: the measure has to fill the column it is
+                actually in, or the dead ground it leaves reads as the
+                section being empty — the note this section keeps getting.
+                At five columns the column is about 480px and so is 60ch. */}
             <Reveal delay={0.15}>
               <p className="mt-8 max-w-[60ch] text-body leading-[1.85] text-text/85">
-                {EXPERIENCE_STATEMENT}
+                Maison Palettia brings creative experiences into the places people already gather
+                &mdash; set up inside a mall rather than behind a studio door.
               </p>
             </Reveal>
           </div>

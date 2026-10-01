@@ -106,26 +106,25 @@ export interface DoodlePlan {
   /**
    * Whether this shape takes part in the entrance's ring around the logo.
    *
-   * DIALLED DOWN FROM EIGHTEEN TO NINE, at the client's ask — "let's dial down
-   * the brand icons around the logo" — and the nine are chosen by a rule
-   * rather than by taste, because the same note's storyboard says the ring
-   * should match the final layout.
+   * DIALLED DOWN TO SIX, at the client's ask: match the storyboard frame
+   * they supplied exactly, and use no shape that is not in it.
    *
-   * THE RULE: a shape is in the ring if it has a place in the finished page.
-   * Eight of the eighteen do; the other ten are `tucked`, which means their
-   * resting position is wholly behind the photograph. Those ten existed only
-   * to pad the old ring, and they were the ones that made it a wreath.
+   * THE SIX ARE ONE PER DRAWING, not one per placement, and that is what the
+   * frame shows: a Deep Lilac bow above the mark, the White Rock slab out on
+   * the left, the Terracotta slab top right, the Terracotta splash low left,
+   * the Soft Lavender coral on the right and the Deep Lilac slab below. Five
+   * of the set's colours, each used once, and no shape repeated.
    *
-   * With only the eight, every icon that bursts out of the logo is an icon the
-   * visitor still has in front of them when the page is composed — which is
-   * what the storyboard's last frame asks for, the icons "continuing to live
-   * throughout the design".
+   * WHICH DRAWING A ROW GETS is the colour's business, not the shape word's:
+   * `resolveIcon` reads the colour for the pair and the word only for loose
+   * or slab. So `bow`+lilac is the lilac LOOSE icon and `wave`+lilac is the
+   * lilac SLAB — the words here are historical and the colours are what to
+   * read. See FAMILY in sections/hero/doodles.ts.
    *
-   * THE NINTH IS THE NORTH-EAST. The eight sit at N, NNE, E, SE, S, SW, W and
-   * NW, and the run from the small dot at NNE round to the coral at E is 80°
-   * of nothing — a ring with one quadrant missing reads as a shape that failed
-   * to finish rather than as a deliberately sparser one. `bow-ene` is the one
-   * tucked shape kept, and it is kept for that gap alone.
+   * The ring no longer rings: the frame's placement is deliberately uneven,
+   * so the gaps are the composition rather than a quadrant that failed to
+   * fill. The other twelve shapes keep their resting places in the banner's
+   * collage and simply take no part in the entrance.
    */
   ring: boolean;
   /**
@@ -219,7 +218,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 91, top: -7, width: 6, rotate: 12 },
     mobile: { left: 83, top: 0, width: 23, rotate: 12 },
     ring: true,
-    flower: { x: 0.03, y: -0.42, width: 0.28, rotate: -8 },
+    flower: { x: 0.28, y: -0.28, width: 0.19, rotate: 10 },
     float: 7,
   },
   {
@@ -241,7 +240,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     depth: 24,
     desktop: { left: 46, top: -4.5, width: 1.6, rotate: 0 },
     mobile: { left: 56, top: -2, width: 4.5, rotate: 0 },
-    ring: true,
+    ring: false,
     flower: { x: 0.26, y: -0.4, width: 0.05, rotate: 0 },
     float: 5,
   },
@@ -266,7 +265,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 40, top: 55, width: 7, rotate: -10 },
     mobile: { left: 40, top: 55, width: 12, rotate: -10 },
     ring: true,
-    flower: { x: 0.62, y: -0.36, width: 0.18, rotate: -10 },
+    flower: { x: 0.6, y: 0.14, width: 0.18, rotate: 8 },
     float: 7.8,
   },
   {
@@ -290,7 +289,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     depth: 12,
     desktop: { left: 100.2, top: 18, width: 4.2, rotate: 10 },
     mobile: { left: 89, top: 38, width: 18, rotate: 10 },
-    ring: true,
+    ring: false,
     flower: { x: 0.76, y: 0.03, width: 0.26, rotate: 14 },
     float: 8,
   },
@@ -306,7 +305,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 100.4, top: 52, width: 3.2, rotate: -12 },
     mobile: { left: -5, top: 55, width: 9, rotate: -12 },
     ring: true,
-    flower: { x: 0.52, y: 0.34, width: 0.13, rotate: 24 },
+    flower: { x: -0.47, y: 0.22, width: 0.27, rotate: 0 },
     float: 6.5,
   },
   {
@@ -344,7 +343,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 93.5, top: 104, width: 8.5, rotate: 3 },
     mobile: { left: 80, top: 72, width: 30, rotate: 3 },
     ring: true,
-    flower: { x: 0.02, y: 0.4, width: 0.3, rotate: -4 },
+    flower: { x: 0.1, y: 0.39, width: 0.21, rotate: 12 },
     float: 8.5,
   },
   {
@@ -359,7 +358,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     flower, and it flies home out of sight.
     */
     mobile: { left: 56, top: 52, width: 22, rotate: -8 },
-    ring: true,
+    ring: false,
     flower: { x: -0.36, y: 0.36, width: 0.32, rotate: 16 },
     float: 10,
   },
@@ -398,7 +397,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     */
     mobile: { left: 30, top: 38, width: 16, rotate: -14 },
     ring: true,
-    flower: { x: -0.7, y: -0.02, width: 0.2, rotate: -12 },
+    flower: { x: -0.23, y: -0.45, width: 0.18, rotate: -15 },
     float: 7.5,
   },
   {
@@ -421,7 +420,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     depth: 10,
     desktop: { left: -1.5, top: 103, width: 7.5, rotate: -10 },
     mobile: { left: -10, top: 0.5, width: 34, rotate: -10 },
-    ring: true,
+    ring: false,
     flower: { x: -0.46, y: -0.34, width: 0.24, rotate: -20 },
     float: 9,
   },
@@ -433,8 +432,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     depth: 10,
     desktop: { left: 64, top: 28, width: 9, rotate: -22 },
     mobile: { left: 64, top: 28, width: 15, rotate: -22 },
-    ring: false,
-    flower: { x: -0.27, y: -0.58, width: 0.18, rotate: -22 },
+    ring: true,
+    flower: { x: -0.69, y: -0.25, width: 0.2, rotate: -50 },
     float: 6.2,
   },
   {
