@@ -1,0 +1,295 @@
+/*
+  ==========================================================================
+  PAINT YOUR PLACE — the booking step, laid out as a palette and a place card
+  ==========================================================================
+
+  The booking step asks for two things, how many places and who is coming,
+  and both are answered in the studio's own medium: places are paint wells on
+  a palette plate, and every field is underlined in a brush stroke. Beside the
+  form a place card fills in as the visitor types, so the thing they are
+  making is visible while they make it.
+
+  Everything here is built from the site's existing marks rather than new
+  ones — `dab` (the loaded-brush mask), `blob` (the cut-paper radius), `plate`
+  (the edge without a line) and `press-in`. This file only places them and
+  says what each state looks like.
+
+  WHAT CARRIES STATE, AND WHAT ONLY DECORATES. Paint is never the signal on
+  its own: Soft Lavender on White Rock is 1.44:1 and Warm Terracotta 2.44:1,
+  so a chosen well is marked by a solid Charcoal rim (9.36:1) and a bold
+  numeral, a dry one by a dashed rim at 60% (3.30:1, over the 3:1 non-text
+  floor — 55% measures 2.92 and is not enough), and an error by words.
+
+  Every transition here is a transform, an opacity or the independent `scale`
+  property, so nothing on the page moves its neighbours. The global
+  `prefers-reduced-motion` block at the foot of globals.css zeroes all of them.
+*/
+
+/* --------------------------------------------------------------------------
+   01 — the wells
+   -------------------------------------------------------------------------- */
+
+.well {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+  The well itself: 48px on a phone, which is the touch target, and 52px from
+  `md`. The rim is a border rather than a ring so it can be dashed — the
+  difference between a dry well and a filled one has to survive greyscale and
+  forced colours, and "dashed against solid" does where a tint would not.
+*/
+.rim {
+  position: relative;
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  border: 1.5px dashed color-mix(in oklab, var(--color-text) 60%, transparent);
+  transition:
+    border-color var(--duration-fast) var(--ease-soft),
+    transform var(--duration-press) var(--ease-soft);
+}
+
+/* The site's press (see `press-in`), written out here because the rim already
+   has a transition of its own and the utility's would replace it. */
+.well:active .rim {
+  transform: translateY(1px) scale(0.994);
+}
+
+@media (min-width: 48rem) {
+  .rim {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+}
+
+.well[data-filled] .rim {
+  border-style: solid;
+  border-color: var(--color-text);
+}
+
+/* The hover preview: a solid rim at the dry rim's strength, so the ghost reads
+   as "this is what you would be choosing" rather than as already chosen. */
+.well[data-ghost] .rim {
+  border-style: solid;
+}
+
+/*
+  The paint and its ghost share a shape. Framer owns the paint's transform and
+  opacity (the bloom and the drain); CSS owns the ghost's opacity. Two layers
+  rather than one so the two never fight over the same property — a hover
+  arriving mid-bloom would otherwise snap the bloom to 25% and back.
+*/
+.paint,
+.ghost {
+  position: absolute;
+  inset: 0.25rem;
+  background-color: var(--paint);
+}
+
+.ghost {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-soft);
+}
+
+.well[data-ghost] .ghost {
+  opacity: 0.25;
+}
+
+/*
+  Focus is drawn on the rim, because the radio it belongs to is visually
+  hidden — the browser's own ring would be drawn round a 1px box nobody can
+  see. Deep Lilac measures 4.67:1 on the page ground, which is enough for a
+  2px indicator; forced colours swaps it for the system ink.
+*/
+.well:has(input:focus-visible) .rim {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+  .well:has(input:focus-visible) .rim {
+    outline-color: CanvasText;
+  }
+
+  /* Paint disappears in this mode, so the chosen wells take a heavier rim. */
+  .well[data-filled] .rim {
+    border-width: 3px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   02 — the painted field
+   -------------------------------------------------------------------------- */
+
+.field {
+  position: relative;
+}
+
+/*
+  The brush stroke under the hairline: the focus indicator, and the error
+  mark when the field needs a look.
+
+  `scale`, NOT `transform`. The `dab` utility already owns `transform` —
+  `scaleY(-1) rotate(var(--tilt))`, which is what puts the ragged edge at the
+  foot — and animating `transform` here would replace that and turn the brush
+  the wrong way up for the length of the draw. The independent `scale`
+  property composes with it instead.
+
+  The mask paints only the top third of the box once it is flipped, so the box
+  is 12px for roughly 4px of paint, hung from the hairline.
+*/
+.stroke {
+  --paint: var(--color-primary);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% - 2px);
+  height: 0.75rem;
+  pointer-events: none;
+  scale: 0 1;
+  transform-origin: 0 50%;
+  transition: scale 320ms var(--ease-editorial);
+}
+
+/* An error keeps its stroke drawn, in terracotta — decoration under words
+   that carry the meaning, never the meaning itself (2.44:1 on this ground). */
+.field[data-status="error"] .stroke {
+  --paint: var(--color-terracotta);
+  scale: 1 1;
+}
+
+/*
+  Focus wins over error — AND NOT BY HUE ALONE. After a failed press every
+  invalid field carries a terracotta stroke, and Deep Lilac against
+  terracotta is 1.62:1: to anyone who cannot tell those two apart, a focused
+  invalid field recoloured lilac looks exactly like the three beside it. So
+  focus also lays the brush on heavier — the stroke drawn 1.75 times as deep,
+  roughly 7px of paint against the error's 4px — which survives greyscale and
+  any colour vision.
+
+  Still the independent `scale`, so still no layout: the stroke grows about
+  its own middle, up over the hairline and into the input's bottom padding,
+  clear of the text. Declared after the error rule, at a higher specificity
+  for the error case, so it wins in both.
+*/
+.field:focus-within .stroke,
+.field[data-status="error"]:focus-within .stroke {
+  --paint: var(--color-primary);
+  scale: 1 1.75;
+}
+
+/* Masks and paint are dropped in forced colours, which would leave a focused
+   field with no indicator at all. The system ink stands in. */
+@media (forced-colors: active) {
+  .field input:focus {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The place card
+   -------------------------------------------------------------------------- */
+
+/*
+  THE SHADOW IS ON AN UNMASKED WRAPPER, and that is the whole reason this
+  element exists. The notches below are masks, and a mask clips everything the
+  element paints — `plate`'s box-shadow included — so a shadowed, notched
+  piece of card shows no shadow at all. A `drop-shadow` filter on the parent
+  is computed from the alpha of what the children actually drew, so it
+  follows the notches round.
+
+  The first shadow is the edge, at roughly the plate's 1px ring; the second is
+  the plate's veil.
+*/
+.cardShadow {
+  filter: drop-shadow(0 0 0.5px rgb(45 55 72 / 0.35)) drop-shadow(0 8px 18px rgb(45 55 72 / 0.08));
+}
+
+/*
+  The notches where the stub tears from the card: a half-circle bitten from
+  each side of the seam.
+
+  TWO CORNER MASKS, NOT ONE. A single radial-gradient pair placed "at 0 100%"
+  needs to know nothing about the face's height, so the face can be any
+  length — a two-line title, no venue — and the notch still lands exactly on
+  the seam. Each layer covers 51% of the width so the two overlap down the
+  middle rather than leaving a hairline gap between them.
+*/
+.faceCut {
+  -webkit-mask:
+    radial-gradient(circle 10px at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 10px at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+.stubCut {
+  -webkit-mask:
+    radial-gradient(circle 10px at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 10px at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+/* The perforation, between the two notches. Decorative, so a quarter-strength
+   rule is enough; nothing has to be read off it. */
+.seam {
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  border-top: 1px dashed color-mix(in oklab, var(--color-text) 25%, transparent);
+}
+
+/*
+  The progress strokes: one per thing the card still needs, painted in as each
+  one is answered. Same `scale`-not-`transform` reasoning as the field stroke.
+*/
+.progressFill {
+  scale: 0 1;
+  transform-origin: 0 50%;
+  transition: scale 380ms var(--ease-editorial);
+}
+
+.progressFill[data-done] {
+  scale: 1 1;
+}
+
+/*
+  STICKY ONLY WHEN IT FITS. The card is the live summary of what the form is
+  building, and it earns its place beside the fields by staying in view while
+  they are filled. But a sticky element taller than the viewport hides its own
+  foot for as long as it is stuck — and the foot is the total.
+
+  MEASURED, NOT A HEIGHT QUERY. The card's height depends on its column's
+  width and on the session — a two-line title, a venue or none — and measured
+  836px at 1024 wide, 772px at 1280 and 748px at 1440 with the placeholder
+  data. No single `min-height` media query is right for all of those, so
+  <BookingForm> compares the card with the window and sets `data-fits` only
+  when the whole card, the header above it and 24px of air below it all fit.
+  Otherwise the card simply scrolls with the page, which is the honest
+  fallback.
+
+  `top` is declared outside the condition so the measurement can read it: it
+  does nothing at all until the element is positioned. Offset by the scrolled
+  header's height, so the card never tucks under it.
+*/
+.stickyCard {
+  top: calc(var(--spacing-header-set-lg) + 1.5rem);
+}
+
+@media (min-width: 1024px) {
+  .stickyCard[data-fits] {
+    position: sticky;
+  }
+}

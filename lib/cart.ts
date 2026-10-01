@@ -317,6 +317,17 @@ export function useCartHydrated(): boolean {
   );
 }
 
+/**
+ * The four required fields, in the order they sit down the page.
+ *
+ * One list for both steps, because "which field gets focus when the press
+ * fails" is a promise about reading order: the first message a keyboard or
+ * screen-reader visitor lands on must be the first one a sighted visitor
+ * would read. Two copies of the order is two forms that can disagree about
+ * where "first" is the moment either one is rearranged.
+ */
+export const BOOKING_FIELD_ORDER = ["firstName", "lastName", "email", "phone"] as const;
+
 /* --------------------------------------------------------------------------
    The customer's details, carried from the booking step to checkout.
 
@@ -366,6 +377,28 @@ export function saveBookingDetails(next: BookingDetails) {
   detailsListeners.forEach((listener) => listener());
 }
 
+/**
+ * Forget the details once the booking they were given for has been placed.
+ *
+ * They are kept only to carry a booking in progress between its two steps.
+ * Once it is placed, nothing reads them — the confirmation reads the stored
+ * record, not these — and leaving them in the tab would hand the next
+ * booking's form someone else's name, email and phone. This site is used on
+ * shared studio tablets and on phones passed across a mall counter, so "the
+ * next booking in this tab" is quite often the next person.
+ */
+export function clearBookingDetails() {
+  details = null;
+  detailsHydrated = true;
+  try {
+    window.sessionStorage.removeItem(DETAILS_KEY);
+  } catch {
+    // Storage unavailable: there was nothing persisted to remove, and the
+    // in-memory copy is already gone.
+  }
+  detailsListeners.forEach((listener) => listener());
+}
+
 export function useBookingDetails(): BookingDetails | null {
   return useSyncExternalStore(
     subscribeDetails,
@@ -385,11 +418,6 @@ export function useBookingDetails(): BookingDetails | null {
  * four facts — the booking step and checkout — and two copies of "what counts
  * as an email address" is two copies that drift. The messages are the
  * customer's, not the developer's: they say what to do, never what failed.
- *
- * TODO(client): the booking step still carries its own copy of these rules
- * (components/booking/BookingForm.tsx). It should read them from here the next
- * time that form is touched; it is left alone in this phase because the
- * booking form is out of its scope.
  */
 export function validateBookingDetails(input: BookingDetails): Record<string, string> {
   const errors: Record<string, string> = {};
