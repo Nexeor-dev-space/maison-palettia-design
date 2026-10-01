@@ -1,0 +1,33 @@
+# What the image does not need.
+#
+# The build context was 158 MB a deploy — the whole working tree, including
+# 40 MB of photographic masters that are never served and the local build
+# output. None of it reaches the image; all of it is copied to the daemon on
+# every build, and on a server that is tight for disk that is the first thing
+# worth not sending.
+#
+# `public/` is NOT here: those files are the site's images, fonts and video,
+# and Next serves them from the image.
+
+.git
+.gitignore
+node_modules
+.next
+out
+
+# The originals the files in public/images were cut from. Nothing imports
+# them; they are kept in the repo as the source of a crop, not as an asset.
+assets
+
+# Local tooling and editor state.
+.claude
+.vscode
+.idea
+.DS_Store
+**/.DS_Store
+
+# Nothing here is read by the build.
+*.log
+README.md
+AGENTS.md
+CLAUDE.md
