@@ -154,7 +154,30 @@ export function Hero() {
                 alt={HERO_IMAGE.alt}
                 fill
                 priority
-                sizes="100vw"
+                /*
+                  ==========================================================
+                  THE COVER CROP SETS THE WIDTH, NOT THE ELEMENT
+                  ==========================================================
+
+                  `100vw` was wrong by a factor of six on a phone, and it is
+                  the one defect a visitor cannot miss: the card is the full
+                  height of the window, and a 1.78:1 photograph fitted to that
+                  height is rendered about 1800px wide at 320 — of which the
+                  window shows 320. The browser was asked for a 320px-wide
+                  file and it obliged, so the slice it had to draw was scaled
+                  up six times. A blurred half-face, on the first screen of
+                  the site.
+
+                  `sizes` is a WIDTH hint, so the height has to be expressed
+                  through it: the picture needs about 1.78 x the viewport
+                  height, and `vh` is a perfectly good unit here. 190vh is
+                  that with headroom for the 1.06 rest scale.
+
+                  Desktop asks for 110vw rather than 100 for the same reason
+                  in miniature — at 1440x900 the cover render is 1601px wide,
+                  not 1440.
+                */
+                sizes="(max-width: 1023px) 190vh, 110vw"
                 style={
                   {
                     "--pos-d": HERO_IMAGE.position.desktop,

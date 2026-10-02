@@ -175,7 +175,14 @@ function TrailRow({
           next card 61% down this one at 1440 and 67% at 1920, which is the
           band the client drew either side of.
         */
-        index > 0 && "lg:-mt-56",
+        /*
+          AND A GAP BELOW `lg`, WHICH THERE WAS NOT ONE OF. The pull above is
+          `lg:`-only, so at every width under it the rows simply stacked and
+          the cards met edge to edge — the client's note. 3.5rem is the gap,
+          and it is also the box the mobile link is drawn in, so the two
+          figures have to stay together: see `h-14` below.
+        */
+        index > 0 && "mt-14 lg:-mt-56",
       )}
     >
       {/*
@@ -289,6 +296,65 @@ function TrailRow({
             />
           </motion.span>
         ) : null}
+        </span>
+      ) : null}
+
+      {/*
+        ==================================================================
+        THE SAME FLOW, ON A PHONE — at the client's ask
+        ==================================================================
+
+        The arc above is `lg:`-only for a good reason: it lives between 43%
+        and 91% of the measure, and below `lg` the cards take the whole of
+        it, so all that ever showed was the fragment clearing the top of a
+        card — a stray mark rather than a path. The answer is not to show
+        that one; it is to draw a different line where there is now room for
+        it.
+
+        So this is the small-screen link: a short doodling run down the
+        3.5rem gap the rows have just been given, from the foot of this card
+        to the head of the next, in this card's own paint. It inks on the
+        same scroll progress as its desktop sibling, so the flow still
+        arrives as you read rather than being there from the start.
+
+        `h-14` IS THE GAP. The row above pays `mt-14`; this fills exactly
+        that, so the line touches both cards and nothing has to be nudged
+        if the gap is ever changed — change both.
+
+        No `preserveAspectRatio="none"` here: the desktop path is stretched
+        across a row and wants it, a 64x56 curve in a 64x56 box does not,
+        and stretching it would flatten the wander out of it.
+      */}
+      {!last && next ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-full -z-10 block h-14 w-16 -translate-x-1/2 lg:hidden"
+        >
+          <svg className="h-full w-full overflow-visible" viewBox="0 0 64 56" fill="none">
+            <motion.path
+              data-reveal=""
+              d="M32 0C32 8 22 12 22 20C22 28 42 30 42 38C42 46 32 48 32 56"
+              stroke={item.paint}
+              strokeWidth={3}
+              strokeLinecap="round"
+              /* `pathLength` normalises the path to 1 so the draw is the
+                 same gesture whatever the curve measures. No
+                 `vector-effect: non-scaling-stroke`: it silently inks only
+                 1/scale of a pathLength draw, which is what stopped the
+                 desktop line short on wide screens. */
+              pathLength={1}
+              strokeDasharray={1}
+              style={reduced ? { pathLength: 1 } : { pathLength: draw }}
+            />
+          </svg>
+
+          {/* The mark the desktop arc carries, at the turn of this one. */}
+          <motion.span
+            className="absolute left-[58%] top-[42%] block w-4"
+            style={{ scale: reduced ? 1 : nodeIn, opacity: reduced ? 1 : nodeIn }}
+          >
+            <DoodleMark name={item.trailMark} color={item.paint} treatment="stamp" depth={0} />
+          </motion.span>
         </span>
       ) : null}
 

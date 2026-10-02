@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { sendEnquiry, type EnquiryResult } from "@/lib/enquiry";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
+import styles from "@/components/booking/PaintBooking.module.css";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,10 +15,18 @@ import { cn } from "@/lib/utils";
  * around it, so a form reads as part of the page. Three forms on one site that
  * disagree about what an input looks like is two forms too many.
  */
+/*
+  THE BOOKING FLOW'S FIELD, SHARED RATHER THAN COPIED, at the client's ask to
+  bring this page to the theme of /events/[slug]/book. `.stroke` in
+  PaintBooking.module.css is the focus indicator now — a brush drawn out from
+  the left and 1.75x deep — so it survives greyscale and any colour vision,
+  where a recoloured hairline rests on hue alone. `border-text/60` is the
+  measured hairline: 3.30:1, over the 3:1 a control's boundary owes.
+*/
 const FIELD =
-  "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-body text-text " +
+  "w-full border-0 border-b border-text/60 bg-transparent px-0 py-3 text-body text-text " +
   "placeholder:text-text/40 transition-colors duration-300 ease-soft " +
-  "focus:border-primary focus:outline-none focus:ring-0";
+  "focus:outline-none focus:ring-0";
 
 const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
 
@@ -378,18 +387,24 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
             />
           </div>
 
-          <div className="sm:col-span-2">
+          <div
+            className={cn(styles.field, "sm:col-span-2")}
+            data-status={errors.message ? "error" : "idle"}
+          >
             <label htmlFor={`${ids}-message`} className={LABEL}>
               What you have in mind
             </label>
-            <textarea
-              id={`${ids}-message`}
-              name="message"
-              rows={5}
-              aria-invalid={errors.message ? true : undefined}
-              aria-describedby={errors.message ? `${ids}-message-error` : undefined}
-              className={cn(FIELD, "resize-y", errors.message && "border-terracotta")}
-            />
+            <div className="relative">
+              <textarea
+                id={`${ids}-message`}
+                name="message"
+                rows={5}
+                aria-invalid={errors.message ? true : undefined}
+                aria-describedby={errors.message ? `${ids}-message-error` : undefined}
+                className={cn(FIELD, "resize-y block")}
+              />
+              <span aria-hidden className={cn("dab", styles.stroke)} />
+            </div>
             {errors.message ? (
               <p id={`${ids}-message-error`} className="mt-2 text-fine text-text">
                 {errors.message}
@@ -542,7 +557,7 @@ function Select({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className={styles.field}>
       <label htmlFor={id} className={LABEL}>
         {label}
       </label>
@@ -570,6 +585,7 @@ function Select({
         >
           &#9662;
         </span>
+        <span aria-hidden className={cn("dab", styles.stroke)} />
       </div>
     </div>
   );
@@ -598,24 +614,27 @@ function Field({
   optional?: boolean;
 }) {
   return (
-    <div>
+    <div className={styles.field} data-status={error ? "error" : "idle"}>
       <label htmlFor={id} className={LABEL}>
         {label}
         {optional ? (
           <span className="ml-2 normal-case tracking-normal text-text/70">optional</span>
         ) : null}
       </label>
-      <input
-        ref={ref}
-        id={id}
-        name={name}
-        type={type}
-        inputMode={inputMode}
-        autoComplete={autoComplete}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        className={cn(FIELD, error && "border-terracotta")}
-      />
+      <div className="relative">
+        <input
+          ref={ref}
+          id={id}
+          name={name}
+          type={type}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={FIELD}
+        />
+        <span aria-hidden className={cn("dab", styles.stroke)} />
+      </div>
       {error ? (
         <p id={`${id}-error`} className="mt-2 text-fine text-text">
           {error}

@@ -206,7 +206,17 @@ export async function Footer() {
         */}
         <div className="grid grid-cols-12 gap-x-6 gap-y-14 lg:gap-x-10">
           {/* ---- the Maison ---- */}
-          <div className="col-span-12 lg:col-span-5">
+          {/*
+            CENTRED UNTIL `lg`, at the client's ask. Stacked, this block is a
+            mark and one line of script with the whole measure to themselves,
+            and left-aligning them put every piece of the footer against one
+            rail with nothing on the other side of it. Centred, the mark and
+            the tagline read as a colophon — which is what they are — and the
+            groups below can then be centred too without the two halves
+            disagreeing. At `lg` the row goes back to five columns and five,
+            where left is right.
+          */}
+          <div className="col-span-12 text-center lg:col-span-5 lg:text-left">
             <Link href="/" aria-label={`${SITE.name} — home`} className="inline-block">
               {/*
                 THE DEEP LILAC CUT, BECAUSE THE GROUND IS LIGHT NOW. The client
@@ -269,7 +279,7 @@ export async function Footer() {
               Light Sage on Charcoal is 9.07:1, the strongest pairing in the
               palette — see the note at the head of this file.
             */}
-            <p className="mt-7 heading-script max-w-[34rem] text-script-panel text-primary">
+            <p className="mt-7 heading-script mx-auto max-w-[34rem] text-script-panel text-primary lg:mx-0">
               {forScript(TAGLINE)}
             </p>
 
@@ -284,7 +294,16 @@ export async function Footer() {
             booking") room to stay on one line.
           */}
           <nav aria-label="Footer" className="col-span-12 lg:col-span-7 lg:col-start-6">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
+            {/*
+              ONE COLUMN ON A PHONE, NOT TWO. At `grid-cols-2` the three
+              groups fell as Create beside The Maison with Help orphaned
+              underneath in the left half — a two-column block with a hole in
+              the bottom-right, which is what the client marked. Three groups
+              do not divide by two. Stacked and centred they read as a
+              contents page; from `sm` there is room for all three abreast and
+              the alignment goes back to the rail.
+            */}
+            <div className="grid grid-cols-1 gap-y-9 text-center sm:grid-cols-3 sm:gap-x-6 sm:gap-y-10 sm:text-left">
               {FOOTER_NAV.map((group) => (
                 <div key={group.title}>
                   <FooterHeading>{group.title}</FooterHeading>
@@ -392,7 +411,7 @@ export async function Footer() {
           </span>
 
           {partners.map((partner) => (
-            <div key={partner.slug} className="col-span-12 sm:col-span-6 lg:col-span-4">
+            <div key={partner.slug} className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
               <FooterHeading>Find us</FooterHeading>
               <p className="mt-4 text-lead leading-snug text-text">{partner.name}</p>
               <p className="mt-1 text-body text-text/75">{partner.locality}</p>
@@ -413,7 +432,7 @@ export async function Footer() {
             </div>
           ))}
 
-          <div className="col-span-12 sm:col-span-6 lg:col-span-4">
+          <div className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
             <FooterHeading>The studio</FooterHeading>
             <address className="mt-4 text-body not-italic leading-[1.75] text-text/75">
               {CONTACT.addressLines.map((line) => (
@@ -440,13 +459,13 @@ export async function Footer() {
             thirds empty; here it does the work of a third column and the
             page ends on what the studio is for rather than on an address.
           */}
-          <div className="col-span-12 sm:col-span-6 lg:col-span-4">
+          <div className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
             <FooterHeading>Why we do it</FooterHeading>
-            <p className="mt-4 max-w-[22rem] text-body leading-[1.8] text-text/75">{MISSION}</p>
+            <p className="mx-auto mt-4 max-w-[22rem] text-body leading-[1.8] text-text/75 sm:mx-0">{MISSION}</p>
           </div>
 
           {socials.length > 0 ? (
-            <div className="col-span-12 sm:col-span-6 lg:col-span-4">
+            <div className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
               <FooterHeading>Follow</FooterHeading>
               <ul className="mt-4 space-y-2.5">
                 {socials.map((link) => (
@@ -462,9 +481,9 @@ export async function Footer() {
         </div>
 
         {/* ---- the foot ---- */}
-        <div className="mt-14 flex flex-col gap-5 border-t border-text/20 pt-7 text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between md:mt-16">
+        <div className="mt-14 flex flex-col items-center gap-5 border-t border-text/20 pt-7 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-16">
 
-          <div className="flex flex-col gap-x-7 gap-y-2 sm:flex-row sm:items-center">
+          <div className="flex flex-col items-center gap-x-7 gap-y-2 sm:flex-row sm:items-center">
             <p>
               &copy; {year} {SITE.legalName}
             </p>
@@ -513,7 +532,7 @@ export async function Footer() {
  */
 function FooterHeading({ children }: { children: string }) {
   return (
-    <h2 className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text">
+    <h2 className="flex items-center justify-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text sm:justify-start">
       <span aria-hidden className="h-px w-6 shrink-0 bg-primary" />
       {children}
     </h2>

@@ -43,7 +43,11 @@ export function BackToTop({ className }: BackToTopProps) {
         // The label is 11px and sets a 21px box. Extended to a comfortable
         // target with a pseudo-element rather than padding, so the footer's
         // baseline grid is untouched — same device as the links beside it.
-        "after:absolute after:inset-x-0 after:-inset-y-2 after:content-['']",
+        //
+        // `-inset-y-3` rather than `-2`: measured at 22px tall on a phone,
+        // which 8px either side lifted to 38 — under the 44 a finger wants.
+        // 12 takes it to 46 and still costs the layout nothing.
+        "after:absolute after:inset-x-0 after:-inset-y-3 after:content-['']",
         className,
       )}
     >

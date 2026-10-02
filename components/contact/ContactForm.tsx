@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { useId, useState } from "react";
 
+import styles from "@/components/booking/PaintBooking.module.css";
 import { ENQUIRY_TOPICS, sendEnquiry, type EnquiryResult, type EnquiryTopic } from "@/lib/enquiry";
 import { cn } from "@/lib/utils";
 
@@ -17,10 +18,25 @@ import { cn } from "@/lib/utils";
  * than as a widget dropped onto it. Two forms on one site that disagree about
  * what an input looks like is one form too many.
  */
+/*
+  THE SAME FIELD THE BOOKING FLOW DRAWS, at the client's ask — see
+  <PaintedField> and `.stroke` in PaintBooking.module.css, which this now
+  shares rather than copies. Focus used to recolour the hairline to Deep
+  Lilac; it lays a brush stroke under it instead, drawn out from the left and
+  1.75x deep, so the indicator survives greyscale and any colour vision
+  instead of resting on a hue change alone.
+
+  `border-text/60`, not `border-line`: Charcoal at 60% is 3.30:1 on the page
+  ground and clears the 3:1 an input's boundary owes as a non-text control.
+  Sage into lavender did not, and the field could only be found by its label.
+
+  No `focus:border-*` left here on purpose. Two focus indicators on one
+  control is one of them arguing with the other.
+*/
 const FIELD =
-  "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-body text-text " +
+  "w-full border-0 border-b border-text/60 bg-transparent px-0 py-3 text-body text-text " +
   "placeholder:text-text/40 transition-colors duration-300 ease-soft " +
-  "focus:border-primary focus:outline-none focus:ring-0";
+  "focus:outline-none focus:ring-0";
 
 const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
 
@@ -108,7 +124,7 @@ export function ContactForm() {
           optional
         />
 
-        <div>
+        <div className={styles.field}>
           <label htmlFor={`${ids}-topic`} className={LABEL}>
             What can we help with
           </label>
@@ -144,21 +160,28 @@ export function ContactForm() {
             >
               &#9662;
             </span>
+            <span aria-hidden className={cn("dab", styles.stroke)} />
           </div>
         </div>
 
-        <div className="sm:col-span-2">
+        <div
+          className={cn(styles.field, "sm:col-span-2")}
+          data-status={errors.message ? "error" : "idle"}
+        >
           <label htmlFor={`${ids}-message`} className={LABEL}>
             Message
           </label>
-          <textarea
-            id={`${ids}-message`}
-            name="message"
-            rows={5}
-            aria-invalid={errors.message ? true : undefined}
-            aria-describedby={errors.message ? `${ids}-message-error` : undefined}
-            className={cn(FIELD, "resize-y", errors.message && "border-terracotta")}
-          />
+          <div className="relative">
+            <textarea
+              id={`${ids}-message`}
+              name="message"
+              rows={5}
+              aria-invalid={errors.message ? true : undefined}
+              aria-describedby={errors.message ? `${ids}-message-error` : undefined}
+              className={cn(FIELD, "resize-y block")}
+            />
+            <span aria-hidden className={cn("dab", styles.stroke)} />
+          </div>
           {errors.message ? (
             <p id={`${ids}-message-error`} className="mt-2 text-fine text-text">
               {errors.message}
@@ -233,22 +256,25 @@ function Field({
   optional?: boolean;
 }) {
   return (
-    <div>
+    <div className={styles.field} data-status={error ? "error" : "idle"}>
       <label htmlFor={id} className={LABEL}>
         {label}
         {/* /70 for the same measured reason as the select's chevron above: this
             word is read, so it owes 4.5:1, and /50 came to 2.78. */}
         {optional ? <span className="ml-2 normal-case tracking-normal text-text/70">optional</span> : null}
       </label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        className={cn(FIELD, error && "border-terracotta")}
-      />
+      <div className="relative">
+        <input
+          id={id}
+          name={name}
+          type={type}
+          autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={FIELD}
+        />
+        <span aria-hidden className={cn("dab", styles.stroke)} />
+      </div>
       {error ? (
         <p id={`${id}-error`} className="mt-2 text-fine text-text">
           {error}

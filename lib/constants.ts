@@ -125,12 +125,21 @@ export const MAIN_NAV: NavItem[] = [
     renaming a working URL to match a label would break every link to it.
 
     Private events and Locations join the bar because the brief makes both
-    first-order questions. Journal, FAQ, Gallery and Passes keep their routes
-    and live in the footer and the mobile menu, which read this list in order.
+    first-order questions. Gallery joined them later, at the client's ask. Journal, FAQ
+    and Passes keep their routes and live in the footer and the mobile menu,
+    which read this list in order.
   */
   { label: "Experiences", href: "/events", menu: "experiences" },
   { label: "Private events", href: "/private-events", menu: "private-events" },
   { label: "Locations", href: "/locations" },
+  /*
+    GALLERY JOINS THE BAR at the client's ask, and it goes last on the left
+    track because that track is ordered by how early a question gets asked.
+    What can I make, can you host my party, and where are you all come before
+    somebody browses finished work — but browsing finished work is still a
+    programme question, which is why it is on this track and not beside About.
+  */
+  { label: "Gallery", href: "/gallery" },
   { label: "About", href: "/about", utility: true },
   { label: "Contact", href: "/contact", utility: true },
 ];
@@ -219,7 +228,9 @@ export const FOOTER_NAV: NavGroup[] = [
     items: [
       { label: "All experiences", href: "/events" },
       { label: "Private events", href: "/private-events" },
-      { label: "Passes", href: "/loyalty" },
+      /* PASSES CAME OUT at the client's ask. /loyalty still exists and is
+         still reachable from the pages that sell it; it is only off this
+         list. Nothing else linked to it from the footer. */
       { label: "Gallery", href: "/gallery" },
     ],
   },
@@ -228,7 +239,6 @@ export const FOOTER_NAV: NavGroup[] = [
     items: [
       { label: "About", href: "/about" },
       { label: "Locations", href: "/locations" },
-      { label: "Journal", href: "/blog" },
     ],
   },
   {
