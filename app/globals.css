@@ -751,9 +751,39 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+
+    /* ----------------------------------------------------------------------
+       NOTHING ON THIS SITE MAY SCROLL THE PAGE SIDEWAYS.
+
+       Every section that needs it already carries `overflow-x-clip`, and that
+       is the right place for it — a tilted card or a mark breaking a gutter
+       is a local decision. What those cannot catch is an element that is only
+       too wide for a moment: <Reveal variant="imageReveal"> parks at
+       `scale: 1.06` until it is scrolled to, so a full-width picture that has
+       not been revealed yet is 6% wider than its column. Measured on
+       /private-events/book, where it put the document at 778px inside a 768px
+       window and gave the whole page a horizontal scrollbar until you
+       scrolled far enough to trigger the reveal.
+
+       `clip`, NOT `hidden`. `hidden` would make the root a scroll container,
+       which breaks `position: sticky` and every `view()` timeline the brand
+       marks draw on — the trap this project has already documented twice.
+       `clip` clips and makes no scroll container.
+
+       It is a backstop, not a licence: a section that wants to bleed still
+       says so itself.
+       ---------------------------------------------------------------------- */
+    overflow-x: clip;
   }
 
   body {
+    /* THE SAME CLIP AS THE ROOT, AND IT IS NOT REDUNDANT. With `overflow-x:
+       clip` on <html> alone the page still scrolled 10px sideways on
+       /private-events/book — measured with `scrollTo(200, 0)`, which left
+       `scrollX` at 10. The root's overflow is propagated to the viewport, so
+       the clip has to be on the box that actually holds the overflowing
+       child as well. `clip`, never `hidden`: see the note on <html>. */
+    overflow-x: clip;
     background-color: var(--color-surface);
     color: var(--color-text);
     font-family: var(--font-sans);

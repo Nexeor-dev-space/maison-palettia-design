@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import styles from "@/components/booking/PaintBooking.module.css";
 import { Reveal } from "@/components/motion/Reveal";
 import { PrivateEventEnquiry } from "@/components/private-events/PrivateEventEnquiry";
 import { Container } from "@/components/ui/Container";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { PRIVATE_EVENT_IMAGES, PRIVATE_EVENT_STEPS } from "@/lib/privateEvents";
 import { buildMetadata } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 
 export const metadata = buildMetadata({
   title: "Plan a private event",
@@ -103,12 +105,49 @@ export default async function PrivateEventBookingPage() {
           someone is deciding whether the effort of filling this in is worth
           it. Read from the same constant, so the two pages cannot drift.
         */}
+        {/*
+          THE PLACE CARD, NOT A PANEL — the shape /events/[slug]/book uses for
+          the thing being bought, brought here at the client's ask to put the
+          two booking routes on one theme.
+
+          What changes is not decoration. The old right column was a flat
+          White Rock panel with a 4:5 photograph stacked under it, and the two
+          scrolled away a third of the way down a nine-field form — so the
+          steps that answer "is this worth filling in" were only readable
+          before you started. The card is `sticky` and carries both, with the
+          picture capped at 10rem so the whole of it fits a window and can
+          actually stay: the same height budget, and the same reason for it,
+          as <SessionSummary> on the other route.
+
+          `faceCut` and `cardShadow` are that route's own — the notched top
+          and the lifted edge — read from PaintBooking.module.css rather than
+          redrawn here, so the two cards cannot drift apart.
+        */}
         <Reveal
           variant="fadeIn"
           delay={0.25}
-          className="col-span-12 lg:col-span-4 lg:col-start-9"
+          className={`col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:sticky lg:self-start ${styles.stickyCard}`}
         >
-          <aside aria-labelledby="what-happens-next" className="bg-cream p-7 md:p-8">
+          <aside aria-labelledby="what-happens-next" className={styles.cardShadow}>
+            <div className={cn(styles.faceCut, "overflow-hidden rounded-t-[1.5rem] bg-cream")}>
+              {/*
+                The same photograph the page before this used, and now it is
+                the card's face rather than a plate below it — continuity, and
+                the picture a visitor arrived on meeting them at the form.
+                2:1 capped at 10rem for the reason above: a card that cannot
+                fit the window cannot stick.
+              */}
+              <div className="relative aspect-[2/1] max-h-[10rem] w-full">
+                <Image
+                  src={PRIVATE_EVENT_IMAGES.experience.src}
+                  alt={PRIVATE_EVENT_IMAGES.experience.alt}
+                  fill
+                  sizes="(min-width: 1024px) 31vw, calc(100vw - 2 * max(0.75rem, 1.3889vw))"
+                  className="object-cover"
+                />
+              </div>
+
+              <div className="px-6 pb-6 pt-5 md:px-7">
             <h2
               id="what-happens-next"
               className="text-label font-medium uppercase tracking-eyebrow text-text/75"
@@ -116,7 +155,7 @@ export default async function PrivateEventBookingPage() {
               What happens next
             </h2>
 
-            <ol className="mt-7 flex flex-col gap-6">
+                <ol className="mt-5 flex flex-col gap-5">
               {PRIVATE_EVENT_STEPS.map((step) => (
                 <li key={step.number} className="flex gap-5 border-t border-text/15 pt-5 first:border-0 first:pt-0">
                   {/* /75: on White Rock, /45 measures 2.34:1 and these
@@ -134,40 +173,10 @@ export default async function PrivateEventBookingPage() {
                 </li>
               ))}
             </ol>
+              </div>
+            </div>
           </aside>
 
-          {/*
-            One photograph, and it is the same one the page before this used.
-
-            Continuity rather than decoration: someone arrives here from
-            /private-events, and meeting the picture they were just looking at
-            is what makes the two read as one journey instead of two forms on
-            one domain. It is read from PRIVATE_EVENT_IMAGES so the two pages
-            cannot drift apart.
-
-            Beneath the steps, not beside the form. The brief's own rule for
-            this image is that it supports the story rather than competing with
-            the form, and a plate in the same column as nine inputs is a plate
-            arguing with them.
-          */}
-          <Reveal variant="imageReveal" className="mt-8">
-            <div className="relative aspect-[4/5] w-full overflow-hidden bg-cream">
-              <Image
-                src={PRIVATE_EVENT_IMAGES.experience.src}
-                alt={PRIVATE_EVENT_IMAGES.experience.alt}
-                fill
-                sizes="(min-width: 1024px) 30vw, calc(100vw - 2 * max(0.75rem, 1.3889vw))"
-                className="object-cover"
-              />
-            </div>
-          </Reveal>
-
-          {/*
-            The public programme, offered as the thing that can actually be
-            booked today. Not a consolation prize — someone who wanted a
-            creative afternoon and has just been told the enquiry goes nowhere
-            should be handed the part of this site that works.
-          */}
           <Link
             href="/events"
             className="group mt-8 inline-flex items-center gap-3 -my-1.5 py-1.5 text-label font-medium uppercase tracking-eyebrow text-text"

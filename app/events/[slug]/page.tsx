@@ -308,11 +308,13 @@ function Crumb({
       {href ? (
         <Link
           href={href}
-          // `-my-1.5 py-1.5` grows the target without moving the trail. At this
-          // size the label sets a 16px box, under the 24px a control owes, and
-          // the negative margin cancels the padding so the row still measures
-          // as a row of labels. Same device as every other action on the site.
-          className="-my-1.5 py-1.5 transition-colors duration-300 ease-soft hover:text-text focus-visible:text-text"
+          // `-my-3 py-3` grows the target without moving the trail: the label
+          // sets a 16px box and the padding lifts the target to 40, which is
+          // what a finger wants. Measured at 29px with the 6px this used to
+          // pay. The negative margin cancels the padding, so the row still
+          // measures as a row of labels — the same device as every other
+          // action on the site.
+          className="-my-3 py-3 transition-colors duration-300 ease-soft hover:text-text focus-visible:text-text"
         >
           {children}
         </Link>

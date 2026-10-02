@@ -6,7 +6,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { BookAction } from "@/components/layout/BookAction";
 import { NavLabel } from "@/components/layout/NavLabel";
-import { ModeMark } from "@/components/ui/ModeMark";
+import { INK } from "@/components/sections/hero/composition";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
 import { cn } from "@/lib/utils";
 import { FindYourVibe } from "@/components/layout/FindYourVibe";
@@ -228,7 +229,19 @@ export function MobileNav({
       ref={panelRef}
       aria-label="Site menu"
       className={cn(
-        "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface",
+        /*
+          A LIGHT SAGE SHEET WITH A ROUNDED FOOT, at the client's ask. It was
+          the page's near-white, which made the menu read as a second page
+          laid over the first. Sage is the brand's structural ground and it is
+          already the colour of the bar this hangs from, so the two now read
+          as one sheet pulled down over the page — and the rounded foot is
+          what says it is a sheet rather than a replacement screen.
+
+          Only the foot is rounded: the head meets the bar, where a radius
+          would open two slivers of the page between the two sage fields.
+        */
+        "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain",
+        "isolate rounded-b-[2rem] bg-sage",
         "md:top-[var(--spacing-header-lg)] lg:hidden",
         // See <SearchPanel> for why this is `ease-soft` and not
           // `ease-editorial`: the quintic curve spent five sixths of its
@@ -240,127 +253,72 @@ export function MobileNav({
       )}
     >
       {/* Keyed so the reveal below runs again every time the menu is opened. */}
-      <div key={openCount} className="px-gutter pb-16 pt-10">
+      {/* Keyed so the reveal below runs again every time the menu is opened. */}
+      <div key={openCount} className="relative px-gutter pb-16 pt-10">
         {/*
-          01 — what you could do here, in the two groups the whole site uses.
-          A compact list rather than a grid of plates: seven activities as
-          plates ran to four screens of scrolling before the rest of the menu.
+          THE PAPER THE MENU IS PRINTED ON.
+
+          `stamp`, not the default `draw`: this panel is `overflow-y-auto`, so
+          it is a scroll container, and a view-timeline draw resolves against
+          it and reports every mark as permanently covered — they would sit
+          here as unfilled outlines forever. The same trap is written up on
+          <WhereWeCreate>.
+
+          LOW, SMALL, AND OUT AT THE MARGINS — and the first pass was none of
+          those. At 112-128px and 0.35-0.45 they sat squarely under CONTACT and
+          beside both chevrons: a menu is a list of destinations read under
+          time pressure, and a doodle that competes with a destination has
+          stopped being paper and become an obstacle. Half the size and half
+          the strength, pushed off the edges, they are the brand's hand on the
+          sheet and nothing a thumb has to read around.
         */}
+        <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <span className="absolute -left-5 top-3 block w-14 rotate-[-12deg] opacity-25">
+            <DoodleMark name="splash" color={INK.terracotta} treatment="stamp" depth={0} />
+          </span>
+          <span className="absolute -right-4 top-[30%] block w-12 rotate-[14deg] opacity-20">
+            <DoodleMark name="coral" color={INK.lilac} treatment="stamp" depth={0} />
+          </span>
+          <span className="absolute -left-6 bottom-[22%] block w-16 rotate-[8deg] opacity-25">
+            <DoodleMark name="wave" color={INK.whiteRock} treatment="stamp" depth={0} />
+          </span>
+          <span className="absolute right-6 bottom-10 block w-16 rotate-[-6deg] opacity-25">
+            <DoodleMark name="bow" color={INK.lilac} treatment="stamp" depth={0} />
+          </span>
+        </span>
+
         {/*
-          THE SAME DISCOVERY LAYER AS THE DESKTOP PANEL, and deliberately the
-          same component — a phone visitor should not get a lesser version of
-          the idea, and two implementations of one filter is how they drift.
+          01 — THE SITE, AS THE BAR DRAWS IT.
 
-          Tap rather than hover, which it already is: these are buttons, and
-          the chips filter the two lists underneath exactly as they do on the
-          desktop. Nothing is behind an accordion here because the row is three
-          chips and a line, and hiding that behind a disclosure would cost more
-          taps than it saves screen.
+          THE TWO GROUP HEADINGS ARE GONE, at the client's ask, and the list
+          they headed went with them. "Create Anytime" and "Create Together"
+          stood over a seven-item run of activities at the top of this panel,
+          above the navigation — so the menu opened on the deepest page in the
+          site and a visitor looking for About scrolled past all of it.
+
+          The activities are not lost: Experiences is a disclosure now, the
+          same device Private events already used, so the programme sits
+          UNDER its own entry where somebody would look for it. That is what
+          "proper dropdowns" asks for, and it puts every entry in this menu on
+          one list in one treatment — <NavLabel>, the painted swatch the
+          desktop bar wears.
         */}
-        {/* Not drawn while every vibe is empty — see the note in
-            <WorkshopsMenu>, which this panel mirrors exactly. */}
-        {hasVibeTags(experiences) ? (
-          <div className="animate-rise" style={riseDelay(0)}>
-            <FindYourVibe counts={vibeCounts} selected={vibe} onSelect={setVibe} size="compact" />
-          </div>
-        ) : null}
-
-        <nav aria-label="Experiences" className="mt-9">
-          {(
-            [
-              /* The client's names, the same two the desktop menu now uses —
-                 see GROUPS in <WorkshopsMenu>, which this panel mirrors. */
-              { mode: "diy", title: "Create Anytime" },
-              { mode: "scheduled", title: "Create Together" },
-            ] as const
-          ).map((group, gi) => {
-            const items = shortlist.filter((e) => e.kind === group.mode);
-            if (items.length === 0) return null;
-            return (
-              <div key={group.mode} className={gi > 0 ? "mt-9" : undefined}>
-                <p
-                  className="flex animate-rise items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text"
-                  style={riseDelay(gi * 4)}
-                >
-                  <ModeMark mode={group.mode} />
-                  {group.title}
-                </p>
-                <ul className="mt-3">
-                  {items.map((experience, i) => (
-                    <li key={experience.slug} className="animate-rise" style={riseDelay(gi * 4 + i + 1)}>
-                      <Link
-                        href={`/events/${experience.slug}`}
-                        onClick={onClose}
-                        className="flex items-center gap-4 py-2"
-                      >
-                        <span className="relative size-12 shrink-0 overflow-hidden rounded-sm bg-cream">
-                          {experience.image ? (
-                            <Image
-                              src={experience.image.src}
-                              alt=""
-                              fill
-                              sizes="48px"
-                              style={{ objectPosition: experience.image.position ?? "50% 50%" }}
-                              className="object-cover"
-                            />
-                          ) : null}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-body font-medium text-text">{experience.name}</span>
-                          {experience.status ? (
-                            <span className="block text-fine text-text/80">{experience.status}</span>
-                          ) : null}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* 02 — the action, given a rule of its own so it is not one of a list. */}
-        <div
-          className="mt-12 animate-rise border-y border-text/15 py-7"
-          style={riseDelay(experiences.length)}
-        >
-          <BookAction size="panel" onNavigate={onClose} />
-        </div>
-
-        {/* 03 — the rest of the site. */}
-        <nav aria-label="Primary" className="mt-10">
+        <nav aria-label="Primary">
           <ul className="flex flex-col">
             {items.map((item, i) => (
-              <li
-                key={item.href}
-                className="animate-rise"
-                style={riseDelay(experiences.length + 1 + i)}
-              >
-                {/*
-                  PRIVATE EVENTS EXPANDS HERE RATHER THAN HANGING A PANEL.
-
-                  The bar's version is a dropdown because a pointer can hover;
-                  a finger cannot, and a desktop menu forced onto a phone is
-                  the usual way a nav becomes unusable. So the entry keeps its
-                  link — tapping the word still goes to the page — and the
-                  three programmes sit behind a disclosure beside it, which is
-                  the interaction a phone actually has. Everything else in this
-                  list is untouched.
-                */}
-                {/*
-                  The same device the desktop bar uses — see <NavLabel> — kept
-                  in step for a reason beyond consistency: the sage this used
-                  to switch the text to on the current-page state measured
-                  3.84:1 during the bar's stretch on Deep Lilac, at this size
-                  and weight (light, not bold, so the 22px does not earn the
-                  large-text exemption) — under the 4.5:1 running text owes.
-                  The drawn rule is a graphical mark rather than text and
-                  clears 3:1 comfortably, so it carries hover and current-page
-                  alone; the label keeps one ink throughout — Charcoal Slate,
-                  now that the menu is the page's white at the client's ask.
-                */}
-                {item.menu === "private-events" ? (
+              <li key={item.href} className="animate-rise" style={riseDelay(i)}>
+                {item.menu === "experiences" ? (
+                  <ExperiencesGroup
+                    item={item}
+                    isActive={isActive(item.href)}
+                    onClose={onClose}
+                    shortlist={shortlist}
+                    vibe={vibe}
+                    setVibe={setVibe}
+                    vibeCounts={vibeCounts}
+                    showVibes={hasVibeTags(experiences)}
+                  />
+                ) : item.menu === "private-events" ? (
                   <PrivateEventsGroup item={item} isActive={isActive(item.href)} onClose={onClose} />
                 ) : (
                   <Link
@@ -376,6 +334,132 @@ export function MobileNav({
             ))}
           </ul>
         </nav>
+
+        {/* 02 — the action, under a rule so it is not one of the list. */}
+        <div
+          className="mt-10 animate-rise border-t border-text/15 pt-8"
+          style={riseDelay(items.length + 1)}
+        >
+          <BookAction size="panel" onNavigate={onClose} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The Experiences entry on a phone: the word navigates, the chevron opens the
+ * programme under it.
+ *
+ * Built to the same contract as <PrivateEventsGroup> below — two controls, not
+ * one, so the entry never loses its own page — because they are now the two
+ * dropdowns in one list and a visitor should not have to learn each of them
+ * separately.
+ *
+ * THE VIBE FILTER CAME IN HERE WITH THE LIST. It used to sit above the menu
+ * filtering a list that was always visible; attached to a disclosure nobody
+ * has opened, it would be a control for something not on screen. Inside, it is
+ * what it is on the desktop panel: the first row of the programme.
+ */
+function ExperiencesGroup({
+  item,
+  isActive,
+  onClose,
+  shortlist,
+  vibe,
+  setVibe,
+  vibeCounts,
+  showVibes,
+}: {
+  item: NavItem;
+  isActive: boolean;
+  onClose: () => void;
+  shortlist: readonly CreativeExperience[];
+  vibe: VibeSlug | null;
+  setVibe: (v: VibeSlug | null) => void;
+  vibeCounts: Record<VibeSlug, number>;
+  showVibes: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const panelId = "mobile-experiences";
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          href={item.href}
+          onClick={onClose}
+          aria-current={isActive ? "page" : undefined}
+          className="group/nav block py-3.5 text-statement font-light uppercase tracking-[0.02em] text-text"
+        >
+          <NavLabel isActive={isActive}>{item.label}</NavLabel>
+        </Link>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-label={`${open ? "Hide" : "Show"} experiences`}
+          onClick={() => setOpen((v) => !v)}
+          className="-mr-2 flex size-11 shrink-0 items-center justify-center rounded-pill text-text transition-colors duration-300 ease-soft hover:bg-cream/70"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "block size-2.5 border-b-[1.5px] border-r-[1.5px] border-current transition-transform duration-300 ease-editorial motion-reduce:transition-none",
+              open ? "-translate-y-[2px] rotate-[225deg]" : "-translate-y-[3px] rotate-45",
+            )}
+          />
+        </button>
+      </div>
+
+      <div
+        id={panelId}
+        inert={!open}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-[380ms] ease-editorial motion-reduce:transition-none",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="overflow-hidden">
+          {/* Not drawn while every vibe is empty — see the note in
+              <WorkshopsMenu>, which this mirrors. */}
+          {showVibes ? (
+            <div className="pb-1 pl-4 pt-1">
+              <FindYourVibe counts={vibeCounts} selected={vibe} onSelect={setVibe} size="compact" />
+            </div>
+          ) : null}
+
+          <ul>
+            {shortlist.map((experience) => (
+              <li key={experience.slug}>
+                <Link
+                  href={`/events/${experience.slug}`}
+                  onClick={onClose}
+                  className="flex items-center gap-4 py-2 pl-4"
+                >
+                  <span className="relative size-12 shrink-0 overflow-hidden rounded-sm bg-cream">
+                    {experience.image ? (
+                      <Image
+                        src={experience.image.src}
+                        alt=""
+                        fill
+                        sizes="48px"
+                        style={{ objectPosition: experience.image.position ?? "50% 50%" }}
+                        className="object-cover"
+                      />
+                    ) : null}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-body font-medium text-text">{experience.name}</span>
+                    {experience.status ? (
+                      <span className="block text-fine text-text/80">{experience.status}</span>
+                    ) : null}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

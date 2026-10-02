@@ -61,17 +61,25 @@ interface SearchPanelProps {
 }
 
 /**
- * Ink on this panel, and why none of it is faded.
+ * Ink on this panel, measured against the ground it actually has.
  *
- * The nav ground is Deep Lilac, and the headroom above it is small: full white
- * measures 5.06:1 and the ratio falls under the 4.5:1 body text owes by /90.
- * There is no usable faded scale here — the /70, /55 and /50 values this panel
- * used to carry were calibrated against the near-black ground it had before,
- * where even /50 cleared 5:1. Anything read is therefore full white or /95,
- * and the hierarchy is carried by size, weight and letterspacing, which it
- * largely was already. The `aria-hidden` marks — the search glyph and the
- * separators between a result's metadata — are graphical objects owing 3:1
- * rather than 4.5:1, and sit at /80 (3.88:1).
+ * THE GROUND IS LIGHT SAGE, at the client's ask: the panel drops out of the
+ * bar and the bar is `bg-sage`, so a panel on the page's near-white read as a
+ * second surface appearing under the first. They are one surface now.
+ *
+ * WHICH MOVED THREE INK VALUES, because Light Sage is darker than the surface
+ * this was measured on. Charcoal is 9.07:1 here and /80 is 5.38, both clear;
+ * /75 is 4.71 and is the floor for anything read; /70 is 4.14 and is NOT —
+ * the placeholder and the walk-in/scheduled label were at /70 and are at /75.
+ *
+ * The `aria-hidden` marks stay at /70: the search glyph and the separators
+ * between a result's metadata are graphical objects owing 3:1, which 4.14
+ * clears comfortably.
+ *
+ * DEEP LILAC CANNOT CARRY A WORD HERE. It is 3.83:1 on Light Sage against
+ * 4.69 on the page surface — fine for a rule or an arrow, under the 4.5 a
+ * label owes. So "View all events" is charcoal and keeps the lilac as the
+ * rule beneath it, and the one remaining lilac label is `aria-hidden`.
  */
 /**
  * The search overlay's shell: where it sits, and when it opens and closes.
@@ -99,6 +107,22 @@ interface SearchPanelProps {
  * every time they open search, without this component reaching into a ref to
  * force the reset by hand.
  */
+/*
+  TWO PLACEHOLDERS, because the field is two different widths.
+
+  The long one is 318px set at the 16px floor, and the phone's field is 279px
+  — so the full string was cut mid-word ("...type or lo") on every phone. The
+  type size cannot absorb it: 16px is the floor, under which iOS Safari zooms
+  the page on focus.
+
+  So the narrow shell asks the same question in fewer words and keeps all
+  three facets — name, type, place. `text-ellipsis` is the backstop for the
+  very smallest screens, where even this runs long: it degrades to a "…"
+  rather than a hard cut mid-letter.
+*/
+const PLACEHOLDER_WIDE = "Search events by name, type or location";
+const PLACEHOLDER_NARROW = "Search by name, type or place";
+
 export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, workshops, experiences }: SearchPanelProps) {
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -230,7 +254,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
         // bar or leaves a strip of the page showing under it. See the same
         // pair on <MobileNav>, which this is positioned to match exactly.
         className={cn(
-          "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-surface md:top-[var(--spacing-header-lg)]",
+          "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-sage md:top-[var(--spacing-header-lg)]",
           // The mobile navigation's own reveal, to the millisecond. These two
           // overlays occupy the same rectangle and a visitor should not be
           // able to tell from the movement which one they opened — see the
@@ -252,6 +276,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
               onClose={onClose}
               workshops={workshops}
               experiences={experiences}
+              placeholder={PLACEHOLDER_NARROW}
             />
           </div>
         ) : null}
@@ -301,13 +326,14 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       )}
     >
       {mounted ? (
-        <div className={cn("rounded-[1.35rem] bg-surface p-6 lg:p-8", RISE, riseState)}>
+        <div className={cn("rounded-[1.35rem] bg-sage p-6 lg:p-8", RISE, riseState)}>
           <div className="mx-auto w-full">
             <SearchExperience
               key={openCount}
               onClose={onClose}
               workshops={workshops}
               experiences={experiences}
+              placeholder={PLACEHOLDER_WIDE}
             />
           </div>
         </div>
@@ -337,10 +363,12 @@ function SearchExperience({
   onClose,
   workshops,
   experiences,
+  placeholder,
 }: {
   onClose: () => void;
   workshops: Workshop[];
   experiences: readonly CreativeExperience[];
+  placeholder: string;
 }) {
   const headingId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -408,9 +436,18 @@ function SearchExperience({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             aria-labelledby={headingId}
-            placeholder="Search events by name, type or location"
+            placeholder={placeholder}
             autoComplete="off"
-            className="w-full bg-transparent text-xl font-light text-text placeholder:text-text/70 outline-none lg:text-lg"
+            /* `text-body`, not `text-xl`. The two sizes were inverted — a phone
+                got 20px and a desktop 18px — so the longest placeholder on the
+                site was set at its largest in the narrowest field, and ran out
+                of the box.
+
+                THE FLOOR IS 16px AND THAT IS NOT A TASTE SETTING: iOS Safari
+                zooms the whole page when a focused input computes under 16px,
+                and `--text-body` starts at exactly 1rem. Anything smaller fixes
+                the overflow by making every phone jump on focus instead. */
+            className="w-full truncate bg-transparent text-body font-light text-text placeholder:text-text/75 outline-none lg:text-lg"
           />
         </div>
       </form>
@@ -493,9 +530,9 @@ function NoResults({ onNavigate }: { onNavigate: () => void }) {
       <Link
         href={WORKSHOPS_HREF}
         onClick={onNavigate}
-        className="group mt-6 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-primary"
+        className="group mt-6 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
       >
-        <span className="border-b border-primary/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
+        <span className="border-b border-primary/70 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
           View all events
         </span>
         <span
@@ -566,7 +603,7 @@ function ActivityResults({
                   </span>
                 ) : null}
               </span>
-              <span className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/70">
+              <span className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/75">
                 {experience.kind === "diy" ? "Create Anytime" : "Create Together"}
               </span>
             </Link>
