@@ -462,6 +462,36 @@
   }
 }
 
+/*
+  TWO FILES, ONE FRAME — the phone gets its own photograph at the client's
+  ask, not a crop of the desktop one.
+
+  768px, because that is the breakpoint the crop above already turns on and a
+  picture should not change shape at one width and change file at another.
+
+  `display`, not `visibility` or opacity: a hidden-but-laid-out image is still
+  an image the browser fetches, and the whole point of a second file is that a
+  phone downloads one of them. See the note beside the pair in Hero.tsx for
+  which of the two is preloaded and why.
+*/
+.cardImageMobile {
+  display: block;
+}
+
+.cardImageDesktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .cardImageMobile {
+    display: none;
+  }
+
+  .cardImageDesktop {
+    display: block;
+  }
+}
+
 :global(html:not([data-intro])) .bloom,
 :global(html[data-intro="play"]) .bloom,
 :global(html[data-intro="dots"]) .bloom,

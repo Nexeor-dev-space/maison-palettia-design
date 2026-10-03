@@ -86,6 +86,52 @@ const HERO_IMAGE = {
   alt: "Two women laughing behind the ceramics they have painted, one holding up a mug dotted with small blue flowers, the other a scallop-edged tray patterned with little pink blooms, with shelves of plain crockery behind them.",
   position: { desktop: "50% 50%", mobile: "38% 50%" },
   lift: "-2%",
+
+  /*
+    THE PHONE GETS ITS OWN FILE, at the client's ask — `mobile-hero.png`,
+    supplied 2026-10-03. It is the third file to stand here that day, after a
+    portrait `mobile-banner.png` and a landscape `mobile-banner-bg.png`, and
+    it is the one that actually fits: 768x1376, 0.558:1, against a phone
+    window of about 0.46:1.
+
+    WHY THE SHAPE IS THE WHOLE STORY. A 1.78:1 file covering a portrait
+    window is fitted by HEIGHT, so a 390px phone renders it about 1591px
+    across and shows 413 — a quarter of the width, which is why the landscape
+    file could only ever hold one of the two women. At 0.558:1 the picture
+    renders 499px across and gives up 86: the frame keeps both of them, both
+    painted pieces, and the shelves behind.
+
+    IT IS AI-GENERATED, AND NOT AMBIGUOUSLY. The C2PA manifest is signed by
+    Google ("Google C2PA Media Services", "Google Media Processing Services")
+    and carries SynthID, `c2pa.created` and `c2pa.edited` actions, and TWO
+    source types: `trainedAlgorithmicMedia` and `composite`. The bottom half
+    of the frame — the empty tabletop — is the composite part: the scene has
+    been extended downward. Flagged to the client, who asked for it anyway.
+    Never captioned as the studio's own photograph or its own guests, and
+    nothing on the page claims it is. See `image-provenance`.
+  */
+  mobile: {
+    src: "/images/mobile-hero.png",
+    alt: "Two women laughing behind the ceramics they have painted, one holding up a mug dotted with small blue flowers, the other a scallop-edged tray patterned with little pink blooms, at a wooden table with shelves of plain crockery behind them.",
+    /*
+      CENTRED, AND FOR ONCE THAT IS SIMPLY RIGHT. The picture gives up 86px of
+      its 499 to the window, split evenly, and the pair is centred in the
+      frame — none of the 33-38% correction the landscape files needed to hold
+      one subject whole. Y is inert here as it is for every file in this slot:
+      the source is the wider ratio, so `cover` fits it by height and the
+      entire height is on screen.
+    */
+    position: "50% 50%",
+    /*
+      WHICH LEAVES `lift` AS THE VERTICAL CONTROL, and this file barely needs
+      it. The resting card is a horizontal band through the full-height
+      picture, running about 11% to 51% at 390x844; the two women and their
+      ceramics sit at about 12% to 52%. -2% lines those up almost exactly, and
+      it is the same value the landscape file above uses, which is a fair sign
+      the framing is doing the work rather than the correction.
+    */
+    lift: "-2%",
+  },
 };
 /**
  * ==========================================================================
@@ -149,11 +195,65 @@ export function Hero() {
           {/* ---- the photograph, full size, shown through the card ---- */}
           <div className={styles.card}>
             <div className={styles.bloom}>
+              {/*
+                ONE OF THESE IS DRAWN, AND ONLY ONE IS FETCHED.
+
+                `display: none` is what makes that true — see the pair in
+                Hero.module.css. A picture hidden any other way (opacity,
+                visibility, a clip) is still laid out, and a laid-out image is
+                one the browser downloads: a phone would have pulled the
+                1920x1080 landscape file as well as its own, which is the
+                entire cost this change exists to avoid.
+
+                `loading="lazy"` ON THE DESKTOP FILE IS WHAT STOPS IT. With
+                `eager` there, a 390px viewport fetched BOTH banners — a
+                hidden-but-eager image is still an image the browser wants.
+                Lazy and hidden, it is never asked for: measured at 390, the
+                landscape file now gets zero requests.
+
+                THE PRELOAD GOES TO THE PHONE. `priority` emits a
+                `<link rel="preload">` with no media query on it, so it is
+                worth exactly one of the two. It goes to the phone — the
+                constrained device, and the one the banner is most certainly
+                the LCP element on. The cost is a desktop browser also pulling
+                one small variant of the portrait file it will never draw
+                (~630px wide, measured); the alternative, preloading the
+                landscape file, would have put a far bigger wasted download on
+                the phone instead. Desktop loads its own file from layout, a
+                beat later than a preload would start it, on the connection
+                that can afford the beat.
+              */}
+              <Image
+                src={HERO_IMAGE.mobile.src}
+                alt={HERO_IMAGE.mobile.alt}
+                fill
+                priority
+                /*
+                  A WIDTH DERIVED FROM THE HEIGHT, like the landscape file
+                  below — but a much smaller one, because the shape is
+                  different. `sizes` is a WIDTH hint and this picture is
+                  fitted to the window's HEIGHT, so what has to be requested
+                  is 0.558 x that height plus headroom for the 1.06 rest
+                  scale: 70vh, against the 190vh a 1.78:1 file needs. Asking
+                  for 190 here would fetch nearly three times the pixels the
+                  window can show.
+                */
+                sizes="70vh"
+                style={
+                  {
+                    "--pos-m": HERO_IMAGE.mobile.position,
+                    "--lift": HERO_IMAGE.mobile.lift,
+                  } as Vars
+                }
+                className={cn(styles.cardImage, styles.cardImageMobile)}
+              />
+
               <Image
                 src={HERO_IMAGE.src}
                 alt={HERO_IMAGE.alt}
                 fill
-                priority
+                loading="lazy"
+                fetchPriority="high"
                 /*
                   ==========================================================
                   THE COVER CROP SETS THE WIDTH, NOT THE ELEMENT
@@ -185,7 +285,7 @@ export function Hero() {
                     "--lift": HERO_IMAGE.lift,
                   } as Vars
                 }
-                className={styles.cardImage}
+                className={cn(styles.cardImage, styles.cardImageDesktop)}
               />
             </div>
             <div aria-hidden className={styles.scrim} />

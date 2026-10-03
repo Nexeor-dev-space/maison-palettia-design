@@ -81,6 +81,41 @@ export async function WhereWeCreate() {
         <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={520} />
       </span>
 
+      {/*
+        THE PHONE'S OWN MARKS, because the two above are desktop-only by
+        construction: both hang off the section's edge (`-left-8`, `-right-10`)
+        where a phone has no gutter to spare, so below `lg` this section ran
+        with no cut-out on it at all — the one band on the page that did.
+
+        These three sit INSIDE the measure instead of across its edges, which
+        is what lets them show at 375px without being clipped: two in the
+        channel the statement leaves beside it and one low under the map.
+        `lg:hidden` so they hand back to the edge-crossing pair above, which is
+        the deck's own habit wherever there is room for it.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-[6%] top-[4%] block w-14 -rotate-12 sm:w-16 lg:hidden"
+      >
+        <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={300} />
+      </span>
+      <span
+        aria-hidden
+        /* Top-left, NOT at 30%: the lede runs the full measure down the upper
+           third of a phone, and at 30% this landed on "into the places people
+           already gather". The band above the eyebrow is the one piece of
+           clear ground on this side. */
+        className="pointer-events-none absolute left-[6%] top-[1%] block w-12 rotate-[10deg] sm:w-14 lg:hidden"
+      >
+        <DoodleMark name="coral" color={INK.terracotta} treatment="draw" delay={420} />
+      </span>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-[4%] right-[10%] block w-12 rotate-[6deg] sm:w-14 lg:hidden"
+      >
+        <DoodleMark name="starleaf" color={INK.lilac} treatment="draw" delay={540} />
+      </span>
+
       <Container>
         {/*
           ==================================================================

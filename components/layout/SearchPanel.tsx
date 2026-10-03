@@ -254,23 +254,37 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
         // bar or leaves a strip of the page showing under it. See the same
         // pair on <MobileNav>, which this is positioned to match exactly.
         className={cn(
-          "fixed inset-x-0 bottom-0 top-header overflow-y-auto overscroll-contain bg-sage md:top-[var(--spacing-header-lg)]",
-          // The mobile navigation's own reveal, to the millisecond. These two
-          // overlays occupy the same rectangle and a visitor should not be
-          // able to tell from the movement which one they opened — see the
-          // note at the top of this file on why they share their chrome.
-          // `visibility` is in the list so the closed panel stops being a
-          // scroll container, and transitions discretely: it stays `visible`
-          // for the whole of the 240ms exit and only then goes.
-          // `ease-soft` for the same reason as the desktop shape below.
-          "transition-[clip-path,opacity,visibility] ease-soft motion-reduce:transition-none",
+          /*
+            A CARD ON THE PHONE TOO, at the client's ask.
+
+            This was a full-height field: `inset-x-0 bottom-0`, the whole window
+            below the bar in one flat colour, wiping down on a clip-path. With
+            four suggestion chips in it that left two thirds of a phone screen
+            as empty sage, which is what reads as "too long" — the panel was
+            sized by the viewport rather than by what is in it.
+
+            It is now the same object the desktop drops: a cream card inset by
+            the page gutter, holding the sage field, at the height its own
+            content asks for. `max-h` + `overflow-y-auto` is what keeps a long
+            result list scrollable without the empty case being full-bleed, and
+            `100dvh` rather than `100vh` so a phone's retracting URL bar does
+            not leave the foot of the card under the chrome.
+          */
+          "fixed left-[var(--spacing-gutter)] right-[var(--spacing-gutter)] top-[calc(var(--spacing-header)+0.5rem)]",
+          "md:top-[calc(var(--spacing-header-lg)+0.5rem)]",
+          "max-h-[calc(100dvh-var(--spacing-header)-1.5rem)] overflow-y-auto overscroll-contain",
+          "plate rounded-[1.75rem] bg-cream p-2.5",
+          // The desktop card's own arrival, so the two shapes move alike: a
+          // thing settling rather than a field being revealed. `visibility` is
+          // in the list so the closed panel stops being a scroll container.
+          "transition-[opacity,translate,scale,visibility] ease-soft motion-reduce:transition-none",
           shown
-            ? "visible opacity-100 duration-[520ms] [clip-path:inset(0_0_0_0)]"
-            : "invisible opacity-0 duration-[240ms] [clip-path:inset(0_0_100%_0)]",
+            ? "visible translate-y-0 scale-100 opacity-100 duration-[380ms]"
+            : "invisible -translate-y-1.5 scale-[0.985] opacity-0 duration-[200ms]",
         )}
       >
         {mounted ? (
-          <div className={cn("px-gutter pb-16 pt-10", RISE, riseState)}>
+          <div className={cn("rounded-[1.35rem] bg-sage p-5", RISE, riseState)}>
             <SearchExperience
               key={openCount}
               onClose={onClose}
