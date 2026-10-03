@@ -429,6 +429,66 @@ function Road({
           : "relative bg-primary px-gutter py-[3.5rem] text-surface md:py-[4rem] lg:pl-[8%] lg:pr-[10%]"
       }
     >
+      {/*
+        THE PANEL'S OWN MARKS, and the phone is why they are here. Everything
+        decorative in this section was `hidden lg:block` — the masthead's three
+        and the splash on the seam — so a phone met two flat slabs of colour
+        with a photograph and a list on them and nothing of the brand around it.
+
+        THE COLOUR IS NOT A CHOICE, IT IS THE ONLY ONE THAT CLEARS. Measured
+        against each ground at the 3:1 a decorative mark owes:
+
+          on Warm Terracotta ... White Rock 2.44, Light Sage 2.36, Soft
+                                 Lavender 1.69 — every pale brand colour is too
+                                 close to be seen. Charcoal is 3.84 and is the
+                                 only one that reads.
+          on Deep Lilac ........ White Rock 3.95 and Light Sage 3.83 both read;
+                                 Charcoal is 2.37 and Soft Lavender 2.74, so
+                                 the warm panel's answer is wrong here and the
+                                 two grounds take opposite inks.
+
+        Placed inside the box rather than across its edge: these two panels sit
+        flush against each other at `lg`, so a mark crossing an edge would land
+        on its neighbour's ground, where its colour is measured against the
+        wrong thing.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-[6%] top-[3%] z-10 block w-12 rotate-[14deg] sm:w-16"
+      >
+        <DoodleMark
+          name="splash"
+          color={warm ? INK.charcoal : INK.whiteRock}
+          treatment="draw"
+          delay={260}
+        />
+      </span>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-[6%] right-[8%] z-10 block w-10 -rotate-12 sm:w-14"
+      >
+        <DoodleMark
+          name="starleaf"
+          color={warm ? INK.charcoal : "var(--color-sage)"}
+          treatment="draw"
+          delay={420}
+        />
+      </span>
+      <span
+        aria-hidden
+        /* Below the button, not at 16%: the fact chips wrap to a third row on a
+           phone and 16% put this behind "Sun 11 Oct". A mark crossing a panel
+           edge is the deck's habit; a mark sitting on a date is not. */
+        className="pointer-events-none absolute bottom-[3%] left-[5%] z-10 block w-10 rotate-[8deg] sm:w-12 lg:hidden"
+      >
+        <DoodleMark
+          name="bow"
+          color={warm ? INK.charcoal : INK.whiteRock}
+          treatment="draw"
+          delay={540}
+        />
+      </span>
+
       <Reveal variant="imageReveal">
         <span className="plate relative block aspect-[16/9] w-full overflow-clip rounded-[1.5rem] lg:max-h-[21rem]">
           {plate ? (

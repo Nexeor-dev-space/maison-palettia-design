@@ -147,6 +147,22 @@ function TrailRow({
   const draw = useTransform(scrollYProgress, [0, 1], [0.001, 1]);
   const nodeIn = useTransform(scrollYProgress, [0.55, 0.85], [0, 1]);
 
+  /*
+    THE PHONE'S CONNECTOR KEEPS ITS OWN CLOCK, and that is the whole of why it
+    used to look painted-on rather than drawn.
+
+    The desktop arc runs the width of the row, so the row's own progress is the
+    right clock for it — you watch it ink while the card it belongs to crosses
+    the window. The phone's connector is not in the row: it hangs in the 3.5rem
+    gap BELOW it, at `top-full`. Against the row's offsets the progress reaches
+    1 as the row's foot passes 72% of the window — which is the moment the
+    connector first appears. Every phone therefore met a line that had finished
+    drawing before it was on screen.
+
+    So it measures itself. `start 95% / end 60%` is the band a 56px-tall object
+    needs to ink across the lower half of a phone's window rather than in a
+    frame or two.
+  */
   return (
     <li
       ref={row}
@@ -326,36 +342,7 @@ function TrailRow({
         and stretching it would flatten the wander out of it.
       */}
       {!last && next ? (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-full -z-10 block h-14 w-16 -translate-x-1/2 lg:hidden"
-        >
-          <svg className="h-full w-full overflow-visible" viewBox="0 0 64 56" fill="none">
-            <motion.path
-              data-reveal=""
-              d="M32 0C32 8 22 12 22 20C22 28 42 30 42 38C42 46 32 48 32 56"
-              stroke={item.paint}
-              strokeWidth={3}
-              strokeLinecap="round"
-              /* `pathLength` normalises the path to 1 so the draw is the
-                 same gesture whatever the curve measures. No
-                 `vector-effect: non-scaling-stroke`: it silently inks only
-                 1/scale of a pathLength draw, which is what stopped the
-                 desktop line short on wide screens. */
-              pathLength={1}
-              strokeDasharray={1}
-              style={reduced ? { pathLength: 1 } : { pathLength: draw }}
-            />
-          </svg>
-
-          {/* The mark the desktop arc carries, at the turn of this one. */}
-          <motion.span
-            className="absolute left-[58%] top-[42%] block w-4"
-            style={{ scale: reduced ? 1 : nodeIn, opacity: reduced ? 1 : nodeIn }}
-          >
-            <DoodleMark name={item.trailMark} color={item.paint} treatment="stamp" depth={0} />
-          </motion.span>
-        </span>
+        <MobileLink paint={item.paint} mark={item.trailMark} reduced={!!reduced} />
       ) : null}
 
       <div
@@ -367,6 +354,76 @@ function TrailRow({
         <TrailCard item={item} index={index} />
       </div>
     </li>
+  );
+}
+
+/**
+ * The phone's connector, and the reason it is a component rather than markup.
+ *
+ * It owns the ref `useScroll` measures. Inside <TrailRow> that hook ran for
+ * every row including the last — which renders no connector at all — so the
+ * ref it was handed never attached to anything and Motion threw "Target ref is
+ * defined but not hydrated" on every page load. A hook cannot be conditional,
+ * but a component can: this mounts only where there is a next card to reach,
+ * so the ref and the node are born and die together.
+ */
+function MobileLink({
+  paint,
+  mark,
+  reduced,
+}: {
+  paint: string;
+  mark: DoodleName;
+  reduced: boolean;
+}) {
+  const link = useRef<HTMLSpanElement>(null);
+  /*
+    ITS OWN CLOCK, not the row's. The desktop arc runs the width of the row so
+    the row's progress is right for it; this hangs in the gap BELOW the row at
+    `top-full`, where the row's progress has already reached 1 by the time the
+    connector is on screen — which is why it used to arrive fully drawn and
+    read as static. `start 95% / end 60%` is the band a 56px object needs to
+    ink across the lower half of a phone's window.
+  */
+  const { scrollYProgress } = useScroll({
+    target: link,
+    offset: ["start 95%", "end 60%"],
+  });
+  const draw = useTransform(scrollYProgress, [0, 1], [0.001, 1]);
+  const nodeIn = useTransform(scrollYProgress, [0.45, 0.9], [0, 1]);
+
+  return (
+    <span
+      ref={link}
+      aria-hidden
+      className="pointer-events-none absolute left-1/2 top-full -z-10 block h-14 w-16 -translate-x-1/2 lg:hidden"
+    >
+      <svg className="h-full w-full overflow-visible" viewBox="0 0 64 56" fill="none">
+        <motion.path
+          data-reveal=""
+          d="M32 0C32 8 22 12 22 20C22 28 42 30 42 38C42 46 32 48 32 56"
+          stroke={paint}
+          strokeWidth={3}
+          strokeLinecap="round"
+          /* `pathLength` normalises the path to 1 so the draw is the same
+             gesture whatever the curve measures. No `vector-effect:
+             non-scaling-stroke`: it silently inks only 1/scale of a pathLength
+             draw, which is what stopped the desktop line short on wide
+             screens. */
+          pathLength={1}
+          strokeDasharray={1}
+          style={reduced ? { pathLength: 1 } : { pathLength: draw }}
+        />
+      </svg>
+
+      {/* The mark the desktop arc carries, at the turn of this one. */}
+      <motion.span
+        className="absolute left-[58%] top-[42%] block w-4"
+        style={{ scale: reduced ? 1 : nodeIn, opacity: reduced ? 1 : nodeIn }}
+      >
+        <DoodleMark name={mark} color={paint} treatment="stamp" depth={0} />
+      </motion.span>
+    </span>
   );
 }
 

@@ -254,16 +254,21 @@ export async function WaysToExperience() {
       name: "Create",
       lede: "Come to a table and make something — on the day, or on a date you book.",
       doors: [
+        /* EACH DOOR LANDS ON ITS OWN HALF OF /events, not on the top of the
+           page. Both pointed at the bare listing, so the two labels the card
+           works to tell apart — turn up, or book a seat — delivered a visitor
+           to the identical place and left them to find the difference again.
+           `#walk-in` and `#scheduled` are the two sections' own anchors. */
         {
           label: "Create Anytime",
           note: `${walkIn} activities, no booking`,
-          href: "/events",
+          href: "/events#walk-in",
           mode: "diy",
         },
         {
           label: "Create Together",
           note: `${scheduled} guided sessions`,
-          href: "/events",
+          href: "/events#scheduled",
           mode: "scheduled",
         },
       ],

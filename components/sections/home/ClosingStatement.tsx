@@ -221,14 +221,59 @@ export function ClosingStatement() {
         {/* White Rock, following the totem's own cutout rather than its own
             old colour: Soft Lavender on Light Sage was a clear mark and on
             Deep Lilac it is the ground's own family, two shades apart. */}
-        <Reveal delay={0.24} className="mt-14 flex items-end justify-center gap-10 lg:hidden">
-          <span className="block w-[clamp(4rem,18vw,5.5rem)]">
+        {/*
+          FOUR, NOT TWO. The lying-down pair read as a pair of brackets and
+          left the foot of the phone's screen as flat Deep Lilac. The run is
+          now the totem's own shapes — a starleaf and a coral between the two
+          cut-outs — which is the same vocabulary the desktop columns use,
+          laid along one line instead of down two.
+
+          INK ON DEEP LILAC IS MEASURED: White Rock is 3.95:1 here and Light
+          Sage 3.83, both over the 3:1 a decorative mark owes. Soft Lavender is
+          2.74 and is the one brand colour this ground cannot carry, so it is
+          absent rather than faded.
+        */}
+        <Reveal
+          delay={0.24}
+          className="mt-14 flex flex-wrap items-end justify-center gap-x-7 gap-y-5 lg:hidden"
+        >
+          <span className="block w-[clamp(3.5rem,15vw,4.75rem)]">
             <DoodleMark name="cutout" color={INK.whiteRock} delay={260} />
           </span>
-          <span className="block w-[clamp(4rem,18vw,5.5rem)] -scale-x-100">
-            <DoodleMark name="cutout" color={INK.whiteRock} delay={340} />
+          <span className="block w-[clamp(2rem,8vw,2.75rem)]">
+            <DoodleMark name="coral" color="var(--color-sage)" delay={320} />
+          </span>
+          <span className="block w-[clamp(2.25rem,9vw,3rem)]">
+            <DoodleMark name="starleaf" color={INK.whiteRock} delay={380} />
+          </span>
+          <span className="block w-[clamp(3.5rem,15vw,4.75rem)] -scale-x-100">
+            <DoodleMark name="cutout" color={INK.whiteRock} delay={440} />
           </span>
         </Reveal>
+
+        {/*
+          Two more off in the field, so the band has depth as well as a row.
+
+          PLACED OFF MEASURED GROUND, not by eye. On a 375px phone the words
+          run the full measure from 11% to 49% and again from 54% to 72%, so
+          there is no free margin beside them: the only clear ground is the
+          band ABOVE the eyebrow (0-11%) and the two 83px gutters either side
+          of "Plan a private event", which spans 83-292 of 375. These sit in
+          exactly those two places. At 8% and 14% they sat on the eyebrow and
+          the heading.
+        */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-[4%] top-[1%] block w-12 rotate-[12deg] sm:w-16 lg:hidden"
+        >
+          <DoodleMark name="splash" color="var(--color-sage)" treatment="draw" delay={480} />
+        </span>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-[3%] top-[64%] block w-10 -rotate-12 sm:w-12 lg:hidden"
+        >
+          <DoodleMark name="bow" color={INK.whiteRock} treatment="draw" delay={560} />
+        </span>
       </Container>
     </section>
   );
