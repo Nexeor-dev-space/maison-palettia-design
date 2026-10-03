@@ -352,9 +352,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 93.5, top: 104, width: 8.5, rotate: 3 },
     mobile: { left: 80, top: 72, width: 30, rotate: 3 },
     ring: true,
-    /* -159.87 at the client's ask: very nearly a half turn, so the slab's cut
-       corner points up at the mark rather than down away from it. */
-    flower: { x: 0.1, y: 0.39, width: 0.21, rotate: -159.87 },
+    /* 40 at the client's ask. */
+    flower: { x: 0.1, y: 0.39, width: 0.21, rotate: 40 },
     float: 8.5,
   },
   {
@@ -444,8 +443,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 64, top: 28, width: 9, rotate: -22 },
     mobile: { left: 64, top: 28, width: 15, rotate: -22 },
     ring: true,
-    /* -70 at the client's ask. */
-    flower: { x: -0.69, y: -0.25, width: 0.2, rotate: -70 },
+    /* 70 at the client's ask. */
+    flower: { x: -0.69, y: -0.25, width: 0.2, rotate: 70 },
     float: 6.2,
   },
   {
