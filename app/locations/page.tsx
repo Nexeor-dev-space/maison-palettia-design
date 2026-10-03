@@ -114,7 +114,10 @@ export default async function LocationsPage() {
                 lines={["Where to", "Find Us."]}
               />
               <Reveal delay={0.15}>
-                <p className="mt-6 max-w-[30rem] text-lead leading-[1.7] text-text/85 md:mt-8">
+                {/* Full-strength charcoal and the role's own 1.6, not 85%
+                    ink opened to 1.7 — see the note on --text-lead. 9.07:1
+                    on the pale green. */}
+                <p className="mt-6 max-w-[30rem] text-lead text-text md:mt-8">
                   Maison Palettia brings creative experiences into the places people already gather
                   — set up inside a mall rather than behind a studio door.
                 </p>
@@ -147,7 +150,14 @@ export default async function LocationsPage() {
                     /* White Rock — the default. The section around it is Light
                        Sage again, and a sage plate on it would be a patch of
                        the paper rather than a card. */
-                    <PartnerPlate key={partner.slug} partner={partner} />
+                    <PartnerPlate
+                      key={partner.slug}
+                      partner={partner}
+                      /* h2: the plate sits straight under this page's h1,
+                         and "Find us now" in the next column is an h2 too.
+                         It drew an h3 and the page skipped a level. */
+                      headingLevel="h2"
+                    />
                   ))}
                 </div>
               </Reveal>

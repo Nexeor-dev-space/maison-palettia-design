@@ -1,11 +1,9 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { MobileNav } from "@/components/layout/MobileNav";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
@@ -150,15 +148,11 @@ export function HeaderBar({
   */
   const [isStrandsOpen, setIsStrandsOpen] = useState(false);
   /*
-    Bumped every time the overlay opens, and used as the panel's React key.
-
-    The panel is kept mounted and hidden rather than unmounted, so its contents
-    would otherwise animate once in a session and never again — a CSS animation
-    only runs when the element it is on appears. Changing the key remounts the
-    contents on each open, which replays it. Cheap: it is four pictures and a
-    list, and it is only paid when someone actually opens the menu.
+    THE MENU'S REMOUNT COUNTER WENT WITH ITS TRIGGER. It was bumped on every
+    open and used as <MobileNav>'s React key, so the panel's reveal replayed
+    each time instead of animating once a session. Search keeps its own, one
+    flight below, for exactly that reason — this one had nothing left to count.
   */
-  const [openCount, setOpenCount] = useState(0);
   // Search's own open state and its own remount counter — the same device,
   // for the same reason, one flight below. See <SearchPanel> for why its
   // query is cleared by this rather than by a remount.
@@ -175,12 +169,8 @@ export function HeaderBar({
   */
   const [isDetached, setIsDetached] = useState(false);
   const [isRising, setIsRising] = useState(false);
-  const menuId = useId();
   const searchPanelId = useId();
   const searchTriggerRef = useRef<HTMLButtonElement>(null);
-  // Handed to <MobileNav> so closing the overlay returns focus here rather
-  // than dropping it at the top of the document.
-  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
   /*
     The scroll reader. It answers three things: has the page moved at all
@@ -252,21 +242,10 @@ export function HeaderBar({
     };
   }, [isMenuOpen]);
 
-  const closeMenu = () => setIsMenuOpen(false);
   const closeSearch = () => setIsSearchOpen(false);
 
-  // Opening one overlay closes the other. Both can cover the same ground —
-  // the mobile menu sits under the bar exactly where the mobile search panel
-  // does — and nothing about their own effects expects to find itself running
-  // underneath a second one, the scroll lock included.
-  const toggleMenu = () => {
-    setIsSearchOpen(false);
-    setIsMenuOpen((open) => {
-      const next = !open;
-      if (next) setOpenCount((count) => count + 1);
-      return next;
-    });
-  };
+  // Opening one overlay closes the other — <toggleSearch> below still clears
+  // the menu's state for that reason, even with no way left to open it.
 
   const toggleSearch = () => {
     setIsMenuOpen(false);
@@ -707,30 +686,26 @@ export function HeaderBar({
             </div>
           ))}
 
-          <button
-            ref={menuTriggerRef}
-            type="button"
-            onClick={toggleMenu}
-            aria-expanded={isMenuOpen}
-            aria-controls={menuId}
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            className="-mr-2 inline-flex size-11 items-center justify-center text-current transition-colors duration-200 hover:opacity-70 lg:hidden"
-          >
-            {isMenuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
-          </button>
+          {/*
+            THE HAMBURGER IS GONE, at the client's ask, and it went because it
+            had nothing left to hold. <BottomNav> and its More sheet carry
+            every entry in MAIN_NAV between them — Experiences and Locations
+            in the bar, Private events, Gallery, About and Contact behind More
+            — so the slide-out opened on a list of things already on screen.
+            Two ways to the same six destinations, one of them covering the
+            page.
+
+            SEARCH IS UNTOUCHED: it has its own trigger beside this and always
+            did. Only the menu's button has gone.
+
+            <MobileNav> stays in the tree, unmounted — the rule
+            <CommunityMoment> and <SeasonalExperiences> are kept under.
+            `isMenuOpen` stays wired for the same reason: <toggleSearch> below
+            still clears it, the scroll lock and `overlayOpen` still read it,
+            and putting a trigger back is one button.
+          */}
         </div>
       </Container>
-
-      <MobileNav
-        id={menuId}
-        triggerRef={menuTriggerRef}
-        openCount={openCount}
-        isOpen={isMenuOpen}
-        onClose={closeMenu}
-        items={MAIN_NAV}
-        experiences={experiences}
-        isActive={isActive}
-      />
 
       <SearchPanel
         id={searchPanelId}

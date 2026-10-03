@@ -189,14 +189,18 @@ const CARDS = [
 */
 const WAYS_SHAPES: readonly ShapePlan[] = [
   {
+    /* RAISED FROM `top: 9%`, which was not a new fault but was still one: it
+       put this mark at x1274-1363 / y189 and the standfirst starts at y244,
+       so it has been overlapping the last line of type since it was placed.
+       Above the words it has the whole top-right corner to itself. */
     name: "coral",
     color: INK.lilac,
     width: "5%",
     right: "6%",
-    top: "9%",
+    top: "1.5%",
     rotate: -14,
     drift: 26,
-    opacity: 0.16,
+    opacity: 0.26,
     float: 14,
   },
   {
@@ -207,7 +211,7 @@ const WAYS_SHAPES: readonly ShapePlan[] = [
     top: "34%",
     rotate: 12,
     drift: -22,
-    opacity: 0.14,
+    opacity: 0.24,
     float: 16,
     floatDelay: 1.3,
   },
@@ -219,7 +223,7 @@ const WAYS_SHAPES: readonly ShapePlan[] = [
     top: "58%",
     rotate: 8,
     drift: 20,
-    opacity: 0.18,
+    opacity: 0.28,
     float: 12,
     floatDelay: 2.2,
   },
@@ -231,9 +235,81 @@ const WAYS_SHAPES: readonly ShapePlan[] = [
     bottom: "8%",
     rotate: -10,
     drift: -18,
-    opacity: 0.16,
+    opacity: 0.26,
     float: 15,
     floatDelay: 0.7,
+  },
+
+  /*
+    AND THREE IN THE HEADER'S OWN EMPTY QUARTER, at the client's ask.
+
+    The four above sit opposite the cards, down the length of the trail. They
+    leave the top of the section alone — and at `lg` the top of the section is
+    a script heading on the left half and a three-line standfirst on the right,
+    which leaves most of a screen of bare White Rock under the standfirst and
+    to the right of the heading. By construction there is no type there at any
+    width, same as the measure opposite the cards.
+
+    `desktopOnly` DOES NOT HIDE THEM ANY MORE — it shrinks them to 72% below
+    `lg` (see the note on it in SectionShapes). So "desktop only" is a size
+    hint here, not a switch, and these three still render on a phone where the
+    heading and the standfirst have stacked into one column and the quarter
+    they fill does not exist.
+
+    They are placed to be harmless there rather than absent: above the type at
+    both widths. Measured on a 390px phone, the standfirst runs y247-363 and
+    nothing in this group reaches it. Even if one did, the cost is small —
+    charcoal on cream is 9.36:1 and a quarter-opacity terracotta wash under it
+    still leaves 7.4:1 — but a wash crossing a word is untidy whether or not
+    it is legible.
+
+    LILAC AND TERRACOTTA, because the ground is White Rock: Deep Lilac is
+    3.95:1 on it and terracotta 2.44 — both keep their hue at a quarter
+    opacity. Soft Lavender is 1.40 and Light Sage 1.03, which is why neither
+    is up here doing nothing.
+  */
+  {
+    name: "starburst",
+    color: INK.terracotta,
+    width: "7%",
+    right: "30%",
+    top: "2.5%",
+    rotate: 10,
+    drift: -24,
+    opacity: 0.3,
+    float: 13,
+    floatDelay: 1.9,
+    desktopOnly: true,
+  },
+  {
+    /* BELOW the standfirst, not across it. At `top: 11%` this landed at
+       x1144-1292 / y234 against a standfirst occupying x860-1340 / y244-336 —
+       measured, not guessed — which is exactly the thing this field is not
+       allowed to do. */
+    name: "wave",
+    color: INK.lilac,
+    width: "9%",
+    right: "9%",
+    top: "20%",
+    rotate: -8,
+    drift: 22,
+    opacity: 0.24,
+    float: 15,
+    floatDelay: 0.4,
+    desktopOnly: true,
+  },
+  {
+    name: "zigzag",
+    color: INK.terracotta,
+    width: "5%",
+    right: "41%",
+    top: "1%",
+    rotate: -16,
+    drift: 18,
+    opacity: 0.26,
+    float: 11,
+    floatDelay: 2.6,
+    desktopOnly: true,
   },
 ];
 
@@ -386,11 +462,18 @@ export async function WaysToExperience() {
           for marks there and it is the right place for them: no type at any
           width, by construction.
 
-          Four, which is <SectionShapes>' ceiling, all from the smooth end of
-          the sheet, and all `desktopOnly` because below lg the cards take the
-          full measure and there is no open half to fill.
+          SEVEN NOW, NOT FOUR, and the old note here claimed two things that
+          were not true. <SectionShapes> has no ceiling — it maps whatever
+          plan it is given — and the four were not `desktopOnly`; none of them
+          carried the flag. The three added for the header's empty quarter do,
+          and the reason is written beside them.
+
+          All from the smooth end of the sheet. The four down the trail are
+          also a third stronger than they were: at 0.14-0.18 on White Rock
+          they were close enough to nothing that the client read the space as
+          empty, which is a fair reading of a mark nobody can see.
         */}
-        <SectionShapes plan={WAYS_SHAPES} className="hidden lg:block" />
+        <SectionShapes plan={WAYS_SHAPES} />
 
         <WaysTrail
           items={groups.map((group, i) => {

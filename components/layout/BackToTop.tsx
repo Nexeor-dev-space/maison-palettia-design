@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowUp } from "lucide-react";
 import { scrollToTop } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 
@@ -51,12 +52,14 @@ export function BackToTop({ className }: BackToTopProps) {
         className,
       )}
     >
-      <span
+      {/* `ArrowUp`, for the reason the directions link gives: an entity is
+          drawn by the system font and matches nothing around it. */}
+      <ArrowUp
         aria-hidden
-        className="transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-y-1"
-      >
-        &#8593;
-      </span>
+        size={14}
+        strokeWidth={2}
+        className="shrink-0 transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-y-1"
+      />
       <span className="border-b border-current/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-current">
         Back to top
       </span>

@@ -1,4 +1,3 @@
-import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
@@ -210,20 +209,13 @@ export function CollaborateTeaser() {
                   models in full live on /locations, and sending a mall there is
                   the whole reason the homepage keeps a teaser.
                 */}
-                <Link
+                <BlobButton
                   href="/locations#collaborate"
-                  className="group -my-1.5 inline-flex items-baseline gap-3 py-1.5 text-action font-semibold uppercase tracking-eyebrow text-text"
+                  tone="secondary"
+                  className="min-h-[3.25rem] px-7"
                 >
-                  <span className="border-b border-primary pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
-                    How we work with malls
-                  </span>
-                  <span
-                    aria-hidden
-                    className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                  >
-                    &#8594;
-                  </span>
-                </Link>
+                  How we work with malls
+                </BlobButton>
               </div>
             </Reveal>
           </div>

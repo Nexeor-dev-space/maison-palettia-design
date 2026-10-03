@@ -7,8 +7,44 @@ import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { CONTACT, SOCIAL_LINKS } from "@/lib/constants";
 import { buildMetadata } from "@/lib/seo";
+
+
+/*
+  THE MARKS THIS PAGE HAD NONE OF.
+
+  /contact rendered with no brand cut-out anywhere, at any width — the only
+  page on the site that did. Three grounds, three plans, and the ink on each
+  is the one the ground can carry:
+
+    the sage head ..... Deep Lilac 3.83:1 and Charcoal 9.36 read on Light
+                        Sage; Warm Terracotta is 2.36 and does not.
+    the paper ......... the page surface takes all three warm colours.
+    the lilac close ... White Rock 3.95 and Light Sage 3.83 read on Deep
+                        Lilac; Charcoal is 2.37 and Soft Lavender 2.74.
+
+  <SectionShapes> rather than bare <DoodleMark>s, and that is not only reuse:
+  it draws its marks with `treatment="stamp"`, so it is immune to the
+  `overflow-hidden` on two of these sections — a `draw` mark inside one never
+  fills, which is the trap the rest of the codebase keeps warning about.
+*/
+const HEAD_SHAPES: readonly ShapePlan[] = [
+  { name: "coral", color: INK.lilac, width: "7%", right: "5%", top: "10%", rotate: -14, drift: 22, opacity: 0.2, float: 13 },
+  { name: "starleaf", color: INK.lilac, width: "5.5%", left: "4%", bottom: "14%", rotate: 10, drift: -16, opacity: 0.16, float: 15, floatDelay: 1.2 },
+];
+
+const ENQUIRY_SHAPES: readonly ShapePlan[] = [
+  { name: "splash", color: INK.terracotta, width: "8%", right: "4%", top: "6%", rotate: 12, drift: 20, opacity: 0.16, float: 14 },
+  { name: "bow", color: INK.lavender, width: "7%", left: "3%", bottom: "8%", rotate: -10, drift: -18, opacity: 0.18, float: 12, floatDelay: 1.6 },
+];
+
+const CTA_SHAPES: readonly ShapePlan[] = [
+  { name: "splash", color: INK.whiteRock, width: "9%", left: "5%", top: "14%", rotate: -12, drift: 24, opacity: 0.22, float: 13 },
+  { name: "coral", color: "var(--color-sage)", width: "7%", right: "6%", bottom: "16%", rotate: 10, drift: -18, opacity: 0.2, float: 15, floatDelay: 1.1 },
+  { name: "starleaf", color: INK.whiteRock, width: "6%", right: "22%", top: "8%", rotate: 8, drift: 18, opacity: 0.16, float: 11, floatDelay: 2.2 },
+];
 
 export const metadata = buildMetadata({
   title: "Contact",
@@ -61,6 +97,7 @@ export default function ContactPage() {
         sage belonging to neither. The picture runs to the join instead.
       */}
       <div className="relative isolate overflow-hidden bg-sage">
+        <SectionShapes plan={HEAD_SHAPES} />
         {/* <Enquiry> is no longer a section of its own — it is the right-hand
             column of <Invitation>, at the client's ask. See the note on the
             grid there. */}
@@ -127,7 +164,7 @@ function Invitation() {
           </h1>
 
           <Reveal delay={0.15}>
-            <p className="script-lede max-w-[44ch] text-lead font-light leading-[1.7] text-text">
+            <p className="script-lede max-w-[44ch] text-lead leading-[1.7] text-text">
               Whether it is a question about an upcoming event, a place you would like to keep, or
               something you would like to make with us — write to the Maison and we will take it
               from there.
@@ -258,8 +295,9 @@ function Enquiry() {
   return (
     <section
       aria-labelledby="contact-enquiry"
-      className="col-span-12 lg:col-span-5 lg:col-start-8"
+      className="relative isolate col-span-12 lg:col-span-5 lg:col-start-8"
     >
+      <SectionShapes plan={ENQUIRY_SHAPES} />
       {/*
         READING ORDER IS VISUAL ORDER, at every width. The statement, its
         sentence and "Find us" are one column in the source and one column on
@@ -527,6 +565,7 @@ function EventsCta() {
       */
       className="relative isolate overflow-hidden bg-primary py-[5rem] text-surface md:py-section"
     >
+      <SectionShapes plan={CTA_SHAPES} />
       <Container>
         <div className="grid grid-cols-12 items-end gap-x-6 lg:gap-x-10">
           <div className="col-span-12 lg:col-span-7">

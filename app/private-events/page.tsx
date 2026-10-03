@@ -280,12 +280,16 @@ function Introduction() {
               </p>
             </Reveal>
 
-            <h2 id="private-events-intro" className="mt-8 md:mt-10">
+            {/* h1, not h2. This is the page's own title and it was the only
+                heading above the fold, so /private-events shipped with no h1
+                at all — the same gap /faq had. The level is the only change;
+                the type is set by <SectionLine>. */}
+            <h1 id="private-events-intro" className="mt-8 md:mt-10">
               <Stagger>
                 <SectionLine>Bring People Together</SectionLine>{" "}
                 <SectionLine>Through Making.</SectionLine>
               </Stagger>
-            </h2>
+            </h1>
 
             <Reveal delay={0.2}>
               {/* `script-lede` rather than a margin: the gap under a script
@@ -948,6 +952,12 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
   One per band, so they read as four marks placed around the type rather than
   as a texture behind it, and none of them touches another.
 */
+/* Deep Lilac carries White Rock (3.95:1) and Light Sage (3.83) only. */
+const ENQUIRY_SHAPES: readonly ShapePlan[] = [
+  { name: "splash", color: INK.whiteRock, width: "8%", left: "5%", top: "14%", rotate: -12, drift: 22, opacity: 0.22, float: 13 },
+  { name: "coral", color: "var(--color-sage)", width: "6.5%", right: "6%", bottom: "16%", rotate: 10, drift: -18, opacity: 0.2, float: 15, floatDelay: 1.2 },
+];
+
 const WHERE_SHAPES: readonly ShapePlan[] = [
   /* Above the card, in the top-right. The width is set by where it ENDS:
      coral is 1.55 times as tall as it is wide and `width` is a share of the
@@ -1440,8 +1450,9 @@ function EnquiryCta() {
   return (
     <section
       aria-labelledby="private-events-enquiry"
-      className="bg-primary py-[5.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
+      className="relative isolate overflow-clip bg-primary py-[5.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
     >
+      <SectionShapes plan={ENQUIRY_SHAPES} />
       {/*
         ONE CENTRED COLUMN, AT THE CLIENT'S ASK. This was the page's two-column
         close — the statement in the left seven columns, the button parked at

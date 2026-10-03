@@ -146,20 +146,25 @@ function Shape({
          anything marked this way; a mark that never drifts is exactly the
          resting composition, so nothing is lost. */
       data-reveal=""
-      className={cn(
-        "absolute block",
-        /* A phone has no air to spare: at 390px the marks that read as a
-           ground on a desktop are large objects sitting under the type. The
-           plans keep one or two for small screens and hide the rest. */
-        shape.desktopOnly ? "hidden lg:block" : null,
-      )}
+      className={cn("absolute block")}
       style={{
         y,
         top: shape.top,
         bottom: shape.bottom,
         left: shape.left,
         right: shape.right,
-        width: shape.width,
+        /*
+          `desktopOnly` SHRINKS IT, IT NO LONGER HIDES IT.
+
+          This used to be `hidden lg:block`, which left most sections of the
+          site with no mark at all on a phone — the client's note. The flag
+          still means "this one is sized for a desktop", so below `lg` it is
+          multiplied by `--shape-mobile` (globals.css, 0.72) rather than
+          dropped. See the token for the measurements behind that number.
+        */
+        width: shape.desktopOnly
+          ? `calc(${shape.width} * var(--shape-mobile, 1))`
+          : shape.width,
         rotate: shape.rotate ?? 0,
         opacity: shape.opacity ?? 0.18,
       }}

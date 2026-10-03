@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { BlobButton } from "@/components/ui/BlobButton";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import styles from "@/components/booking/PaintBooking.module.css";
 import { ENQUIRY_TOPICS, sendEnquiry, type EnquiryResult, type EnquiryTopic } from "@/lib/enquiry";
@@ -63,6 +63,31 @@ const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text
 export function ContactForm() {
   const ids = useId();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement>(null);
+
+  /*
+    MOVE FOCUS TO THE FIRST FIELD THAT NEEDS ATTENTION.
+
+    This form was the only one of the three on the site that failed silently:
+    it is `noValidate`, so pressing Send with a bad email re-rendered messages
+    the browser never announced, left focus on the button, and showed nothing
+    to anyone who had not already scrolled to the field. A sighted visitor saw
+    red text; a screen-reader user got nothing at all.
+
+    <PrivateEventEnquiry> and <BookingForm> already do both halves of this —
+    a live region for the count and focus onto the first bad field. This is
+    that same pair, so all three forms now fail the same way.
+  */
+  const FIELD_ORDER = ["name", "email", "message"] as const;
+  useEffect(() => {
+    const first = FIELD_ORDER.find((name) => errors[name]);
+    if (!first || !formRef.current) return;
+    formRef.current.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
+    // FIELD_ORDER is a module-stable literal; only `errors` can change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errors]);
+
+  const errorCount = Object.keys(errors).length;
   const [result, setResult] = useState<EnquiryResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -93,7 +118,23 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form ref={formRef} onSubmit={onSubmit} noValidate>
+      {/*
+        One live region for the summary, so a screen reader hears something on
+        every unsuccessful press — the per-field messages alone are silent to
+        someone whose focus is still on the button. Wording follows the
+        private-events form so the two read as one system.
+      */}
+      <div role="alert" aria-live="assertive">
+        {errorCount > 0 ? (
+          <p className="mb-8 max-w-[36rem] border-l-2 border-terracotta pl-5 text-body leading-[1.8] text-text">
+            {errorCount === 1
+              ? "One detail needs checking before this can be sent."
+              : `${errorCount} details need checking before this can be sent.`}
+          </p>
+        ) : null}
+      </div>
+
       {/*
         One column to `sm`, two from there for the short fields, and the
         message always full width. A name and an email side by side is the one

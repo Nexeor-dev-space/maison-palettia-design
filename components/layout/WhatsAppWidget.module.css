@@ -1,0 +1,60 @@
+/*
+  ==========================================================================
+  THE FLOATING WHATSAPP ACTION — a cut shape, not a circle
+  ==========================================================================
+
+  It was `rounded-pill`: a perfect circle, which is the one shape on this site
+  nothing else is. The client asked for it to match the buttons in the bottom
+  bar's More sheet, and those are blobs — the same irregular radius the bar's
+  own booking badge takes, slowly morphing so it reads as cut paper rather
+  than as a widget somebody bolted on.
+
+  THE RADIUS IS THE BADGE'S, to the digit, and that is deliberate: two
+  floating actions on one site drawn from one shape. See `.badge` in
+  BottomNav.module.css for the note on why the resting value is written out
+  here as well as in the keyframes — an animation must be a departure from a
+  resting state, never the only source of one, or Reduce Motion serves a
+  square.
+*/
+.fab {
+  border-radius: 58% 42% 46% 54% / 48% 52% 48% 52%;
+  animation: fab-morph 14s ease-in-out infinite;
+  transition:
+    border-radius 420ms var(--ease-soft, ease),
+    transform 300ms var(--ease-soft, ease),
+    box-shadow 300ms var(--ease-soft, ease),
+    gap 300ms var(--ease-soft, ease);
+}
+
+/*
+  OPEN, IT BECOMES A PILL. A blob stretched to twice its width stops reading
+  as a cut shape and starts reading as a smear — the irregularity is only
+  legible while the thing is roughly round. So the morph stops and the radius
+  eases to the pill the rest of the site's buttons use, which is also the
+  shape the label is sitting in.
+*/
+.fab:hover,
+.fab:focus-visible {
+  border-radius: 900px;
+  animation-play-state: paused;
+}
+
+@keyframes fab-morph {
+  0%,
+  100% {
+    border-radius: 58% 42% 46% 54% / 48% 52% 48% 52%;
+  }
+  33% {
+    border-radius: 44% 56% 58% 42% / 56% 44% 56% 44%;
+  }
+  66% {
+    border-radius: 52% 48% 40% 60% / 42% 58% 42% 58%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab {
+    animation: none;
+    transition: none;
+  }
+}

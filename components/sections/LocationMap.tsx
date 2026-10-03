@@ -234,17 +234,33 @@ export function LocationMap({ partners, className, caption = true, aspect }: Loc
  * one off and the page renders this where it wants it, so the plate cannot
  * drift into two versions of itself.
  *
- * It keeps `<figcaption>`'s job without its element: the name is an <h3>,
+ * It keeps `<figcaption>`'s job without its element: the name is a heading,
  * because a destination with a name, a city and a description is a heading
- * with content under it whatever box it sits in.
+ * with content under it whatever box it sits in. WHICH heading is the
+ * caller's to say — see `headingLevel`.
  */
 export function PartnerPlate({
   partner,
   className,
   tone = "cream",
+  headingLevel = "h3",
 }: {
   partner: MallPartner;
   className?: string;
+  /**
+   * THE LEVEL THE DESTINATION'S NAME TAKES, because the plate cannot know it
+   * and the two pages that draw it do not agree:
+   *
+   *   /events/[slug] ... h1 title, then an h2 over the location section, and
+   *                      the plate inside it. h3 — the default.
+   *   /locations ....... the plate sits directly under the page's h1, in the
+   *                      column beside the "Find us now" h2. An h3 there is
+   *                      a level skipped, and a screen-reader user tabbing
+   *                      the heading list is told there is a missing rung.
+   *
+   * It was hard-coded h3 and /locations went h1 -> h3 -> h2 because of it.
+   */
+  headingLevel?: "h2" | "h3";
   /**
    * Which of the two neutral grounds the plate is cut from.
    *
@@ -270,6 +286,8 @@ export function PartnerPlate({
    */
   tone?: "cream" | "sage";
 }) {
+  const Heading = headingLevel;
+
   return (
     <div
       className={cn(
@@ -298,13 +316,15 @@ export function PartnerPlate({
           className="dab h-9 w-[3.5rem] md:h-10 md:w-[4.25rem]"
           style={{ "--paint": INK.terracotta, "--tilt": "-2deg" } as CSSVars}
         />
-        <h3 className="mt-5 text-h4 font-bold uppercase tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none]">
+        {/* Level from the caller, size from the plate — the two are
+            independent, which is the whole reason the prop exists. */}
+        <Heading className="mt-5 text-h4 font-bold uppercase tracking-[0.015em] text-text [font-family:var(--font-deck)] [font-synthesis:none]">
           {partner.name}
-        </h3>
+        </Heading>
         <p className="mt-2 text-label font-medium uppercase tracking-eyebrow text-text/75">
           {partner.locality}
         </p>
-        <p className="mt-4 max-w-[34rem] text-body leading-[1.8] text-text/80">
+        <p className="mt-4 max-w-[34rem] text-body text-text/90">
           {partner.descriptor}
         </p>
       </div>

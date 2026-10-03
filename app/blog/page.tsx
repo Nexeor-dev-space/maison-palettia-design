@@ -6,6 +6,7 @@ export const metadata = buildMetadata({
   title: "Journal",
   description: "Notes and stories from the Maison Palettia studio.",
   path: "/blog",
+  noindex: true,
 });
 
 export default function BlogPage() {

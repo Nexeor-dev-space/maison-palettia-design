@@ -9,6 +9,7 @@ export const metadata = buildMetadata({
   title: "Your booking",
   description: "Your Maison Palettia booking reference and event details.",
   path: "/payment-success",
+  noindex: true,
 });
 
 /**

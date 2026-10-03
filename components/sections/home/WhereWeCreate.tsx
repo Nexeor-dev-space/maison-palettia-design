@@ -223,7 +223,7 @@ export async function WhereWeCreate() {
                 section being empty — the note this section keeps getting.
                 At five columns the column is about 480px and so is 60ch. */}
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[60ch] text-body leading-[1.85] text-text/85">
+              <p className="mt-8 max-w-[60ch] text-body text-text">
                 Maison Palettia brings creative experiences into the places people already gather
                 &mdash; set up inside a mall rather than behind a studio door.
               </p>

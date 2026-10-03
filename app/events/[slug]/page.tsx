@@ -214,7 +214,14 @@ export default async function EventPage({
       <Container className="relative pb-0 pt-[2.5rem] md:pt-[3.5rem] lg:pt-[4.5rem]">
         <Breadcrumb detail={detail} />
 
-        <EventHeader detail={detail} bookable={bookable} />
+        {/* `related` is already "every other session that can be booked" —
+            see getRelatedWorkshops. The header's full-date sentence counts
+            it rather than assuming it. */}
+        <EventHeader
+          detail={detail}
+          bookable={bookable}
+          openElsewhere={related.length}
+        />
         <QuickInfo detail={detail} />
         <LocationSection detail={detail} partner={partner} />
         <ActionArea detail={detail} bookable={bookable} />
@@ -354,9 +361,12 @@ function Crumb({
 function EventHeader({
   detail,
   bookable,
+  openElsewhere,
 }: {
   detail: EventDetail;
   bookable: boolean;
+  /** Passed straight to <PrimaryAction>; see the note there. */
+  openElsewhere: number;
 }) {
   const image = eventImage(detail);
   const intro = eventIntro(detail);
@@ -460,7 +470,11 @@ function EventHeader({
               )}
 
               <div className="mt-8">
-                <PrimaryAction detail={detail} bookable={bookable} />
+                <PrimaryAction
+                  detail={detail}
+                  bookable={bookable}
+                  openElsewhere={openElsewhere}
+                />
               </div>
             </div>
           </Reveal>
@@ -628,9 +642,18 @@ function Sub({ children }: { children: React.ReactNode }) {
 function PrimaryAction({
   detail,
   bookable,
+  openElsewhere = 0,
 }: {
   detail: EventDetail;
   bookable: boolean;
+  /**
+   * How many OTHER sessions can be booked right now — `getRelatedWorkshops`
+   * already filters itself to exactly that, and the page already has it.
+   *
+   * It is a count rather than a boolean so the sentence below cannot drift
+   * away from the thing it is counting. See the full-date branch.
+   */
+  openElsewhere?: number;
 }) {
   if (bookable && detail.kind === "scheduled") {
     return (
@@ -644,10 +667,48 @@ function PrimaryAction({
   }
 
   if (detail.kind === "scheduled") {
+    /*
+      ====================================================================
+      "THE PROGRAMME HAS OTHER DATES" WAS NOT TRUE OF THE ONE PAGE THAT
+      EVER SAID IT
+      ====================================================================
+
+      A `Workshop` carries ONE `startsAt`. There is no second date for a
+      programme anywhere in the model, so the sentence promised a thing the
+      project cannot hold — and the only page that reaches this branch is
+      /events/crocheting, the single full session. The "other dates" it sent
+      people looking for were one date for a DIFFERENT activity: candle
+      making, three weeks earlier.
+
+      So the sentence is now counted rather than assumed. `openElsewhere` is
+      the number of sessions that can actually be booked, and the two
+      branches are the only two things the data supports:
+
+        some are open .... say so, and go to the list that holds them.
+        none are open .... say that, and stop. No door, because there is
+                           nothing behind it — a button to a page of full
+                           dates is the same dead end wearing a button.
+
+      <EventBookingBar> carried the same promise as "See other dates" and is
+      fixed with it.
+    */
     return (
-      <p className="max-w-[30rem] text-body leading-[1.8] text-text/85">
-        This date is full. The programme has other dates.
-      </p>
+      <div>
+        <p className="max-w-[30rem] text-body leading-[1.8] text-text/85">
+          {openElsewhere > 0
+            ? "This date is full. Other sessions are open."
+            : "This date is full, and nothing else is open just now."}
+        </p>
+        {openElsewhere > 0 ? (
+          <BlobButton
+            href="/events#scheduled"
+            tone="secondary"
+            className="mt-6 min-h-[3.25rem] px-7"
+          >
+            See what is open
+          </BlobButton>
+        ) : null}
+      </div>
     );
   }
 
@@ -660,33 +721,58 @@ function PrimaryAction({
   }
 
   /*
-    A statement, not a button. There is nothing to press: the activity is a
-    walk-in, so the honest affordance is the sentence plus a way to the
-    programme for anyone who wanted a date instead.
+    ==========================================================================
+    "CREATE ANYTIME" WAS TELLING PEOPLE TO TURN UP AT A STUDIO THAT TRAVELS
+    ==========================================================================
+
+    This said "Create anytime. There is no date to book and nothing to
+    reserve", and sent anyone who wanted a date to /events. Both halves read
+    as "we are always open" — and the Maison is not. <WhereWeSetUp> states the
+    actual arrangement: "The studio travels. Each date runs at a mall for that
+    day only."
+
+    So five of the seven activities — every walk-in, the majority of the menu —
+    told a visitor to come whenever, to a place that is only there on certain
+    days, and gave them no way to find out which. That is the site's single
+    biggest dead end.
+
+    WHY THERE IS STILL NO DATE ON THIS PAGE, and why that is correct. A
+    walk-in carries no date in the data: `CreativeExperience` has no
+    `startsAt` and no `venue`, and the dates <WhereWeSetUp> prints are read
+    off the SCHEDULED sessions. Printing one of those here would be telling
+    somebody the studio runs tote-bag painting on the 11th, which nothing in
+    the project says. So the page does not invent a date — it sends them to
+    the one place that holds the real ones.
+
+    AND NOT "NO BOOKING NEEDED" EITHER, which is what this first became.
+    <WalkInFacts> already says it two rows up — "How it runs: Walk-in / No
+    booking needed" — and that row carries the same note about not repeating
+    a label. The statement's job is the half the page does NOT say anywhere
+    else, which is that turning up has a when.
+
+    THE EYEBROW OVER THE TITLE STILL READS "CREATE ANYTIME" AND SHOULD. That
+    is the client's own site-wide name for this half of the menu — see
+    lib/brand.ts — and renaming a category is not what this is. What changed
+    is only its use HERE, as a sentence with "there is no date to book" under
+    it, where it stopped being a category and started being a promise about
+    opening hours.
   */
   return (
     <div>
       <p className="text-h3 font-light tracking-[-0.015em] text-text">
-        Create anytime.
+        Come on a day we are there.
       </p>
       <p className="mt-3 max-w-[30rem] text-body leading-[1.8] text-text/85">
-        This one runs as a walk-in activity — there is no date to book and
-        nothing to reserve.
+        There is nothing to reserve for this one. But the studio travels, and
+        each date runs at a mall for that day only.
       </p>
-      <Link
-        href="/events"
-        className="group -my-1.5 mt-6 inline-flex items-baseline gap-3 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
+      <BlobButton
+        href="/events#where-we-set-up"
+        tone="secondary"
+        className="mt-6 min-h-[3.25rem] px-7"
       >
-        <span className="border-b border-primary pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
-          See what is scheduled
-        </span>
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      </Link>
+        See where we are set up
+      </BlobButton>
     </div>
   );
 }

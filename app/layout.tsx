@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { getBookingOptions } from "@/lib/bookingOptions";
 
 import { Footer } from "@/components/layout/Footer";
 import { FooterReveal } from "@/components/layout/FooterReveal";
@@ -6,6 +7,7 @@ import { FooterWave } from "@/components/layout/FooterWave";
 import { BlobGooFilter } from "@/components/ui/BlobButton";
 import { Header } from "@/components/layout/Header";
 import { RouteProgress } from "@/components/layout/RouteProgress";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { WhatsAppWidget } from "@/components/layout/WhatsAppWidget";
 import { CursorLayer } from "@/components/motion/CursorLayer";
 import { PointerField } from "@/components/motion/PointerField";
@@ -26,7 +28,16 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/*
+  ASYNC, FOR ONE LIST. <BottomNav> is a client component and the sheet behind
+  its Book button needs the scheduled activities, which live in the data layer
+  — so the layout reads them on the server and hands them down. Both sources
+  are local modules, so this costs no request; it is the same shape the header
+  already uses for its menus.
+*/
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const bookingOptions = await getBookingOptions();
+
   return (
     <html
       lang="en"
@@ -84,7 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         */}
         <main
           id="main"
-          className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface"
+          className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface pb-[var(--bottom-nav-h)]"
         >
           {children}
           {/*
@@ -115,6 +126,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PointerField />
 
         <WhatsAppWidget />
+        {/* Below `lg` only — see <BottomNav>. Mounted after the footer so it
+            paints over the page's own foot, and before <CursorLayer>'s
+            siblings so nothing of it is caught by the brush. */}
+        <BottomNav bookingOptions={bookingOptions} />
       </body>
     </html>
   );

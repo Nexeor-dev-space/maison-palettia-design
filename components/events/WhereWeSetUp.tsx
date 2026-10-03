@@ -103,8 +103,12 @@ export function WhereWeSetUp({ workshops }: WhereWeSetUpProps) {
 
   return (
     <section
+      /* `id` so a walk-in activity page can send someone straight here — it
+         is the only place on the site that answers "when is the studio
+         actually set up", and a walk-in has no date of its own. */
+      id="where-we-set-up"
       aria-labelledby="locations-heading"
-      className="relative isolate overflow-clip bg-primary"
+      className="relative isolate scroll-mt-header overflow-clip bg-primary md:scroll-mt-[var(--spacing-header-lg)]"
     >
       <Container className="relative py-[5rem] text-center md:py-section lg:py-[7rem]">
         <span

@@ -384,10 +384,42 @@
      phone, 17px from ~860px up, against the 15.2px it was. */
   --text-body: clamp(1rem, 0.955rem + 0.2vw, 1.0625rem);
   --text-body--line-height: 1.75;
+  --text-body--font-weight: 450;
 
   /* Section intros and standfirsts — the paragraph that carries a section. */
   --text-lead: clamp(1.125rem, 1.03rem + 0.4vw, 1.25rem);
   --text-lead--line-height: 1.6;
+  --text-lead--font-weight: 500;
+
+  /*
+     ====================================================================
+     WHY THE TWO TEXT ROLES CARRY A WEIGHT AND THE REST DO NOT
+     ====================================================================
+
+     The client's note was that the descriptions read thin — "very
+     generous" — and they were: Montserrat Regular at 85% ink with the
+     line-height opened to 1.85. Three separate things all pulling the
+     same way, on the one paragraph a section leans on.
+
+     The weight belongs on the ROLE rather than on the paragraphs, because
+     there are fifty-four of these and patching them one at a time is how
+     a site ends up with fifty-four slightly different ledes. A size token
+     in Tailwind v4 can carry its own `font-weight`, so `text-lead` now
+     means "a standfirst" and not merely "20px".
+
+     450 AND 500, NOT 500 AND 600. Montserrat is a geometric face and it
+     gains colour quickly; 600 at lead size reads as a subheading and
+     starts competing with the thing it sits under. 500 is the first step
+     that is unmistakably heavier than the body around it, and body's 450
+     is the half-step that stops running text looking frail beside it.
+     The face is variable (wght 100–900, one file), so neither is a
+     synthesised weight or a second download.
+
+     ANYTHING THAT SETS ITS OWN `font-*` IS UNTOUCHED, which is the point
+     of doing it here: the letterspaced uppercase annotation in
+     <Experience> and the summary line in <BookingSummaryCard> both ask
+     for `font-light` deliberately and still get it.
+  */
 
   /* ------------------------------------------------------------------------
      THE HEADING STEPS, RE-STRUCK AGAINST WHAT THE SITE ACTUALLY SETS.
@@ -1447,6 +1479,55 @@ html[data-paint-cursor] iframe {
 }
 
 /* Skip link — visible only when focused */
+/*
+  ==========================================================================
+  THE BOTTOM NAVIGATION'S HEIGHT, AS A TOKEN
+  ==========================================================================
+
+  <BottomNav> is `fixed` and below `lg` only. Four other things on this site
+  pin themselves to the bottom of the window — <main>'s own foot, the footer,
+  <WhatsAppWidget> and <EventBookingBar>, which is `fixed bottom-0 z-40` on
+  every event page — and all four would otherwise have been underneath it.
+
+  Publishing the height here means none of them has to know the bar exists;
+  they read one number. It is 0 at `lg` and up, where the bar is not drawn, so
+  every one of those offsets collapses to what it was before on a desktop.
+
+  The value is the sheet, not the badge. The badge rises out of the sheet and
+  is allowed to overlap the last few pixels of a page — it is a 54px blob with
+  nothing behind it but paper.
+*/
+/*
+  HOW FAR A BACKGROUND MARK SHRINKS ON A PHONE.
+
+  <SectionShapes> used to HIDE every shape flagged `desktopOnly` below `lg`,
+  on the argument that "a phone has no air to spare". Measured, that was too
+  blunt: the forty flagged shapes run 1.8%-16% of their section, which is
+  26-230px on a 1440 desktop and only 7-62px on a 390 phone. They do not
+  become large objects down there — they become small ones, and hiding them
+  left most sections of the site with no brand mark on a phone at all.
+
+  So they scale instead of vanishing. 0.72 puts that range at 5-45px: still a
+  ground, never an object, and they sit at -z-10 behind the type at ~0.18
+  opacity, so nothing they land on becomes harder to read.
+*/
+:root {
+  --shape-mobile: 1;
+  --bottom-nav-h: 0px;
+  /* The crests above the sheet. Page content may sit under them — they are
+     a curve over paper — but anything with a control in it may not, so a
+     surface like <EventBookingBar> adds this on top of the height. */
+  --bottom-nav-wave: 0px;
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --shape-mobile: 0.72;
+    --bottom-nav-h: calc(4.9rem + env(safe-area-inset-bottom));
+    --bottom-nav-wave: 1.5rem;
+  }
+}
+
 @utility skip-link {
   position: absolute;
   left: 1rem;
@@ -1562,6 +1643,41 @@ html[data-intro="burst"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   visibility: hidden;
   animation: intro-failsafe 0.01s 2.5s forwards;
+}
+
+/*
+  AND THE FLOATING WHATSAPP ACTION, for the same reason the header and the
+  footer go.
+
+  The intro is a logo and a ring of cut-outs on a clean Light Sage field, and
+  a chat button parked in the corner of it is the one piece of site furniture
+  left standing in a frame that is meant to have none. It was visible through
+  the whole entrance.
+
+  SAME FIVE STATES, SAME FAILSAFE. `html:not([data-intro])` covers the instant
+  before the hero's inline script runs so it never flashes on a first visit,
+  and `intro-failsafe` brings it back at 2.5s whatever happens — an intro that
+  throws must not take a contact route down with it. Scoped to
+  `body:has([data-hero-intro])`, so every other page shows it immediately.
+*/
+html:not([data-intro]) body:has([data-hero-intro]) [data-whatsapp-fab],
+html[data-intro="play"] body:has([data-hero-intro]) [data-whatsapp-fab],
+html[data-intro="dots"] body:has([data-hero-intro]) [data-whatsapp-fab],
+html[data-intro="burst"] body:has([data-hero-intro]) [data-whatsapp-fab],
+html[data-intro="settle"] body:has([data-hero-intro]) [data-whatsapp-fab] {
+  opacity: 0;
+  visibility: hidden;
+  animation: intro-failsafe 0.01s 2.5s forwards;
+}
+
+/* It arrives with the bar, once the mark has landed. */
+html[data-intro="done"] body:has([data-hero-intro]) [data-whatsapp-fab],
+html[data-intro="skip"] body:has([data-hero-intro]) [data-whatsapp-fab] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 240ms ease 300ms,
+    visibility 0s 300ms;
 }
 
 /*

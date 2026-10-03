@@ -12,6 +12,7 @@ export const metadata = buildMetadata({
   title: "Check your booking",
   description: "Look up a Maison Palettia booking by its reference to see its status.",
   path: "/booking-status",
+  noindex: true,
 });
 
 /**
