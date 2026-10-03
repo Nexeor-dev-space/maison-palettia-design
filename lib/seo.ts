@@ -45,7 +45,7 @@ export const defaultMetadata: Metadata = {
 };
 
 /** Build per-page metadata without repeating the shared defaults. */
-export function buildMetadata({ title, description, path, image }: PageSeo): Metadata {
+export function buildMetadata({ title, description, path, image, noindex }: PageSeo): Metadata {
   const ogImage = image ?? DEFAULT_OG_IMAGE;
 
   /*
@@ -60,9 +60,22 @@ export function buildMetadata({ title, description, path, image }: PageSeo): Met
   const imageFields = ogImage ? { images: [{ url: ogImage }] } : {};
   const twitterImageFields = ogImage ? { images: [ogImage] } : {};
 
+  /*
+    `noindex, nofollow` OVERRIDES THE ROOT DEFAULT for the pages that are not
+    anybody's entry point. The root layout sets `index, follow` for the whole
+    site, which is right for a page somebody should find and wrong for a
+    receipt: /checkout, /payment-success, /booking-status and the /blog
+    placeholder were all indexable, so a customer's own confirmation page
+    could turn up in search.
+  */
+  const robotsFields = noindex
+    ? { robots: { index: false, follow: false } }
+    : {};
+
   return {
     title,
     description,
+    ...robotsFields,
     alternates: { canonical: path },
     openGraph: {
       title: `${title} · ${SITE.name}`,

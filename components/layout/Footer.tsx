@@ -1,3 +1,4 @@
+import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
@@ -21,8 +22,19 @@ import { getMallPartners } from "@/lib/partners";
  * Links with no swatch keep the same ink so the footer does not end up with
  * two weights of the same thing.
  */
+/*
+  `after:-inset-y-0.5` is the last 4px of the tap target. The padding here
+  sets a 40px box — close, and still short of 44 — and these are the links a
+  thumb reaches for at the foot of a phone, where the hand is least steady.
+  Two pixels either side rather than more `py`, because `-my-1.5` is already
+  pulling the padding back out of the baseline grid and growing it again
+  would move the rules the footer's columns are set to. `space-y-2.5` leaves
+  10px between them, so the targets still clear each other by 6.
+
+  Same pseudo-element device as <BackToTop> below, which carries the note.
+*/
 const LINK =
-  "group/link -my-1.5 inline-flex py-1.5 text-body text-text transition-colors duration-300 ease-soft";
+  "group/link relative -my-1.5 inline-flex py-1.5 text-body text-text transition-colors duration-300 ease-soft after:absolute after:inset-x-0 after:-inset-y-0.5 after:content-['']";
 
 /**
  * ==========================================================================
@@ -181,7 +193,7 @@ export async function Footer() {
       style={{ "--paint": "var(--color-primary)" } as CSSProperties}
       className="relative isolate bg-cream text-text"
     >
-      <Container className="relative pb-8 pt-16 md:pt-20 lg:pb-10 lg:pt-24">
+      <Container className="relative pb-[calc(2rem+var(--bottom-nav-h))] pt-16 md:pt-20 lg:pb-10 lg:pt-24">
         {/*
           THE CORAL THAT USED TO BLEED OFF THIS CORNER HAS GONE, and the note
           it carried is worth keeping because it was right at the time: the
@@ -413,7 +425,10 @@ export async function Footer() {
           {partners.map((partner) => (
             <div key={partner.slug} className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
               <FooterHeading>Find us</FooterHeading>
-              <p className="mt-4 text-lead leading-snug text-text">{partner.name}</p>
+              <p className="mt-4 flex items-center justify-center gap-2 text-lead leading-snug text-text sm:justify-start">
+                <MapPin aria-hidden size={16} strokeWidth={1.9} className="shrink-0 text-primary" />
+                {partner.name}
+              </p>
               <p className="mt-1 text-body text-text/75">{partner.locality}</p>
               {partner.locationHref ? (
                 <a
@@ -426,7 +441,17 @@ export async function Footer() {
                     Get directions
                   </span>
                   <span className="sr-only">(opens Google Maps in a new tab)</span>
-                  <span aria-hidden>&#8599;</span>
+                  {/* `ArrowUpRight`, not the &#8599; entity it replaced. The
+                      entity renders in whatever the system font has for it —
+                      a different weight and baseline on every platform, and
+                      nothing like the stroke the rest of the page is drawn
+                      with. An icon inherits the ink and the weight. */}
+                  <ArrowUpRight
+                    aria-hidden
+                    size={14}
+                    strokeWidth={2}
+                    className="shrink-0 translate-y-[1px] transition-transform duration-500 ease-editorial motion-safe:group-hover/link:-translate-y-0.5 motion-safe:group-hover/link:translate-x-0.5"
+                  />
                 </a>
               ) : null}
             </div>
@@ -442,12 +467,27 @@ export async function Footer() {
               ))}
             </address>
             {CONTACT.email ? (
-              <a href={`mailto:${CONTACT.email}`} className={`${LINK} mt-2`}>
+              <a href={`mailto:${CONTACT.email}`} className={`${LINK} mt-2 items-center gap-2`}>
+                <Mail
+                  aria-hidden
+                  size={15}
+                  strokeWidth={1.9}
+                  className="shrink-0 text-primary transition-transform duration-300 ease-editorial motion-safe:group-hover/link:-translate-y-px"
+                />
                 {CONTACT.email}
               </a>
             ) : null}
             {CONTACT.phone ? (
-              <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className={`${LINK} block`}>
+              <a
+                href={`tel:${CONTACT.phone.replace(/\s/g, "")}`}
+                className={`${LINK} items-center gap-2`}
+              >
+                <Phone
+                  aria-hidden
+                  size={15}
+                  strokeWidth={1.9}
+                  className="shrink-0 text-primary transition-transform duration-300 ease-editorial motion-safe:group-hover/link:-translate-y-px"
+                />
                 {CONTACT.phone}
               </a>
             ) : null}

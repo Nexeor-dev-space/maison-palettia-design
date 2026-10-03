@@ -124,7 +124,21 @@ export function EventBookingBar({ sentinelId, closed, ...event }: EventBookingBa
       // the empty measure either side of the desktop bar is not a dead strip
       // over the page.
       className={cn(
-        "pointer-events-none fixed inset-x-0 bottom-0 z-40 transition-[opacity,transform]",
+        /*
+          LIFTED CLEAR OF <BottomNav>. This bar is the primary action on an
+          event page and the bottom navigation is the map; neither may cover
+          the other, so this one sits on top of it. `--bottom-nav-h` is 0 from
+          `lg` up, where the bar is not drawn, so the desktop position is
+          exactly what it was.
+
+          PLUS A CENTIMETRE, because the navigation is taller than its own box.
+          The wave along its top edge is drawn ABOVE the sheet and reaches
+          about 36px up — measured, it was lapping over this bar's lower third
+          and leaving the Book button clearing a crest by a couple of pixels.
+          The variable reserves the sheet, which is the right thing for page
+          content to clear; a bar with a control in it needs the crests too.
+        */
+        "pointer-events-none fixed inset-x-0 bottom-[calc(var(--bottom-nav-h)+var(--bottom-nav-wave,0px))] z-40 transition-[opacity,transform]",
         "duration-300 ease-soft motion-reduce:transition-none",
         isRetracted ? "translate-y-3 opacity-0" : "translate-y-0 opacity-100",
       )}
@@ -274,15 +288,18 @@ function Action({
 }) {
   if (closed) {
     return (
+      /* `#scheduled` and "what else is open", not "other dates": a session
+         has one date, so there are no other dates for THIS one. The listing
+         is what is true — see the note in PrimaryAction on the detail page. */
       <Link
-        href="/events"
+        href="/events#scheduled"
         className={cn(
           "group inline-flex shrink-0 items-center justify-center gap-2.5 whitespace-nowrap",
           "min-h-11 rounded-pill border border-cream/45 px-5 text-action font-medium uppercase tracking-eyebrow",
           "text-cream transition-colors duration-300 ease-soft hover:border-cream md:px-7",
         )}
       >
-        See other dates
+        See what else is open
         <span
           aria-hidden
           className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"

@@ -109,6 +109,7 @@ export function DoodleMark({
       element would overwrite whichever ran second. The wrapper fills the box
       the caller sized, so nothing about how a mark is placed changes.
     */
+    <span className={styles.hoverable}>
     <span className={styles.drift} style={{ "--depth": depth } as React.CSSProperties}>
     <svg
       viewBox={`0 0 ${shape.w} ${shape.h}`}
@@ -135,6 +136,7 @@ export function DoodleMark({
         />
       ))}
     </svg>
+    </span>
     </span>
   );
 }

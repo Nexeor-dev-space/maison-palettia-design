@@ -129,9 +129,22 @@ export const MAIN_NAV: NavItem[] = [
     and Passes keep their routes and live in the footer and the mobile menu,
     which read this list in order.
   */
-  { label: "Experiences", href: "/events", menu: "experiences" },
-  { label: "Private events", href: "/private-events", menu: "private-events" },
-  { label: "Locations", href: "/locations" },
+  /*
+    THE PHONE SPLITS THIS LIST THREE WAYS — see `mobileSurface` in
+    types/index.ts for what each one is for.
+
+    Experiences points at the LISTING, not at an activity: /events is where
+    all seven are browsed and each card goes on to its own page. The bar must
+    never shortcut past that, which is why there is no dropdown on this entry
+    down there — the menu keeps the one that expands.
+
+    Private events goes to its own overview at /private-events, where the
+    programmes and the enquiry CTA are, rather than straight at the enquiry
+    form. Somebody has to be able to read what they are booking first.
+  */
+  { label: "Experiences", href: "/events", menu: "experiences", mobileSurface: "bar" },
+  { label: "Private events", href: "/private-events", menu: "private-events", mobileSurface: "sheet" },
+  { label: "Locations", href: "/locations", mobileSurface: "bar" },
   /*
     GALLERY JOINS THE BAR at the client's ask, and it goes last on the left
     track because that track is ordered by how early a question gets asked.
@@ -139,9 +152,9 @@ export const MAIN_NAV: NavItem[] = [
     somebody browses finished work — but browsing finished work is still a
     programme question, which is why it is on this track and not beside About.
   */
-  { label: "Gallery", href: "/gallery" },
-  { label: "About", href: "/about", utility: true },
-  { label: "Contact", href: "/contact", utility: true },
+  { label: "Gallery", href: "/gallery", mobileSurface: "sheet" },
+  { label: "About", href: "/about", utility: true, mobileSurface: "sheet" },
+  { label: "Contact", href: "/contact", utility: true, mobileSurface: "sheet" },
 ];
 
 /**
@@ -355,15 +368,30 @@ export const CONTACT: ContactDetails = {
  * thing with a different lifecycle. Keeping it separate also means the widget
  * can be switched on or off without touching anything that renders an address.
  *
- * HOW TO TURN IT ON. Put the number here in full international form, digits
- * only — country code first, no `+`, no spaces, no dashes. A UAE mobile looks
- * like "9715XXXXXXXX". That is the whole change; <WhatsAppWidget> renders
- * itself the moment this is not null.
+ * HOW TO TURN IT ON — ONE ENVIRONMENT VARIABLE, NO CODE CHANGE.
  *
- * WHY IT IS NULL. There is no WhatsApp number anywhere in this project —
- * `CONTACT.phone` is null too — and a floating button that opens a chat with
- * nobody is worse than no button. The widget renders nothing until this is
- * set, which is the same rule the footer already applies to social links.
+ *     NEXT_PUBLIC_WHATSAPP_NUMBER=9715XXXXXXXX
+ *
+ * Digits only, country code first, no `+`, no spaces, no dashes. Set it in
+ * the host's environment panel (or a local `.env.local`) and REBUILD: both
+ * surfaces appear on their own — <WhatsAppWidget> bottom-right from `lg`, and
+ * <BottomNav>'s fourth slot turns from Home into WhatsApp below it.
+ *
+ * WHY AN ENV VAR RATHER THAN A LITERAL HERE. The number differs between a
+ * staging site somebody is clicking through and the studio's real line, and
+ * it is the client's to supply rather than a developer's to commit. This way
+ * it is set once per environment by whoever owns that environment.
+ *
+ * `NEXT_PUBLIC_` is required: this value is read in the browser, and Next
+ * only exposes variables with that prefix to client code. It is therefore
+ * PUBLIC — which is correct for a published business number and wrong for
+ * anything secret.
+ *
+ * WHY IT FALLS BACK TO null. There is still no number in this project —
+ * `CONTACT.phone` and both `SOCIAL_LINKS` are null too — and a control that
+ * opens a chat with nobody is worse than no control. Unset, the widget
+ * renders nothing and the bar keeps Home, which is the same rule the footer
+ * already applies to social links.
  *
  * TODO(client): supply the studio's WhatsApp business number.
  */
@@ -373,7 +401,15 @@ export const WHATSAPP: {
   /** Prefilled first message. Optional; the chat opens empty without it. */
   greeting: string | null;
 } = {
-  number: null,
+  /*
+    `?? null` AND THE TRIM MATTER. An unset variable is `undefined`, and a
+    variable set to an empty string in a host's panel — which is what a
+    half-filled field leaves behind — is `""`. Both have to collapse to null
+    or the UI believes it is configured and renders `wa.me/` with nothing
+    after it. `|| null` after a trim catches the empty string; `?? null`
+    alone would not.
+  */
+  number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim() || null,
   greeting: "Hello! I would like to ask about an upcoming event.",
 };
 

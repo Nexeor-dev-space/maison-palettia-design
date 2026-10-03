@@ -143,6 +143,82 @@
   the two homepage sections on White Rock as well as the two panels. Only the
   buttons actually standing on Light Sage paper deepen to Charcoal instead.
 */
+/*
+  ==========================================================================
+  SECONDARY — the quiet button, and what it replaces
+  ==========================================================================
+
+  Every secondary action on this site was a word with a Deep Lilac rule under
+  it: "Explore all experiences", "View all events", "See the programme". A
+  rule under a word is a link, and these are not links in a sentence — they
+  are the second action on a page, standing on their own line beside a filled
+  primary. The client asked for a button, and this is that button in the same
+  machinery rather than a new widget: the same blobs flood it, the same press
+  answers the finger.
+
+  IT IS AN OUTLINE, NOT A SECOND FILL. Two filled pills side by side have no
+  hierarchy left — whichever is darker wins, and on three of the grounds this
+  button sits on that would be the secondary one. So at rest it is the paper
+  it stands on with a Deep Lilac ring, and it FILLS on hover, which is the
+  same gesture the primary makes and the reason it reads as a pair with it.
+
+  INK, MEASURED. The ring is Deep Lilac at 4.69:1 on the page surface, over
+  the 3:1 a control's boundary owes. Resting ink is Charcoal — 11.1:1 on the
+  surface, 9.4 on White Rock, 9.07 on Light Sage, so it holds on all three
+  paper grounds. Flooded, the ground becomes Deep Lilac and the ink becomes
+  the near-white `on-primary` at 4.90:1, which is the pairing the primary
+  button already uses.
+
+  `--blob-rest: transparent` so it takes whatever paper it is dropped on
+  rather than carrying a ground of its own; the ring is what gives it an edge.
+*/
+/*
+  SECONDARY, INVERTED — the same button on a Deep Lilac field.
+
+  `.secondary` rings itself in Deep Lilac, which is the one colour it cannot
+  use when Deep Lilac is the ground it stands on: 1:1, an invisible button.
+  So the dark grounds get this instead — the ring and the ink are the
+  near-white `on-primary` (4.90:1 on the lilac), and the flood is White Rock
+  with Charcoal on it (9.4:1).
+
+  THIS IS WHAT UNBLOCKED THE CLOSING BAND. Its own note had ruled a second
+  pill out: "White Rock and Light Sage are both within a hair of the cream
+  pill beside it, so a second pill is either as loud as the first or a
+  smudge." That is true of a FILLED secondary and the reason this one is not
+  filled — an outline takes no ground at all, so it has none to lose, and the
+  hierarchy is carried by fill-versus-ring rather than by two colours
+  competing.
+*/
+.secondaryInverse {
+  --blob-rest: transparent;
+  --blob-flood: var(--color-cream);
+  --blob-ink: var(--color-on-primary);
+  --blob-ink-flooded: var(--color-text);
+
+  box-shadow: inset 0 0 0 1.5px var(--color-on-primary);
+}
+
+.secondaryInverse:hover,
+.secondaryInverse:focus-visible {
+  box-shadow: inset 0 0 0 1.5px transparent;
+}
+
+.secondary {
+  --blob-rest: transparent;
+  --blob-flood: var(--color-primary);
+  --blob-ink: var(--color-text);
+  --blob-ink-flooded: var(--color-on-primary);
+
+  box-shadow: inset 0 0 0 1.5px var(--color-primary);
+}
+
+/* The ring goes as the flood arrives — an outline under a filled button is
+   two edges arguing, which is the same note the bottom nav's wave settled. */
+.secondary:hover,
+.secondary:focus-visible {
+  box-shadow: inset 0 0 0 1.5px transparent;
+}
+
 .sage {
   --blob-rest: var(--color-primary);
   --blob-flood: var(--color-sage);

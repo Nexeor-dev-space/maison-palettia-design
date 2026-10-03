@@ -153,13 +153,13 @@ function TrailRow({
 
     The desktop arc runs the width of the row, so the row's own progress is the
     right clock for it — you watch it ink while the card it belongs to crosses
-    the window. The phone's connector is not in the row: it hangs in the 3.5rem
+    the window. The phone's connector is not in the row: it hangs in the 6rem
     gap BELOW it, at `top-full`. Against the row's offsets the progress reaches
     1 as the row's foot passes 72% of the window — which is the moment the
     connector first appears. Every phone therefore met a line that had finished
     drawing before it was on screen.
 
-    So it measures itself. `start 95% / end 60%` is the band a 56px-tall object
+    So it measures itself. `start 95% / end 60%` is the band a 96px-tall object
     needs to ink across the lower half of a phone's window rather than in a
     frame or two.
   */
@@ -194,11 +194,18 @@ function TrailRow({
         /*
           AND A GAP BELOW `lg`, WHICH THERE WAS NOT ONE OF. The pull above is
           `lg:`-only, so at every width under it the rows simply stacked and
-          the cards met edge to edge — the client's note. 3.5rem is the gap,
-          and it is also the box the mobile link is drawn in, so the two
-          figures have to stay together: see `h-14` below.
+          the cards met edge to edge — the client's note.
+
+          6REM, NOT 3.5. At 3.5rem the connector had 56px to wander down and
+          what showed between two cards was a short kink — the client's second
+          note, that the path line cannot be seen. 96px is room for the line to
+          turn twice and for the two marks that now sit on it, and it is still
+          a gap rather than a break in the page.
+
+          It is also the box the mobile link is drawn in, so the two figures
+          have to stay together: see `h-24` below.
         */
-        index > 0 && "mt-14 lg:-mt-56",
+        index > 0 && "mt-24 lg:-mt-56",
       )}
     >
       {/*
@@ -328,21 +335,29 @@ function TrailRow({
         it.
 
         So this is the small-screen link: a short doodling run down the
-        3.5rem gap the rows have just been given, from the foot of this card
+        6rem gap the rows have just been given, from the foot of this card
         to the head of the next, in this card's own paint. It inks on the
         same scroll progress as its desktop sibling, so the flow still
         arrives as you read rather than being there from the start.
 
-        `h-14` IS THE GAP. The row above pays `mt-14`; this fills exactly
+        `h-24` IS THE GAP. The row above pays `mt-24`; this fills exactly
         that, so the line touches both cards and nothing has to be nudged
         if the gap is ever changed — change both.
 
         No `preserveAspectRatio="none"` here: the desktop path is stretched
-        across a row and wants it, a 64x56 curve in a 64x56 box does not,
+        across a row and wants it, an 80x96 curve in an 80x96 box does not,
         and stretching it would flatten the wander out of it.
       */}
       {!last && next ? (
-        <MobileLink paint={item.paint} mark={item.trailMark} reduced={!!reduced} />
+        <MobileLink
+          paint={item.paint}
+          mark={item.trailMark}
+          /* The card this link is travelling TO, so the run between them
+             carries a mark from each end rather than two of the same. */
+          nextPaint={next.paint}
+          nextMark={next.trailMark}
+          reduced={!!reduced}
+        />
       ) : null}
 
       <div
@@ -370,10 +385,14 @@ function TrailRow({
 function MobileLink({
   paint,
   mark,
+  nextPaint,
+  nextMark,
   reduced,
 }: {
   paint: string;
   mark: DoodleName;
+  nextPaint: string;
+  nextMark: DoodleName;
   reduced: boolean;
 }) {
   const link = useRef<HTMLSpanElement>(null);
@@ -382,7 +401,7 @@ function MobileLink({
     the row's progress is right for it; this hangs in the gap BELOW the row at
     `top-full`, where the row's progress has already reached 1 by the time the
     connector is on screen — which is why it used to arrive fully drawn and
-    read as static. `start 95% / end 60%` is the band a 56px object needs to
+    read as static. `start 95% / end 60%` is the band a 96px object needs to
     ink across the lower half of a phone's window.
   */
   const { scrollYProgress } = useScroll({
@@ -390,18 +409,27 @@ function MobileLink({
     offset: ["start 95%", "end 60%"],
   });
   const draw = useTransform(scrollYProgress, [0, 1], [0.001, 1]);
-  const nodeIn = useTransform(scrollYProgress, [0.45, 0.9], [0, 1]);
+  const nodeIn = useTransform(scrollYProgress, [0.3, 0.7], [0, 1]);
+  /* The second mark sits further down the run, so it arrives later — the two
+     land in the order the stroke reaches them. */
+  const nextIn = useTransform(scrollYProgress, [0.6, 0.95], [0, 1]);
 
   return (
     <span
       ref={link}
       aria-hidden
-      className="pointer-events-none absolute left-1/2 top-full -z-10 block h-14 w-16 -translate-x-1/2 lg:hidden"
+      className="pointer-events-none absolute left-1/2 top-full -z-10 block h-24 w-20 -translate-x-1/2 lg:hidden"
     >
-      <svg className="h-full w-full overflow-visible" viewBox="0 0 64 56" fill="none">
+      {/*
+        REDRAWN FOR THE TALLER GAP, not stretched into it. The box was 64x56
+        and the curve turned once; scaling that to 96px would just have made a
+        long shallow kink. This is 80x96 with two turns, so the line reads as
+        something doodled between the cards rather than as a joint.
+      */}
+      <svg className="h-full w-full overflow-visible" viewBox="0 0 80 96" fill="none">
         <motion.path
           data-reveal=""
-          d="M32 0C32 8 22 12 22 20C22 28 42 30 42 38C42 46 32 48 32 56"
+          d="M40 0C40 14 18 22 18 36C18 50 62 54 62 68C62 82 40 86 40 96"
           stroke={paint}
           strokeWidth={3}
           strokeLinecap="round"
@@ -416,12 +444,40 @@ function MobileLink({
         />
       </svg>
 
-      {/* The mark the desktop arc carries, at the turn of this one. */}
+      {/*
+        A MARK AT EACH TURN, at the client's ask for doodles between the cards.
+
+        There was one, 16px, at the single turn of the old curve. The run has
+        two turns now and carries one on each: this card's on the first and
+        the next card's on the second, each in its own card's paint. The line
+        is then a handover between two cards rather than a decorated edge of
+        the upper one.
+
+        THE PAINT IS WHAT MAKES THEM TWO DIFFERENT DRAWINGS, not the shape
+        word — see `resolveIcon` in hero/doodles.ts. The brand sheet holds two
+        icons per colour, so the colour picks the pair and the word only picks
+        loose or slab; every word used on this trail is a loose one. Measured
+        on the phone: the upper mark draws as the lilac bow and the lower as
+        the terracotta splash, because the four cards alternate those two
+        paints. `mark`/`nextMark` still travel with them so the pair follows
+        the card if the palette ever grows past two colours — and so this
+        matches the desktop arc above, which passes the same word.
+
+        They arrive on the same clock as the line, a beat apart, so the lower
+        one lands as the stroke reaches it rather than before.
+      */}
       <motion.span
-        className="absolute left-[58%] top-[42%] block w-4"
+        className="absolute left-[14%] top-[33%] block w-5 -rotate-12"
         style={{ scale: reduced ? 1 : nodeIn, opacity: reduced ? 1 : nodeIn }}
       >
         <DoodleMark name={mark} color={paint} treatment="stamp" depth={0} />
+      </motion.span>
+
+      <motion.span
+        className="absolute left-[64%] top-[62%] block w-4 rotate-[14deg]"
+        style={{ scale: reduced ? 1 : nextIn, opacity: reduced ? 1 : nextIn }}
+      >
+        <DoodleMark name={nextMark} color={nextPaint} treatment="stamp" depth={0} />
       </motion.span>
     </span>
   );
@@ -432,9 +488,21 @@ function MobileLink({
   Coordinates are percentages of the row's bounding box.
 */
 const TRAIL_MARKS_BY_LINK: readonly { x: number; y: number; w: number }[] = [
-  { x: 66, y: 28, w: 3.2 },
-  { x: 43, y: 55, w: 3.2 },
-  { x: 48, y: 93, w: 3.2 },
+  /*
+    5.5% RATHER THAN 3.2, at the client's ask. At 3.2 these are about 45px on
+    a 1400px row — small enough that the eye reads the line and never the mark
+    sitting on it, which is the opposite of what a punctuation mark is for.
+    5.5 is roughly 77px: a shape you see, still narrow enough that the curve
+    carries through it rather than being interrupted.
+
+    The x/y stay where they were. They were placed against each curve's own
+    apex, and growing a mark about its top-left corner would have walked all
+    three off the line — <DoodleMark> fills the box it is given, and the box
+    is positioned by its corner.
+  */
+  { x: 66, y: 28, w: 5.5 },
+  { x: 43, y: 55, w: 5.5 },
+  { x: 48, y: 93, w: 5.5 },
 ];
 
 /*
@@ -608,7 +676,22 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
               <li key={door.label}>
                 <Link
                   href={door.href}
-                  className="group/door relative isolate inline-flex items-center gap-2.5 rounded-full px-3.5 py-2.5 text-text focus-visible:outline-none"
+                  /*
+                    THE BLOT IS 36px TALL AND THE TARGET IS NOT. Measured on a
+                    375 phone: the painted pill sets a 36px box, under the 44 a
+                    finger wants, and these six doors wrap into rows where the
+                    neighbour is a DIFFERENT page — "Corporate events" sits
+                    beside "School programmes". A near miss there is not a miss,
+                    it is the wrong destination.
+
+                    Extended with a pseudo-element rather than padding, which is
+                    the device <BackToTop> already uses and for the same reason:
+                    more `py` would grow <PaintStroke> with it, and the blot's
+                    proportions are the drawing. `-inset-y-1` adds 4px either
+                    side for 44 exactly. The row gap is 10px, so two stacked
+                    rows still clear each other by 2.
+                  */
+                  className="group/door relative isolate inline-flex items-center gap-2.5 rounded-full px-3.5 py-2.5 text-text after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] focus-visible:outline-none"
                   /*
                     ONE ALPHA FOR BOTH DOORS, AND IT IS MEASURED. They were
                     0.5 and 0.62 for a little variety, and the heavier of the

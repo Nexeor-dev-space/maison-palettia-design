@@ -1,6 +1,4 @@
-import Link from "next/link";
 
-import { NavLabel } from "@/components/layout/NavLabel";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
@@ -198,12 +196,13 @@ export function ClosingStatement() {
                   a second pill is either as loud as the first or a smudge. A
                   link has no ground to lose.
                 */}
-                <Link
+                <BlobButton
                   href={PRIVATE_EVENT_ENQUIRY_HREF}
-                  className="group/nav inline-flex min-h-[3.25rem] items-center text-action font-bold uppercase tracking-eyebrow text-surface"
+                  tone="secondaryInverse"
+                  className="min-h-[3.25rem] px-7"
                 >
-                  <NavLabel isActive={false}>Plan a private event</NavLabel>
-                </Link>
+                  Plan a private event
+                </BlobButton>
               </div>
             </Reveal>
           </div>

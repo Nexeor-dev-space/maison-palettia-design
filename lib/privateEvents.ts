@@ -147,6 +147,19 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
       src: "/images/events/glitter-keepsakes.jpg",
       alt:
         "Four handmade keepsakes cupped in children’s hands, two lettered with names and hearts and two filled with purple glitter and heart charms.",
+      /*
+        THE ONLY PORTRAIT SOURCE IN THE FOUR, AND THE ONLY ONE THAT HAS TO BE
+        AIMED. It is 480x640; the programme masthead cuts 3:2, which is 320 of
+        those 640 rows, and the four keepsakes occupy rows 110 to 500 — 390,
+        more than the window holds. Centred, the window would sit at 160–480
+        and take the top off the glittered shell at the top and the bottom off
+        the big one; at 45% it sits at 144–464 and the trim is about 35 rows
+        at each end, with all four keepsakes still in frame.
+
+        The other three are landscape or near it (1.78, 1.2) and lose only
+        background to the same cut, so they take the default.
+      */
+      position: "50% 45%",
     },
     mark: { name: "splash", color: INK_MARK.lavender },
     inPrivateEventsMenu: true,

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
@@ -90,20 +90,9 @@ export function WhyMaison() {
             </Reveal>
 
             <Reveal delay={0.3}>
-              <Link
-                href="/about"
-                className="group -my-1.5 mt-9 inline-flex items-baseline gap-3 py-1.5 text-action font-semibold uppercase tracking-eyebrow text-text"
-              >
-                <span className="border-b border-primary pb-1.5 transition-colors duration-300 ease-soft group-hover:border-text">
-                  Our story
-                </span>
-                <span
-                  aria-hidden
-                  className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                >
-                  &#8594;
-                </span>
-              </Link>
+              <BlobButton href="/about" tone="secondary" className="mt-9 min-h-[3.25rem] px-7">
+                Our story
+              </BlobButton>
             </Reveal>
           </div>
         </div>

@@ -51,6 +51,46 @@
   }
 }
 
+/*
+  THE HOVER POP — every doodle grows a little when the cursor is over it.
+
+  A wrapper of its own, separate from `.drift` (which owns the slow
+  pointer-follow translate) and from the svg (which owns each treatment's
+  transform), so the scale composes with both instead of fighting either for
+  the single `transform` property.
+
+  `pointer-events: auto` re-enables hit-testing even when a caller wraps the
+  mark in a `pointer-events-none` span — which is most of them — so a
+  decorative cut-out can still feel the cursor. It stays a child of whatever it
+  sits in, so a click still bubbles to any enclosing link. A mark that sits
+  BEHIND the content (a `-z-10` section ground) is never the top element under
+  the pointer, so it simply never fires this — which is right, the cursor does
+  not actually cross it.
+*/
+.hoverable {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  transition: transform 300ms var(--ease-soft);
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .hoverable:hover {
+    transform: scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoverable {
+    transition: none;
+  }
+  .hoverable:hover {
+    transform: none;
+  }
+}
+
 .mark {
   display: block;
   height: 100%;

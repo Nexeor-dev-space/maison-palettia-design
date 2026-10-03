@@ -265,7 +265,16 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 40, top: 55, width: 7, rotate: -10 },
     mobile: { left: 40, top: 55, width: 12, rotate: -10 },
     ring: true,
-    flower: { x: 0.6, y: 0.14, width: 0.18, rotate: 8 },
+    /*
+      0.69 OUT, NOT 0.6, at the client's ask for space between this and the
+      logo. Measured at 1440: the mark is 480 wide, so a ring unit is about
+      493px, this icon's box is 108 across, and at 0.6 its left edge landed on
+      1006 against the mark's right edge at 1004 — two pixels, which is why it
+      read as stuck to the end of "Palettia" rather than placed beside it.
+      0.09 of a unit is 44px of clear green, and because the figure is in logo
+      widths the gap holds at every size the ring is drawn at.
+    */
+    flower: { x: 0.69, y: 0.14, width: 0.18, rotate: 8 },
     float: 7.8,
   },
   {
@@ -343,7 +352,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 93.5, top: 104, width: 8.5, rotate: 3 },
     mobile: { left: 80, top: 72, width: 30, rotate: 3 },
     ring: true,
-    flower: { x: 0.1, y: 0.39, width: 0.21, rotate: 12 },
+    /* 40 at the client's ask. */
+    flower: { x: 0.1, y: 0.39, width: 0.21, rotate: 40 },
     float: 8.5,
   },
   {
@@ -433,7 +443,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     desktop: { left: 64, top: 28, width: 9, rotate: -22 },
     mobile: { left: 64, top: 28, width: 15, rotate: -22 },
     ring: true,
-    flower: { x: -0.69, y: -0.25, width: 0.2, rotate: -50 },
+    /* 70 at the client's ask. */
+    flower: { x: -0.69, y: -0.25, width: 0.2, rotate: 70 },
     float: 6.2,
   },
   {

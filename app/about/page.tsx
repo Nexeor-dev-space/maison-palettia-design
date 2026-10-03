@@ -204,7 +204,7 @@ function Welcome() {
               than a different decision.
             */}
             <Reveal delay={0.16} className="mt-8 block md:mt-10">
-              <p className="max-w-[62ch] text-lead font-light leading-[1.75] text-text">
+              <p className="max-w-[62ch] text-lead leading-[1.75] text-text">
                 {BRAND_STORY}
               </p>
             </Reveal>
@@ -336,7 +336,12 @@ function Welcome() {
  */
 function Purpose() {
   return (
-    <section aria-labelledby="purpose-heading" className="bg-sage pb-[5rem] md:pb-section lg:pb-section-lg">
+    <section
+      aria-labelledby="purpose-heading"
+      className="relative isolate bg-sage pb-[5rem] md:pb-section lg:pb-section-lg"
+    >
+      {/* Lilac and Charcoal only: Warm Terracotta is 2.36:1 on Light Sage. */}
+      <SectionShapes plan={PURPOSE_SHAPES} />
       <Container>
         <Reveal variant="fadeIn">
           {/*
@@ -438,7 +443,7 @@ function Purposeful({
 
       <p
         className={cn(
-          "mt-5 max-w-[42ch] text-lead font-light leading-[1.75]",
+          "mt-5 max-w-[42ch] text-lead leading-[1.75]",
           onLilac ? "text-surface" : "text-text",
         )}
       >
@@ -848,6 +853,22 @@ const APART_CARDS = [
   that held them — the card carries a dab of paint above its name now, which is
   the teaser's object and the thing the client asked for.
 */
+/*
+  On Deep Lilac only White Rock (3.95:1) and Light Sage (3.83) clear the 3:1 a
+  decorative mark owes — Charcoal is 2.37 and Soft Lavender 2.74, so neither
+  appears here.
+*/
+const CLOSE_SHAPES: readonly ShapePlan[] = [
+  { name: "splash", color: INK.whiteRock, width: "8%", left: "5%", top: "12%", rotate: -12, drift: 22, opacity: 0.22, float: 13 },
+  { name: "coral", color: "var(--color-sage)", width: "6.5%", right: "6%", bottom: "14%", rotate: 10, drift: -18, opacity: 0.2, float: 15, floatDelay: 1.2 },
+  { name: "starleaf", color: INK.whiteRock, width: "5.5%", right: "20%", top: "10%", rotate: 8, drift: 16, opacity: 0.16, float: 11, floatDelay: 2.1 },
+];
+
+const PURPOSE_SHAPES: readonly ShapePlan[] = [
+  { name: "coral", color: INK.lilac, width: "6.5%", right: "5%", top: "8%", rotate: -12, drift: 22, opacity: 0.18, float: 13 },
+  { name: "starleaf", color: INK.lilac, width: "5%", left: "4%", bottom: "10%", rotate: 9, drift: -16, opacity: 0.15, float: 15, floatDelay: 1.3 },
+];
+
 const APART_SHAPES: readonly ShapePlan[] = [
   {
     name: "splash",
@@ -916,6 +937,7 @@ const APART_SHAPES: readonly ShapePlan[] = [
 function Close() {
   return (
     <section aria-labelledby="about-close" className="relative isolate overflow-hidden bg-primary">
+      <SectionShapes plan={CLOSE_SHAPES} />
       <Container className="relative py-[5rem] text-center md:py-section lg:py-[7rem]">
         {/* Soft Lavender and White Rock only: on Deep Lilac, terracotta is
             2.0:1 and the lilac marks disappear into the ground entirely. */}

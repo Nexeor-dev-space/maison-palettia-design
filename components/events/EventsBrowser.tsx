@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { BlobButton } from "@/components/ui/BlobButton";
 
 import { EventFilterBar } from "@/components/events/EventFilters";
 import { Reveal } from "@/components/motion/Reveal";
@@ -120,18 +121,14 @@ function NoMatches({ onReset }: { onReset: () => void }) {
         shows everything that is scheduled.
       </p>
 
-      <button
+      <BlobButton
         type="button"
         onClick={onReset}
-        className="group mt-9 inline-flex items-center gap-3 text-action font-semibold uppercase tracking-eyebrow text-primary md:mt-10"
+        tone="secondary"
+        className="mt-9 min-h-[3.25rem] px-7 md:mt-10"
       >
-        <span className="border-b border-primary/40 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
-          Clear all filters
-        </span>
-        <span aria-hidden className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">
-          &#8594;
-        </span>
-      </button>
+        Clear all filters
+      </BlobButton>
     </div>
   );
 }

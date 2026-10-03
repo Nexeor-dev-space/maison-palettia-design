@@ -54,7 +54,7 @@ interface BlobButtonProps {
    * glyph or a pending spinner takes the slot.
    */
   arrow?: boolean;
-  tone?: "lilac" | "cream" | "sage" | "deep";
+  tone?: "lilac" | "cream" | "sage" | "deep" | "secondary" | "secondaryInverse";
   /** Sizing and any extra layout; the colour and the flood are the component's. */
   className?: string;
 }
@@ -88,6 +88,8 @@ export function BlobButton({
     tone === "cream" ? styles.cream : null,
     tone === "deep" ? styles.deep : null,
     tone === "sage" ? styles.sage : null,
+    tone === "secondary" ? styles.secondary : null,
+    tone === "secondaryInverse" ? styles.secondaryInverse : null,
     // The press is the site's, the flood is this component's: one answers
     // the finger, the other the pointer.
     "press-in group inline-flex items-center gap-3 rounded-[900px] text-action font-semibold uppercase tracking-eyebrow",

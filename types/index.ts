@@ -15,6 +15,24 @@ export interface NavItem {
    */
   secondary?: boolean;
   /**
+   * WHERE THIS ENTRY LIVES ON A PHONE. One list, three surfaces, and nothing
+   * appears on two of them:
+   *
+   *   "bar" ..... a slot in <BottomNav>, thumb-height and always on screen.
+   *               Reserved for the two destinations a visitor reaches for
+   *               mid-task — the programme, and where to find it.
+   *   "sheet" ... behind More, in <MoreSheet>. The pages somebody goes to
+   *               once: who we are, how to host, how to get in touch.
+   *   absent .... the slide-out menu, which is also where the deep browse
+   *               lives (search, and the activity lists under the two
+   *               dropdowns).
+   *
+   * The desktop bar ignores this completely and still renders the whole list
+   * in order — there is no bottom bar at `lg`, so nothing there duplicates
+   * anything.
+   */
+  mobileSurface?: "bar" | "sheet";
+  /**
    * Opens a panel under the bar instead of navigating, and says which one.
    *
    * A field rather than a match on `href`, because entries deliberately share
@@ -73,6 +91,15 @@ export interface PageSeo {
   path: string;
   /** Path to an Open Graph image inside /public. */
   image?: string;
+  /**
+   * Keep this page out of search.
+   *
+   * For pages that are real but are nobody's entry point: a checkout, a
+   * payment receipt, a booking lookup, an unbuilt placeholder. The site sets
+   * `index, follow` globally in lib/seo.ts, which was putting all four of
+   * those in Google.
+   */
+  noindex?: boolean;
 }
 
 /**

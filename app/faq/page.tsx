@@ -185,7 +185,12 @@ export default function FaqPage() {
               composed. `forScript` inside <DisplayHeading> handles the face's
               missing punctuation.
             */}
+            {/* `as="h1"` — <DisplayHeading> defaults to h2, and this is the
+                page's title. Without it /faq shipped with no h1 at all, so a
+                screen-reader user jumping by heading landed on a page that
+                never said what it was. */}
             <DisplayHeading
+              as="h1"
               id="faq-title"
               className="mt-8 md:mt-10"
               lines={["Before You", "Come and Make."]}
@@ -217,7 +222,7 @@ export default function FaqPage() {
           nothing. `desktopOnly` on the plan would gate them at lg, which is
           exactly the width where that stops being true.
         */}
-        <SectionShapes plan={FAQ_SHAPES} className="hidden xl:block" />
+        <SectionShapes plan={FAQ_SHAPES} />
 
         <Container className="relative">
           {/*

@@ -204,7 +204,7 @@ export async function TwoWaysToCreate() {
           where they cannot be seen. Isolating keeps them above the cream and
           below the type. */}
       <div className="relative isolate bg-cream pb-[3rem] pt-[4rem] md:pb-[3.5rem] md:pt-[5.5rem] lg:pb-[4.5rem] lg:pt-[6.5rem]">
-        <SectionShapes plan={TWO_WAYS_SHAPES} className="hidden lg:block" />
+        <SectionShapes plan={TWO_WAYS_SHAPES} />
         <Container>
           <Reveal>
             <Eyebrow>How to take part</Eyebrow>
@@ -526,7 +526,7 @@ function Road({
       </Reveal>
 
       <Reveal delay={0.16}>
-        <p className="mt-3 max-w-[34ch] text-lead font-light leading-[1.5] tracking-[-0.01em] text-surface">
+        <p className="mt-3 max-w-[34ch] text-lead leading-[1.5] tracking-[-0.01em] text-surface">
           {line}
         </p>
       </Reveal>

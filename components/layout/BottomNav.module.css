@@ -1,0 +1,92 @@
+/*
+  ==========================================================================
+  THE MOBILE BOTTOM NAVIGATION — the parts CSS does better than JS
+  ==========================================================================
+
+  Everything here is either a shape that has to be a custom property (the
+  organic radii) or a loop that should never re-render (the slow morph). The
+  state — which item is current, what moves when you tap — lives in
+  BottomNav.tsx with framer-motion, which is already a dependency.
+*/
+
+/* `isolate` so the raised badge's z-index resolves here and can never climb
+   over the header or a modal. */
+.bar {
+  isolation: isolate;
+}
+
+/*
+  THE BADGE'S SHAPE, AND WHY IT IS NOT A CIRCLE.
+
+  The brief rules out a conventional rounded button, and a circle is exactly
+  what a tab bar reaches for. These radii are a thrown blob: four horizontal
+  radii over four different vertical ones, which is the `blob` utility's own
+  trick in globals.css, at a proportion drawn for this size.
+
+  It MORPHS, over 14 seconds — slow enough that nobody catches it moving and
+  the badge simply never looks stamped.
+*/
+.badge {
+  /*
+    THE RESTING SHAPE, AND IT HAS TO BE HERE RATHER THAN ONLY IN THE
+    KEYFRAMES. The morph was the one thing giving this element a
+    `border-radius`, and the reduced-motion block at the foot of this file
+    turns the morph off — so a visitor with Reduce Motion on was served the
+    bar's primary action as a pale green SQUARE. Measured in a headless
+    Chrome with `prefers-reduced-motion: reduce` emulated.
+
+    An animation should be a departure from a resting state, never the only
+    source of one. This is the keyframes' own 0%/100% value, so nothing
+    changes for anyone who does see the morph.
+  */
+  border-radius: 58% 42% 46% 54% / 48% 52% 48% 52%;
+  animation: badge-morph 14s ease-in-out infinite;
+}
+
+@keyframes badge-morph {
+  0%,
+  100% {
+    border-radius: 58% 42% 46% 54% / 48% 52% 48% 52%;
+  }
+  33% {
+    border-radius: 44% 56% 58% 42% / 56% 44% 56% 44%;
+  }
+  66% {
+    border-radius: 52% 48% 40% 60% / 42% 58% 42% 58%;
+  }
+}
+
+/*
+  The paint shape behind a current item's icon. A different blob from the
+  badge's — smaller and rounder — and it does NOT morph: two shapes breathing
+  at once in a 76px bar is one too many, and framer is already moving this one
+  between items.
+*/
+.inkBlob {
+  border-radius: 54% 46% 48% 52% / 46% 54% 46% 54%;
+}
+
+/*
+  THE BRUSH UNDER A CURRENT LABEL.
+
+  `--mask-brush` is the site's own loaded-brush edge — the mask the bar's nav
+  links wear and the activity plates are painted with — so this underline is
+  that object rather than a line resembling it. Flipped, so the ragged edge is
+  at the foot.
+*/
+.brush {
+  background-color: var(--paint, var(--color-primary));
+  transform: scaleY(-1);
+  -webkit-mask-image: var(--mask-brush);
+  mask-image: var(--mask-brush);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge {
+    animation: none;
+  }
+}

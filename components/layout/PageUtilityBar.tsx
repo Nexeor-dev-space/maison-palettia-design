@@ -145,7 +145,7 @@ export function PageUtilityBar({ note, links }: PageUtilityBarProps) {
                 The client has said three times now that copy on this site is
                 set too small. */}
             {note ? (
-              <p className="mt-7 max-w-[34ch] text-lead font-light leading-[1.5] tracking-[-0.01em] text-surface md:mt-8">
+              <p className="mt-7 max-w-[34ch] text-lead leading-[1.5] tracking-[-0.01em] text-surface md:mt-8">
                 {note}
               </p>
             ) : null}

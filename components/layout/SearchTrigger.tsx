@@ -52,7 +52,7 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId, paint = null }: S
           the same ranking was undone for the same reason. Search keeps the one
           mark no other entry has, which is the icon.
         */
-        "group/nav inline-flex size-11 items-center justify-center gap-2 whitespace-nowrap text-body " +
+        "group/nav relative isolate inline-flex size-11 items-center justify-center gap-2 whitespace-nowrap text-body " +
         "font-medium tracking-[0.015em] text-current transition-colors duration-300 ease-soft " +
         // Below `lg` the label is `sr-only`, so the button is an icon in a
         // fixed 44px box — the touch target the icon alone could not give it.
@@ -81,7 +81,42 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId, paint = null }: S
         plain 44px touch box, where there is nothing to align to and the
         margin would only push the icon off-centre.
       */}
-      <Search size={18} aria-hidden className="shrink-0 lg:mb-1.5" />
+      {/*
+        A PAINT BLOT BEHIND THE GLYPH — MOBILE ONLY.
+
+        It was a `coral` cut-out in Soft Lavender, and the client asked for it
+        gone and for the <MoreSheet> cards' treatment instead. That is the
+        better object anyway: the doodle set is ABSTRACT, so a cut-out behind
+        a magnifier reads as two unrelated marks overlapping, where a blot
+        reads as paint the glyph is sitting on.
+
+        THE SAME HAND AS THE SHEET'S CARDS — one closed path, lumps in
+        different places, no mirror symmetry — drawn at 1:1 here rather than
+        the cards' 4:3, so nothing is stretched.
+
+        DEEP LILAC, AND THAT CHANGES THE GLYPH. Measured on the bar's Light
+        Sage: Deep Lilac is 3.83:1, over the 3:1 a graphical mark owes, while
+        Soft Lavender was 1.40 and terracotta 2.36 — neither would have been a
+        shape, only a stain. But Charcoal on Deep Lilac is 2.37:1, so the
+        magnifier cannot stay `text-current` over it; below `lg` it takes
+        `on-primary` (4.90:1) and from `lg`, where the blot is hidden and the
+        label returns, it goes back to the bar's own ink.
+
+        `lg:hidden` for the reason the cut-out had: from `lg` the label and
+        its paint swatch return and a mark here would sit under the word.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-9 -translate-x-1/2 -translate-y-1/2 lg:hidden"
+      >
+        <svg viewBox="0 0 40 40" className="size-full" aria-hidden>
+          <path
+            className="fill-primary"
+            d="M3.4 17.6C2.2 10 8.6 3.4 16.2 2.6c7-.8 15.3-1.4 19.2 3.6 3.6 4.6 2.4 12.2 1.2 18-1.2 5.8-4.4 12.6-10.6 14.2-6.4 1.6-14.6-.8-18.6-5.8C3.6 28 4.4 23.2 3.4 17.6Z"
+          />
+        </svg>
+      </span>
+      <Search size={18} aria-hidden className="shrink-0 text-on-primary lg:mb-1.5 lg:text-current" />
       <span className="sr-only lg:not-sr-only">
         {/* Drawn while the panel is open as well as on hover, so the bar shows
             where you are the way a current page does. */}
