@@ -6,6 +6,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Stagger } from "@/components/motion/Stagger";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
@@ -260,8 +261,20 @@ function Portrait() {
       <Reveal variant="maskUp" className="mt-16 md:mt-20 lg:mt-24">
         <div className="relative -mx-gutter aspect-[3/2] w-screen max-w-none overflow-hidden sm:aspect-[16/9] lg:aspect-[21/9]">
           <Image
-            src="/images/contact-img.jpg"
-            alt="Seen from above: an adult and a child painting a broad rainbow in red, yellow, green and blue across a sheet of paper, a tray of poster paints beside them."
+            /*
+              `contact-img.jpg` WAS NOT IN THE PROJECT. The path has been here
+              and the file has not: `public/images/contact-img.jpg` does not
+              exist, so this band has been rendering a broken image and the
+              alt text described a photograph nobody could see. Caught when
+              the same path was reached for in <AboutMenu>.
+
+              This is one of the four stills cut from the studio's own film —
+              hands only, no identifiable face — so it is a photograph the
+              site is entitled to show. The alt describes the frame and
+              nothing about an occasion.
+            */
+            src="/images/hero/plate-painting.jpg"
+            alt="A pair of hands painting a ceramic plate at a table, a brush in one of them."
             fill
             sizes="100vw"
             /* Centred: the paper, the rainbow and both pairs of hands run
@@ -603,20 +616,22 @@ function EventsCta() {
                 know what you are after, it is quicker than writing to us.
               </p>
 
-              <Link
+              {/* A SECONDARY BUTTON, NOT AN UNDERLINED WORD. The client's
+                  note is that this site uses underlined links where it should
+                  use buttons, and this was one: an uppercase label with a
+                  sage rule under it, doing the job of the second action on
+                  the page. `painted` is the site's secondary action — the
+                  label on a dragged brushstroke — and it is the right one
+                  over a Deep Lilac band for the reason <Hero> gives: a
+                  1.5px ring is the first thing a busy ground takes, while
+                  the sweep carries its own opaque field. */}
+              <BlobButton
                 href="/events"
-                className="group mt-9 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-surface"
+                tone="painted"
+                className="mt-9 min-h-[3.25rem] px-7"
               >
-                <span className="border-b border-sage/60 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-sage">
-                  Explore upcoming events
-                </span>
-                <span
-                  aria-hidden
-                  className="text-sage transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-                >
-                  &#8594;
-                </span>
-              </Link>
+                Explore upcoming events
+              </BlobButton>
             </Reveal>
           </div>
         </div>

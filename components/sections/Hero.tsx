@@ -326,7 +326,16 @@ export function Hero() {
                 styles.reveal,
                 styles.sub,
                 "script-lede mx-auto max-w-[42rem] italic",
-                "text-lead",
+                /*
+                  A STEP DOWN ON A PHONE, and it is a measurement rather than
+                  a preference. At `lead` this set to 20px and wrapped to TWO
+                  lines at 390; at `body` it is 17 and holds on one. The line
+                  it saves is 32px of the banner's foot, which is part of the
+                  budget the second action needs — see the note on the row
+                  below. From `md` there is room for the larger step and it
+                  takes it.
+                */
+                "text-body md:text-lead",
               )}
               style={delay(240)}
             >
@@ -338,7 +347,14 @@ export function Hero() {
                 styles.reveal,
                 styles.sub,
                 "mx-auto mt-3 max-w-[46rem] md:mt-4",
-                "text-statement",
+                /*
+                  Same step, same reason. `statement` is 22px and this sentence
+                  took FOUR lines of it at 390 — 128px of an 844px screen. At
+                  `lead` it is 20 and takes three. The client's note was that
+                  the banner's type is too big on a phone, and these two
+                  paragraphs together were 192px of it.
+                */
+                "text-lead md:text-statement",
               )}
               style={delay(320)}
             >
@@ -355,17 +371,42 @@ export function Hero() {
               <BlobButton
                 href="/events"
                 tone="sage"
-                className="min-h-[3.75rem] px-9 shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)]"
+                /*
+                  52px ON A PHONE, 60 FROM `md`. The pair stacks below `md` —
+                  323px and 285px of pill cannot share a 350px measure — so
+                  every pixel of height is paid twice. 52 is still well over
+                  the 44 a touch target owes.
+                */
+                className="min-h-[3.25rem] px-9 shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)] md:min-h-[3.75rem]"
               >
                 Explore experiences
               </BlobButton>
               {/*
-                THE SECOND ACTION IS PAINTED — see `tone="painted"` in
-                <BlobButton>, which is the site's secondary action everywhere
-                now. It was a ghost pill here, and a 1.5px ring over a
-                photograph is the first thing the picture takes; a field is
-                what makes a control visible, and the one filled pill this pair
-                can afford is spent on the primary beside it.
+                THE SECOND ACTION IS A BRUSHSTROKE, AND `tone="painted"` IS
+                WHAT DRAWS IT — the client sent back a picture of what this
+                used to be and asked for the stroke itself, not a pill wearing
+                a paint colour. `painted` puts the label on a dragged sweep
+                (`shape="sweep"` in PaintStroke.module.css) with bristles
+                drawn across it under the pointer, and it is the site's
+                secondary action everywhere now, so the banner and the links
+                that became buttons are one device. The note that replaced the ghost pill said the
+                second action "is a painted blot now and carries its own
+                opaque ground" — it did not. `tone="secondary"` is
+                `--blob-rest: transparent` with a 1.5px Deep Lilac ring, and a
+                hairline over a photograph is the first thing the picture
+                takes: the client's word for the result was that the button is
+                missing.
+
+                `cream` rests on a ground drawn from <BlobButton>'s own blobs,
+                which is the brush the rest of the site paints its labels with
+                — the swatch this action used to carry under its word when it
+                was a link. Charcoal on cream is 9.4:1 and the pill is opaque,
+                so it reads over the shaded photograph and over the Light Sage
+                the banner opens on.
+
+                THE HIERARCHY SURVIVES TWO FILLS because they are not the same
+                weight: the primary beside it is Deep Lilac, the darkest thing
+                on the band, and this is the palest. Lilac leads.
 
                 NO ARROW ON THIS ONE. The pair already has the primary's, and
                 two travelling arrows on one line read as two primaries.
@@ -374,7 +415,7 @@ export function Hero() {
                 href="/private-events"
                 tone="painted"
                 arrow={false}
-                className="min-h-[3.75rem] px-8"
+                className="min-h-[3.25rem] px-8 md:min-h-[3.75rem]"
               >
                 Plan a private event
               </BlobButton>

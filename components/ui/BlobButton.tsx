@@ -43,6 +43,16 @@ interface BlobButtonProps {
    * flood.
    */
   href?: string;
+  /**
+   * Open in a new tab, with the `rel` that has to come with it.
+   *
+   * Added so an OUTBOUND action can be a button like any other. Before this
+   * the only way to send somebody to Google Maps was a bare <a>, which is
+   * why "View location" was an underlined word while every action beside it
+   * was a button — the component could not express the link, so the link
+   * could not have the component's shape.
+   */
+  external?: boolean;
   children: ReactNode;
   onClick?: () => void;
   /** Button mode only. `submit` is the common case; that is why it defaults. */
@@ -101,6 +111,7 @@ interface BlobButtonProps {
  */
 export function BlobButton({
   href,
+  external = false,
   children,
   onClick,
   type = "submit",
@@ -186,7 +197,12 @@ export function BlobButton({
   }
 
   return (
-    <Link href={href} onClick={onClick} className={shell}>
+    <Link
+      href={href}
+      onClick={onClick}
+      className={shell}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : null)}
+    >
       {inner}
     </Link>
   );

@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import { GalleryExperience, type GalleryCollection } from "@/components/gallery/GalleryExperience";
 import { Reveal } from "@/components/motion/Reveal";
@@ -220,18 +219,18 @@ export default async function GalleryPage() {
               <BlobButton href="/events" tone="cream" className="min-h-[3.25rem] px-8">
                 Explore experiences
               </BlobButton>
-              <Link
+              {/* The second action beside "Explore experiences", and it was
+                  a word with a rule that drew itself in on hover. A pair
+                  should read as a pair: the first is the cream pill, this is
+                  the brushstroke — the site's secondary action everywhere
+                  since <Hero> settled it. */}
+              <BlobButton
                 href="/private-events"
-                className="group/nav inline-flex min-h-12 items-center text-action font-medium uppercase tracking-eyebrow text-surface"
+                tone="painted"
+                className="min-h-[3.25rem] px-8"
               >
-                <span className="relative inline-block pb-1.5">
-                  Plan a private event
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute left-0 top-full -mt-1 block h-px w-full origin-right scale-x-0 bg-current transition-transform duration-[380ms] ease-editorial group-hover/nav:origin-left group-hover/nav:scale-x-100 group-focus-visible/nav:origin-left group-focus-visible/nav:scale-x-100 motion-reduce:transition-none"
-                  />
-                </span>
-              </Link>
+                Plan a private event
+              </BlobButton>
             </div>
           </Reveal>
         </Container>

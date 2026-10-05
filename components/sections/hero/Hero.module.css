@@ -1044,7 +1044,15 @@
 .cue {
   position: absolute;
   left: 50%;
-  bottom: 0.75rem;
+
+  /*
+    CLEAR OF THE PHONE'S BAR. The banner is the height of the window and
+    <BottomNav> is fixed over its last 4.9rem, so a cue 12px off the section's
+    own bottom edge sat underneath the bar and was never seen on a phone.
+    `--bottom-nav-h` is 0 from `lg`, where the bar is gone, so this is the same
+    12px it always was on a desktop.
+  */
+  bottom: calc(0.75rem + var(--bottom-nav-h, 0px));
   z-index: 20;
   translate: -50% 0;
   opacity: clamp(0, calc(1 - var(--p) * 6), 1);

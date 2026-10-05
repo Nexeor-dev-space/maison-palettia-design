@@ -39,19 +39,29 @@ export interface CreativeExperience {
     THE LONG DESCRIPTION — the paragraphs the event page's "About" section
     prints, one <p> each, in order.
 
-    IT IS UNSET ON EVERY ENTRY, AND THAT IS THE HONEST STATE OF IT. The
-    client asked for a description on the event pages. The only descriptive
-    text this project holds per activity is the one line in `description`
-    above, and every event page already prints that as its lead — which is
-    why the old <AboutExperience> section was removed: it was printing the
-    same sentence twice. Writing three paragraphs about what happens at a
-    tote-bag table would be inventing the client's own copy, which is the
-    one thing this file does not do; see the two entries below whose
-    `description` was left blank rather than filled in.
+    IT IS SET ON EVERY ENTRY NOW, AT THE CLIENT'S ASK, and the rule the words
+    were written under is worth keeping with them.
 
-    The field, the accessor and the section are built and wired. The section
-    appears for an activity the moment a string lands here, and nothing else
-    has to change. Somebody has to write the words.
+    It was unset, and the note here said so: the only descriptive text this
+    project held per activity was the one line in `description`, every event
+    page already printed that as its lead, and writing more would be inventing
+    the client's own copy. The client has since asked for exactly that — "all
+    the event description pages should have event description to glorify that
+    event" — so the words are theirs to have.
+
+    WHAT THESE SENTENCES MAY SAY. The craft, and nothing else. What the
+    material does, what you put on it, what comes out. Every one of them is
+    readable off the activity's own name, its `description` and the photograph
+    beside it.
+
+    WHAT THEY DO NOT SAY, because none of it is in this project and a page
+    that promises it is a page the studio has to honour: no duration, no
+    price, no age, no materials list, no group size, no claim about how a
+    session is run or who it suits, and no "most popular". Those are the
+    studio's facts; `description`, `kind` and lib/workshops.ts are where they
+    land when the studio supplies them.
+
+    One <p> per string, in order. Two each is the house length.
   */
   about?: readonly string[];
   /** DIY runs whenever the table is open; scheduled runs at a set time. */
@@ -109,6 +119,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   {
     slug: "tote-bag-painting",
     name: "Tote Bag Painting",
+    about: [
+      "A plain cotton tote, fabric paint and a table to spread out on. Cloth takes colour much the way paper does, so a brush loaded with one shade goes down flat and stays where it is put.",
+      "Suns and moons, flowers, a name, a single bold shape across the front. There is no pattern to follow here, and the bag goes out over your shoulder rather than into a cupboard.",
+    ],
     description: "Fabric paint on plain cotton, the one you carry out with you.",
     kind: "diy",
     image: {
@@ -121,6 +135,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   {
     slug: "ceramic-painting",
     name: "Ceramic Painting",
+    about: [
+      "A ready-made piece — a plate, a mug — and colour laid over the top of it. Glaze pools in the dips and sits bright on the flat, which is why a simple band of stripes comes out looking considered.",
+      "Work freehand, or build a pattern up a ring at a time. Either way what you leave with is something that goes back on a shelf you use.",
+    ],
     description: "Colour and pattern laid onto a ready-made piece.",
     kind: "diy",
     image: {
@@ -133,6 +151,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   {
     slug: "bedazzling",
     name: "Bedazzling",
+    about: [
+      "Stones and beads, and something plain to set them on. One at a time, pressed down, until a shape gathers and the plain thing stops being plain.",
+      "It is the most immediate thing on the programme: nothing is mixed and nothing is poured, and the whole of it is the distance between the first stone and the last.",
+    ],
     description: "Stones and beads set onto something plain until it is not.",
     kind: "diy",
     image: {
@@ -145,6 +167,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   {
 slug: "mandala-painting",
     name: "Mandala Painting",
+    about: [
+      "A round board and a centre to work outwards from. Petals, dots and rings, each pass answering the one before it, until the pattern closes at the edge.",
+      "It is the quiet one. The repetition does most of the work, and the circle gets better the longer you stay with it.",
+    ],
     kind: "diy",
     image: {
       src: "/images/experiences/MANDALA_PAINTING.jpg",
@@ -159,6 +185,10 @@ slug: "mandala-painting",
   {
     slug: "glass-painting",
     name: "Glass Painting",
+    about: [
+      "Colour laid onto glass, so the piece is lit from behind instead of looked at flat. A dragonfly, flowers, a border around the edge — the light finishes it.",
+      "What comes off the table is a panel to stand in a window. On a bright day it throws its own colours onto the wall behind it.",
+    ],
     kind: "diy",
     // The client's own wording, carried through rather than paraphrased.
     status: "Coming soon",
@@ -172,6 +202,10 @@ slug: "mandala-painting",
   {
     slug: "candle-making",
     name: "Candle Making",
+    about: [
+      "Wax, a wick and the colour you choose, poured and left to set. The shade is decided before anything is melted, so the jar is one you specified rather than one you picked off a shelf.",
+      "Set with dried flowers, or with hearts pressed into the surface, or left perfectly plain. It cools into the shape of the vessel you poured it in.",
+    ],
     description: "Wax, wick and colour, poured and left to set.",
     kind: "scheduled",
     image: {
@@ -184,6 +218,10 @@ slug: "mandala-painting",
   {
     slug: "crocheting",
     name: "Crocheting",
+    about: [
+      "A hook, a ball of yarn and one stitch to start from. Everything after that is the same movement repeated, which is what makes a first row possible at all.",
+      "Granny squares worked a round at a time, in whatever colours come out of the basket. A blanket is only ever one of these joined to the next.",
+    ],
     description: "A hook, a ball of yarn and one stitch to start from.",
     kind: "scheduled",
     image: {
