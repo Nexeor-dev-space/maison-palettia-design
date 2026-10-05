@@ -28,11 +28,14 @@ interface PrivateEventsMenuProps {
  * the right half, the same pair of tiles at its foot. What differs is what is
  * in it. Both are `MenuCard`, so neither can drift from the other.
  *
- * WHAT IS IN IT, AND WHAT IS NOT. `PRIVATE_EVENT_AUDIENCES` names the studio's
- * four documented programmes and this shows the ones flagged for the menu —
- * mall and community activations is deliberately absent, because it is its own
- * programme category in the proposal rather than something a host books for a
- * party.
+ * WHAT IS IN IT. `PRIVATE_EVENT_AUDIENCES` names the studio's four documented
+ * programmes and this shows the ones flagged for the menu, which is now all
+ * four. Mall & community activations was deliberately absent — the proposal
+ * lists it as its own programme category and the studio is engaged by the
+ * venue rather than by a guest — and the client has asked for it here with
+ * the others. The reasoning is kept on `inPrivateEventsMenu` in
+ * lib/privateEvents.ts rather than repeated; the filter below is unchanged,
+ * because the decision belongs in the data and not in this component.
  *
  * Every line is the description already written for that programme. Nothing
  * here invents a package, a price, a capacity, an inclusion or a duration, and

@@ -536,14 +536,30 @@ export async function Footer() {
           empty; the mission now takes the third column, so the row is full
           and the footer is shorter than it was.
         */}
-        <div className="relative mt-12 grid grid-cols-12 gap-x-6 gap-y-10 border-t border-text/20 pt-12 md:mt-16 lg:gap-x-10">
+        {/*
+          NO RULE ACROSS THIS TURN, at the client's ask. It was `border-t
+          border-text/20` — Charcoal at a fifth, the full width of the
+          measure — and it was the only line in the footer.
+
+          THE SPACING IS UNTOUCHED. `mt-12 … pt-12` is what sets the two bands
+          apart and it is doing that work on its own now; only the stroke has
+          gone, so nothing below moves.
+
+          AND THE MARK KEEPS ITS PLACE WITHOUT THE KNOCK-OUT. It carried
+          `bg-cream pr-2`, which existed for one reason: to break the rule it
+          was sitting on so the mark read as laid over the line rather than
+          crossed out by it. With no line there is nothing to break, and a
+          cream patch in a cream footer is an invisible rectangle that would
+          only ever clip whatever drifted under it.
+        */}
+        <div className="relative mt-12 grid grid-cols-12 gap-x-6 gap-y-10 pt-12 md:mt-16 lg:gap-x-10">
           {/* The mark at the turn — the same punctuation <WorkshopJourney>
               and the About purpose section use, so the footer is marked the
               way the rest of the site is. Sized by its wrapper: <DoodleMark>
               fills the box it is given. */}
           <span
             aria-hidden
-            className="absolute -top-5 left-0 block h-10 w-10 bg-cream pr-2"
+            className="absolute -top-5 left-0 block h-10 w-10"
           >
             {/* Deep Lilac, not the Soft Lavender it was. On Charcoal that
                 lavender measured 6.49:1; on White Rock it is 1.44:1 and the
@@ -552,7 +568,13 @@ export async function Footer() {
             <DoodleMark name="starleaf" color="#9059A4" treatment="draw" delay={120} />
           </span>
 
-          {partners.map((partner) => (
+          {partners.map((partner) => {
+            /* Hoisted for the same reason the groups above hoist theirs: the
+               swatch draws the blot and the span publishes it to the brush,
+               and `linkPaint(paintCursor++)` written twice would hand out two
+               different colours and advance the run by two. */
+            const directionsPaint = linkPaint(paintCursor++);
+            return (
             <div key={partner.slug} className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
               <FooterHeading mark="bow" markColor="#9059A4">
                 Find us
@@ -569,7 +591,42 @@ export async function Footer() {
                   rel="noopener noreferrer"
                   className={`${LINK} mt-3 items-baseline gap-2`}
                 >
-                  <span className="border-b border-text/60 pb-0.5 transition-colors duration-300 ease-soft group-hover/link:border-primary">
+                  {/*
+                    ==========================================================
+                    THE PAINT, NOT A HAIRLINE — at the client's ask
+                    ==========================================================
+
+                    This was `border-b border-text/60` deepening to Deep Lilac
+                    on hover: a rule under a word, which is what every link on
+                    this site looked like before <PaintStroke> existed. It was
+                    the last link in the footer still wearing it, so the one
+                    outbound link in the contact column answered the pointer
+                    differently from the ten above and below it.
+
+                    The swatch takes the SAME `paintCursor` the nav groups
+                    above run off, so the palette keeps counting through this
+                    link rather than restarting after it — which is the whole
+                    reason that counter is a single `let` for the file.
+
+                    IT IS THE LAST CALLER OF THAT COUNTER AFTER THE GROUPS.
+                    The policies band took a swatch per link too and has since
+                    been redrawn with arrow markers instead, so nothing below
+                    this advances the run any further. Worth saying because
+                    the comments down there still describe the swatch: they
+                    are stale, not a second user of this cursor.
+
+                    NO `pb-0.5`. That half-step existed to hold the border off
+                    the descenders. The blot is inked in the leading BELOW the
+                    word — see the note on the policies band — so padding
+                    under the text pushes the paint down out of its own line
+                    box rather than making room for it.
+                  */}
+                  <span
+                    className="relative inline-block"
+                    data-paint
+                    style={{ "--paint": directionsPaint } as CSSProperties}
+                  >
+                    <PaintStroke paint={directionsPaint} shape="blot" />
                     Get directions
                   </span>
                   <span className="sr-only">(opens Google Maps in a new tab)</span>
@@ -587,7 +644,8 @@ export async function Footer() {
                 </a>
               ) : null}
             </div>
-          ))}
+            );
+          })}
 
           <div className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
             <FooterHeading mark="splash" markColor="#D97757">

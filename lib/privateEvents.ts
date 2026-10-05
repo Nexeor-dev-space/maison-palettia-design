@@ -88,12 +88,22 @@ export interface PrivateEventAudience {
   /**
    * Offered in the bar's Private events menu.
    *
-   * Three of the four are: a birthday, a company gathering and a school visit
-   * are all things a host books privately. Mall & community activations is
-   * not — the proposal lists it as its own programme category, the studio is
-   * engaged by the venue rather than by a guest, and putting it in a menu
-   * headed "Private events" would file it as something it is not. It keeps
-   * its place on the page with the other three.
+   * ALL FOUR ARE, at the client's ask (2026-10-05). The argument that stood
+   * here is kept because it was a real one and somebody will ask again: a
+   * birthday, a company gathering and a school visit are things a host books
+   * privately, where mall & community activations is listed in the proposal
+   * as its own programme category and the studio is engaged by the VENUE
+   * rather than by a guest — so a menu headed "Private events" filed it as
+   * something it is not.
+   *
+   * The client has looked at the menu with three in it and asked for the
+   * fourth. How the studio files its own programmes is theirs to say, and
+   * the page has always shown all four together, so the menu now agrees with
+   * the page.
+   *
+   * The field stays rather than being deleted with the last `false`: it is
+   * what a fifth programme would set, and the next one may well be something
+   * nobody books privately.
    */
   inPrivateEventsMenu?: boolean;
 }
@@ -239,6 +249,11 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
       position: "50% 55%",
     },
     mark: { name: "coral", color: INK_MARK.cream },
+    /* In the menu with the other three, at the client's ask — see the note
+       on the field. It has everything the rail and the preview need: a name,
+       the description already written for it, a photograph, and a page of its
+       own at /private-events/mall-and-community-activations. */
+    inPrivateEventsMenu: true,
   },
 ] as const;
 
