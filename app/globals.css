@@ -367,33 +367,55 @@
      at arm's length. Raising the token moves every label at once and costs
      nothing in contrast: a larger glyph never measures worse. It was 9.3px in
      places before 11 was set as the floor. */
-  --text-label: 0.75rem;
+  --text-label: 0.8125rem;
   --text-label--line-height: 1.45;
 
   /* Interactive labels: buttons, CTAs, the header action. Held one step above
      `label` because a control a visitor has to find should not be set at
      caption size — 13px now, following the label up. */
-  --text-action: 0.8125rem;
+  --text-action: 0.875rem;
   --text-action--line-height: 1.2;
 
   /* Genuine fine print: helper text, field errors, legal, metadata. */
-  --text-fine: 0.8125rem;
+  --text-fine: 0.875rem;
   --text-fine--line-height: 1.6;
 
   /* Running text. The one number this whole exercise is about: 16px on a
      phone, 17px from ~860px up, against the 15.2px it was. */
-  --text-body: clamp(1rem, 0.955rem + 0.2vw, 1.0625rem);
+  --text-body: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
   --text-body--line-height: 1.75;
   --text-body--font-weight: 450;
 
   /* Section intros and standfirsts — the paragraph that carries a section. */
-  --text-lead: clamp(1.125rem, 1.03rem + 0.4vw, 1.25rem);
+  --text-lead: clamp(1.25rem, 1.12rem + 0.55vw, 1.4375rem);
   --text-lead--line-height: 1.6;
   --text-lead--font-weight: 500;
 
   /*
      ====================================================================
-     WHY THE TWO TEXT ROLES CARRY A WEIGHT AND THE REST DO NOT
+     THE LADDER, AFTER THE CLIENT'S "INCREASE TEXT SIZE, FOLLOW A SIZE
+     HIERARCHY"
+     ====================================================================
+
+       label      13px        eyebrows, wall labels, captions   (was 12)
+       action     14px        buttons and CTAs                  (was 13)
+       fine       14px        helper text, errors, legal        (was 13)
+       body       17 → 19px   running text                      (was 16 → 17)
+       lead       20 → 23px   section intros                    (was 18 → 20)
+       statement  23 → 28px   the paragraph a page is built on  (new)
+
+     Every step is now at least 1px clear of the one below it at every
+     viewport, which the old scale was not: `action` and `fine` were both
+     13px and `body` was within 1px of `lead` on a phone, so three of the
+     six rungs were doing the same job at the same size.
+
+     THE HEADINGS WERE ALREADY A LADDER and are untouched — script-panel
+     28–40, script-compact 35–54, script-section 42–80, script-hero 48–100,
+     display 44–104. The gap this fixes was between the largest TEXT and
+     the smallest HEADING, which `statement` now occupies.
+
+     ====================================================================
+     WHY THE TEXT ROLES CARRY A WEIGHT AND THE REST DO NOT
      ====================================================================
 
      The client's note was that the descriptions read thin — "very
@@ -466,10 +488,27 @@
   --text-h4: clamp(1.0625rem, 1rem + 0.28vw, 1.25rem);
   --text-h4--line-height: 1.25;
 
-  /* The one-sentence statement that opens or closes a section — bigger than a
-     lede, smaller than a heading. Was 1.1875->1.625, 1.25->1.6 and 1.5->2.1. */
-  --text-statement: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  /*
+     THE PARAGRAPH A PAGE IS BUILT AROUND — bigger than a lede, smaller than
+     a heading: the brand story on the home page, the mission and the vision
+     on /about, a page's opening line under its title. Was 1.1875->1.625,
+     1.25->1.6 and 1.5->2.1 in three places.
+
+     IT IS DECLARED ONCE. A second `--text-statement` was added above this
+     one in the same block, which CSS resolves by taking the last — so the
+     new token was dead and the role was reading the old numbers anyway.
+     Two declarations of one custom property in one `:root` is not an
+     override, it is a bug that looks like an override.
+  */
+  /* The 1.375rem floor is not cosmetic. At 1.25rem this role computed 20.3px
+     at 390px wide while `lead` floors at 20px — two steps of the ladder
+     landing within a third of a pixel of each other, so on a phone the
+     paragraph a page is built around was the same size as every section
+     intro under it. Measured at 390/768/1280; the step now reads 22/23/26
+     against lead's 20/22/23. */
+  --text-statement: clamp(1.375rem, 1.2rem + 0.7vw, 1.625rem);
   --text-statement--line-height: 1.45;
+  --text-statement--font-weight: 500;
 
   /* A decorative numeral: a step's folio, a date's day, a card's index. Set in
      `--font-deck` and `aria-hidden` wherever it appears. Was 2.25 / 2.5 /

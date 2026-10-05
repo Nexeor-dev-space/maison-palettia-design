@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { WaysTrail } from "@/components/sections/home/WaysTrail";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
@@ -187,131 +188,7 @@ const CARDS = [
   and each doodle's own aspect decides its height — the number to watch on a
   section this tall.
 */
-const WAYS_SHAPES: readonly ShapePlan[] = [
-  {
-    /* RAISED FROM `top: 9%`, which was not a new fault but was still one: it
-       put this mark at x1274-1363 / y189 and the standfirst starts at y244,
-       so it has been overlapping the last line of type since it was placed.
-       Above the words it has the whole top-right corner to itself. */
-    name: "coral",
-    color: INK.lilac,
-    width: "5%",
-    right: "6%",
-    top: "1.5%",
-    rotate: -14,
-    drift: 26,
-    opacity: 0.26,
-    float: 14,
-  },
-  {
-    name: "splash",
-    color: INK.terracotta,
-    width: "6%",
-    left: "4%",
-    top: "34%",
-    rotate: 12,
-    drift: -22,
-    opacity: 0.24,
-    float: 16,
-    floatDelay: 1.3,
-  },
-  {
-    name: "starleaf",
-    color: INK.lavender,
-    width: "5.5%",
-    right: "5%",
-    top: "58%",
-    rotate: 8,
-    drift: 20,
-    opacity: 0.28,
-    float: 12,
-    floatDelay: 2.2,
-  },
-  {
-    name: "bow",
-    color: INK.lilac,
-    width: "4.5%",
-    left: "5%",
-    bottom: "8%",
-    rotate: -10,
-    drift: -18,
-    opacity: 0.26,
-    float: 15,
-    floatDelay: 0.7,
-  },
-
-  /*
-    AND THREE IN THE HEADER'S OWN EMPTY QUARTER, at the client's ask.
-
-    The four above sit opposite the cards, down the length of the trail. They
-    leave the top of the section alone — and at `lg` the top of the section is
-    a script heading on the left half and a three-line standfirst on the right,
-    which leaves most of a screen of bare White Rock under the standfirst and
-    to the right of the heading. By construction there is no type there at any
-    width, same as the measure opposite the cards.
-
-    `desktopOnly` DOES NOT HIDE THEM ANY MORE — it shrinks them to 72% below
-    `lg` (see the note on it in SectionShapes). So "desktop only" is a size
-    hint here, not a switch, and these three still render on a phone where the
-    heading and the standfirst have stacked into one column and the quarter
-    they fill does not exist.
-
-    They are placed to be harmless there rather than absent: above the type at
-    both widths. Measured on a 390px phone, the standfirst runs y247-363 and
-    nothing in this group reaches it. Even if one did, the cost is small —
-    charcoal on cream is 9.36:1 and a quarter-opacity terracotta wash under it
-    still leaves 7.4:1 — but a wash crossing a word is untidy whether or not
-    it is legible.
-
-    LILAC AND TERRACOTTA, because the ground is White Rock: Deep Lilac is
-    3.95:1 on it and terracotta 2.44 — both keep their hue at a quarter
-    opacity. Soft Lavender is 1.40 and Light Sage 1.03, which is why neither
-    is up here doing nothing.
-  */
-  {
-    name: "starburst",
-    color: INK.terracotta,
-    width: "7%",
-    right: "30%",
-    top: "2.5%",
-    rotate: 10,
-    drift: -24,
-    opacity: 0.3,
-    float: 13,
-    floatDelay: 1.9,
-    desktopOnly: true,
-  },
-  {
-    /* BELOW the standfirst, not across it. At `top: 11%` this landed at
-       x1144-1292 / y234 against a standfirst occupying x860-1340 / y244-336 —
-       measured, not guessed — which is exactly the thing this field is not
-       allowed to do. */
-    name: "wave",
-    color: INK.lilac,
-    width: "9%",
-    right: "9%",
-    top: "20%",
-    rotate: -8,
-    drift: 22,
-    opacity: 0.24,
-    float: 15,
-    floatDelay: 0.4,
-    desktopOnly: true,
-  },
-  {
-    name: "zigzag",
-    color: INK.terracotta,
-    width: "5%",
-    right: "41%",
-    top: "1%",
-    rotate: -16,
-    drift: 18,
-    opacity: 0.26,
-    float: 11,
-    floatDelay: 2.6,
-    desktopOnly: true,
-  },
-];
+const WAYS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 1 });
 
 export async function WaysToExperience() {
   const experiences = await getCreativeExperiences();
@@ -328,7 +205,7 @@ export async function WaysToExperience() {
     {
       mark: "splash",
       name: "Create",
-      lede: "Come to a table and make something — on the day, or on a date you book.",
+      lede: "Come to a table and make something, on the day or on a date you book.",
       doors: [
         /* EACH DOOR LANDS ON ITS OWN HALF OF /events, not on the top of the
            page. Both pointed at the bare listing, so the two labels the card
@@ -338,7 +215,7 @@ export async function WaysToExperience() {
         {
           label: "Create Anytime",
           note: `${walkIn} activities, no booking`,
-          href: "/events#walk-in",
+          href: "/events#create-anytime",
           mode: "diy",
         },
         {
@@ -369,7 +246,7 @@ export async function WaysToExperience() {
     {
       mark: "starleaf",
       name: "Connect",
-      lede: "Bring a group that already exists — a team, a class, a department.",
+      lede: "Bring a group that already exists: a team, a class, a department.",
       doors: [
         {
           label: corporate?.name ?? "Corporate events",
@@ -427,9 +304,10 @@ export async function WaysToExperience() {
           </div>
 
           <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
-            <p className="max-w-[30rem] text-body leading-[1.8] text-text/85">
+            {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
+            <p className="text-lead text-text/85">
               Some of what the Maison does happens at a table in a mall. The rest happens wherever
-              you are &mdash; a birthday, an office, a classroom, a shopfront.
+              you are: a birthday, an office, a classroom, a shopfront.
             </p>
           </Reveal>
         </div>

@@ -85,13 +85,13 @@ export function WalkInDiscovery({ experiences }: { experiences: CreativeExperien
         every time a chip is pressed.
       */}
       <p aria-live="polite" className="sr-only">
-        {shown.length} walk-in {shown.length === 1 ? "experience" : "experiences"} shown
+        {shown.length} Create Anytime {shown.length === 1 ? "experience" : "experiences"} shown
       </p>
 
       {shown.length === 0 ? (
         <Container>
-          <p className="mt-10 max-w-[34rem] text-body leading-[1.85] text-text/85">
-            Nothing is tagged that way yet. Clear the filter to see every walk-in experience.
+          <p className="mt-10 max-w-[34rem] text-body text-text/85">
+            Nothing is tagged that way yet. Clear the filter to see every Create Anytime experience.
           </p>
         </Container>
       ) : (

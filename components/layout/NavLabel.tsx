@@ -36,6 +36,49 @@ import { cn } from "@/lib/utils";
  * `currentColor`, so it is White Rock over a dark hero and Charcoal Slate on
  * the white bar — always the weight of the word it underlines.
  */
+/**
+ * ==========================================================================
+ * THE TWO RUNGS OF THE MASTHEAD, AND WHY THERE ARE EXACTLY TWO
+ * ==========================================================================
+ *
+ * The client's note was "too many titles are present on the desktop navbar".
+ * Measured before the change: seven labels — Experiences, Private events,
+ * Locations, Gallery, Search, About, Contact — every one of them 19px at
+ * weight 500, every one wearing a painted swatch. The bar had a left group
+ * and a right group and nothing told a reader which was which, so it read as
+ * one row of seven equal titles rather than as four destinations plus three
+ * utilities.
+ *
+ * WEIGHT IS NOT AVAILABLE AS THE ANSWER, and that is worth knowing before
+ * anyone reaches for it. The bar used to rank itself by weight — SemiBold for
+ * the entries that open a panel, Medium for the plain links, Regular for
+ * Search — and the client's reply was that three weights across one row read
+ * as an inconsistency rather than as a hierarchy. See the note on NAV_WEIGHT
+ * in <HeaderBar>. One weight, settled.
+ *
+ * So the rank is carried by SIZE and by PAINT instead:
+ *
+ *   primary ... `--text-body`, 19px on every desktop width, with the swatch.
+ *   utility ... 17px, no swatch, the hairline rule underneath instead.
+ *
+ * 17px IS NOT AN INVENTED NUMBER. It is `--text-body`'s own floor — the first
+ * term of its clamp, which is what the token resolves to on a phone — so the
+ * utilities are set at the bottom of the same step the navigation rides to the
+ * top of, rather than at a size that exists nowhere else on the site. The gap
+ * is 2px, about 11%: enough to rank the row and small enough that nothing
+ * reads as fine print.
+ *
+ * TAKING THE PAINT OFF IS THE HALF THAT DOES THE WORK. A swatch is the single
+ * loudest thing in the bar, and seven of them is seven titles however they are
+ * sized. With paint on the four destinations only, the colour becomes the mark
+ * of the navigation and the three utilities fall back to the hairline — which
+ * is not a downgrade but this component's own documented fallback, and the
+ * treatment the whole bar wore before the paint existed. Hover, focus and
+ * `aria-current` all still draw it, so nothing becomes harder to find.
+ */
+export const NAV_SIZE = "text-body";
+export const NAV_UTILITY_SIZE = "text-[1.0625rem]";
+
 export function NavLabel({
   children,
   isActive,

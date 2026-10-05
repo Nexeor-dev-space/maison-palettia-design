@@ -36,7 +36,7 @@ export function Steps({ current }: { current: 1 | 2 }) {
                 aria-current={active ? "step" : undefined}
                 className={
                   active
-                    ? "border-b-2 border-primary pb-1.5 text-label font-semibold uppercase tracking-eyebrow text-text"
+                    ? "border-b-2 border-primary pb-1.5 text-label font-medium uppercase tracking-eyebrow text-text"
                     : "pb-1.5 text-label font-medium uppercase tracking-eyebrow text-text/70"
                 }
               >

@@ -1,5 +1,6 @@
 import { FaqList } from "@/components/faq/FaqList";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
@@ -42,55 +43,7 @@ export const metadata = buildMetadata({
    decides its height — see the note in <CreateWithUs> on why that is the
    number to watch on a tall section like this one.
    ========================================================================== */
-const FAQ_SHAPES: readonly ShapePlan[] = [
-  {
-    name: "coral",
-    color: INK.lilac,
-    width: "5.5%",
-    left: "-0.5%",
-    top: "8%",
-    rotate: -12,
-    drift: 26,
-    opacity: 0.16,
-    float: 14,
-  },
-  {
-    name: "splash",
-    color: INK.whiteRock,
-    width: "6%",
-    right: "-0.5%",
-    top: "28%",
-    rotate: 14,
-    drift: -20,
-    opacity: 0.14,
-    float: 16,
-    floatDelay: 1.2,
-  },
-  {
-    name: "wave",
-    color: INK.lavender,
-    width: "6%",
-    left: "-0.5%",
-    bottom: "22%",
-    rotate: 8,
-    drift: 18,
-    opacity: 0.2,
-    float: 12,
-    floatDelay: 2.4,
-  },
-  {
-    name: "bean",
-    color: INK.lilac,
-    width: "5%",
-    right: "1%",
-    bottom: "10%",
-    rotate: -16,
-    drift: -24,
-    opacity: 0.16,
-    float: 15,
-    floatDelay: 0.8,
-  },
-];
+const FAQ_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.whiteRock, INK.lavender], { seed: 2 });
 
 /**
  * FAQ — the questions that stand between someone and a booking.
@@ -199,7 +152,8 @@ export default function FaqPage() {
             </div>
 
             <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:pb-3">
-              <p className="max-w-[34ch] text-statement font-light text-text/85">
+              {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
+              <p className="text-statement text-text/85">
                 Answers to common questions about Maison Palettia events.
               </p>
             </Reveal>
@@ -262,7 +216,7 @@ export default function FaqPage() {
                 4.90:1 and that is the whole of the headroom — the same rule
                 <EnquiryCta> keeps on /private-events.
               */}
-              <p className="mx-auto mt-9 max-w-[44rem] text-balance text-body leading-[1.9] text-surface">
+              <p className="mx-auto mt-9 max-w-[44rem] text-balance text-lead text-surface">
                 If something is unclear, ask before you book.
               </p>
             </Reveal>

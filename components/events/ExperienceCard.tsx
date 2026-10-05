@@ -118,7 +118,7 @@ export function ExperienceCard({
             className={cn(
               styles.action,
               "inline-flex items-center gap-2 whitespace-nowrap rounded-pill",
-              "bg-cream px-5 py-2.5 text-label font-semibold uppercase tracking-eyebrow text-text",
+              "bg-cream px-5 py-2.5 text-label font-medium uppercase tracking-eyebrow text-text",
             )}
           >
             View details

@@ -41,7 +41,7 @@ export function PrivateEventsTeaser() {
               lines={["Make something", "memorable", "together."]}
             />
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[30rem] text-lead leading-[1.7] text-surface">
+              <p className="mt-8 max-w-[30rem] text-lead text-surface">
                 Creative experiences shaped around your people and your occasion. Tell us what you
                 are planning and we will help you create it.
               </p>

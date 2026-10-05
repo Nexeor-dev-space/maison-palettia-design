@@ -178,7 +178,7 @@ export function MenuRailGroup({
         The Private events menu has always passed one, and was never part of
         any of those notes.
       */}
-      <p className="px-3 text-label font-semibold uppercase tracking-eyebrow text-text/55">{title}</p>
+      <p className="px-3 text-label font-medium uppercase tracking-eyebrow text-text/55">{title}</p>
       {note ? <p className="mt-1.5 px-3 text-fine leading-[1.5] text-text/60">{note}</p> : null}
       <ul className={cn("mt-2 flex flex-col", fill && "flex-1 justify-between")}>{children}</ul>
     </div>
@@ -380,7 +380,7 @@ export function MenuPreview({
       */}
       <span className="flex flex-col px-2 pb-1 pt-4">
         {eyebrow ? (
-          <span className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text/60">
+          <span className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text/60">
             <span aria-hidden className="h-px w-5 shrink-0 bg-terracotta" />
             {eyebrow}
           </span>
@@ -404,14 +404,14 @@ export function MenuPreview({
             preview's height does not move.
         */}
         {description ? (
-          <span className="mt-2.5 block max-w-[30ch] text-body leading-[1.6] text-text">
+          <span className="mt-2.5 block max-w-[30ch] text-body text-text">
             {description}
           </span>
         ) : null}
 
         {meta ? <span className="mt-3 block text-fine text-text/70">{meta}</span> : null}
 
-        <span className="mt-auto flex items-center gap-3 pt-5 text-action font-semibold uppercase tracking-eyebrow text-primary">
+        <span className="mt-auto flex items-center gap-3 pt-5 text-action font-medium uppercase tracking-eyebrow text-primary">
           <span className="border-b border-primary/40 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
             {action}
           </span>
@@ -458,6 +458,86 @@ export function MenuPreview({
  * bookable dates and it should still read as the warmer of the pair; at this
  * size Deep Lilac is a bar of colour along the foot rather than a slab.
  */
+/*
+  THE DOOR'S FIELDS, AND WHY THE PAINT IS A PROP NOW.
+
+  <MenuDoor> knew two grounds — the Deep Lilac accent and a near-white quiet —
+  with the mark's paint hard-wired to each. <AboutMenu>'s own note recorded
+  what that cost: `resolveIcon` picks the DRAWING from the COLOUR, not from
+  the shape word, so four doors sharing one paint render four identical shapes
+  however many different words the call sites pass. That panel settled for
+  saying `bow` four times rather than reading as four shapes it did not draw.
+
+  The client has asked for those four boxes to carry different colours and
+  different cut-outs, and that is the same change: vary the paint and the
+  drawing follows. So the grounds live here and a caller names one.
+
+  EVERY INK IS MEASURED, because each of these is a field with words on it —
+  a 20px title over a 17px line, and 17px is not large text, so both owe
+  4.5:1:
+
+    Deep Lilac       + on-primary ... 4.90:1  the one light ink that clears it
+    Soft Lavender    + Charcoal ..... 6.49:1
+    Light Sage       + Charcoal ..... 9.07:1
+    Terracotta  30%  + Charcoal ..... 7.3:1   the dilution <TwoWaysToCreate>
+                                              measured for its chips. Neat
+                                              Warm Terracotta is about 3.5:1
+                                              and fails, which is why no door
+                                              takes it at full strength.
+    near-white       + Charcoal ..... the quiet default, unchanged
+
+  THE THREE COLOURED DOORS CARRY THEIR LINE AT FULL STRENGTH, where the quiet
+  one can afford `/70`. Charcoal at 70% over Soft Lavender lands near 4:1 —
+  under the bar for a 17px line — and the saving in softness is not worth the
+  ink. The quiet door's ground is a near-white and has the headroom.
+
+  `quiet` and `accent` are untouched, so the Experiences and Private events
+  panels render exactly as they did.
+*/
+type DoorTone = "quiet" | "accent" | "lavender" | "sage" | "blush";
+
+const DOOR_TONE: Record<
+  DoorTone,
+  { field: string; ink: string; mark: string; markOpacity: string }
+> = {
+  quiet: {
+    /* Light Sage on hover, not `surface-alt`: that is White Rock, which is the
+       panel's own ground, so the door vanished on hover. Same rule as
+       <MenuRailRow>. */
+    field: "bg-surface text-text hover:bg-sage",
+    ink: "text-text/70",
+    mark: INK.lilac,
+    markOpacity: "opacity-55",
+  },
+  accent: {
+    field: "bg-primary text-on-primary hover:bg-text",
+    ink: "text-on-primary",
+    mark: INK.whiteRock,
+    markOpacity: "opacity-70",
+  },
+  lavender: {
+    field: "bg-lavender text-text hover:bg-lavender/75",
+    ink: "text-text",
+    mark: INK.lilac,
+    markOpacity: "opacity-75",
+  },
+  sage: {
+    field: "bg-sage text-text hover:bg-sage/75",
+    ink: "text-text",
+    mark: INK.terracotta,
+    markOpacity: "opacity-85",
+  },
+  blush: {
+    /* Warm Terracotta cut into the panel's own cream by its alpha, which is
+       what a `color-mix` would do here and needs no custom value: the panel
+       underneath is opaque. */
+    field: "bg-terracotta/30 text-text hover:bg-terracotta/45",
+    ink: "text-text",
+    mark: INK.lilac,
+    markOpacity: "opacity-70",
+  },
+};
+
 export function MenuDoor({
   href,
   title,
@@ -470,7 +550,7 @@ export function MenuDoor({
   title: string;
   sub: string;
   mark?: DoodleName;
-  tone?: "quiet" | "accent";
+  tone?: DoorTone;
   /**
    * Take whatever height is left under the rows above, instead of sitting at
    * the foot of the column at the door's own height.
@@ -484,6 +564,8 @@ export function MenuDoor({
    */
   fill?: boolean;
 }) {
+  const paint = DOOR_TONE[tone];
+
   return (
     <Link
       href={href}
@@ -506,12 +588,7 @@ export function MenuDoor({
         "group relative flex items-center gap-4 overflow-hidden rounded-[0.9rem] px-5 py-4",
         "transition-colors duration-300 ease-soft",
         fill && "min-h-[6.5rem] flex-1",
-        tone === "accent"
-          ? "bg-primary text-on-primary hover:bg-text"
-          /* Light Sage, not `surface-alt`: that is White Rock, which is the
-             panel's own ground, so the door vanished on hover. Same rule as
-             <MenuRailRow>. */
-          : "bg-surface text-text hover:bg-sage",
+        paint.field,
       )}
     >
       {mark ? (
@@ -520,12 +597,12 @@ export function MenuDoor({
           className={cn(
             "pointer-events-none w-10 shrink-0 transition-transform duration-[900ms] ease-editorial",
             "motion-safe:group-hover:rotate-6",
-            tone === "accent" ? "opacity-70" : "opacity-55",
+            paint.markOpacity,
           )}
         >
           <DoodleMark
             name={mark}
-            color={tone === "accent" ? INK.whiteRock : INK.lilac}
+            color={paint.mark}
             treatment="rise"
             depth={0}
           />
@@ -536,14 +613,10 @@ export function MenuDoor({
         <span className="block text-h4 font-medium">{title}</span>
         <span
           className={cn(
-            "mt-1 block text-body leading-[1.5]",
-            /* FULL STRENGTH ON THE LILAC DOOR. `--color-on-primary` is the one
-               light ink that clears 4.5:1 on Deep Lilac, and it clears it at
-               4.90 — there is no headroom to spend on an alpha. At /80 this
-               line measured under the bar at 13px and would still be under it
-               at 17px, since 17px is not large text. The quiet door keeps its
-               /70, which is charcoal on a near-white and has room to spare. */
-            tone === "accent" ? "text-on-primary" : "text-text/70",
+            "mt-1 block text-body",
+            /* Every one of these is measured — see DOOR_TONE. Only the quiet
+               door's near-white ground has the headroom for an alpha. */
+            paint.ink,
           )}
         >
           {sub}

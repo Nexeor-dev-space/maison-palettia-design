@@ -40,13 +40,18 @@ export interface NavItem {
    * asking what you could make and the other when — and matching on the path
    * would hang a menu off both of them.
    *
-   * It replaced a boolean `megamenu`. There are two panels now, and a second
+   * It replaced a boolean `megamenu`. There are THREE panels now, and a second
    * boolean beside the first is exactly the drift this file keeps warning
    * about: one entry could have claimed both, and nothing would have said
    * which won. The trigger still navigates for anyone without JavaScript —
    * the `href` is unchanged and the panel is an enhancement over it.
+   *
+   * "about" is the newest and the odd one out in CONTENT rather than in kind:
+   * the other two browse a catalogue, this one holds the four pages about the
+   * Maison itself. It is the same <MenuCard> opening on the same behaviour —
+   * see <AboutMenu> for why it carries doors rather than a rail.
    */
-  menu?: "experiences" | "private-events";
+  menu?: "experiences" | "private-events" | "about";
   /**
    * Sits with the bar's utilities on the right rather than in the primary
    * navigation on the left — About and Contact, beside search. Presentation

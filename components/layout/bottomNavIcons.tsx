@@ -114,6 +114,52 @@ export function LocationsIcon({ size = 21, className }: IconProps) {
   );
 }
 
+/**
+ * Two figures, the nearer one whole and the further one behind its shoulder.
+ *
+ * A GROUP, NOT A GIFT, and the first draft was the gift. A box with a ribbon
+ * knocked out of it reads instantly at 21px and it says birthday — which is
+ * one of the four programmes this slot leads to and wrong for the other
+ * three. What a corporate away-day, a school visit, a mall activation and a
+ * birthday have in common is that somebody books the table for a group, so
+ * that is what the glyph draws.
+ *
+ * FOUR SUBPATHS THAT DO NOT TOUCH. Under `evenodd` an overlap is a hole, so
+ * the two heads are 7.1 apart against radii summing to 5.8, and the back
+ * figure's shoulder stops at x 7.6 where the front one starts at 8.2. Drawn
+ * as one path because every icon here is.
+ */
+export function PrivateEventsIcon({ size = 21, className }: IconProps) {
+  return (
+    <svg {...svg(size, className)}>
+      <path d="M13.6 4.9a3.3 3.3 0 1 1 0 6.6 3.3 3.3 0 0 1 0-6.6Zm-7 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm7 6.5c-3 0-5.4 2.4-5.4 5.4v1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1c0-3-2.4-5.4-5.4-5.4Zm-7 .8c-2.3 0-4.2 1.9-4.2 4.2v.6a1 1 0 0 0 1 1h3.2v-.2c0-2 .7-3.9 1.9-5.4a4.3 4.3 0 0 0-1.9-.2Z" />
+    </svg>
+  );
+}
+
+/**
+ * The information mark: a disc with its stem and tittle knocked out.
+ *
+ * It names the sheet that holds About the Maison, Locations, Gallery and
+ * Contact — "who this is and how to reach it" — which is the one thing in the
+ * bar that is not a place in the programme. Conventional on purpose: the slot
+ * used to say More with three bars, and a reader who has learnt that glyph
+ * means "the rest of the menu" should not have to learn a second house mark
+ * to find the same four pages.
+ *
+ * The stem and the tittle are SUBPATHS, so they are knocked out and take
+ * whatever is behind the icon — which is the whole reason this set is built
+ * the way it is: the same glyph sits on Deep Lilac when idle and on a White
+ * Rock blob when current, and a knocked-out detail is right on both.
+ */
+export function AboutIcon({ size = 21, className }: IconProps) {
+  return (
+    <svg {...svg(size, className)}>
+      <path d="M12 2.2a9.8 9.8 0 1 0 0 19.6 9.8 9.8 0 0 0 0-19.6Zm0 3.6a1.45 1.45 0 1 1 0 2.9 1.45 1.45 0 0 1 0-2.9Zm-1.2 4.6h2.4a1 1 0 0 1 1 1v5.9a1 1 0 0 1-1 1h-2.4a1 1 0 0 1-1-1v-5.9a1 1 0 0 1 1-1Z" />
+    </svg>
+  );
+}
+
 /** Three bars of different lengths, and a dot off the short one. */
 export function MoreIcon({ size = 21, className }: IconProps) {
   return (

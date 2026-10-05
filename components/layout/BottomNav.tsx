@@ -8,14 +8,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import {
+  AboutIcon,
   BookIcon,
   ExperiencesIcon,
   HomeIcon,
   LocationsIcon,
-  MoreIcon,
+  PrivateEventsIcon,
   WhatsAppIcon,
 } from "@/components/layout/bottomNavIcons";
-import { MoreSheet } from "@/components/layout/MoreSheet";
+import { AboutSheet } from "@/components/layout/AboutSheet";
 import styles from "@/components/layout/BottomNav.module.css";
 import { MAIN_NAV, PRIMARY_CTA, WHATSAPP } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -116,8 +117,16 @@ interface NavItem {
   stays a list of destinations and knows nothing about how any surface draws
   them — the desktop bar and the footer read the same list and draw no icons.
 */
+/*
+  Keyed by route rather than by position, so a slot that changes which page it
+  holds brings its own glyph with it. `/locations` stays in the table although
+  Locations is now a card in the About sheet rather than a slot: the table is
+  a lookup for whatever `mobileSurface: "bar"` happens to name, and flipping
+  that flag back should not also need an icon re-wired.
+*/
 const ICONS: Record<string, NavIcon> = {
   "/events": ExperiencesIcon,
+  "/private-events": PrivateEventsIcon,
   "/locations": LocationsIcon,
 };
 
@@ -163,25 +172,58 @@ const WHATSAPP_ITEM: NavItem | null = WHATSAPP.number
 
 /*
   AND THE TWO DESTINATIONS COME FROM THE SHARED LIST, filtered by
-  `mobileSurface: "bar"` — Experiences and Locations. With Home, the action
-  and More that is five, which is what five slots hold.
+  `mobileSurface: "bar"` — Experiences and Private events. With WhatsApp, the
+  action and About that is five, which is what five slots hold.
+
+  THEY ARE THE DESKTOP BAR'S OWN TOP LEVEL, which is the point of the pair.
+  That bar carries three triggers — Experiences, Private events, About — and
+  the third opens a panel of four doors. Here the first two are thumb slots
+  and the third is the drawer at the end, holding the same four. Locations was
+  a slot until the desktop moved it under About; it is a card in the sheet
+  now, with the rest of "who this is and how to reach it".
 
   EXPERIENCES POINTS AT THE LISTING. /events is where all seven activities are
   browsed and each card goes on to its own page; the bar deliberately carries
   no dropdown, so it can never shortcut past that. The slide-out menu keeps
   the one that expands.
 */
+/*
+  WHERE A SLOT IS NARROWER THAN THE LIST'S OWN LABEL.
+
+  A slot is a fifth of the window: 78px at 390, 72 at 360, 64 at 320. Measured
+  at 11px, "Private events" sets to 70px and WRAPS TO TWO LINES at every one
+  of those widths — the second line dropped under the bar and ran into the
+  label beside it. "Private" is 40 and sits on one.
+
+  THE FULL NAME IS STILL THE ACCESSIBLE NAME, which is what makes the short
+  form legitimate rather than a truncation: `ariaLabel` carries "Private
+  events", and WCAG's label-in-name only asks that the accessible name contain
+  the visible one. Anything typed here must therefore be a prefix of the
+  entry's own label, not a synonym for it.
+
+  The desktop bar and the footer are untouched — they read MAIN_NAV directly
+  and have the room for the whole label.
+*/
+const BAR_LABELS: Record<string, string> = {
+  "/private-events": "Private",
+};
+
 const ITEMS: readonly NavItem[] = [
-  ...MAIN_NAV.filter((item) => item.mobileSurface === "bar").map((item) => ({
-    href: item.href,
-    label: item.label,
-    Icon: ICONS[item.href] ?? HomeIcon,
-    match: (p: string) => p === item.href || p.startsWith(`${item.href}/`),
-  })),
+  ...MAIN_NAV.filter((item) => item.mobileSurface === "bar").map((item) => {
+    const short = BAR_LABELS[item.href];
+    return {
+      href: item.href,
+      label: short ?? item.label,
+      ariaLabel: short ? item.label : undefined,
+      Icon: ICONS[item.href] ?? HomeIcon,
+      match: (p: string) => p === item.href || p.startsWith(`${item.href}/`),
+    };
+  }),
   WHATSAPP_ITEM ?? HOME,
 ];
 
-/* What More opens onto. Same list, the other flag. */
+/* What About opens onto. Same list, the other flag — and the same four doors
+   <AboutMenu> opens on a desktop, in the same order. */
 const SHEET_ITEMS = MAIN_NAV.filter((item) => item.mobileSurface === "sheet");
 
 const BOOK = { href: PRIMARY_CTA.href, label: "Book a Session" } as const;
@@ -202,8 +244,8 @@ const WAVE =
 export function BottomNav({ bookingOptions }: { bookingOptions: readonly BookingOption[] }) {
   const pathname = usePathname();
   const reduce = useReducedMotion();
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef<HTMLButtonElement>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const aboutRef = useRef<HTMLButtonElement>(null);
   const [bookOpen, setBookOpen] = useState(false);
   const bookRef = useRef<HTMLButtonElement>(null);
 
@@ -218,7 +260,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
   const [lastPath, setLastPath] = useState(pathname);
   if (lastPath !== pathname) {
     setLastPath(pathname);
-    setMoreOpen(false);
+    setAboutOpen(false);
   }
 
   const isCurrent = (item: NavItem) =>
@@ -262,7 +304,14 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
       </svg>
 
       {/* ---- the sheet ---- */}
-      <div className="relative overflow-hidden bg-primary pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5">
+      {/*
+        SHORTER BY TEN PIXELS, at the client's ask — 77px to 65px on a phone
+        with a home button, measured at 390x844. The height came off the three paddings and the
+        icon box rather than off the type or the touch target: each item is
+        still 55px of tappable height before its label's line box, over the
+        44px a target owes, and the labels are the size they were.
+      */}
+      <div className="relative overflow-hidden bg-primary pb-[max(0.375rem,env(safe-area-inset-bottom))] pt-1">
         {/*
           SMALL COLOUR AT THE TWO BOTTOM CORNERS, clipped by the sheet so only
           a curve of each one shows — the brief's "colour accents", and the
@@ -291,35 +340,37 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
 
           {/* The middle cell is a spacer: the badge is positioned against the
               nav, not against this cell, so it can rise out of the sheet. */}
-          <li aria-hidden className="h-[3.25rem]" />
+          <li aria-hidden className="h-[3rem]" />
 
           {ITEMS.slice(2).map((item) => (
             <Item key={item.href} item={item} current={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
           ))}
 
-          {/* MORE IS A BUTTON, NOT A LINK, because it goes nowhere — it opens
-              a drawer. Giving it `aria-expanded` and `aria-controls` is what
-              says that to anyone not looking at it. */}
+          {/* ABOUT IS A BUTTON, NOT A LINK, because it goes nowhere — it
+              opens a drawer, and /about is the first card inside it exactly
+              as "About the Maison" is the first door of the desktop panel.
+              Giving it `aria-expanded` and `aria-controls` is what says that
+              to anyone not looking at it. */}
           <li>
             <button
-              ref={moreRef}
+              ref={aboutRef}
               type="button"
-              aria-expanded={moreOpen}
+              aria-expanded={aboutOpen}
               /*
-                ONLY WHILE IT EXISTS. <MoreSheet> renders null when closed, so
+                ONLY WHILE IT EXISTS. <AboutSheet> renders null when closed, so
                 a constant `aria-controls` pointed at an id that was absent
                 from the DOM on every page — "jump to controlled element" did
                 nothing, every time. `aria-expanded` already says the button
                 opens something; `aria-controls` is only meaningful once there
                 is something to control.
               */
-              aria-controls={moreOpen ? "bottom-nav-more" : undefined}
+              aria-controls={aboutOpen ? "bottom-nav-about" : undefined}
               aria-current={onSheetRoute ? "page" : undefined}
-              onClick={() => setMoreOpen((v) => !v)}
-              className="group/nav flex w-full flex-col items-center gap-1 px-1 pb-1 pt-2 text-on-primary outline-offset-4"
+              onClick={() => setAboutOpen((v) => !v)}
+              className="group/nav flex w-full flex-col items-center gap-1 px-1 pb-0.5 pt-1.5 text-on-primary outline-offset-4"
             >
-              <span className="relative flex size-9 items-center justify-center">
-                {moreOpen || onSheetRoute ? (
+              <span className="relative flex size-8 items-center justify-center">
+                {aboutOpen || onSheetRoute ? (
                   <motion.span
                     aria-hidden
                     layoutId="bottom-nav-ink"
@@ -334,25 +385,25 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
                   whileTap={reduce ? undefined : { scale: 0.82 }}
                   transition={{ type: "spring", stiffness: 600, damping: 20 }}
                 >
-                  <MoreIcon
+                  <AboutIcon
                     size={21}
                     className={cn(
                       "block transition-colors duration-300 ease-soft",
-                      moreOpen || onSheetRoute ? "text-primary" : "text-on-primary",
+                      aboutOpen || onSheetRoute ? "text-primary" : "text-on-primary",
                     )}
                   />
                 </motion.span>
               </span>
               <span className="relative block">
                 <span className="block text-[0.6875rem] font-medium leading-none tracking-[0.04em] text-on-primary">
-                  More
+                  About
                 </span>
                 <span
                   aria-hidden
                   className={cn(
                     styles.brush,
                     "absolute -bottom-1 left-0 h-[3px] w-full origin-left [--paint:var(--color-cream)] transition-transform duration-300 ease-editorial motion-reduce:transition-none",
-                    moreOpen || onSheetRoute ? "scale-x-100" : "scale-x-0",
+                    aboutOpen || onSheetRoute ? "scale-x-100" : "scale-x-0",
                   )}
                 />
               </span>
@@ -361,11 +412,11 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         </ul>
       </div>
 
-      <MoreSheet
-        open={moreOpen}
-        onClose={() => setMoreOpen(false)}
+      <AboutSheet
+        open={aboutOpen}
+        onClose={() => setAboutOpen(false)}
         items={SHEET_ITEMS}
-        returnFocusTo={moreRef}
+        returnFocusTo={aboutRef}
       />
 
       <BookBadge
@@ -374,7 +425,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         onOpen={() => {
           /* One sheet at a time: the drawer and the dialog both cover the bar,
              and two of them open at once is two scrims and no way back. */
-          setMoreOpen(false);
+          setAboutOpen(false);
           setBookOpen(true);
         }}
         triggerRef={bookRef}
@@ -427,9 +478,9 @@ function Item({
         aria-current={current ? "page" : undefined}
         /* 56px of height plus the label's line box clears the 44px a touch
            target owes at every width this bar is drawn at. */
-        className="group/nav flex flex-col items-center gap-1 px-1 pb-1 pt-2 text-on-primary outline-offset-4"
+        className="group/nav flex flex-col items-center gap-1 px-1 pb-0.5 pt-1.5 text-on-primary outline-offset-4"
       >
-        <span className="relative flex size-9 items-center justify-center">
+        <span className="relative flex size-8 items-center justify-center">
           {current && any ? (
             <motion.span
               aria-hidden

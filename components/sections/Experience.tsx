@@ -77,7 +77,7 @@ export function Experience() {
 
           <div className="col-span-12 mt-10 lg:col-span-5 lg:col-start-8 lg:mt-2">
             <Reveal delay={0.1}>
-              <p className="max-w-[34rem] text-body leading-[1.85] text-text/80 md:text-base">
+              <p className="max-w-[34rem] text-body text-text/80 md:text-base">
                 At Maison Palettia, the process matters as much as the finished piece.
                 Come slow down, experiment, get your hands dirty, and enjoy making
                 something of your own.
@@ -195,7 +195,7 @@ function Plate({ image, shape, sizes, className }: PlateProps) {
       </div>
 
       <Reveal variant="fadeIn" delay={0.2}>
-        <figcaption className="mt-4 flex items-center gap-3 text-label uppercase tracking-eyebrow text-text/75 xs:text-action">
+        <figcaption className="mt-4 flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text/75 xs:text-action">
           <span aria-hidden className="h-px w-5 shrink-0 bg-text/25" />
           {image.caption}
         </figcaption>

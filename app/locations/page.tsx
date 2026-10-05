@@ -118,8 +118,8 @@ export default async function LocationsPage() {
                     ink opened to 1.7 — see the note on --text-lead. 9.07:1
                     on the pale green. */}
                 <p className="mt-6 max-w-[30rem] text-lead text-text md:mt-8">
-                  Maison Palettia brings creative experiences into the places people already gather
-                  — set up inside a mall rather than behind a studio door.
+                  Maison Palettia brings creative experiences into the places people already gather,
+                  set up inside a mall rather than behind a studio door.
                 </p>
               </Reveal>
 
@@ -168,7 +168,7 @@ export default async function LocationsPage() {
               {partners.length > 0 ? (
                 <>
                   <Reveal>
-                    <h2 className="mb-6 text-label font-semibold uppercase tracking-eyebrow text-text">
+                    <h2 className="mb-6 text-label font-medium uppercase tracking-eyebrow text-text">
                       Find us now
                     </h2>
                   </Reveal>

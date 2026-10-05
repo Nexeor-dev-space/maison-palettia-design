@@ -67,7 +67,7 @@ const HEADING = "block text-label font-medium uppercase tracking-eyebrow text-te
   has a screen reader announce them again, mid-keystroke. The fields say
   which, beside each one; this only says that some do.
 */
-const SUMMARY = "Some details need a look before you continue — each one is marked beside its field.";
+const SUMMARY = "Some details need a look before you continue. Each one is marked beside its field.";
 
 interface BookingFormProps {
   workshop: Workshop;
@@ -472,7 +472,7 @@ export function BookingForm({ workshop, intro, summary, strip, scarce }: Booking
                 <p
                   key={attemptCount}
                   className={cn(
-                    "mb-2 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body leading-[1.8] text-text",
+                    "mb-2 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text",
                     !summaryShown && "invisible",
                   )}
                 >
@@ -532,7 +532,9 @@ export function BookingForm({ workshop, intro, summary, strip, scarce }: Booking
               goes the moment a provider is wired.
             */}
             {!PAYMENT_CONFIGURED ? (
-              <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-fine leading-[1.8] text-text/80">
+              /* `body`, not `fine`: this tells somebody mid-booking that they
+                 are not being charged yet — the opposite of fine print. */
+              <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text/80">
                 Nothing is charged here. You&rsquo;ll review everything and confirm on the next
                 step.
               </p>

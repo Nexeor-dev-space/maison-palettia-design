@@ -5,6 +5,7 @@ import { WalkInDiscovery } from "@/components/events/WalkInDiscovery";
 import { WhereWeSetUp } from "@/components/events/WhereWeSetUp";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { Container } from "@/components/ui/Container";
@@ -21,7 +22,7 @@ import { getAllWorkshops } from "@/lib/workshops";
 export const metadata = buildMetadata({
   title: "Experiences",
   description:
-    "Every Maison Palettia creative experience — walk-in DIY activities you can enjoy at your own pace, and guided scheduled sessions you book online for a set date.",
+    "Every Maison Palettia creative experience: Create Anytime activities you can enjoy at your own pace, and guided Create Together sessions you book online for a set date.",
   path: "/events",
 });
 
@@ -36,7 +37,7 @@ export const metadata = buildMetadata({
  * malls across Dubai" and comes to "a mall near you", which overstates one
  * confirmed destination.
  *
- * TWO GROUPS, EACH ANCHORED. `#walk-in` and `#scheduled` are what the hero's
+ * TWO GROUPS, EACH ANCHORED. `#create-anytime` and `#scheduled` are what the hero's
  * actions and the header's "Book a session" point at, so a visitor lands on
  * the half of the page their question belongs to. Walk-in comes first because
  * the deck lists it first (p.5); a visitor who came to book is taken straight
@@ -75,11 +76,7 @@ export const metadata = buildMetadata({
 const SAGE = "#D1E7BE";
 
 /** The masthead: the largest shapes on the page, because it has the most air. */
-const TITLE_SHAPES: readonly ShapePlan[] = [
-  { name: "splash", color: INK.lilac, width: "26%", top: "-8%", right: "-4%", rotate: -12, drift: 26, opacity: 0.16 },
-  { name: "wave", color: INK.lavender, width: "16%", bottom: "6%", left: "-3%", rotate: 8, drift: -18, opacity: 0.22, desktopOnly: true },
-  { name: "dot", color: INK.terracotta, width: "5%", top: "24%", left: "46%", drift: 34, opacity: 0.2, desktopOnly: true },
-];
+const TITLE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.lavender, INK.terracotta], { seed: 4 });
 
 /**
  * Walk-in. The tallest section on the page at nearly 2000px, so it carries
@@ -168,7 +165,7 @@ export default async function EventsPage() {
           <nav aria-label="Experience types" className="mt-10 md:mt-14">
             <ul className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-2">
               <Door
-                href="#walk-in"
+                href="#create-anytime"
                 mode="diy"
                 title="Create Anytime"
                 note={diyStep.description}
@@ -200,20 +197,20 @@ export default async function EventsPage() {
         the ground they sit on rather than by a border between them.
       */}
       <section
-        id="walk-in"
-        aria-labelledby="walk-in-heading"
+        id="create-anytime"
+        aria-labelledby="create-anytime-heading"
         className="relative isolate scroll-mt-24 overflow-hidden bg-sage pb-[4.5rem] pt-[2.5rem] md:pb-[6rem] md:pt-[3.5rem]"
       >
         <SectionShapes plan={WALK_IN_SHAPES} />
         <Container>
           <GroupHead
-            id="walk-in-heading"
+            id="create-anytime-heading"
             mode="diy"
             title="Create Anytime"
             lead="No booking needed. Choose an experience on the day and create at your own pace."
           >
             {home ? (
-              <p className="text-body leading-[1.7] text-text">
+              <p className="text-body text-text">
                 {home.name}, {home.locality}
                 <span className="block text-fine text-text/85">
                   Where the Maison sets up for each run of dates.{" "}
@@ -254,8 +251,8 @@ export default async function EventsPage() {
               <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">
                 The next dates are being set.
               </p>
-              <p className="mt-4 max-w-[32rem] text-body leading-[1.85] text-text/85">
-                Walk-in experiences are available in the meantime.
+              <p className="mt-4 max-w-[32rem] text-body text-text/85">
+                Create Anytime experiences are available in the meantime.
               </p>
             </Reveal>
           ) : (
@@ -361,18 +358,18 @@ function Door({
         </span>
 
         <span className="relative">
-          <span className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow">
+          <span className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
             <ModeMark mode={mode} />
             {mode === "diy" ? "No booking" : "Booked online"}
           </span>
 
-          <span className="heading-script mt-3 block pb-[0.2em] text-script-compact leading-[1.15]">
+          <span className="heading-script mt-3 block pb-[0.2em] text-script-compact">
             <ScriptTitle>{title}</ScriptTitle>
           </span>
         </span>
 
         <span className="relative mt-6 flex items-end justify-between gap-6">
-          <span className="max-w-[26ch] text-body leading-[1.7]">{note}</span>
+          <span className="max-w-[26ch] text-body">{note}</span>
           <span
             aria-hidden
             className="shrink-0 text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-y-1"
@@ -411,7 +408,7 @@ function GroupHead({
             <ModeMark mode={mode} className="size-3 -translate-y-[0.15em]" />
             <ScriptTitle>{title}</ScriptTitle>
           </h2>
-          <p className="mt-4 max-w-[34rem] text-lead leading-[1.65] text-text/85">{lead}</p>
+          <p className="mt-4 max-w-[34rem] text-lead text-text/85">{lead}</p>
         </div>
         {children ? <div className="col-span-12 md:col-span-5 md:pb-1">{children}</div> : null}
       </div>

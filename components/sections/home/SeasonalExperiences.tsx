@@ -203,7 +203,7 @@ export function SeasonalExperiences() {
           <div className="grid grid-cols-12 items-start gap-x-gutter gap-y-10">
             <div className="col-span-12 lg:col-span-5">
               <Reveal>
-                <p className="flex items-center gap-3 text-label font-bold uppercase tracking-eyebrow text-terracotta">
+                <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-terracotta">
                   <span aria-hidden className="block w-4 shrink-0">
                     <DoodleMark name="dot" color={INK.terracotta} depth={4} />
                   </span>
@@ -353,7 +353,7 @@ export function SeasonalExperiences() {
                     </div>
 
                     <figcaption className="mt-6 flex items-baseline gap-5">
-                      <span className="text-label font-bold tabular-nums tracking-eyebrow text-text/55">
+                      <span className="text-label font-medium tabular-nums tracking-eyebrow text-text/55">
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <span>

@@ -294,8 +294,8 @@ function BookButton({
 }) {
   if (closed) {
     return (
-      <p className={`mt-8 text-body leading-[1.75] text-text/80 ${className ?? ""}`}>
-        This date is full — the next events are below.
+      <p className={`mt-8 text-body text-text/80 ${className ?? ""}`}>
+        This date is full. The next events are below.
       </p>
     );
   }

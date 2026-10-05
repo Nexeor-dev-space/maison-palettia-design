@@ -105,7 +105,7 @@ export function ExperiencePlate({
           ) : null}
         </div>
         {experience.status ? (
-          <span className="mt-0.5 shrink-0 border border-text/40 px-2 py-1 text-label font-semibold uppercase leading-none tracking-eyebrow text-text">
+          <span className="mt-0.5 shrink-0 border border-text/40 px-2 py-1 text-label font-medium uppercase leading-none tracking-eyebrow text-text">
             {experience.status}
           </span>
         ) : null}

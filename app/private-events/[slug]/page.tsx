@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
@@ -187,34 +188,14 @@ const STEP_STOCK: readonly {
   the masthead passes and that is the pair it holds.
 */
 function mastheadShapes(tone: PageTone): readonly ShapePlan[] {
-  const [a, b] = tone.marks;
-  return [
-    {
-      name: "splash",
-      color: a,
-      width: "13%",
-      left: "-3%",
-      bottom: "-8%",
-      rotate: -12,
-      drift: 22,
-      opacity: 0.22,
-      float: 13,
-      desktopOnly: true,
-    },
-    {
-      name: "starburst",
-      color: b,
-      width: "6%",
-      left: "33%",
-      bottom: "8%",
-      rotate: 12,
-      drift: 18,
-      opacity: 0.22,
-      float: 11,
-      floatDelay: 0.6,
-      desktopOnly: true,
-    },
-  ];
+  /*
+    THE STANDARD GROUND, like every other section on the site. This was seven
+    marks written by hand here, at five widths and five opacities of their
+    own — the same per-section improvisation the client called out as doodles
+    that are not placed uniformly. `groundShapes` is that table now; the only
+    thing this page still decides is which two inks go on it.
+  */
+  return groundShapes([tone.marks[0], tone.marks[1]], { seed: 2 });
 }
 
 function audienceFor(slug: string): PrivateEventAudience | undefined {
@@ -367,7 +348,7 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
             <Reveal delay={0.16}>
               {/* `script-lede`, not a margin: Hapsha's descenders hang into
                   the gap under a script heading, so the step is a token. */}
-              <p className="script-lede max-w-[46ch] text-body leading-[1.9] text-text/80">
+              <p className="script-lede max-w-[46ch] text-lead text-text/80">
                 {audience.description}
               </p>
             </Reveal>
@@ -585,8 +566,19 @@ function Activities({
             />
           </div>
 
-          <Reveal delay={0.18} className="col-span-12 lg:col-span-4 lg:col-start-9 lg:pb-3">
-            <p className="max-w-[26rem] text-body leading-[1.85] text-text/80">
+          {/*
+            THE SECTION-MASTHEAD DESCRIPTION COLUMN. Five of twelve, ending
+            flush with the container's right edge, and no cap on the
+            paragraph inside it — the column IS the measure. Twenty-two other
+            columns on this site are already this; see the note in
+            <ExperienceDiscovery>.
+          */}
+          <Reveal delay={0.18} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
+            {/* No `max-w-[26rem]`. It capped the text at 416px inside a
+                440px column, so this description was 144px narrower than the
+                same thing on /faq and /events and started 120px further
+                right. Two caps on one measure is how a pattern drifts. */}
+            <p className="text-lead text-text/80">
               The studio&rsquo;s activities, any of which a session can be shaped around. We will
               help choose the one that fits the group.
             </p>
@@ -704,7 +696,7 @@ function HowItWorks() {
                   </h3>
                   <p
                     className={cn(
-                      "mt-3 text-body leading-[1.75]",
+                      "mt-3 text-body",
                       STEP_STOCK[i % STEP_STOCK.length].muted,
                     )}
                   >
@@ -767,7 +759,7 @@ function Enquiry() {
         </span>
 
         <Reveal>
-          <p className="mx-auto max-w-[30ch] text-statement font-light leading-[1.35] tracking-[-0.01em] text-surface">
+          <p className="mx-auto max-w-[30ch] text-statement leading-[1.35] tracking-[-0.01em] text-surface">
             Tell us about your group and your date, and we will shape a session around it.
           </p>
         </Reveal>

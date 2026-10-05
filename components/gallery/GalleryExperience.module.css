@@ -1,0 +1,137 @@
+/*
+  THE GALLERY'S INTERACTIONS — see GalleryExperience.tsx.
+
+  Three gestures, all on the compositor, all refined rather than loud:
+
+    the settle ... a picture rests a hair larger than its frame and eases back
+                   to true when you reach it, so it never shows a sliver of the
+                   ground behind it mid-move. The wall's own gesture, kept.
+    the caption .. where a picture has a name (the activities), the name rises
+                   from the foot under a soft gradient on hover. An enhancement
+                   only — the name also lives in the tile's `aria-label` and in
+                   the lightbox, so a phone with no hover loses nothing.
+    the lean ..... a feature picture sits a little off square and straightens
+                   under the pointer, the swatch-card gesture the rest of the
+                   site already uses. `lg` only: a stacked phone column has
+                   nothing to be off-square against.
+
+  Two rules this file keeps, the same two every hover on the site keeps:
+  1. `scale`, not `transform` — Tailwind v4 animates the individual transform
+     properties, so naming `transform` animates nothing.
+  2. `@media (hover: hover)` is written out — a CSS module does not get
+     Tailwind's automatic wrap, and without it a tap sticks a tile in hover.
+*/
+
+.tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: clip;
+  border-radius: 0.875rem;
+  background-color: var(--color-cream);
+  cursor: zoom-in;
+  outline-offset: 3px;
+}
+
+@media (min-width: 768px) {
+  .tile {
+    border-radius: 1.125rem;
+  }
+}
+
+.frame {
+  position: relative;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.image {
+  object-fit: cover;
+  scale: 1.05;
+  transition: scale 900ms var(--ease-editorial);
+}
+
+@media (hover: hover) {
+  .tile:hover .image {
+    scale: 1;
+  }
+}
+
+.tile:focus-visible .image {
+  scale: 1;
+}
+
+/* ---- the caption, for pictures that carry a name ---- */
+
+.caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding: 2.25rem 1rem 0.95rem;
+  background: linear-gradient(to top, rgb(45 55 72 / 0.74), rgb(45 55 72 / 0) 86%);
+  color: var(--color-on-dark);
+  opacity: 0;
+  translate: 0 0.5rem;
+  transition:
+    opacity 320ms var(--ease-soft),
+    translate 420ms var(--ease-editorial);
+}
+
+@media (hover: hover) {
+  .tile:hover .caption {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.tile:focus-visible .caption,
+.tile:focus-within .caption {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* ---- the lean, feature pictures only, lg and up ---- */
+
+@media (min-width: 1024px) {
+  .lean .frame {
+    transition: rotate 620ms var(--ease-editorial);
+  }
+  .lean[data-tilt="left"] .frame {
+    rotate: -1.4deg;
+  }
+  .lean[data-tilt="right"] .frame {
+    rotate: 1.4deg;
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) {
+  .lean:hover .frame {
+    rotate: 0deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image,
+  .caption,
+  .lean .frame {
+    transition: none;
+  }
+  .image {
+    scale: 1;
+  }
+  .lean[data-tilt="left"] .frame,
+  .lean[data-tilt="right"] .frame {
+    rotate: 0deg;
+  }
+  /* With no hover to reveal it, the caption rests visible rather than animated;
+     the name is in `aria-label` and the lightbox regardless. */
+  .caption {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

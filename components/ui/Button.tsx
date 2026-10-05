@@ -88,9 +88,9 @@ const variantStyles: Record<ButtonVariant, string> = {
  * hand.
  */
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "px-5 py-3 text-action uppercase tracking-eyebrow",
-  md: "px-7 py-4 text-action uppercase tracking-eyebrow",
-  lg: "px-8 py-5 text-action uppercase tracking-eyebrow",
+  sm: "px-5 py-3 text-action font-medium uppercase tracking-eyebrow",
+  md: "px-7 py-4 text-action font-medium uppercase tracking-eyebrow",
+  lg: "px-8 py-5 text-action font-medium uppercase tracking-eyebrow",
 };
 
 function buttonClasses({

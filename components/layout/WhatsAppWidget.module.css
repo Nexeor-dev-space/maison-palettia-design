@@ -19,6 +19,32 @@
 .fab {
   border-radius: 58% 42% 46% 54% / 48% 52% 48% 52%;
   animation: fab-morph 14s ease-in-out infinite;
+
+  /*
+    ========================================================================
+    THE RING IS WHAT MAKES IT A BUTTON ON ITS OWN GROUND
+    ========================================================================
+
+    The ground is Light Sage at the client's ask, and Light Sage is also what
+    the header, /about and the homepage's resting banner are printed on — so
+    on those the button was the page's own colour with a glyph floating in it
+    and no edge at all. Measured: #D1E7BE on #D1E7BE is 1:1.
+
+    Deep Lilac at full strength is 3.83:1 on Light Sage, over the 3:1 a
+    control's boundary owes, and it is the colour the rest of this site draws
+    an outlined button in (see `.secondary` in BlobButton.module.css). So the
+    fab carries one at rest and the drop shadow stops being the only thing
+    holding it off the page.
+
+    THE WHOLE SHADOW LIVES HERE NOW rather than half here and half in a
+    Tailwind arbitrary value on the element: an inset ring and a drop are one
+    `box-shadow` list, and a second `shadow-[...]` class on the same element
+    replaces the list rather than adding to it. One owner, one transition.
+  */
+  box-shadow:
+    inset 0 0 0 1.5px var(--color-primary),
+    0 6px 20px color-mix(in oklab, var(--color-text) 18%, transparent);
+
   transition:
     border-radius 420ms var(--ease-soft, ease),
     transform 300ms var(--ease-soft, ease),
@@ -37,6 +63,13 @@
 .fab:focus-visible {
   border-radius: 900px;
   animation-play-state: paused;
+
+  /* Lifted, and the ring stays: the edge is what the shape is read by, and
+     dropping it on hover would make the button dissolve exactly when it is
+     being pointed at. */
+  box-shadow:
+    inset 0 0 0 1.5px var(--color-primary),
+    0 10px 28px color-mix(in oklab, var(--color-text) 26%, transparent);
 }
 
 @keyframes fab-morph {

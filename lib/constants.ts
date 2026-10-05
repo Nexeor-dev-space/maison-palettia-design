@@ -143,18 +143,58 @@ export const MAIN_NAV: NavItem[] = [
     form. Somebody has to be able to read what they are booking first.
   */
   { label: "Experiences", href: "/events", menu: "experiences", mobileSurface: "bar" },
-  { label: "Private events", href: "/private-events", menu: "private-events", mobileSurface: "sheet" },
-  { label: "Locations", href: "/locations", mobileSurface: "bar" },
+  { label: "Private events", href: "/private-events", menu: "private-events", mobileSurface: "bar" },
   /*
-    GALLERY JOINS THE BAR at the client's ask, and it goes last on the left
-    track because that track is ordered by how early a question gets asked.
-    What can I make, can you host my party, and where are you all come before
-    somebody browses finished work — but browsing finished work is still a
-    programme question, which is why it is on this track and not beside About.
+    ======================================================================
+    THREE TABS, AND LOCATIONS / GALLERY / CONTACT MOVED UNDER ABOUT
+    ======================================================================
+
+    At the client's ask. The bar carried six entries across two tracks —
+    Experiences, Private events, Locations, Gallery on the left, About and
+    Contact beside search — and four of those six answer the same question in
+    four places: who is this, and how do I reach them.
+
+    So About becomes a panel like the other two, and the three that belong
+    under it are marked `secondary`, which is the flag that already means
+    "out of the desktop bar, kept everywhere the whole site map is offered".
+    See <AboutMenu> for what is in the panel.
+
+    AND `utility` COMES OFF ABOUT. It sat in the right-hand cluster beside
+    search, at the smaller rung and with no swatch, which was right for a
+    label that only went somewhere. An entry that opens a panel belongs with
+    the entries that open panels: all three menu triggers are now on the left
+    track, in one treatment, and the right track is search and the action.
+
+    AND THE PHONE FOLLOWED, at the client's ask. It did not at first — the
+    note above this one said so — and the result was a bar that grouped the
+    site differently from the one above it: the phone's fifth slot was More,
+    holding Private events, About, Gallery and Contact, while the desktop had
+    put Locations, Gallery and Contact under About and left Private events at
+    the top level.
+
+    `mobileSurface` is what fixes it, and only two values had to move:
+
+      Private events .. sheet -> bar. It is a top-level trigger on the
+                        desktop bar, so it is a thumb slot here.
+      Locations ....... bar -> sheet. It is a door inside the About panel on
+                        the desktop bar, so it is a card inside the About
+                        sheet here.
+
+    What the two flags now say, in one line each: `bar` is the desktop's
+    left-hand triggers minus the one that became a panel, and `sheet` is
+    exactly the four doors <AboutMenu> opens — About the Maison, Locations,
+    Gallery and Contact, in that order. The phone's fifth slot is named About
+    for the same reason.
+
+    `secondary` is still read only by the desktop bar, and still means "out of
+    that bar, kept everywhere the whole site map is offered". It is not the
+    phone's flag and the two are not interchangeable: Private events is a bar
+    slot and not `secondary`, About is `secondary`-adjacent and neither.
   */
-  { label: "Gallery", href: "/gallery", mobileSurface: "sheet" },
-  { label: "About", href: "/about", utility: true, mobileSurface: "sheet" },
-  { label: "Contact", href: "/contact", utility: true, mobileSurface: "sheet" },
+  { label: "About", href: "/about", menu: "about", mobileSurface: "sheet" },
+  { label: "Locations", href: "/locations", secondary: true, mobileSurface: "sheet" },
+  { label: "Gallery", href: "/gallery", secondary: true, mobileSurface: "sheet" },
+  { label: "Contact", href: "/contact", secondary: true, mobileSurface: "sheet" },
 ];
 
 /**
@@ -265,9 +305,23 @@ export const FOOTER_NAV: NavGroup[] = [
 ];
 
 /**
- * TODO(client): neither /privacy nor /terms exists as a route yet, so both
- * links 404 today. They are kept because the pages are intended and the
- * footer is where they belong; build them, or empty this array, before launch.
+ * ==========================================================================
+ * STILL EMPTY, AND NOW FOR A NARROWER REASON
+ * ==========================================================================
+ *
+ * The studio policies arrived on 2026-10-05 and are live at /policies — the
+ * footer carries all eight in a band of their own, derived from
+ * {@link POLICIES} rather than listed here. So this array is no longer
+ * "the legal links, missing"; it is the two documents that are STILL missing
+ * after the policy document was read end to end:
+ *
+ *   /privacy ... the document names "Privacy Policy" in its proposed site
+ *                structure and never drafts a word of it.
+ *   /terms ..... likewise "Terms & Conditions".
+ *
+ * Neither can be written from anything in this project, and both are the
+ * ones a customer looks for in a checkout footer before entering a card, so
+ * a link that 404s there is worse than no link at all. Unchanged below.
  */
 export const LEGAL_NAV: NavItem[] = [
   /*
@@ -387,11 +441,12 @@ export const CONTACT: ContactDetails = {
  * PUBLIC — which is correct for a published business number and wrong for
  * anything secret.
  *
- * WHY IT FALLS BACK TO null. There is still no number in this project —
- * `CONTACT.phone` and both `SOCIAL_LINKS` are null too — and a control that
- * opens a chat with nobody is worse than no control. Unset, the widget
- * renders nothing and the bar keeps Home, which is the same rule the footer
- * already applies to social links.
+ * WHAT IT FALLS BACK TO, AND WHY THAT CHANGED. It fell back to null, on the
+ * reasoning that a control opening a chat with nobody is worse than no
+ * control. The client has since asked for both surfaces to be on the site
+ * before the number arrives, so the fallback is a placeholder of zeros
+ * instead — see the note on it below, which is also where the TODO lives.
+ * Null still hides both surfaces, so the rule itself is intact.
  *
  * TODO(client): supply the studio's WhatsApp business number.
  */
@@ -409,7 +464,25 @@ export const WHATSAPP: {
     after it. `|| null` after a trim catches the empty string; `?? null`
     alone would not.
   */
-  number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim() || null,
+  /*
+    ======================================================================
+    THE FALLBACK IS A PLACEHOLDER AND IT MUST NOT SHIP
+    ======================================================================
+
+    TODO(client): replace this with the studio's real WhatsApp business
+    number, or set NEXT_PUBLIC_WHATSAPP_NUMBER and delete the fallback.
+
+    The client asked for both WhatsApp surfaces to be visible now and has not
+    supplied a number yet, so this stands in: +971 50 000 0000, which is a
+    valid UAE mobile SHAPE with a body of zeros. It is deliberately not a
+    number anybody owns, because a plausible-looking stand-in is the version
+    of this that gets dialled by a visitor and reaches a stranger.
+
+    Everything downstream is unchanged: the env var still wins where one is
+    set, so staging and production can each carry their own without touching
+    this file, and a number of null still hides both surfaces outright.
+  */
+  number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim() || "971500000000",
   greeting: "Hello! I would like to ask about an upcoming event.",
 };
 
@@ -518,13 +591,13 @@ export const EXPERIENCE_IMAGES: {
   },
   painting: {
     src: "/images/workshops/watercolour-in-progress.jpg",
-    alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
+    alt: "A watercolour on the easel: deep red blooms breaking over washes of pale yellow and blue.",
     position: "50% 50%",
     caption: "Colour, still wet",
   },
   pigment: {
     src: "/images/experience/pigment-on-paper.jpg",
-    alt: "Pigment sinking into damp paper — deep red blooms bleeding into blue and yellow-green washes.",
+    alt: "Pigment sinking into damp paper: deep red blooms bleeding into blue and yellow-green washes.",
     position: "50% 50%",
     caption: "Pigment into paper",
   },
@@ -689,7 +762,7 @@ export const ABOUT_TEASER = {
   eyebrow: "The Maison",
   title: ["A room, a table,", "and time to use them."],
   body:
-    "Maison Palettia is a creative space where art, craft and community come together — a place to slow down and make something with your hands.",
+    "Maison Palettia is a creative space where art, craft and community come together. A place to slow down and make something with your hands.",
   cta: "Our story",
 } as const;
 
@@ -704,7 +777,7 @@ export const MAISON_PHILOSOPHY: {
   eyebrow: "The Maison",
   title: ["Made slowly.", "Felt deeply."],
   description:
-    "There is no rush here, and no right answer — only materials, time, and a room of people finding out what their hands can do.",
+    "There is no rush here, and no right answer, only materials, time, and a room of people finding out what their hands can do.",
   accent: "the long way round",
 };
 
@@ -862,7 +935,7 @@ export const GALLERY_TILES: GalleryTile[] = [
   {
     kind: "image",
     src: "/images/workshops/watercolour-in-progress.jpg",
-    alt: "A watercolour on the easel — deep red blooms breaking over washes of pale yellow and blue.",
+    alt: "A watercolour on the easel: deep red blooms breaking over washes of pale yellow and blue.",
     position: "50% 45%",
   },
   {
@@ -889,17 +962,17 @@ export const GALLERY_TILES: GalleryTile[] = [
    ========================================================================== */
 export const HOMEPAGE_FAQ: FaqItem[] = [
   {
-    question: "Where do the events happen?",
+    question: "Where Do the Events Happen?",
     answer:
-      "Maison Palettia has no studio door of its own — we set up inside a mall for the day. Every event on the programme names its mall and the area it is in, so you know where you are going before you book.",
+      "Maison Palettia has no studio door of its own. We set up inside a mall for the day. Every event on the programme names its mall and the area it is in, so you know where you are going before you book.",
   },
   {
-    question: "How long does an event run?",
+    question: "How Long Does an Event Run?",
     answer:
       "Each one runs to a fixed start and finish time rather than a drop-in window. Both times, and the length of the event, are on its page.",
   },
   {
-    question: "Do I need to bring anything?",
+    question: "Do I Need to Bring Anything?",
     answer:
       // TODO(client): confirm. This is the line the events page and the About
       // page already use, and it is the one claim here about what the studio
@@ -907,7 +980,7 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
       "Everything is provided. Bring nothing but yourself.",
   },
   {
-    question: "How do I book a place?",
+    question: "How Do I Book a Place?",
     answer:
       "Choose a date from the programme, open it, and keep your place from that page. Each event shows how many places are left before you start.",
   },
@@ -958,7 +1031,7 @@ export const FAQ_GROUPS: readonly FaqGroup[] = [
       HOMEPAGE_FAQ[1],
       HOMEPAGE_FAQ[2],
       {
-        question: "Do I need any experience?",
+        question: "Do I Need Any Experience?",
         answer:
           "Everything is provided, and no experience is needed. If something is unclear, ask before you book.",
       },
@@ -968,19 +1041,19 @@ export const FAQ_GROUPS: readonly FaqGroup[] = [
     title: "Booking a place",
     items: [
       {
-        question: "What is the difference between walking in and booking a seat?",
+        question: "What Is the Difference Between Create Anytime and Create Together?",
         answer:
-          "The Maison runs two kinds of thing. DIY activities you walk in and do, any time you come in — there is nothing to book. Scheduled sessions are guided, each runs on a set date, and those are the ones you book online.",
+          "The Maison runs two kinds of thing. Create Anytime activities are DIY: come in and make something at your own pace, any time we are set up, with nothing to book. Create Together sessions are guided, each runs on a set date, and those are the ones you book online.",
       },
       HOMEPAGE_FAQ[3],
       {
-        question: "Am I charged when I book?",
+        question: "Am I Charged When I Book?",
         answer:
           "Your place is held when you reserve it. Nothing is charged through this site yet.",
       },
       {
-        question: "Do I need an account?",
-        answer: "No — you check out as a guest. There is no account to create.",
+        question: "Do I Need an Account?",
+        answer: "No. You check out as a guest. There is no account to create.",
       },
     ],
   },
@@ -988,12 +1061,12 @@ export const FAQ_GROUPS: readonly FaqGroup[] = [
     title: "Groups and passes",
     items: [
       {
-        question: "Can you run something for my group?",
+        question: "Can You Run Something for My Group?",
         answer:
-          "Yes. The Maison brings creative experiences to spaces where people already gather, and shapes the activity around the group once you have told us about it. Tell us what you are planning — roughly when, roughly how many, and what you would like everyone to make.",
+          "Yes. The Maison brings creative experiences to spaces where people already gather, and shapes the activity around the group once you have told us about it. Tell us what you are planning: roughly when, roughly how many, and what you would like everyone to make.",
       },
       {
-        question: "What is a pass?",
+        question: "What Is a Pass?",
         answer:
           "A pass holds your sessions in advance, so when a date comes round the only decision left is what to make. Choose one, add it to your booking, and check out as a guest.",
       },

@@ -2,6 +2,7 @@ import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
@@ -39,11 +40,7 @@ import { BRAND_STORY, VISION } from "@/lib/brand";
   because the client asked for the gap between this and the experience section
   to have something moving in it.
 */
-const WHY_SHAPES: readonly ShapePlan[] = [
-  { name: "splash", color: INK.lilac, width: "22%", top: "6%", right: "4%", rotate: -10, drift: 28, opacity: 0.16 },
-  { name: "bean", color: INK.terracotta, width: "9%", top: "52%", right: "26%", rotate: 16, drift: -22, opacity: 0.18, desktopOnly: true },
-  { name: "wave", color: INK.lavender, width: "14%", bottom: "8%", right: "12%", rotate: 6, drift: 20, opacity: 0.24, desktopOnly: true },
-];
+const WHY_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 3 });
 
 export function WhyMaison() {
   return (
@@ -69,28 +66,39 @@ export function WhyMaison() {
                 hand — where a statement breaks is a design decision. Labelled
                 so it is read as the mission rather than as a slogan. */}
             <Reveal delay={0.2}>
-              <p className="mt-7 text-label font-semibold uppercase tracking-eyebrow text-text">
+              <p className="mt-7 text-label font-medium uppercase tracking-eyebrow text-text">
                 Our mission
               </p>
             </Reveal>
           </div>
 
-          <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:pt-28">
+          {/*
+            THE SECTION-MASTHEAD DESCRIPTION COLUMN. Five of twelve, ending
+            flush with the container's right edge, and no cap on the
+            paragraph inside it — the column IS the measure. Twenty-two other
+            columns on this site are already this; see the note in
+            <ExperienceDiscovery>.
+          */}
+          {/* `lg:pt-28` stays. It is a vertical offset, not a width — this
+              column deliberately starts below the heading's baseline, which
+              is this section's own composition and not the thing being
+              standardised. */}
+          <div className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pt-28">
             <Reveal delay={0.15}>
-              <p className="text-lead leading-[1.75] text-text">{BRAND_STORY}</p>
+              <p className="text-lead text-text">{BRAND_STORY}</p>
             </Reveal>
 
             <Reveal delay={0.25}>
               <figure className="mt-10 border-t border-text/25 pt-7">
-                <figcaption className="text-label font-semibold uppercase tracking-eyebrow text-text">
+                <figcaption className="text-label font-medium uppercase tracking-eyebrow text-text">
                   Our vision
                 </figcaption>
-                <blockquote className="mt-3 text-body leading-[1.8] text-text">{VISION}</blockquote>
+                <blockquote className="mt-3 text-body text-text">{VISION}</blockquote>
               </figure>
             </Reveal>
 
             <Reveal delay={0.3}>
-              <BlobButton href="/about" tone="secondary" className="mt-9 min-h-[3.25rem] px-7">
+              <BlobButton href="/about" tone="painted" className="mt-9 min-h-[3.25rem] px-7">
                 Our story
               </BlobButton>
             </Reveal>

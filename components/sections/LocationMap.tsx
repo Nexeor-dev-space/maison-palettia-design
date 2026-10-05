@@ -324,7 +324,7 @@ export function PartnerPlate({
         <p className="mt-2 text-label font-medium uppercase tracking-eyebrow text-text/75">
           {partner.locality}
         </p>
-        <p className="mt-4 max-w-[34rem] text-body text-text/90">
+        <p className="mt-4 max-w-[34rem] text-lead text-text/90">
           {partner.descriptor}
         </p>
       </div>

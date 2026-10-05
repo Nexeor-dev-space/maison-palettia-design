@@ -258,6 +258,7 @@ export function DeckSheet({
   id,
   labelledBy,
   binding = false,
+  ground = "bg-sage",
   className,
 }: {
   children: ReactNode;
@@ -272,6 +273,15 @@ export function DeckSheet({
     journal idea is the point.
   */
   binding?: boolean;
+  /*
+    THE SHEET'S PAPER. Light Sage for all but one of them, which is why it is
+    the default and why no existing caller passes it. It is a prop rather than
+    something a caller overrides through `className` because `cn` here is a
+    plain join and not tailwind-merge: pass `bg-surface` in `className` and
+    both grounds end up on the element, with the winner decided by the order
+    the two rules happen to land in the stylesheet. A prop has one answer.
+  */
+  ground?: string;
   className?: string;
 }) {
   return (
@@ -279,7 +289,8 @@ export function DeckSheet({
       id={id}
       aria-labelledby={labelledBy}
       className={cn(
-        "relative isolate overflow-clip bg-sage",
+        "relative isolate overflow-clip",
+        ground,
         "py-[4.5rem] md:py-[6rem] lg:py-[7rem]",
         binding ? "md:pl-10 lg:pl-12" : null,
         className,

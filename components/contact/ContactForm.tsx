@@ -127,7 +127,7 @@ export function ContactForm() {
       */}
       <div role="alert" aria-live="assertive">
         {errorCount > 0 ? (
-          <p className="mb-8 max-w-[36rem] border-l-2 border-terracotta pl-5 text-body leading-[1.8] text-text">
+          <p className="mb-8 max-w-[36rem] border-l-2 border-terracotta pl-5 text-body text-text">
             {errorCount === 1
               ? "One detail needs checking before this can be sent."
               : `${errorCount} details need checking before this can be sent.`}
@@ -249,12 +249,12 @@ export function ContactForm() {
           <p className="text-label font-medium uppercase tracking-eyebrow text-text">
             This message was not sent
           </p>
-          <p className="mt-4 max-w-[36rem] text-body leading-[1.8] text-text/80">
+          <p className="mt-4 max-w-[36rem] text-body text-text/80">
             The Maison has no inbox connected to this form yet, so nothing you have typed has
             been delivered anywhere and no one has been notified. Please do not treat this as
             received.
           </p>
-          <p className="mt-5 max-w-[36rem] text-body leading-[1.8] text-text/80">
+          <p className="mt-5 max-w-[36rem] text-body text-text/80">
             Every upcoming event is listed with its venue and its times, and places can be held
             from there.
           </p>

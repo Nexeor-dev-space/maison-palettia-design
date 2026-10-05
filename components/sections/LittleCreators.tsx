@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
@@ -51,7 +52,7 @@ import { LITTLE_CREATORS } from "@/lib/brand";
 const PLATES = [
   {
     src: "/images/creative/tissue-art.jpg",
-    alt: "Punch-needle squares in wool laid out on cloth — a bear, a panda, a cow, a cactus and a crescent moon — with yarn and needles beside them.",
+    alt: "Punch-needle squares in wool laid out on cloth (a bear, a panda, a cow, a cactus and a crescent moon), with yarn and needles beside them.",
     aspect: "aspect-[3/4]",
     offset: "lg:mt-0",
     mark: { name: "starleaf", color: INK.lilac } as const,
@@ -65,7 +66,7 @@ const PLATES = [
   },
   {
     src: "/images/creative/wooden-painting.jpg",
-    alt: "Painted wooden rounds — a sun and moon, a cactus in bloom, tulips with a bee — beside tubes of acrylic paint.",
+    alt: "Painted wooden rounds (a sun and moon, a cactus in bloom, tulips with a bee) beside tubes of acrylic paint.",
     aspect: "aspect-[3/4]",
     offset: "lg:mt-6",
     mark: { name: "bean", color: INK.terracotta } as const,
@@ -74,11 +75,30 @@ const PLATES = [
 
 export function LittleCreators() {
   return (
-    <DeckSheet labelledBy="little-creators-heading" className="overflow-x-clip">
+    /*
+      WHITE-ROCK-AND-SAGE NEITHER: this sits between <WhoItIsFor> on cream and
+      <Experiences> on sage, and on its own Light Sage default it would have
+      put two sage bands against each other. Surface is the site's own pale
+      paper and the third ground the run needs to keep alternating.
+    */
+    <DeckSheet
+      labelledBy="little-creators-heading"
+      ground="bg-surface"
+      className="overflow-x-clip"
+    >
       <SectionShapes plan={KIDS_SHAPES} />
 
       <Container className="relative">
-        <div className="grid grid-cols-12 items-end gap-x-gutter gap-y-6">
+        {/*
+          `gap-x-6 lg:gap-x-10`, NOT `gap-x-gutter`. This masthead had the
+          right column class — `lg:col-span-5 lg:col-start-8` — and still did
+          not line up with the other eleven, because the GUTTER decides where
+          a grid line falls. `--spacing-gutter` is `max(0.75rem, 1.3889vw)`,
+          which is 20px at 1440 against the 40px every other masthead grid
+          uses, so this description started 12px to the left of all of them
+          and ran 12px wider. The class was never the whole story.
+        */}
+        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6 lg:gap-x-10">
           <div className="relative col-span-12 lg:col-span-6">
             {/*
               Pinned above the label, hanging a little off the left margin.
@@ -94,7 +114,7 @@ export function LittleCreators() {
             </span>
 
             <Reveal>
-              <p className="flex items-center gap-3 text-label font-bold uppercase tracking-eyebrow text-terracotta">
+              <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-terracotta">
                 <span aria-hidden className="block w-4 shrink-0">
                   <DoodleMark name="dot" color={INK.terracotta} />
                 </span>
@@ -105,7 +125,7 @@ export function LittleCreators() {
             <Reveal delay={0.06}>
               <h2
                 id="little-creators-heading"
-                className="heading-script mt-5 text-script-section leading-[1.14] text-text"
+                className="heading-script mt-5 text-script-section text-text"
               >
                 {forScript("For Our Little Creators.")}
               </h2>
@@ -135,7 +155,9 @@ export function LittleCreators() {
               <DoodleMark name="bow" color={INK.lilac} delay={420} depth={10} />
             </span>
 
-            <p className="max-w-[36ch] text-body leading-[1.75] text-text/85">
+            {/* The column is the measure; a `max-w-[36ch]` here capped it
+                again at 380px inside a 560px slot. */}
+            <p className="text-lead text-text/85">
               Three activities cut to a smaller pair of hands, so a child and a parent can sit at
               the same table and both come away with something.
             </p>
@@ -230,66 +252,4 @@ export function LittleCreators() {
   at 0.45 because its lilac is the strongest thing the sheet prints and at
   two thirds it stopped being a ground and started being a mark.
 */
-const KIDS_SHAPES: readonly ShapePlan[] = [
-  {
-    name: "splash",
-    color: INK.terracotta,
-    width: "13%",
-    left: "-5%",
-    /*
-      A WHISKER INSIDE, NOT OUTSIDE, and the sign matters more than the
-      number. These offsets are percentages of the SECTION, and the section is
-      1063px tall at 1440 and 2027px at 375 — so `top: -3%` is 32px above the
-      edge on a desktop and 61px above it on a phone. Both are outside a box
-      that clips, which is why the two marks that survive to mobile were
-      invisible there and this section had nothing on it below `lg` but the
-      dot in the label. Vertical offsets stay positive; the horizontal ones
-      may bleed, because the section is clipped on x only at its own margins
-      and a mark running off the side is the deck's own habit.
-    */
-    top: "0.5%",
-    rotate: -14,
-    drift: 20,
-    opacity: 0.26,
-    float: 12,
-  },
-  {
-    name: "wave",
-    color: INK.whiteRock,
-    width: "14%",
-    right: "-3%",
-    top: "-1%",
-    rotate: 12,
-    drift: -16,
-    opacity: 0.45,
-    float: 14,
-    floatDelay: 1.8,
-    desktopOnly: true,
-  },
-  {
-    name: "cutout",
-    color: INK.terracotta,
-    width: "16%",
-    right: "3%",
-    /* Positive, for the reason on `splash` above. */
-    bottom: "1%",
-    rotate: -10,
-    drift: 18,
-    opacity: 0.22,
-    float: 15,
-    floatDelay: 2.6,
-  },
-  {
-    name: "zigzag",
-    color: INK.whiteRock,
-    width: "9%",
-    left: "6%",
-    bottom: "-1%",
-    rotate: -6,
-    drift: -22,
-    opacity: 0.55,
-    float: 11,
-    floatDelay: 3.2,
-    desktopOnly: true,
-  },
-];
+const KIDS_SHAPES: readonly ShapePlan[] = groundShapes([INK.terracotta, INK.whiteRock], { seed: 4 });

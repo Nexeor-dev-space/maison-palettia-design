@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
 import { DeckSheet } from "@/components/ui/deck/Deck";
@@ -194,56 +195,4 @@ export function StudioInterlude() {
   White Rock is the one that only whispers — which is why it is the biggest
   and the furthest out.
 */
-const INTERLUDE_SHAPES: readonly ShapePlan[] = [
-  /*
-    A `wave` USED TO OPEN THIS LIST and has been taken out of it twice, which
-    is worth writing down so it is not put back a third time. Behind the tall
-    plate's shoulder it was nine tenths covered and the tenth that showed read
-    as a grey backing board; moved into the channel below, at the width a
-    background mark needs to register, it became a 320px cloud with no edge —
-    Deep Lilac at a fifth opacity over Light Sage has almost no hue left in
-    it, so a big one is a smudge and a small one is nothing.
-
-    The bottom band did not want a fifth shape anyway. <DoodleMark>'s bridge
-    and bow already punctuate it at full strength, and what is left between
-    them is the rest the two photographs are sitting in.
-  */
-  {
-    name: "zigzag",
-    color: INK.terracotta,
-    width: "14%",
-    right: "4%",
-    top: "6%",
-    rotate: 8,
-    drift: -18,
-    opacity: 0.22,
-    float: 11,
-    floatDelay: 1.6,
-    desktopOnly: true,
-  },
-  {
-    /* Pulled in off the edge: at `-6%` it lost 130px of itself to the window
-       and what was left read as a wedge ruled against the side of the screen
-       rather than as a shape. */
-    name: "bean",
-    color: INK.whiteRock,
-    width: "21%",
-    right: "0%",
-    bottom: "6%",
-    rotate: 16,
-    drift: 20,
-    opacity: 0.5,
-    float: 15,
-    floatDelay: 3.1,
-  },
-  /*
-    AND A `dot` CAME OUT OF THE LIST, for the reason the wave did and one of
-    its own. At `left: 16%, bottom: 10%` it was squarely behind the tall
-    photograph and never rendered a pixel; moved into the channel where it
-    could be seen, it was a plain circle at a third opacity — which on this
-    ground is a grey oval, and a grey oval in the middle of a composition
-    reads as an image that has not finished loading. Every other mark here is
-    a cut-out with an edge that could only have been drawn by hand, and that
-    is what carries them at low opacity. A circle has no such edge.
-  */
-];
+const INTERLUDE_SHAPES: readonly ShapePlan[] = groundShapes([INK.terracotta, INK.whiteRock], { seed: 2 });

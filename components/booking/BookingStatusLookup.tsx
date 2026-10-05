@@ -99,7 +99,17 @@ export function BookingStatusLookup() {
           It is on your confirmation, and looks like MP-D followed by six characters.
         </p>
 
-        <BlobButton type="submit" className="mt-9 w-full justify-center px-8 py-4 sm:w-auto">
+        {/* `deep`, AND IT IS THE SAME BUG AS THE EVENT PAGE'S CLOSING ACTION.
+            This form stands on `bg-sage` and the default tone floods Light
+            Sage: measured off the composited pixels, dE 0.0 — the one control
+            on the page turned into the page under the pointer. Deep Lilac
+            deepening to Charcoal is dE 73.3 here. BlobButton.module.css has
+            the figures and the reasoning. */}
+        <BlobButton
+          type="submit"
+          tone="deep"
+          className="mt-9 w-full justify-center px-8 py-4 sm:w-auto"
+        >
           Check status
         </BlobButton>
       </form>
@@ -122,10 +132,10 @@ export function BookingStatusLookup() {
             <p className="text-label font-medium uppercase tracking-eyebrow text-text">
               No booking found
             </p>
-            <p className="mt-4 text-body leading-[1.8] text-text/80">
+            <p className="mt-4 text-body text-text/80">
               Nothing matches <span className="tabular-nums text-text">{submitted}</span>.
               Preview bookings are held in the browser they were made in, so a reference from
-              another device — or from a browser whose data has been cleared — will not be found
+              another device (or from a browser whose data has been cleared) will not be found
               here.
             </p>
             <Link

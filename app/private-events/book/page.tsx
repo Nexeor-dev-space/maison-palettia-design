@@ -84,11 +84,11 @@ export default async function PrivateEventBookingPage() {
               Private events
             </p>
             <h1 className="mt-8 heading-script text-script-section">
-              Plan your private experience.
+              Plan Your Private Experience.
             </h1>
-            <p className="mt-8 max-w-[34rem] text-body leading-[1.85] text-text/80">
+            <p className="mt-8 max-w-[34rem] text-body text-text/80">
               Tell us who is coming and what you would like them to make. The more you can say
-              the more useful our reply will be — but an estimate is enough to start with, and
+              the more useful our reply will be, but an estimate is enough to start with, and
               nothing you send here is fixed.
             </p>
           </Reveal>

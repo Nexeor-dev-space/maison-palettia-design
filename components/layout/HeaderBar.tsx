@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { NavLabel } from "@/components/layout/NavLabel";
+import { NAV_SIZE, NAV_UTILITY_SIZE, NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
+import { AboutMenu } from "@/components/layout/AboutMenu";
 import { PrivateEventsMenu } from "@/components/layout/PrivateEventsMenu";
 import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
 import { Container } from "@/components/ui/Container";
@@ -43,8 +44,17 @@ import type { Workshop } from "@/types";
  * ever needed to against the lilac — see the same choice made in <MobileNav>
  * and <WorkshopsMenu>.
  */
+/*
+  NO SIZE HERE ANY MORE. It carried `text-body`, which is right for the four
+  destinations and is exactly what made the three utilities read as four more
+  of them. The rung is handed in by the caller — `NAV_SIZE` opposite the mark,
+  `NAV_UTILITY_SIZE` beside it — and it is handed in rather than overridden
+  because `cn` is plain concatenation with no conflict resolution: two font
+  sizes on one element would be settled by the order Tailwind happened to emit
+  them in, not by the order they are written.
+*/
 const NAV_LINK =
-  "group/nav inline-flex whitespace-nowrap text-body tracking-[0.015em] text-current " +
+  "group/nav inline-flex whitespace-nowrap tracking-[0.015em] text-current " +
   "transition-colors duration-300 ease-soft";
 
 /**
@@ -108,13 +118,23 @@ const DIRECTION_DEADBAND = 6;
  * forces both tracks to the same width unconditionally; content that does not
  * fit clips or wraps inside its own track rather than ever widening it.
  *
- * Every child carries an explicit `col-start` rather than relying on DOM
- * order to land it in the right track, which is what lets the *mobile* row
- * keep its own arrangement — mark left, trigger right, no centred anything —
- * from the very same three elements: `grid-cols-[auto_1fr_auto]` below `lg`
- * puts the mark in the first `auto` track and the nav (which is `hidden`
- * there regardless) out of the way, and the desktop `lg:grid-cols-[...]`
- * override simply reassigns where each explicit track number points.
+ * Every child carries an explicit `col-start` and `row-start-1` rather than
+ * relying on DOM order to land it in the right track, which is what lets the
+ * row keep three different arrangements from the very same three elements:
+ *
+ *   phone ......... `grid-cols-[auto_1fr_auto]`, mark in the first `auto`
+ *                   track at the left edge, trigger at the right, and the nav
+ *                   `hidden` regardless.
+ *   1024 to 1279 .. the same template with the nav in the middle `1fr`. The
+ *                   mark stays at the left edge because the centred one does
+ *                   not fit here — see the note on the grid below.
+ *   1280 and up ... `xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]`, which
+ *                   simply reassigns where each explicit track number points
+ *                   and puts the mark back on the page's centre line.
+ *
+ * `row-start-1` is what makes the middle one legal: grid auto-placement never
+ * moves backwards, so a nav asking for column 2 ahead of a mark asking for
+ * column 1 would otherwise push the mark into a second row.
  *
  * The ground is Deep Lilac — see `--color-nav` in globals.css, which the bar,
  * the Workshops dropdown and the mobile overlay all read from the one place.
@@ -449,11 +469,25 @@ export function HeaderBar({
           // still refuses to shrink below its content, so the wider side would
           // push the mark off centre the moment the two stopped matching.
           //
-          // Below `lg` the nav is hidden and the row is the ordinary mobile
-          // arrangement — mark at the left edge, actions at the right — so the
-          // tracks only have to hold those two.
+          // THE CENTRED ARRANGEMENT STARTS AT `xl`, NOT `lg`, AND THAT IS A
+          // COLLISION RATHER THAN A PREFERENCE. Between 1024 and 1279 the two
+          // flexible tracks are (width − mark − gaps)/2, which at 1024 gives
+          // the navigation 409px — and the four labels measure 425 on their
+          // own, before a single gap between them. They printed over the mark:
+          // at 1024 "Gallery" sat on top of the wordmark, unreadable, and it
+          // was still 23px under the "M" at 1280. Closing every gap to zero
+          // would not have cleared it; the row simply does not fit beside a
+          // centred mark at those widths.
+          //
+          // So `[auto_1fr_auto]` now covers `lg` as well as the phone. The
+          // mark takes the first `auto` track at the left edge, the navigation
+          // takes the `1fr` beside it, and the actions keep the last — the
+          // arrangement the client chose when the alternatives were put to
+          // them. At `xl` there is room again and the mark goes back to the
+          // page's own centre line, which is where every width in the brief
+          // sees it.
           "grid grid-cols-[auto_1fr_auto] items-center gap-6",
-          "lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
+          "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
           "transition-[height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
           /*
             ONE HEIGHT NOW, AND THE PINNING IS WHY.
@@ -503,8 +537,9 @@ export function HeaderBar({
           figure, because air is what the extra width is for.
 
           1024 is still the tight width and the figure there is held back for
-          it — measured below, where the three links, the mark and the actions
-          have to share one row without the mark leaving the centre.
+          it — but the mark no longer has to stay on the centre line while the
+          row, the mark and the actions share it. It steps to the left edge
+          under `xl` precisely so that they fit. See the grid above.
         */}
         {/*
           `self-stretch` down this chain is what makes the strands menu usable
@@ -516,9 +551,35 @@ export function HeaderBar({
           entry's bottom edge exactly where the panel's top edge is, so there
           is nothing to cross. Measured: the gap is now 0.
         */}
+        {/*
+          TWO TRACKS, ONE NAV. At `lg` it is the middle track, beside a mark
+          that is sitting at the left edge; at `xl` it takes the first and the
+          mark goes to the centre. See the note on the grid above.
+
+          ONE THING IS KNOWINGLY TRADED at `lg`, and it is worth stating rather
+          than discovering: the nav is still FIRST in the source, so between
+          1024 and 1279 a keyboard reaches the links before the wordmark's home
+          link although the eye meets the wordmark first. Source order is not
+          swapped to match, because doing that would move the same mismatch on
+          to `xl` — the width every reader of this bar actually has — where the
+          current order is right. A home link reached after the primary nav
+          preserves meaning and operability; a nav reached after it on every
+          desktop would be the worse half of the trade.
+        */}
         <nav
           aria-label="Primary"
-          className="hidden self-stretch lg:col-start-1 lg:flex lg:justify-start"
+          /*
+            `row-start-1` ON ALL THREE, AND IT IS NOT DECORATION.
+
+            Grid auto-placement is sparse: it never moves backwards. The nav
+            comes first in the source and at `lg` it asks for column 2, so the
+            mark asking for column 1 after it could not be placed in the same
+            row and was pushed into an implicit SECOND one — a two-storey bar
+            with the wordmark sitting under the links. Pinning every child to
+            row 1 lets the columns be assigned in any order the breakpoints
+            want while the row stays one row.
+          */
+          className="row-start-1 hidden self-stretch lg:col-start-2 lg:flex lg:justify-start xl:col-start-1"
         >
           {/*
             24px at 1024, 44px from 1280. The labels are heavier now and the
@@ -541,7 +602,27 @@ export function HeaderBar({
             palette — pale paint behind pale type. Null there, and <NavLabel>
             falls back to the hairline it has always drawn.
           */}
-          <ul className="flex items-stretch gap-6 xl:gap-11 2xl:gap-12">
+          {/*
+            32px FROM 1280, NOT 44 — and this is a collision, not a taste call.
+
+            Measured on /locations at 1280: the four labels plus three 44px
+            gaps put the row's right edge on 574, and the centred mark's box
+            starts at 551. Gallery and its swatch were printing UNDER the "M"
+            of Maison at the exact width the client was looking at. 32px gives
+            the three gaps back 36px and the row ends on 538, clear by 13.
+
+            1536 and up keeps its 48: there is 121px of daylight there and the
+            wide screens were never the problem.
+
+            THE NARROW END IS NOT FIXED BY THIS AND COULD NOT BE. Between
+            1024 and 1279 the four labels measure 425px on their own against a
+            409px track, so they overlapped the mark before a single gap was
+            counted — closing the gaps to zero still left it short. That one
+            took a layout decision rather than a figure, and the client took
+            it: the mark leaves the centre under `xl` and sits at the left
+            edge with the row beside it. See the grid above.
+          */}
+          <ul className="flex items-stretch gap-6 xl:gap-8 2xl:gap-12">
             {/*
               Two filters, two different jobs. `secondary` entries are dropped
               from the bar entirely and kept in the mobile menu and the footer;
@@ -556,7 +637,21 @@ export function HeaderBar({
                     label={item.label}
                     href={item.href}
                     isActive={isActive(item.href)}
-                    linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
+                    linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
+                    paint={onDarkInk ? null : linkPaint(i)}
+                  />
+                </li>
+              ) : item.menu === "about" ? (
+                /* The third panel. Doors rather than a rail, for the reason
+                   set out in <AboutMenu> — and the same <MenuCard>, so it
+                   opens as the other two do. */
+                <li key={item.href} className="flex items-center">
+                  <AboutMenu
+                    onOpenChange={setIsStrandsOpen}
+                    label={item.label}
+                    href={item.href}
+                    isActive={isActive(item.href)}
+                    linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
                     paint={onDarkInk ? null : linkPaint(i)}
                   />
                 </li>
@@ -571,7 +666,7 @@ export function HeaderBar({
                     // clicks away. Matched to an activity by slug inside.
                     sessions={workshops}
                     isActive={isActive(item.href)}
-                    linkClassName={cn(NAV_LINK, NAV_WEIGHT)}
+                    linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
                     paint={onDarkInk ? null : linkPaint(i)}
                   />
                 </li>
@@ -580,7 +675,7 @@ export function HeaderBar({
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
-                    className={cn(NAV_LINK, NAV_WEIGHT)}
+                    className={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
                   >
                     <NavLabel isActive={isActive(item.href)} paint={onDarkInk ? null : linkPaint(i)}>
                       {item.label}
@@ -603,7 +698,7 @@ export function HeaderBar({
           and the row reverts to the ordinary mobile arrangement without a
           second set of markup to keep in step.
         */}
-        <div className="col-start-1 flex items-center justify-start lg:col-start-2 lg:justify-center">
+        <div className="row-start-1 col-start-1 flex items-center justify-start xl:col-start-2 xl:justify-center">
           {/* Light ground gets the Deep Lilac cut; the sage cut would vanish. */}
           <Wordmark onLight={!onDarkInk} />
         </div>
@@ -632,7 +727,15 @@ export function HeaderBar({
           one solid block of colour in the corner is the single thing that most
           made it look like one.
         */}
-        <div className="col-start-3 flex items-center justify-end gap-5 lg:gap-7 xl:gap-9">
+        {/*
+          TIGHTER THAN THE NAVIGATION OPPOSITE, which is the third thing that
+          ranks the row. The cluster ran at the same 36px the destinations do,
+          so three utilities spread across the right-hand track read as three
+          more titles with the same air around them. At 28px they close into
+          one group, and the space they give back goes where it is wanted —
+          between the mark and them. The navigation's own gaps are untouched.
+        */}
+        <div className="row-start-1 col-start-3 flex items-center justify-end gap-5 lg:gap-6 xl:gap-7">
           {/*
             The way back into a booking in progress. It appears only once
             something is held, which is why it is not a permanent basket icon:
@@ -651,10 +754,15 @@ export function HeaderBar({
             isOpen={isSearchOpen}
             onClick={toggleSearch}
             panelId={searchPanelId}
-            /* Search keeps the same swatch as everything else — the brief is
-               explicit that it must not become a CTA, so it gets the row's
-               treatment and nothing more. */
-            paint={onDarkInk ? null : linkPaint(3)}
+            /*
+              NO SWATCH, AND IT IS STILL NOT A CTA — the brief that put paint
+              here was explicit that Search must not become one, and this moves
+              in the same direction rather than against it. The paint is the
+              navigation's mark now (see NAV_SIZE in <NavLabel>), and Search is
+              the one control in the bar that already has a signal no other
+              entry has: the icon. It keeps that, and the hairline underneath.
+            */
+            paint={null}
           />
 
           {/*
@@ -664,7 +772,7 @@ export function HeaderBar({
             everything else, and repeating it in a three-control bar would
             crowd the one control that has to be easy to hit.
           */}
-          {utilityNav.map((item, u) => (
+          {utilityNav.map((item) => (
             /*
               Wrapped rather than given `hidden` directly, because NAV_LINK
               already carries `inline-flex`: two display utilities on one
@@ -677,9 +785,11 @@ export function HeaderBar({
               <Link
                 href={item.href}
                 aria-current={isActive(item.href) ? "page" : undefined}
-                className={cn(NAV_LINK, NAV_WEIGHT)}
+                className={cn(NAV_LINK, NAV_UTILITY_SIZE, NAV_WEIGHT)}
               >
-                <NavLabel isActive={isActive(item.href)} paint={onDarkInk ? null : linkPaint(u + 4)}>
+                {/* The utility rung: a step down in size and no swatch. See
+                    the note on the two rungs in <NavLabel>. */}
+                <NavLabel isActive={isActive(item.href)} paint={null}>
                   {item.label}
                 </NavLabel>
               </Link>

@@ -141,69 +141,103 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
   */
   {
     slug: "birthday-parties",
-    name: "Birthday parties",
+    name: "Birthday Parties",
     description: "Kids and parents sharing a creative activity, and quality time together.",
     image: {
-      src: "/images/events/glitter-keepsakes.jpg",
+      /*
+        THE CLIENT'S OWN who-is-it-for SET, which replaces the four stand-ins
+        that were here. Those were the studio's existing frames, chosen for
+        having CONTENTS close to the group named, because nothing in the
+        project photographed the groups themselves.
+
+        A NOTE ON THIS ONE, worth saying rather than quietly shipping: it is
+        the weakest fit of the four. A birthday table with a cake, sparklers
+        and a numeral candle reading 23 — no making in it, and no child. The
+        line under the card says "Kids and parents sharing a creative
+        activity", and the other three all show people with brushes in their
+        hands. Supplied and used as asked; drop a different file at this path
+        and nothing else has to change.
+      */
+      src: "/images/who-is-it-for/birthday-parties.jpg",
       alt:
-        "Four handmade keepsakes cupped in children’s hands, two lettered with names and hearts and two filled with purple glitter and heart charms.",
+        "Three friends in paper party hats leaning in around a chocolate birthday cake with a lit number candle, sparklers burning in their hands.",
       /*
         THE ONLY PORTRAIT SOURCE IN THE FOUR, AND THE ONLY ONE THAT HAS TO BE
         AIMED. It is 480x640; the programme masthead cuts 3:2, which is 320 of
         those 640 rows, and the four keepsakes occupy rows 110 to 500 — 390,
-        more than the window holds. Centred, the window would sit at 160–480
-        and take the top off the glittered shell at the top and the bottom off
-        the big one; at 45% it sits at 144–464 and the trim is about 35 rows
-        at each end, with all four keepsakes still in frame.
+        more than the window holds.
 
-        The other three are landscape or near it (1.78, 1.2) and lose only
-        background to the same cut, so they take the default.
+        REPLACED, AND THE NUMBERS WITH IT. The source is 2000x1333 now and
+        the faces run across the upper middle of the frame, so a tall crop
+        holds them by sitting a little above centre rather than at 45%.
       */
-      position: "50% 45%",
+      position: "50% 42%",
     },
     mark: { name: "splash", color: INK_MARK.lavender },
     inPrivateEventsMenu: true,
   },
   {
     slug: "corporate-events",
-    name: "Corporate events",
+    name: "Corporate Events",
     description: "Hands-on creative experiences for teams and company gatherings.",
     image: {
-      src: "/images/experience/community-table.jpg",
+      /* The filename's spelling is the client's own and is left exactly as
+         supplied — renaming a delivered asset to tidy it is how a path goes
+         stale in one place and not the other. */
+      src: "/images/who-is-it-for/corporate-evebts.jpg",
       alt:
-        "A hand resting over a watercolour palette and a sheet of paper at a shared table, brushes and a bag beside it.",
+        "Three colleagues around a wooden table painting on paper with watercolours, one standing and leaning in over the other two.",
+      /* 2000x1333, the three of them across the middle band. */
+      position: "50% 45%",
     },
     mark: { name: "starburst", color: INK_MARK.lilac },
     inPrivateEventsMenu: true,
   },
   {
     slug: "school-programs",
-    name: "School programmes",
+    name: "School Programmes",
     description: "Creative, hands-on activities brought to students.",
     image: {
-      src: "/images/events/national-day-cards.jpg",
+      src: "/images/who-is-it-for/school-programs.jpg",
       alt:
-        "Two quilled cards for Eid Al Etihad reading “I love UAE”, beside a pen pot made from lolly sticks painted in the colours of the UAE flag.",
+        "Four school-age children at a table spread with felt tips and paintings, one holding up a loaded paint palette and another a brush.",
+      /* 2000x1429. Four heads across the upper half, so the crop is held
+         above centre to keep all of them. */
+      position: "50% 40%",
     },
     mark: { name: "starleaf", color: INK_MARK.terracotta },
     inPrivateEventsMenu: true,
   },
   {
     slug: "mall-and-community-activations",
-    name: "Mall & community activations",
+    name: "Mall & Community Activations",
     description:
       "Workshops tailored to an event’s theme, bringing creativity to kids and adults alike.",
     /*
-      THE ONLY PROGRAMME WITH NO PHOTOGRAPH, and now the only one with a mark
-      instead of one. Nothing in the project photographs an activation, and
-      the three stand-ins above are the studio's own frames whose CONTENTS
-      come closest to the group named — there is no frame whose contents come
-      close to this. So it takes the fallback the type documents: a brand
-      cut-out, which claims nothing about an occasion.
+      IT HAS A PHOTOGRAPH NOW. The note that stood here said exactly what was
+      missing — "nothing in the project photographs an activation" — and this
+      one does. It is the strongest of the four the client supplied and the
+      only one that reads as the Maison's own room rather than a stock table:
+      a long bench of ceramic painting in progress, with the studio's glaze
+      bottles and brush pots in the frame.
 
-      Before this it carried neither, and the card rendered an empty field —
-      a slab of Deep Lilac with a heading in the corner.
+      The brand cut-out stays in the data as the fallback the type documents.
+      Both renderers prefer the photograph and fall back to the mark, so
+      nothing has to branch — remove the file and the lilac field returns.
     */
+    image: {
+      src: "/images/who-is-it-for/malls-community.jpg",
+      alt:
+        "A woman painting a pattern onto a ceramic mug at a long table of glaze bottles and brush pots, with other people working and talking behind her.",
+      /*
+        4000x6000 — the one portrait source, and 2:3 is the tallest thing any
+        of these frames has had to hold. A landscape card keeps a horizontal
+        band of it, and the band that matters is the hands, the mug and the
+        painted plate, about 55% down. Centred, the crop would be the
+        subject's shoulder and the empty lattice ceiling above her.
+      */
+      position: "50% 55%",
+    },
     mark: { name: "coral", color: INK_MARK.cream },
   },
 ] as const;
@@ -242,17 +276,17 @@ export interface PrivateEventStep {
 export const PRIVATE_EVENT_STEPS: readonly PrivateEventStep[] = [
   {
     number: "01",
-    title: "Tell us about your event",
+    title: "Tell Us About Your Event",
     detail: "Share your occasion, group size and preferred date.",
   },
   {
     number: "02",
-    title: "Choose your experience",
+    title: "Choose Your Experience",
     detail: "We will help shape the right creative activity for your group.",
   },
   {
     number: "03",
-    title: "Create together",
+    title: "Create Together",
     detail: "Everyone makes something, and everyone leaves holding it.",
   },
 ] as const;

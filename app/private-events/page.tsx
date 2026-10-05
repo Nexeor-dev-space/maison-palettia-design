@@ -4,6 +4,7 @@ import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import {
@@ -30,6 +31,7 @@ import { INK } from "@/components/sections/hero/composition";
   brand sheet's own pairing, and it measures 3.83:1 on that ground.
 */
 const SAGE_MARK = "#D1E7BE";
+import { LittleCreators } from "@/components/sections/LittleCreators";
 import type { MallPartner } from "@/types";
 
 /*
@@ -98,7 +100,7 @@ const AUDIENCE_TONES: Record<
 export const metadata = buildMetadata({
   title: "Private events",
   description:
-    "Creative experiences designed around your people, your occasion and your space — a private Maison Palettia session where everyone makes something to take home.",
+    "Creative experiences designed around your people, your occasion and your space. A private Maison Palettia session where everyone makes something to take home.",
   path: "/private-events",
 });
 
@@ -184,6 +186,15 @@ export default async function PrivateEventsPage() {
       */}
       <Introduction />
       <WhoItIsFor />
+      {/*
+        TAILORED CHILDREN'S ACTIVITIES, moved here from /about at the client's
+        ask. It sits directly under <WhoItIsFor /> because two of the four
+        audiences that section names — birthdays and school programmes — are
+        children's, so this is the answer to the question it has just raised,
+        and it comes before <Experiences /> because that one is the general
+        menu and this is the part of it made for them.
+      */}
+      <LittleCreators />
       <Experiences experiences={experiences} />
       <CreateWithUs partner={partners[0]} />
       <HowItWorks />
@@ -295,7 +306,7 @@ function Introduction() {
               {/* `script-lede` rather than a margin: the gap under a script
                   heading is a token, because Hapsha's descenders hang into
                   it. */}
-              <p className="script-lede max-w-[46ch] text-body leading-[1.9] text-text/80">
+              <p className="script-lede max-w-[46ch] text-lead text-text/80">
                 From team gatherings to celebrations, Maison Palettia creates
                 hands-on experiences that give people a reason to sit down
                 together, make something, and take it home.
@@ -394,33 +405,7 @@ function Introduction() {
   floating clear of it. A mark that breaks an edge is placed; the same mark in
   open space is a smudge.
 */
-const INTRO_SHAPES: readonly ShapePlan[] = [
-  {
-    name: "splash",
-    color: INK.lilac,
-    width: "13%",
-    left: "-3%",
-    bottom: "-8%",
-    rotate: -12,
-    drift: 22,
-    opacity: 0.22,
-    float: 13,
-    desktopOnly: true,
-  },
-  {
-    name: "starburst",
-    color: INK.terracotta,
-    width: "6%",
-    left: "33%",
-    bottom: "8%",
-    rotate: 12,
-    drift: 18,
-    opacity: 0.22,
-    float: 11,
-    floatDelay: 0.6,
-    desktopOnly: true,
-  },
-];
+const INTRO_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta], { seed: 4 });
 
 /* ==========================================================================
    03 — WHO IT IS FOR
@@ -472,7 +457,8 @@ function WhoItIsFor() {
           </div>
 
           <Reveal delay={0.2} className="col-span-12 md:col-span-5 md:pb-3">
-            <p className="max-w-[26rem] text-body leading-[1.85] text-text/80">
+            {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
+            <p className="text-lead text-text/80">
               Examples of the groups a session can be built around. If yours is
               none of these, it is still worth asking.
             </p>
@@ -673,13 +659,13 @@ function WhoItIsFor() {
                         {audience.name}
                       </h3>
 
-                      <p className="mt-3 max-w-[40ch] text-body leading-[1.75]">
+                      <p className="mt-3 max-w-[40ch] text-body">
                         {audience.description}
                       </p>
 
                       {/* The affordance is drawn rather than implied: the card
                           is the link, and a reader needs to be told so. */}
-                      <span className="mt-5 inline-flex items-center gap-2.5 text-action font-semibold uppercase tracking-eyebrow">
+                      <span className="mt-5 inline-flex items-center gap-2.5 text-action font-medium uppercase tracking-eyebrow">
                         See the programme
                         <span
                           aria-hidden
@@ -772,7 +758,8 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
         </div>
 
         <Reveal delay={0.2} className="col-span-12 md:col-span-5 md:pb-3">
-          <p className="max-w-[26rem] text-body leading-[1.85] text-text/80">
+          {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
+          <p className="text-lead text-text/80">
             The Maison&rsquo;s creative world, as a starting point. We shape the
             right activity for your group once you have told us about it.
           </p>
@@ -953,78 +940,9 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
   as a texture behind it, and none of them touches another.
 */
 /* Deep Lilac carries White Rock (3.95:1) and Light Sage (3.83) only. */
-const ENQUIRY_SHAPES: readonly ShapePlan[] = [
-  { name: "splash", color: INK.whiteRock, width: "8%", left: "5%", top: "14%", rotate: -12, drift: 22, opacity: 0.22, float: 13 },
-  { name: "coral", color: "var(--color-sage)", width: "6.5%", right: "6%", bottom: "16%", rotate: 10, drift: -18, opacity: 0.2, float: 15, floatDelay: 1.2 },
-];
+const ENQUIRY_SHAPES: readonly ShapePlan[] = groundShapes([INK.whiteRock, "var(--color-sage)"], { seed: 1 });
 
-const WHERE_SHAPES: readonly ShapePlan[] = [
-  /* Above the card, in the top-right. The width is set by where it ENDS:
-     coral is 1.55 times as tall as it is wide and `width` is a share of the
-     section's WIDTH, so on a wide, short section it reaches much further down.
-     At 1920 the box is 1920x618 and the card's top is at 36.8%, so 5.5% (106px
-     wide, 164px tall) lands at 27.5% and leaves room for the drift. 8% put it
-     at 44.6% and straight through the card. */
-  {
-    name: "coral",
-    color: INK.lilac,
-    width: "5.5%",
-    left: "64%",
-    top: "1%",
-    rotate: -12,
-    drift: 22,
-    opacity: 0.18,
-    float: 13,
-    desktopOnly: true,
-  },
-  /* Under the words. Same arithmetic in the other direction, and the same
-     trap: at 1920 the paragraph ends at 76.7% and 9% of the width was 145px
-     tall, which started the shape at 73%. 6% is 97px and starts it at 83%,
-     which still clears once the float has moved it. */
-  {
-    name: "splash",
-    color: INK.lilac,
-    width: "6%",
-    left: "5%",
-    bottom: "1%",
-    rotate: 10,
-    drift: -18,
-    opacity: 0.16,
-    float: 15,
-    floatDelay: 1.4,
-    desktopOnly: true,
-  },
-  /* Beside the words rather than on the card — the paragraph's measure ends
-     at 34.7% and the card begins at 59.6%, so 38% is the middle of a band
-     with nothing in it. */
-  {
-    name: "starburst",
-    color: INK.terracotta,
-    width: "6%",
-    left: "38%",
-    bottom: "6%",
-    rotate: 12,
-    drift: 16,
-    opacity: 0.22,
-    float: 11,
-    floatDelay: 0.6,
-  },
-  /* In the channel, at half height: the smallest of the four, because the
-     channel is 158px wide and anything larger plugs it. */
-  {
-    name: "zigzag",
-    color: INK.charcoal,
-    width: "3.5%",
-    left: "52%",
-    top: "45%",
-    rotate: -8,
-    drift: -12,
-    opacity: 0.14,
-    float: 17,
-    floatDelay: 2.1,
-    desktopOnly: true,
-  },
-];
+const WHERE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.charcoal], { seed: 0 });
 
 function CreateWithUs({ partner }: { partner?: MallPartner }) {
   if (!partner) return null;
@@ -1062,7 +980,7 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
             </h2>
 
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[30rem] text-body leading-[1.9] text-text/85">
+              <p className="mt-8 max-w-[30rem] text-lead text-text/85">
                 Maison Palettia brings creative experiences to spaces where
                 people already gather.
               </p>
@@ -1117,7 +1035,7 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
               <p className="mt-4 text-h3 font-light tracking-[-0.02em] text-surface">
                 {partner.name}
               </p>
-              <p className="mt-2 text-body leading-[1.7] text-surface">{partner.locality}</p>
+              <p className="mt-2 text-body text-surface">{partner.locality}</p>
               <p className="mt-5 max-w-[26rem] text-fine leading-[1.7] text-surface">
                 {partner.descriptor}
               </p>
@@ -1196,59 +1114,7 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
   arrangement holds as it scales. Light Sage is not among them: it is the
   ground they stand on.
 */
-const PROCESS_SHAPES: readonly ShapePlan[] = [
-  {
-    name: "splash",
-    color: INK.lilac,
-    width: "12%",
-    left: "32%",
-    top: "15%",
-    rotate: -13,
-    drift: 24,
-    opacity: 0.2,
-    float: 13,
-    desktopOnly: true,
-  },
-  {
-    name: "coral",
-    color: INK.terracotta,
-    width: "8%",
-    left: "48%",
-    top: "20%",
-    rotate: 10,
-    drift: -18,
-    opacity: 0.17,
-    float: 16,
-    floatDelay: 1.5,
-    desktopOnly: true,
-  },
-  {
-    name: "starburst",
-    color: INK.lavender,
-    width: "10%",
-    left: "63%",
-    top: "14%",
-    rotate: -6,
-    drift: 21,
-    opacity: 0.22,
-    float: 11,
-    floatDelay: 0.7,
-    desktopOnly: true,
-  },
-  {
-    name: "zigzag",
-    color: INK.charcoal,
-    width: "6%",
-    left: "80%",
-    top: "26%",
-    rotate: 16,
-    drift: -22,
-    opacity: 0.15,
-    float: 14,
-    floatDelay: 2.3,
-    desktopOnly: true,
-  },
-];
+const PROCESS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender, INK.charcoal], { seed: 0 });
 
 const STEP_STOCK: readonly {
   ground: string;
@@ -1422,7 +1288,7 @@ function HowItWorks() {
                     {step.title}
                   </h3>
 
-                  <p className={cn("mt-4 text-body leading-[1.8]", stock.body)}>{step.detail}</p>
+                  <p className={cn("mt-4 text-body", stock.body)}>{step.detail}</p>
                 </article>
               </Reveal>
             </li>
@@ -1508,8 +1374,8 @@ function EnquiryCta() {
                 short, which under a centred script heading reads as a
                 paragraph that ran out rather than as two lines.
               */}
-              <p className="mx-auto mt-9 max-w-[44rem] text-balance text-body leading-[1.9] text-surface">
-                Tell us what you are planning — roughly when, roughly how many,
+              <p className="mx-auto mt-9 max-w-[44rem] text-balance text-lead text-surface">
+                Tell us what you are planning: roughly when, roughly how many,
                 and what you would like everyone to make. We will help you shape
                 the experience.
               </p>

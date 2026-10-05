@@ -1,5 +1,6 @@
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { ExperienceCarousel } from "@/components/sections/home/ExperienceCarousel";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
@@ -78,55 +79,7 @@ import { getCreativeExperiences } from "@/lib/experiences";
   cards stack and the gap this is filling does not exist — a mark there is not
   a ground, it is something behind the words.
 */
-const EXPERIENCE_SHAPES: readonly ShapePlan[] = [
-  /* The splash holds the gap the heading leaves. Largest and strongest of the
-     two, because it is the one carrying the empty half of the masthead. */
-  {
-    name: "splash",
-    color: INK.lilac,
-    width: "13%",
-    left: "27%",
-    top: "5%",
-    rotate: -12,
-    drift: 26,
-    opacity: 0.22,
-    float: 13,
-    desktopOnly: true,
-  },
-  /*
-    The coral belongs to the copy on the right, so it is pinned to it.
-
-    A PERCENTAGE CANNOT DO THIS, AND THAT IS WHY IT DRIFTED. <Container> has
-    no ceiling — the page runs the full width of the display, held in only by
-    the gutter — and the note is `lg:max-w-[30ch]` at a font size that stops
-    growing at about 860px. So above `lg` the note's left edge is a FIXED
-    distance from the right of the screen: the gutter plus roughly 20rem. A
-    shape at `right: 26%` is a distance that grows with the screen, so the two
-    separate as the window widens: 36px of gap at 1440, 174px at 2000, 312px
-    on a 2560 display. Measured on all four.
-
-    Expressed the way the note is expressed, the gap is the same at every
-    width. `--spacing-gutter` is the token <Container> itself uses, so the two
-    cannot drift apart again; 20rem is the note's own measure once its type
-    has stopped clamping; 1.5rem is the gap.
-
-    The width is clamped for the same reason — 8% of a 2560 display is a
-    250px mark against a paragraph that never grows past 320.
-  */
-  {
-    name: "coral",
-    color: INK.terracotta,
-    width: "clamp(6rem, 8%, 9.5rem)",
-    right: "calc(var(--spacing-gutter) + 20rem + 1.5rem)",
-    top: "9%",
-    rotate: -6,
-    drift: 22,
-    opacity: 0.2,
-    float: 11,
-    floatDelay: 0.9,
-    desktopOnly: true,
-  },
-];
+const EXPERIENCE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta], { seed: 0 });
 
 export async function ExperienceDiscovery() {
   const experiences = await getCreativeExperiences();
@@ -150,7 +103,29 @@ export async function ExperienceDiscovery() {
           what goes in it. See EXPERIENCE_SHAPES. */}
       <SectionShapes plan={EXPERIENCE_SHAPES} />
       <Container className="relative">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+        {/*
+          ==================================================================
+          THE SECTION MASTHEAD, ON THE SAME GRID AS EVERY OTHER ONE
+          ==================================================================
+
+          This was `flex … lg:justify-between` with the description capped by
+          its own `max-w`, and it was the only masthead on the site built that
+          way. The cost is what `justify-between` means: the right block is
+          pushed against the right edge and its LEFT edge then falls wherever
+          its measure happens to put it. Measured at 1440 against the four
+          sections that use the grid, this one started 115px further right and
+          ran 115px narrower — "Pick a Colour" at x975/w445 against x860/w560
+          on /faq, /events, /policies and <WaysToExperience>.
+
+          THE STANDARD, which 22 columns across the site already use: the
+          heading takes 7 of 12 and the description takes the last 5, so its
+          left edge is a grid line rather than a consequence, and both edges
+          land in the same place on every section of every page.
+
+          `items-end` is kept — the two blocks are read off one baseline — and
+          so is the gutter, which is the grid's own `lg:gap-x-10`.
+        */}
+        <div className="grid grid-cols-12 gap-x-6 gap-y-6 lg:items-end lg:gap-x-10">
           {/*
             THE PILL IS GONE, AND THE HEADING IS THE SITE'S OWN.
 
@@ -161,7 +136,7 @@ export async function ExperienceDiscovery() {
             statement. Two heading systems on one page is one too many, and the
             one to keep is the one that reads as the website.
           */}
-          <div>
+          <div className="col-span-12 lg:col-span-7">
             <Reveal>
               <Eyebrow>The Maison Palettia experience</Eyebrow>
             </Reveal>
@@ -172,7 +147,20 @@ export async function ExperienceDiscovery() {
             />
           </div>
 
-          <Reveal delay={0.08} className="lg:max-w-[30ch] lg:pb-2">
+          {/*
+            NO `max-w` HERE ANY MORE, AND THAT IS THE POINT OF THE CHANGE.
+
+            This carried `lg:max-w-[42ch] 2xl:max-w-[36ch]`, tuned so the
+            paragraph set five lines and ended level with the heading beside
+            it. The heights did match; the EDGES did not, and a reader
+            scrolling the page sees the edges — two sections running past each
+            other with their right-hand copy starting in two different places
+            is the thing the eye catches, not a 14px difference in height.
+
+            So the column is the measure now, like every other masthead's. The
+            line count follows from it rather than being aimed at.
+          */}
+          <Reveal delay={0.08} className="col-span-12 lg:col-span-5 lg:pb-2">
             {/* UP FROM 17px. It is the only line of copy in this masthead and
                 it was set at body size beside a 70px heading, which read as a
                 caption rather than as the thing that tells you what the
@@ -197,9 +185,9 @@ export async function ExperienceDiscovery() {
               "a guided session" — which is the distinction the section
               exists to teach.
             */}
-            <p className="text-statement leading-[1.55] text-text/85">
-              Walk in, pick your palette and start creating, or book a guided session and make
-              something new with us.
+            <p className="text-statement text-text/85">
+              Create Anytime (pick your palette and start whenever you like), or
+              Create Together in a guided session and make something new with us.
             </p>
           </Reveal>
         </div>

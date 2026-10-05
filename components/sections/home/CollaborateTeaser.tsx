@@ -155,7 +155,7 @@ export function CollaborateTeaser() {
           {/* ---- the invitation, as plain type on the page --------------- */}
           <div className="col-span-12 lg:col-span-5">
             <Reveal>
-              <p className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text">
+              <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text">
                 {/*
                   Charcoal, not Deep Lilac. The label was lilac on White Rock,
                   which measures 3.95:1 — under what a 12px line owes. The
@@ -190,7 +190,7 @@ export function CollaborateTeaser() {
             <Reveal delay={0.12}>
               {/* `script-lede` rather than a margin — the gap under a script
                   heading is a token, because Hapsha's descenders hang into it. */}
-              <p className="script-lede max-w-[34ch] text-body leading-[1.8] text-text/85">
+              <p className="script-lede max-w-[34ch] text-body text-text/85">
                 For malls, retailers and F&amp;B partners: creative activations built around your
                 space and your calendar.
               </p>
@@ -211,7 +211,7 @@ export function CollaborateTeaser() {
                 */}
                 <BlobButton
                   href="/locations#collaborate"
-                  tone="secondary"
+                  tone="painted"
                   className="min-h-[3.25rem] px-7"
                 >
                   How we work with malls
@@ -280,7 +280,7 @@ export function CollaborateTeaser() {
                       {model.name}
                     </h3>
 
-                    <p className="mt-2.5 text-body leading-[1.65] text-text/85">
+                    <p className="mt-2.5 text-body text-text/85">
                       {model.description}
                     </p>
                   </div>

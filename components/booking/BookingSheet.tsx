@@ -328,7 +328,7 @@ export function BookingSheet({
                             {option.description}
                           </span>
                         ) : null}
-                        <span className="mt-1.5 block text-label font-semibold uppercase tracking-eyebrow text-primary">
+                        <span className="mt-1.5 block text-label font-medium uppercase tracking-eyebrow text-primary">
                           {option.action}
                         </span>
                       </span>

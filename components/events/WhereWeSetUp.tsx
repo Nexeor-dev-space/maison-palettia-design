@@ -138,12 +138,12 @@ export function WhereWeSetUp({ workshops }: WhereWeSetUpProps) {
             className="heading-script mx-auto mt-6 max-w-[16ch] pb-[0.3em] text-script-section text-surface"
           >
             {countInWords(locations.length)}{" "}
-            {forScript(locations.length === 1 ? "location" : "locations")}
+            {forScript(locations.length === 1 ? "Location" : "Locations")}
           </h2>
         </Reveal>
 
         <Reveal delay={0.12}>
-          <p className="mx-auto mt-2 max-w-[34ch] text-lead leading-[1.7] text-surface">
+          <p className="mx-auto mt-2 max-w-[34ch] text-lead text-surface">
             The studio travels. Each date runs at a mall for that day only.
           </p>
         </Reveal>
