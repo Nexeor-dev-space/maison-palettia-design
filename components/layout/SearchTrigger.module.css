@@ -1,0 +1,55 @@
+/*
+  ==========================================================================
+  THE SEARCH FIELD AS A CUT SHAPE, NOT A CAPSULE
+  ==========================================================================
+
+  The client asked for the search bar to read as a paint blot with a search
+  icon rather than as a stock pill. It was `rounded-pill`: the one geometry
+  on this site that nothing else is, sitting in a bar where the booking
+  badge, the floating WhatsApp action and every plate are hand-cut.
+
+  WHY ABSOLUTE RADII AND NOT PERCENTAGES. The blob utilities elsewhere use
+  percentage radii, and they are right for a roughly square box. This box is
+  240x44 — five and a half times wider than it is tall — and percentage radii
+  on a box that shape resolve to an ELLIPSE, which is the exact mistake the
+  floating WhatsApp button made on hover (see WhatsAppWidget.module.css).
+  Pixel radii do, and the VERTICAL ones have to stay under 22 — half the
+  box's height — or the browser scales the whole set down proportionally to
+  make them fit and flattens the asymmetry back out. So the vertical radii
+  run 11 to 21 and the horizontal ones 14 to 28, which is what makes one
+  corner visibly rounder than the one across from it.
+
+  DESKTOP ONLY. Below `lg` this control is a 44px round icon button with a
+  paint blot already drawn behind the glyph, and a second irregular edge
+  around that would be two blots fighting.
+
+  THE RESTING SHAPE IS DECLARED HERE AS WELL AS IN THE KEYFRAMES, which is
+  the rule this codebase has had to learn twice: an animation must be a
+  departure from a resting state, never the only source of one, or Reduce
+  Motion serves a rectangle. See the notes on `.badge` and `.fab`.
+*/
+@media (min-width: 64rem) {
+  .blot {
+    border-radius: 26px 15px 28px 14px / 21px 12px 19px 11px;
+    animation: search-blot 19s ease-in-out infinite;
+  }
+
+  @keyframes search-blot {
+    0%,
+    100% {
+      border-radius: 26px 15px 28px 14px / 21px 12px 19px 11px;
+    }
+    33% {
+      border-radius: 15px 27px 14px 26px / 12px 20px 11px 21px;
+    }
+    66% {
+      border-radius: 28px 14px 16px 27px / 19px 11px 21px 13px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blot {
+    animation: none;
+  }
+}

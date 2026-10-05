@@ -54,6 +54,40 @@ const GROUND_FLOAT = [13, 15, 11, 14, 16, 12] as const;
 const GROUND_ROTATE = [-12, 9, -6, 14, -9, 7] as const;
 const GROUND_MARKS: readonly DoodleName[] = ["splash", "coral", "bow", "starleaf", "zigzag", "dot"];
 
+/*
+  ==========================================================================
+  WHICH ANCHOR TAKES WHICH INK — and why it is not simply `i % colors`
+  ==========================================================================
+
+  THE COLOUR PICKS THE DRAWING, NOT THE SHAPE WORD. In this brand's sheet
+  `resolveIcon` looks the ink up in a six-colour table and returns that
+  colour's loose or slab icon; the word above only chooses which of the two.
+  Every word in GROUND_MARKS is a loose one, so the six names rotate and
+  change nothing — what a reader sees is decided entirely by the ink.
+
+  THREE INKS OVER SIX ANCHORS THEREFORE DRAWS EACH SHAPE TWICE, which is not
+  avoidable: Deep Lilac, Terracotta and Soft Lavender are the only three a
+  pale ground can hold at a cut-out's opacity, and they resolve to a bow, a
+  splash and a coral. The pair is a given. WHERE the pair lands is not.
+
+  `(i + seed) % 3` put it in the worst place available. The anchors run
+  top-left, top-right, bottom-left, bottom-right, top-middle, bottom-middle,
+  so a plain cycle of three paired anchors 2 and 5 — bottom-left with
+  bottom-middle — and 1 with 4, top-right with top-middle. Both pairs sit on
+  the same horizontal band, a few hundred pixels apart, and that is the
+  "these three doodles look the same" the client marked.
+
+  This table pairs each ink with the anchor DIAGONALLY opposite instead:
+  top-left with bottom-right, top-right with bottom-left, and the two
+  mid-edge anchors with each other, which are a section's full height apart.
+  The repeat still exists and is no longer ever in the same glance.
+
+  `dot` is the one word that escapes all of this — `resolveIcon` never
+  resolves it, so it keeps both the colour and the shape it is given, and
+  whichever anchor it lands on is a mark no other anchor can duplicate.
+*/
+const GROUND_COLOR_SLOT = [0, 1, 1, 0, 2, 2] as const;
+
 /**
  * A section's standard ground.
  *
@@ -70,7 +104,8 @@ export function groundShapes(
   const n = Math.min(count, GROUND_ANCHORS.length);
   return Array.from({ length: n }, (_, i) => ({
     name: GROUND_MARKS[(i + seed) % GROUND_MARKS.length],
-    color: colors[(i + seed) % Math.max(colors.length, 1)] ?? colors[0],
+    color:
+      colors[(GROUND_COLOR_SLOT[i] + seed) % Math.max(colors.length, 1)] ?? colors[0],
     width: GROUND_WIDTHS[i],
     ...GROUND_ANCHORS[i],
     rotate: GROUND_ROTATE[i],

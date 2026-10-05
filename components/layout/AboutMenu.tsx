@@ -1,11 +1,145 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useId } from "react";
 
-import { MenuCard, MenuDoor } from "@/components/layout/MenuCard";
+import { MenuCard } from "@/components/layout/MenuCard";
+import { DoodleMark } from "@/components/ui/DoodleMark";
+import { INK } from "@/components/sections/hero/composition";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { cn } from "@/lib/utils";
+import type { ImageAsset } from "@/types";
+
+/*
+  ==========================================================================
+  THE FOUR PAGES, AND THE PICTURE EACH ONE ALREADY OWNS
+  ==========================================================================
+
+  At the client's ask: the other two panels show the thing they are offering
+  and this one showed four coloured tiles, so About was the one menu a reader
+  could not see into. It takes the same anatomy now — a rail of names on the
+  left, a preview filling the column beside it — which is <MenuCard>'s own
+  pair of primitives rather than a third arrangement invented for one panel.
+
+  EVERY PICTURE IS THE ONE ITS PAGE ALREADY USES, which is what makes this
+  honest rather than decorated: a reader who opens Contact from here meets the
+  photograph that is on /contact when they arrive. Locations has no hero of
+  its own, so it takes the studio's own frame of a shared table — one of the
+  four stills cut from the studio's film, not a stock photograph.
+
+  NOTHING HERE IS CAPTIONED AS THE STUDIO'S OWN WORK. `alt` describes the
+  frame and never the occasion, which is the rule lib/privateEvents.ts sets
+  out at length for the same reason.
+*/
+/* One colour per column, in the site's own rotation. The colour picks the
+   drawing, so four colours is four different cut-outs. */
+const DOOR_MARKS = [INK.lilac, INK.terracotta, INK.lavender, INK.whiteRock];
+
+/*
+  ==========================================================================
+  THE FOUR PICTURES — supplied by the client 2026-10-06
+  ==========================================================================
+
+  public/images/about-dropdown, one file named for each door. They replace
+  four frames borrowed from elsewhere on the site: the About page's own
+  cut-out, a community-table shot standing in for Locations, a candle
+  photograph standing in for Gallery, and the plate-painting frame /contact
+  shows. Borrowed frames are why three of the four doors were showing
+  something that belonged to a different page.
+
+  PROVENANCE. Checked with `strings`: no C2PA manifest, no SynthID, no Adobe,
+  Figma or OpenAI marker on any of the four — which proves nothing either
+  way, so none of them may be captioned as the studio's own photograph or as
+  its own guests. All four are 2000px-wide landscape and crop to the 4:3 box
+  centred, so none needs a `position`.
+
+  AND THREE OF THE FOUR SHOW SOMETHING OTHER THAN WHAT THE DOOR SAYS. Used
+  as asked and raised in full, because the one place this matters is the one
+  door that reads as a claim:
+
+    about.jpg ..... two women painting on a studio floor. On-brand, and the
+                    only one of the four that needs no caveat.
+    gallery.jpg ... somebody photographing through a gilt frame in an ART
+                    gallery. A pun on the word rather than the Maison's own
+                    gallery of finished work: nothing in it was made here.
+    contact.jpg ... a FLORIST at a counter, on the phone beside a vase of
+                    roses with a calculator under their hand. Nothing in it
+                    is a creative studio.
+    location.jpg .. a mall interior that is NOT Times Square Center. The
+                    signage is Chinese and the storefronts are other
+                    retailers' — Petit Bateau, MCS, Marisfrolg, Toys'R'Us.
+                    It sits behind the one door whose words are an address
+                    question, "Where to find us", so a generic mall there is
+                    read as the Maison's mall.
+
+  Swapping any of them is one `src` and one `alt`; nothing else moves.
+*/
+interface AboutDoor {
+  slug: string;
+  href: string;
+  name: string;
+  sub: string;
+  image: ImageAsset;
+}
+
+/*
+  TYPED RATHER THAN `as const`, and the reason is a type error that was also
+  a design one. With `as const` the array's type is the literal shape of
+  whatever is in it, so `position` existed only while one entry happened to
+  set it — the moment all four crops were centred, `door.image.position`
+  narrowed to `{}` and the render stopped compiling. The aiming knob should
+  not appear and disappear with the data. `ImageAsset` carries it optionally,
+  which is what it is.
+*/
+const ABOUT_DOORS: readonly AboutDoor[] = [
+  {
+    slug: "about",
+    /* Overwritten from the `href` prop below, so the tab and its first door
+       can never point at two different routes. */
+    href: "/about",
+    name: "About the Maison",
+    /* The footer's own heading over MISSION, word for word. */
+    sub: "Why we do it.",
+    image: {
+      src: "/images/about-dropdown/about.jpg",
+      alt: "Two people sitting on a studio floor with paint across their palms, a brush held between them over sheets of finished painting.",
+    },
+  },
+  {
+    slug: "locations",
+    href: "/locations",
+    name: "Locations",
+    sub: "Where to find us.",
+    image: {
+      src: "/images/about-dropdown/location.jpg",
+      alt: "A wide mall atrium under a glazed roof, escalators crossing between balconied floors of shops.",
+    },
+  },
+  {
+    slug: "gallery",
+    href: "/gallery",
+    name: "Gallery",
+    /* "What gets made here." is the gallery's own description and one word
+       too long for the column. */
+    sub: "What gets made.",
+    image: {
+      src: "/images/about-dropdown/gallery.jpg",
+      alt: "Someone raising a camera to photograph through a gilt picture frame, a hung print and a tall vase behind them.",
+    },
+  },
+  {
+    slug: "contact",
+    href: "/contact",
+    name: "Contact",
+    sub: "Write to us.",
+    image: {
+      src: "/images/about-dropdown/contact.jpg",
+      alt: "Someone in an apron taking a call at a counter, a bouquet of pale roses beside an open notebook.",
+    },
+  },
+] as const;
 
 interface AboutMenuProps {
   label: string;
@@ -79,6 +213,7 @@ export function AboutMenu({
   const { isOpen, mounted, shown, trigger, openNow, closeSoon, closeNow, regionProps } =
     useMenuDisclosure(onOpenChange);
 
+
   return (
     <div {...regionProps} className="static flex h-full items-center">
       <button
@@ -103,89 +238,74 @@ export function AboutMenu({
       >
         {mounted ? (
           /*
-            FOUR ACROSS AT `lg`, TWO AT `sm`, ONE BELOW.
+            ==================================================================
+            FOUR COLUMNS, ONE PER PAGE — at the client's ask
+            ==================================================================
 
-            The card is the full measure less the gutter — see <MenuCard> for
-            why it is not capped — so four doors across it are about 320px
-            each at 1440, which is the width the door was drawn at in the
-            Private events panel. Not three-and-a-wide-one and not a rail: the
-            four are peers, and a grid that says so is the honest drawing.
+            It was briefly a rail and a preview, borrowed from the other two
+            panels. That arrangement earns its keep where a rail is long and
+            the preview is the only way to see what a name means: Experiences
+            has seven rows, Private events four. This menu has four short
+            names a reader already understands, so the preview was showing one
+            page at a time and three of the four stayed pictureless.
 
-            `items-stretch` is the default and is what is wanted: all four
-            take the height of the tallest, so a two-line sub on one does not
-            leave the other three short.
+            Four columns show all four at once, which is the thing the client
+            actually asked for when they asked for imagery — not a preview
+            pane, but a picture on every door.
+
+            `items-stretch` is the default and is what is wanted: all four take
+            the height of the tallest, so a two-line sub on one does not leave
+            the other three short.
           */
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:gap-3 lg:grid-cols-4">
-            {/*
-              FOUR COLOURS AND FOUR CUT-OUTS, AT THE CLIENT'S ASK.
+            {ABOUT_DOORS.map((door, i) => (
+              <Link
+                key={door.slug}
+                href={door.slug === "about" ? href : door.href}
+                className={cn(
+                  "group/door relative flex flex-col overflow-hidden rounded-[1.35rem] bg-surface",
+                  "transition-colors duration-300 ease-soft hover:bg-sage",
+                )}
+              >
+                {/*
+                  THE PICTURE SETS THE COLUMN'S TOP AND NOTHING ELSE. A fixed
+                  ratio rather than `flex-1`: four columns side by side have
+                  to crop identically or the row reads as four different
+                  objects, and 4:3 is the shallowest crop that still keeps a
+                  subject held in somebody's hands whole at this width.
+                */}
+                <span className="relative block aspect-[4/3] w-full overflow-hidden bg-cream">
+                  <Image
+                    src={door.image.src}
+                    alt={door.image.alt}
+                    fill
+                    sizes="(min-width: 1024px) 23vw, (min-width: 640px) 46vw, 92vw"
+                    className="object-cover transition-transform duration-700 ease-editorial motion-safe:group-hover/door:scale-[1.03]"
+                    style={door.image.position ? { objectPosition: door.image.position } : undefined}
+                  />
+                </span>
 
-              This block used to say `bow` four times, and the note here
-              explained why: <MenuDoor> hard-wired its paint, and `resolveIcon`
-              picks the DRAWING from the COLOUR rather than from the shape
-              word, so four different words would have rendered four identical
-              lilac bows while reading in the source as four shapes. The honest
-              move then was to say what was drawn.
-
-              The client has now asked these boxes to differ, so the paint is a
-              prop — see DOOR_TONE in <MenuCard>, where every ink is measured.
-              Varying it varies the drawing, which is the whole mechanism:
-
-                About ...... Deep Lilac field, White Rock mark ... open splash
-                Locations .. Soft Lavender field, Deep Lilac ..... bow
-                Gallery .... Light Sage field, Warm Terracotta ... splash
-                Contact .... Terracotta wash, Deep Lilac SLAB .... slab + leaf
-
-              THE WORD STILL ONLY PICKS LOOSE AGAINST SLAB. Three of these name
-              the drawing they get; the fourth cannot, because the lilac pair's
-              slab is the leaf-carrying slab and no shape word spells that. Its
-              word is the weight, and the comment beside it says what lands.
-
-              THE ACCENT STAYS ON ABOUT — it is the page the tab is named for
-              and the other three are where it leads. The Experiences and
-              Private events panels keep their two-tone doors, so this is the
-              one panel that fans out; that is the client's instruction for
-              these boxes rather than a new rule for every menu.
-            */}
-            <MenuDoor
-              href={href}
-              title="About the Maison"
-              /* The footer's own heading over MISSION, word for word. */
-              sub="Why we do it."
-              /* White Rock on Deep Lilac: the open splash. */
-              mark="bow"
-              tone="accent"
-            />
-            <MenuDoor
-              href="/locations"
-              title="Locations"
-              sub="Where to find us."
-              /* Deep Lilac, loose: the bow. */
-              mark="bow"
-              tone="lavender"
-            />
-            {/* "What gets made here." is the gallery's own description and one
-                word too long for the column — 20 characters wrapped where
-                "Where to find us." at 17 did not, so one door of four sat on
-                two lines. The clause without its adverb is the same claim. */}
-            <MenuDoor
-              href="/gallery"
-              title="Gallery"
-              sub="What gets made."
-              /* Warm Terracotta, loose: the splash. */
-              mark="splash"
-              tone="sage"
-            />
-            <MenuDoor
-              href="/contact"
-              title="Contact"
-              sub="Write to us."
-              /* THE ONE WORD THAT IS A WEIGHT, NOT A NAME. `cutout` is a slab
-                 word, and the slab of the Deep Lilac pair is the lilac slab
-                 carrying a Light Sage leaf — so this draws that, not a cut-out.
-                 It is the only shape on the four that needs saying. */
-              mark="cutout"
-              tone="blush"
-            />
+                <span className="flex flex-1 flex-col gap-1 px-4 pb-4 pt-3.5">
+                  <span className="flex items-center gap-2">
+                    {/*
+                      The cut-out each door carries, one per column. The colour
+                      picks the drawing in this brand's sheet, so four colours
+                      is four different marks — see `resolveIcon`.
+                    */}
+                    <span aria-hidden className="block w-4 shrink-0">
+                      <DoodleMark
+                        name="bow"
+                        color={DOOR_MARKS[i % DOOR_MARKS.length]}
+                        treatment="stamp"
+                        depth={0}
+                      />
+                    </span>
+                    <span className="text-body font-medium text-text">{door.name}</span>
+                  </span>
+                  <span className="text-fine text-text/75">{door.sub}</span>
+                </span>
+              </Link>
+            ))}
           </div>
         ) : null}
       </MenuCard>

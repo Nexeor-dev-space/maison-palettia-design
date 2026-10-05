@@ -152,6 +152,54 @@ const CUE_CLEARANCE_RATIO = 0.7;
  * on-screen boxes, which include the intro's transforms: the words are still
  * rising out of their masks when this first runs.
  */
+/**
+ * The height <BottomNav> covers, in pixels, or 0 where there is no bar.
+ *
+ * READ FROM THE TOKEN, NOT THE BAR. The bar is `fixed`, so it is not in the
+ * banner's flow and nothing about the layout says it is there — and its
+ * painted box is not the figure anyway: `--bottom-nav-h` is 4.9rem where the
+ * element measures 53px, because the token reserves the band the wave rises
+ * into as well. It is what <main> pads by, so it is what the banner should
+ * clear.
+ *
+ * THROUGH A PROBE, BECAUSE `getPropertyValue` DOES NOT RESOLVE IT. A custom
+ * property hands back its specified value — here the literal string
+ * `calc(4.9rem + env(safe-area-inset-bottom))` — and `parseFloat` of that is
+ * NaN. Applying it as a length and reading the box back is what makes the
+ * browser do the arithmetic, `env()` and all. The probe is out of flow and
+ * removed on the same tick, so it cannot affect what the caller then measures.
+ *
+ * 0 from `lg`, where the token is `0px` and there is no bar.
+ */
+function navBand(): number {
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:absolute;left:-9999px;top:0;width:0;visibility:hidden;height:var(--bottom-nav-h,0px)";
+  document.body.append(probe);
+  const h = probe.offsetHeight;
+  probe.remove();
+  return h;
+}
+
+/**
+ * Breathing room under the banner's last control, on a phone only.
+ *
+ * `navBand()` makes the copy CLEAR the bar; it does not give it any air. The
+ * client's note is that there is no bottom padding in the mobile banner, and
+ * they are right: the second action was finishing 36px off the bar at 375,
+ * which is a gap rather than a margin — the pair reads as having been pushed
+ * up against something.
+ *
+ * 1.5rem on top of the band. A phone only, keyed off the band itself rather
+ * than off a second media query, because the two answer the same question:
+ * `--bottom-nav-h` is 0 from `lg`, and so is this.
+ */
+function footPad(): number {
+  if (navBand() === 0) return 0;
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  return rem * 1.5;
+}
+
 function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   const raw = getComputedStyle(frame).getPropertyValue("--copy-gap").trim();
@@ -159,7 +207,7 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
 
   let foot: number;
   if (window.matchMedia(REDUCED).matches) {
-    foot = gap + copy.offsetHeight + rem;
+    foot = gap + copy.offsetHeight + rem + navBand() + footPad();
   } else {
     /*
       THE LAST PARAGRAPH, NOT THE FIRST.
@@ -177,14 +225,35 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
     */
     const lines = copy.querySelectorAll("p");
     const line = lines.length ? lines[lines.length - 1] : null;
-    const words = line ? line.offsetTop + line.offsetHeight : copy.offsetHeight;
+    /*
+      THE LAST THING IN THE BLOCK, NOT THE LAST PARAGRAPH, which is the same
+      correction the note above made one step short of.
+
+      The actions sit UNDER the final paragraph, so reserving to that
+      paragraph's foot left the row itself uncounted. It did not show while the
+      second action was a word on the primary's own line — the row was 60px and
+      the clearance and the cue happened to cover it. It is a second pill now,
+      and below `md` the two stack: 116px at 390, of which only the cue's worth
+      was ever reserved. The row ran off the foot of the banner and under the
+      bottom bar, which is what the client is looking at.
+
+      Measuring to the bottom of the actions when there are any is the version
+      that does not care what the block ends with.
+    */
+    const tail = copy.querySelector<HTMLElement>("[data-hero-actions]") ?? line;
+    const words = tail ? tail.offsetTop + tail.offsetHeight : copy.offsetHeight;
     // `lineHeight` computes to a pixel length in every engine that matters; if
     // it ever answers `normal`, the floor below is what applies. It is the
     // LAST line's, because that is the one the cue has to clear.
     const lead = line ? parseFloat(getComputedStyle(line).lineHeight) : NaN;
     const clearance = Math.max(CUE_CLEARANCE_MIN, Math.round((lead || 0) * CUE_CLEARANCE_RATIO));
     const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
-    foot = gap + words + clearance + cue.offsetHeight + cueFromEdge;
+    /*
+      AND THE BAR'S OWN BAND. <BottomNav> is fixed over the last 4.9rem of the
+      window on a phone and the banner is the whole window, so everything this
+      reserves has to start above it. 0 from `lg`, where the bar is gone.
+    */
+    foot = gap + words + clearance + cue.offsetHeight + cueFromEdge + navBand() + footPad();
   }
   frame.style.setProperty("--wb", `${Math.ceil(foot)}px`);
 }

@@ -298,20 +298,43 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         aria-hidden
         viewBox="0 0 390 40"
         preserveAspectRatio="none"
-        className="absolute inset-x-0 bottom-full h-[2.25rem] w-full translate-y-px"
+        /*
+          1.5rem, NOT 2.25. Measured at 390: the sheet is 48px and its icons
+          start 4px into it, so the bar itself was already as tight as its
+          targets allow — all of the empty purple the client circled was up
+          here. The wave is drawn in a 40-unit box whose crests sit at 7 and
+          troughs at 26, so at 36px tall it put 23px of flat colour over the
+          icons before the first glyph. At 24px that is 15, the curve keeps
+          its shape because the viewBox scales with it, and the bar's whole
+          painted extent comes down from 83px to 71.
+        */
+        className="absolute inset-x-0 bottom-full h-[1.5rem] w-full translate-y-px"
       >
         <path d={WAVE} fill="var(--color-primary)" />
       </svg>
 
       {/* ---- the sheet ---- */}
       {/*
-        SHORTER BY TEN PIXELS, at the client's ask — 77px to 65px on a phone
-        with a home button, measured at 390x844. The height came off the three paddings and the
-        icon box rather than off the type or the touch target: each item is
-        still 55px of tappable height before its label's line box, over the
-        44px a target owes, and the labels are the size they were.
+        SHORTER TWICE. 77px, then 65, and now 53 on a phone with a home
+        button — measured at 390x844 each time. The client's second note was
+        that it still took "huge space", and the first pass had only taken the
+        easy ten.
+
+        AND A THIRD TIME, TO 48 — but the last pass was as much about where
+        the space WAS as how much of it there was. Measured against the bar's
+        own top, the glyph did not start until 9.5px down (2 of wrapper
+        padding, 4 of link padding, and 3.5 of slack inside a 28px icon box
+        holding a 21px glyph) while only 6px sat under the label. The bar was
+        not merely tall, it was top-heavy — the "slot space above each icon"
+        in the client's note.
+
+        SO THE SLACK IS CENTRED RATHER THAN STACKED. The link keeps its 44px
+        because that is what a touch target owes and the content only comes
+        to 36; the difference is split by `justify-center` instead of being
+        spent as padding above the glyph. The icon box is the glyph's size
+        now, and the wrapper's top padding is gone.
       */}
-      <div className="relative overflow-hidden bg-primary pb-[max(0.375rem,env(safe-area-inset-bottom))] pt-1">
+      <div className="relative overflow-hidden bg-primary pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-0">
         {/*
           SMALL COLOUR AT THE TWO BOTTOM CORNERS, clipped by the sheet so only
           a curve of each one shows — the brief's "colour accents", and the
@@ -340,7 +363,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
 
           {/* The middle cell is a spacer: the badge is positioned against the
               nav, not against this cell, so it can rise out of the sheet. */}
-          <li aria-hidden className="h-[3rem]" />
+          <li aria-hidden className="h-11" />
 
           {ITEMS.slice(2).map((item) => (
             <Item key={item.href} item={item} current={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
@@ -367,9 +390,9 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
               aria-controls={aboutOpen ? "bottom-nav-about" : undefined}
               aria-current={onSheetRoute ? "page" : undefined}
               onClick={() => setAboutOpen((v) => !v)}
-              className="group/nav flex w-full flex-col items-center gap-1 px-1 pb-0.5 pt-1.5 text-on-primary outline-offset-4"
+              className="group/nav flex min-h-11 w-full flex-col items-center justify-center gap-[3px] px-1 py-0 text-on-primary outline-offset-4"
             >
-              <span className="relative flex size-8 items-center justify-center">
+              <span className="relative flex size-[1.375rem] items-center justify-center">
                 {aboutOpen || onSheetRoute ? (
                   <motion.span
                     aria-hidden
@@ -478,9 +501,9 @@ function Item({
         aria-current={current ? "page" : undefined}
         /* 56px of height plus the label's line box clears the 44px a touch
            target owes at every width this bar is drawn at. */
-        className="group/nav flex flex-col items-center gap-1 px-1 pb-0.5 pt-1.5 text-on-primary outline-offset-4"
+        className="group/nav flex min-h-11 flex-col items-center justify-center gap-[3px] px-1 py-0 text-on-primary outline-offset-4"
       >
-        <span className="relative flex size-8 items-center justify-center">
+        <span className="relative flex size-[1.375rem] items-center justify-center">
           {current && any ? (
             <motion.span
               aria-hidden
@@ -611,8 +634,23 @@ function BookBadge({
    *  it would name is not in the DOM. */
   controls?: string;
 }) {
+  /*
+    THE BOOK LABEL SITS ON THE SAME LINE AS THE OTHER FOUR.
+
+    This badge is positioned against the bar rather than laid out in the row
+    with its siblings, so its label was wherever the offset happened to put
+    it — measured, 12px above the other four, which is the "not well aligned"
+    in the client's note and the most visible thing in the bar once you see
+    it.
+
+    The extra 0.75rem is gone. At the bar's own bottom padding the label's
+    baseline lands on the row's and the disc's foot lands within half a pixel
+    of the other glyphs' feet — the two rows the eye actually reads line up,
+    and the disc still breaks the top edge the
+    way a raised action should.
+  */
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-[calc(max(0.5rem,env(safe-area-inset-bottom))+0.75rem)] flex justify-center">
+    <div className="pointer-events-none absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-center">
       <button
         ref={triggerRef}
         type="button"

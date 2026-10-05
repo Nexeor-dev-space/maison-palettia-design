@@ -1562,8 +1562,12 @@ html[data-paint-cursor] iframe {
 @media (max-width: 1023px) {
   :root {
     --shape-mobile: 0.72;
-    --bottom-nav-h: calc(4.9rem + env(safe-area-inset-bottom));
-    --bottom-nav-wave: 1.5rem;
+    /* 4.25rem, down from 4.9. The bar's wave lost 0.75rem (see <BottomNav>),
+       so the band it reserves comes down by the same amount — the sheet and
+       its targets are unchanged. Everything that clears the bar reads this,
+       including the banner's own foot, so nothing has to be re-tuned. */
+    --bottom-nav-h: calc(4.25rem + env(safe-area-inset-bottom));
+    --bottom-nav-wave: 1rem;
   }
 }
 

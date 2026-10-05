@@ -1,4 +1,6 @@
 import { Search } from "lucide-react";
+
+import styles from "@/components/layout/SearchTrigger.module.css";
 import type { Ref } from "react";
 
 
@@ -62,7 +64,31 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
            three controls beside the mark read as one group. See the note on
            the two rungs in <NavLabel>. Below `lg` the label is `sr-only` and
            this is a round icon button, so the size reaches nothing there. */
+        /*
+          ==================================================================
+          A BLOT ON A PHONE, A FIELD FROM `lg`
+          ==================================================================
+
+          The bar's right-hand track is one 44px control against a nav of
+          three words on the other side of the mark, and from 1280 up there is
+          200px of empty green between them — the client's note. A field uses
+          it and says what the control does without a label beside it, which
+          is what an icon alone could never do.
+
+          It is a BUTTON STYLED AS A FIELD, not an input. <SearchPanel> owns
+          the query, the results and the focus trap; a second input up here
+          would be a second place to type the same thing, and the two would
+          have to be kept in step. This opens the panel, which puts the cursor
+          in the real field — the pattern a reader already knows from every
+          other site that does this.
+
+          Below `lg` it is unchanged: a 44px round target with the paint blot
+          behind the glyph, because a phone's bar has no width to give.
+        */
         "group/nav relative isolate inline-flex size-11 items-center justify-center rounded-full " +
+        styles.blot + " lg:h-11 lg:w-[15rem] lg:justify-start lg:gap-2.5 lg:pl-5 lg:pr-5 xl:w-[17rem] " +
+        "lg:bg-surface/70 lg:shadow-[inset_0_0_0_1.5px_color-mix(in_oklab,var(--color-primary)_55%,transparent)] " +
+        "lg:hover:bg-surface lg:focus-visible:bg-surface " +
         "text-current transition-colors duration-300 ease-soft " +
         /*
           THE 44px BOX AT EVERY WIDTH. It used to be released at `lg`, where
@@ -132,7 +158,10 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
       <span
         aria-hidden
         className={
-          "pointer-events-none absolute left-1/2 top-1/2 -z-10 size-9 -translate-x-1/2 -translate-y-1/2 " +
+          /* The field from `lg` has a ground of its own, so the blot is the
+             phone's device again — two grounds on one control is what the
+             quiet wash was removed for. */
+          "pointer-events-none absolute left-1/2 top-1/2 -z-10 size-9 -translate-x-1/2 -translate-y-1/2 lg:hidden " +
           "transition-transform duration-300 ease-soft motion-reduce:transition-none " +
           (isOpen
             ? "scale-110"
@@ -157,18 +186,24 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
         pixels below the middle of its own 44px box and off the centre of the
         blot behind it.
       */}
-      <Search size={18} aria-hidden className="shrink-0 text-on-primary" />
+      {/* `on-primary` over the phone's lilac blot (4.90:1); the bar's own
+          Charcoal over the field, where the ground is the page's surface and
+          the near-white would be 1.1:1. */}
+      <Search size={18} aria-hidden className="shrink-0 text-on-primary lg:text-text" />
       {/*
-        THE WORD IS GONE AT EVERY WIDTH, at the client's ask — the bar shows
-        the magnifier alone now, the way it already did below `lg`.
+        THE NAME IS REAL TEXT AT EVERY WIDTH, which is the point the note at
+        the top of this file makes: a control whose name exists only in an
+        attribute cannot be spoken by anyone driving the page by voice, and
+        "click Search" is how that visitor presses this button. On a phone it
+        is simply not drawn; from `lg` the field shows it as its placeholder.
 
-        IT IS STILL `sr-only` TEXT AND NOT AN `aria-label`, which is the point
-        the note at the top of this file makes: a control whose name exists
-        only in an attribute cannot be spoken by anyone driving the page by
-        voice, and "click Search" is how that visitor presses this button.
-        The name is real text; it is simply not drawn.
+        `text-text/60` is the placeholder's register — present, plainly not
+        typed text — and it is 5.6:1 on the field's ground, over the 4.5 a
+        label owes even though a placeholder arguably owes less.
       */}
-      <span className="sr-only">Search</span>
+      <span className="sr-only lg:not-sr-only lg:truncate lg:text-body lg:font-normal lg:tracking-normal lg:text-text/60">
+        Search experiences
+      </span>
     </button>
   );
 }

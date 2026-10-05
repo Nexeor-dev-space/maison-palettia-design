@@ -359,41 +359,49 @@ export async function WhereWeCreate() {
               */}
               <div className="relative">
                 {/*
-                  THE TERRACOTTA CUT-OUT, NOT THE LAVENDER WAVE, and the
-                  reason is what a CORNER mark actually shows of itself.
+                  ==================================================================
+                  THE EVENT PAGE'S LOCATION SECTION, MARK FOR MARK
+                  ==================================================================
 
-                  This was `bean` in Soft Lavender, which resolves to the
-                  sheet's lavender slab — a lavender tile carrying CHARCOAL
-                  waves (`slabWave`, d5.png). The tile is `-z-10` and three
-                  quarters covered by the frame, so the only part of it that
-                  ever reached the eye was the dark waves along its top edge:
-                  a charcoal scribble over the map rather than a brand mark,
-                  which is what the client circled.
+                  At the client's ask: this map should be punctuated the way
+                  <LocationMap> punctuates its own on an event page, and that
+                  section does it with TWO marks and nothing else.
 
-                  `cutout` in Warm Terracotta is the sheet's one-colour tile
-                  (`slabCut`, d1.png) — the mark is knocked OUT of it, so the
-                  shape is solid terracotta however little of it shows and a
-                  fragment still reads as a cut-out. Terracotta is also
-                  already this section's accent, and it answers the Deep Lilac
-                  slab at the frame's opposite corner with the brand's other
-                  strong colour instead of repeating a second lavender.
+                    the frame ... one terracotta cut-out crossing the LEFT edge
+                                  at mid-height, `-left-5 top-[54%]`.
+                    the card .... one lavender coral off the bottom-right
+                                  corner, `-bottom-5 -right-4`.
 
-                  Size, angle, lift and the `-z-10` tuck are unchanged; only
-                  the drawing is.
+                  Both figures are copied rather than re-derived, so the two
+                  sections stay the same object if either is ever re-tuned.
+
+                  WHY THE LEFT EDGE AND NOT A CORNER, in <LocationMap>'s own
+                  words: Google puts its furniture in three of the four — the
+                  place card top-left, the satellite thumbnail bottom-left, the
+                  attribution and fullscreen control bottom-right — and the
+                  middle of the left edge is the one stretch of frame that is
+                  only ever tiles. `top` as a percentage so it holds at any
+                  aspect.
+
+                  It replaces a pair that sat on the two opposite corners and
+                  were `-z-10`, tucked under an opaque frame so that only their
+                  corners showed. Nothing here is `-z-10`: the reference lays
+                  its marks OVER the frame's edge, which is what makes them
+                  read as laid on rather than peeking out.
                 */}
                 <span
                   aria-hidden
-                  className="pointer-lift pointer-events-none absolute -right-7 -top-8 -z-10 hidden w-[20%] rotate-[12deg] lg:block"
+                  className="pointer-lift pointer-events-none absolute -left-5 top-[54%] z-10 hidden w-[4rem] rotate-[12deg] lg:block lg:w-[5rem]"
                   style={{ "--ax": 0.78, "--lift": 0.22 } as React.CSSProperties}
                 >
-                  <DoodleMark name="cutout" color={INK.terracotta} treatment="draw" delay={360} depth={22} />
+                  <DoodleMark name="cutout" color={INK.terracotta} treatment="stamp" delay={240} />
                 </span>
                 <span
                   aria-hidden
-                  className="pointer-lift pointer-events-none absolute -bottom-8 -left-8 -z-10 hidden w-[24%] -rotate-[10deg] lg:block"
+                  className="pointer-lift pointer-events-none absolute -bottom-5 -right-4 z-10 hidden w-[4.5rem] -rotate-[10deg] lg:block lg:w-[5.5rem]"
                   style={{ "--ax": 0.62, "--lift": 0.2 } as React.CSSProperties}
                 >
-                  <DoodleMark name="wave" color={INK.lilac} treatment="draw" delay={460} depth={18} />
+                  <DoodleMark name="coral" color={INK.lavender} treatment="stamp" delay={320} />
                 </span>
 
                 <div className="plate relative aspect-[5/4] overflow-clip rounded-[1.25rem] bg-surface">

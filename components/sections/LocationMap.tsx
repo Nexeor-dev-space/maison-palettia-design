@@ -1,6 +1,7 @@
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { cn } from "@/lib/utils";
 import type { MallPartner } from "@/types";
 
@@ -329,27 +330,23 @@ export function PartnerPlate({
         </p>
       </div>
 
+      {/* A SECONDARY BUTTON. This was a word with a terracotta rule under it
+          — the client's note about underlined links standing in for buttons,
+          and the clearest case of it on the site: it is the only action on
+          the plate. It is also OUTBOUND, which is why <BlobButton> grew an
+          `external` prop rather than this staying a bare <a>: the component
+          could not express the link, so the link could not have the
+          component's shape. */}
       {partner.locationHref ? (
-        <a
+        <BlobButton
           href={partner.locationHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group -my-1.5 inline-flex shrink-0 items-center gap-3 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text sm:mt-6"
+          external
+          tone="painted"
+          className="shrink-0 min-h-[3rem] px-6 sm:mt-6"
         >
-          <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            View location
-          </span>
-          {/* Charcoal rather than Warm Terracotta: this glyph says "this one
-              leaves", and the accent measures 2.44:1 on White Rock, under the
-              3:1 a meaningful glyph owes. */}
-          <span
-            aria-hidden
-            className="text-text/75 transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-y-0.5"
-          >
-            &#8599;
-          </span>
-          <span className="sr-only">(opens in a new tab)</span>
-        </a>
+          View location
+          <span className="sr-only"> (opens in a new tab)</span>
+        </BlobButton>
       ) : null}
     </div>
   );
