@@ -88,13 +88,21 @@ const SPANS: Record<GalleryCollection["id"], readonly string[]> = {
     "col-span-2 lg:col-span-7",
     "col-span-2 lg:col-span-5",
   ],
+  /*
+    THE OPENER TAKES TWO ROWS AND THE TAIL IS A TRIO. It used to be a single-row
+    8-column opener and a 12-column closer, which at any row height are 3.3:1
+    and 4.9:1 — a panorama is a deliberate device but two of them in one
+    collection is a letterbox habit. Spanning the opener down a second row
+    makes it 929x584, and the six then read as one wide picture with a pair
+    beside it and a trio under both. Rows: 8+4, 8+4, 4+4+4 — twelve each.
+  */
   making: [
-    "col-span-2 lg:col-span-8",
+    "col-span-2 lg:col-span-8 lg:row-span-2",
     "col-span-1 lg:col-span-4",
     "col-span-1 lg:col-span-4",
     "col-span-1 lg:col-span-4",
     "col-span-1 lg:col-span-4",
-    "col-span-2 lg:col-span-12",
+    "col-span-2 lg:col-span-4",
   ],
   keep: [],
 };
@@ -104,7 +112,7 @@ const SPANS: Record<GalleryCollection["id"], readonly string[]> = {
    edge of the block, the way the deck hangs them. */
 const FEATURE: Record<GalleryCollection["id"], { index: number; tilt: "left" | "right"; mark: DoodleName; color: string } | null> = {
   make: { index: 0, tilt: "left", mark: "splash", color: INK.lilac },
-  making: { index: 5, tilt: "right", mark: "starburst", color: INK.terracotta },
+  making: { index: 0, tilt: "right", mark: "starburst", color: INK.terracotta },
   keep: null,
 };
 
@@ -233,7 +241,25 @@ function GallerySection({
             className={cn(
               "mt-10 grid gap-2.5 md:mt-14 md:gap-3.5",
               "grid-cols-2 lg:grid-cols-12",
-              "auto-rows-[clamp(8.5rem,42vw,14rem)] lg:auto-rows-[clamp(10rem,13.5vw,15.5rem)]",
+              /*
+                THE ROW IS THE PICTURE'S HEIGHT, and it was set far too short.
+                Measured at 1440 before this: a row of 194px against a 4-column
+                cell 457px wide is 2.35:1, a 7-column cell 4.17:1 and the
+                making collection's wide opener 4.78:1 — letterbox strips
+                rather than photographs, which is what the client is looking
+                at.
+
+                19.8vw is the figure the old gallery wall arrived at for the
+                same grid and the same reason: at 1440 it puts the row at 285,
+                so the commonest cell (4 columns, 457 wide) lands at 1.60:1 —
+                near enough the 3:2 these photographs were taken at — and the
+                tall feature, which spans two rows and the gap, comes out
+                575x584, a true portrait. The cap is high enough to stay out of
+                the way on an ordinary display and the vw does the work, so a
+                cell keeps its proportion instead of flattening as the screen
+                grows.
+              */
+              "auto-rows-[clamp(11rem,52vw,20rem)] lg:auto-rows-[clamp(12rem,19.8vw,24rem)]",
             )}
           >
             {collection.items.map((item, i) => (

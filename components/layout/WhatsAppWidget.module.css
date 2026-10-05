@@ -61,8 +61,23 @@
 */
 .fab:hover,
 .fab:focus-visible {
+  /*
+    `animation: none`, NOT `animation-play-state: paused` — and that one word
+    is the whole of the "why is it an oval" bug.
+
+    A paused animation is still an animation: its current keyframe value stays
+    applied, and the CSS cascade puts animation values ABOVE normal
+    declarations. So `border-radius: 900px` on this rule lost to whatever
+    percentage pair the morph happened to be sitting on, and percentage radii
+    on a box that has just stretched to three times its height do not describe
+    a pill — they describe an ellipse. The button opened into a lozenge.
+
+    Removing the animation lets this rule win, and 900px on a 56px-tall box
+    resolves to the 28px half-height that makes a true pill — the same shape
+    <BlobButton> uses everywhere else on the site.
+  */
   border-radius: 900px;
-  animation-play-state: paused;
+  animation: none;
 
   /* Lifted, and the ring stays: the edge is what the shape is read by, and
      dropping it on hover would make the button dissolve exactly when it is
