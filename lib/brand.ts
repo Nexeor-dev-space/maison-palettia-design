@@ -40,7 +40,7 @@ export const TAGLINE = "A Palette of Creativity for Everyone";
 
 /** Deck p.2, verbatim. */
 export const BRAND_STORY =
-  "Maison Palettia is a creative lifestyle brand inspired by the word “Palette” — a symbol of colour, expression, and imagination. Blending elegance with playfulness, the brand celebrates creativity, mindfulness, and meaningful human connection, encouraging people to slow down, unplug, and embrace the art of intentional living.";
+  "Maison Palettia is a creative lifestyle brand inspired by the word “Palette”, a symbol of colour, expression, and imagination. Blending elegance with playfulness, the brand celebrates creativity, mindfulness, and meaningful human connection, encouraging people to slow down, unplug, and embrace the art of intentional living.";
 
 /*
   THE SAME SENTENCE, TYPESET.
@@ -146,17 +146,17 @@ export const WORKSHOP_JOURNEY: readonly JourneyStep[] = [
   },
   {
     slug: "family-bonding",
-    name: "Family bonding",
+    name: "Family Bonding",
     description: "Kids and parents share activities for quality time together.",
   },
   {
     slug: "monthly-refresh",
-    name: "Monthly refresh",
+    name: "Monthly Refresh",
     description: "New experiences each month, aligned with trends and seasons.",
   },
   {
     slug: "digital-detox",
-    name: "Digital detox",
+    name: "Digital Detox",
     description:
       "A mindful break from technology, giving you the chance to relax and recharge.",
   },
@@ -186,7 +186,7 @@ export const LITTLE_CREATORS: readonly { slug: string; name: string }[] = [
 
 /** Deck p.9, minus "keeping the destination fresh", which is addressed to malls. */
 export const SEASONAL_INTRO =
-  "Maison Palettia delivers seasonal workshops inspired by celebrations such as Valentine’s Day, Ramadan, Mother’s Day, Christmas, and more — limited-time experiences worth coming back for.";
+  "Maison Palettia delivers seasonal workshops inspired by celebrations such as Valentine’s Day, Ramadan, Mother’s Day, Christmas, and more. Limited-time experiences worth coming back for.";
 
 export interface SeasonalMoment {
   slug: string;
@@ -238,17 +238,17 @@ export interface Collaboration {
 export const COLLABORATIONS: readonly Collaboration[] = [
   {
     slug: "cross-promotional-vouchers",
-    name: "Cross-promotional voucher program",
+    name: "Cross-Promotional Voucher Program",
     description: "Exclusive offers for F&B partners.",
   },
   {
     slug: "retail-and-fnb",
-    name: "Retail & F&B collaborations",
+    name: "Retail & F&B Collaborations",
     description: "Co-branded workshops and promotions.",
   },
   {
     slug: "marketing-calendar",
-    name: "Marketing calendar activations",
+    name: "Marketing Calendar Activations",
     description: "Activations tailored to the mall’s campaigns, at a special partnership rate.",
   },
 ] as const;
@@ -266,24 +266,24 @@ export const COLLABORATIONS: readonly Collaboration[] = [
 export const WHAT_SETS_US_APART: readonly Collaboration[] = [
   {
     slug: "unique-concept",
-    name: "Unique concept",
+    name: "Unique Concept",
     description:
       "A creative space that combines leisure, learning, and entertainment for both adults and kids.",
   },
   {
     slug: "all-ages",
-    name: "Appeals to all ages",
+    name: "Appeals to All Ages",
     description:
       "From parents and friends to children, Maison Palettia creates activities that bring people together.",
   },
   {
     slug: "sustainability",
-    name: "Sustainability-driven",
+    name: "Sustainability-Driven",
     description: "Many workshops use eco-friendly, reusable, and upcycled materials.",
   },
   {
     slug: "trend-responsive",
-    name: "Fresh & trend-responsive",
+    name: "Fresh & Trend-Responsive",
     description: "A monthly refresh of workshops keeps every visit different.",
   },
 ] as const;
@@ -365,7 +365,7 @@ export const CLOSING = {
 export const EVENT_PLATES = [
   {
     src: "/images/events/named-keepsake.jpg",
-    alt: "A child’s hands holding two handmade keepsakes — one lettered with a name and a heart, the other filled with glitter, sequins and a small teal ring.",
+    alt: "A child’s hands holding two handmade keepsakes: one lettered with a name and a heart, the other filled with glitter, sequins and a small teal ring.",
     width: 768,
     height: 1024,
   },

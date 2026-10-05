@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const workshop = await getWorkshopBySlug(slug);
   return buildMetadata({
-    title: workshop ? `Book — ${workshop.title}` : "Book an event",
+    title: workshop ? `Book: ${workshop.title}` : "Book an event",
     description: "Reserve your place at a Maison Palettia event.",
     path: `/events/${slug}/book`,
   });
@@ -111,8 +111,8 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
 function Intro() {
   return (
     <Reveal>
-      <h1 className="text-h1 font-light tracking-[-0.02em]">Hold your place.</h1>
-      <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/80">
+      <h1 className="text-h1 font-light tracking-[-0.02em]">Hold Your Place.</h1>
+      <p className="mt-5 max-w-[32rem] text-body text-text/80">
         Choose your places and tell us who&rsquo;s coming. You&rsquo;ll see everything once more
         before you confirm.
       </p>

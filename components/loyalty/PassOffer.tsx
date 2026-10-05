@@ -154,7 +154,7 @@ function PassRow({
             {pass.name}
           </h3>
 
-          <p className="mt-4 max-w-[32rem] text-body leading-[1.85] text-text/80">
+          <p className="mt-4 max-w-[32rem] text-body text-text/80">
             {pass.description}
           </p>
 
@@ -186,7 +186,7 @@ function PassRow({
                   {/* A hairline rather than a tick. The tick is the badge of
                       the pricing table this page is deliberately not. */}
                   <span aria-hidden className="mt-[0.85em] h-px w-3.5 shrink-0 bg-primary" />
-                  <span className="text-body leading-[1.7] text-text/85">{benefit}</span>
+                  <span className="text-body text-text/85">{benefit}</span>
                 </li>
               ))}
             </ul>
@@ -294,7 +294,7 @@ function Action({
           </p>
         ) : added ? (
           <p className="mt-5 text-fine leading-[1.7] text-text">
-            Added to your booking{held > 1 ? ` — ${held} in total` : ""}.{" "}
+            Added to your booking{held > 1 ? ` (${held} in total)` : ""}.{" "}
             <Link
               href="/checkout"
               className="border-b border-text/40 pb-0.5 transition-colors duration-300 ease-soft hover:border-text"
@@ -322,7 +322,7 @@ function NoPasses() {
       <p className="max-w-[32rem] text-h3 font-light tracking-[-0.015em] text-text">
         There are no passes on offer just now.
       </p>
-      <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">
+      <p className="mt-5 max-w-[32rem] text-body text-text/75">
         The Maison is between offers. Every session in the programme can still be booked on its
         own in the meantime.
       </p>

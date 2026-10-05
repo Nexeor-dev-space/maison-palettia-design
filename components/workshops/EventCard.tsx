@@ -201,7 +201,7 @@ export function EventCard({ workshop, index }: { workshop: Workshop; index: numb
             */}
             <span
               aria-hidden
-              className="flex items-center gap-3 text-action font-semibold uppercase tracking-eyebrow text-primary"
+              className="flex items-center gap-3 text-action font-medium uppercase tracking-eyebrow text-primary"
             >
               <span className="border-b border-primary/40 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-primary">
                 View event

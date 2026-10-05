@@ -10,12 +10,17 @@ import { WHATSAPP } from "@/lib/constants";
  * rule the footer already applies to social links: nothing looks clickable
  * that is not. See the constant for the one-line change that switches it on.
  *
- * Ground is Deep Lilac rather than WhatsApp's own green. The green would be
- * the one colour on the page from outside the palette and would read as a
- * plugin bolted onto the site; the glyph is recognisable on its own, and the
- * brand ground keeps it part of the Maison rather than an advert for someone
- * else's product. Cream on Deep Lilac measures 5.1:1, clear of the 3:1 a
- * graphical control owes.
+ * GROUND IS LIGHT SAGE, at the client's ask, and it was Deep Lilac. What has
+ * not changed is the reason neither is WhatsApp's own green: that green is
+ * the one colour on the page from outside the palette and reads as a plugin
+ * bolted onto the site. The glyph is recognisable on its own, so a brand
+ * ground keeps the control part of the Maison rather than an advert for
+ * somebody else's product.
+ *
+ * INK FOLLOWED THE GROUND. Cream on Deep Lilac was 5.1:1; on Light Sage it is
+ * 1.03 and would be an invisible glyph. Charcoal Slate on Light Sage is
+ * 9.07:1, far over the 3:1 a graphical control owes and over the 4.5 the
+ * label owes once it opens.
  *
  * PLACEMENT. Bottom right from `lg` up, above the page but below the header
  * and its overlays (z-30 against the header's z-50), so opening search covers
@@ -72,13 +77,11 @@ export function WhatsAppWidget() {
           means the pill measures itself from the word inside it, so the
           label can be re-worded in one place and nothing has to be re-tuned.
         */
-        "group h-14 items-center gap-0 bg-primary pl-[1.125rem] pr-[1.125rem] text-on-primary " +
+        "group h-14 items-center gap-0 bg-sage pl-[1.125rem] pr-[1.125rem] text-text " +
         "hover:gap-2.5 focus-visible:gap-2.5 " +
-        // Charcoal Slate at 18%, through the token. It was rgba(35,31,32,.18) —
-        // the near-black the palette dropped for not being in the guidelines,
-        // left behind in a shadow where nobody looks for a colour.
-        "shadow-[0_6px_20px_color-mix(in_oklab,var(--color-text)_18%,transparent)] " +
-        "hover:shadow-[0_10px_28px_color-mix(in_oklab,var(--color-text)_26%,transparent)] " +
+        /* The shadow and the resting ring are one `box-shadow` list and they
+           live together in `.fab` — a `shadow-[...]` here would replace that
+           list rather than add to it, and the ring would go with it. */
         /*
           THREE STATES, NOT ONE. Hover lifts and deepens the shadow, focus
           draws the site's own ring rather than the browser's, and the press
@@ -118,7 +121,7 @@ export function WhatsAppWidget() {
           "group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none"
         }
       >
-        <span className="min-w-0 whitespace-nowrap text-action font-semibold uppercase tracking-eyebrow">
+        <span className="min-w-0 whitespace-nowrap text-action font-medium uppercase tracking-eyebrow">
           Chat with us
         </span>
       </span>

@@ -1,14 +1,20 @@
 import { Search } from "lucide-react";
 import type { Ref } from "react";
 
-import { NavLabel } from "@/components/layout/NavLabel";
 
 interface SearchTriggerProps {
   ref: Ref<HTMLButtonElement>;
   isOpen: boolean;
   onClick: () => void;
   panelId: string;
-  /** The swatch behind the word. Null over a dark hero. */
+  /**
+   * The swatch that used to sit behind the word.
+   *
+   * KEPT ON THE INTERFACE AND NO LONGER READ. The word is gone, so there is
+   * nothing for a swatch to sit behind. <HeaderBar> still passes it and its
+   * own note explains why the value is what it is, which is worth keeping
+   * next to the decision — remove it there and here together.
+   */
   paint?: string | null;
 }
 
@@ -33,7 +39,7 @@ interface SearchTriggerProps {
  * outside-click check; see the note there on why a click that is meant to
  * close the panel would otherwise reopen it on the same gesture.
  */
-export function SearchTrigger({ ref, isOpen, onClick, panelId, paint = null }: SearchTriggerProps) {
+export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerProps) {
   return (
     <button
       ref={ref}
@@ -52,18 +58,27 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId, paint = null }: S
           the same ranking was undone for the same reason. Search keeps the one
           mark no other entry has, which is the icon.
         */
-        "group/nav relative isolate inline-flex size-11 items-center justify-center gap-2 whitespace-nowrap text-body " +
-        "font-medium tracking-[0.015em] text-current transition-colors duration-300 ease-soft " +
-        // Below `lg` the label is `sr-only`, so the button is an icon in a
-        // fixed 44px box — the touch target the icon alone could not give it.
-        // From `lg` the label is visible and the row sits in an 80–104px bar,
-        // so the box is let go and the button is sized by its own content.
-        //
-        // From `lg` the label sits in <NavLabel>, like every other entry in
-        // the row: it reserves the same 6px under the word and draws the same
-        // rule on hover. This button used to reserve that space itself and
-        // draw nothing — the one entry in the bar with no hover mark at all.
-        "lg:size-auto lg:justify-start"
+        /* The utility rung's size, the same one About and Contact take, so the
+           three controls beside the mark read as one group. See the note on
+           the two rungs in <NavLabel>. Below `lg` the label is `sr-only` and
+           this is a round icon button, so the size reaches nothing there. */
+        "group/nav relative isolate inline-flex size-11 items-center justify-center rounded-full " +
+        "text-current transition-colors duration-300 ease-soft " +
+        /*
+          THE 44px BOX AT EVERY WIDTH. It used to be released at `lg`, where
+          the label arrived to give the button its size; with the label gone
+          there is nothing left but an 18px glyph, and the box is what makes
+          that a target rather than a speck.
+
+          THE QUIET WASH HAS GONE WITH THE `lg:hidden` ON THE BLOT. It was
+          Charcoal at 6% behind the glyph, and it existed only because the
+          paint blot below was mobile-only, leaving the desktop button with no
+          mark of its own. The blot is drawn at every width now, at the
+          client's ask, so a grey wash under it would be a faint ring around a
+          lilac shape — two grounds for one control. The blot carries the
+          state instead: see the swell on it below.
+        */
+        ""
       }
     >
       {/*
@@ -102,12 +117,27 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId, paint = null }: S
         `on-primary` (4.90:1) and from `lg`, where the blot is hidden and the
         label returns, it goes back to the bar's own ink.
 
-        `lg:hidden` for the reason the cut-out had: from `lg` the label and
-        its paint swatch return and a mark here would sit under the word.
+        EVERY WIDTH NOW, at the client's ask. It was `lg:hidden`, because the
+        desktop bar still showed the word "Search" and a blot would have sat
+        under it; the word has since gone from every width, so the glyph stood
+        alone on the bar with nothing behind it while the phone's had its
+        paint. The two are one control again.
+
+        IT SWELLS RATHER THAN THE BUTTON WASHING. A pointer needs an answer
+        and the phone's blot never needed one, so hover, focus and the open
+        panel scale the paint a little instead of putting a second ground
+        behind it. That is this site's own hover language — the nav's swatches
+        do exactly this under their words — and it costs no colour.
       */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-9 -translate-x-1/2 -translate-y-1/2 lg:hidden"
+        className={
+          "pointer-events-none absolute left-1/2 top-1/2 -z-10 size-9 -translate-x-1/2 -translate-y-1/2 " +
+          "transition-transform duration-300 ease-soft motion-reduce:transition-none " +
+          (isOpen
+            ? "scale-110"
+            : "group-hover/nav:scale-110 group-focus-visible/nav:scale-110")
+        }
       >
         <svg viewBox="0 0 40 40" className="size-full" aria-hidden>
           <path
@@ -116,12 +146,29 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId, paint = null }: S
           />
         </svg>
       </span>
-      <Search size={18} aria-hidden className="shrink-0 text-on-primary lg:mb-1.5 lg:text-current" />
-      <span className="sr-only lg:not-sr-only">
-        {/* Drawn while the panel is open as well as on hover, so the bar shows
-            where you are the way a current page does. */}
-        <NavLabel isActive={isOpen} paint={paint}>Search</NavLabel>
-      </span>
+      {/*
+        `on-primary` AT EVERY WIDTH, because the blot is at every width: the
+        near-white is 4.90:1 on Deep Lilac, where the bar's own Charcoal would
+        be 2.37 and under the 3:1 a graphical mark owes.
+
+        AND NO `lg:mb-1.5`. That reserve matched the 6px <NavLabel> keeps under
+        a word, so the glyph and the label beside it centred on one line. There
+        is no label at any width now, so the margin was pushing the glyph three
+        pixels below the middle of its own 44px box and off the centre of the
+        blot behind it.
+      */}
+      <Search size={18} aria-hidden className="shrink-0 text-on-primary" />
+      {/*
+        THE WORD IS GONE AT EVERY WIDTH, at the client's ask — the bar shows
+        the magnifier alone now, the way it already did below `lg`.
+
+        IT IS STILL `sr-only` TEXT AND NOT AN `aria-label`, which is the point
+        the note at the top of this file makes: a control whose name exists
+        only in an attribute cannot be spoken by anyone driving the page by
+        voice, and "click Search" is how that visitor presses this button.
+        The name is real text; it is simply not drawn.
+      */}
+      <span className="sr-only">Search</span>
     </button>
   );
 }

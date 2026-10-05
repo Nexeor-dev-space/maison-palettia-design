@@ -16,6 +16,7 @@ import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import {
   eventFlag,
   eventImage,
+  eventAbout,
   eventIntro,
   eventTitle,
   getEventDetail,
@@ -65,7 +66,7 @@ export async function generateMetadata({
     title: detail ? eventTitle(detail) : "Event",
     description:
       (detail && eventIntro(detail)) ??
-      "A Maison Palettia creative experience — art, craft and community in Dubai.",
+      "A Maison Palettia creative experience: art, craft and community in Dubai.",
     path: `/events/${slug}`,
   });
 }
@@ -181,18 +182,17 @@ export default async function EventPage({
       facts column is an object laid on it rather than a column of text with
       rules between the parts.
 
-      <AboutExperience /> IS GONE, and it was a duplication rather than a
-      design problem. It rendered `eventIntro(detail)`, which is the exact
-      string <EventHeader> has already shown as the lead — checked in
-      lib/eventDetail.ts, that function is the only descriptive text on an
-      EventDetail at all: `workshop.excerpt` for a scheduled session and
-      `experience.description` for a walk-in, and nothing longer exists.
-      So the page printed one sentence twice, the second time at 1.6rem
-      under a heading promising more.
+      THE FACTS AND THE "ABOUT" ARE ONE OBJECT NOW — see <SessionBrief>. They
+      were two thin sections with a full section's margins each, which is what
+      the client read as awkward; the brief is the plate that carries both.
 
-      The honest fix is to say it once. If a longer body is added to the data
-      later, this section comes back to carry it — it is the heading with
-      nothing behind it that had to go, not the idea of an "about".
+      An earlier <AboutExperience /> was deleted outright for a different
+      reason, and the reason still stands: it printed `eventIntro(detail)`,
+      the exact string <EventHeader> already shows as the lead, so the page
+      said one sentence twice. What the brief prints is `eventAbout`, which is
+      the client's own `about` where one is written and otherwise the
+      activity's `description` — a string a scheduled page has never shown,
+      because its lead comes from the session's `excerpt` instead.
     */
     /*
       `overflow-x-clip`, not `overflow-hidden`. The cut-out on the facts field
@@ -222,7 +222,7 @@ export default async function EventPage({
           bookable={bookable}
           openElsewhere={related.length}
         />
-        <QuickInfo detail={detail} />
+        <SessionBrief detail={detail} />
         <LocationSection detail={detail} partner={partner} />
         <ActionArea detail={detail} bookable={bookable} />
 
@@ -420,7 +420,7 @@ function EventHeader({
               <Reveal
                 as="span"
                 variant="maskUp"
-                className="heading-script block pb-[0.3em] text-script-compact leading-[1.14]"
+                className="heading-script block pb-[0.3em] text-script-compact"
               >
                 <ScriptTitle>{eventTitle(detail)}</ScriptTitle>
               </Reveal>
@@ -429,7 +429,7 @@ function EventHeader({
 
           {intro ? (
             <Reveal delay={0.12}>
-              <p className="mt-6 max-w-[34rem] text-lead leading-[1.7] text-text/85">
+              <p className="mt-6 max-w-[34rem] text-lead text-text/85">
                 {intro}
               </p>
             </Reveal>
@@ -590,12 +590,13 @@ function WalkInFacts({ detail }: { detail: EventDetail }) {
       <div>
         <dt className={TERM}>How it runs</dt>
         <dd className="mt-3 text-lead font-medium leading-snug text-text">
-          {/* THE MECHANISM, NOT THE NAME. The eyebrow over the title already
-              says "Create Anytime" and the statement below says it again; a
-              third would be a label repeating itself. This row answers "how
-              does it run", and the honest answer to that is the mechanism —
-              which is where the client asked for the old words to stay. */}
-          Walk-in
+          {/* IT SAYS THE NAME AFTER ALL. This row used to answer "how does it
+              run" with the deck's own word for the mechanism, on the client's
+              earlier instruction that walk-in could stay in descriptions even
+              though the headings had been renamed. That instruction has been
+              withdrawn — the word is not to appear anywhere — so the row takes
+              the name, and the repetition is the price of retiring the term. */}
+          Create Anytime
           <Sub>No booking needed</Sub>
         </dd>
       </div>
@@ -643,9 +644,32 @@ function PrimaryAction({
   detail,
   bookable,
   openElsewhere = 0,
+  tone = "lilac",
 }: {
   detail: EventDetail;
   bookable: boolean;
+  /**
+   * ========================================================================
+   * THE GROUND THIS IS STANDING ON, BECAUSE THE BUTTON CANNOT SEE IT
+   * ========================================================================
+   *
+   * <BlobButton> floods on hover, and the default `lilac` tone floods LIGHT
+   * SAGE. This component is rendered twice on one page and the two sit on
+   * different paper:
+   *
+   *   <EventHeader> ... White Rock. A Light Sage flood measures dE 15.7
+   *                     against it — plainly a change. `lilac`, the default.
+   *   <ActionArea> .... Light Sage. A Light Sage flood measures dE 0.0, which
+   *                     is not a hover at all: the button stops being a
+   *                     button under the pointer and the section's own paper
+   *                     shows through where it was.
+   *
+   * `deep` is the documented answer to exactly that — Deep Lilac deepening to
+   * Charcoal, dE 73.3 against this paper — and BlobButton.module.css carries
+   * the measurements. The prop exists because the ground is a fact about the
+   * call site and nothing inside this function can read it.
+   */
+  tone?: "lilac" | "deep";
   /**
    * How many OTHER sessions can be booked right now — `getRelatedWorkshops`
    * already filters itself to exactly that, and the page already has it.
@@ -659,6 +683,7 @@ function PrimaryAction({
     return (
       <BlobButton
         href={bookingStepHref(detail.workshop)}
+        tone={tone}
         className="w-full justify-center px-8 py-5 sm:w-auto"
       >
         Book this experience
@@ -694,7 +719,7 @@ function PrimaryAction({
     */
     return (
       <div>
-        <p className="max-w-[30rem] text-body leading-[1.8] text-text/85">
+        <p className="max-w-[30rem] text-body text-text/85">
           {openElsewhere > 0
             ? "This date is full. Other sessions are open."
             : "This date is full, and nothing else is open just now."}
@@ -702,7 +727,7 @@ function PrimaryAction({
         {openElsewhere > 0 ? (
           <BlobButton
             href="/events#scheduled"
-            tone="secondary"
+            tone="painted"
             className="mt-6 min-h-[3.25rem] px-7"
           >
             See what is open
@@ -714,7 +739,7 @@ function PrimaryAction({
 
   if (isUpcoming(detail)) {
     return (
-      <p className="max-w-[30rem] text-body leading-[1.8] text-text/85">
+      <p className="max-w-[30rem] text-body text-text/85">
         Not running yet. It will appear in the programme when it opens.
       </p>
     );
@@ -762,13 +787,13 @@ function PrimaryAction({
       <p className="text-h3 font-light tracking-[-0.015em] text-text">
         Come on a day we are there.
       </p>
-      <p className="mt-3 max-w-[30rem] text-body leading-[1.8] text-text/85">
+      <p className="mt-3 max-w-[30rem] text-body text-text/85">
         There is nothing to reserve for this one. But the studio travels, and
         each date runs at a mall for that day only.
       </p>
       <BlobButton
         href="/events#where-we-set-up"
-        tone="secondary"
+        tone="painted"
         className="mt-6 min-h-[3.25rem] px-7"
       >
         See where we are set up
@@ -794,10 +819,149 @@ function PrimaryAction({
  * exists is "walk in" — a one-row strip under a header that has just said the
  * same thing is furniture.
  */
-function QuickInfo({ detail }: { detail: EventDetail }) {
-  if (detail.kind !== "scheduled") return null;
+/**
+ * ==========================================================================
+ * THE SESSION BRIEF — what it is, and the facts, as one object
+ * ==========================================================================
+ *
+ * WHAT THIS REPLACES, AND WHY THE TWO BECAME ONE. The page carried a bare
+ * specification strip and, under a second heading and a second set of section
+ * margins, a paragraph block. Rendered on a real session the pair read as the
+ * client described them: awkward. Six short fields hung off a hairline with no
+ * edge to hold them; then a band of empty Light Sage the depth of half a
+ * screen; then a script heading in the left third with a SINGLE SHORT SENTENCE
+ * stranded in the far column beside it — and a ground doodle landing across
+ * the middle of that sentence, because nothing under it was opaque.
+ *
+ * None of that is fixed by nudging the pieces. The fault is that two thin
+ * sections were each given the weight of a whole one. So they are one object
+ * now: a White Rock plate on the Light Sage page, the voice at the top of it
+ * and the facts ruled off underneath, with the brand's cut-outs breaking its
+ * corners from behind. One set of margins, one edge, nothing stranded.
+ *
+ * THE SENTENCE IS SET AS A STATEMENT, NOT AS BODY COPY. `eventAbout` returns
+ * one short line for most activities — it is the client's own description, and
+ * five of the seven have nothing longer. A short line at body size across a
+ * seven-column measure is exactly what looked broken; at lead size on a
+ * 48-character measure directly under its own heading it reads as deliberate,
+ * and a longer body, the day one is written, simply flows down the same
+ * column.
+ *
+ * THE PLATE IS ALSO WHAT ENDS THE DOODLE COLLISION. The marks behind this part
+ * of the page belong to the section ground; an opaque plate puts the reading
+ * matter on its own paper, and the two marks that belong to this object sit
+ * inside it, cut by its own corner.
+ *
+ * IT STILL SAYS ONLY WHAT THE DATA SAYS. The fields are the session's own
+ * record and the paragraphs are `eventAbout`. A walk-in activity has no
+ * session, so it gets the voice alone; an activity with neither renders
+ * nothing at all.
+ */
+function SessionBrief({ detail }: { detail: EventDetail }) {
+  const paragraphs = eventAbout(detail);
+  const fields = detail.kind === "scheduled" ? sessionFields(detail.workshop) : [];
 
-  const workshop = detail.workshop;
+  if (paragraphs.length === 0 && fields.length === 0) return null;
+
+  const titled = paragraphs.length > 0;
+
+  return (
+    <section
+      aria-labelledby={titled ? "event-about" : undefined}
+      aria-label={titled ? undefined : "Session details"}
+      className="mt-14 md:mt-16 lg:mt-20"
+    >
+      <div className="plate relative isolate overflow-clip rounded-[1.75rem] bg-cream px-6 py-9 md:px-10 md:py-11 lg:px-12 lg:py-12">
+        {/*
+          ONE MARK, BREAKING ONE CORNER. The brand sheet punctuates a plate; it
+          does not upholster it. The first pass hung a 13rem cut-out off the
+          top corner and a second off the foot, and at that size the first read
+          as a purple field rather than as a shape while the second crossed
+          under the date. This is the one corner the composition actually
+          leaves empty — right of a heading set on a 58-character measure — and
+          the mark is sized to punctuate it.
+
+          `stamp` renders it filled and still: a plate in the middle of a page
+          never travels through the viewport the way a scroll-drawn mark needs
+          to. `-z-10` inside the isolated plate keeps it on the paper and under
+          the words.
+        */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-6 -top-7 -z-10 w-[5.5rem] rotate-[12deg] md:w-[7.25rem]"
+        >
+          <DoodleMark name="splash" color={INK.lilac} treatment="stamp" depth={0} />
+        </span>
+
+        {titled ? (
+          <div className="max-w-[58ch]">
+            <Reveal>
+              <p className={TERM}>About</p>
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2
+                id="event-about"
+                className="heading-script mt-4 pb-[0.22em] text-script-compact text-text"
+              >
+                About This Experience
+              </h2>
+            </Reveal>
+            {paragraphs.map((paragraph, i) => (
+              <Reveal key={i} delay={0.12 + i * 0.06}>
+                <p
+                  className={cn(
+                    "text-lead leading-[1.7] text-text/85",
+                    i === 0 ? "mt-2" : "mt-5",
+                  )}
+                >
+                  {paragraph}
+                </p>
+              </Reveal>
+            ))}
+          </div>
+        ) : null}
+
+        {fields.length > 0 ? (
+          <dl
+            className={cn(
+              "grid grid-cols-2 gap-y-7 md:grid-cols-3 lg:grid-cols-6",
+              titled ? "mt-9 border-t border-text/15 pt-8 md:mt-11 md:pt-9" : "",
+            )}
+          >
+            {fields.map(({ term, value }, i) => (
+              <Reveal
+                key={term}
+                delay={i * 0.05}
+                /*
+                  Ruled between the columns at `lg`, where the six sit in one
+                  row: the hairline is what makes them read as one object
+                  rather than as six pairs floating at the same height. Below
+                  that they stack two and three up, where a rule between them
+                  would only chop the grid about.
+                */
+                className="lg:border-l lg:border-text/15 lg:px-5 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
+              >
+                <dt className={TERM}>{term}</dt>
+                {/* `text-balance`: six values in a twelfth of the measure each,
+                    and three of them run to two lines. Left to itself the time
+                    range broke after "5:30" and dropped a lone "PM"; balanced,
+                    the pair of lines come out even. */}
+                <dd className="mt-2.5 text-pretty text-body font-medium leading-snug text-text [text-wrap:balance]">
+                  {value}
+                </dd>
+              </Reveal>
+            ))}
+          </dl>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+/** The session's own record, as the fields the brief prints. */
+function sessionFields(
+  workshop: Workshop,
+): { term: string; value: React.ReactNode }[] {
   const { weekday } = sessionDateParts(workshop.startsAt);
   const { start, end } = sessionTimeRange(
     workshop.startsAt,
@@ -836,56 +1000,45 @@ function QuickInfo({ detail }: { detail: EventDetail }) {
       ? [
           {
             term: "Location",
-            value: `${workshop.venue.name}, ${workshop.venue.locality}`,
+            value: (
+              <>
+                {workshop.venue.name}
+                <Sub>{workshop.venue.locality}</Sub>
+              </>
+            ),
           },
         ]
       : []),
-    { term: "Price", value: `${formatPrice(workshop.price)} per person` },
+    {
+      term: "Price",
+      value: (
+        <>
+          {formatPrice(workshop.price)}
+          <Sub>per person</Sub>
+        </>
+      ),
+    },
     { term: "Experience", value: workshop.category },
   ];
 
-  return (
-    <section
-      aria-labelledby="event-quick-info"
-      className="mt-16 md:mt-20 lg:mt-24"
-    >
-      <h2 id="event-quick-info" className="sr-only">
-        Event information
-      </h2>
-      {/*
-        A rule above and the fields hanging from it — the index grammar the
-        rest of the site uses, not a bordered specification table. Two columns
-        on a phone so six short fields do not become six screens of scrolling.
-      */}
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-8 border-t border-line pt-8 md:grid-cols-3 lg:grid-cols-6 lg:gap-x-10">
-        {fields.map(({ term, value }, i) => (
-          <Reveal key={term} delay={i * 0.05}>
-            <dt className={TERM}>{term}</dt>
-            <dd className="mt-3 text-body font-medium leading-snug text-text">
-              {value}
-            </dd>
-          </Reveal>
-        ))}
-      </dl>
-    </section>
-  );
+  return fields;
 }
 
 /* ==========================================================================
-   SECTION 05 — (REMOVED) ABOUT THE EXPERIENCE
+   SECTION 05 — THE "ABOUT" NOW TRAVELS WITH THE FACTS
    ==========================================================================
 
-   <AboutExperience> stood here and printed `eventIntro(detail)` under the
-   heading "About the experience". <EventHeader> already shows that string as
-   the page's lead, and lib/eventDetail.ts confirms it is the only descriptive
-   text an EventDetail has — `workshop.excerpt` for a scheduled session,
-   `experience.description` for a walk-in, and nothing longer behind either.
-   So the section restated the sentence above it at 1.6rem and added a heading
-   that promised detail the project does not hold.
+   A section stood here on its own twice over: first printing `eventIntro`,
+   which <EventHeader> already showed as the lead and which was deleted for
+   saying the same sentence twice; then, wired to `eventAbout`, as a script
+   heading in the left third with one short sentence stranded in the far
+   column beside it.
 
-   Deleted rather than hidden. If the CMS grows a real body field, this comes
-   back to carry it; padding the page with the same sentence twice in the
-   meantime is the thing to avoid.
+   The second version was not wrong about the content — `eventAbout` is a
+   string the page had never shown — it was wrong about the weight. One short
+   line does not fill a seven-column measure under a section's own margins.
+   It is part of <SessionBrief> now, set as a statement under its heading on
+   the same plate as the session's facts.
    ========================================================================== */
 
 /* ==========================================================================
@@ -926,8 +1079,8 @@ function LocationSection({
 
   const heading =
     detail.kind === "scheduled"
-      ? "Where it happens"
-      : "Where the Maison sets up";
+      ? "Where It Happens"
+      : "Where the Maison Sets Up";
 
   return (
     <section
@@ -1109,9 +1262,9 @@ function ActionArea({
             id="event-close"
             className="heading-script text-script-compact"
           >
-            Ready to create?
+            Ready to Create?
           </h2>
-          <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/80">
+          <p className="mt-5 max-w-[32rem] text-lead text-text/80">
             Everything is laid out before you arrive. You bring nothing but
             yourself.
           </p>
@@ -1121,7 +1274,9 @@ function ActionArea({
           delay={0.12}
           className="col-span-12 md:col-span-5 md:justify-self-end"
         >
-          <PrimaryAction detail={detail} bookable={bookable} />
+          {/* `deep`, because this section is Light Sage and the default
+              floods Light Sage — see the note on the prop. */}
+          <PrimaryAction detail={detail} bookable={bookable} tone="deep" />
         </Reveal>
       </div>
     </section>
@@ -1192,7 +1347,7 @@ function MoreEvents({
           id="more-events"
           className="heading-script relative pb-[0.3em] text-script-compact text-text"
         >
-          <ScriptTitle>More events</ScriptTitle>
+          <ScriptTitle>More Events</ScriptTitle>
         </h2>
       </Reveal>
 
@@ -1286,16 +1441,16 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
           <DoodleMark name="starburst" color={INK.lavender} treatment="stamp" delay={260} />
         </span>
 
-        <span className="flex items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text">
+        <span className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
           <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-primary" />
           Scheduled session
         </span>
 
-        <span className="heading-script mt-3 block pb-[0.2em] text-script-compact leading-[1.15] text-text">
+        <span className="heading-script mt-3 block pb-[0.2em] text-script-compact text-text">
           <ScriptTitle>{workshop.title}</ScriptTitle>
         </span>
 
-        <span className="mt-4 block text-lead leading-[1.5] text-text">
+        <span className="mt-4 block text-lead text-text">
           {formatSessionDate(workshop.startsAt)}
           <span aria-hidden className="px-2 text-text/60">
             &middot;
@@ -1314,7 +1469,7 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
           ) : null}
         </span>
 
-        <span className="mt-7 inline-flex items-center gap-2 text-action font-semibold uppercase tracking-eyebrow text-primary">
+        <span className="mt-7 inline-flex items-center gap-2 text-action font-medium uppercase tracking-eyebrow text-primary">
           <span className="relative inline-block pb-1.5">
             View this session
             <span

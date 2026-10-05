@@ -263,7 +263,7 @@ function FilterSelect({ label, options, selected, onSelect }: FilterSelectProps)
         <span className="flex flex-col items-start gap-0.5 text-left">
           <span
             className={cn(
-              "text-label font-semibold uppercase tracking-eyebrow",
+              "text-label font-medium uppercase tracking-eyebrow",
               /*
                 FULL STRENGTH ON THE LILAC, AND THAT IS MEASURED. The other
                 state can afford to hold its label back — White Rock at 70% on
@@ -280,7 +280,7 @@ function FilterSelect({ label, options, selected, onSelect }: FilterSelectProps)
           >
             {label}
           </span>
-          <span id={`${listId}-value`} className="text-action font-semibold uppercase tracking-eyebrow">
+          <span id={`${listId}-value`} className="text-action font-medium uppercase tracking-eyebrow">
             {current.label}
           </span>
         </span>
@@ -320,7 +320,7 @@ function FilterSelect({ label, options, selected, onSelect }: FilterSelectProps)
                 onPointerEnter={() => setCursor(i)}
                 className={cn(
                   "flex cursor-none items-center justify-between gap-6 rounded-sm px-4 py-3",
-                  "text-action font-semibold uppercase tracking-eyebrow",
+                  "text-action font-medium uppercase tracking-eyebrow",
                   i === cursor ? "bg-cream text-text" : "text-text/80",
                   chosen && "text-primary",
                 )}

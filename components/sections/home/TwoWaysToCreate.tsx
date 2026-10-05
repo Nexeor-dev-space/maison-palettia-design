@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
@@ -27,43 +28,7 @@ import { getUpcomingWorkshops } from "@/lib/workshops";
   `hidden lg:block`, because below `lg` the heading takes the full measure
   and there is no empty half for them to fill.
 */
-const TWO_WAYS_SHAPES: readonly ShapePlan[] = [
-  {
-    name: "coral",
-    color: INK.lilac,
-    width: "5.5%",
-    right: "9%",
-    top: "14%",
-    rotate: -12,
-    drift: 22,
-    opacity: 0.18,
-    float: 13,
-  },
-  {
-    name: "splash",
-    color: INK.terracotta,
-    width: "4.5%",
-    right: "30%",
-    top: "44%",
-    rotate: 14,
-    drift: -18,
-    opacity: 0.16,
-    float: 15,
-    floatDelay: 1.1,
-  },
-  {
-    name: "starleaf",
-    color: INK.lavender,
-    width: "6%",
-    right: "17%",
-    bottom: "12%",
-    rotate: 8,
-    drift: 20,
-    opacity: 0.2,
-    float: 11,
-    floatDelay: 2,
-  },
-];
+const TWO_WAYS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 5 });
 
 /**
  * ==========================================================================
@@ -220,7 +185,7 @@ export async function TwoWaysToCreate() {
           <Reveal delay={0.12}>
             {/* `script-lede` rather than a margin: the gap under a script
                 heading is a token, because Hapsha's descenders hang into it. */}
-            <p className="script-lede max-w-[54ch] text-body leading-[1.8] text-text/80">
+            <p className="script-lede max-w-[54ch] text-lead text-text/80">
               Come in any time and make something, or take a seat at a session on a set date.
             </p>
           </Reveal>
@@ -508,7 +473,7 @@ function Road({
         {/* The numeral and the label on one line: the numeral says there are
             two of these before a word is read, and the label says which one
             this is. Together they are four words. */}
-        <p className="mt-7 flex items-center gap-3 text-label font-bold uppercase tracking-eyebrow">
+        <p className="mt-7 flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
           <span aria-hidden className="block w-4 shrink-0">
             <DoodleMark name="dot" color={dot} />
           </span>
@@ -526,7 +491,7 @@ function Road({
       </Reveal>
 
       <Reveal delay={0.16}>
-        <p className="mt-3 max-w-[34ch] text-lead leading-[1.5] tracking-[-0.01em] text-surface">
+        <p className="mt-3 max-w-[34ch] text-lead tracking-[-0.01em] text-surface">
           {line}
         </p>
       </Reveal>
@@ -618,7 +583,7 @@ function Road({
                   the bar keeps under its words. Here the blob is meant to
                   cover the chip, so it runs to the bottom of the box. */}
               <PaintStroke paint={chips[i % chips.length]} shape="blot" />
-              <span className="relative text-action font-semibold uppercase tracking-eyebrow text-text">
+              <span className="relative text-action font-medium uppercase tracking-eyebrow text-text">
                 {fact}
               </span>
             </li>

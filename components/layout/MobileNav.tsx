@@ -546,7 +546,7 @@ function PrivateEventsGroup({
             <Link
               href={PRIVATE_EVENT_ENQUIRY_HREF}
               onClick={onClose}
-              className="inline-flex items-center gap-2 rounded-pill bg-primary px-5 py-2.5 text-action font-semibold uppercase tracking-eyebrow text-on-primary"
+              className="inline-flex items-center gap-2 rounded-pill bg-primary px-5 py-2.5 text-action font-medium uppercase tracking-eyebrow text-on-primary"
             >
               Book a private event
               <span aria-hidden>&#8594;</span>

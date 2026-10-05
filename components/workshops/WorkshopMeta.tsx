@@ -106,7 +106,7 @@ export function AvailabilityMarker({ workshop, className }: WorkshopMetaProps) {
         className={cn(
           // `flex w-fit`, not `inline-flex`: an inline-level box would sit on
           // the same line as the action below it and ignore its own margin.
-          "flex w-fit items-center rounded-pill px-3.5 py-1.5 text-label font-semibold uppercase tracking-eyebrow text-text",
+          "flex w-fit items-center rounded-pill px-3.5 py-1.5 text-label font-medium uppercase tracking-eyebrow text-text",
           closed ? "bg-lavender/50" : "ring-1 ring-inset ring-line",
           className,
         )}

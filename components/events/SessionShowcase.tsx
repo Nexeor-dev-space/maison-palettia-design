@@ -169,11 +169,11 @@ function LeadSession({ workshop, full }: { workshop: Workshop; full: boolean }) 
           </Link>
         </h3>
 
-        <p className="mt-5 max-w-[34rem] text-body leading-[1.8] text-text/80">
+        <p className="mt-5 max-w-[34rem] text-body text-text/80">
           {workshop.excerpt}
         </p>
 
-        <p className="mt-6 text-body leading-[1.7] text-text">
+        <p className="mt-6 text-body text-text">
           <time dateTime={workshop.startsAt}>{date}</time>
           <span aria-hidden className="px-2 text-text/70">
             &middot;

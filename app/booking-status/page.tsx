@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { INK } from "@/components/sections/hero/composition";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 
 import { BookingStatusLookup } from "@/components/booking/BookingStatusLookup";
 import { Reveal } from "@/components/motion/Reveal";
@@ -69,7 +70,7 @@ export default function BookingStatusPage() {
         />
 
         <Reveal delay={0.08}>
-          <p className="mt-7 max-w-[34rem] text-body leading-[1.85] text-text/80">
+          <p className="mt-7 max-w-[34rem] text-lead text-text/80">
             Enter the reference from your confirmation and we will show you where that booking
             stands.
           </p>
@@ -100,43 +101,4 @@ export default function BookingStatusPage() {
   under a script heading and a form, and a ground that competes with either is
   not a ground. Light Sage is not among them — it is the ground.
 */
-const STATUS_SHAPES: readonly ShapePlan[] = [
-  {
-    name: "splash",
-    color: INK.lilac,
-    width: "13%",
-    right: "8%",
-    top: "8%",
-    rotate: -12,
-    drift: 24,
-    opacity: 0.2,
-    float: 13,
-    desktopOnly: true,
-  },
-  {
-    name: "coral",
-    color: INK.terracotta,
-    width: "8%",
-    right: "26%",
-    top: "30%",
-    rotate: 9,
-    drift: -18,
-    opacity: 0.16,
-    float: 16,
-    floatDelay: 1.4,
-    desktopOnly: true,
-  },
-  {
-    name: "zigzag",
-    color: INK.lavender,
-    width: "6%",
-    right: "14%",
-    top: "56%",
-    rotate: 15,
-    drift: 20,
-    opacity: 0.18,
-    float: 11,
-    floatDelay: 2.2,
-    desktopOnly: true,
-  },
-];
+const STATUS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 5 });

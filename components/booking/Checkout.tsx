@@ -145,7 +145,7 @@ export function Checkout() {
       // page that stops responding. No status codes, no provider names.
       setSubmitting(false);
       setFormError(
-        "We could not complete your booking just now. Nothing has been charged — please try again in a moment.",
+        "We could not complete your booking just now. Nothing has been charged. Please try again in a moment.",
       );
     }
   }
@@ -208,14 +208,14 @@ function CustomerDetails({
         Your details
       </h2>
 
-      <p className="mt-4 max-w-[34rem] text-body leading-[1.8] text-text/80">
+      <p className="mt-4 max-w-[34rem] text-body text-text/80">
         No account needed. We ask only for what the studio needs to greet you on the day and
         reach you if anything changes.
       </p>
 
       {details ? (
         <p className="mt-3 text-fine text-text/70">
-          Carried over from the last step — change anything that is not right.
+          Carried over from the last step. Change anything that is not right.
         </p>
       ) : null}
 
@@ -291,11 +291,11 @@ function Complete({
       */}
       <div role="alert" aria-live="assertive">
         {formError ? (
-          <p className="mb-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body leading-[1.8] text-text">
+          <p className="mb-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text">
             {formError}
           </p>
         ) : hasFieldErrors ? (
-          <p className="mb-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body leading-[1.8] text-text">
+          <p className="mb-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text">
             Please check the highlighted details above and try again.
           </p>
         ) : null}
@@ -331,7 +331,7 @@ function Complete({
       {!PAYMENT_CONFIGURED ? (
         <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-fine leading-[1.8] text-text/80">
           This is a preview booking. Maison Palettia has no payment provider connected yet, so
-          nothing is charged now and nothing is charged later — you will get a reference to keep
+          nothing is charged now and nothing is charged later. You will get a reference to keep
           and the studio will confirm your place directly.
         </p>
       ) : null}
@@ -367,7 +367,7 @@ function EmptyCart() {
       <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">
         Your booking is empty.
       </p>
-      <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">
+      <p className="mt-5 max-w-[32rem] text-body text-text/75">
         Nothing is held yet. Choose an event and it will appear here with everything you need to
         complete the booking.
       </p>

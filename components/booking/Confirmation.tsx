@@ -51,7 +51,7 @@ export function Confirmation() {
         <p className="mt-8 max-w-[42rem] text-fine leading-[1.8] text-text/75">
           No payment has been taken and none is due through this site yet, and this reference is
           held in your browser rather than by the studio. Send it to the Maison and we will
-          confirm it — until then it is a request, not a confirmed booking.
+          confirm it. Until then it is a request, not a confirmed booking.
         </p>
       ) : null}
 
@@ -93,7 +93,7 @@ function NotFound({ reference }: { reference: string | null }) {
       <p className="text-label font-medium uppercase tracking-eyebrow text-text">
         No booking to show
       </p>
-      <p className="mt-4 text-body leading-[1.8] text-text/80">
+      <p className="mt-4 text-body text-text/80">
         {reference ? (
           <>
             Nothing here matches <span className="tabular-nums text-text">{reference}</span>.

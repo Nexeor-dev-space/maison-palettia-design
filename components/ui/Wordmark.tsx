@@ -43,7 +43,7 @@ export function Wordmark({ className, onLight = false }: WordmarkProps) {
   return (
     <Link
         href="/"
-        aria-label={`${SITE.name} — home`}
+        aria-label={`${SITE.name} home`}
         className={cn(
           "inline-flex items-center transition-opacity duration-200 hover:opacity-80",
           className,

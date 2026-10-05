@@ -149,7 +149,7 @@ export function MaisonPhilosophy() {
                 Only a little: 34rem is around 72 characters, which is the top
                 of what stays comfortable to read.
               */}
-              <p className="max-w-[30rem] text-body leading-[1.85] text-surface md:text-base xl:max-w-[34rem]">
+              <p className="max-w-[30rem] text-body text-surface md:text-base xl:max-w-[34rem]">
                 {description}
               </p>
             </Reveal>

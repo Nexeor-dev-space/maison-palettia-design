@@ -74,9 +74,35 @@ export async function WhereWeCreate() {
       >
         <DoodleMark name="coral" color={INK.terracotta} treatment="draw" delay={380} />
       </span>
+      {/*
+        ==================================================================
+        THE LEFT EDGE, NOT THE RIGHT, AND IT IS A COLLISION THAT MOVED IT
+        ==================================================================
+
+        This hung off the section's RIGHT edge at `top-[8%]`, which put it at
+        x1785-1904 / y437-503 at 1860 — and the map plate's own corner mark
+        sits at x1712-1867 / y429-515. The two overlapped by 82 x 66px, which
+        is most of both of them, and the client circled the result.
+
+        THEY ARE ALSO THE SAME DRAWING, which is why the stack read as a smear
+        rather than as two shapes. Both are lavender, and in the brand sheet
+        the colour picks the icon while the shape word only picks loose or
+        slab (`resolveIcon`, components/sections/hero/doodles.ts) — `wave`
+        here and `bean` on the plate are both slab words, so both resolve to
+        the one lavender slab. Two copies of one icon, 8px apart.
+
+        The right-hand half of this section is the map, and the plate brings
+        its own marks to both of its corners; there is no room up there for a
+        third. The section's top-left is empty cream from the band above down
+        to the eyebrow — 176px of clearance over "FIND US" at 1860 — so the
+        mark crosses that edge instead. It keeps its size, its angle and its
+        bleed off the section's side; only the side changes, and the section's
+        own pair now frames the left column top and bottom while the plate
+        keeps its own two corners.
+      */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -right-10 top-[8%] hidden w-24 -rotate-12 lg:block xl:w-28"
+        className="pointer-events-none absolute -left-10 top-[8%] hidden w-24 -rotate-12 lg:block xl:w-28"
       >
         <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={520} />
       </span>
@@ -223,9 +249,9 @@ export async function WhereWeCreate() {
                 section being empty — the note this section keeps getting.
                 At five columns the column is about 480px and so is 60ch. */}
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[60ch] text-body text-text">
-                Maison Palettia brings creative experiences into the places people already gather
-                &mdash; set up inside a mall rather than behind a studio door.
+              <p className="mt-8 max-w-[60ch] text-lead text-text">
+                Maison Palettia brings creative experiences into the places people already gather,
+                set up inside a mall rather than behind a studio door.
               </p>
             </Reveal>
           </div>
@@ -332,12 +358,35 @@ export async function WhereWeCreate() {
                 wrapper around it instead.
               */}
               <div className="relative">
+                {/*
+                  THE TERRACOTTA CUT-OUT, NOT THE LAVENDER WAVE, and the
+                  reason is what a CORNER mark actually shows of itself.
+
+                  This was `bean` in Soft Lavender, which resolves to the
+                  sheet's lavender slab — a lavender tile carrying CHARCOAL
+                  waves (`slabWave`, d5.png). The tile is `-z-10` and three
+                  quarters covered by the frame, so the only part of it that
+                  ever reached the eye was the dark waves along its top edge:
+                  a charcoal scribble over the map rather than a brand mark,
+                  which is what the client circled.
+
+                  `cutout` in Warm Terracotta is the sheet's one-colour tile
+                  (`slabCut`, d1.png) — the mark is knocked OUT of it, so the
+                  shape is solid terracotta however little of it shows and a
+                  fragment still reads as a cut-out. Terracotta is also
+                  already this section's accent, and it answers the Deep Lilac
+                  slab at the frame's opposite corner with the brand's other
+                  strong colour instead of repeating a second lavender.
+
+                  Size, angle, lift and the `-z-10` tuck are unchanged; only
+                  the drawing is.
+                */}
                 <span
                   aria-hidden
                   className="pointer-lift pointer-events-none absolute -right-7 -top-8 -z-10 hidden w-[20%] rotate-[12deg] lg:block"
                   style={{ "--ax": 0.78, "--lift": 0.22 } as React.CSSProperties}
                 >
-                  <DoodleMark name="bean" color={INK.lavender} treatment="draw" delay={360} depth={22} />
+                  <DoodleMark name="cutout" color={INK.terracotta} treatment="draw" delay={360} depth={22} />
                 </span>
                 <span
                   aria-hidden
@@ -420,7 +469,7 @@ export async function WhereWeCreate() {
               */}
               <Reveal delay={0.1}>
                 <div className="plate mt-5 rounded-[1.25rem] bg-sage px-6 py-6 md:px-7">
-                  <h3 className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text">
+                  <h3 className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text">
                     <span aria-hidden className="block w-4 shrink-0">
                       <DoodleMark name="dot" color={INK.lilac} />
                     </span>

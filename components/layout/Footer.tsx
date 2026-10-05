@@ -6,11 +6,47 @@ import type { CSSProperties } from "react";
 import { BackToTop } from "@/components/layout/BackToTop";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import type { DoodleName } from "@/components/sections/hero/doodles";
 import { forScript } from "@/components/ui/SectionHeader";
 import { MISSION, TAGLINE } from "@/lib/brand";
 import { PaintStroke, linkPaint } from "@/components/layout/PaintStroke";
 import { BRAND_LOGO, CONTACT, FOOTER_NAV, LEGAL_NAV, SITE, SOCIAL_LINKS } from "@/lib/constants";
+import { POLICIES } from "@/lib/policies";
 import { getMallPartners } from "@/lib/partners";
+
+/*
+  One cut-out per navigation group, in the order the groups are read.
+
+  Four shapes rather than one repeated: three identical marks down a row of
+  three headings is a bullet, and the point of using the brand's set here is
+  that it has a set. All four are LOOSE cuts — the slab icons carry a filled
+  tile behind the drawing, which at 18px beside a 13px label reads as a
+  coloured square rather than as a mark.
+*/
+/*
+  THE COLOUR PICKS THE SHAPE, NOT THE NAME — which is the one thing you have
+  to know to use this set. `resolveIcon` keys the brand sheet by colour:
+  each of the five brand colours owns one loose cut and one slab cut, so
+  `splash`, `coral` and `bow` all resolve to the SAME drawing when they are
+  handed the same ink. Four different names in lilac rendered as four
+  identical marks down the footer.
+
+  Varying the ink is the only way to vary the shape — and it varies the shape
+  WITHOUT varying the colour, because a cut from the sheet carries its own
+  fills and the `color` prop is only the key that selects it. Charcoal Slate
+  was tried as a third entry here and rendered identically to Deep Lilac:
+  both map to the bow, and the bow is drawn in the sheet's lilac either way.
+
+  The cream ground rules out the rest. Soft Lavender is 1.3:1 on it and White
+  Rock IS it. So the set is two: Deep Lilac's bow and Warm Terracotta's
+  splash, alternating down the column. These are decoration beside a text
+  label that carries the meaning, so the 3:1 a meaningful graphic owes does
+  not bind on the terracotta's 2.44.
+*/
+const GROUP_MARKS: readonly { name: DoodleName; color: string }[] = [
+  { name: "bow", color: "#9059A4" },
+  { name: "splash", color: "#D97757" },
+];
 
 /**
  * A footer link.
@@ -23,18 +59,34 @@ import { getMallPartners } from "@/lib/partners";
  * two weights of the same thing.
  */
 /*
-  `after:-inset-y-0.5` is the last 4px of the tap target. The padding here
-  sets a 40px box — close, and still short of 44 — and these are the links a
-  thumb reaches for at the foot of a phone, where the hand is least steady.
-  Two pixels either side rather than more `py`, because `-my-1.5` is already
-  pulling the padding back out of the baseline grid and growing it again
-  would move the rules the footer's columns are set to. `space-y-2.5` leaves
-  10px between them, so the targets still clear each other by 6.
+  ==========================================================================
+  NO PSEUDO-ELEMENT HERE, AND THE ONE THAT WAS IS THE REASON FOR THIS NOTE
+  ==========================================================================
 
-  Same pseudo-element device as <BackToTop> below, which carries the note.
+  This carried `after:-inset-y-0.5`, added to lift a "40px" box to the 44px a
+  thumb wants. Re-measured against the rendered page, the box is 45.25px —
+  33.25 of line plus 12 of padding — so it was already over the line and the
+  extra 4px bought nothing.
+
+  What it cost was real. `-my-1.5` pulls 6px back off each end, so a column of
+  these pitches its rows at 43.25 while each BOX is 45.25: the boxes already
+  overlap by 2, and the pseudo-element took the targets to 49.25 and the
+  overlap to 6. Six pixels of every row belonged to its neighbour, so a thumb
+  aimed at the top of "Locations" could open "About". Measured across all
+  three breakpoints: four overlapping pairs at 1440, six at 768.
+
+  A target is not only its height. Growing one into the row above is not
+  making it bigger, it is making two of them wrong, and the fix is the pitch —
+  see the `space-y` on the lists, which is now 14px rather than 10.
+
+  `py-2` AND NOT `py-1.5`, WHICH IS THE PHONE'S NUMBER. At 1440 the line box
+  is 33.25px and 12px of padding clears 44 comfortably; the type scale steps
+  down below `sm`, the line box with it, and the same padding gave a 42px
+  target. 16px of padding holds 44 at every width the site has, and the extra
+  4px still fits inside the 14px row gap.
 */
 const LINK =
-  "group/link relative -my-1.5 inline-flex py-1.5 text-body text-text transition-colors duration-300 ease-soft after:absolute after:inset-x-0 after:-inset-y-0.5 after:content-['']";
+  "group/link relative -my-1.5 inline-flex py-2 text-body text-text transition-colors duration-300 ease-soft";
 
 /**
  * ==========================================================================
@@ -193,6 +245,45 @@ export async function Footer() {
       style={{ "--paint": "var(--color-primary)" } as CSSProperties}
       className="relative isolate bg-cream text-text"
     >
+      {/*
+        ==================================================================
+        THREE MARKS ON THE GROUND, WHERE THE COMPOSITION IS ACTUALLY EMPTY
+        ==================================================================
+
+        The client's reference footer carries half a dozen drawn shapes
+        around its edges and asked for the same liveliness here — but those
+        are biro strokes and marker scribbles from a stock set, and this
+        brand has its own cut-outs. These are the Maison's, placed where
+        the measured layout has room rather than where the reference puts
+        its own: the gap between the tagline and the first navigation
+        group, the outer margin beside the three-up band, and the floor
+        beside the copyright line.
+
+        DESKTOP ONLY, and low. Below `lg` the footer is a single stacked
+        column with no margins to draw in, and at 0.14–0.2 these read as
+        paper rather than as objects competing with eight navigation links.
+        All three are clipped by the footer's own edges where they overrun,
+        which is what makes them cut-outs rather than stickers.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-[27%] top-[7.5rem] hidden w-16 rotate-[-12deg] opacity-[0.18] xl:block"
+      >
+        <DoodleMark name="bow" color="#9059A4" treatment="stamp" depth={0} />
+      </span>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -left-12 top-[58%] hidden w-28 rotate-[8deg] opacity-[0.13] lg:block"
+      >
+        <DoodleMark name="splash" color="#D97757" treatment="stamp" depth={0} />
+      </span>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-1 left-[27%] hidden w-20 rotate-[-18deg] opacity-[0.15] lg:block"
+      >
+        <DoodleMark name="bow" color="#9059A4" treatment="stamp" depth={0} />
+      </span>
+
       <Container className="relative pb-[calc(2rem+var(--bottom-nav-h))] pt-16 md:pt-20 lg:pb-10 lg:pt-24">
         {/*
           THE CORAL THAT USED TO BLEED OFF THIS CORNER HAS GONE, and the note
@@ -228,8 +319,8 @@ export async function Footer() {
             disagreeing. At `lg` the row goes back to five columns and five,
             where left is right.
           */}
-          <div className="col-span-12 text-center lg:col-span-5 lg:text-left">
-            <Link href="/" aria-label={`${SITE.name} — home`} className="inline-block">
+          <div className="col-span-12 text-center lg:col-span-4 lg:text-left">
+            <Link href="/" aria-label={`${SITE.name} home`} className="inline-block">
               {/*
                 THE DEEP LILAC CUT, BECAUSE THE GROUND IS LIGHT NOW. The client
                 supplied two: Light Sage for dark grounds and Deep Lilac for
@@ -305,7 +396,7 @@ export async function Footer() {
             earlier closes that gap and gives the longest label ("Check a
             booking") room to stay on one line.
           */}
-          <nav aria-label="Footer" className="col-span-12 lg:col-span-7 lg:col-start-6">
+          <nav aria-label="Footer" className="col-span-12 lg:col-span-8 lg:col-start-5">
             {/*
               ONE COLUMN ON A PHONE, NOT TWO. At `grid-cols-2` the three
               groups fell as Create beside The Maison with Help orphaned
@@ -315,11 +406,50 @@ export async function Footer() {
               contents page; from `sm` there is room for all three abreast and
               the alignment goes back to the rail.
             */}
-            <div className="grid grid-cols-1 gap-y-9 text-center sm:grid-cols-3 sm:gap-x-6 sm:gap-y-10 sm:text-left">
-              {FOOTER_NAV.map((group) => (
+            {/*
+              ==========================================================
+              CAPPED AT 34rem, WHICH IS THE TAGLINE'S OWN MEASURE
+              ==========================================================
+
+              Measured at 1440: this nav was 800px wide and its three groups
+              took 251px tracks to hold about 150px of label each. A hundred
+              pixels of nothing after every column — the groups read as three
+              thin lists drifting apart rather than as one block of
+              navigation, which is the "spread out" the client saw.
+
+              The cap is not a round number picked for tidiness. The script
+              tagline on the other side of this row is set to `max-w-[34rem]`,
+              and matching it gives the footer two 544px blocks on the same
+              baseline with the gutter between them — a composition rather
+              than a left edge and a right edge. `ml-auto` holds it against
+              the right rail so the gutter is one gap instead of two.
+
+              Below `lg` the cap does nothing: the nav is full width there and
+              544px is wider than the three groups need.
+            */}
+            {/*
+              NOT HELD AGAINST THE RIGHT RAIL ANY MORE. `lg:ml-auto` with a
+              34rem cap pushed all three groups into the last 544px of an
+              800px span, so between the end of the tagline and the start of
+              "Create" there was about 450px of empty cream across the widest
+              part of the footer — the hole the client's reference closes by
+              running the logo and the three groups as four even columns.
+              Starting at column 5 and filling the span does the same thing.
+            */}
+            <div className="grid grid-cols-1 gap-y-9 text-center sm:grid-cols-3 sm:gap-x-8 sm:gap-y-10 sm:text-left">
+              {FOOTER_NAV.map((group, g) => (
                 <div key={group.title}>
-                  <FooterHeading>{group.title}</FooterHeading>
-                  <ul className="mt-5 space-y-2.5">
+                  <FooterHeading
+                    mark={GROUP_MARKS[g % GROUP_MARKS.length].name}
+                    markColor={GROUP_MARKS[g % GROUP_MARKS.length].color}
+                  >
+                    {group.title}
+                  </FooterHeading>
+                  {/* 14px, not 10: the box is 45.25px and the rows were
+                      pitched at 43.25, so every link overlapped the one above
+                      it. 14 pitches them at 47.25 and leaves 2px of air. See
+                      the note on `LINK`. */}
+                  <ul className="mt-5 space-y-3.5">
                     {/*
                       THE FOOTER IS THE LOUDER VERSION OF THE BAR.
 
@@ -424,7 +554,9 @@ export async function Footer() {
 
           {partners.map((partner) => (
             <div key={partner.slug} className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
-              <FooterHeading>Find us</FooterHeading>
+              <FooterHeading mark="bow" markColor="#9059A4">
+                Find us
+              </FooterHeading>
               <p className="mt-4 flex items-center justify-center gap-2 text-lead leading-snug text-text sm:justify-start">
                 <MapPin aria-hidden size={16} strokeWidth={1.9} className="shrink-0 text-primary" />
                 {partner.name}
@@ -458,8 +590,10 @@ export async function Footer() {
           ))}
 
           <div className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
-            <FooterHeading>The studio</FooterHeading>
-            <address className="mt-4 text-body not-italic leading-[1.75] text-text/75">
+            <FooterHeading mark="splash" markColor="#D97757">
+              The studio
+            </FooterHeading>
+            <address className="mt-4 text-body not-italic text-text/75">
               {CONTACT.addressLines.map((line) => (
                 <span key={line} className="block">
                   {line}
@@ -500,8 +634,10 @@ export async function Footer() {
             page ends on what the studio is for rather than on an address.
           */}
           <div className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
-            <FooterHeading>Why we do it</FooterHeading>
-            <p className="mx-auto mt-4 max-w-[22rem] text-body leading-[1.8] text-text/75 sm:mx-0">{MISSION}</p>
+            <FooterHeading mark="bow" markColor="#9059A4">
+              Why we do it
+            </FooterHeading>
+            <p className="mx-auto mt-4 max-w-[22rem] text-body text-text/75 sm:mx-0">{MISSION}</p>
           </div>
 
           {socials.length > 0 ? (
@@ -520,8 +656,279 @@ export async function Footer() {
           ) : null}
         </div>
 
+        {/*
+          ==================================================================
+          THE POLICIES, IN A BAND OF THEIR OWN
+          ==================================================================
+
+          The client asked for "a clearly organized policy/legal section" in
+          the footer, and then for it to stay visually clean. Those pull
+          against each other at eight links, and where they are put decides
+          which one wins:
+
+            a fourth nav group .... the groups above are a `sm:grid-cols-3`,
+                                    so a fourth either breaks the row into
+                                    two uneven lines or squeezes all four
+                                    into thirds. And it would read as a
+                                    fourth DESTINATION group — Create, The
+                                    Maison, Help, Policies — when a policy is
+                                    not somewhere you were going.
+            the copyright line .... where <LEGAL_NAV> sits, and the natural
+                                    home for two or three links. Eight turns
+                                    that one quiet row into the loudest thing
+                                    at the bottom of every page on the site.
+            a band of their own ... this. One label, one wrap, under the rule
+                                    that already closes the row above, set in
+                                    the same small type as the copyright
+                                    beneath it rather than the nav type above
+                                    it — so it reads as reference material,
+                                    which is what it is.
+
+          DERIVED FROM {@link POLICIES}, NOT RETYPED. A footer list of policy
+          names is the single most likely place for a name to drift out of
+          step with the page it points at — renaming "Refund & Exchange" in
+          lib/policies.ts would have left the footer saying the old one, and
+          nothing would have failed. `navLabel` exists on the record for this
+          one caller: the page titles are title-case and eight of those in a
+          row reads as a contents page.
+
+          `text-text/75` matches the foot below rather than the `LINK` ink
+          above, and clears 7.9:1 on White Rock.
+        */}
+        {/*
+          ==================================================================
+          THE POLICIES, ON A PLATE
+          ==================================================================
+
+          THIS WAS A HAIRLINE AND A WRAP OF GREY TEXT, and the client's note
+          on it was that it did not look designed. It did not: eight labels at
+          13px, set at /75, loose across 1400px under a rule — the one block
+          in a footer full of script, paint and brand marks that had none of
+          them. Reference material is allowed to be quiet; it is not allowed
+          to look unfinished.
+
+          A PLATE IS THE SITE'S OWN ANSWER TO "SET THIS APART". Light Sage on
+          the footer's White Rock is the pairing <PartnerPlate> documents and
+          the policy pages themselves use for their callouts, and `@utility
+          plate` exists precisely because the two measure 1.03:1 against each
+          other — it supplies the 1px ring and the veil that let a sage panel
+          read as a laid object rather than as a patch of the same paper. So
+          the band becomes a thing on the page, and the rule that used to
+          divide it off is no longer needed: an object does not want a line
+          above it as well.
+
+          FOUR COLUMNS, NOT A WRAP. The wrap put "Photography & media" alone
+          on its own line at most widths and broke differently at every one.
+          A grid lines the eight up in two tidy rows and gives each label its
+          own track, so the list can be scanned down as well as across.
+
+          AND THE LINKS ARE PAINTED, WHICH IS THE WHOLE POINT. They take the
+          same <PaintStroke> swatch as the navigation above, off the same
+          `paintCursor` — so the palette carries on running rather than
+          restarting, and the policies read as the same family of link in a
+          quieter register. On Light Sage the three paints measure Deep Lilac
+          3.83:1, Warm Terracotta 2.36:1 and Soft Lavender 1.51:1, which is
+          within a hundredth of what each does on the White Rock they were
+          already drawn on, so nothing about the swatch changes with the
+          ground.
+
+          The ink is full-strength Charcoal rather than the /75 it was: 9.07:1
+          on sage, and a label read against a swatch wants the whole of it —
+          the same argument the note on `LINK` makes for the groups above.
+        */}
+        <nav
+          aria-labelledby="footer-policies"
+          className="plate relative mt-12 overflow-clip rounded-[1.75rem] bg-sage px-6 py-7 text-center sm:px-8 sm:py-8 sm:text-left md:mt-14 md:px-10 md:py-9"
+        >
+          {/* A mark bleeding off the plate's own corner, which is where every
+              other plate on this site puts one — <PartnerPlate> breaks a
+              cut-out off its bottom-right in exactly this way. `overflow-clip`
+              on the panel cuts it to the radius; clip rather than hidden, so
+              the draw timeline inside <DoodleMark> still runs.
+
+              A STAMP AND NOT A DRAW, which is the difference between a mark
+              and a scribble. `draw` inks an outline, and an outline of a
+              coral at 7rem, half of it clipped by the corner, reads as a
+              stray pen line rather than as one of the brand's shapes. The
+              filled cut is a shape at any crop.
+
+              Deep Lilac, 3.83:1 on this sage. Warm Terracotta is 2.36:1 here
+              and is spent inside the policy pages themselves on their callout
+              edges; a third marking colour in a footer this quiet is one too
+              many.
+
+              TOP-RIGHT, AND IT WAS BOTTOM-RIGHT FIRST. The bottom corner is
+              where a plate's mark normally goes and it is the one corner this
+              plate cannot give: the links run four across to the right edge,
+              so a 7rem shape there landed on "Cancellation & rescheduling"
+              and read as a splotch over the type. The top-right is genuinely
+              empty — the heading and its line stop at 46 characters — so the
+              mark goes where the plate actually has room rather than where
+              the pattern says. */}
+          <span
+            aria-hidden
+            /* HUNG MOSTLY OFF THE CORNER, at <PartnerPlate>'s sizes rather
+               than at the 7rem this started on. Stamped at full strength and
+               sitting inside the panel, a 112px lilac cut was the loudest
+               object in the footer and it was decoration — the shape has to
+               be clipped by the edge it is breaking, or it is not a cut-out,
+               it is a sticker. 5.5rem with half of it outside is what every
+               other plate on this site shows. */
+            className="pointer-events-none absolute -right-7 -top-8 hidden w-24 rotate-[14deg] sm:block"
+          >
+            <DoodleMark name="coral" color="#9059A4" treatment="stamp" delay={200} />
+          </span>
+
+          {/*
+            ==============================================================
+            THE EXPLANATION BESIDE THE LIST, NOT STACKED OVER IT
+            ==============================================================
+
+            The heading and its sentence ran the full width of the plate and
+            the eight links sat underneath in four columns, which left the
+            sentence stretched over 46 characters of a 1400px panel and the
+            links crammed into the bottom half. Held in a column of its own
+            the sentence reads at its natural measure, the links get three
+            tidy columns instead of four tight ones, and the plate stops
+            being a heading with a grid bolted under it.
+          */}
+          <div className="grid grid-cols-12 gap-x-8 gap-y-7">
+            <div className="col-span-12 lg:col-span-4 xl:col-span-3">
+              {/* Deep Lilac on the sage plate is 3.83:1 — the same ink the
+                  cut-out breaking this plate's corner is drawn in. */}
+              <FooterHeading id="footer-policies" mark="bow" markColor="#9059A4">
+                Policies
+              </FooterHeading>
+
+              {/* One line, because a heading alone leaves the reader to guess
+                  whether these are eight pages or eight sections of one. */}
+              <p className="mx-auto mt-3 max-w-[34ch] text-fine leading-[1.7] text-text/80 sm:mx-0">
+                How sessions run, what we ask of visitors, and what happens if
+                plans change.
+              </p>
+            </div>
+
+          {/*
+            `gap-y-3.5` FOR THE REASON THE GROUPS ABOVE TAKE `space-y-3.5`.
+            Each link is a 45.25px box that occupies 33.25 of flow, because
+            `-my-1.5` pulls 6px off each end; at a 10px gap the rows pitch at
+            43.25 and every box overlaps the one above it. 14px pitches them
+            at 47.25 and clears by 2. The full arithmetic is on `LINK`.
+          */}
+            <ul className="relative col-span-12 grid grid-cols-1 gap-x-7 gap-y-1 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3 xl:col-span-9">
+            {POLICIES.map((policy) => {
+              return (
+                <li key={policy.slug}>
+                  <Link
+                    href={`/policies/${policy.slug}`}
+                    /*
+                      ==================================================
+                      `text-body`, THE SAME SIZE AS THE NAVIGATION ABOVE
+                      ==================================================
+
+                      These were `text-fine` — 13px, on the reasonable-sounding
+                      argument that reference links should be quieter than
+                      navigation. Rendered, the swatch underneath them was not
+                      there at all, and the reason is arithmetic rather than
+                      taste: <PaintStroke> sizes its blot to the span it sits
+                      in and scales it by `--swell`. A 16px link gives it a
+                      35.5px box and inks 7.1px of paint in the leading below
+                      the word. A 13px link gives it 20.9px, inks 4.2px — and
+                      at that size the masked brush, which tapers at both
+                      ends, is drawn almost entirely BEHIND the glyphs, because
+                      a 13px line box has about 3px under its baseline to put
+                      anything in.
+
+                      Forcing the swell back up was tried and is the wrong
+                      repair: it inks the right number of pixels in the wrong
+                      place, through the type.
+
+                      So the type takes the footer's own body size and the
+                      swatch needs no tuning at all — it is the navigation's
+                      swatch, drawn the way the navigation draws it. The
+                      hierarchy is carried by the GROUND instead, which is
+                      what the plate is for: these are plainly the quieter
+                      list because they sit on a panel of their own, not
+                      because their labels were shrunk until their paint
+                      stopped working.
+
+                      `inline-flex` and not `flex`: the swatch is drawn to the
+                      span's box, and a full-width cell would stretch a blot
+                      meant for a word across an empty track.
+                    */
+                    /* NO `leading-snug`, which was the last thing keeping the
+                       swatch invisible after the size was fixed. The blot is
+                       drawn to the span's box and inked in the leading BELOW
+                       the word; snug leading on a 16px label gives a 22px box
+                       where the groups above get 33, and the paint goes back
+                       behind the glyphs. The footer's own 1.65 is the number
+                       the swatch was tuned against. */
+                    className="group/link flex items-baseline gap-2.5 py-1.5 text-fine text-text/90 transition-colors duration-300 ease-soft hover:text-primary"
+                  >
+                    {/*
+                      ====================================================
+                      `isolate`, AND WITHOUT IT THE PAINT IS UNDER THE PLATE
+                      ====================================================
+
+                      <PaintStroke> draws its swatch at `z-index: -1` so the
+                      word sits on top of its own paint. A negative z-index
+                      paints behind the BACKGROUND of its stacking context's
+                      element, and the nearest stacking context here is not
+                      this link, or the panel — it is the <footer>, which
+                      carries `isolate` for the wave. So the swatch was being
+                      painted behind the footer's own content and the sage
+                      plate's background was then laid straight over it.
+
+                      Every measurement said the paint was fine — right box,
+                      right 7.1px of ink, right colour, `visibility: visible`,
+                      identical in every computed value to the navigation's.
+                      It was simply underneath the panel. The groups above
+                      never showed this because nothing is painted over them.
+
+                      `isolate` on the span gives the -1 somewhere local to
+                      resolve, so it lands behind the word and in front of the
+                      plate. Same trap, same fix, as the `-z-10` note on
+                      <SectionShapes>.
+                    */}
+                    {/*
+                      AN ARROW, NOT A PAINTED SWATCH, AND THAT IS WHY THESE
+                      COULD FINALLY GET SMALLER.
+
+                      The long note above explains why these links were set
+                      at the navigation's size: <PaintStroke> inks its blot
+                      into the leading UNDER the word, a 13px line box has
+                      about 3px to put it in, and below 16px the brush is
+                      drawn through the glyphs instead of beneath them. So
+                      the type could not come down while the paint stayed.
+
+                      The client's note is that these are too big — they are
+                      eight legal links and they were the same size as the
+                      footer's primary navigation. Swapping the affordance
+                      resolves the conflict rather than fighting it: the
+                      paint stays where it works, on the navigation, and the
+                      quiet list is marked the way a quiet list should be,
+                      with a small lilac arrow that travels on hover and a
+                      rule that only appears when you are on the link.
+                    */}
+                    <span
+                      aria-hidden
+                      className="shrink-0 text-primary/70 transition-transform duration-300 ease-editorial motion-safe:group-hover/link:translate-x-0.5"
+                    >
+                      &#8594;
+                    </span>
+                    <span className="underline decoration-transparent decoration-[1.5px] underline-offset-[5px] transition-colors duration-300 ease-soft group-hover/link:decoration-primary/55">
+                      {policy.navLabel}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+            </ul>
+          </div>
+        </nav>
+
         {/* ---- the foot ---- */}
-        <div className="mt-14 flex flex-col items-center gap-5 border-t border-text/20 pt-7 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-16">
+        <div className="mt-9 flex flex-col items-center gap-5 pt-0 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-10">
 
           <div className="flex flex-col items-center gap-x-7 gap-y-2 sm:flex-row sm:items-center">
             <p>
@@ -570,10 +977,43 @@ export async function Footer() {
  * the heading is structure, and swapping the element to reuse the one would
  * give up the other.
  */
-function FooterHeading({ children }: { children: string }) {
+/*
+  A MARK INSTEAD OF A RULE, where the heading names one.
+
+  Every group in this footer opened on the same 24px lilac hairline — seven
+  identical dashes down one column of the page. The reference the client sent
+  puts a small drawn shape in front of each label instead, which is the right
+  idea and the wrong shapes: those are pen scribbles and biro strokes, and
+  this brand has its own set. So each heading takes one of the Maison's own
+  cut-outs, at label size, and the rule stays as the fallback for any heading
+  that is not given one.
+
+  Deep Lilac throughout: 3.83:1 on the sage plate and 4.90 on the cream, and
+  it is the colour every other mark in this footer is already drawn in.
+*/
+function FooterHeading({
+  id,
+  mark,
+  markColor = "#9059A4",
+  children,
+}: {
+  id?: string;
+  mark?: DoodleName;
+  markColor?: string;
+  children: string;
+}) {
   return (
-    <h2 className="flex items-center justify-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text sm:justify-start">
-      <span aria-hidden className="h-px w-6 shrink-0 bg-primary" />
+    <h2
+      id={id}
+      className="flex items-center justify-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text sm:justify-start"
+    >
+      {mark ? (
+        <span aria-hidden className="block w-[1.15rem] shrink-0">
+          <DoodleMark name={mark} color={markColor} treatment="stamp" depth={0} />
+        </span>
+      ) : (
+        <span aria-hidden className="h-px w-6 shrink-0 bg-primary" />
+      )}
       {children}
     </h2>
   );

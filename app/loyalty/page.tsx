@@ -10,7 +10,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Passes",
   description:
-    "Maison Palettia passes — hold your sessions in advance and check out as a guest.",
+    "Maison Palettia passes: hold your sessions in advance and check out as a guest.",
   path: "/loyalty",
   /*
     ======================================================================
@@ -73,7 +73,7 @@ export default async function LoyaltyPage() {
           id="passes-heading"
           className="mt-14 border-t border-line pt-10 text-label font-medium uppercase tracking-eyebrow text-text md:mt-16 md:pt-12"
         >
-          Choose your pass
+          Choose Your Pass
         </h2>
 
         <PassOffer passes={passes} />
@@ -87,8 +87,8 @@ export default async function LoyaltyPage() {
           <Reveal variant="fadeIn">
             <p className="mt-12 max-w-[42rem] border-l-2 border-terracotta pl-5 text-fine leading-[1.8] text-text/80 md:mt-14">
               Preview passes. Maison Palettia has not set its pass terms yet, so the names,
-              prices, session counts and validity above are placeholders put here for review —
-              none of them is final, and nothing is charged at checkout.
+              prices, session counts and validity above are placeholders put here for review.
+              None of them is final, and nothing is charged at checkout.
             </p>
           </Reveal>
         ) : null}
@@ -118,16 +118,19 @@ function Intro() {
       </Reveal>
 
       <Reveal variant="subtleReveal">
-        <h1 className="mt-8 max-w-[20ch] text-h1 font-light tracking-[-0.02em] text-text md:mt-10">
-          Come more than once.
+        {/* The page-title treatment the other fifteen pages use. This was
+            `text-h1 font-light` — Montserrat at 52px and weight 300 — the only
+            page title on the site not set in the script. */}
+        <h1 className="heading-script mt-8 max-w-[20ch] pb-[0.3em] text-script-section text-text md:mt-10">
+          Come More Than Once.
         </h1>
       </Reveal>
 
       <Reveal>
-        <p className="mt-6 max-w-[38rem] text-lead leading-[1.75] text-text/80 md:mt-8">
+        <p className="mt-6 max-w-[38rem] text-lead text-text/80 md:mt-8">
           A pass holds your sessions in advance, so when a date comes round the only decision
-          left is what to make. Choose one, add it to your booking, and check out as a guest —
-          there is no account to create.
+          left is what to make. Choose one, add it to your booking, and check out as a guest.
+          There is no account to create.
         </p>
       </Reveal>
     </Stagger>
@@ -149,22 +152,22 @@ function HowItWorks() {
   const steps = [
     {
       number: "01",
-      name: "Choose your pass",
+      name: "Choose Your Pass",
       detail: "Three sizes of the same thing. Take the one that matches how often you will come.",
     },
     {
       number: "02",
-      name: "Add it to your booking",
+      name: "Add It to Your Booking",
       detail: "It joins the same basket as any session, alongside anything already held there.",
     },
     {
       number: "03",
-      name: "Check out as a guest",
+      name: "Check Out as a Guest",
       detail: "A name, an email and a number to reach you on. No account, here or later.",
     },
     {
       number: "04",
-      name: "Keep your reference",
+      name: "Keep Your Reference",
       detail: "The Maison confirms your pass directly, and the reference is how you look it up.",
     },
   ] as const;
@@ -191,7 +194,9 @@ function HowItWorks() {
         </ol>
 
         <Reveal variant="fadeIn">
-          <p className="mt-10 text-fine leading-[1.8] text-text/80 md:mt-12">
+          {/* `body`, not `fine`. This is a sentence a visitor reads, not a
+              caption — it was the only paragraph on /loyalty set at 14px. */}
+          <p className="mt-10 text-body text-text/80 md:mt-12">
             Already holding something?{" "}
             <Link
               href="/checkout"

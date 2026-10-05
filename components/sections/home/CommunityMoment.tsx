@@ -139,7 +139,7 @@ export function CommunityMoment() {
             */
             className={cn("w-full max-w-[34rem] text-center md:max-w-[38rem]", styles.lift)}
           >
-            <p className="flex items-center justify-center gap-3 text-label font-bold uppercase tracking-eyebrow text-cream">
+            <p className="flex items-center justify-center gap-3 text-label font-medium uppercase tracking-eyebrow text-cream">
               {/*
                 Soft Lavender, not Deep Lilac. The mark is on Ink now rather
                 than on White Rock, and lilac on that ground is 2.7:1 — a dot

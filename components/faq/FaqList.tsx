@@ -163,7 +163,7 @@ export function FaqList({ groups }: { groups: readonly FaqGroup[] }) {
                   paint={GROUP_PAINTS[g % GROUP_PAINTS.length].paint}
                   shape="blot"
                 />
-                <span className="relative text-label font-semibold uppercase tracking-eyebrow text-text">
+                <span className="relative text-label font-medium uppercase tracking-eyebrow text-text">
                   {group.title}
                 </span>
               </span>
@@ -243,7 +243,7 @@ export function FaqList({ groups }: { groups: readonly FaqGroup[] }) {
                   </Reveal>
 
                   <div id={`${id}-panel`} hidden={!isOpen}>
-                    <p className="max-w-[58ch] px-6 pb-6 text-body leading-[1.85] text-text/85 md:px-8 md:pb-7">
+                    <p className="max-w-[58ch] px-6 pb-6 text-body text-text/85 md:px-8 md:pb-7">
                       {item.answer}
                     </p>
                   </div>

@@ -139,7 +139,7 @@ export function WorkshopJourney() {
                 }
               />
               <p className="mt-5 text-lead font-medium leading-snug text-text">{step.name}</p>
-              <p className="mt-2.5 text-body leading-[1.65] text-text/80">{step.description}</p>
+              <p className="mt-2.5 text-body text-text/80">{step.description}</p>
             </Reveal>
           ))}
         </Stagger>

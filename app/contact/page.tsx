@@ -8,6 +8,7 @@ import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { CONTACT, SOCIAL_LINKS } from "@/lib/constants";
 import { buildMetadata } from "@/lib/seo";
 
@@ -30,31 +31,25 @@ import { buildMetadata } from "@/lib/seo";
   `overflow-hidden` on two of these sections — a `draw` mark inside one never
   fills, which is the trap the rest of the codebase keeps warning about.
 */
-const HEAD_SHAPES: readonly ShapePlan[] = [
-  { name: "coral", color: INK.lilac, width: "7%", right: "5%", top: "10%", rotate: -14, drift: 22, opacity: 0.2, float: 13 },
-  { name: "starleaf", color: INK.lilac, width: "5.5%", left: "4%", bottom: "14%", rotate: 10, drift: -16, opacity: 0.16, float: 15, floatDelay: 1.2 },
-];
+const HEAD_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac], { seed: 0 });
 
-const ENQUIRY_SHAPES: readonly ShapePlan[] = [
-  { name: "splash", color: INK.terracotta, width: "8%", right: "4%", top: "6%", rotate: 12, drift: 20, opacity: 0.16, float: 14 },
-  { name: "bow", color: INK.lavender, width: "7%", left: "3%", bottom: "8%", rotate: -10, drift: -18, opacity: 0.18, float: 12, floatDelay: 1.6 },
-];
+const ENQUIRY_SHAPES: readonly ShapePlan[] = groundShapes([INK.terracotta, INK.lavender], { seed: 0 });
 
-const CTA_SHAPES: readonly ShapePlan[] = [
-  { name: "splash", color: INK.whiteRock, width: "9%", left: "5%", top: "14%", rotate: -12, drift: 24, opacity: 0.22, float: 13 },
-  { name: "coral", color: "var(--color-sage)", width: "7%", right: "6%", bottom: "16%", rotate: 10, drift: -18, opacity: 0.2, float: 15, floatDelay: 1.1 },
-  { name: "starleaf", color: INK.whiteRock, width: "6%", right: "22%", top: "8%", rotate: 8, drift: 18, opacity: 0.16, float: 11, floatDelay: 2.2 },
-];
+const CTA_SHAPES: readonly ShapePlan[] = groundShapes([INK.whiteRock, "var(--color-sage)"], { seed: 1 });
 
 export const metadata = buildMetadata({
   title: "Contact",
   description:
-    "Ask the Maison about an event, a booking or working together — or find an upcoming event and keep a place.",
+    "Ask the Maison about an event, a booking or working together, or find an upcoming event and keep a place.",
   path: "/contact",
 });
 
 /* The page's banner line, in the brand's script — see `heading-script`. */
-const STATEMENT_LINE = "block heading-script text-script-hero";
+/* `script-section`, the size every other page title on the site is set at.
+   `script-hero` is the HOME PAGE's step and this was the only other page
+   using it, which put /contact's title at 81px beside 67.5px everywhere
+   else — the same heading role at two sizes. */
+const STATEMENT_LINE = "block heading-script text-script-section";
 
 /**
  * Contact — an invitation, then a form, then the way back to the programme.
@@ -164,9 +159,9 @@ function Invitation() {
           </h1>
 
           <Reveal delay={0.15}>
-            <p className="script-lede max-w-[44ch] text-lead leading-[1.7] text-text">
+            <p className="script-lede max-w-[44ch] text-lead text-text">
               Whether it is a question about an upcoming event, a place you would like to keep, or
-              something you would like to make with us — write to the Maison and we will take it
+              something you would like to make with us, write to the Maison and we will take it
               from there.
             </p>
           </Reveal>
@@ -311,9 +306,9 @@ function Enquiry() {
           id="contact-enquiry"
           className="heading-script text-script-compact"
         >
-          Write to us
+          Write to Us
         </h2>
-        <p className="mt-5 text-body leading-[1.85] text-muted">
+        <p className="mt-5 text-lead text-muted">
           A few lines is plenty. Tell us what you are after and we will come back to you.
         </p>
       </Reveal>
@@ -399,7 +394,7 @@ function Details() {
       <Reveal delay={0.2}>
         {/* A heading in the script, the pair of "Write to us" beside it. */}
         <h2 id="contact-find-us" className="heading-script text-script-compact text-text">
-          Find us
+          Find Us
         </h2>
 
         <dl className="mt-10 border-t border-line">
@@ -538,7 +533,7 @@ function Block({ term, children }: { term: string; children: React.ReactNode }) 
   return (
     <div className="border-b border-line py-7">
       <dt className="text-label font-medium uppercase tracking-eyebrow text-text/75">{term}</dt>
-      <dd className="mt-3 text-body leading-[1.8] text-text">{children}</dd>
+      <dd className="mt-3 text-body text-text">{children}</dd>
     </div>
   );
 }
@@ -577,13 +572,20 @@ function EventsCta() {
                 id="contact-cta"
                 className="mt-6 heading-script text-script-section"
               >
-                <span className="block">The programme,</span>
-                <span className="block">date by date.</span>
+                <span className="block">The Programme,</span>
+                <span className="block">Date by Date.</span>
               </h2>
             </Reveal>
           </div>
 
-          <div className="col-span-12 mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0">
+          {/*
+            THE SECTION-MASTHEAD DESCRIPTION COLUMN. Five of twelve, ending
+            flush with the container's right edge, and no cap on the
+            paragraph inside it — the column IS the measure. Twenty-two other
+            columns on this site are already this; see the note in
+            <ExperienceDiscovery>.
+          */}
+          <div className="col-span-12 mt-10 lg:col-span-5 lg:col-start-8 lg:mt-0">
             <Reveal delay={0.15}>
               <p /*
                   `surface`, not White Rock. Moving this field from Charcoal
@@ -594,7 +596,9 @@ function EventsCta() {
                   Sage rule and arrow below stay: they are graphical, owing
                   3:1, and sage on lilac is 3.83.
                 */
-                className="max-w-[24rem] text-body leading-[1.85] text-surface">
+                /* The `max-w-[24rem]` that was here is gone with the
+                   column's own width — see the note above. */
+                className="text-lead text-surface">
                 Every event lists its venue, its times and what you will make. If you already
                 know what you are after, it is quicker than writing to us.
               </p>

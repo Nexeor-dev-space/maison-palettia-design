@@ -667,7 +667,7 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
           {/* `text-body`, not `text-fine`. 13px is the step for a caption or a
               legal note; this is the sentence that says what the way in IS,
               and it sits under a 28px name with nothing between them. */}
-          <p className="mt-3 max-w-[46ch] text-body leading-[1.75] text-text/85">
+          <p className="mt-3 max-w-[46ch] text-body text-text/85">
             {item.lede}
           </p>
 
@@ -705,7 +705,7 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
                 >
                   <PaintStroke paint={item.paint} shape="blot" />
                   {door.mode ? <ModeMark mode={door.mode} /> : null}
-                  <span className="relative text-action font-semibold uppercase tracking-eyebrow">
+                  <span className="relative text-action font-medium uppercase tracking-eyebrow">
                     {door.label}
                   </span>
                 </Link>

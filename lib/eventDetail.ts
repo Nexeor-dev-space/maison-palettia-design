@@ -42,6 +42,16 @@ export interface ScheduledEvent {
   kind: "scheduled";
   slug: string;
   workshop: Workshop;
+  /*
+    THE SAME ACTIVITY IN lib/experiences.ts, matched on slug.
+
+    The two records were always two halves of one thing — the workshops file
+    says so itself, that "the shared slug keeps the two findable together" —
+    but only the session half ever reached the page, so a scheduled event
+    could not see its own activity's `description` or `about`. Optional
+    because a session is not required to have an activity entry.
+  */
+  experience?: CreativeExperience;
 }
 
 /**
@@ -87,11 +97,13 @@ export async function getEventSlugs(): Promise<string[]> {
 export async function getEventDetail(
   slug: string,
 ): Promise<EventDetail | null> {
-  const workshop = await getWorkshopBySlug(slug);
-  if (workshop) return { kind: "scheduled", slug, workshop };
-
-  const experiences = await getCreativeExperiences();
+  const [workshop, experiences] = await Promise.all([
+    getWorkshopBySlug(slug),
+    getCreativeExperiences(),
+  ]);
   const experience = experiences.find((item) => item.slug === slug);
+
+  if (workshop) return { kind: "scheduled", slug, workshop, experience };
   if (experience) return { kind: "diy", slug, experience };
 
   return null;
@@ -122,6 +134,32 @@ export function eventIntro(detail: EventDetail): string | null {
   return detail.kind === "scheduled"
     ? detail.workshop.excerpt
     : (detail.experience.description ?? null);
+}
+
+/**
+ * The paragraphs the "About" section prints, or an empty list.
+ *
+ * TWO SOURCES, AND NEITHER IS INVENTED. `experience.about` is the real field
+ * and it is what the client will fill; until they do, a SCHEDULED event still
+ * has one sentence going spare, because its lead prints the session's
+ * `excerpt` and the activity's own `description` is never shown on the page
+ * at all. That sentence is the client's wording and it is about the activity,
+ * so it is worth the paragraph — but only where it is genuinely unused, which
+ * is why a DIY event (whose lead IS the description) gets nothing back.
+ *
+ * The section hides itself on an empty list, so five of the seven activities
+ * show no "About" until somebody writes one.
+ */
+export function eventAbout(detail: EventDetail): readonly string[] {
+  const written = detail.experience?.about;
+  if (written && written.length > 0) return written;
+
+  if (detail.kind === "scheduled") {
+    const spare = detail.experience?.description;
+    if (spare && spare !== eventIntro(detail)) return [spare];
+  }
+
+  return [];
 }
 
 /**

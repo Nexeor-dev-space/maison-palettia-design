@@ -19,10 +19,10 @@ export function PagePlaceholder({ title, phase }: PagePlaceholderProps) {
     <Container as="section" className="py-section">
       <Stagger>
         <Reveal variant="subtleReveal">
-          <h1 className="mt-4 text-4xl md:text-6xl">{title}</h1>
+          <h1 className="heading-script mt-4 pb-[0.3em] text-script-section">{title}</h1>
         </Reveal>
         <Reveal>
-          <p className="mt-6 max-w-reading text-body leading-relaxed text-muted">
+          <p className="mt-6 max-w-reading text-lead text-muted">
             Placeholder route. The design for this page arrives in {phase}.
           </p>
         </Reveal>

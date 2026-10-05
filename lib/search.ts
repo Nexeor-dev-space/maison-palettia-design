@@ -123,7 +123,7 @@ function experienceHaystack(experience: CreativeExperience): string {
   return [
     experience.name,
     experience.description,
-    experience.kind === "diy" ? "walk-in diy create anytime" : "scheduled create together",
+    experience.kind === "diy" ? "diy create anytime" : "scheduled create together",
   ]
     .filter(Boolean)
     .join(" ")

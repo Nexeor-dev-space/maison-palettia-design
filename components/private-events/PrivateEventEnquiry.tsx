@@ -234,10 +234,10 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
         <p className="text-label font-medium uppercase tracking-eyebrow text-text">
           Enquiry received
         </p>
-        <p className="mt-5 max-w-[36rem] text-lead leading-[1.6] text-text">
-          Thank you — we have your enquiry.
+        <p className="mt-5 max-w-[36rem] text-lead text-text">
+          Thank you. We have your enquiry.
         </p>
-        <p className="mt-5 max-w-[36rem] text-body leading-[1.8] text-text/80">
+        <p className="mt-5 max-w-[36rem] text-body text-text/80">
           The Maison will read it and come back to you with what the session could look like. A
           copy has not been emailed to you, so keep an eye on the inbox you gave us.
         </p>
@@ -421,7 +421,7 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
       */}
       <div role="alert" aria-live="assertive">
         {errorCount > 0 ? (
-          <p className="mt-12 max-w-[36rem] border-l-2 border-terracotta pl-5 text-body leading-[1.8] text-text">
+          <p className="mt-12 max-w-[36rem] border-l-2 border-terracotta pl-5 text-body text-text">
             {errorCount === 1
               ? "One detail needs checking before this can be sent."
               : `${errorCount} details need checking before this can be sent.`}
@@ -451,12 +451,12 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
           <p className="text-label font-medium uppercase tracking-eyebrow text-text">
             This enquiry was not sent
           </p>
-          <p className="mt-4 max-w-[36rem] text-body leading-[1.8] text-text/80">
+          <p className="mt-4 max-w-[36rem] text-body text-text/80">
             The Maison has no inbox connected to this form yet, so nothing you have typed has
             been delivered anywhere and no one has been notified. Please do not plan around a
             reply.
           </p>
-          <p className="mt-5 max-w-[36rem] text-body leading-[1.8] text-text/80">
+          <p className="mt-5 max-w-[36rem] text-body text-text/80">
             Every public event is listed with its venue and its times, and places can be held
             from there today.
           </p>

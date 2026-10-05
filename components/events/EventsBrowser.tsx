@@ -116,7 +116,7 @@ function NoMatches({ onReset }: { onReset: () => void }) {
       <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">
         No events match those filters.
       </p>
-      <p className="mt-5 max-w-[32rem] text-body leading-[1.85] text-text/75">
+      <p className="mt-5 max-w-[32rem] text-body text-text/75">
         The programme is small and runs a few dates at a time. Clearing the filters
         shows everything that is scheduled.
       </p>
@@ -124,7 +124,7 @@ function NoMatches({ onReset }: { onReset: () => void }) {
       <BlobButton
         type="button"
         onClick={onReset}
-        tone="secondary"
+        tone="painted"
         className="mt-9 min-h-[3.25rem] px-7 md:mt-10"
       >
         Clear all filters

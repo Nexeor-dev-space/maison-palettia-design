@@ -6,26 +6,34 @@ import { useEffect, useRef } from "react";
 
 import { Heart, Images, Mail, Sparkles, type LucideIcon } from "lucide-react";
 
-import { MoreIcon } from "@/components/layout/bottomNavIcons";
+import { AboutIcon } from "@/components/layout/bottomNavIcons";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types";
 
 /**
  * ==========================================================================
- * THE MORE SHEET — the pages you go to once, on cards rather than in a list
+ * THE ABOUT SHEET — the desktop's About panel, on cards rather than in a list
  * ==========================================================================
  *
+ * IT WAS "MORE" AND IT IS THE SAME DRAWER. What changed is what it holds and
+ * therefore what it can honestly be called: the desktop bar put Locations,
+ * Gallery and Contact under an About panel (see <AboutMenu>), and the phone
+ * now groups them the same way. A slot labelled More promises the rest of the
+ * menu; this one holds four named pages and says so.
+ *
  * WHAT IS IN IT AND WHY. Everything `mobileSurface: "sheet"` marks in
- * MAIN_NAV: About, Private events, Contact. They are the destinations a
- * visitor reaches for once, where the bar's four slots are for the ones they
- * reach for mid-task. Nothing here also appears in the bar or the slide-out
- * menu — see the note on the field.
+ * MAIN_NAV, which is now exactly the four doors <AboutMenu> opens and in the
+ * same order: About the Maison, Locations, Gallery, Contact. They are "who
+ * this is and how to reach it", where the bar's own slots are the programme a
+ * visitor is moving through. Nothing here also appears in the bar — see the
+ * note on `mobileSurface` in lib/constants.ts.
  *
  * NOT A LIST OF LINKS, at the client's ask. Each entry is a card on its own
- * paint, with its own blob radius and its own ink, so the sheet reads as
- * three objects set down rather than as a menu that opened. The colours are
+ * paint, with its own blob radius and its own ink, so the sheet reads as a
+ * few objects set down rather than as a menu that opened. The colours are
  * the site's own rotation on a cream ground — lilac, terracotta, lavender —
- * which is the same sequence PAINTS_ON_CREAM hands out everywhere else.
+ * which is the same sequence PAINTS_ON_CREAM hands out everywhere else, and
+ * it simply wraps round for the fourth card.
  *
  * NOT FULL SCREEN, also at the client's ask. It is the height of its own
  * contents and it sits on the bar, so the bar it came out of is still
@@ -37,10 +45,10 @@ import type { NavItem } from "@/types";
  *
  * Four ways, because a drawer with one is a trap: the close control, the
  * scrim behind it, Escape, and following any link in it. Focus moves into the
- * sheet when it opens and returns to the More button when it shuts — that
+ * sheet when it opens and returns to the About button when it shuts — that
  * button owns `aria-expanded`, so the state is said as well as drawn.
  */
-export function MoreSheet({
+export function AboutSheet({
   open,
   onClose,
   items,
@@ -74,7 +82,7 @@ export function MoreSheet({
     "ONLY ON THE CLOSE EDGE" IS WHAT THIS MEANT AND NOT WHAT IT DID. An
     effect with `open` in its deps runs on mount too, and on mount `open`
     is false — so the first page load focused the trigger. Measured at 390
-    and 768: `document.activeElement` was the bar's "More" button before
+    and 768: `document.activeElement` was the bar's "About" button before
     anything had been touched, which puts a keyboard visitor at the foot of
     the page with the header and the content behind Shift+Tab.
 
@@ -158,9 +166,9 @@ export function MoreSheet({
 
           <motion.div
             ref={panel}
-            id="bottom-nav-more"
+            id="bottom-nav-about"
             role="group"
-            aria-label="More of the Maison"
+            aria-label="About the Maison"
             className={cn(
               "fixed inset-x-0 z-40 lg:hidden",
               "bottom-[calc(var(--bottom-nav-h)-0.75rem)]",
@@ -174,17 +182,17 @@ export function MoreSheet({
           >
             <div className="rounded-[1.75rem] bg-cream px-4 pb-7 pt-4 shadow-[0_-10px_30px_-14px_rgba(45,55,72,0.45)]">
               <div className="flex items-center justify-between gap-4 px-1 pb-3">
-                <p className="flex items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text">
+                <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
                   <span aria-hidden className="block w-4 text-primary">
-                    <MoreIcon size={16} />
+                    <AboutIcon size={16} />
                   </span>
-                  More
+                  About
                 </p>
                 <button
                   type="button"
                   onClick={onClose}
                   className="-mr-1 flex size-11 items-center justify-center rounded-pill text-text transition-colors duration-300 ease-soft hover:bg-text/5"
-                  aria-label="Close more"
+                  aria-label="Close About"
                 >
                   <span aria-hidden className="relative block size-3.5">
                     <span className="absolute inset-x-0 top-1/2 block h-[1.6px] -translate-y-1/2 rotate-45 rounded-full bg-current" />

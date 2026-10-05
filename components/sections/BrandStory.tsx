@@ -97,11 +97,19 @@ export function BrandStoryLead({
         it heavier than the page's running text, which is what tells you it is
         still part of the opening rather than the start of the article.
       */}
-      <p className="script-lede max-w-[62ch] text-lead font-medium leading-[1.7] text-text">
+      {/*
+        `statement`, NOT `lead`. This is the brand story — the paragraph the
+        homepage is built around — and it was set at the same step as any
+        section intro on the site. The client asked for it larger. The measure
+        comes in with the size: 62ch at 23–28px is a 900px line, well past the
+        75 characters a reader tracks comfortably, so it is 46ch now and the
+        block holds the same physical width it always had.
+      */}
+      <p className="script-lede max-w-[46ch] text-statement font-medium text-text">
         {OPENING_STATEMENT.body}
       </p>
 
-      <p className="mt-6 text-lead font-semibold leading-[1.5] text-text">
+      <p className="mt-6 max-w-[40ch] text-statement font-semibold leading-[1.4] text-text">
         {OPENING_STATEMENT.closer}
       </p>
     </div>
@@ -145,7 +153,7 @@ export function BrandStoryObject({ className }: { className?: string }) {
       >
         <Image
           src="/images/about-sec-img.png"
-          alt="Three poured candles in a lined gift box — one in a cut-glass tumbler set with raspberries, one in a brass tin with raspberries and blueberries, and one swirled in a fluted white pot."
+          alt="Three poured candles in a lined gift box: one in a cut-glass tumbler set with raspberries, one in a brass tin with raspberries and blueberries, and one swirled in a fluted white pot."
           fill
           sizes="(min-width: 1024px) 48vw, 100vw"
           className="object-cover"
@@ -166,7 +174,7 @@ export function BrandStoryObject({ className }: { className?: string }) {
           {forScript(OPENING_STATEMENT.panel.heading)}
         </p>
 
-        <p className="script-lede max-w-[48ch] text-body leading-[1.8]">
+        <p className="script-lede max-w-[48ch] text-body">
           {OPENING_STATEMENT.panel.body}
         </p>
 

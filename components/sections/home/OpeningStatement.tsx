@@ -61,7 +61,7 @@ export function OpeningStatement() {
         </Reveal>
 
         <Reveal>
-          <p className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-primary">
+          <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-primary">
             <span aria-hidden className="block w-4 shrink-0">
               <DoodleMark name="starleaf" color={INK.terracotta} />
             </span>

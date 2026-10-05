@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { cn } from "@/lib/utils";
 /*
   THE CARD AND THE DAB COME FROM THE TEASER ITSELF — see <Apart>. The client
@@ -13,7 +14,6 @@ import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
-import { LittleCreators } from "@/components/sections/LittleCreators";
 import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { BlobButton } from "@/components/ui/BlobButton";
@@ -36,7 +36,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "About",
   description:
-    "Maison Palettia is a creative lifestyle brand celebrating creativity, mindfulness and meaningful human connection — hands-on experiences that bring people together.",
+    "Maison Palettia is a creative lifestyle brand celebrating creativity, mindfulness and meaningful human connection: hands-on experiences that bring people together.",
   path: "/about",
 });
 
@@ -86,17 +86,14 @@ export default function AboutPage() {
       <Purpose />
       <Community />
       {/*
-        MOVED HERE FROM THE HOME PAGE, at the client's ask, and this is the
-        beat it belongs to: <Community> above ends on the journey thread,
-        whose last steps are family bonding and the community itself, and the
-        little creators are who that is for. It also answers "Appeals to all
-        ages" in <Apart> below before that section claims it.
-
-        It keeps its own file rather than becoming another local function
-        here: it carries three photographs, their alt text and its own
-        placement rhythm, and none of that is about this page.
+        <LittleCreators /> HAS MOVED ON TO /private-events, at the client's
+        ask, and it has now been on three pages: the home page first, here
+        second, and the private events page third. That is where it finally
+        belongs — tailored children's activities are something a client books
+        for a birthday or a school, which is the question that page answers,
+        and here it was only ever illustrating "appeals to all ages" for
+        <Apart> below. See app/private-events/page.tsx.
       */}
-      <LittleCreators />
       <Apart />
       <Close />
     </>
@@ -188,7 +185,7 @@ function Welcome() {
             <Reveal delay={0.08}>
               <h1
                 id="about-title"
-                className="heading-script mt-7 max-w-[15ch] pb-[0.3em] text-script-hero text-text md:mt-9"
+                className="heading-script mt-7 max-w-[15ch] pb-[0.3em] text-script-section text-text md:mt-9"
               >
                 {forScript(TAGLINE)}
               </h1>
@@ -204,7 +201,7 @@ function Welcome() {
               than a different decision.
             */}
             <Reveal delay={0.16} className="mt-8 block md:mt-10">
-              <p className="max-w-[62ch] text-lead leading-[1.75] text-text">
+              <p className="max-w-[62ch] text-lead text-text">
                 {BRAND_STORY}
               </p>
             </Reveal>
@@ -443,7 +440,10 @@ function Purposeful({
 
       <p
         className={cn(
-          "mt-5 max-w-[42ch] text-lead leading-[1.75]",
+          /* The mission and the vision, at the client's ask: the top rung of
+              the text ladder rather than the same `lead` every section intro
+              takes. 42ch at this size is a 640px line, so the measure holds. */
+          "mt-5 max-w-[42ch] text-statement",
           onLilac ? "text-surface" : "text-text",
         )}
       >
@@ -493,7 +493,7 @@ function Community() {
             </Reveal>
 
             <Reveal delay={0.12}>
-              <p className="mt-6 max-w-[42ch] text-body leading-[1.85] text-text">
+              <p className="mt-6 max-w-[42ch] text-lead text-text">
                 {COMMUNITY.body}
               </p>
             </Reveal>
@@ -501,7 +501,7 @@ function Community() {
             {/* The closing line, in the script — it is the one sentence here
                 that is a claim rather than a description. */}
             <Reveal delay={0.18}>
-              <p className="heading-script mt-8 max-w-[18ch] pb-[0.3em] text-script-compact leading-[1.24] text-primary">
+              <p className="heading-script mt-8 max-w-[18ch] pb-[0.3em] text-script-compact text-primary">
                 {forScript(COMMUNITY.closer)}
               </p>
             </Reveal>
@@ -569,7 +569,7 @@ function Community() {
                     <h3 className="text-h4 font-semibold text-text">
                       {step.name}
                     </h3>
-                    <p className="mt-2 max-w-[40ch] text-body leading-[1.8] text-text/85">
+                    <p className="mt-2 max-w-[40ch] text-body text-text/85">
                       {step.description}
                     </p>
                   </div>
@@ -695,7 +695,7 @@ function Apart() {
                 decorative and `aria-hidden`, so it owes no ratio, and the
                 label is not asked to be lilac on lavender.
               */}
-              <p className="flex items-center gap-3 text-label font-semibold uppercase tracking-eyebrow text-text">
+              <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text">
                 <span aria-hidden className="block w-4 shrink-0">
                   <DoodleMark name="dot" color={INK.lilac} />
                 </span>
@@ -775,7 +775,7 @@ function Apart() {
                       {point.name}
                     </h3>
 
-                    <p className="mt-2.5 text-body leading-[1.65] text-text/85">
+                    <p className="mt-2.5 text-body text-text/85">
                       {point.description}
                     </p>
                   </div>
@@ -858,70 +858,11 @@ const APART_CARDS = [
   decorative mark owes — Charcoal is 2.37 and Soft Lavender 2.74, so neither
   appears here.
 */
-const CLOSE_SHAPES: readonly ShapePlan[] = [
-  { name: "splash", color: INK.whiteRock, width: "8%", left: "5%", top: "12%", rotate: -12, drift: 22, opacity: 0.22, float: 13 },
-  { name: "coral", color: "var(--color-sage)", width: "6.5%", right: "6%", bottom: "14%", rotate: 10, drift: -18, opacity: 0.2, float: 15, floatDelay: 1.2 },
-  { name: "starleaf", color: INK.whiteRock, width: "5.5%", right: "20%", top: "10%", rotate: 8, drift: 16, opacity: 0.16, float: 11, floatDelay: 2.1 },
-];
+const CLOSE_SHAPES: readonly ShapePlan[] = groundShapes([INK.whiteRock, "var(--color-sage)"], { seed: 0 });
 
-const PURPOSE_SHAPES: readonly ShapePlan[] = [
-  { name: "coral", color: INK.lilac, width: "6.5%", right: "5%", top: "8%", rotate: -12, drift: 22, opacity: 0.18, float: 13 },
-  { name: "starleaf", color: INK.lilac, width: "5%", left: "4%", bottom: "10%", rotate: 9, drift: -16, opacity: 0.15, float: 15, floatDelay: 1.3 },
-];
+const PURPOSE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac], { seed: 2 });
 
-const APART_SHAPES: readonly ShapePlan[] = [
-  {
-    name: "splash",
-    color: INK.lilac,
-    width: "14%",
-    left: "2%",
-    bottom: "8%",
-    rotate: -14,
-    drift: 24,
-    opacity: 0.2,
-    float: 13,
-    desktopOnly: true,
-  },
-  {
-    name: "coral",
-    color: INK.whiteRock,
-    width: "9%",
-    left: "28%",
-    top: "14%",
-    rotate: 10,
-    drift: -18,
-    opacity: 0.2,
-    float: 16,
-    floatDelay: 1.6,
-    desktopOnly: true,
-  },
-  {
-    name: "starburst",
-    color: INK.terracotta,
-    width: "8%",
-    right: "3%",
-    top: "4%",
-    rotate: -6,
-    drift: 20,
-    opacity: 0.16,
-    float: 11,
-    floatDelay: 0.8,
-    desktopOnly: true,
-  },
-  {
-    name: "zigzag",
-    color: INK.charcoal,
-    width: "5%",
-    right: "9%",
-    bottom: "9%",
-    rotate: 16,
-    drift: -22,
-    opacity: 0.14,
-    float: 14,
-    floatDelay: 2.4,
-    desktopOnly: true,
-  },
-];
+const APART_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.whiteRock, INK.terracotta, INK.charcoal], { seed: 1 });
 
 /* ---- 06 close ------------------------------------------------------------ */
 
@@ -964,7 +905,7 @@ function Close() {
         </Reveal>
 
         <Reveal delay={0.08}>
-          <p className="mx-auto mt-5 max-w-[34ch] text-lead leading-[1.7] text-surface">
+          <p className="mx-auto mt-5 max-w-[34ch] text-lead text-surface">
             {CLOSING.body}
           </p>
         </Reveal>
@@ -979,7 +920,7 @@ function Close() {
 
             <Link
               href="/private-events"
-              className="group/nav inline-flex min-h-12 items-center text-action font-semibold uppercase tracking-eyebrow text-surface"
+              className="group/nav inline-flex min-h-12 items-center text-action font-medium uppercase tracking-eyebrow text-surface"
             >
               <span className="relative inline-block pb-1.5">
                 Plan a private event

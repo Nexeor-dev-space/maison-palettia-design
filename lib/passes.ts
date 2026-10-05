@@ -76,7 +76,7 @@ const PLACEHOLDER_PASSES: Pass[] = [
     price: { amount: 320, currency: "AED" },
     sessions: 1,
     validity: "3 months from purchase",
-    benefits: ["Any strand — paint, craft or create", "Book any date in the programme"],
+    benefits: ["Any strand: paint, craft or create", "Book any date in the programme"],
     image: {
       src: "/images/creative/painting.jpg",
       alt: "A painter at an easel, brush in hand, working into a canvas of coral and blush roses among deep teal leaves, a loaded palette at the edge of the frame.",
@@ -90,12 +90,12 @@ const PLACEHOLDER_PASSES: Pass[] = [
     sessions: 5,
     validity: "12 months from purchase",
     benefits: [
-      "Any strand — paint, craft or create",
-      "Book each session as you go — no dates to choose now",
+      "Any strand: paint, craft or create",
+      "Book each session as you go, no dates to choose now",
     ],
     image: {
       src: "/images/workshops/watercolour-street.jpg",
-      alt: "A watercolour of a cobbled hillside street — whitewashed houses under terracotta roofs, geraniums at a shuttered window, and a castle wall rising above the trees.",
+      alt: "A watercolour of a cobbled hillside street: whitewashed houses under terracotta roofs, geraniums at a shuttered window, and a castle wall rising above the trees.",
     },
   },
   {
@@ -106,8 +106,8 @@ const PLACEHOLDER_PASSES: Pass[] = [
     sessions: 10,
     validity: "12 months from purchase",
     benefits: [
-      "Any strand — paint, shape or craft",
-      "Book each session as you go — no dates to choose now",
+      "Any strand: paint, shape or craft",
+      "Book each session as you go, no dates to choose now",
     ],
     image: {
       src: "/images/creative/craft.jpg",

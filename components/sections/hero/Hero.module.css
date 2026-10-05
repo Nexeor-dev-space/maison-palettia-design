@@ -1018,6 +1018,22 @@
   }
 }
 
+/*
+  ==========================================================================
+  THE SECOND ACTION — `.ghost` HAS GONE, AND SO HAS THE PROBLEM IT SOLVED
+  ==========================================================================
+
+  A ring and an ink that interpolated on `--ink` used to live here, so that
+  <BlobButton tone="secondary"> could survive both grounds this banner crosses:
+  Deep Lilac ring over Charcoal on the Light Sage it opens on, near-white for
+  both over the shaded photograph, measured at 4.69:1 and 11.1:1.
+
+  All of it was in service of an outline, and the client's note was that the
+  outline is not visible enough on the picture. The second action is a painted
+  blot now and carries its own opaque ground, so neither the ring nor the
+  interpolation has anything left to do. See the note beside it in Hero.tsx.
+*/
+
 
 /* ---- the scroll cue ------------------------------------------------------- */
 

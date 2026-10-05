@@ -98,7 +98,7 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
     status: "fully-booked",
     // Opens on the studio's own line from lib/experiences.ts, so the menu and
     // the schedule cannot describe the same activity two different ways.
-    excerpt: "A hook, a ball of yarn and one stitch to start from — worked into something you take with you.",
+    excerpt: "A hook, a ball of yarn and one stitch to start from, worked into something you take with you.",
     image: {
       src: "/images/experiences/CROCHETING.jpg",
       alt:

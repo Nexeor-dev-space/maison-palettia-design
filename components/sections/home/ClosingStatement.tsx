@@ -141,7 +141,7 @@ export function ClosingStatement() {
                   4.67 — and holding it back a quarter drops a 12px semibold
                   label to 3.38:1, which is under what a label of that size
                   owes. The design system makes the same call in `inkFor`. */}
-              <p className="text-label font-semibold uppercase tracking-eyebrow text-surface">
+              <p className="text-label font-medium uppercase tracking-eyebrow text-surface">
                 {TAGLINE}
               </p>
             </Reveal>
@@ -155,14 +155,14 @@ export function ClosingStatement() {
             <Reveal delay={0.08}>
               <h2
                 id="closing-heading"
-                className="heading-script mt-7 text-script-section leading-[1.06] text-surface"
+                className="heading-script mt-7 text-script-section text-surface"
               >
                 {forScript(CLOSING.heading)}
               </h2>
             </Reveal>
 
             <Reveal delay={0.14}>
-              <p className="mx-auto mt-8 max-w-[44ch] text-lead leading-[1.75] text-surface">
+              <p className="mx-auto mt-8 max-w-[44ch] text-lead text-surface">
                 {CLOSING.body}
               </p>
             </Reveal>
@@ -198,7 +198,7 @@ export function ClosingStatement() {
                 */}
                 <BlobButton
                   href={PRIVATE_EVENT_ENQUIRY_HREF}
-                  tone="secondaryInverse"
+                  tone="painted"
                   className="min-h-[3.25rem] px-7"
                 >
                   Plan a private event

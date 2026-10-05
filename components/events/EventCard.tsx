@@ -142,7 +142,7 @@ export function EventCard({
           them this is a date they book — the same mark and words the hero,
           the homepage groups and the menus use.
         */}
-        <p className="flex items-center gap-2.5 text-label font-semibold uppercase tracking-eyebrow text-text">
+        <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
           <ModeMark mode="scheduled" />
           Scheduled session
         </p>
@@ -167,7 +167,7 @@ export function EventCard({
           the listing and the event page use, so a visitor who has read one has
           already learned how to read the others.
         */}
-        <p className="mt-4 text-body leading-[1.7] text-text">
+        <p className="mt-4 text-body text-text">
           <time dateTime={workshop.startsAt}>
             {weekday} {formatSessionDate(workshop.startsAt)}
           </time>

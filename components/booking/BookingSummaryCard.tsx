@@ -116,7 +116,7 @@ export function BookingSummaryCard({ record }: { record: BookingRecord }) {
         </div>
       </div>
 
-      <p className="mt-5 max-w-[34rem] text-body leading-[1.8] text-text/80">
+      <p className="mt-5 max-w-[34rem] text-body text-text/80">
         {status === "confirmed" && !hasSession ? "Your purchase is confirmed." : copy.note}
       </p>
 

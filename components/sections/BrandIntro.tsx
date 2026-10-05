@@ -91,7 +91,7 @@ export function BrandIntro() {
 
             <Reveal delay={0.1}>
               <div className="ml-6 mt-12 max-w-[30rem] md:ml-[16%] md:mt-16 lg:ml-[24%] lg:mt-20">
-                <p className="text-body leading-[1.85] text-text/80 md:text-base">
+                <p className="text-body text-text/80 md:text-base">
                   Maison Palettia is a creative space where art, craft and community come
                   together. A place to slow down, make something with your hands, and leave
                   with an experience that stays with you.
@@ -154,7 +154,7 @@ export function BrandIntro() {
             </div>
 
             <Reveal variant="fadeIn" delay={0.25}>
-              <figcaption className="mt-4 flex items-center gap-3 text-label uppercase tracking-eyebrow text-text/75 xs:text-action">
+              <figcaption className="mt-4 flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text/75 xs:text-action">
                 <span aria-hidden className="h-px w-5 shrink-0 bg-text/25" />
                 Brush to canvas
               </figcaption>

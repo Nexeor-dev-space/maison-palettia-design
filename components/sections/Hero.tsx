@@ -1,7 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
-
-import { NavLabel } from "@/components/layout/NavLabel";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { DOODLE_PLAN, DRAW_ORDER, type DoodlePlan } from "@/components/sections/hero/composition";
 import { resolveIcon } from "@/components/sections/hero/doodles";
@@ -329,7 +326,7 @@ export function Hero() {
                 styles.reveal,
                 styles.sub,
                 "script-lede mx-auto max-w-[42rem] italic",
-                "text-lead leading-[1.5]",
+                "text-lead",
               )}
               style={delay(240)}
             >
@@ -341,7 +338,7 @@ export function Hero() {
                 styles.reveal,
                 styles.sub,
                 "mx-auto mt-3 max-w-[46rem] md:mt-4",
-                "text-statement leading-[1.5]",
+                "text-statement",
               )}
               style={delay(320)}
             >
@@ -362,14 +359,25 @@ export function Hero() {
               >
                 Explore experiences
               </BlobButton>
-              {/* The navigation's own link treatment: no rule at rest, and the
-                  hand-drawn line wiping in from the left on hover or focus. */}
-              <Link
+              {/*
+                THE SECOND ACTION IS PAINTED — see `tone="painted"` in
+                <BlobButton>, which is the site's secondary action everywhere
+                now. It was a ghost pill here, and a 1.5px ring over a
+                photograph is the first thing the picture takes; a field is
+                what makes a control visible, and the one filled pill this pair
+                can afford is spent on the primary beside it.
+
+                NO ARROW ON THIS ONE. The pair already has the primary's, and
+                two travelling arrows on one line read as two primaries.
+              */}
+              <BlobButton
                 href="/private-events"
-                className="group/nav inline-flex min-h-12 items-center text-action font-semibold uppercase tracking-eyebrow"
+                tone="painted"
+                arrow={false}
+                className="min-h-[3.75rem] px-8"
               >
-                <NavLabel isActive={false}>Plan a private event</NavLabel>
-              </Link>
+                Plan a private event
+              </BlobButton>
             </div>
           </div>
 
@@ -380,7 +388,7 @@ export function Hero() {
               aria-label="Scroll down to Creative experiences"
               className={cn(
                 styles.reveal,
-                "flex flex-col items-center gap-3 whitespace-nowrap text-label font-semibold uppercase tracking-eyebrow text-text/80 transition-colors duration-300 ease-soft hover:text-text",
+                "flex flex-col items-center gap-3 whitespace-nowrap text-label font-medium uppercase tracking-eyebrow text-text/80 transition-colors duration-300 ease-soft hover:text-text",
               )}
               style={delay(380)}
             >

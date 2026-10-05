@@ -104,8 +104,25 @@ export function PlaceCardStub({
       <span className={styles.seam} />
 
       <p className={EYEBROW}>Admit</p>
-      <NameLine name={displayName} />
-      <Swatch show={displayName !== ""} />
+
+      {/*
+        `w-fit`, SO THE PAINT IS AS LONG AS THE NAME.
+
+        The swatch was a fixed `w-36` sibling of the name — 144px of Deep
+        Lilac under every booking whatever the name was, so "da sdfsd"
+        carried a stroke half again as long as itself and a two-character
+        name carried one four times its length. The client's note.
+
+        `width: fit-content` makes this box as wide as the widest thing in
+        it, which is the name, and the swatch inside takes `w-full`. No
+        measuring and no layout effect: the name sets the width and the
+        paint follows it. `max-w-full` keeps the cap, so a long name still
+        truncates at the card's edge and the stroke stops with it.
+      */}
+      <div className="w-fit max-w-full">
+        <NameLine name={displayName} />
+        <Swatch show={displayName !== ""} />
+      </div>
 
       <div className="mt-3 text-fine text-text">
         <div className="flex items-baseline justify-between gap-4">
@@ -138,7 +155,7 @@ export function PlaceCardStub({
 
       <BrushProgress done={done} className="mt-3" />
 
-      <p className="mt-3 text-fine text-text/75">Preview — you&rsquo;ll confirm on the next step.</p>
+      <p className="mt-3 text-fine text-text/75">Preview. You&rsquo;ll confirm on the next step.</p>
 
       <Stamp show={submitting} />
     </div>
@@ -203,7 +220,7 @@ function Swatch({ show }: { show: boolean }) {
         {show ? (
           <motion.span
             key="swatch"
-            className="block w-36"
+            className="block w-full"
             style={{ transformOrigin: "0% 50%" }}
             initial={{ scaleX: 0, opacity: 1 }}
             animate={{ scaleX: 1, opacity: 1 }}
@@ -211,7 +228,7 @@ function Swatch({ show }: { show: boolean }) {
             transition={reduce ? { duration: 0 } : { duration: 0.42, ease: EASE_EDITORIAL }}
           >
             <span
-              className="dab h-4 w-36"
+              className="dab h-4 w-full"
               style={{ "--paint": "var(--color-primary)", "--tilt": "-1.5deg" } as CSSVars}
             />
           </motion.span>
@@ -229,7 +246,11 @@ function Mark({ label, on }: { label: string; on: boolean }) {
     <span className="flex h-5 items-center gap-1.5">
       <span className={EYEBROW}>{label}</span>
       <span className="relative flex size-5 items-center justify-center">
-        {on ? null : <span className="text-text/75">&mdash;</span>}
+        {/* A middle dot rather than an em dash: the client has asked for the
+            long dash to come off the site, and a status marker is still
+            something a visitor reads. The dot is the same "nothing here yet"
+            signal and it pairs with the tick that replaces it. */}
+        {on ? null : <span className="text-text/75">&middot;</span>}
         <AnimatePresence initial={false}>
           {on ? (
             <motion.span
@@ -313,7 +334,7 @@ function Stamp({ show }: { show: boolean }) {
       {show ? (
         <motion.span
           key="stamp"
-          className="pointer-events-none absolute right-5 top-5 rounded-full border-2 border-primary bg-cream/85 px-3 py-1.5 text-label font-semibold uppercase tracking-eyebrow text-text"
+          className="pointer-events-none absolute right-5 top-5 rounded-full border-2 border-primary bg-cream/85 px-3 py-1.5 text-label font-medium uppercase tracking-eyebrow text-text"
           initial={reduce ? false : { opacity: 0, scale: 1.12, rotate: -8 }}
           animate={{ opacity: 1, scale: 1, rotate: -8 }}
           transition={reduce ? { duration: 0 } : { duration: 0.26, ease: EASE_EDITORIAL }}

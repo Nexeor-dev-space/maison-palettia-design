@@ -376,7 +376,7 @@ function Slide({ slide }: { slide: SessionSlide }) {
           {slide.title}
         </h3>
 
-        <p className="mt-5 max-w-[32rem] text-body leading-[1.8] text-text/80">{slide.excerpt}</p>
+        <p className="mt-5 max-w-[32rem] text-body text-text/80">{slide.excerpt}</p>
 
         {/*
           The three practical facts, labelled. This is the whole reason the

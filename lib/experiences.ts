@@ -35,6 +35,25 @@ export interface CreativeExperience {
    * the two entries below that have none.
    */
   description?: string;
+  /*
+    THE LONG DESCRIPTION — the paragraphs the event page's "About" section
+    prints, one <p> each, in order.
+
+    IT IS UNSET ON EVERY ENTRY, AND THAT IS THE HONEST STATE OF IT. The
+    client asked for a description on the event pages. The only descriptive
+    text this project holds per activity is the one line in `description`
+    above, and every event page already prints that as its lead — which is
+    why the old <AboutExperience> section was removed: it was printing the
+    same sentence twice. Writing three paragraphs about what happens at a
+    tote-bag table would be inventing the client's own copy, which is the
+    one thing this file does not do; see the two entries below whose
+    `description` was left blank rather than filled in.
+
+    The field, the accessor and the section are built and wired. The section
+    appears for an activity the moment a string lands here, and nothing else
+    has to change. Somebody has to write the words.
+  */
+  about?: readonly string[];
   /** DIY runs whenever the table is open; scheduled runs at a set time. */
   kind: "diy" | "scheduled";
   /** The studio's own flag, e.g. "Coming soon". Shown verbatim. */
@@ -89,8 +108,8 @@ export interface CreativeExperience {
 const EXPERIENCES: readonly CreativeExperience[] = [
   {
     slug: "tote-bag-painting",
-    name: "Tote bag painting",
-    description: "Fabric paint on plain cotton — the one you carry out with you.",
+    name: "Tote Bag Painting",
+    description: "Fabric paint on plain cotton, the one you carry out with you.",
     kind: "diy",
     image: {
       src: "/images/experiences/TOTE_BAG_PAINTING.jpg",
@@ -101,7 +120,7 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   },
   {
     slug: "ceramic-painting",
-    name: "Ceramic painting",
+    name: "Ceramic Painting",
     description: "Colour and pattern laid onto a ready-made piece.",
     kind: "diy",
     image: {
@@ -125,7 +144,7 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   },
   {
 slug: "mandala-painting",
-    name: "Mandala painting",
+    name: "Mandala Painting",
     kind: "diy",
     image: {
       src: "/images/experiences/MANDALA_PAINTING.jpg",
@@ -139,7 +158,7 @@ slug: "mandala-painting",
   },
   {
     slug: "glass-painting",
-    name: "Glass painting",
+    name: "Glass Painting",
     kind: "diy",
     // The client's own wording, carried through rather than paraphrased.
     status: "Coming soon",
@@ -152,7 +171,7 @@ slug: "mandala-painting",
   },
   {
     slug: "candle-making",
-    name: "Candle making",
+    name: "Candle Making",
     description: "Wax, wick and colour, poured and left to set.",
     kind: "scheduled",
     image: {

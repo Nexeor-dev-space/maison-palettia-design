@@ -59,7 +59,7 @@ export function PaintStroke({
    *             by 44 and stretching it into a chip's proportion is what makes
    *             it come out lumpy. See PaintStroke.module.css.
    */
-  shape?: "brush" | "blot";
+  shape?: "brush" | "blot" | "sweep";
   className?: string;
 }) {
   if (!paint) return null;
@@ -70,6 +70,7 @@ export function PaintStroke({
       className={cn(
         styles.stroke,
         shape === "blot" && styles.blot,
+        shape === "sweep" && styles.sweep,
         isCurrent && styles.current,
         className,
       )}

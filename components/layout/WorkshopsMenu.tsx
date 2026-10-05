@@ -63,7 +63,7 @@ const GROUPS = [
   {
     mode: "diy",
     title: "Create Anytime",
-    note: "Walk-in — no booking needed.",
+    note: "No booking needed. Create at your own pace.",
   },
   {
     mode: "scheduled",

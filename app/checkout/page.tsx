@@ -54,7 +54,7 @@ export default function CheckoutPage() {
 
       <Reveal className="mt-12 md:mt-14">
         <h1 className="text-h1 font-light tracking-[-0.02em]">
-          Complete your booking.
+          Complete Your Booking.
         </h1>
       </Reveal>
 
