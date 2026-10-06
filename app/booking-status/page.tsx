@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
-import { INK } from "@/components/sections/hero/composition";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
 
@@ -101,4 +100,4 @@ export default function BookingStatusPage() {
   under a script heading and a form, and a ground that competes with either is
   not a ground. Light Sage is not among them — it is the ground.
 */
-const STATUS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 5 });
+const STATUS_SHAPES: readonly ShapePlan[] = groundShapes("sage");

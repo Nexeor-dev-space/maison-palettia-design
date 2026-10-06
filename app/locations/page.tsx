@@ -1,5 +1,6 @@
-
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { LocationMap, PartnerPlate } from "@/components/sections/LocationMap";
 import { Container } from "@/components/ui/Container";
 import { INK } from "@/components/sections/hero/composition";
@@ -73,7 +74,8 @@ export default async function LocationsPage() {
 
         Charcoal Slate is 9.07:1 here, so no word on the section changes ink.
       */}
-      <section aria-labelledby="locations-title" className="overflow-clip bg-sage">
+      <section aria-labelledby="locations-title" className="relative isolate overflow-clip bg-sage">
+        <SectionShapes plan={groundShapes("sage")} />
         <Container className="py-[3.5rem] md:py-[4.5rem] lg:py-[5.5rem]">
           {/*
             ==============================================================

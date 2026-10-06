@@ -2,8 +2,10 @@ import Link from "next/link";
 
 import { Steps } from "@/components/booking/Steps";
 import { Checkout } from "@/components/booking/Checkout";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { Container } from "@/components/ui/Container";
 import { buildMetadata } from "@/lib/seo";
 
@@ -32,48 +34,51 @@ export default function CheckoutPage() {
     /* `pb-0` — see the note on the same change in app/events/[slug]: the
        utility bar closes this page as a Deep Lilac field and meets the
        footer's wave directly. */
-    <Container className="pb-0 pt-[3.5rem] md:pt-[5rem] lg:pt-[6rem]">
-      <Reveal>
-        <Link
-          href="/events"
-          className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
-        >
-          <span
-            aria-hidden
-            className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-x-1"
+    <div className="relative isolate overflow-clip">
+      <SectionShapes plan={groundShapes("sage")} />
+      <Container className="pb-0 pt-[3.5rem] md:pt-[5rem] lg:pt-[6rem]">
+        <Reveal>
+          <Link
+            href="/events"
+            className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
           >
-            &#8592;
-          </span>
-          <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            Back to events
-          </span>
-        </Link>
-      </Reveal>
+            <span
+              aria-hidden
+              className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-x-1"
+            >
+              &#8592;
+            </span>
+            <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
+              Back to events
+            </span>
+          </Link>
+        </Reveal>
 
-      <Steps current={2} />
+        <Steps current={2} />
 
-      <Reveal className="mt-12 md:mt-14">
-        <h1 className="text-h1 font-light tracking-[-0.02em]">
-          Complete Your Booking.
-        </h1>
-      </Reveal>
+        <Reveal className="mt-12 md:mt-14">
+          <h1 className="text-h1 font-light tracking-[-0.02em]">
+            Complete Your Booking.
+          </h1>
+        </Reveal>
 
-      <Checkout />
+        <Checkout />
 
-      {/*
-        Reassurance and a way out, not a second action. Checkout already has
-        exactly one primary control and this must not argue with it, so there
-        is nothing here that books, pays or confirms — only the two questions
-        someone actually has at this moment, and where each is answered.
-      */}
-      <PageUtilityBar
-        note="Your place is held when you reserve it. Nothing is charged through this site yet."
-        links={[
-          { label: "Check a booking", href: "/booking-status" },
-          { label: "Questions", href: "/faq" },
-          { label: "Contact", href: "/contact" },
-        ]}
-      />
-    </Container>
+        {/*
+          Reassurance and a way out, not a second action. Checkout already has
+          exactly one primary control and this must not argue with it, so there
+          is nothing here that books, pays or confirms — only the two questions
+          someone actually has at this moment, and where each is answered.
+        */}
+        <PageUtilityBar
+          note="Your place is held when you reserve it. Nothing is charged through this site yet."
+          links={[
+            { label: "Check a booking", href: "/booking-status" },
+            { label: "Questions", href: "/faq" },
+            { label: "Contact", href: "/contact" },
+          ]}
+        />
+      </Container>
+    </div>
   );
 }

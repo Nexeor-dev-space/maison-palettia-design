@@ -76,7 +76,7 @@ export const metadata = buildMetadata({
 const SAGE = "#D1E7BE";
 
 /** The masthead: the largest shapes on the page, because it has the most air. */
-const TITLE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.lavender, INK.terracotta], { seed: 4 });
+const TITLE_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
 /**
  * Walk-in. The tallest section on the page at nearly 2000px, so it carries

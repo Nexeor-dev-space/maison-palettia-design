@@ -28,7 +28,7 @@ import { getUpcomingWorkshops } from "@/lib/workshops";
   `hidden lg:block`, because below `lg` the heading takes the full measure
   and there is no empty half for them to fill.
 */
-const TWO_WAYS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 5 });
+const TWO_WAYS_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 
 /**
  * ==========================================================================

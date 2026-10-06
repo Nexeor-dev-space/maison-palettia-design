@@ -1,7 +1,9 @@
 import Image from "next/image";
 
 import { GalleryExperience, type GalleryCollection } from "@/components/gallery/GalleryExperience";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
@@ -113,6 +115,7 @@ export default async function GalleryPage() {
         aria-labelledby="gallery-title"
         className="relative isolate overflow-clip bg-surface"
       >
+        <SectionShapes plan={groundShapes("surface")} />
         <Container className="relative py-[3.5rem] md:py-[4.5rem] lg:py-[5.5rem]">
           <div className="grid grid-cols-12 items-center gap-x-6 gap-y-12 lg:gap-x-10">
             {/* the words */}
@@ -187,6 +190,7 @@ export default async function GalleryPage() {
 
       {/* ---- the invitation out ---- */}
       <section aria-labelledby="gallery-close" className="relative isolate overflow-clip bg-primary">
+        <SectionShapes plan={groundShapes("lilac")} />
         <Container className="relative py-[5rem] text-center md:py-section lg:py-[7rem]">
           <span
             aria-hidden

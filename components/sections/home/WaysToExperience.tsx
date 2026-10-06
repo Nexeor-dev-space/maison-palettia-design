@@ -7,7 +7,6 @@ import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { WaysTrail } from "@/components/sections/home/WaysTrail";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
-import { INK } from "@/components/sections/hero/composition";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
 
@@ -188,7 +187,7 @@ const CARDS = [
   and each doodle's own aspect decides its height — the number to watch on a
   section this tall.
 */
-const WAYS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 1 });
+const WAYS_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 
 export async function WaysToExperience() {
   const experiences = await getCreativeExperiences();

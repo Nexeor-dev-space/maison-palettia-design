@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
@@ -31,7 +31,7 @@ export const metadata = buildMetadata({
    the callout rules inside the policies themselves; a third marking colour
    on a page whose job is to be unexciting is one too many.
    ========================================================================== */
-const POLICY_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.lavender], { seed: 2 });
+const POLICY_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 
 /**
  * /policies — the hub.
@@ -60,6 +60,7 @@ export default function PoliciesPage() {
         aria-labelledby="policies-title"
         className="relative isolate overflow-clip bg-sage pb-[3rem] pt-[4rem] md:pb-[3.5rem] md:pt-[5.5rem]"
       >
+        <SectionShapes plan={groundShapes("sage")} />
         <span
           aria-hidden
           className="pointer-lift pointer-events-none absolute -right-6 top-[14%] hidden w-24 -rotate-12 lg:block xl:w-28"
@@ -161,8 +162,9 @@ export default function PoliciesPage() {
       {/* ---- the way on -------------------------------------------------- */}
       <section
         aria-labelledby="policies-close"
-        className="bg-primary py-[4.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
+        className="relative isolate overflow-clip bg-primary py-[4.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
       >
+        <SectionShapes plan={groundShapes("lilac")} />
         <Container className="text-center">
           <div className="mx-auto max-w-[44rem]">
             <DisplayHeading id="policies-close" ground="lilac" lines={["Something", "Unclear?"]} />

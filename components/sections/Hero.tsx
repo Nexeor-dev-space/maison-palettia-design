@@ -448,6 +448,18 @@ export function Hero() {
   );
 }
 
+/**
+ * Whether a placement lands where the actions stand when they show from the
+ * start (reduced motion): the foot's lower band, from 60% down. On a phone
+ * every foot mark is in the band the stacked pills fill (and is drawn 10%
+ * wide or more, which is how a phone placement is told apart); from `md` the
+ * pair runs nearly the full width at 768, so the whole band goes and only the
+ * marks beside the copy stay.
+ */
+function underActions(at: DoodlePlan["desktop"]) {
+  return at.zone === "foot" && (at.width >= 10 || at.top >= 60);
+}
+
 /** One doodle, in its five boxes — see `.doodle` in Hero.module.css. Decorative. */
 function DoodleShape({ plan }: { plan: DoodlePlan }) {
   /* The colour the composition gives this icon chooses which of the client's
@@ -456,14 +468,19 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
   const mobile = plan.mobile ?? plan.desktop;
   // Which way it drifts as the card opens over it: away from the card's centre.
   const dirx = plan.desktop.left + plan.desktop.width / 2 < 50 ? -1 : 1;
-  const diry = plan.desktop.top < 50 ? -1 : 1;
+  // Anything placed in the foot is below the card's centre by definition.
+  const diry = plan.desktop.zone === "foot" || plan.desktop.top >= 50 ? 1 : -1;
+  /* Fractions, not percentages: `.doodle` multiplies them into whichever box
+     the placement's zone names — see `.window` in Hero.module.css. */
   const vars: Vars = {
-    "--d-left": `${plan.desktop.left}%`,
-    "--d-top": `${plan.desktop.top}%`,
-    "--d-width": `${plan.desktop.width}%`,
-    "--m-left": `${mobile.left}%`,
-    "--m-top": `${mobile.top}%`,
-    "--m-width": `${mobile.width}%`,
+    "--d-z": plan.desktop.zone === "foot" ? 1 : 0,
+    "--d-x": plan.desktop.left / 100,
+    "--d-y": plan.desktop.top / 100,
+    "--d-w": plan.desktop.width / 100,
+    "--m-z": mobile.zone === "foot" ? 1 : 0,
+    "--m-x": mobile.left / 100,
+    "--m-y": mobile.top / 100,
+    "--m-w": mobile.width / 100,
     "--depth": plan.depth,
     "--float": `${plan.float}s`,
     "--float-delay": `${-(DRAW_ORDER.indexOf(plan.id) * 1.37).toFixed(2)}s`,
@@ -475,6 +492,11 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     <div
       aria-hidden
       data-doodle={plan.id}
+      /* Under reduced motion the card never opens and the actions are there
+         from the start, standing in the foot's open band — so a foot mark
+         that would sit behind them is left out. See `.doodle` in the CSS. */
+      data-under-actions-d={underActions(plan.desktop) || undefined}
+      data-under-actions-m={underActions(mobile) || undefined}
       /* Only the six that ring the logo fly in the intro — see `entrance` in
          ./hero/composition.ts. The rest wait at their resting places. */
       className={cn(styles.doodle, styles.flip, plan.mobile ? undefined : styles.desktopOnly)}

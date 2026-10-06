@@ -2,7 +2,6 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { ExperienceCarousel } from "@/components/sections/home/ExperienceCarousel";
-import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
 import { DeckSheet } from "@/components/ui/deck/Deck";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
@@ -79,7 +78,7 @@ import { getCreativeExperiences } from "@/lib/experiences";
   cards stack and the gap this is filling does not exist — a mark there is not
   a ground, it is something behind the words.
 */
-const EXPERIENCE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta], { seed: 0 });
+const EXPERIENCE_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
 export async function ExperienceDiscovery() {
   const experiences = await getCreativeExperiences();

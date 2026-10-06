@@ -1,7 +1,9 @@
 import Link from "next/link";
 
 import { PassOffer } from "@/components/loyalty/PassOffer";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import { getPasses, PASSES_CONFIGURED } from "@/lib/passes";
@@ -65,8 +67,9 @@ export default async function LoyaltyPage() {
       <Container
         as="section"
         aria-labelledby="passes-heading"
-        className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]"
+        className="relative isolate overflow-clip py-[3.5rem] md:py-[5rem] lg:py-[6rem]"
       >
+        <SectionShapes plan={groundShapes("sage")} />
         <Intro />
 
         <h2
@@ -173,7 +176,8 @@ function HowItWorks() {
   ] as const;
 
   return (
-    <section aria-labelledby="how-it-works" className="bg-cream py-[3.5rem] md:py-[4.5rem]">
+    <section aria-labelledby="how-it-works" className="relative isolate overflow-clip bg-cream py-[3.5rem] md:py-[4.5rem]">
+      <SectionShapes plan={groundShapes("cream")} />
       <Container>
         <Reveal variant="fadeIn">
           <h2 id="how-it-works" className={TERM}>

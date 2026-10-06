@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
-import { groundShapes } from "@/components/motion/groundShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
@@ -193,9 +193,9 @@ function mastheadShapes(tone: PageTone): readonly ShapePlan[] {
     marks written by hand here, at five widths and five opacities of their
     own — the same per-section improvisation the client called out as doodles
     that are not placed uniformly. `groundShapes` is that table now; the only
-    thing this page still decides is which two inks go on it.
+    thing this page still decides is which ground it sits on.
   */
-  return groundShapes([tone.marks[0], tone.marks[1]], { seed: 2 });
+  return groundShapes(tone.ground === "light" ? "surface" : "lilac");
 }
 
 function audienceFor(slug: string): PrivateEventAudience | undefined {
@@ -552,6 +552,7 @@ function Activities({
       aria-labelledby="programme-activities"
       className="relative isolate overflow-clip bg-cream py-[5rem] md:py-section lg:py-section-lg"
     >
+      <SectionShapes plan={groundShapes("cream")} />
       <Container>
         <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6 lg:gap-x-10">
           <div className="col-span-12 lg:col-span-7">
@@ -637,6 +638,7 @@ function HowItWorks() {
          to see but their hairlines. */
       className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
+      <SectionShapes plan={groundShapes("sage")} />
       <Container>
         <Reveal>
           <Eyebrow>How it works</Eyebrow>
@@ -744,6 +746,7 @@ function Enquiry() {
          closes on. */
       className="relative isolate overflow-clip bg-primary"
     >
+      <SectionShapes plan={groundShapes("lilac")} />
       <Container className="relative py-[4.5rem] text-center md:py-section lg:py-[6.5rem]">
         <span
           aria-hidden

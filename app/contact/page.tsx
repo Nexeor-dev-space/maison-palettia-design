@@ -32,11 +32,11 @@ import { buildMetadata } from "@/lib/seo";
   `overflow-hidden` on two of these sections — a `draw` mark inside one never
   fills, which is the trap the rest of the codebase keeps warning about.
 */
-const HEAD_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac], { seed: 0 });
+const HEAD_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
-const ENQUIRY_SHAPES: readonly ShapePlan[] = groundShapes([INK.terracotta, INK.lavender], { seed: 0 });
+const ENQUIRY_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
-const CTA_SHAPES: readonly ShapePlan[] = groundShapes([INK.whiteRock, "var(--color-sage)"], { seed: 1 });
+const CTA_SHAPES: readonly ShapePlan[] = groundShapes("lilac");
 
 export const metadata = buildMetadata({
   title: "Contact",

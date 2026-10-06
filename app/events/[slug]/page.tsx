@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { groundShapes } from "@/components/motion/groundShapes";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { notFound } from "next/navigation";
 
@@ -205,7 +207,8 @@ export default async function EventPage({
       container, which would break the sticky booking bar inside it; and the
       x-axis only, so nothing interferes with the page scrolling normally.
     */
-    <div className="overflow-x-clip bg-sage">
+    <div className="relative isolate overflow-x-clip bg-sage">
+      <SectionShapes plan={groundShapes("sage")} />
       {/* `pb-0`: <PageUtilityBar> is the last thing in this container and it
           is a Deep Lilac field of its own now, with its own vertical padding.
           The container's bottom padding printed a strip of the page's Light

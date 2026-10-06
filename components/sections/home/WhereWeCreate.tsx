@@ -1,4 +1,6 @@
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { embedSrc } from "@/components/sections/LocationMap";
 import { Container } from "@/components/ui/Container";
 import { INK } from "@/components/sections/hero/composition";
@@ -49,6 +51,7 @@ export async function WhereWeCreate() {
       */
       className="relative isolate overflow-clip bg-cream py-[4rem] md:py-[5.5rem] lg:py-[6.5rem]"
     >
+      <SectionShapes plan={groundShapes("cream")} />
       {/*
         TWO ON THE SECTION'S OWN EDGES, and two in the channel inside it — see
         the note on the grid below. These two break the gutters rather than
@@ -207,10 +210,12 @@ export async function WhereWeCreate() {
             </span>
             <span
               aria-hidden
-              className="pointer-lift pointer-events-none absolute right-[16%] top-[30%] hidden w-[7%] lg:block"
+              className="pointer-lift pointer-events-none absolute right-[16%] top-[30%] hidden w-[9%] rotate-12 lg:block"
               style={{ "--ax": 0.26, "--lift": 0.3 } as React.CSSProperties}
             >
-              <DoodleMark name="dot" color={INK.terracotta} treatment="draw" delay={560} depth={26} />
+              {/* The terracotta cut-out, not the plain disc this was — the
+                  client asked for the circles to come off the backgrounds. */}
+              <DoodleMark name="splash" color={INK.terracotta} treatment="draw" delay={560} depth={26} />
             </span>
 
             {/*

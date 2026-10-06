@@ -1,4 +1,6 @@
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 
@@ -16,7 +18,8 @@ interface PagePlaceholderProps {
  */
 export function PagePlaceholder({ title, phase }: PagePlaceholderProps) {
   return (
-    <Container as="section" className="py-section">
+    <Container as="section" className="relative isolate overflow-clip py-section">
+      <SectionShapes plan={groundShapes("sage")} />
       <Stagger>
         <Reveal variant="subtleReveal">
           <h1 className="heading-script mt-4 pb-[0.3em] text-script-section">{title}</h1>

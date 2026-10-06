@@ -1,5 +1,7 @@
 
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
 import { DeckSheet } from "@/components/ui/deck/Deck";
@@ -46,6 +48,7 @@ import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandSto
 export function OpeningStatement() {
   return (
     <DeckSheet labelledBy="opening-statement">
+      <SectionShapes plan={groundShapes("sage")} />
       <Container className="relative">
         {/*
           One cut-out, in the air the measure leaves to its right. The sentence

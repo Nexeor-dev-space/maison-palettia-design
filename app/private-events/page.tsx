@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
-import { groundShapes } from "@/components/motion/groundShapes";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import {
@@ -405,7 +405,7 @@ function Introduction() {
   floating clear of it. A mark that breaks an edge is placed; the same mark in
   open space is a smudge.
 */
-const INTRO_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta], { seed: 4 });
+const INTRO_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
 /* ==========================================================================
    03 — WHO IT IS FOR
@@ -433,8 +433,9 @@ function WhoItIsFor() {
   return (
     <section
       aria-labelledby="private-events-audiences"
-      className="bg-cream py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-clip bg-cream py-[5rem] md:py-section lg:py-section-lg"
     >
+      <SectionShapes plan={groundShapes("cream")} />
       <Container>
         <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6 lg:gap-x-10">
           <div className="col-span-12 md:col-span-7">
@@ -734,8 +735,9 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
     */
     <section
       aria-labelledby="private-events-experiences"
-      className="bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
+      <SectionShapes plan={groundShapes("sage")} />
      <Container>
       <div className="grid grid-cols-12 items-end gap-x-6 gap-y-6 lg:gap-x-10">
         <div className="col-span-12 md:col-span-7">
@@ -940,9 +942,9 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
   as a texture behind it, and none of them touches another.
 */
 /* Deep Lilac carries White Rock (3.95:1) and Light Sage (3.83) only. */
-const ENQUIRY_SHAPES: readonly ShapePlan[] = groundShapes([INK.whiteRock, "var(--color-sage)"], { seed: 1 });
+const ENQUIRY_SHAPES: readonly ShapePlan[] = groundShapes("lilac");
 
-const WHERE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.charcoal], { seed: 0 });
+const WHERE_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 
 function CreateWithUs({ partner }: { partner?: MallPartner }) {
   if (!partner) return null;
@@ -1114,7 +1116,7 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
   arrangement holds as it scales. Light Sage is not among them: it is the
   ground they stand on.
 */
-const PROCESS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender, INK.charcoal], { seed: 0 });
+const PROCESS_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
 const STEP_STOCK: readonly {
   ground: string;

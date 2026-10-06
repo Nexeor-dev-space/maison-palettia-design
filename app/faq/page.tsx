@@ -1,6 +1,6 @@
 import { FaqList } from "@/components/faq/FaqList";
-import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
@@ -43,7 +43,7 @@ export const metadata = buildMetadata({
    decides its height — see the note in <CreateWithUs> on why that is the
    number to watch on a tall section like this one.
    ========================================================================== */
-const FAQ_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.whiteRock, INK.lavender], { seed: 2 });
+const FAQ_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
 /**
  * FAQ — the questions that stand between someone and a booking.
@@ -93,6 +93,7 @@ export default function FaqPage() {
         aria-labelledby="faq-title"
         className="relative isolate overflow-clip bg-sage pt-[4rem] pb-[3rem] md:pt-[5.5rem] md:pb-[3.5rem]"
       >
+        <SectionShapes plan={groundShapes("sage")} />
         {/*
           ONE MARK, ON THE TOP-RIGHT EDGE. There were two: this and a coral
           crossing the foot of the left gutter, which was fine while the banner
@@ -200,8 +201,9 @@ export default function FaqPage() {
       {/* ---- the way on ------------------------------------------------- */}
       <section
         aria-labelledby="faq-close"
-        className="bg-primary py-[5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
+        className="relative isolate overflow-clip bg-primary py-[5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
       >
+        <SectionShapes plan={groundShapes("lilac")} />
         <Container className="text-center">
           <div className="mx-auto max-w-[44rem]">
             <DisplayHeading

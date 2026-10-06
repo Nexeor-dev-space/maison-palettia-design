@@ -195,4 +195,4 @@ export function StudioInterlude() {
   White Rock is the one that only whispers — which is why it is the biggest
   and the furthest out.
 */
-const INTERLUDE_SHAPES: readonly ShapePlan[] = groundShapes([INK.terracotta, INK.whiteRock], { seed: 2 });
+const INTERLUDE_SHAPES: readonly ShapePlan[] = groundShapes("sage");

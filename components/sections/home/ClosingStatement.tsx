@@ -1,5 +1,6 @@
-
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { BlobButton } from "@/components/ui/BlobButton";
@@ -128,6 +129,7 @@ export function ClosingStatement() {
       */
       className="relative isolate overflow-clip bg-primary py-[5rem] md:py-[7rem] lg:py-[8.5rem]"
     >
+      <SectionShapes plan={groundShapes("lilac")} />
       <Container>
         <div className="grid grid-cols-12 items-center gap-x-gutter">
           <Reveal variant="settle" className="col-span-2 hidden lg:flex lg:justify-center">
