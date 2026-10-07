@@ -342,48 +342,6 @@
   transition: opacity 260ms ease 470ms;
 }
 
-/*
-  THE PAINTED TONE, NOW A PILL: the primary's shape and flood in Soft
-  Lavender, with Charcoal ink that reads on both the lavender and the Light
-  Sage it floods to. It keeps the name `painted` so no caller changes.
-*/
-.lavender {
-  --blob-rest: var(--color-lavender);
-  --blob-flood: var(--color-sage);
-  --blob-ink: var(--color-text);
-  --blob-ink-flooded: var(--color-text);
-}
-
-/* Phones and tablets: flooded while shown (see <AutoFlood>). */
-.fill[data-on] .blob {
-  transform: translateZ(0) scale(1.7);
-}
-
-.fill[data-on] .flood {
-  opacity: 1;
-  transition: opacity 260ms ease 470ms;
-}
-
-@media (hover: hover) {
-  .painted:hover .blob {
-    transform: translateZ(0) scale(1.7);
-  }
-
-  .painted:hover .flood {
-    opacity: 1;
-    transition: opacity 260ms ease 470ms;
-  }
-}
-
-.painted:focus-visible .blob {
-  transform: translateZ(0) scale(1.7);
-}
-
-.painted:focus-visible .flood {
-  opacity: 1;
-  transition: opacity 260ms ease 470ms;
-}
-
 /* The flood is the whole effect, so it simply does not run. */
 @media (prefers-reduced-motion: reduce) {
   .blob,

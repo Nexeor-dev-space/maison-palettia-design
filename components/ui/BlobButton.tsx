@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { AutoFlood } from "@/components/ui/AutoFlood";
 import type { ReactNode } from "react";
 
 import styles from "@/components/ui/BlobButton.module.css";
@@ -67,20 +66,15 @@ interface BlobButtonProps {
    */
   arrow?: boolean;
   /**
-   * `painted` IS THE SITE'S SECONDARY ACTION. It was a brushstroke with a
-   * bristle sweep; at the client's ask it is now the primary's own pill and
-   * flood, in Soft Lavender with Charcoal ink, flooding to Light Sage — and
-   * on a phone or tablet it floods on its own when shown (see <AutoFlood>).
-   *
-   * The two ring tones are kept for anything that still wants a ring;
-   * nothing ships with them today.
+   * The site's secondary action is not a tone here: it is the sticky note,
+   * <PeelNote>, everywhere. The two ring tones are kept for anything that
+   * still wants a ring; nothing ships with them today.
    */
   tone?:
     | "lilac"
     | "cream"
     | "sage"
     | "deep"
-    | "painted"
     | "secondary"
     | "secondaryInverse";
   /** Sizing and any extra layout; the colour and the flood are the component's. */
@@ -112,11 +106,8 @@ export function BlobButton({
   tone = "lilac",
   className,
 }: BlobButtonProps) {
-  const painted = tone === "painted";
-
   const shell = cn(
     styles.button,
-    painted ? styles.lavender : null,
     tone === "cream" ? styles.cream : null,
     tone === "deep" ? styles.deep : null,
     tone === "sage" ? styles.sage : null,
@@ -125,32 +116,12 @@ export function BlobButton({
     // The press is the site's, the flood is this component's: one answers
     // the finger, the other the pointer.
     "press-in group inline-flex items-center gap-3 text-action font-medium uppercase tracking-eyebrow",
-    /* A pill, as the primary is, at the client's ask — the painted tone
-       was a brushstroke and is now the primary's own shape in Soft
-       Lavender. */
     "rounded-[900px]",
     disabled ? "cursor-not-allowed opacity-55" : null,
     className,
   );
 
-  /* The painted tone has no pill to flood, so it skips the blobs entirely and
-     puts the brushstroke behind the label instead. */
-  /* The painted tone floods like the rest, and on a phone or tablet it also
-     floods on its own when shown — see <AutoFlood>. */
-  const inner = painted ? (
-    <>
-      <AutoFlood />
-      {children}
-      {arrow ? (
-        <span
-          aria-hidden
-          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-        >
-          &#8594;
-        </span>
-      ) : null}
-    </>
-  ) : (
+  const inner = (
     <>
       <span aria-hidden className={styles.fill}>
         <span className={styles.blobs}>

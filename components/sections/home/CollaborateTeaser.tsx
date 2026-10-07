@@ -6,6 +6,7 @@ import styles from "@/components/sections/home/CollaborateTeaser.module.css";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading } from "@/components/ui/SectionHeader";
 import { COLLABORATIONS } from "@/lib/brand";
 import { PAINTS_ON_SAGE, paintAt } from "@/lib/paint";
@@ -209,13 +210,12 @@ export function CollaborateTeaser() {
                   models in full live on /locations, and sending a mall there is
                   the whole reason the homepage keeps a teaser.
                 */}
-                <BlobButton
+                <PeelNote
                   href="/locations#collaborate"
-                  tone="painted"
                   className="min-h-[3.25rem] px-7"
                 >
                   How we work with malls
-                </BlobButton>
+                </PeelNote>
               </div>
             </Reveal>
           </div>

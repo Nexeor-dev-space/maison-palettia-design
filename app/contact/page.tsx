@@ -6,10 +6,10 @@ import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Stagger } from "@/components/motion/Stagger";
-import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { CONTACT, SOCIAL_LINKS } from "@/lib/constants";
 import { buildMetadata } from "@/lib/seo";
 
@@ -616,22 +616,15 @@ function EventsCta() {
                 know what you are after, it is quicker than writing to us.
               </p>
 
-              {/* A SECONDARY BUTTON, NOT AN UNDERLINED WORD. The client's
-                  note is that this site uses underlined links where it should
-                  use buttons, and this was one: an uppercase label with a
-                  sage rule under it, doing the job of the second action on
-                  the page. `painted` is the site's secondary action — the
-                  label on a dragged brushstroke — and it is the right one
-                  over a Deep Lilac band for the reason <Hero> gives: a
-                  1.5px ring is the first thing a busy ground takes, while
-                  the sweep carries its own opaque field. */}
-              <BlobButton
+              {/* A SECONDARY BUTTON, NOT AN UNDERLINED WORD — the client's
+                  note about underlined links standing in for buttons. The
+                  site's secondary action is the sticky note; see <PeelNote>. */}
+              <PeelNote
                 href="/events"
-                tone="painted"
                 className="mt-9 min-h-[3.25rem] px-7"
               >
                 Explore upcoming events
-              </BlobButton>
+              </PeelNote>
             </Reveal>
           </div>
         </div>

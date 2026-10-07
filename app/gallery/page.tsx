@@ -224,11 +224,8 @@ export default async function GalleryPage() {
               <BlobButton href="/events" tone="cream" className="min-h-[3.25rem] px-8">
                 Explore experiences
               </BlobButton>
-              {/* The second action beside "Explore experiences", and it was
-                  a word with a rule that drew itself in on hover. A pair
-                  should read as a pair: the first is the cream pill, this is
-                  the brushstroke — the site's secondary action everywhere
-                  since <Hero> settled it. */}
+              {/* The second action beside "Explore experiences": the site's
+                  secondary, the sticky note — see <PeelNote>. */}
               {/* The sticky note, as in the homepage banner — see <PeelNote>. */}
               <PeelNote href="/private-events" className="min-h-[3.25rem] px-8">
                 Plan a private event

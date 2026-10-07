@@ -9,6 +9,7 @@ import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { getPolicy, POLICIES } from "@/lib/policies";
 import { buildMetadata } from "@/lib/seo";
@@ -174,9 +175,9 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
                 <BlobButton href="/contact" tone="cream" className="min-h-[3.25rem] px-7">
                   Ask the Maison
                 </BlobButton>
-                <BlobButton href="/policies" tone="painted" className="min-h-[3.25rem] px-7">
+                <PeelNote href="/policies" className="min-h-[3.25rem] px-7">
                   All policies
-                </BlobButton>
+                </PeelNote>
               </div>
             </Reveal>
           </div>

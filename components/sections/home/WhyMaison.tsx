@@ -1,9 +1,9 @@
-import { BlobButton } from "@/components/ui/BlobButton";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { Container } from "@/components/ui/Container";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { BRAND_STORY, VISION } from "@/lib/brand";
 
@@ -97,9 +97,9 @@ export function WhyMaison() {
             </Reveal>
 
             <Reveal delay={0.3}>
-              <BlobButton href="/about" tone="painted" className="mt-9 min-h-[3.25rem] px-7">
+              <PeelNote href="/about" className="mt-9 min-h-[3.25rem] px-7">
                 Our story
-              </BlobButton>
+              </PeelNote>
             </Reveal>
           </div>
         </div>

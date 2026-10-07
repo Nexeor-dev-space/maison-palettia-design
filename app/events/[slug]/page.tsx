@@ -10,10 +10,10 @@ import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { INK } from "@/components/sections/hero/composition";
-import { PaintStroke } from "@/components/layout/PaintStroke";
 import { LocationMap, PartnerPlate } from "@/components/sections/LocationMap";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Container } from "@/components/ui/Container";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import {
@@ -729,13 +729,12 @@ function PrimaryAction({
             : "This date is full, and nothing else is open just now."}
         </p>
         {openElsewhere > 0 ? (
-          <BlobButton
+          <PeelNote
             href="/events#scheduled"
-            tone="painted"
             className="mt-6 min-h-[3.25rem] px-7"
           >
             See what is open
-          </BlobButton>
+          </PeelNote>
         ) : null}
       </div>
     );
@@ -795,13 +794,12 @@ function PrimaryAction({
         There is nothing to reserve for this one. But the studio travels, and
         each date runs at a mall for that day only.
       </p>
-      <BlobButton
+      <PeelNote
         href="/events#where-we-set-up"
-        tone="painted"
         className="mt-6 min-h-[3.25rem] px-7"
       >
         See where we are set up
-      </BlobButton>
+      </PeelNote>
     </div>
   );
 }
@@ -1483,31 +1481,14 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
           one link — see the `after:absolute after:inset-0` on the title above
           — so a control here would be interactive content nested inside
           interactive content, which is the thing that overlay exists to avoid.
-          This is a `span` wearing the secondary's own brushstroke: the card
-          activates it, and a reader sees the device the rest of the site now
-          uses for a second action. <PaintStroke shape="sweep"> is exactly what
-          `tone="painted"` draws inside <BlobButton>, so the two cannot drift.
+          It is the secondary's sticky note as a plain `span`
+          (`trigger="card"`): the card activates it, and hovering the card
+          peels it — the same device the rest of the site uses for a second
+          action.
         */}
-        <span
-          className={cn(
-            /* The painted tone's own geometry, drawn by hand because this
-               cannot be a <BlobButton> — see above. `relative isolate` is what
-               <PaintStroke> needs to sit behind the word rather than escaping
-               to the nearest ancestor with a stacking context. */
-            "group/paint relative isolate mt-7 inline-flex w-fit items-center justify-center gap-2 px-5 py-2.5",
-            "text-action font-medium uppercase tracking-eyebrow text-text",
-            "[--swell:1] [--wet:1]",
-          )}
-        >
-          <PaintStroke paint={INK.lavender} shape="sweep" />
-          <span className="relative">View this session</span>
-          <span
-            aria-hidden
-            className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-          >
-            &rarr;
-          </span>
-        </span>
+        <PeelNote trigger="card" className="mt-7 w-fit px-5 py-2.5">
+          View this session
+        </PeelNote>
       </div>
     </Link>
   );

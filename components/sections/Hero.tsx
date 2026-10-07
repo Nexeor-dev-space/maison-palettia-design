@@ -383,36 +383,6 @@ export function Hero() {
                 Explore experiences
               </BlobButton>
               {/*
-                THE SECOND ACTION IS A BRUSHSTROKE, AND `tone="painted"` IS
-                WHAT DRAWS IT — the client sent back a picture of what this
-                used to be and asked for the stroke itself, not a pill wearing
-                a paint colour. `painted` puts the label on a dragged sweep
-                (`shape="sweep"` in PaintStroke.module.css) with bristles
-                drawn across it under the pointer, and it is the site's
-                secondary action everywhere now, so the banner and the links
-                that became buttons are one device. The note that replaced the ghost pill said the
-                second action "is a painted blot now and carries its own
-                opaque ground" — it did not. `tone="secondary"` is
-                `--blob-rest: transparent` with a 1.5px Deep Lilac ring, and a
-                hairline over a photograph is the first thing the picture
-                takes: the client's word for the result was that the button is
-                missing.
-
-                `cream` rests on a ground drawn from <BlobButton>'s own blobs,
-                which is the brush the rest of the site paints its labels with
-                — the swatch this action used to carry under its word when it
-                was a link. Charcoal on cream is 9.4:1 and the pill is opaque,
-                so it reads over the shaded photograph and over the Light Sage
-                the banner opens on.
-
-                THE HIERARCHY SURVIVES TWO FILLS because they are not the same
-                weight: the primary beside it is Deep Lilac, the darkest thing
-                on the band, and this is the palest. Lilac leads.
-
-                NO ARROW ON THIS ONE. The pair already has the primary's, and
-                two travelling arrows on one line read as two primaries.
-              */}
-              {/*
                 A STICKY NOTE, at the client's ask (2026-10-07): translucent
                 handmade paper stuck over the label, the primary's own size,
                 peeled from the end nearest the pointer on hover — and on its

@@ -73,15 +73,37 @@ const prefersReduced = () =>
 
 export function PeelNote({
   href,
+  external = false,
+  type = "button",
+  onClick,
+  disabled,
+  trigger = "self",
   children,
   className,
 }: {
-  href: string;
+  /** A link. Omit it for a <button> (with `onClick`), or with `trigger="card"`. */
+  href?: string;
+  /** Opens in a new tab, as a plain anchor. */
+  external?: boolean;
+  /** Button mode only. */
+  type?: "button" | "submit";
+  onClick?: () => void;
+  disabled?: boolean;
+  /**
+   * What the pointer has to reach to peel it.
+   *
+   *   self ... the note itself — a link or a button.
+   *   card ... the link card it sits in. The note is then a plain <span>,
+   *            because the card is already the one link and a control nested
+   *            in it would be interactive content inside interactive content;
+   *            hovering or focusing anywhere on the card peels it.
+   */
+  trigger?: "self" | "card";
   children: React.ReactNode;
   className?: string;
 }) {
   const id = useId().replace(/:/g, "");
-  const root = useRef<HTMLAnchorElement>(null);
+  const root = useRef<HTMLElement | null>(null);
   const frame = useRef(0);
   const target = useRef(0);
   const settleTo = useRef<number | null>(null);
@@ -160,25 +182,53 @@ export function PeelNote({
     },
   );
 
-  const onEnter = (e: React.PointerEvent) => {
-    if (e.pointerType === "touch" || autoPlays()) return;
+  const onEnter = (e: PointerEvent) => {
+    if (e.pointerType === "touch" || autoPlays() || !root.current) return;
     // Pick the end only from rest, so a re-entry mid-peel never flips sides.
     if (live.current.progress < 0.05) {
-      const box = e.currentTarget.getBoundingClientRect();
+      const box = root.current.getBoundingClientRect();
       setSide(e.clientX - box.left < box.width / 2 ? -1 : 1);
     }
     peelTo(1);
   };
-  const onMove = (e: React.PointerEvent) => {
-    if (e.pointerType === "touch" || autoPlays() || prefersReduced()) return;
-    const box = e.currentTarget.getBoundingClientRect();
-    lean.current = ((e.clientY - box.top) / box.height - 0.5) * 0.07;
+  const onMove = (e: PointerEvent) => {
+    if (e.pointerType === "touch" || autoPlays() || prefersReduced() || !root.current) return;
+    const box = root.current.getBoundingClientRect();
+    lean.current = Math.max(-0.05, Math.min(0.05, ((e.clientY - box.top) / box.height - 0.5) * 0.07));
   };
-  const onLeave = (e: React.PointerEvent) => {
+  const onLeave = (e: PointerEvent) => {
     if (e.pointerType === "touch" || autoPlays()) return;
     lean.current = 0;
     peelTo(0);
   };
+  const handlers = useRef({ onEnter, onMove, onLeave, peelTo });
+  useEffect(() => {
+    handlers.current = { onEnter, onMove, onLeave, peelTo };
+  });
+
+  /* The pointer and focus listeners go on whatever `trigger` names. */
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const host: HTMLElement = (trigger === "card" ? el.closest("a") : null) ?? el;
+    const enter = (e: PointerEvent) => handlers.current.onEnter(e);
+    const move = (e: PointerEvent) => handlers.current.onMove(e);
+    const leave = (e: PointerEvent) => handlers.current.onLeave(e);
+    const focus = () => !autoPlays() && handlers.current.peelTo(1);
+    const blur = () => !autoPlays() && handlers.current.peelTo(0);
+    host.addEventListener("pointerenter", enter);
+    host.addEventListener("pointermove", move);
+    host.addEventListener("pointerleave", leave);
+    host.addEventListener("focusin", focus);
+    host.addEventListener("focusout", blur);
+    return () => {
+      host.removeEventListener("pointerenter", enter);
+      host.removeEventListener("pointermove", move);
+      host.removeEventListener("pointerleave", leave);
+      host.removeEventListener("focusin", focus);
+      host.removeEventListener("focusout", blur);
+    };
+  }, [trigger]);
 
   const { w, h } = size;
   const ready = w > 0 && h > 0;
@@ -221,22 +271,18 @@ export function PeelNote({
 
   const d = ready ? pillPath(w, h) : "";
 
-  return (
-    <Link
-      ref={root}
-      href={href}
-      onPointerEnter={onEnter}
-      onPointerMove={onMove}
-      onPointerLeave={onLeave}
-      onFocus={() => !autoPlays() && peelTo(1)}
-      onBlur={() => !autoPlays() && peelTo(0)}
-      className={cn(
-        "relative isolate inline-flex rotate-[-2deg] items-center justify-center rounded-[900px]",
-        "text-action font-medium uppercase tracking-eyebrow text-primary",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        className,
-      )}
-    >
+  const shell = cn(
+    "relative isolate inline-flex rotate-[-2deg] items-center justify-center rounded-[900px]",
+    "text-action font-medium uppercase tracking-eyebrow text-primary",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    disabled ? "cursor-not-allowed opacity-55" : null,
+    className,
+  );
+  const setRoot = (n: HTMLElement | null) => {
+    root.current = n;
+  };
+  const inner = (
+    <>
       {/* The patch of page the note was pressed onto — whiter and cleaner than
           the paper, so where the note has rolled away reads as uncovered —
           and the label printed on it. */}
@@ -318,6 +364,33 @@ export function PeelNote({
           </g>
         </svg>
       ) : null}
+    </>
+  );
+
+  if (trigger === "card") {
+    return (
+      <span ref={setRoot} className={shell}>
+        {inner}
+      </span>
+    );
+  }
+  if (href === undefined) {
+    return (
+      <button ref={setRoot} type={type} onClick={onClick} disabled={disabled} className={shell}>
+        {inner}
+      </button>
+    );
+  }
+  if (external) {
+    return (
+      <a ref={setRoot} href={href} target="_blank" rel="noopener noreferrer" className={shell}>
+        {inner}
+      </a>
+    );
+  }
+  return (
+    <Link ref={setRoot} href={href} className={shell}>
+      {inner}
     </Link>
   );
 }
