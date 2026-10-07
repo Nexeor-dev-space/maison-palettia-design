@@ -8,6 +8,7 @@ import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { EVENT_PLATES, OPENING_STATEMENT } from "@/lib/brand";
 import { EXPERIENCE_KIND_LABEL, getCreativeExperiences } from "@/lib/experiences";
@@ -228,13 +229,10 @@ export default async function GalleryPage() {
                   should read as a pair: the first is the cream pill, this is
                   the brushstroke — the site's secondary action everywhere
                   since <Hero> settled it. */}
-              <BlobButton
-                href="/private-events"
-                tone="painted"
-                className="min-h-[3.25rem] px-8"
-              >
+              {/* The sticky note, as in the homepage banner — see <PeelNote>. */}
+              <PeelNote href="/private-events" className="min-h-[3.25rem] px-8">
                 Plan a private event
-              </BlobButton>
+              </PeelNote>
             </div>
           </Reveal>
         </Container>

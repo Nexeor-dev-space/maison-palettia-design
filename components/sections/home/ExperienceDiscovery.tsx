@@ -1,11 +1,11 @@
 import { Reveal } from "@/components/motion/Reveal";
-import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
-import { groundShapes } from "@/components/motion/groundShapes";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { ExperienceCarousel } from "@/components/sections/home/ExperienceCarousel";
 import { Container } from "@/components/ui/Container";
 import { DeckSheet } from "@/components/ui/deck/Deck";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { getCreativeExperiences } from "@/lib/experiences";
+import { EXPERIENCE_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
  * The seven activities — a track you push through and paint.
@@ -34,51 +34,6 @@ import { getCreativeExperiences } from "@/lib/experiences";
  * component, so the list is rendered on the server and only the track's
  * behaviour ships to the browser.
  */
-/*
-  ==========================================================================
-  THE MARKS IN THE MASTHEAD — placed against the measured gap, not by eye
-  ==========================================================================
-
-  The masthead sets the statement on the left and one line of copy on the
-  right, and leaves the middle open above the row of cards. That gap is what
-  these fill.
-
-  THE FIRST PLACEMENT PUT TWO OF THREE ON TOP OF SOMETHING. Measured in the
-  page at 1440, the section is 1440x1105 and its content sits at:
-
-      eyebrow + heading   x   20-367    y  112-350
-      the note            x 1102-1420   y  145-342
-      the card track      x   20-1440   y  406-941
-
-  which leaves exactly one empty region: x 367-1102, y 0-406. The starburst
-  was at x 1109-1325 y 44-278, squarely under the note; the coral at
-  x 864-1008 y 331-554, under the top of the cards. Only the third was clear.
-  That is the whole of what the client is seeing — not a taste problem but two
-  shapes behind text.
-
-  SO THE PLAN IS SOLVED FROM THAT BOX, AND FROM THE TRAVEL. A resting position
-  inside the gap is not enough: each mark also moves, by half its drift over
-  the section's pass plus the float's 9px, so what has to fit is the whole
-  excursion. Solved that way the splash wanted 5% rather than 2% — at 2% it
-  was clipped 8px above the section's own top edge at rest — and the zigzag
-  15% rather than 19%, where the bottom of its travel reached the cards.
-
-  Everything below sits inside x 27-74%, with every worst case between y 23
-  and y 290 against a track that starts at 350. Measured, not eyeballed.
-
-  TWO MARKS, NOT FOUR. There were four running across the gap on a
-  falling-and-rising line. The client kept the first and the third and struck
-  the rest, which is the right call: four shapes across one band is a pattern,
-  and a pattern behind a masthead competes with it. What is left is one mark
-  for each thing in the masthead — the splash against the heading's empty
-  half, the coral against the copy — and the band reads as placed rather than
-  as filled.
-
-  Desktop only, every one of them. Below `lg` the heading, the note and the
-  cards stack and the gap this is filling does not exist — a mark there is not
-  a ground, it is something behind the words.
-*/
-const EXPERIENCE_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
 export async function ExperienceDiscovery() {
   const experiences = await getCreativeExperiences();
@@ -98,9 +53,9 @@ export async function ExperienceDiscovery() {
       */
       className="relative isolate overflow-x-clip pt-[2rem] md:pt-[2.75rem] lg:pt-[3.5rem]"
     >
-      {/* The masthead leaves most of its width open above the cards; this is
-          what goes in it. See EXPERIENCE_SHAPES. */}
-      <SectionShapes plan={EXPERIENCE_SHAPES} />
+      {/* The section's doodles — the header gap, the strip under the cards.
+          See homeSpots.ts. */}
+      <SectionShapes plan={EXPERIENCE_SPOTS} />
       <Container className="relative">
         {/*
           ==================================================================
@@ -168,7 +123,7 @@ export async function ExperienceDiscovery() {
                 on its own flex track, which put a second small shape within a
                 few pixels of the coral behind it — two terracotta marks doing
                 one job. The coral is now placed against this paragraph (see
-                EXPERIENCE_SHAPES) and the copy starts on its own measure. */}
+                EXPERIENCE_SPOTS) and the copy starts on its own measure. */}
             {/*
               THE CLIENT'S OWN LINE, replacing the one that was here.
 

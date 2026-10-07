@@ -86,6 +86,14 @@ export interface ShapePlan {
   /** Hide below `lg`, where a phone has no room to spare for decoration. */
   desktopOnly?: boolean;
   /**
+   * Where the mark is drawn at all. A placement measured against a two-column
+   * layout lands on the text once the columns stack, so it says which layout
+   * it belongs to: `lg` from 1024 up, `compact` below it; `xl` and
+   * `below-xl` split at 1280 instead, for a header whose text column is still
+   * too wide at 1024. Omit for everywhere.
+   */
+  show?: "lg" | "compact" | "xl" | "below-xl";
+  /**
    * Seconds for one breath of the idle float, on top of the scroll drift.
    * Omit it and the mark only moves with the page.
    *
@@ -146,7 +154,13 @@ function Shape({
          anything marked this way; a mark that never drifts is exactly the
          resting composition, so nothing is lost. */
       data-reveal=""
-      className={cn("absolute block")}
+      className={cn(
+        "absolute block",
+        shape.show === "lg" && "max-lg:hidden",
+        shape.show === "compact" && "lg:hidden",
+        shape.show === "xl" && "max-xl:hidden",
+        shape.show === "below-xl" && "xl:hidden",
+      )}
       style={{
         y,
         top: shape.top,

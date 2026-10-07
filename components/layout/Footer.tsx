@@ -989,8 +989,19 @@ export async function Footer() {
         <div className="mt-9 flex flex-col items-center gap-5 pt-0 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-10">
 
           <div className="flex flex-col items-center gap-x-7 gap-y-2 sm:flex-row sm:items-center">
-            <p>
-              &copy; {year} {SITE.legalName}
+            {/* The brand's P mark — the favicon — as a quiet sign-off beside
+                the copyright, the one place it appears in the page itself. */}
+            <p className="flex items-center gap-2.5">
+              <Image
+                src="/brand/p-mark.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="size-5 shrink-0 rounded-[5px]"
+              />
+              <span>
+                &copy; {year} {SITE.legalName}
+              </span>
             </p>
             {LEGAL_NAV.length > 0 ? (
               <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">

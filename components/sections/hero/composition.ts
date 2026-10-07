@@ -140,6 +140,12 @@ export interface DoodlePlan {
    */
   ring: boolean;
   /**
+   * Only from 1200px. The two marks beside the copy sit in the band the
+   * paragraph leaves either side of it, and below 1200 the paragraph runs
+   * wide enough to fill that band.
+   */
+  wide?: boolean;
+  /**
    * The shape's place in the entrance's ring: centre and width, in logo widths
    * from the logo's own centre. Only read when `ring` is true.
    *
@@ -218,14 +224,23 @@ export interface DoodlePlan {
   Nothing is cropped by the screen and nothing touches the words, measured at
   768, 1024, 1280 and 1440.
 
+  NOTHING BEHIND THE PHOTOGRAPH, at the client's ask (2026-10-07): the
+  three marks placed against the card — top-left, top-right, right edge —
+  used to cross its edges and were drawn under it, so the photo cut them
+  off. They now sit wholly in the margin beside it (3.9% of the card's
+  width, which fits the narrowest margin, 5% of the screen, with room for
+  their turn), and the photograph's height floor keeps the two on the
+  right apart.
+
   SPREAD OUT, AT THE CLIENT'S ASK — the doodles were cluttered. Seven
   marks at rest had gathered on the card's two short edges, while the band of
   open air between the words and the scroll cue had none; and on a phone the
   resting card is a strip about 50px tall, so every mark placed by a share of
   its height landed on it and over the tagline. The fix is the `foot` zone:
 
-    desktop .. twelve, at MIXED sizes and loosely scattered rather than in
-               rows: three large anchors (one peeking from behind the
+    desktop .. twelve, within ONE size range (4-6.5% of the card, 12-16%
+               on a phone) so no mark outweighs the rest — the client's ask for
+               uniformity, after an earlier pass at mixed sizes: three larger anchors (one peeking from behind the
                photograph's top-left, two low in the foot's corners), four
                medium marks on the edges and one in the foot, and five small
                accents between them. Every one sits in open air — the
@@ -250,8 +265,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "starburst",
     color: INK.terracotta,
     depth: 16,
-    desktop: { left: 90, top: -9, width: 6.5, rotate: 12 },
-    mobile: { zone: "foot", left: 44, top: 55, width: 11, rotate: 12 },
+    desktop: { left: 100.9, top: 6, width: 3.9, rotate: 12 },
+    mobile: { zone: "foot", left: 44, top: 55, width: 12, rotate: 12 },
     ring: true,
     flower: { x: 0.28, y: -0.28, width: 0.19, rotate: 10 },
     float: 7,
@@ -262,7 +277,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "starleaf",
     color: INK.lilac,
     depth: 14,
-    desktop: { zone: "foot", left: 93.5, top: 40, width: 5, rotate: 18 },
+    desktop: { zone: "foot", left: 93.5, top: 40, width: 4.8, rotate: 16 },
     ring: false,
     flower: { x: 0.31, y: -0.54, width: 0.22, rotate: 18 },
     float: 8.2,
@@ -273,8 +288,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "bow",
     color: INK.lavender,
     depth: 16,
-    desktop: { zone: "foot", left: 37, top: 74, width: 3.2, rotate: -10 },
-    mobile: { zone: "foot", left: 79, top: 51, width: 16, rotate: -10 },
+    desktop: { zone: "foot", left: 34, top: 72, width: 4.1, rotate: -10 },
+    mobile: { zone: "foot", left: 79, top: 51, width: 14, rotate: -10 },
     ring: true,
     /*
       0.69 OUT, NOT 0.6, at the client's ask for space between this and the
@@ -295,7 +310,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "bean",
     color: INK.lilac,
     depth: 12,
-    desktop: { left: 100.2, top: 50, width: 5.5, rotate: 10 },
+    desktop: { left: 100.9, top: 58, width: 3.9, rotate: 10 },
     ring: false,
     flower: { x: 0.76, y: 0.03, width: 0.26, rotate: 14 },
     float: 8,
@@ -309,8 +324,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "zigzag",
     color: INK.terracotta,
     depth: 18,
-    desktop: { zone: "foot", left: 95, top: 70, width: 3.2, rotate: -12 },
-    mobile: { zone: "foot", left: 58, top: 68, width: 15, rotate: -12 },
+    desktop: { zone: "foot", left: 95, top: 70, width: 4.1, rotate: -12 },
+    mobile: { zone: "foot", left: 58, top: 68, width: 13.6, rotate: -12 },
     ring: true,
     flower: { x: -0.47, y: 0.22, width: 0.27, rotate: 0 },
     float: 6.5,
@@ -323,8 +338,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "wave",
     color: INK.lilac,
     depth: 14,
-    desktop: { zone: "foot", left: 80, top: 64, width: 9, rotate: 3 },
-    mobile: { zone: "foot", left: 18, top: 70, width: 12, rotate: 3 },
+    desktop: { zone: "foot", left: 82, top: 70, width: 6.5, rotate: 8 },
+    mobile: { zone: "foot", left: 18, top: 70, width: 12.4, rotate: 8 },
     ring: true,
     /* 40 at the client's ask. */
     flower: { x: 0.1, y: 0.39, width: 0.21, rotate: 40 },
@@ -336,8 +351,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "wave",
     color: INK.lavender,
     depth: 14,
-    desktop: { zone: "foot", left: 70, top: 76, width: 3.4, rotate: 8 },
-    mobile: { zone: "foot", left: 4, top: 78, width: 13, rotate: 8 },
+    desktop: { zone: "foot", left: 70, top: 72, width: 4.2, rotate: 8 },
+    mobile: { zone: "foot", left: 4, top: 78, width: 12.8, rotate: 8 },
     ring: false,
     flower: { x: -0.64, y: 0.37, width: 0.2, rotate: 8 },
     float: 8.8,
@@ -348,7 +363,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "bean",
     color: INK.terracotta,
     depth: 18,
-    desktop: { zone: "foot", left: 6, top: 66, width: 8.5, rotate: -20 },
+    desktop: { zone: "foot", left: 5, top: 70, width: 6.3, rotate: -16 },
     ring: false,
     flower: { x: -0.62, y: 0.2, width: 0.1, rotate: -20 },
     float: 6.8,
@@ -358,8 +373,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "bow",
     color: INK.lilac,
     depth: 14,
-    desktop: { left: -6, top: 2, width: 8, rotate: -14 },
-    mobile: { zone: "foot", left: 3, top: 52, width: 21, rotate: -14 },
+    desktop: { left: -4.9, top: 6, width: 3.9, rotate: -14 },
+    mobile: { zone: "foot", left: 3, top: 52, width: 16, rotate: -14 },
     ring: true,
     flower: { x: -0.23, y: -0.45, width: 0.18, rotate: -15 },
     float: 7.5,
@@ -382,7 +397,7 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "splash",
     color: INK.lavender,
     depth: 10,
-    desktop: { zone: "foot", left: 1, top: 36, width: 5, rotate: -10 },
+    desktop: { zone: "foot", left: 1, top: 36, width: 4.8, rotate: -10 },
     ring: false,
     flower: { x: -0.46, y: -0.34, width: 0.24, rotate: -20 },
     float: 9,
@@ -393,8 +408,8 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "cutout",
     color: INK.whiteRock,
     depth: 10,
-    desktop: { zone: "foot", left: 58, top: 74, width: 5.5, rotate: -22 },
-    mobile: { zone: "foot", left: 76, top: 74, width: 19, rotate: -22 },
+    desktop: { zone: "foot", left: 58, top: 74, width: 5, rotate: -16 },
+    mobile: { zone: "foot", left: 76, top: 74, width: 15.2, rotate: -16 },
     ring: true,
     /* 70 at the client's ask. */
     flower: { x: -0.69, y: -0.25, width: 0.2, rotate: 70 },
@@ -407,10 +422,39 @@ export const DOODLE_PLAN: readonly DoodlePlan[] = [
     name: "zigzag",
     color: INK.terracotta,
     depth: 16,
-    desktop: { zone: "foot", left: 24, top: 78, width: 3, rotate: 16 },
+    desktop: { zone: "foot", left: 20, top: 76, width: 4, rotate: 16 },
     ring: false,
     flower: { x: -0.18, y: -0.46, width: 0.13, rotate: 16 },
     float: 7.2,
+  },
+  /*
+    THE TWO BESIDE THE COPY, at the client's ask: the band either side of the
+    supporting lines read as empty. A lilac tile on the left, where the
+    nearest marks are a lavender coral and a terracotta tile; a cream
+    splash on the right, where everything near it is lilac — not a third
+    lavender coral. Wide screens only.
+  */
+  {
+    id: "beside-copy-w",
+    name: "bean",
+    color: INK.lilac,
+    depth: 12,
+    desktop: { zone: "foot", left: 11.5, top: 40, width: 4.8, rotate: -9 },
+    ring: false,
+    wide: true,
+    flower: { x: -0.5, y: 0.1, width: 0.12, rotate: -9 },
+    float: 8.6,
+  },
+  {
+    id: "beside-copy-e",
+    name: "zigzag",
+    color: INK.whiteRock,
+    depth: 12,
+    desktop: { zone: "foot", left: 81.5, top: 40, width: 4.8, rotate: 12 },
+    ring: false,
+    wide: true,
+    flower: { x: 0.5, y: 0.1, width: 0.12, rotate: 12 },
+    float: 9.4,
   },
 ];
 

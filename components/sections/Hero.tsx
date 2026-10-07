@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { BlobButton } from "@/components/ui/BlobButton";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { DOODLE_PLAN, DRAW_ORDER, type DoodlePlan } from "@/components/sections/hero/composition";
 import { resolveIcon } from "@/components/sections/hero/doodles";
 import styles from "@/components/sections/hero/Hero.module.css";
@@ -411,14 +412,17 @@ export function Hero() {
                 NO ARROW ON THIS ONE. The pair already has the primary's, and
                 two travelling arrows on one line read as two primaries.
               */}
-              <BlobButton
-                href="/private-events"
-                tone="painted"
-                arrow={false}
-                className="min-h-[3.25rem] px-8 md:min-h-[3.75rem]"
-              >
+              {/*
+                A STICKY NOTE, at the client's ask (2026-10-07): translucent
+                handmade paper stuck over the label, the primary's own size,
+                peeled from the end nearest the pointer on hover — and on its
+                own on a touch screen, each time it comes into view — until
+                every word shows, the flap standing hinged at the far end.
+                See <PeelNote>.
+              */}
+              <PeelNote href="/private-events" className="min-h-[3.25rem] min-w-[20.125rem] px-9 md:min-h-[3.75rem]">
                 Plan a private event
-              </BlobButton>
+              </PeelNote>
             </div>
           </div>
 
@@ -499,7 +503,12 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
       data-under-actions-m={underActions(mobile) || undefined}
       /* Only the six that ring the logo fly in the intro — see `entrance` in
          ./hero/composition.ts. The rest wait at their resting places. */
-      className={cn(styles.doodle, styles.flip, plan.mobile ? undefined : styles.desktopOnly)}
+      className={cn(
+        styles.doodle,
+        styles.flip,
+        plan.mobile ? undefined : styles.desktopOnly,
+        plan.wide && styles.wideOnly,
+      )}
       style={vars}
     >
       <div className={styles.drift}>

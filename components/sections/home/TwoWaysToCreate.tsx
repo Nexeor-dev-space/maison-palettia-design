@@ -1,8 +1,7 @@
 import Image from "next/image";
 
 import { Reveal } from "@/components/motion/Reveal";
-import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
-import { groundShapes } from "@/components/motion/groundShapes";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
@@ -11,24 +10,7 @@ import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { getUpcomingWorkshops } from "@/lib/workshops";
-
-/*
-  THE MASTHEAD'S RIGHT HALF, which is the one part of this section with
-  nothing in it. The heading and its lede are held to the left measure, so
-  everything right of about 45% is clear cream at every width above `lg` —
-  no type to sit behind, by construction.
-
-  LOOSE SHAPES ONLY, and three of them. A slab is a shape on a coloured tile
-  and reads as an object pinned to the page; these are meant to be air in an
-  empty half, which is what the loose cut-outs do. The colour picks the
-  drawing — lilac gives the bow, terracotta the splash, lavender the coral —
-  so three colours is also three different marks. See FAMILY in
-  sections/hero/doodles.ts.
-
-  `hidden lg:block`, because below `lg` the heading takes the full measure
-  and there is no empty half for them to fill.
-*/
-const TWO_WAYS_SHAPES: readonly ShapePlan[] = groundShapes("cream");
+import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
  * ==========================================================================
@@ -169,7 +151,8 @@ export async function TwoWaysToCreate() {
           where they cannot be seen. Isolating keeps them above the cream and
           below the type. */}
       <div className="relative isolate bg-cream pb-[3rem] pt-[4rem] md:pb-[3.5rem] md:pt-[5.5rem] lg:pb-[4.5rem] lg:pt-[6.5rem]">
-        <SectionShapes plan={TWO_WAYS_SHAPES} />
+        {/* The band's doodles — see homeSpots.ts. */}
+        <SectionShapes plan={TWO_WAYS_SPOTS} />
         <Container>
           <Reveal>
             <Eyebrow>How to take part</Eyebrow>

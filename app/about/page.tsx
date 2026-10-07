@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { cn } from "@/lib/utils";
 /*
   THE CARD AND THE DAB COME FROM THE TEASER ITSELF — see <Apart>. The client
@@ -10,7 +11,6 @@ import { cn } from "@/lib/utils";
   touched.
 */
 import swatch from "@/components/sections/home/CollaborateTeaser.module.css";
-import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
@@ -920,18 +920,10 @@ function Close() {
               Explore experiences
             </BlobButton>
 
-            <Link
-              href="/private-events"
-              className="group/nav inline-flex min-h-12 items-center text-action font-medium uppercase tracking-eyebrow text-surface"
-            >
-              <span className="relative inline-block pb-1.5">
-                Plan a private event
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute left-0 top-full -mt-1 block h-px w-full origin-right scale-x-0 bg-current transition-transform duration-[380ms] ease-editorial group-hover/nav:origin-left group-hover/nav:scale-x-100 group-focus-visible/nav:origin-left group-focus-visible/nav:scale-x-100 motion-reduce:transition-none"
-                />
-              </span>
-            </Link>
+            {/* The sticky note, as in the homepage banner — see <PeelNote>. */}
+            <PeelNote href="/private-events" className="min-h-[3.25rem] px-8">
+              Plan a private event
+            </PeelNote>
           </div>
         </Reveal>
       </Container>

@@ -601,7 +601,7 @@
   left: calc(var(--wx) * (1 - var(--z)) + (100% - 2 * var(--wx) * (1 - var(--z))) * var(--x));
   top: calc(
     (var(--wt) + (100% - var(--wt) - var(--wb)) * var(--y)) * (1 - var(--z)) +
-      (100% - var(--wb) + var(--wb) * var(--y)) * var(--z)
+      (100% - var(--wb) + var(--wf, var(--wb)) * var(--y)) * var(--z)
   );
   /* A floor for the foot only: its widths are shares of the whole banner, and
      at 768 a 3% mark is a 23px speck in a band of open air. The card's
@@ -630,6 +630,16 @@
 @media (prefers-reduced-motion: reduce) and (min-width: 768px) {
   .doodle[data-under-actions-d] {
     display: none;
+  }
+}
+
+.wideOnly {
+  display: none !important;
+}
+
+@media (min-width: 1200px) {
+  .wideOnly {
+    display: block !important;
   }
 }
 
@@ -1109,6 +1119,12 @@
   tagline and the gap above it come down a step. <HeroIntro> measures the
   foot from whatever is showing, so the card takes back what this frees.
 */
+/* The photograph's floor pushed the words past the fold (see `cardFloor`
+   in HeroIntro): the cue, pinned to the window's foot, would sit on them. */
+.frame[data-short] .cue {
+  display: none;
+}
+
 @media (max-width: 767px) and (max-height: 700px) {
   .frame {
     --headline-size: 2.25rem;

@@ -200,6 +200,25 @@ function footPad(): number {
   return rem * 1.5;
 }
 
+/** The resting photograph's minimum height: about a third of a short desktop
+ *  window (200px at 640), less on a phone, where the words are taller. */
+function cardFloor(frameHeight: number): number {
+  const clamp = (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  return window.matchMedia("(min-width: 768px)").matches
+    ? clamp(160, frameHeight * 0.31, 256)
+    : clamp(128, frameHeight * 0.22, 192);
+}
+
+/** `--wt` in pixels: the bar plus the air under it. */
+function insetTop(frame: HTMLElement): number {
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:absolute;visibility:hidden;width:0;height:var(--wt)";
+  frame.append(probe);
+  const h = probe.offsetHeight;
+  probe.remove();
+  return h;
+}
+
 function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   const raw = getComputedStyle(frame).getPropertyValue("--copy-gap").trim();
@@ -262,7 +281,26 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
     const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
     foot = gap + words + clearance + cue.offsetHeight + cueFromEdge + footPad();
   }
-  frame.style.setProperty("--wb", `${Math.ceil(foot)}px`);
+  /*
+    A FLOOR UNDER THE PHOTOGRAPH, at the client's ask. The foot is whatever
+    the words need, and on a short window (a laptop at ~1350x640 with its
+    toolbars) that left the resting photograph a 60px strip. It now keeps at
+    least `cardFloor()` — about 200px there — and when the words need more
+    than the screen has left, they start lower and run past the fold. They
+    are not lost: as the page scrolls the photograph opens and `--copy-shift`
+    carries the whole block up into view, exactly as before.
+
+    `--wf` keeps the foot's NATURAL height, so the doodles placed in it
+    (`zone: "foot"`) stay laid out against the words rather than squeezed
+    into the shorter visible band. `data-short` hides the scroll cue, which
+    is pinned to the window's foot and would otherwise sit on the buttons.
+  */
+  const room = frame.offsetHeight - insetTop(frame) - cardFloor(frame.offsetHeight);
+  const short = foot > room;
+  frame.style.setProperty("--wf", `${Math.ceil(foot)}px`);
+  frame.style.setProperty("--wb", `${Math.ceil(short ? Math.max(0, room) : foot)}px`);
+  if (short) frame.dataset.short = "";
+  else delete frame.dataset.short;
 }
 
 /**
