@@ -1,10 +1,12 @@
 
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { INK } from "@/components/sections/hero/composition";
 import { Container } from "@/components/ui/Container";
 import { DeckSheet } from "@/components/ui/deck/Deck";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandStory";
+import { OPENING_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
  * What Maison Palettia is — the first words after the banner.
@@ -46,20 +48,9 @@ import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandSto
 export function OpeningStatement() {
   return (
     <DeckSheet labelledBy="opening-statement">
+      {/* The section's doodles — see homeSpots.ts. */}
+      <SectionShapes plan={OPENING_SPOTS} />
       <Container className="relative">
-        {/*
-          One cut-out, in the air the measure leaves to its right. The sentence
-          is set to 34 characters because that is what it wants to be; this is
-          what stands in the space that leaves, and it is the only shape on
-          this half of the sheet.
-        */}
-        <Reveal
-          delay={0.2}
-          className="pointer-events-none absolute right-gutter top-16 hidden w-[7.5rem] xl:block"
-        >
-          <DoodleMark name="wave" color={INK.lavender} />
-        </Reveal>
-
         <Reveal>
           <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-primary">
             <span aria-hidden className="block w-4 shrink-0">

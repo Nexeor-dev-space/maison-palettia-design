@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BlobButton } from "@/components/ui/BlobButton";
 
 import { EventFilterBar } from "@/components/events/EventFilters";
 import { Reveal } from "@/components/motion/Reveal";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { EventCard } from "@/components/workshops/EventCard";
 import {
   applyFilters,
@@ -121,14 +121,13 @@ function NoMatches({ onReset }: { onReset: () => void }) {
         shows everything that is scheduled.
       </p>
 
-      <BlobButton
+      <PeelNote
         type="button"
         onClick={onReset}
-        tone="painted"
         className="mt-9 min-h-[3.25rem] px-7 md:mt-10"
       >
         Clear all filters
-      </BlobButton>
+      </PeelNote>
     </div>
   );
 }

@@ -24,11 +24,10 @@ import type { ShapePlan } from "@/components/motion/SectionShapes";
   are this table's fault: a section with two marks at 0.14 next to one with
   four at 0.22 reads as decoration that was forgotten in places.
 
-  WHAT THIS IS. Six marks, at three sizes, in two inks, on six anchors that
-  sit in the margins and the corners rather than across the measure. A
-  caller passes its colours and a seed; the seed rotates which shape and
-  which colour lands on which anchor, so no two sections in a row are the
-  same picture while every section has the same WEIGHT of decoration.
+  WHAT THIS IS. Six marks, at six sizes, in four drawings, on six anchors
+  that sit in the margins and the corners rather than across the measure. A
+  caller names its ground and every section gets the same WEIGHT of
+  decoration, laid out the same way — see the table further down.
 
   LOOSE CUTS ONLY. The set's slab icons carry a filled tile behind the
   drawing, and a filled tile at 18% over a pale ground is not a faint mark,
@@ -46,66 +45,85 @@ const GROUND_ANCHORS: readonly Partial<Record<"top" | "bottom" | "left" | "right
   { right: "28%", bottom: "6%" },
 ];
 
-/** Three sizes and two inks, and nothing between them. */
-const GROUND_WIDTHS = ["6.5%", "4%", "9%", "4%", "6.5%", "4%"] as const;
-const GROUND_OPACITY = [0.2, 0.16, 0.18, 0.22, 0.16, 0.18] as const;
+/** Six sizes, one per anchor — every section carries the full range. Held at
+    30-40%, at the client's ask for marks a little stronger than they were. */
+const GROUND_WIDTHS = ["8%", "4.5%", "10%", "5.5%", "6.5%", "3.5%"] as const;
+const GROUND_OPACITY = [0.36, 0.3, 0.38, 0.32, 0.3, 0.4] as const;
 const GROUND_DRIFT = [22, -18, 20, -16, 18, -20] as const;
 const GROUND_FLOAT = [13, 15, 11, 14, 16, 12] as const;
 const GROUND_ROTATE = [-12, 9, -6, 14, -9, 7] as const;
-const GROUND_MARKS: readonly DoodleName[] = ["splash", "coral", "bow", "starleaf", "zigzag", "dot"];
-
 /*
   ==========================================================================
-  WHICH ANCHOR TAKES WHICH INK — and why it is not simply `i % colors`
+  WHICH DRAWING GOES WHERE — four shapes, and never the same one twice in a
+  glance, inside a section or across the line between two
   ==========================================================================
 
-  THE COLOUR PICKS THE DRAWING, NOT THE SHAPE WORD. In this brand's sheet
-  `resolveIcon` looks the ink up in a six-colour table and returns that
-  colour's loose or slab icon; the word above only chooses which of the two.
-  Every word in GROUND_MARKS is a loose one, so the six names rotate and
-  change nothing — what a reader sees is decided entirely by the ink.
+  THE COLOUR IS THE DRAWING. `resolveIcon` answers a loose word with the
+  cut-out of its ink, and the set holds exactly one loose cut-out per colour:
+  a lilac bow, a terracotta splash, a lavender coral, a sage leaf and a
+  White Rock open splash. So a section that passed one ink — the About
+  page's purpose band passed Deep Lilac alone — drew the same bow six times,
+  and two neighbouring sections that both led with lilac stacked the same
+  bow either side of their boundary. The client's note: the same doodle,
+  repeated, with neighbours alike.
 
-  THREE INKS OVER SIX ANCHORS THEREFORE DRAWS EACH SHAPE TWICE, which is not
-  avoidable: Deep Lilac, Terracotta and Soft Lavender are the only three a
-  pale ground can hold at a cut-out's opacity, and they resolve to a bow, a
-  splash and a coral. The pair is a given. WHERE the pair lands is not.
+  THE GROUND DECIDES INSTEAD. A caller names its ground, and gets the four
+  cut-outs that can be seen on it — all five but the one drawn in the
+  ground's own colour — in a fixed order, A B C D.
 
-  `(i + seed) % 3` put it in the worst place available. The anchors run
-  top-left, top-right, bottom-left, bottom-right, top-middle, bottom-middle,
-  so a plain cycle of three paired anchors 2 and 5 — bottom-left with
-  bottom-middle — and 1 with 4, top-right with top-middle. Both pairs sit on
-  the same horizontal band, a few hundred pixels apart, and that is the
-  "these three doodles look the same" the client marked.
+  THE ANCHORS TAKE THEM BY SLOT, NOT BY CYCLE:
 
-  This table pairs each ink with the anchor DIAGONALLY opposite instead:
-  top-left with bottom-right, top-right with bottom-left, and the two
-  mid-edge anchors with each other, which are a section's full height apart.
-  The repeat still exists and is no longer ever in the same glance.
+      top-left A     top-middle C     top-right B
+      bottom-left B  bottom-middle D  bottom-right A
 
-  `dot` is the one word that escapes all of this — `resolveIcon` never
-  resolves it, so it keeps both the colour and the shape it is given, and
-  whichever anchor it lands on is a mark no other anchor can duplicate.
+  Each band of three is three different drawings. And because every ground
+  puts the same A and B in the same corners, the foot of one section and
+  the head of the next always meet as B over A on the left and A over B on
+  the right — different on both sides, whatever the two grounds are. The
+  orders below are arranged so that holds across the four grounds too: A is
+  the bow and B the splash everywhere except Deep Lilac, which has no bow
+  to show, and takes the coral as its A.
 */
-const GROUND_COLOR_SLOT = [0, 1, 1, 0, 2, 2] as const;
+const LILAC = "#9059A4";
+const TERRACOTTA = "#D97757";
+const LAVENDER = "#C4B5FD";
+const SAGE = "#D1E7BE";
+const WHITE_ROCK = "#EFE2CA";
+
+/** The ground a section's marks sit on. `surface` is the near-white sage tint. */
+export type Ground = "sage" | "cream" | "surface" | "lilac" | "lavender";
+
+/** A B C D for each ground: every cut-out but the ground's own. */
+const GROUND_INKS: Record<Ground, readonly [string, string, string, string]> = {
+  sage: [LILAC, TERRACOTTA, LAVENDER, WHITE_ROCK],
+  cream: [LILAC, TERRACOTTA, LAVENDER, SAGE],
+  // Near-white: the White Rock splash vanishes on it, the sage leaf does not.
+  surface: [LILAC, TERRACOTTA, LAVENDER, SAGE],
+  lilac: [LAVENDER, TERRACOTTA, SAGE, WHITE_ROCK],
+  lavender: [LILAC, TERRACOTTA, SAGE, WHITE_ROCK],
+};
+
+/** Which of A B C D each anchor takes — see the diagram above. */
+const GROUND_SLOT = [0, 1, 1, 0, 2, 3] as const;
 
 /**
  * A section's standard ground.
  *
- * @param colors the section's own inks, in the order it wants them used.
- * @param seed   rotates the shapes and the colours, so neighbouring sections
- *               get the same weight of decoration and a different picture.
+ * @param ground what the section is painted, which decides the four
+ *               cut-outs that can be seen on it.
  * @param count  fewer than six only where a section is genuinely too short
  *               to carry them.
  */
 export function groundShapes(
-  colors: readonly string[],
-  { seed = 0, count = 6, desktopOnly = true }: { seed?: number; count?: number; desktopOnly?: boolean } = {},
+  ground: Ground,
+  { count = 6, desktopOnly = true }: { count?: number; desktopOnly?: boolean } = {},
 ): readonly ShapePlan[] {
   const n = Math.min(count, GROUND_ANCHORS.length);
+  const inks = GROUND_INKS[ground];
   return Array.from({ length: n }, (_, i) => ({
-    name: GROUND_MARKS[(i + seed) % GROUND_MARKS.length],
-    color:
-      colors[(GROUND_COLOR_SLOT[i] + seed) % Math.max(colors.length, 1)] ?? colors[0],
+    // Any loose word: the ink picks the cut-out. See `resolveIcon`.
+    name: "splash" as DoodleName,
+    color: inks[GROUND_SLOT[i]],
     width: GROUND_WIDTHS[i],
     ...GROUND_ANCHORS[i],
     rotate: GROUND_ROTATE[i],

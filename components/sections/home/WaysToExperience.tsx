@@ -5,11 +5,10 @@ import { Container } from "@/components/ui/Container";
 
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { WaysTrail } from "@/components/sections/home/WaysTrail";
-import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
-import { groundShapes } from "@/components/motion/groundShapes";
-import { INK } from "@/components/sections/hero/composition";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
+import { WAYS_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
  * ==========================================================================
@@ -180,16 +179,6 @@ const CARDS = [
   }, // 9.07:1
 ] as const;
 
-
-/*
-  Placed in the bands the cards alternate away from: the right half high up
-  where the first card is on the left, the left half lower down where the
-  second is on the right, and so on. Sizes are a share of the section's WIDTH
-  and each doodle's own aspect decides its height — the number to watch on a
-  section this tall.
-*/
-const WAYS_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.terracotta, INK.lavender], { seed: 1 });
-
 export async function WaysToExperience() {
   const experiences = await getCreativeExperiences();
   const walkIn = experiences.filter((e) => e.kind === "diy").length;
@@ -289,6 +278,10 @@ export async function WaysToExperience() {
          that moves something sideways follows. */
       className="relative isolate overflow-x-clip bg-cream py-[5rem] md:py-section lg:py-section-lg"
     >
+      {/* The section's doodles, on the section itself so they can use its top
+          and bottom padding. The trail draws its own marks down the middle.
+          See homeSpots.ts. */}
+      <SectionShapes plan={WAYS_SPOTS} />
       <Container>
         {/* The question, asked once across the whole measure. */}
         <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
@@ -333,25 +326,6 @@ export async function WaysToExperience() {
           See <WaysTrail> for how the path stays right at every width without
           measuring the DOM.
         */}
-        {/*
-          THE GROUND THE FLOW CROSSES. With the cards alternating and the link
-          swinging out through the open half, the measure opposite each card is
-          the one part of this section with nothing in it — the client asked
-          for marks there and it is the right place for them: no type at any
-          width, by construction.
-
-          SEVEN NOW, NOT FOUR, and the old note here claimed two things that
-          were not true. <SectionShapes> has no ceiling — it maps whatever
-          plan it is given — and the four were not `desktopOnly`; none of them
-          carried the flag. The three added for the header's empty quarter do,
-          and the reason is written beside them.
-
-          All from the smooth end of the sheet. The four down the trail are
-          also a third stronger than they were: at 0.14-0.18 on White Rock
-          they were close enough to nothing that the client read the space as
-          empty, which is a fair reading of a mark nobody can see.
-        */}
-        <SectionShapes plan={WAYS_SHAPES} />
 
         <WaysTrail
           items={groups.map((group, i) => {

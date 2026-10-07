@@ -563,15 +563,26 @@
 /* ---- a doodle ------------------------------------------------------------- */
 
 /*
-  The doodles are placed in the resting card's box, not the frame's, so every
-  percentage in ./composition.ts is the card's.
+  TWO BOXES A DOODLE CAN BE PLACED IN, both drawn from the resting card's
+  three insets — see `zone` in ./composition.ts.
+
+    card ... the resting photograph: x and width are shares of the card's
+             width, y of its height. The margins and corners around it.
+    foot ... everything under it — the tagline, the lines, the scroll cue:
+             x and width are shares of the whole frame's width, y of the
+             foot's height (`--wb`). This is where the banner's open air is.
+
+  The foot exists because the card alone could not frame the words: on a
+  phone the resting card is a strip about 50px tall, so a percentage of its
+  height cannot move a shape anywhere, and every doodle that was not tucked
+  behind it piled onto it and over the tagline.
+
+  So the box the doodles live in is the whole frame, and each one works out
+  its own place from the insets: `--z` is 0 for the card and 1 for the foot.
 */
 .window {
   position: absolute;
-  left: var(--wx);
-  right: var(--wx);
-  top: var(--wt);
-  bottom: var(--wb);
+  inset: 0;
 }
 
 /*
@@ -583,16 +594,52 @@
 .doodle {
   position: absolute;
   z-index: 0;
-  left: var(--m-left);
-  top: var(--m-top);
-  width: var(--m-width);
+  --z: var(--m-z);
+  --x: var(--m-x);
+  --y: var(--m-y);
+  --w: var(--m-w);
+  left: calc(var(--wx) * (1 - var(--z)) + (100% - 2 * var(--wx) * (1 - var(--z))) * var(--x));
+  top: calc(
+    (var(--wt) + (100% - var(--wt) - var(--wb)) * var(--y)) * (1 - var(--z)) +
+      (100% - var(--wb) + var(--wf, var(--wb)) * var(--y)) * var(--z)
+  );
+  /* A floor for the foot only: its widths are shares of the whole banner, and
+     at 768 a 3% mark is a 23px speck in a band of open air. The card's
+     marks keep their measured sizes — `0 * 2.5rem` is no floor at all. */
+  width: max(
+    calc((100% - 2 * var(--wx) * (1 - var(--z))) * var(--w)),
+    calc(2.75rem * var(--z))
+  );
 }
 
 @media (min-width: 768px) {
   .doodle {
-    left: var(--d-left);
-    top: var(--d-top);
-    width: var(--d-width);
+    --z: var(--d-z);
+    --x: var(--d-x);
+    --y: var(--d-y);
+    --w: var(--d-w);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+  .doodle[data-under-actions-m] {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (min-width: 768px) {
+  .doodle[data-under-actions-d] {
+    display: none;
+  }
+}
+
+.wideOnly {
+  display: none !important;
+}
+
+@media (min-width: 1200px) {
+  .wideOnly {
+    display: block !important;
   }
 }
 
@@ -1059,6 +1106,31 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cue {
+    display: none;
+  }
+}
+
+/*
+  A SHORT PHONE (375x667 and the like). The foot — tagline, two lines, the
+  stacked actions, the cue — needed more than the screen had left under the
+  bar, so the card got no height at all and the tagline rose under the
+  header. Here the cue goes (the photograph opening is cue enough), and the
+  tagline and the gap above it come down a step. <HeroIntro> measures the
+  foot from whatever is showing, so the card takes back what this frees.
+*/
+/* The photograph's floor pushed the words past the fold (see `cardFloor`
+   in HeroIntro): the cue, pinned to the window's foot, would sit on them. */
+.frame[data-short] .cue {
+  display: none;
+}
+
+@media (max-width: 767px) and (max-height: 700px) {
+  .frame {
+    --headline-size: 2.25rem;
+    --copy-gap: 1.5rem;
+  }
+
   .cue {
     display: none;
   }

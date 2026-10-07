@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 
 import { BookingForm } from "@/components/booking/BookingForm";
 import { Steps } from "@/components/booking/Steps";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { Container } from "@/components/ui/Container";
 import { buildMetadata } from "@/lib/seo";
 import {
@@ -67,36 +69,39 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
   const scarce = isScarce(workshop);
 
   return (
-    <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
-      <Reveal>
-        {/* `-my-3 py-3` grows the hit area to 47px — over the 44px touch
-            target — without moving the link or anything around it. */}
-        <Link
-          href={workshopHref(workshop)}
-          className="group inline-flex items-center gap-3 -my-3 py-3 text-action font-medium uppercase tracking-eyebrow text-text"
-        >
-          <span
-            aria-hidden
-            className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-x-1"
+    <div className="relative isolate overflow-clip">
+      <SectionShapes plan={groundShapes("sage")} />
+      <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
+        <Reveal>
+          {/* `-my-3 py-3` grows the hit area to 47px — over the 44px touch
+              target — without moving the link or anything around it. */}
+          <Link
+            href={workshopHref(workshop)}
+            className="group inline-flex items-center gap-3 -my-3 py-3 text-action font-medium uppercase tracking-eyebrow text-text"
           >
-            &#8592;
-          </span>
-          <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            Back to the event
-          </span>
-        </Link>
-      </Reveal>
+            <span
+              aria-hidden
+              className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-x-1"
+            >
+              &#8592;
+            </span>
+            <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
+              Back to the event
+            </span>
+          </Link>
+        </Reveal>
 
-      <Steps current={1} />
+        <Steps current={1} />
 
-      <BookingForm
-        workshop={workshop}
-        intro={<Intro />}
-        summary={<SessionSummary workshop={workshop} />}
-        strip={<SessionStrip workshop={workshop} />}
-        scarce={scarce}
-      />
-    </Container>
+        <BookingForm
+          workshop={workshop}
+          intro={<Intro />}
+          summary={<SessionSummary workshop={workshop} />}
+          strip={<SessionStrip workshop={workshop} />}
+          scarce={scarce}
+        />
+      </Container>
+    </div>
   );
 }
 

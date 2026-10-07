@@ -1,10 +1,12 @@
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { embedSrc } from "@/components/sections/LocationMap";
 import { Container } from "@/components/ui/Container";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { getMallPartners } from "@/lib/partners";
+import { WHERE_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
  * Homepage 09 — where the Maison has created, and where to find it now.
@@ -56,91 +58,8 @@ export async function WhereWeCreate() {
         — the deck's rule that a cut-out always crosses an edge — so they read
         as the section's corners rather than as clutter dropped into its air.
       */}
-      {/*
-        THE CORAL HAD TO COME DOWN WITH THE COLUMNS. It sat at 12% off the
-        foot while the statement was in the MIDDLE four columns, so the left
-        gutter beside it was clear ground. With the statement back on the left
-        it was measured across the copy — x-61 to 93 against a paragraph that
-        starts at x20, sitting on "creativity, engagement" at 1440 and on the
-        same line at 1920. Dropped past the section's floor it clears the last
-        line by 11px at 1024, 48px at 1440 and 40px at 1920, and it still
-        crosses the left gutter, which is the part of it that matters. What it
-        loses is 32px off its foot to `overflow-hidden`, which is the deck's
-        own habit rather than a cost: a cut-out there always runs off an edge.
-      */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -left-8 -bottom-8 hidden w-20 rotate-[8deg] lg:block xl:-left-12 xl:w-28"
-      >
-        <DoodleMark name="coral" color={INK.terracotta} treatment="draw" delay={380} />
-      </span>
-      {/*
-        ==================================================================
-        THE LEFT EDGE, NOT THE RIGHT, AND IT IS A COLLISION THAT MOVED IT
-        ==================================================================
-
-        This hung off the section's RIGHT edge at `top-[8%]`, which put it at
-        x1785-1904 / y437-503 at 1860 — and the map plate's own corner mark
-        sits at x1712-1867 / y429-515. The two overlapped by 82 x 66px, which
-        is most of both of them, and the client circled the result.
-
-        THEY ARE ALSO THE SAME DRAWING, which is why the stack read as a smear
-        rather than as two shapes. Both are lavender, and in the brand sheet
-        the colour picks the icon while the shape word only picks loose or
-        slab (`resolveIcon`, components/sections/hero/doodles.ts) — `wave`
-        here and `bean` on the plate are both slab words, so both resolve to
-        the one lavender slab. Two copies of one icon, 8px apart.
-
-        The right-hand half of this section is the map, and the plate brings
-        its own marks to both of its corners; there is no room up there for a
-        third. The section's top-left is empty cream from the band above down
-        to the eyebrow — 176px of clearance over "FIND US" at 1860 — so the
-        mark crosses that edge instead. It keeps its size, its angle and its
-        bleed off the section's side; only the side changes, and the section's
-        own pair now frames the left column top and bottom while the plate
-        keeps its own two corners.
-      */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -left-10 top-[8%] hidden w-24 -rotate-12 lg:block xl:w-28"
-      >
-        <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={520} />
-      </span>
-
-      {/*
-        THE PHONE'S OWN MARKS, because the two above are desktop-only by
-        construction: both hang off the section's edge (`-left-8`, `-right-10`)
-        where a phone has no gutter to spare, so below `lg` this section ran
-        with no cut-out on it at all — the one band on the page that did.
-
-        These three sit INSIDE the measure instead of across its edges, which
-        is what lets them show at 375px without being clipped: two in the
-        channel the statement leaves beside it and one low under the map.
-        `lg:hidden` so they hand back to the edge-crossing pair above, which is
-        the deck's own habit wherever there is room for it.
-      */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute right-[6%] top-[4%] block w-14 -rotate-12 sm:w-16 lg:hidden"
-      >
-        <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={300} />
-      </span>
-      <span
-        aria-hidden
-        /* Top-left, NOT at 30%: the lede runs the full measure down the upper
-           third of a phone, and at 30% this landed on "into the places people
-           already gather". The band above the eyebrow is the one piece of
-           clear ground on this side. */
-        className="pointer-events-none absolute left-[6%] top-[1%] block w-12 rotate-[10deg] sm:w-14 lg:hidden"
-      >
-        <DoodleMark name="coral" color={INK.terracotta} treatment="draw" delay={420} />
-      </span>
-      <span
-        aria-hidden
-        className="pointer-events-none absolute bottom-[4%] right-[10%] block w-12 rotate-[6deg] sm:w-14 lg:hidden"
-      >
-        <DoodleMark name="starleaf" color={INK.lilac} treatment="draw" delay={540} />
-      </span>
+      {/* The section's doodles — see WHERE_SPOTS in homeSpots.ts. */}
+      <SectionShapes plan={WHERE_SPOTS} />
 
       <Container>
         {/*
@@ -198,20 +117,6 @@ export async function WhereWeCreate() {
             untouched: they cross the gutters, which was always right.
           */}
           <div className="relative col-span-12 lg:col-span-5">
-            <span
-              aria-hidden
-              className="pointer-lift pointer-events-none absolute -right-2 -top-10 hidden w-[22%] -rotate-6 lg:block xl:-right-6"
-              style={{ "--ax": 0.3, "--lift": 0.18 } as React.CSSProperties}
-            >
-              <DoodleMark name="coral" color={INK.lilac} treatment="draw" delay={260} depth={14} />
-            </span>
-            <span
-              aria-hidden
-              className="pointer-lift pointer-events-none absolute right-[16%] top-[30%] hidden w-[7%] lg:block"
-              style={{ "--ax": 0.26, "--lift": 0.3 } as React.CSSProperties}
-            >
-              <DoodleMark name="dot" color={INK.terracotta} treatment="draw" delay={560} depth={26} />
-            </span>
 
             {/*
               ==============================================================
@@ -358,51 +263,6 @@ export async function WhereWeCreate() {
                 wrapper around it instead.
               */}
               <div className="relative">
-                {/*
-                  ==================================================================
-                  THE EVENT PAGE'S LOCATION SECTION, MARK FOR MARK
-                  ==================================================================
-
-                  At the client's ask: this map should be punctuated the way
-                  <LocationMap> punctuates its own on an event page, and that
-                  section does it with TWO marks and nothing else.
-
-                    the frame ... one terracotta cut-out crossing the LEFT edge
-                                  at mid-height, `-left-5 top-[54%]`.
-                    the card .... one lavender coral off the bottom-right
-                                  corner, `-bottom-5 -right-4`.
-
-                  Both figures are copied rather than re-derived, so the two
-                  sections stay the same object if either is ever re-tuned.
-
-                  WHY THE LEFT EDGE AND NOT A CORNER, in <LocationMap>'s own
-                  words: Google puts its furniture in three of the four — the
-                  place card top-left, the satellite thumbnail bottom-left, the
-                  attribution and fullscreen control bottom-right — and the
-                  middle of the left edge is the one stretch of frame that is
-                  only ever tiles. `top` as a percentage so it holds at any
-                  aspect.
-
-                  It replaces a pair that sat on the two opposite corners and
-                  were `-z-10`, tucked under an opaque frame so that only their
-                  corners showed. Nothing here is `-z-10`: the reference lays
-                  its marks OVER the frame's edge, which is what makes them
-                  read as laid on rather than peeking out.
-                */}
-                <span
-                  aria-hidden
-                  className="pointer-lift pointer-events-none absolute -left-5 top-[54%] z-10 hidden w-[4rem] rotate-[12deg] lg:block lg:w-[5rem]"
-                  style={{ "--ax": 0.78, "--lift": 0.22 } as React.CSSProperties}
-                >
-                  <DoodleMark name="cutout" color={INK.terracotta} treatment="stamp" delay={240} />
-                </span>
-                <span
-                  aria-hidden
-                  className="pointer-lift pointer-events-none absolute -bottom-5 -right-4 z-10 hidden w-[4.5rem] -rotate-[10deg] lg:block lg:w-[5.5rem]"
-                  style={{ "--ax": 0.62, "--lift": 0.2 } as React.CSSProperties}
-                >
-                  <DoodleMark name="coral" color={INK.lavender} treatment="stamp" delay={320} />
-                </span>
 
                 <div className="plate relative aspect-[5/4] overflow-clip rounded-[1.25rem] bg-surface">
                   {/*

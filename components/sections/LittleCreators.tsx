@@ -252,4 +252,4 @@ export function LittleCreators() {
   at 0.45 because its lilac is the strongest thing the sheet prints and at
   two thirds it stopped being a ground and started being a mark.
 */
-const KIDS_SHAPES: readonly ShapePlan[] = groundShapes([INK.terracotta, INK.whiteRock], { seed: 4 });
+const KIDS_SHAPES: readonly ShapePlan[] = groundShapes("surface");

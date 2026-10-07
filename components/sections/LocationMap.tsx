@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { BlobButton } from "@/components/ui/BlobButton";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { cn } from "@/lib/utils";
 import type { MallPartner } from "@/types";
 
@@ -333,20 +333,17 @@ export function PartnerPlate({
       {/* A SECONDARY BUTTON. This was a word with a terracotta rule under it
           — the client's note about underlined links standing in for buttons,
           and the clearest case of it on the site: it is the only action on
-          the plate. It is also OUTBOUND, which is why <BlobButton> grew an
-          `external` prop rather than this staying a bare <a>: the component
-          could not express the link, so the link could not have the
-          component's shape. */}
+          the plate. It is also OUTBOUND, so it is the sticky note's
+          `external` mode — a plain anchor to a new tab. */}
       {partner.locationHref ? (
-        <BlobButton
+        <PeelNote
           href={partner.locationHref}
           external
-          tone="painted"
           className="shrink-0 min-h-[3rem] px-6 sm:mt-6"
         >
           View location
           <span className="sr-only"> (opens in a new tab)</span>
-        </BlobButton>
+        </PeelNote>
       ) : null}
     </div>
   );

@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import styles from "@/components/booking/PaintBooking.module.css";
+import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
+import { SectionShapes } from "@/components/motion/SectionShapes";
 import { PrivateEventEnquiry } from "@/components/private-events/PrivateEventEnquiry";
 import { Container } from "@/components/ui/Container";
 import { getCreativeExperiences } from "@/lib/experiences";
@@ -58,141 +60,144 @@ export default async function PrivateEventBookingPage() {
   );
 
   return (
-    <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
-      <Reveal>
-        <Link
-          href="/private-events"
-          className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
-        >
-          <span
-            aria-hidden
-            className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-x-1"
-          >
-            &#8592;
-          </span>
-          <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            Back to private events
-          </span>
-        </Link>
-      </Reveal>
-
-      <div className="mt-12 grid grid-cols-12 gap-x-6 gap-y-14 md:mt-16 lg:gap-x-10">
-        <div className="col-span-12 lg:col-span-7">
-          <Reveal>
-            <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
-              <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
-              Private events
-            </p>
-            <h1 className="mt-8 heading-script text-script-section">
-              Plan Your Private Experience.
-            </h1>
-            <p className="mt-8 max-w-[34rem] text-body text-text/80">
-              Tell us who is coming and what you would like them to make. The more you can say
-              the more useful our reply will be, but an estimate is enough to start with, and
-              nothing you send here is fixed.
-            </p>
-          </Reveal>
-
-          <Reveal delay={0.15} className="mt-14 md:mt-16">
-            <PrivateEventEnquiry activities={activities} />
-          </Reveal>
-        </div>
-
-        {/*
-          What happens next, beside the form rather than after it.
-          ---------------------------------------------------------------
-          The same three steps the previous page sets out, restated where
-          someone is deciding whether the effort of filling this in is worth
-          it. Read from the same constant, so the two pages cannot drift.
-        */}
-        {/*
-          THE PLACE CARD, NOT A PANEL — the shape /events/[slug]/book uses for
-          the thing being bought, brought here at the client's ask to put the
-          two booking routes on one theme.
-
-          What changes is not decoration. The old right column was a flat
-          White Rock panel with a 4:5 photograph stacked under it, and the two
-          scrolled away a third of the way down a nine-field form — so the
-          steps that answer "is this worth filling in" were only readable
-          before you started. The card is `sticky` and carries both, with the
-          picture capped at 10rem so the whole of it fits a window and can
-          actually stay: the same height budget, and the same reason for it,
-          as <SessionSummary> on the other route.
-
-          `faceCut` and `cardShadow` are that route's own — the notched top
-          and the lifted edge — read from PaintBooking.module.css rather than
-          redrawn here, so the two cards cannot drift apart.
-        */}
-        <Reveal
-          variant="fadeIn"
-          delay={0.25}
-          className={`col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:sticky lg:self-start ${styles.stickyCard}`}
-        >
-          <aside aria-labelledby="what-happens-next" className={styles.cardShadow}>
-            <div className={cn(styles.faceCut, "overflow-hidden rounded-t-[1.5rem] bg-cream")}>
-              {/*
-                The same photograph the page before this used, and now it is
-                the card's face rather than a plate below it — continuity, and
-                the picture a visitor arrived on meeting them at the form.
-                2:1 capped at 10rem for the reason above: a card that cannot
-                fit the window cannot stick.
-              */}
-              <div className="relative aspect-[2/1] max-h-[10rem] w-full">
-                <Image
-                  src={PRIVATE_EVENT_IMAGES.experience.src}
-                  alt={PRIVATE_EVENT_IMAGES.experience.alt}
-                  fill
-                  sizes="(min-width: 1024px) 31vw, calc(100vw - 2 * max(0.75rem, 1.3889vw))"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="px-6 pb-6 pt-5 md:px-7">
-            <h2
-              id="what-happens-next"
-              className="text-label font-medium uppercase tracking-eyebrow text-text/75"
-            >
-              What happens next
-            </h2>
-
-                <ol className="mt-5 flex flex-col gap-5">
-              {PRIVATE_EVENT_STEPS.map((step) => (
-                <li key={step.number} className="flex gap-5 border-t border-text/15 pt-5 first:border-0 first:pt-0">
-                  {/* /75: on White Rock, /45 measures 2.34:1 and these
-                      numerals are how a sighted reader gets the order. */}
-                  <span
-                    aria-hidden
-                    className="shrink-0 text-label font-medium tabular-nums tracking-eyebrow text-text/75"
-                  >
-                    {step.number}
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-body font-medium leading-snug text-text">{step.title}</h3>
-                    <p className="mt-2 text-fine leading-[1.7] text-text/75">{step.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-              </div>
-            </div>
-          </aside>
-
+    <div className="relative isolate overflow-clip">
+      <SectionShapes plan={groundShapes("sage")} />
+      <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
+        <Reveal>
           <Link
-            href="/events"
-            className="group mt-8 inline-flex items-center gap-3 -my-1.5 py-1.5 text-label font-medium uppercase tracking-eyebrow text-text"
+            href="/private-events"
+            className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
           >
-            <span className="border-b border-text/30 pb-1 transition-colors duration-300 ease-soft group-hover:border-text">
-              Or book a public event
-            </span>
             <span
               aria-hidden
-              className="text-text transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+              className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-x-1"
             >
-              &#8594;
+              &#8592;
+            </span>
+            <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
+              Back to private events
             </span>
           </Link>
         </Reveal>
-      </div>
-    </Container>
+
+        <div className="mt-12 grid grid-cols-12 gap-x-6 gap-y-14 md:mt-16 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-7">
+            <Reveal>
+              <p className="flex items-center gap-4 text-action font-medium uppercase tracking-eyebrow text-text">
+                <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
+                Private events
+              </p>
+              <h1 className="mt-8 heading-script text-script-section">
+                Plan Your Private Experience.
+              </h1>
+              <p className="mt-8 max-w-[34rem] text-body text-text/80">
+                Tell us who is coming and what you would like them to make. The more you can say
+                the more useful our reply will be, but an estimate is enough to start with, and
+                nothing you send here is fixed.
+              </p>
+            </Reveal>
+
+            <Reveal delay={0.15} className="mt-14 md:mt-16">
+              <PrivateEventEnquiry activities={activities} />
+            </Reveal>
+          </div>
+
+          {/*
+            What happens next, beside the form rather than after it.
+            ---------------------------------------------------------------
+            The same three steps the previous page sets out, restated where
+            someone is deciding whether the effort of filling this in is worth
+            it. Read from the same constant, so the two pages cannot drift.
+          */}
+          {/*
+            THE PLACE CARD, NOT A PANEL — the shape /events/[slug]/book uses for
+            the thing being bought, brought here at the client's ask to put the
+            two booking routes on one theme.
+
+            What changes is not decoration. The old right column was a flat
+            White Rock panel with a 4:5 photograph stacked under it, and the two
+            scrolled away a third of the way down a nine-field form — so the
+            steps that answer "is this worth filling in" were only readable
+            before you started. The card is `sticky` and carries both, with the
+            picture capped at 10rem so the whole of it fits a window and can
+            actually stay: the same height budget, and the same reason for it,
+            as <SessionSummary> on the other route.
+
+            `faceCut` and `cardShadow` are that route's own — the notched top
+            and the lifted edge — read from PaintBooking.module.css rather than
+            redrawn here, so the two cards cannot drift apart.
+          */}
+          <Reveal
+            variant="fadeIn"
+            delay={0.25}
+            className={`col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:sticky lg:self-start ${styles.stickyCard}`}
+          >
+            <aside aria-labelledby="what-happens-next" className={styles.cardShadow}>
+              <div className={cn(styles.faceCut, "overflow-hidden rounded-t-[1.5rem] bg-cream")}>
+                {/*
+                  The same photograph the page before this used, and now it is
+                  the card's face rather than a plate below it — continuity, and
+                  the picture a visitor arrived on meeting them at the form.
+                  2:1 capped at 10rem for the reason above: a card that cannot
+                  fit the window cannot stick.
+                */}
+                <div className="relative aspect-[2/1] max-h-[10rem] w-full">
+                  <Image
+                    src={PRIVATE_EVENT_IMAGES.experience.src}
+                    alt={PRIVATE_EVENT_IMAGES.experience.alt}
+                    fill
+                    sizes="(min-width: 1024px) 31vw, calc(100vw - 2 * max(0.75rem, 1.3889vw))"
+                    className="object-cover"
+                  />
+                </div>
+
+                <div className="px-6 pb-6 pt-5 md:px-7">
+              <h2
+                id="what-happens-next"
+                className="text-label font-medium uppercase tracking-eyebrow text-text/75"
+              >
+                What happens next
+              </h2>
+
+                  <ol className="mt-5 flex flex-col gap-5">
+                {PRIVATE_EVENT_STEPS.map((step) => (
+                  <li key={step.number} className="flex gap-5 border-t border-text/15 pt-5 first:border-0 first:pt-0">
+                    {/* /75: on White Rock, /45 measures 2.34:1 and these
+                        numerals are how a sighted reader gets the order. */}
+                    <span
+                      aria-hidden
+                      className="shrink-0 text-label font-medium tabular-nums tracking-eyebrow text-text/75"
+                    >
+                      {step.number}
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="text-body font-medium leading-snug text-text">{step.title}</h3>
+                      <p className="mt-2 text-fine leading-[1.7] text-text/75">{step.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+                </div>
+              </div>
+            </aside>
+
+            <Link
+              href="/events"
+              className="group mt-8 inline-flex items-center gap-3 -my-1.5 py-1.5 text-label font-medium uppercase tracking-eyebrow text-text"
+            >
+              <span className="border-b border-text/30 pb-1 transition-colors duration-300 ease-soft group-hover:border-text">
+                Or book a public event
+              </span>
+              <span
+                aria-hidden
+                className="text-text transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+              >
+                &#8594;
+              </span>
+            </Link>
+          </Reveal>
+        </div>
+      </Container>
+    </div>
   );
 }

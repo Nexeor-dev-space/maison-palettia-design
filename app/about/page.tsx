@@ -1,6 +1,7 @@
 import Image from "next/image";
-import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
+import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { cn } from "@/lib/utils";
 /*
   THE CARD AND THE DAB COME FROM THE TEASER ITSELF — see <Apart>. The client
@@ -10,7 +11,6 @@ import { cn } from "@/lib/utils";
   touched.
 */
 import swatch from "@/components/sections/home/CollaborateTeaser.module.css";
-import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
@@ -130,6 +130,7 @@ function Welcome() {
       no scroll container, clips the same, and still respects a radius.
     */
     <section aria-labelledby="about-title" className="relative isolate overflow-clip bg-sage">
+      <SectionShapes plan={groundShapes("sage")} />
       <Container className="relative py-[4rem] md:py-[5rem] lg:py-[6rem]">
         {/*
           The section's own mark, breaking the left margin. The lavender wave
@@ -475,6 +476,7 @@ function Community() {
       aria-labelledby="community-about"
       className="relative isolate overflow-hidden bg-cream py-[5rem] md:py-section lg:py-section-lg"
     >
+      <SectionShapes plan={groundShapes("cream")} />
       <Container>
         <div className="grid grid-cols-12 gap-x-6 gap-y-14 lg:gap-x-12">
           {/* The claim. */}
@@ -858,11 +860,11 @@ const APART_CARDS = [
   decorative mark owes — Charcoal is 2.37 and Soft Lavender 2.74, so neither
   appears here.
 */
-const CLOSE_SHAPES: readonly ShapePlan[] = groundShapes([INK.whiteRock, "var(--color-sage)"], { seed: 0 });
+const CLOSE_SHAPES: readonly ShapePlan[] = groundShapes("lilac");
 
-const PURPOSE_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac], { seed: 2 });
+const PURPOSE_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
-const APART_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.whiteRock, INK.terracotta, INK.charcoal], { seed: 1 });
+const APART_SHAPES: readonly ShapePlan[] = groundShapes("lavender");
 
 /* ---- 06 close ------------------------------------------------------------ */
 
@@ -918,18 +920,10 @@ function Close() {
               Explore experiences
             </BlobButton>
 
-            <Link
-              href="/private-events"
-              className="group/nav inline-flex min-h-12 items-center text-action font-medium uppercase tracking-eyebrow text-surface"
-            >
-              <span className="relative inline-block pb-1.5">
-                Plan a private event
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute left-0 top-full -mt-1 block h-px w-full origin-right scale-x-0 bg-current transition-transform duration-[380ms] ease-editorial group-hover/nav:origin-left group-hover/nav:scale-x-100 group-focus-visible/nav:origin-left group-focus-visible/nav:scale-x-100 motion-reduce:transition-none"
-                />
-              </span>
-            </Link>
+            {/* The sticky note, as in the homepage banner — see <PeelNote>. */}
+            <PeelNote href="/private-events" className="min-h-[3.25rem] px-8">
+              Plan a private event
+            </PeelNote>
           </div>
         </Reveal>
       </Container>

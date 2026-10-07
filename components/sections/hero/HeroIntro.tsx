@@ -200,6 +200,25 @@ function footPad(): number {
   return rem * 1.5;
 }
 
+/** The resting photograph's minimum height: about a third of a short desktop
+ *  window (200px at 640), less on a phone, where the words are taller. */
+function cardFloor(frameHeight: number): number {
+  const clamp = (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  return window.matchMedia("(min-width: 768px)").matches
+    ? clamp(160, frameHeight * 0.31, 256)
+    : clamp(128, frameHeight * 0.22, 192);
+}
+
+/** `--wt` in pixels: the bar plus the air under it. */
+function insetTop(frame: HTMLElement): number {
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:absolute;visibility:hidden;width:0;height:var(--wt)";
+  frame.append(probe);
+  const h = probe.offsetHeight;
+  probe.remove();
+  return h;
+}
+
 function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   const raw = getComputedStyle(frame).getPropertyValue("--copy-gap").trim();
@@ -247,15 +266,41 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
     // LAST line's, because that is the one the cue has to clear.
     const lead = line ? parseFloat(getComputedStyle(line).lineHeight) : NaN;
     const clearance = Math.max(CUE_CLEARANCE_MIN, Math.round((lead || 0) * CUE_CLEARANCE_RATIO));
-    const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
     /*
-      AND THE BAR'S OWN BAND. <BottomNav> is fixed over the last 4.9rem of the
-      window on a phone and the banner is the whole window, so everything this
-      reserves has to start above it. 0 from `lg`, where the bar is gone.
+      THE BAR'S OWN BAND IS ALREADY IN HERE. <BottomNav> is fixed over the
+      window's foot on a phone, and the cue's `bottom` is `0.75rem +
+      --bottom-nav-h` (see `.cue`), so measuring the cue from the edge counts
+      the bar once. This used to add `navBand()` on top, counting it twice:
+      68px of the photograph went to empty air on every phone, and on a short
+      one (375x667) the card had no height left at all and the tagline slid
+      up under the header.
+
+      Where the cue is hidden — a short phone, see `.cue` — its height is 0
+      and its `bottom` still carries the bar, so the sum holds.
     */
-    foot = gap + words + clearance + cue.offsetHeight + cueFromEdge + navBand() + footPad();
+    const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
+    foot = gap + words + clearance + cue.offsetHeight + cueFromEdge + footPad();
   }
-  frame.style.setProperty("--wb", `${Math.ceil(foot)}px`);
+  /*
+    A FLOOR UNDER THE PHOTOGRAPH, at the client's ask. The foot is whatever
+    the words need, and on a short window (a laptop at ~1350x640 with its
+    toolbars) that left the resting photograph a 60px strip. It now keeps at
+    least `cardFloor()` — about 200px there — and when the words need more
+    than the screen has left, they start lower and run past the fold. They
+    are not lost: as the page scrolls the photograph opens and `--copy-shift`
+    carries the whole block up into view, exactly as before.
+
+    `--wf` keeps the foot's NATURAL height, so the doodles placed in it
+    (`zone: "foot"`) stay laid out against the words rather than squeezed
+    into the shorter visible band. `data-short` hides the scroll cue, which
+    is pinned to the window's foot and would otherwise sit on the buttons.
+  */
+  const room = frame.offsetHeight - insetTop(frame) - cardFloor(frame.offsetHeight);
+  const short = foot > room;
+  frame.style.setProperty("--wf", `${Math.ceil(foot)}px`);
+  frame.style.setProperty("--wb", `${Math.ceil(short ? Math.max(0, room) : foot)}px`);
+  if (short) frame.dataset.short = "";
+  else delete frame.dataset.short;
 }
 
 /**
@@ -733,7 +778,16 @@ export function HeroIntro() {
       const hold = Math.max(1, track.offsetHeight - frame.offsetHeight);
       start = trackTop;
       end = trackTop + hold * OPENING_SHARE;
-      const landing = frame.offsetHeight * COPY_LANDING - copy.offsetHeight / 2;
+      /*
+        NEVER UNDER THE BAR. Centred at COPY_LANDING, a phone's block — the
+        tagline on two lines, both sentences and the two stacked actions,
+        about 400px — ran its foot past the window's edge less <BottomNav>, and
+        "Plan a private event" landed under the Book button. Held so its foot
+        clears the bar by the same pad the resting foot keeps. On a desktop
+        the bar is 0 and the block is short, so the centre always wins there.
+      */
+      const lowest = frame.offsetHeight - navBand() - footPad() - copy.offsetHeight;
+      const landing = Math.min(frame.offsetHeight * COPY_LANDING - copy.offsetHeight / 2, lowest);
       frame.style.setProperty("--copy-shift", `${Math.round(landing - copy.offsetTop)}px`);
     };
 

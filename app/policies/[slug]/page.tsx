@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { groundShapes } from "@/components/motion/groundShapes";
 import { PolicyBody } from "@/components/policies/PolicyBody";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
-import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { getPolicy, POLICIES } from "@/lib/policies";
 import { buildMetadata } from "@/lib/seo";
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
    `desktopOnly` SHRINKS rather than hides — see <SectionShapes> — so a phone
    keeps them at 72% and the page is not bare below lg.
    ========================================================================== */
-const POLICY_SHAPES: readonly ShapePlan[] = groundShapes([INK.lilac, INK.lavender], { seed: 3 });
+const POLICY_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 
 /**
  * One policy.
@@ -82,6 +83,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
         aria-labelledby="policy-title"
         className="relative isolate overflow-clip bg-sage pb-[3rem] pt-[4rem] md:pb-[3.5rem] md:pt-[5.5rem]"
       >
+        <SectionShapes plan={groundShapes("sage")} />
         <span
           aria-hidden
           className="pointer-lift pointer-events-none absolute -right-6 top-[16%] hidden w-24 -rotate-12 lg:block xl:w-28"
@@ -148,8 +150,9 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
       {/* ---- the way on -------------------------------------------------- */}
       <section
         aria-labelledby="policy-close"
-        className="bg-primary py-[4.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
+        className="relative isolate overflow-clip bg-primary py-[4.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
       >
+        <SectionShapes plan={groundShapes("lilac")} />
         <Container className="text-center">
           <div className="mx-auto max-w-[44rem]">
             <DisplayHeading id="policy-close" ground="lilac" lines={["Still", "Wondering?"]} />
@@ -172,9 +175,9 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
                 <BlobButton href="/contact" tone="cream" className="min-h-[3.25rem] px-7">
                   Ask the Maison
                 </BlobButton>
-                <BlobButton href="/policies" tone="painted" className="min-h-[3.25rem] px-7">
+                <PeelNote href="/policies" className="min-h-[3.25rem] px-7">
                   All policies
-                </BlobButton>
+                </PeelNote>
               </div>
             </Reveal>
           </div>
