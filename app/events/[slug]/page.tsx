@@ -861,10 +861,28 @@ function PrimaryAction({
  * session, so it gets the voice alone; an activity with neither renders
  * nothing at all.
  */
+/*
+  ==========================================================================
+  `group/frame` AND `hover:z-30` — THE HALF OF THE HOVER THAT IS NOT A
+  TRANSFORM
+  ==========================================================================
+
+  The three frames overlap by 20-28px and are stacked 10 / 20 / 10, so the
+  middle one is in front of both its neighbours. Lifting an outer frame
+  without raising it too would slide a card UNDER the one beside it — the
+  gesture would read as the picture retreating rather than being picked up.
+  30 clears both resting levels, and a `hover:` variant outranks the flat
+  `z-10` on the same element, so the two can live together.
+
+  The group is named rather than bare: these sit inside <Reveal>, which is
+  itself inside a column that already uses `group` elsewhere on this page,
+  and an unnamed `group-hover:` would answer to whichever ancestor happened
+  to be nearest.
+*/
 const FRAME_SLOT = [
-  "relative z-10 shrink-0",
-  "relative z-20 shrink-0 -ml-5 sm:-ml-7",
-  "relative z-10 shrink-0 -ml-5 sm:-ml-7",
+  "group/frame relative z-10 shrink-0 hover:z-30",
+  "group/frame relative z-20 shrink-0 -ml-5 hover:z-30 sm:-ml-7",
+  "group/frame relative z-10 shrink-0 -ml-5 hover:z-30 sm:-ml-7",
 ] as const;
 
 /*
@@ -891,6 +909,46 @@ const FRAME_TILT = [
   "-rotate-[7deg] aspect-[3/4]",
   "rotate-[3deg] aspect-[3/4]",
   "rotate-[9deg] aspect-[3/4]",
+] as const;
+
+/*
+  ==========================================================================
+  THE HOVER — A PHOTOGRAPH PICKED OUT OF A STACK, NOT A ZOOM
+  ==========================================================================
+
+  At the client's ask: movement, and explicitly not a zoom. Which is the
+  right call for this cluster and worth saying why. These three are drawn as
+  prints dropped on a table — overlapped, each a few degrees off square, each
+  with its own coloured edge. Scaling one up is a gesture a SCREEN makes; the
+  gesture the object itself suggests is being picked up and turned straight
+  to be looked at. The site already knows this: `settle` in lib/motion.ts
+  brings each photograph in "a degree off square" and lands it, so the hover
+  is that arrival played in reverse.
+
+  SO IT STRAIGHTENS AND RISES. Each frame keeps its own character — none goes
+  to a true 0deg, because three frames all square at once would be a grid
+  pretending to be a scatter — and the one under the pointer comes up 10px
+  and forward.
+
+  THE ANGLES ARE PER FRAME BECAUSE THE RESTING ANGLES ARE. A single
+  `rotate-0` would move the middle frame 3 degrees and the last one 9, so the
+  three would respond at three different speeds to the same gesture. Roughly
+  five degrees off each resting angle, toward square:
+
+    -7deg -> -2deg      3deg -> 0.5deg      9deg -> 4deg
+
+  NO SCALE ANYWHERE, which is also what keeps this cheap: `rotate` and
+  `translate` are composited, and the figure carries `overflow-clip` and a
+  3px border that a scale would have to resample every frame.
+
+  `motion-safe:` on the transform and not on the z-lift — somebody who has
+  asked for less motion should still get the frame brought to the front, so
+  the hover still answers; it simply answers without travelling.
+*/
+const FRAME_HOVER = [
+  "motion-safe:group-hover/frame:-rotate-[2deg]",
+  "motion-safe:group-hover/frame:rotate-[0.5deg]",
+  "motion-safe:group-hover/frame:rotate-[4deg]",
 ] as const;
 
 /* Deep Lilac, Warm Terracotta, Light Sage — a cream frame on a cream plate
@@ -1014,6 +1072,15 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
                             "plate block w-full overflow-clip rounded-[1.1rem] border-[3px] bg-cream",
                             FRAME_TILT[i],
                             FRAME_EDGE[i],
+                            /* 420ms: long enough to read as the card being
+                               lifted rather than snapping, short enough that
+                               a pointer crossing all three does not leave a
+                               queue of animations behind it. `ease-editorial`
+                               is front-loaded — most of the travel happens
+                               early — which is what a picked-up object does. */
+                            "transition-transform duration-[420ms] ease-editorial",
+                            "motion-safe:group-hover/frame:-translate-y-2.5",
+                            FRAME_HOVER[i],
                           )}
                         >
                           <Image
@@ -1021,7 +1088,27 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
                             alt={frame.alt}
                             width={420}
                             height={560}
-                            sizes="(min-width: 1024px) 18vw, 40vw"
+                            /*
+                              TWICE THE FRAME'S WIDTH, because of the crop.
+
+                              This box is 3:4 and `object-cover` scales a
+                              picture until it covers BOTH axes — so a
+                              landscape photograph is sized by its height, not
+                              its width, and the browser then shows a narrow
+                              column out of the middle of it. The activity sets
+                              the client supplied run from 3:2 to 16:9, and at
+                              the frame's own 18vw the widest of them decoded
+                              at 259x172 into a 256x322 box: a 1.87x blow-up,
+                              and it looked it.
+
+                              16:9 into 3:4 needs 2.37x the element width to
+                              cover; 40vw/90vw clears that with a little in
+                              hand. A portrait source is width-bound and would
+                              have been fine at 18vw — but `sizes` cannot know
+                              which it is being handed, so it has to carry the
+                              worst case. Roughly 30KB a frame.
+                            */
+                            sizes="(min-width: 1024px) 40vw, 90vw"
                             className="block h-full w-full object-cover"
                             style={frame.position ? { objectPosition: frame.position } : undefined}
                           />

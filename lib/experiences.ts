@@ -143,24 +143,32 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     ],
     gallery: [
       {
-        src: "/images/studio/tote-table.jpg",
+        src: "/images/experience/tote-bag-1.jpg",
         alt:
-          "A hand loading a brush at a table set with a paint tray and a folded blue tote bag.",
+          "A cream canvas tote printed with pink lotus flowers and green lily pads, carried on the shoulder.",
       },
       {
-        src: "/images/studio/palette-brush.jpg",
+        src: "/images/experience/tote-bag-2.jpg",
         alt:
-          "A fine brush laying silver and teal paint onto a pale denim tote, a red paint palette held beside it.",
+          "A hand laying loose red and yellow blooms of colour across a sheet of paper, the other hand steadying the page.",
+      },
+      {
+        src: "/images/experience/tote-bag-3.jpg",
+        alt:
+          "Someone at a studio table with a loaded paint palette in one hand, canvases propped behind them.",
       },
       /*
-        `hero/tote-painting.jpg` IS NOT A THIRD FRAME. It and `palette-brush`
-        above are the same moment of the studio's own film — the same hand,
-        brush, denim and red palette, seconds apart — so side by side in the
-        cluster they read as one photograph printed twice. It stays where it
-        is used alone, on /private-events.
+        NOTE(client): the second and third frames are painting, but not
+        painting a tote — one is colour on paper, one is a palette at a table.
+        They are the set supplied under this activity's name and they read as
+        the studio, which is true; neither alt line claims a bag. Swap either
+        for a photograph of a painted tote when one exists.
 
-        TODO(client): a third frame for this activity, ideally the finished
-        bag away from the table. The cluster renders two until one lands.
+        `studio/tote-table.jpg` and `studio/palette-brush.jpg` came out of
+        this set with the rest. `hero/tote-painting.jpg` was never in it:
+        it and `palette-brush` are the same moment of the studio's own film,
+        seconds apart, so the two side by side read as one photograph printed
+        twice. It stays where it is used alone, on /private-events.
       */
     ],
     description: "A plain tote, waiting for your personality.",
@@ -180,27 +188,27 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     ],
     gallery: [
       {
-        src: "/images/studio/plate-motif.jpg",
+        src: "/images/experience/ceramic-1.jpg",
         alt:
-          "A fine brush painting a teal flower motif into the centre of a white plate.",
+          "Hands holding a small unglazed pot while a fine brush lays a band of blue dots around its neck.",
+      },
+      {
+        src: "/images/experience/ceramic-2.jpg",
+        alt:
+          "A jar of brushes, a palette of mixed blues and greys, and unpainted cups and bowls set out on a white table.",
+      },
+      {
+        src: "/images/experience/ceramic-3.jpg",
+        alt:
+          "A brush painting blue petals onto a speckled stoneware bowl, the pattern already running round its side.",
       },
       /*
-        `creative/carved-glaze.jpg` CAME OUT OF THIS SET. It is a CARVED and
-        glazed tile — a making technique the studio does not run, from the
-        group of pottery and vessel photographs retired from this project when
-        the wheel work went. On a page about painting a ready-made piece it
-        promises a different craft.
+        `creative/carved-glaze.jpg` CAME OUT OF THIS SET EARLIER and must not
+        come back. It is a CARVED and glazed tile — a making technique the
+        studio does not run, from the group of pottery and vessel photographs
+        retired from this project when the wheel work went. On a page about
+        painting a ready-made piece it promises a different craft.
       */
-      {
-        src: "/images/creative/craft.jpg",
-        alt:
-          "Hands painting a small ceramic pot in blocks of lilac, blue, yellow and pink, a green-handled brush working the top edge.",
-      },
-      {
-        src: "/images/i-1.jpg",
-        alt:
-          "Someone in a denim apron painting a small ceramic bowl in orange, blue and yellow, a palette and tubes of paint on the table.",
-      },
     ],
     description: "A little piece of you, in ceramic form.",
     kind: "diy",
@@ -218,19 +226,32 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       "How much sparkle is too much?",
       "Choose what you want to bedazzle, pick your gems and start placing them one by one. Build a pattern, follow the light or cover the whole thing in sparkle.",
     ],
-        gallery: [
+    /*
+      NOTE(client): these three are BEADING — a sorting tray, strung baubles,
+      a necklace being threaded — while the copy above describes placing gems.
+      They are the set supplied under this activity's name, so they are shown;
+      the alt lines say beads, because that is what is in them. If the studio
+      means rhinestones rather than beads, this set wants replacing, or the
+      copy wants to say beads.
+    */
+    gallery: [
       {
-        src: "/images/events/glitter-keepsakes.jpg",
+        src: "/images/experience/beadazzling-1.jpg",
         alt:
-          "Four small round keepsakes cupped in hands, two lettered with names and hearts and two filled with purple glitter and heart charms.",
+          "A sorting tray of beads laid out by colour — pink, blue, green, yellow, orange and black.",
       },
       {
-        src: "/images/events/named-keepsake.jpg",
+        src: "/images/experience/beadazzling-2.jpg",
         alt:
-          "Two round keepsakes held side by side, one lettered with a name and a heart, the other filled with pale glitter, sequins and a small teal ring.",
+          "Strands of beaded baubles hanging close together in pink, red, yellow and black.",
+      },
+      {
+        src: "/images/experience/beadazzling-3.jpg",
+        alt:
+          "Two people at a white table threading a line of blue and red beads, loose beads and tubes in front of them.",
       },
     ],
-description: "When in doubt, add a little sparkle.",
+    description: "When in doubt, add a little sparkle.",
     kind: "diy",
     image: {
       src: "/images/experiences/BEDAZZLING.jpg",
@@ -240,7 +261,7 @@ description: "When in doubt, add a little sparkle.",
     },
   },
   {
-slug: "mandala-painting",
+    slug: "mandala-painting",
     name: "Mandala Painting",
     description: "Little dots, endless patterns.",
     about: [
@@ -249,9 +270,19 @@ slug: "mandala-painting",
     ],
     gallery: [
       {
-        src: "/images/creative/mandala-painting.jpg",
+        src: "/images/experience/mandala-1.jpg",
         alt:
-          "A hand holding a round board painted with a turquoise mandala of concentric dotted rings.",
+          "Someone at a wooden table drawing a mandala in fine concentric rings, a tray of watercolour pans beside them.",
+      },
+      {
+        src: "/images/experience/mandala-2.jpg",
+        alt:
+          "A mandala worked in gold line and turquoise dots across a deep brown ground, filling the frame.",
+      },
+      {
+        src: "/images/experience/mandala-3.jpg",
+        alt:
+          "A hand painting a mandala of blue, pink and red petals radiating from a small sun at its centre.",
       },
     ],
     kind: "diy",
@@ -275,10 +306,25 @@ slug: "mandala-painting",
     ],
     gallery: [
       {
-        src: "/images/creative/glass-painting.jpg",
+        src: "/images/experience/glass-painting-1.jpg",
         alt:
-          "A painted glass panel of a toucan among leaves, framed in wood and standing on a table by a lamp.",
+          "A backlit panel of glass painted in red, orange, blue and teal cells divided by gold outlines.",
       },
+      {
+        src: "/images/experience/glass-painting-2.jpg",
+        alt:
+          "A hand painting red poppies and green stems onto a glass panel laid flat, jars of colour around it.",
+      },
+      {
+        src: "/images/experience/glass-painting-3.jpg",
+        alt:
+          "Brushes standing in a jar beside a paint-smeared wooden palette on a small round table, an easel behind.",
+      },
+      /*
+        NOTE(client): the third frame is brushes and a palette rather than
+        glass. It is in the set supplied under this activity's name and it
+        reads as the studio, which is true; the alt line claims no glass.
+      */
     ],
     kind: "diy",
     // The client's own wording, carried through rather than paraphrased.
@@ -299,9 +345,19 @@ slug: "mandala-painting",
     ],
     gallery: [
       {
-        src: "/images/studio/candle-pour.jpg",
+        src: "/images/experience/candle-making-1.jpg",
         alt:
-          "Wax being poured from a jug into three glasses, each with its wick already set.",
+          "A wooden table set for pouring: filled candle glasses with their wicks held upright, empty jars and a spool of cream twine.",
+      },
+      {
+        src: "/images/experience/candle-making-2.jpg",
+        alt:
+          "Wax poured from a glass jug into a tumbler while the other hand holds the wooden wick upright.",
+      },
+      {
+        src: "/images/experience/candle-making-3.jpg",
+        alt:
+          "A hand setting a wick into one of two speckled turquoise and terracotta candle vessels on a white table.",
       },
     ],
     description: "Wax, wick and colour, poured and left to set.",
