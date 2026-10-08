@@ -61,8 +61,31 @@ export interface PrivateEventAudience {
   slug: string;
   /** Set in caps by the design; stored in its natural case. */
   name: string;
-  /** One line. What this group gets, not what the studio promises. */
+  /**
+   * The SHORT line, for every surface that lists the four side by side: the
+   * cards on /private-events, the homepage teaser, the bar's dropdown. What
+   * this group gets, not what the studio promises.
+   */
   description: string;
+  /**
+   * ========================================================================
+   * THE LONGER LINE, FOR THE PROGRAMME'S OWN PAGE
+   * ========================================================================
+   *
+   * Added 2026-10-08, because the client supplied two different sentences per
+   * programme and they are not interchangeable. A card in a row of four is
+   * read at a glance against its three neighbours, so it stays short and
+   * parallel with them. A programme's own page is read on its own with
+   * nothing to compare it to, and it can carry the fuller sentence.
+   *
+   * Collapsing the two back into one field is how a card ends up setting four
+   * lines where its neighbours set two, or a masthead ends up saying less
+   * than the card that linked to it.
+   *
+   * Optional, and `description` is the fallback — a fifth programme can ship
+   * with one line and gain the second later.
+   */
+  lead?: string;
   /**
    * The picture the bar's Private events menu shows beside this programme.
    *
@@ -152,7 +175,10 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
   {
     slug: "birthday-parties",
     name: "Birthday Parties",
-    description: "Kids and parents sharing a creative activity, and quality time together.",
+    description:
+      "Make the celebration a little more hands-on with a creative activity everyone can enjoy — and take home.",
+    lead:
+      "Skip the usual party routine. Get everyone making, creating and leaving with a little something to remember the day by.",
     image: {
       /*
         THE CLIENT'S OWN who-is-it-for SET, which replaces the four stand-ins
@@ -189,7 +215,10 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
   {
     slug: "corporate-events",
     name: "Corporate Events",
-    description: "Hands-on creative experiences for teams and company gatherings.",
+    description:
+      "Swap the usual team activity for something a little more creative. Make, chat, unwind and create something together.",
+    lead:
+      "Hands-on creative experiences designed for team building, company gatherings and time spent connecting beyond the usual workday.",
     image: {
       /* The filename's spelling is the client's own and is left exactly as
          supplied — renaming a delivered asset to tidy it is how a path goes
@@ -206,7 +235,10 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
   {
     slug: "school-programs",
     name: "School Programmes",
-    description: "Creative, hands-on activities brought to students.",
+    description:
+      "Bring creativity into the classroom with hands-on activities designed to get students making, exploring and having fun.",
+    lead:
+      "Hands-on creative experiences that get students making, exploring new skills and learning through creativity.",
     image: {
       src: "/images/who-is-it-for/school-programs.jpg",
       alt:
@@ -222,7 +254,9 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
     slug: "mall-and-community-activations",
     name: "Mall & Community Activations",
     description:
-      "Workshops tailored to an event’s theme, bringing creativity to kids and adults alike.",
+      "Bring Maison Palettia to your space with creative experiences tailored to your audience, theme and event.",
+    lead:
+      "Bring creativity into your space with hands-on experiences tailored to your theme, audience and occasion — made to draw people in and keep them creating.",
     /*
       IT HAS A PHOTOGRAPH NOW. The note that stood here said exactly what was
       missing — "nothing in the project photographs an activation" — and this

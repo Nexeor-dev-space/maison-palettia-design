@@ -406,7 +406,7 @@ const STATEMENTS: readonly StatementData[] = [
   },
   {
     variant: "editorial",
-    text: "It’s more than an activity. It’s an experience that keeps you coming back.",
+    text: "More than something to do, it’s a reason to pause, connect and come back for something new.",
     mark: "wave",
     color: INK.lavender,
     ground: "surface",

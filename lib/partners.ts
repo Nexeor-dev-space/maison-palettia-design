@@ -56,8 +56,17 @@ const MALL_PARTNERS: MallPartner[] = [
     slug: "times-square-center",
     name: "Times Square Center",
     locality: "Dubai",
+    /*
+      REWRITTEN AT THE CLIENT'S ASK, 2026-10-08, and it is worth saying that
+      ONE STRING SERVES THREE SURFACES: the plate on /private-events, the one
+      <PartnerPlate> draws on /locations and every event page, and the map's
+      caption in <LocationMap>. The request came in against /private-events;
+      the new line is written about the destination rather than about a
+      private booking, so it reads correctly on all three. Change it here and
+      all three move together — which is the point of it living here.
+    */
     descriptor:
-      "A community shopping destination in Dubai, and where the Maison sets up for each run of dates.",
+      "Find us at Times Square Center, where creativity, community and a little time away from the everyday come together.",
     locationHref:
       "https://www.google.com/maps/search/?api=1&query=Times+Square+Center+Dubai",
   },

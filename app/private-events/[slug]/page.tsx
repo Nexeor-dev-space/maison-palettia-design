@@ -219,7 +219,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return buildMetadata({
     title: audience.name,
-    description: audience.description,
+    /* The longer lead where the programme has one; the card line otherwise.
+       A search result that disagrees with the page it opens is the one place
+       the distinction is visible to somebody who never saw both. */
+    description: audience.lead ?? audience.description,
     path: `/private-events/${audience.slug}`,
     image: audience.image?.src,
   });
@@ -348,8 +351,11 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
             <Reveal delay={0.16}>
               {/* `script-lede`, not a margin: Hapsha's descenders hang into
                   the gap under a script heading, so the step is a token. */}
-              <p className="script-lede max-w-[46ch] text-lead text-text/80">
-                {audience.description}
+              {/* `lead`, falling back to the short card line. The two are
+                  different sentences by design — see the field. 54ch, not 46:
+                  the leads run about twice the card lines' length. */}
+              <p className="script-lede max-w-[54ch] text-lead text-text/80">
+                {audience.lead ?? audience.description}
               </p>
             </Reveal>
 
@@ -563,7 +569,7 @@ function Activities({
               id="programme-activities"
               size="section"
               className="mt-8 md:mt-10"
-              lines={["What a Session", "Is Built Around."]}
+              lines={["Pick Your Creative"]}
             />
           </div>
 

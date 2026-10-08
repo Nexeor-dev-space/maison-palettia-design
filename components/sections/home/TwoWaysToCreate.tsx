@@ -162,14 +162,14 @@ export async function TwoWaysToCreate() {
             id="two-ways-heading"
             size="section"
             className="mt-6 md:mt-7"
-            lines={["Create Anytime,", "or Create Together."]}
+            lines={["Create Anytime,", "or Make It Your Way."]}
           />
 
           <Reveal delay={0.12}>
             {/* `script-lede` rather than a margin: the gap under a script
                 heading is a token, because Hapsha's descenders hang into it. */}
             <p className="script-lede max-w-[54ch] text-lead text-text/80">
-              Come in any time and make something, or take a seat at a session on a set date.
+              Drop in and create, or book a seat for a scheduled session.
             </p>
           </Reveal>
         </Container>
@@ -189,7 +189,8 @@ export async function TwoWaysToCreate() {
           /* Not Terracotta any more — that is the ground it would sit on. */
           dot={INK.whiteRock}
           plate={walkInPlate}
-          line={`${count(walkIn.length, "activity", "activities")}, any time you come in.`}
+          /* Client copy; the live count stays in the facts row below. */
+          line="Pick a project. Pick your colours. Just drop in."
           /*
             THE DETAIL THAT USED TO BE THREE LABELLED PARAGRAPHS. The old
             version of this section carried BOOKING / MAKE / WHERE as headed
@@ -210,7 +211,8 @@ export async function TwoWaysToCreate() {
           title="Create Together"
           dot={INK.lavender}
           plate={scheduledPlate}
-          line={`${count(scheduled.length, "session", "sessions")}, each on a set date.`}
+          /* Client copy; the live count stays in the facts row below. */
+          line="A little more planned. Same creative energy."
           /*
             The same three, as this half answers them. The old block listed
             every upcoming date with its price and remaining seats, which is

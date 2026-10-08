@@ -38,9 +38,19 @@
 /** Deck p.1 and the studio's email signature. */
 export const TAGLINE = "A Palette of Creativity for Everyone";
 
-/** Deck p.2, verbatim. */
-export const BRAND_STORY =
-  "Maison Palettia is a creative lifestyle brand inspired by the word “Palette”, a symbol of colour, expression, and imagination. Blending elegance with playfulness, the brand celebrates creativity, mindfulness, and meaningful human connection, encouraging people to slow down, unplug, and embrace the art of intentional living.";
+/*
+  THE BRAND STORY, IN THE CLIENT’S REWRITE — AND IT IS TWO PARAGRAPHS NOW.
+
+  It was one sentence from the deck and a single string, printed in a single
+  <p> on /about. The replacement the client sent is two paragraphs with a
+  break that does work: the first says what the place is, the second says
+  what it asks of you. Joining them into one string would lose that, so the
+  constant is a list and the page maps it.
+*/
+export const BRAND_STORY: readonly string[] = [
+  "Maison Palettia is a creative space built for slowing down, switching off and getting your hands busy. Through hands-on experiences and shared creative moments, we bring people together to explore their creativity, unwind and make something of their own.",
+  "We believe creativity doesn’t need to be perfect, productive or complicated. Sometimes, it just needs a little time, a little colour and a place to begin.",
+];
 
 /*
   THE SAME SENTENCE, TYPESET.
@@ -49,8 +59,15 @@ export const BRAND_STORY =
   paragraph, which means the sentence has to be set in parts: a lead-in, the
   one word the brand is named for, and the clause that defines it. These are
   `BRAND_STORY` cut at its own punctuation and nothing else — read them in
-  order and you have the deck's sentence back, word for word. Anything written
-  here that is not in `BRAND_STORY` is a bug.
+  order and you had the deck's sentence back, word for word.
+
+  THAT IS NO LONGER TRUE, AND NOTHING READS THIS. The client has rewritten
+  `BRAND_STORY`, so the two no longer agree; the only mentions of this
+  constant left in the project are the notes in <BrandStory> and
+  <OpeningStatement> saying what it USED to typeset. It is kept because the
+  deck's original wording is worth having somewhere, not because anything
+  prints it — do not wire it back up without reconciling it against
+  `BRAND_STORY` first.
 */
 export const BRAND_STORY_SET = {
   leadIn: "Maison Palettia is a creative lifestyle brand inspired by the word",
@@ -94,7 +111,7 @@ export const OPENING_STATEMENT = {
 } as const;
 
 /** Deck p.3, as assigned by the redesign brief — see the TODO above. */
-export const MISSION = "To inspire meaningful connections through the joy of creativity.";
+export const MISSION = "To bring people together, one creative moment at a time.";
 
 /** Deck p.3, as assigned by the redesign brief — see the TODO above. */
 export const VISION =
@@ -106,8 +123,8 @@ export const VISION =
  */
 export const COMMUNITY = {
   heading: "Creating Community Through Creativity",
-  body: "Maison Palettia brings a fresh, creative energy through hands-on experiences that blend art, mindfulness, and community. With rotating themes and seasonal activities, it offers a calm, engaging space beyond traditional retail.",
-  closer: "It’s more than an activity. It’s an experience that keeps you coming back.",
+  body: "Maison Palettia is a space to slow down, switch off and make something. Through hands-on creative experiences, workshops and seasonal activities, we bring people together to explore creativity, try something new and enjoy time away from their screens.",
+  closer: "More than something to do, it’s a reason to pause, connect and come back for something new.",
 } as const;
 
 /* ==========================================================================
@@ -136,29 +153,33 @@ export const WORKSHOP_JOURNEY: readonly JourneyStep[] = [
        the mechanism — walk-in, scheduled — stay in the descriptions, which is
        what they asked for. The slugs are keys and nothing reads them as copy,
        so they are left alone. */
-    name: "Create Anytime",
-    description: "Visitors choose an experience and enjoy it at their own pace.",
+    name: "Create",
+    description:
+      "Drop in, choose an experience and create at your own pace. No experience needed, just pick a project and make it yours.",
   },
   {
     slug: "scheduled-sessions",
-    name: "Create Together",
-    description: "Guided workshops that allow people to learn techniques and socialise.",
+    name: "Together",
+    description:
+      "Join a guided workshop, learn something new and create alongside others. Because making is always better with good company around the table.",
   },
   {
     slug: "family-bonding",
-    name: "Family Bonding",
-    description: "Kids and parents share activities for quality time together.",
+    name: "Connect",
+    description:
+      "From friends and families to colleagues and communities, Maison Palettia gives people a reason to spend time together, away from the usual routine.",
   },
   {
     slug: "monthly-refresh",
-    name: "Monthly Refresh",
-    description: "New experiences each month, aligned with trends and seasons.",
+    name: "Refresh",
+    description:
+      "Rotating themes, seasonal activities and fresh creative experiences keep the Maison feeling new, giving you a reason to come back and try something different.",
   },
   {
     slug: "digital-detox",
-    name: "Digital Detox",
+    name: "Unplug",
     description:
-      "A mindful break from technology, giving you the chance to relax and recharge.",
+      "Put the phone down, pick something up and give yourself a chance to slow down. Maison Palettia creates space to focus, relax and simply enjoy making.",
   },
 ] as const;
 
@@ -266,25 +287,27 @@ export const COLLABORATIONS: readonly Collaboration[] = [
 export const WHAT_SETS_US_APART: readonly Collaboration[] = [
   {
     slug: "unique-concept",
-    name: "Unique Concept",
+    name: "For Everyone",
     description:
-      "A creative space that combines leisure, learning, and entertainment for both adults and kids.",
+      "Creative experiences designed for adults, families, friends, teams and anyone who simply wants to make something.",
   },
   {
     slug: "all-ages",
-    name: "Appeals to All Ages",
+    name: "Make & Connect",
     description:
-      "From parents and friends to children, Maison Palettia creates activities that bring people together.",
+      "A space where creativity becomes a way to spend time together, meet people and create shared moments.",
   },
   {
     slug: "sustainability",
-    name: "Sustainability-Driven",
-    description: "Many workshops use eco-friendly, reusable, and upcycled materials.",
+    name: "Create Responsibly",
+    description:
+      "Sustainability is part of how we create, from reusable materials and upcycling to finding thoughtful ways to reduce waste.",
   },
   {
     slug: "trend-responsive",
-    name: "Fresh & Trend-Responsive",
-    description: "A monthly refresh of workshops keeps every visit different.",
+    name: "Always Something New",
+    description:
+      "Rotating themes, seasonal experiences and fresh workshop ideas mean there’s always another reason to visit.",
   },
 ] as const;
 

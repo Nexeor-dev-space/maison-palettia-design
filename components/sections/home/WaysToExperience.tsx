@@ -194,7 +194,8 @@ export async function WaysToExperience() {
     {
       mark: "splash",
       name: "Create",
-      lede: "Come to a table and make something, on the day or on a date you book.",
+      lede:
+        "Pick your project, pick your colours, and make something of your own. Drop in when you feel like creating or book a session for a little more time at the table.",
       doors: [
         /* EACH DOOR LANDS ON ITS OWN HALF OF /events, not on the top of the
            page. Both pointed at the bare listing, so the two labels the card
@@ -218,7 +219,8 @@ export async function WaysToExperience() {
     {
       mark: "starburst",
       name: "Celebrate",
-      lede: "Bring your own guests, and we set the table for the occasion.",
+      lede:
+        "Make your next celebration a little more hands-on. Bring your people, and we\u2019ll bring the creative setup, materials and activities.",
       doors: [
         {
           label: birthdays?.name ?? "Birthday parties",
@@ -235,7 +237,8 @@ export async function WaysToExperience() {
     {
       mark: "starleaf",
       name: "Connect",
-      lede: "Bring a group that already exists: a team, a class, a department.",
+      lede:
+        "Good things happen around a table. Bring your team, class or community together for a creative experience designed to get people making, talking and connecting.",
       doors: [
         {
           label: corporate?.name ?? "Corporate events",
@@ -252,7 +255,8 @@ export async function WaysToExperience() {
     {
       mark: "bow",
       name: "Collaborate",
-      lede: "Bring the Maison to your own audience, in your own space.",
+      lede:
+        "Take the Maison beyond our walls. We work with malls, brands and communities to create workshops, activations and creative experiences made for their audience and space.",
       doors: [
         {
           label: activations?.name ?? "Mall & community activations",
@@ -299,8 +303,8 @@ export async function WaysToExperience() {
           <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
             {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
             <p className="text-lead text-text/85">
-              Some of what the Maison does happens at a table in a mall. The rest happens wherever
-              you are: a birthday, an office, a classroom, a shopfront.
+              Maison Palettia is a place to make, gather and create — whether you&rsquo;re
+              joining us at the Maison or bringing the experience to your own space.
             </p>
           </Reveal>
         </div>

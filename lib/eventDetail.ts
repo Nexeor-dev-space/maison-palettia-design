@@ -3,7 +3,7 @@ import {
   type CreativeExperience,
 } from "@/lib/experiences";
 import { getAllWorkshops, getWorkshopBySlug } from "@/lib/workshops";
-import type { Workshop } from "@/types";
+import type { ImageAsset, Workshop } from "@/types";
 
 /**
  * What `/events/[slug]` is looking at, resolved from the data that already
@@ -160,6 +160,77 @@ export function eventAbout(detail: EventDetail): readonly string[] {
   }
 
   return [];
+}
+
+/*
+  ==========================================================================
+  THE STUDIO FRAMES — a stand-in, and they must not stay
+  ==========================================================================
+
+  TODO(client): two photographs per activity for candle making, mandala
+  painting, glass painting; one more for bedazzling and tote bag painting.
+  Each one that lands in `gallery` pushes one of these out, and when an
+  activity has three of its own none of these is drawn at all. Nothing else
+  has to change.
+
+  WHY THEY EXIST. The client asked for the About section to show three
+  pictures on every activity, having been told that the project holds one
+  photograph of most of them. This is that decision carried out.
+
+  WHAT THEY MAY BE, AND WHY THESE THREE. A stand-in on a page headed "About
+  This Experience" must not look like the thing you will make, or the page
+  promises a craft the studio may not be running. So none of these is a
+  finished object: one is a table with a palette on it, and two are colour
+  behaving on a surface. They read as the studio, which is true of every
+  activity, rather than as an outcome, which would be true of only one.
+
+  WHAT THEY MAY NOT BE. The pool holds several photographs that would fill
+  the slot and lie: a machine-printed tote, ceramic trinket dishes, a child
+  colouring with crayons, and the birdhouse table the client has already
+  ruled out as "not part of our activities". None of them is here.
+
+  ALT TEXT DESCRIBES THE FRAME AND NEVER THE OCCASION, which is the rule
+  lib/privateEvents.ts sets out at length for its own stand-ins.
+*/
+const STUDIO_FRAMES: readonly ImageAsset[] = [
+  {
+    src: "/images/experience/community-table.jpg",
+    alt: "A hand resting over a watercolour palette and a sheet of paper at a shared table, brushes and a bag beside it.",
+  },
+  {
+    src: "/images/studio/marbling.jpg",
+    alt: "Marbling colour drawn across the surface of the water in orange, teal and red.",
+  },
+  {
+    src: "/images/experience/pigment-on-paper.jpg",
+    alt: "Pigment blooming into damp paper, soft pinks and greens running together.",
+  },
+];
+
+/** How many frames the About cluster lays out. */
+const GALLERY_SLOTS = 3;
+
+/**
+ * The extra frames the "About" section lays out beside its copy.
+ *
+ * Never `experience.image` — that is the photograph the page already opens
+ * on, and the collage exists to show what else there is.
+ *
+ * TOPPED UP TO THREE. It used to return whatever an activity had and let the
+ * cluster render one, two or none; the client has asked for three everywhere.
+ * An activity's own photographs always come first and in their own order, and
+ * the studio frames only fill what is left — see the note above them, and the
+ * TODO in it.
+ */
+export function eventGallery(detail: EventDetail): readonly ImageAsset[] {
+  const own = detail.experience?.gallery ?? [];
+  if (own.length >= GALLERY_SLOTS) return own.slice(0, GALLERY_SLOTS);
+
+  /* By `src`, so an activity that already shows one of the studio frames in
+     its own list is never handed the same picture twice. */
+  const taken = new Set(own.map((frame) => frame.src));
+  const fill = STUDIO_FRAMES.filter((frame) => !taken.has(frame.src));
+  return [...own, ...fill].slice(0, GALLERY_SLOTS);
 }
 
 /**

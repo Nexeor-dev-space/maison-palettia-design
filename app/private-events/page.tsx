@@ -31,7 +31,6 @@ import { INK } from "@/components/sections/hero/composition";
   brand sheet's own pairing, and it measures 3.83:1 on that ground.
 */
 const SAGE_MARK = "#D1E7BE";
-import { LittleCreators } from "@/components/sections/LittleCreators";
 import type { MallPartner } from "@/types";
 
 /*
@@ -187,14 +186,13 @@ export default async function PrivateEventsPage() {
       <Introduction />
       <WhoItIsFor />
       {/*
-        TAILORED CHILDREN'S ACTIVITIES, moved here from /about at the client's
-        ask. It sits directly under <WhoItIsFor /> because two of the four
-        audiences that section names — birthdays and school programmes — are
-        children's, so this is the answer to the question it has just raised,
-        and it comes before <Experiences /> because that one is the general
-        menu and this is the part of it made for them.
+        (REMOVED) FOR OUR LITTLE CREATORS — at the client's ask, 2026-10-08.
+        "Tailored kids activities" stood here, moved to this page from /about
+        only a few passes earlier on the argument that two of the four
+        audiences above it — birthdays and school programmes — are
+        children's. The client has asked for it to come off, so the page runs
+        from the audiences straight into the activities themselves.
       */}
-      <LittleCreators />
       <Experiences experiences={experiences} />
       <CreateWithUs partner={partners[0]} />
       <HowItWorks />
