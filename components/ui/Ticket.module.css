@@ -1,0 +1,91 @@
+/*
+  ==========================================================================
+  A TICKET — a face, a perforation, and a stub torn off the bottom
+  ==========================================================================
+
+  WHERE IT COMES FROM. This anatomy was written for the booking step's place
+  card (`.faceCut` / `.stubCut` / `.seam` / `.cardShadow` in
+  components/booking/PaintBooking.module.css) and it is the site's ticket. The
+  client has asked for the event page's info box to read as one too, so the
+  device moves here rather than being drawn a second time in a second file.
+
+  TODO: <PlaceCard> still carries its own copy. It is mid-flow and working, so
+  it is not being refactored for this; when it is next opened, point it at
+  these four classes and delete its own.
+
+  ==========================================================================
+  WHY A DROP-SHADOW FILTER AND NOT THE `plate` UTILITY
+  ==========================================================================
+
+  The notches are MASKS, and a mask clips everything the element paints — a
+  box-shadow included. So a shadowed, notched piece of card shows no shadow at
+  all, which is why `plate` cannot be used on either half. A `drop-shadow`
+  filter on the PARENT is computed from the alpha of what the children
+  actually drew, so it follows the bites round the seam.
+
+  The first shadow is the edge, at roughly `plate`'s 1px ring; the second is
+  its veil. Both figures are taken from `plate` so a ticket and a plate sit at
+  the same depth on the page.
+
+  ==========================================================================
+  THE BITE IS A TOKEN, because a ticket's width is not fixed
+  ==========================================================================
+
+  `--notch` is the radius of the half-circle taken out of each side, and the
+  perforation's inset is derived from it so the dashes always stop clear of
+  the curve rather than running into it. 10px is the place card's figure and
+  the default here; a card as wide as the event page's brief sets a larger one
+  with `.wide`, because the same bite that reads as a tear on a 20rem card
+  reads as a rounded corner on an 88rem one.
+*/
+.card {
+  --notch: 10px;
+  filter: drop-shadow(0 0 0.5px rgb(45 55 72 / 0.35)) drop-shadow(0 8px 18px rgb(45 55 72 / 0.08));
+}
+
+.wide {
+  --notch: 15px;
+}
+
+/*
+  The notches where the stub tears from the face: a half-circle bitten out of
+  each side of the seam.
+
+  TWO CORNER MASKS, NOT ONE. A single radial-gradient pair placed "at 0 100%"
+  needs to know nothing about the face's height, so the face can be any length
+  — two paragraphs and three pictures, or one line — and the notch still lands
+  exactly on the seam. Each layer covers 51% of the width so the two overlap
+  down the middle rather than leaving a hairline gap between them.
+*/
+.faceCut {
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+.stubCut {
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+/*
+  The perforation, running between the two notches. Decorative — nothing is
+  read off it and both halves are one object to a screen reader — so a
+  quarter-strength dashed rule is enough.
+
+  The 4px past the bite is the air that keeps the first dash off the curve.
+*/
+.seam {
+  position: absolute;
+  top: 0;
+  left: calc(var(--notch) + 4px);
+  right: calc(var(--notch) + 4px);
+  border-top: 1px dashed color-mix(in oklab, var(--color-text) 25%, transparent);
+}

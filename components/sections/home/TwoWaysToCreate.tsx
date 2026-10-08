@@ -105,7 +105,6 @@ export async function TwoWaysToCreate() {
   ]);
 
   const walkIn = experiences.filter((experience) => experience.kind === "diy");
-  const scheduled = sessions.filter((session) => session.kind !== "diy");
 
   /* The picture for each road: the first of that kind that has one. Both are
      optional in the data, and a missing one leaves its frame as cream rather
@@ -132,7 +131,6 @@ export async function TwoWaysToCreate() {
     (experience) => experience.kind === "scheduled" && experience.image,
   )?.image;
 
-  const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
   return (
     <section
@@ -189,7 +187,6 @@ export async function TwoWaysToCreate() {
           /* Not Terracotta any more — that is the ground it would sit on. */
           dot={INK.whiteRock}
           plate={walkInPlate}
-          /* Client copy; the live count stays in the facts row below. */
           line="Pick a project. Pick your colours. Just drop in."
           /*
             THE DETAIL THAT USED TO BE THREE LABELLED PARAGRAPHS. The old
@@ -198,9 +195,49 @@ export async function TwoWaysToCreate() {
             WITHOUT the text — so each is a mark and a few words, and the
             things a reader can already infer ("Not needed. Turn up and
             start.") are gone rather than reworded. Three is the whole list:
-            what it costs you to arrive, how much there is, and where.
+            what it costs you to arrive, what kind of making this is, and
+            where.
           */
-          facts={["No booking", count(walkIn.length, "activity", "activities"), home]}
+          /*
+            ==============================================================
+            THE MIDDLE FACT IS NO LONGER A TALLY — at the client's ask
+            ==============================================================
+
+            It read "5 activities" here and "2 sessions" opposite, counted
+            live off the catalogue. The count was accurate and it was the
+            wrong thing to say in this slot for two reasons.
+
+            A BARE NUMBER INVITES THE COMPARISON IT LOSES. Five against two,
+            side by side in matching chips, reads as a scoreboard — and the
+            smaller half is the one the studio wants booked. "2 sessions" is
+            the truth and it is also the thinnest possible way to put it.
+
+            AND THE SLOT'S QUESTION IS NOT "HOW MANY". The three chips answer
+            what it costs you to arrive, what kind of making this is, and
+            where or when — see the note below. Only the middle one was
+            answering a different question from its neighbours.
+
+            THE NOUNS STAY, which is the part of the ask that matters: this
+            half is still about ACTIVITIES and the other is still about
+            SESSIONS. What goes is the arithmetic in front of them, and what
+            arrives in its place is the thing the two halves actually differ
+            on — you CHOOSE here, you are GUIDED there. The catalogue can
+            grow or shrink now without the homepage announcing it.
+
+            NOT "PICK YOUR ACTIVITY", THOUGH IT IS SHORTER. The line directly
+            above this row is "Pick a project. Pick your colours." — a third
+            "pick" inside 40px of each other reads as a stutter, and "choose"
+            is the word that makes the contrast with "guided" anyway.
+
+            THE ROW STILL WRAPS TO TWO LINES ON THIS SIDE at desktop widths,
+            and no wording fixes that: "Times Square Center, Dubai" is 311px
+            of a 590px track at 1440 on its own, so the three chips were over
+            the track with "5 activities" too — it fitted only past about
+            1600. Measured rather than guessed. Shortening the middle chip to
+            the point where it fits means cutting it to one bare word, which
+            costs more than the second line does.
+          */
+          facts={["No booking", "Choose your activity", home]}
           action={{ label: "Find the studio", href: "/locations", tone: "sage" }}
         />
 
@@ -211,7 +248,6 @@ export async function TwoWaysToCreate() {
           title="Create Together"
           dot={INK.lavender}
           plate={scheduledPlate}
-          /* Client copy; the live count stays in the facts row below. */
           line="A little more planned. Same creative energy."
           /*
             The same three, as this half answers them. The old block listed
@@ -219,7 +255,7 @@ export async function TwoWaysToCreate() {
             the events page's job — here it is only the NEXT one, because the
             question this side answers is "is there one soon?".
           */
-          facts={["Booked online", count(scheduled.length, "session", "sessions"), nextDate]}
+          facts={["Booked online", "Guided sessions", nextDate]}
           action={{ label: "See the dates", href: "/events#scheduled", tone: "cream" }}
         />
       </div>

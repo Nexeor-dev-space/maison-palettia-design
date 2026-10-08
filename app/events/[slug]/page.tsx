@@ -14,6 +14,7 @@ import { INK } from "@/components/sections/hero/composition";
 import { LocationMap, PartnerPlate } from "@/components/sections/LocationMap";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Container } from "@/components/ui/Container";
+import ticket from "@/components/ui/Ticket.module.css";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
@@ -860,10 +861,28 @@ function PrimaryAction({
  * session, so it gets the voice alone; an activity with neither renders
  * nothing at all.
  */
+/*
+  ==========================================================================
+  `group/frame` AND `hover:z-30` — THE HALF OF THE HOVER THAT IS NOT A
+  TRANSFORM
+  ==========================================================================
+
+  The three frames overlap by 20-28px and are stacked 10 / 20 / 10, so the
+  middle one is in front of both its neighbours. Lifting an outer frame
+  without raising it too would slide a card UNDER the one beside it — the
+  gesture would read as the picture retreating rather than being picked up.
+  30 clears both resting levels, and a `hover:` variant outranks the flat
+  `z-10` on the same element, so the two can live together.
+
+  The group is named rather than bare: these sit inside <Reveal>, which is
+  itself inside a column that already uses `group` elsewhere on this page,
+  and an unnamed `group-hover:` would answer to whichever ancestor happened
+  to be nearest.
+*/
 const FRAME_SLOT = [
-  "relative z-10 shrink-0",
-  "relative z-20 shrink-0 -ml-5 sm:-ml-7",
-  "relative z-10 shrink-0 -ml-5 sm:-ml-7",
+  "group/frame relative z-10 shrink-0 hover:z-30",
+  "group/frame relative z-20 shrink-0 -ml-5 hover:z-30 sm:-ml-7",
+  "group/frame relative z-10 shrink-0 -ml-5 hover:z-30 sm:-ml-7",
 ] as const;
 
 /*
@@ -892,6 +911,46 @@ const FRAME_TILT = [
   "rotate-[9deg] aspect-[3/4]",
 ] as const;
 
+/*
+  ==========================================================================
+  THE HOVER — A PHOTOGRAPH PICKED OUT OF A STACK, NOT A ZOOM
+  ==========================================================================
+
+  At the client's ask: movement, and explicitly not a zoom. Which is the
+  right call for this cluster and worth saying why. These three are drawn as
+  prints dropped on a table — overlapped, each a few degrees off square, each
+  with its own coloured edge. Scaling one up is a gesture a SCREEN makes; the
+  gesture the object itself suggests is being picked up and turned straight
+  to be looked at. The site already knows this: `settle` in lib/motion.ts
+  brings each photograph in "a degree off square" and lands it, so the hover
+  is that arrival played in reverse.
+
+  SO IT STRAIGHTENS AND RISES. Each frame keeps its own character — none goes
+  to a true 0deg, because three frames all square at once would be a grid
+  pretending to be a scatter — and the one under the pointer comes up 10px
+  and forward.
+
+  THE ANGLES ARE PER FRAME BECAUSE THE RESTING ANGLES ARE. A single
+  `rotate-0` would move the middle frame 3 degrees and the last one 9, so the
+  three would respond at three different speeds to the same gesture. Roughly
+  five degrees off each resting angle, toward square:
+
+    -7deg -> -2deg      3deg -> 0.5deg      9deg -> 4deg
+
+  NO SCALE ANYWHERE, which is also what keeps this cheap: `rotate` and
+  `translate` are composited, and the figure carries `overflow-clip` and a
+  3px border that a scale would have to resample every frame.
+
+  `motion-safe:` on the transform and not on the z-lift — somebody who has
+  asked for less motion should still get the frame brought to the front, so
+  the hover still answers; it simply answers without travelling.
+*/
+const FRAME_HOVER = [
+  "motion-safe:group-hover/frame:-rotate-[2deg]",
+  "motion-safe:group-hover/frame:rotate-[0.5deg]",
+  "motion-safe:group-hover/frame:rotate-[4deg]",
+] as const;
+
 /* Deep Lilac, Warm Terracotta, Light Sage — a cream frame on a cream plate
    would have no edge at all. */
 const FRAME_EDGE = [
@@ -911,6 +970,14 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
   if (paragraphs.length === 0 && fields.length === 0) return null;
 
   const titled = paragraphs.length > 0;
+  /*
+    A TICKET ONLY WHERE THERE ARE TWO HALVES TO TEAR. The face is the copy and
+    its pictures, the stub is the session's facts — so a brief that is all
+    facts and no copy, or all copy and no facts, is one piece of card and is
+    drawn as one. Notching a seam that has nothing on the other side of it
+    would be a decoration pretending to be a structure.
+  */
+  const split = titled && fields.length > 0;
 
   return (
     <section
@@ -918,193 +985,260 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
       aria-label={titled ? undefined : "Session details"}
       className="mt-14 md:mt-16 lg:mt-20"
     >
-      <div className="plate relative isolate overflow-clip rounded-[1.75rem] bg-cream px-6 py-9 md:px-10 md:py-11 lg:px-12 lg:py-12">
-        {/*
-          NO MARK ON THE PLATE'S CORNER. There was a 7.25rem lilac splash
-          hanging off the top right; the pictures are the thing up there now
-          and three marks already sit on them, so a fourth above the cluster
-          was a second decoration arguing with the first.
-        */}
+      {/*
+        ==================================================================
+        THE BRIEF IS A TICKET, at the client's ask
+        ==================================================================
 
-        {titled ? (
-          <div className="grid grid-cols-12 gap-x-10 gap-y-9">
-            <div
-              className={cn(
-                "col-span-12 max-w-[58ch]",
-                shown.length > 0 && "lg:col-span-6",
-              )}
-            >
-            <Reveal>
-              <p className={TERM}>About</p>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <h2
-                id="event-about"
-                className="heading-script mt-4 pb-[0.22em] text-script-compact text-text"
+        The copy and its pictures are the face; the session's facts are the
+        stub torn off the foot, with a half-circle bitten from each side of
+        the seam and a perforation between them. It is the same anatomy the
+        booking step's place card uses — see components/ui/Ticket.module.css,
+        where it now lives so the two cannot drift.
+
+        NOT `plate`. The notches are masks and a mask clips the box-shadow
+        `plate` draws, so a notched plate shows no edge at all. The shadow is
+        a `drop-shadow` filter on this wrapper instead, which is computed from
+        what the halves actually paint and so follows the bites round.
+
+        AND `wide`, because this card runs the full measure. The place card's
+        10px bite is right on a card a few inches across and disappears into
+        the corner radius on one this long; see the note on `--notch`.
+      */}
+      <div
+        className={cn(
+          "relative",
+          split ? cn(ticket.card, ticket.wide) : "plate rounded-[1.75rem]",
+        )}
+      >
+        <div
+          className={cn(
+            "relative isolate overflow-clip bg-cream px-6 py-9 md:px-10 md:py-11 lg:px-12 lg:py-12",
+            split ? cn(ticket.faceCut, "rounded-t-[1.75rem]") : "rounded-[1.75rem]",
+          )}
+        >
+          {/*
+            NO MARK ON THE PLATE'S CORNER. There was a 7.25rem lilac splash
+            hanging off the top right; the pictures are the thing up there now
+            and three marks already sit on them, so a fourth above the cluster
+            was a second decoration arguing with the first.
+          */}
+
+          {titled ? (
+            <div className="grid grid-cols-12 gap-x-10 gap-y-9">
+              <div
+                className={cn(
+                  "col-span-12 max-w-[58ch]",
+                  shown.length > 0 && "lg:col-span-6",
+                )}
               >
-                About This Experience
-              </h2>
-            </Reveal>
-            {paragraphs.map((paragraph, i) => (
-              <Reveal key={i} delay={0.12 + i * 0.06}>
-                <p
-                  className={cn(
-                    "text-lead leading-[1.7] text-text/85",
-                    i === 0 ? "mt-2" : "mt-5",
-                  )}
-                >
-                  {paragraph}
-                </p>
+              <Reveal>
+                <p className={TERM}>About</p>
               </Reveal>
-            ))}
-            </div>
+              <Reveal delay={0.06}>
+                <h2
+                  id="event-about"
+                  className="heading-script mt-4 pb-[0.22em] text-script-compact text-text"
+                >
+                  About This Experience
+                </h2>
+              </Reveal>
+              {paragraphs.map((paragraph, i) => (
+                <Reveal key={i} delay={0.12 + i * 0.06}>
+                  <p
+                    className={cn(
+                      "text-lead leading-[1.7] text-text/85",
+                      i === 0 ? "mt-2" : "mt-5",
+                    )}
+                  >
+                    {paragraph}
+                  </p>
+                </Reveal>
+              ))}
+              </div>
 
-            {frames.length > 0 ? (
-              <div className="col-span-12 lg:col-span-6">
-                <div className="relative mx-auto flex max-w-[30rem] items-center justify-center gap-0 lg:max-w-none">
-                  {shown.map((frame, i) => (
-                    <Reveal
-                      key={frame.src}
-                      delay={0.18 + i * 0.08}
-                      variant="fadeIn"
-                      className={cn(FRAME_SLOT[i], FRAME_WIDTH[shown.length] ?? "w-[36%]")}
-                    >
-                      <figure
-                        className={cn(
-                          "plate block w-full overflow-clip rounded-[1.1rem] border-[3px] bg-cream",
-                          FRAME_TILT[i],
-                          FRAME_EDGE[i],
-                        )}
+              {frames.length > 0 ? (
+                <div className="col-span-12 lg:col-span-6">
+                  <div className="relative mx-auto flex max-w-[30rem] items-center justify-center gap-0 lg:max-w-none">
+                    {shown.map((frame, i) => (
+                      <Reveal
+                        key={frame.src}
+                        delay={0.18 + i * 0.08}
+                        variant="fadeIn"
+                        className={cn(FRAME_SLOT[i], FRAME_WIDTH[shown.length] ?? "w-[36%]")}
                       >
-                        <Image
-                          src={frame.src}
-                          alt={frame.alt}
-                          width={420}
-                          height={560}
-                          sizes="(min-width: 1024px) 18vw, 40vw"
-                          className="block h-full w-full object-cover"
-                          style={frame.position ? { objectPosition: frame.position } : undefined}
-                        />
-                      </figure>
+                        <figure
+                          className={cn(
+                            "plate block w-full overflow-clip rounded-[1.1rem] border-[3px] bg-cream",
+                            FRAME_TILT[i],
+                            FRAME_EDGE[i],
+                            /* 420ms: long enough to read as the card being
+                               lifted rather than snapping, short enough that
+                               a pointer crossing all three does not leave a
+                               queue of animations behind it. `ease-editorial`
+                               is front-loaded — most of the travel happens
+                               early — which is what a picked-up object does. */
+                            "transition-transform duration-[420ms] ease-editorial",
+                            "motion-safe:group-hover/frame:-translate-y-2.5",
+                            FRAME_HOVER[i],
+                          )}
+                        >
+                          <Image
+                            src={frame.src}
+                            alt={frame.alt}
+                            width={420}
+                            height={560}
+                            /*
+                              TWICE THE FRAME'S WIDTH, because of the crop.
 
-                      {/*
-                        ON THE FIRST FRAME, NOT ON THE CLUSTER. This was hung
-                        off the cluster's own left edge at `-left-5`, which is
-                        the same place whatever the cluster holds — and the
-                        cluster narrows when an activity has two frames rather
-                        than three, so on those pages the mark landed in clear
-                        cream beside the pictures instead of across one. Inside
-                        the slot it is positioned against the frame itself and
-                        crosses its corner at every count.
-                      */}
-                      {/*
-                        ON THE LAST FRAME, for the reason the one below gives:
-                        the cluster is `justify-center` inside a column wider
-                        than itself, so its own right edge is the COLUMN's and
-                        not the pictures'. Hung there, both of these sat in
-                        clear cream on every activity that has fewer than three
-                        frames. Anchored to the last figure they cross it at
-                        one, two or three.
-                      */}
-                      {i === shown.length - 1 ? (
-                        <>
+                              This box is 3:4 and `object-cover` scales a
+                              picture until it covers BOTH axes — so a
+                              landscape photograph is sized by its height, not
+                              its width, and the browser then shows a narrow
+                              column out of the middle of it. The activity sets
+                              the client supplied run from 3:2 to 16:9, and at
+                              the frame's own 18vw the widest of them decoded
+                              at 259x172 into a 256x322 box: a 1.87x blow-up,
+                              and it looked it.
+
+                              16:9 into 3:4 needs 2.37x the element width to
+                              cover; 40vw/90vw clears that with a little in
+                              hand. A portrait source is width-bound and would
+                              have been fine at 18vw — but `sizes` cannot know
+                              which it is being handed, so it has to carry the
+                              worst case. Roughly 30KB a frame.
+                            */
+                            sizes="(min-width: 1024px) 40vw, 90vw"
+                            className="block h-full w-full object-cover"
+                            style={frame.position ? { objectPosition: frame.position } : undefined}
+                          />
+                        </figure>
+
+                        {/*
+                          ON THE FIRST FRAME, NOT ON THE CLUSTER. This was hung
+                          off the cluster's own left edge at `-left-5`, which is
+                          the same place whatever the cluster holds — and the
+                          cluster narrows when an activity has two frames rather
+                          than three, so on those pages the mark landed in clear
+                          cream beside the pictures instead of across one. Inside
+                          the slot it is positioned against the frame itself and
+                          crosses its corner at every count.
+                        */}
+                        {/*
+                          ON THE LAST FRAME, for the reason the one below gives:
+                          the cluster is `justify-center` inside a column wider
+                          than itself, so its own right edge is the COLUMN's and
+                          not the pictures'. Hung there, both of these sat in
+                          clear cream on every activity that has fewer than three
+                          frames. Anchored to the last figure they cross it at
+                          one, two or three.
+                        */}
+                        {i === shown.length - 1 ? (
+                          <>
+                            <span
+                              aria-hidden
+                              className="pointer-events-none absolute -right-5 -top-6 z-30 w-14 rotate-[14deg] md:w-16"
+                            >
+                              <DoodleMark name="bow" color={INK.lilac} treatment="stamp" depth={0} />
+                            </span>
+                            <span
+                              aria-hidden
+                              className="pointer-events-none absolute -bottom-6 right-[18%] z-30 w-11 rotate-[8deg] md:w-[3.25rem]"
+                            >
+                              <DoodleMark
+                                name="coral"
+                                color={INK.lavender}
+                                treatment="stamp"
+                                depth={0}
+                              />
+                            </span>
+                          </>
+                        ) : null}
+
+                        {i === 0 ? (
                           <span
                             aria-hidden
-                            className="pointer-events-none absolute -right-5 -top-6 z-30 w-14 rotate-[14deg] md:w-16"
-                          >
-                            <DoodleMark name="bow" color={INK.lilac} treatment="stamp" depth={0} />
-                          </span>
-                          <span
-                            aria-hidden
-                            className="pointer-events-none absolute -bottom-6 right-[18%] z-30 w-11 rotate-[8deg] md:w-[3.25rem]"
+                            className="pointer-events-none absolute -bottom-5 -left-6 z-30 w-12 -rotate-[12deg] md:w-14"
                           >
                             <DoodleMark
-                              name="coral"
-                              color={INK.lavender}
+                              name="splash"
+                              color={INK.terracotta}
                               treatment="stamp"
                               depth={0}
                             />
                           </span>
-                        </>
-                      ) : null}
+                        ) : null}
+                      </Reveal>
+                    ))}
 
-                      {i === 0 ? (
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute -bottom-5 -left-6 z-30 w-12 -rotate-[12deg] md:w-14"
-                        >
-                          <DoodleMark
-                            name="splash"
-                            color={INK.terracotta}
-                            treatment="stamp"
-                            depth={0}
-                          />
-                        </span>
-                      ) : null}
-                    </Reveal>
-                  ))}
+                    {/*
+                      ==============================================================
+                      MARKS ON THE CLUSTER, AT THE CLIENT'S ASK
+                      ==============================================================
 
-                  {/*
-                    ==============================================================
-                    MARKS ON THE CLUSTER, AT THE CLIENT'S ASK
-                    ==============================================================
+                      There was one, off the shoulder. Three now, and every one of
+                      them CROSSES A FRAME'S EDGE rather than sitting beside the
+                      group — the standing rule for this brand's cut-outs, and the
+                      reason they read as laid on the photographs rather than as
+                      stickers parked nearby.
 
-                    There was one, off the shoulder. Three now, and every one of
-                    them CROSSES A FRAME'S EDGE rather than sitting beside the
-                    group — the standing rule for this brand's cut-outs, and the
-                    reason they read as laid on the photographs rather than as
-                    stickers parked nearby.
+                      THREE COLOURS BECAUSE THE COLOUR PICKS THE DRAWING. In this
+                      sheet `resolveIcon` keys off the ink and the shape word only
+                      chooses loose or slab, so three marks in one colour would be
+                      the same cut-out three times however they were named. Deep
+                      Lilac, Warm Terracotta and Soft Lavender give a bow, a splash
+                      and a coral — and they are the three edge colours the frames
+                      already carry, so each mark answers the frame it sits on.
 
-                    THREE COLOURS BECAUSE THE COLOUR PICKS THE DRAWING. In this
-                    sheet `resolveIcon` keys off the ink and the shape word only
-                    chooses loose or slab, so three marks in one colour would be
-                    the same cut-out three times however they were named. Deep
-                    Lilac, Warm Terracotta and Soft Lavender give a bow, a splash
-                    and a coral — and they are the three edge colours the frames
-                    already carry, so each mark answers the frame it sits on.
+                      `z-30` puts them over the top frame, which is `z-20`.
+                      `stamp` because a plate in the middle of a page never travels
+                      through the viewport the way a scroll-drawn mark needs to.
+                    */}
 
-                    `z-30` puts them over the top frame, which is `z-20`.
-                    `stamp` because a plate in the middle of a page never travels
-                    through the viewport the way a scroll-drawn mark needs to.
-                  */}
-
+                  </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+              ) : null}
+            </div>
+          ) : null}
+
+        </div>
 
         {fields.length > 0 ? (
-          <dl
+          <div
             className={cn(
-              "grid grid-cols-2 gap-y-7 md:grid-cols-3 lg:grid-cols-6",
-              titled ? "mt-9 border-t border-text/15 pt-8 md:mt-11 md:pt-9" : "",
+              "relative overflow-clip bg-cream px-6 pb-9 pt-8 md:px-10 md:pb-11 md:pt-9 lg:px-12",
+              split ? cn(ticket.stubCut, "rounded-b-[1.75rem]") : "rounded-[1.75rem] pt-9",
             )}
           >
-            {fields.map(({ term, value }, i) => (
-              <Reveal
-                key={term}
-                delay={i * 0.05}
-                /*
-                  Ruled between the columns at `lg`, where the six sit in one
-                  row: the hairline is what makes them read as one object
-                  rather than as six pairs floating at the same height. Below
-                  that they stack two and three up, where a rule between them
-                  would only chop the grid about.
-                */
-                className="lg:border-l lg:border-text/15 lg:px-5 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
-              >
-                <dt className={TERM}>{term}</dt>
-                {/* `text-balance`: six values in a twelfth of the measure each,
-                    and three of them run to two lines. Left to itself the time
-                    range broke after "5:30" and dropped a lone "PM"; balanced,
-                    the pair of lines come out even. */}
-                <dd className="mt-2.5 text-pretty text-body font-medium leading-snug text-text [text-wrap:balance]">
-                  {value}
-                </dd>
-              </Reveal>
-            ))}
-          </dl>
+            {/* The perforation. Decorative: both halves are one object to a
+                screen reader, and nothing is read off the line. */}
+            {split ? <span aria-hidden className={ticket.seam} /> : null}
+            <dl className="grid grid-cols-2 gap-y-7 md:grid-cols-3 lg:grid-cols-6">
+              {fields.map(({ term, value }, i) => (
+                <Reveal
+                  key={term}
+                  delay={i * 0.05}
+                  /*
+                    Ruled between the columns at `lg`, where the six sit in one
+                    row: the hairline is what makes them read as one object
+                    rather than as six pairs floating at the same height. Below
+                    that they stack two and three up, where a rule between them
+                    would only chop the grid about.
+                  */
+                  className="lg:border-l lg:border-text/15 lg:px-5 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
+                >
+                  <dt className={TERM}>{term}</dt>
+                  {/* `text-balance`: six values in a twelfth of the measure each,
+                      and three of them run to two lines. Left to itself the time
+                      range broke after "5:30" and dropped a lone "PM"; balanced,
+                      the pair of lines come out even. */}
+                  <dd className="mt-2.5 text-pretty text-body font-medium leading-snug text-text [text-wrap:balance]">
+                    {value}
+                  </dd>
+                </Reveal>
+              ))}
+            </dl>
+          </div>
         ) : null}
       </div>
     </section>
