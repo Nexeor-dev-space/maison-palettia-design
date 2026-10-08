@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { SectionShapes } from "@/components/motion/SectionShapes";
@@ -26,7 +27,7 @@ import {
   getEventSlugs,
   isUpcoming,
   type EventDetail,
-} from "@/lib/eventDetail";
+  eventGallery,} from "@/lib/eventDetail";
 import { getMallPartners } from "@/lib/partners";
 import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
@@ -859,8 +860,52 @@ function PrimaryAction({
  * session, so it gets the voice alone; an activity with neither renders
  * nothing at all.
  */
+const FRAME_SLOT = [
+  "relative z-10 shrink-0",
+  "relative z-20 shrink-0 -ml-5 sm:-ml-7",
+  "relative z-10 shrink-0 -ml-5 sm:-ml-7",
+] as const;
+
+/*
+  HOW WIDE A FRAME IS DEPENDS ON HOW MANY THERE ARE.
+
+  It was a flat 36% whatever the activity held, which is right at three and
+  leaves a third of the column empty at two — the client's note that the
+  pictures should cover the space. The share is now read off the count, so the
+  cluster fills its column whether an activity has one photograph or three and
+  the empty cream beside it goes.
+
+  The figures allow for the overlap: two frames at 52% meet at a 28px seam and
+  come to just under the full width, three at 36% to just over it with two
+  seams taken out.
+*/
+const FRAME_WIDTH: Record<number, string> = {
+  1: "w-[64%]",
+  2: "w-[52%]",
+  3: "w-[36%]",
+};
+
+/* Same crop on all three; only the angle varies. */
+const FRAME_TILT = [
+  "-rotate-[7deg] aspect-[3/4]",
+  "rotate-[3deg] aspect-[3/4]",
+  "rotate-[9deg] aspect-[3/4]",
+] as const;
+
+/* Deep Lilac, Warm Terracotta, Light Sage — a cream frame on a cream plate
+   would have no edge at all. */
+const FRAME_EDGE = [
+  "border-primary/70",
+  "border-terracotta/70",
+  "border-sage",
+] as const;
+
 function SessionBrief({ detail }: { detail: EventDetail }) {
   const paragraphs = eventAbout(detail);
+  const frames = eventGallery(detail);
+  /* At most three, and the count decides how wide each one is — see
+     FRAME_WIDTH. Taken once so the map and the marks read the same number. */
+  const shown = frames.slice(0, 3);
   const fields = detail.kind === "scheduled" ? sessionFields(detail.workshop) : [];
 
   if (paragraphs.length === 0 && fields.length === 0) return null;
@@ -875,28 +920,20 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
     >
       <div className="plate relative isolate overflow-clip rounded-[1.75rem] bg-cream px-6 py-9 md:px-10 md:py-11 lg:px-12 lg:py-12">
         {/*
-          ONE MARK, BREAKING ONE CORNER. The brand sheet punctuates a plate; it
-          does not upholster it. The first pass hung a 13rem cut-out off the
-          top corner and a second off the foot, and at that size the first read
-          as a purple field rather than as a shape while the second crossed
-          under the date. This is the one corner the composition actually
-          leaves empty — right of a heading set on a 58-character measure — and
-          the mark is sized to punctuate it.
-
-          `stamp` renders it filled and still: a plate in the middle of a page
-          never travels through the viewport the way a scroll-drawn mark needs
-          to. `-z-10` inside the isolated plate keeps it on the paper and under
-          the words.
+          NO MARK ON THE PLATE'S CORNER. There was a 7.25rem lilac splash
+          hanging off the top right; the pictures are the thing up there now
+          and three marks already sit on them, so a fourth above the cluster
+          was a second decoration arguing with the first.
         */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-6 -top-7 -z-10 w-[5.5rem] rotate-[12deg] md:w-[7.25rem]"
-        >
-          <DoodleMark name="splash" color={INK.lilac} treatment="stamp" depth={0} />
-        </span>
 
         {titled ? (
-          <div className="max-w-[58ch]">
+          <div className="grid grid-cols-12 gap-x-10 gap-y-9">
+            <div
+              className={cn(
+                "col-span-12 max-w-[58ch]",
+                shown.length > 0 && "lg:col-span-6",
+              )}
+            >
             <Reveal>
               <p className={TERM}>About</p>
             </Reveal>
@@ -920,6 +957,120 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
                 </p>
               </Reveal>
             ))}
+            </div>
+
+            {frames.length > 0 ? (
+              <div className="col-span-12 lg:col-span-6">
+                <div className="relative mx-auto flex max-w-[30rem] items-center justify-center gap-0 lg:max-w-none">
+                  {shown.map((frame, i) => (
+                    <Reveal
+                      key={frame.src}
+                      delay={0.18 + i * 0.08}
+                      variant="fadeIn"
+                      className={cn(FRAME_SLOT[i], FRAME_WIDTH[shown.length] ?? "w-[36%]")}
+                    >
+                      <figure
+                        className={cn(
+                          "plate block w-full overflow-clip rounded-[1.1rem] border-[3px] bg-cream",
+                          FRAME_TILT[i],
+                          FRAME_EDGE[i],
+                        )}
+                      >
+                        <Image
+                          src={frame.src}
+                          alt={frame.alt}
+                          width={420}
+                          height={560}
+                          sizes="(min-width: 1024px) 18vw, 40vw"
+                          className="block h-full w-full object-cover"
+                          style={frame.position ? { objectPosition: frame.position } : undefined}
+                        />
+                      </figure>
+
+                      {/*
+                        ON THE FIRST FRAME, NOT ON THE CLUSTER. This was hung
+                        off the cluster's own left edge at `-left-5`, which is
+                        the same place whatever the cluster holds — and the
+                        cluster narrows when an activity has two frames rather
+                        than three, so on those pages the mark landed in clear
+                        cream beside the pictures instead of across one. Inside
+                        the slot it is positioned against the frame itself and
+                        crosses its corner at every count.
+                      */}
+                      {/*
+                        ON THE LAST FRAME, for the reason the one below gives:
+                        the cluster is `justify-center` inside a column wider
+                        than itself, so its own right edge is the COLUMN's and
+                        not the pictures'. Hung there, both of these sat in
+                        clear cream on every activity that has fewer than three
+                        frames. Anchored to the last figure they cross it at
+                        one, two or three.
+                      */}
+                      {i === shown.length - 1 ? (
+                        <>
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute -right-5 -top-6 z-30 w-14 rotate-[14deg] md:w-16"
+                          >
+                            <DoodleMark name="bow" color={INK.lilac} treatment="stamp" depth={0} />
+                          </span>
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute -bottom-6 right-[18%] z-30 w-11 rotate-[8deg] md:w-[3.25rem]"
+                          >
+                            <DoodleMark
+                              name="coral"
+                              color={INK.lavender}
+                              treatment="stamp"
+                              depth={0}
+                            />
+                          </span>
+                        </>
+                      ) : null}
+
+                      {i === 0 ? (
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute -bottom-5 -left-6 z-30 w-12 -rotate-[12deg] md:w-14"
+                        >
+                          <DoodleMark
+                            name="splash"
+                            color={INK.terracotta}
+                            treatment="stamp"
+                            depth={0}
+                          />
+                        </span>
+                      ) : null}
+                    </Reveal>
+                  ))}
+
+                  {/*
+                    ==============================================================
+                    MARKS ON THE CLUSTER, AT THE CLIENT'S ASK
+                    ==============================================================
+
+                    There was one, off the shoulder. Three now, and every one of
+                    them CROSSES A FRAME'S EDGE rather than sitting beside the
+                    group — the standing rule for this brand's cut-outs, and the
+                    reason they read as laid on the photographs rather than as
+                    stickers parked nearby.
+
+                    THREE COLOURS BECAUSE THE COLOUR PICKS THE DRAWING. In this
+                    sheet `resolveIcon` keys off the ink and the shape word only
+                    chooses loose or slab, so three marks in one colour would be
+                    the same cut-out three times however they were named. Deep
+                    Lilac, Warm Terracotta and Soft Lavender give a bow, a splash
+                    and a coral — and they are the three edge colours the frames
+                    already carry, so each mark answers the frame it sits on.
+
+                    `z-30` puts them over the top frame, which is `z-20`.
+                    `stamp` because a plate in the middle of a page never travels
+                    through the viewport the way a scroll-drawn mark needs to.
+                  */}
+
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

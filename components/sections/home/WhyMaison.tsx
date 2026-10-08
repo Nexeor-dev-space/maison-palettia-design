@@ -66,7 +66,7 @@ export function WhyMaison() {
                 so it is read as the mission rather than as a slogan. */}
             <Reveal delay={0.2}>
               <p className="mt-7 text-label font-medium uppercase tracking-eyebrow text-text">
-                Our mission
+                Our Mission
               </p>
             </Reveal>
           </div>
@@ -90,7 +90,7 @@ export function WhyMaison() {
             <Reveal delay={0.25}>
               <figure className="mt-10 border-t border-text/25 pt-7">
                 <figcaption className="text-label font-medium uppercase tracking-eyebrow text-text">
-                  Our vision
+                  Our Vision
                 </figcaption>
                 <blockquote className="mt-3 text-body text-text">{VISION}</blockquote>
               </figure>

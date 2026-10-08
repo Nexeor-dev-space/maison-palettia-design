@@ -31,8 +31,13 @@ export interface CreativeExperience {
   slug: string;
   name: string;
   /**
-   * One line. Optional, and absent rather than invented — see the note on
-   * the two entries below that have none.
+   * One line, under the name.
+   *
+   * It stayed optional because two activities — mandala and glass painting —
+   * had none and a line invented for them would have been the project writing
+   * the client's copy. The client has now supplied both, so every entry below
+   * carries one; the field keeps its `?` for the next activity added before
+   * its words are written, not as a standing gap.
    */
   description?: string;
   /*
@@ -64,6 +69,19 @@ export interface CreativeExperience {
     One <p> per string, in order. Two each is the house length.
   */
   about?: readonly string[];
+  /*
+    THE FRAMES THAT SIT BESIDE THE "ABOUT" COPY, and deliberately NOT the
+    one in `image` above — that is already the photograph at the top of the
+    event page, and a collage that opens with it would print the same frame
+    twice on one screen.
+
+    So this is the rest of what the studio has of an activity, and for some
+    activities that is nothing. Bedazzling has exactly one photograph in the
+    whole project and it is spent on the header, so its About section is the
+    copy alone rather than the copy beside a repeat. Add a file here and the
+    collage appears; nothing else changes.
+  */
+  gallery?: readonly ImageAsset[];
   /** DIY runs whenever the table is open; scheduled runs at a set time. */
   kind: "diy" | "scheduled";
   /** The studio's own flag, e.g. "Coming soon". Shown verbatim. */
@@ -120,10 +138,32 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     slug: "tote-bag-painting",
     name: "Tote Bag Painting",
     about: [
-      "A plain cotton tote, fabric paint and a table to spread out on. Cloth takes colour much the way paper does, so a brush loaded with one shade goes down flat and stays where it is put.",
-      "Suns and moons, flowers, a name, a single bold shape across the front. There is no pattern to follow here, and the bag goes out over your shoulder rather than into a cupboard.",
+      "Your tote called. It wants a personality.",
+      "Give a plain cotton bag a little colour, a little chaos and a lot of you. Paint it, personalise it and walk out with something no one else has.",
     ],
-    description: "Fabric paint on plain cotton, the one you carry out with you.",
+    gallery: [
+      {
+        src: "/images/studio/tote-table.jpg",
+        alt:
+          "A hand loading a brush at a table set with a paint tray and a folded blue tote bag.",
+      },
+      {
+        src: "/images/studio/palette-brush.jpg",
+        alt:
+          "A fine brush laying silver and teal paint onto a pale denim tote, a red paint palette held beside it.",
+      },
+      /*
+        `hero/tote-painting.jpg` IS NOT A THIRD FRAME. It and `palette-brush`
+        above are the same moment of the studio's own film — the same hand,
+        brush, denim and red palette, seconds apart — so side by side in the
+        cluster they read as one photograph printed twice. It stays where it
+        is used alone, on /private-events.
+
+        TODO(client): a third frame for this activity, ideally the finished
+        bag away from the table. The cluster renders two until one lands.
+      */
+    ],
+    description: "A plain tote, waiting for your personality.",
     kind: "diy",
     image: {
       src: "/images/experiences/TOTE_BAG_PAINTING.jpg",
@@ -136,10 +176,33 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     slug: "ceramic-painting",
     name: "Ceramic Painting",
     about: [
-      "A ready-made piece — a plate, a mug — and colour laid over the top of it. Glaze pools in the dips and sits bright on the flat, which is why a simple band of stripes comes out looking considered.",
-      "Work freehand, or build a pattern up a ring at a time. Either way what you leave with is something that goes back on a shelf you use.",
+      "Start with a blank ceramic and see what happens. Play with shapes, patterns and colour until an everyday piece becomes something you’ll want to use again and again.",
     ],
-    description: "Colour and pattern laid onto a ready-made piece.",
+    gallery: [
+      {
+        src: "/images/studio/plate-motif.jpg",
+        alt:
+          "A fine brush painting a teal flower motif into the centre of a white plate.",
+      },
+      /*
+        `creative/carved-glaze.jpg` CAME OUT OF THIS SET. It is a CARVED and
+        glazed tile — a making technique the studio does not run, from the
+        group of pottery and vessel photographs retired from this project when
+        the wheel work went. On a page about painting a ready-made piece it
+        promises a different craft.
+      */
+      {
+        src: "/images/creative/craft.jpg",
+        alt:
+          "Hands painting a small ceramic pot in blocks of lilac, blue, yellow and pink, a green-handled brush working the top edge.",
+      },
+      {
+        src: "/images/i-1.jpg",
+        alt:
+          "Someone in a denim apron painting a small ceramic bowl in orange, blue and yellow, a palette and tubes of paint on the table.",
+      },
+    ],
+    description: "A little piece of you, in ceramic form.",
     kind: "diy",
     image: {
       src: "/images/experiences/CERAMIC_PAINTING.jpg",
@@ -152,10 +215,22 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     slug: "bedazzling",
     name: "Bedazzling",
     about: [
-      "Stones and beads, and something plain to set them on. One at a time, pressed down, until a shape gathers and the plain thing stops being plain.",
-      "It is the most immediate thing on the programme: nothing is mixed and nothing is poured, and the whole of it is the distance between the first stone and the last.",
+      "How much sparkle is too much?",
+      "Choose what you want to bedazzle, pick your gems and start placing them one by one. Build a pattern, follow the light or cover the whole thing in sparkle.",
     ],
-    description: "Stones and beads set onto something plain until it is not.",
+        gallery: [
+      {
+        src: "/images/events/glitter-keepsakes.jpg",
+        alt:
+          "Four small round keepsakes cupped in hands, two lettered with names and hearts and two filled with purple glitter and heart charms.",
+      },
+      {
+        src: "/images/events/named-keepsake.jpg",
+        alt:
+          "Two round keepsakes held side by side, one lettered with a name and a heart, the other filled with pale glitter, sequins and a small teal ring.",
+      },
+    ],
+description: "When in doubt, add a little sparkle.",
     kind: "diy",
     image: {
       src: "/images/experiences/BEDAZZLING.jpg",
@@ -167,9 +242,17 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   {
 slug: "mandala-painting",
     name: "Mandala Painting",
+    description: "Little dots, endless patterns.",
     about: [
-      "A round board and a centre to work outwards from. Petals, dots and rings, each pass answering the one before it, until the pattern closes at the edge.",
-      "It is the quiet one. The repetition does most of the work, and the circle gets better the longer you stay with it.",
+      "Start in the centre. Let the rest unfold.",
+      "Build your mandala one dot, petal and ring at a time. Watch the pattern grow as colours and shapes repeat, shift and come together.",
+    ],
+    gallery: [
+      {
+        src: "/images/creative/mandala-painting.jpg",
+        alt:
+          "A hand holding a round board painted with a turquoise mandala of concentric dotted rings.",
+      },
     ],
     kind: "diy",
     image: {
@@ -185,9 +268,17 @@ slug: "mandala-painting",
   {
     slug: "glass-painting",
     name: "Glass Painting",
+    description: "A little colour changes the view.",
     about: [
-      "Colour laid onto glass, so the piece is lit from behind instead of looked at flat. A dragonfly, flowers, a border around the edge — the light finishes it.",
-      "What comes off the table is a panel to stand in a window. On a bright day it throws its own colours onto the wall behind it.",
+      "Give the light something to play with.",
+      "Paint your design, layer in your colours and let the light become part of it. What starts on the table takes on a whole new look by the window.",
+    ],
+    gallery: [
+      {
+        src: "/images/creative/glass-painting.jpg",
+        alt:
+          "A painted glass panel of a toucan among leaves, framed in wood and standing on a table by a lamp.",
+      },
     ],
     kind: "diy",
     // The client's own wording, carried through rather than paraphrased.
@@ -206,6 +297,13 @@ slug: "mandala-painting",
       "Wax, a wick and the colour you choose, poured and left to set. The shade is decided before anything is melted, so the jar is one you specified rather than one you picked off a shelf.",
       "Set with dried flowers, or with hearts pressed into the surface, or left perfectly plain. It cools into the shape of the vessel you poured it in.",
     ],
+    gallery: [
+      {
+        src: "/images/studio/candle-pour.jpg",
+        alt:
+          "Wax being poured from a jug into three glasses, each with its wick already set.",
+      },
+    ],
     description: "Wax, wick and colour, poured and left to set.",
     kind: "scheduled",
     image: {
@@ -221,6 +319,23 @@ slug: "mandala-painting",
     about: [
       "A hook, a ball of yarn and one stitch to start from. Everything after that is the same movement repeated, which is what makes a first row possible at all.",
       "Granny squares worked a round at a time, in whatever colours come out of the basket. A blanket is only ever one of these joined to the next.",
+    ],
+    gallery: [
+      {
+        src: "/images/studio/yarn-board.jpg",
+        alt:
+          "Balls of yarn in cream, red and a variegated blue resting on a finished mustard crochet piece.",
+      },
+      {
+        src: "/images/1-2.jpg",
+        alt:
+          "A pair of hands crocheting a cream panel with a yellow hook, a wound ball of the same yarn beside them.",
+      },
+      {
+        src: "/images/hero-carousel/crocheting.jpg",
+        alt:
+          "Balls of pale blue and cream yarn with a crochet hook resting on a finished blanket of shell stitch.",
+      },
     ],
     description: "A hook, a ball of yarn and one stitch to start from.",
     kind: "scheduled",

@@ -201,11 +201,15 @@ function Welcome() {
               below, which is the same sentence at a comfortable measure rather
               than a different decision.
             */}
-            <Reveal delay={0.16} className="mt-8 block md:mt-10">
-              <p className="max-w-[62ch] text-lead text-text">
-                {BRAND_STORY}
-              </p>
-            </Reveal>
+            {/* TWO PARAGRAPHS, MAPPED. `BRAND_STORY` is a list since the
+                client's rewrite, and an array dropped into one <p> renders as
+                the strings run together with no space between them — React
+                concatenates, it does not join. */}
+            {BRAND_STORY.map((paragraph, i) => (
+              <Reveal key={i} delay={0.16 + i * 0.06} className="mt-8 block md:mt-10">
+                <p className="max-w-[62ch] text-lead text-text">{paragraph}</p>
+              </Reveal>
+            ))}
           </div>
 
           {/*

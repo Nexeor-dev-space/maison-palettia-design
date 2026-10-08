@@ -147,7 +147,7 @@ export async function WhereWeCreate() {
             <DisplayHeading
               id="where-heading"
               className="mt-8 md:mt-10"
-              lines={["Where We", "Set Up."]}
+              lines={["Your Next Creative", "Stop."]}
             />
             {/* 60 characters: the measure has to fill the column it is
                 actually in, or the dead ground it leaves reads as the
@@ -155,8 +155,8 @@ export async function WhereWeCreate() {
                 At five columns the column is about 480px and so is 60ch. */}
             <Reveal delay={0.15}>
               <p className="mt-8 max-w-[60ch] text-lead text-text">
-                Maison Palettia brings creative experiences into the places people already gather,
-                set up inside a mall rather than behind a studio door.
+                Find Maison Palettia in the places you already love to visit — and come
+                make something while you&rsquo;re there.
               </p>
             </Reveal>
           </div>
