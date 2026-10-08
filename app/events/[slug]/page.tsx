@@ -14,6 +14,7 @@ import { INK } from "@/components/sections/hero/composition";
 import { LocationMap, PartnerPlate } from "@/components/sections/LocationMap";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Container } from "@/components/ui/Container";
+import ticket from "@/components/ui/Ticket.module.css";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
@@ -911,6 +912,14 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
   if (paragraphs.length === 0 && fields.length === 0) return null;
 
   const titled = paragraphs.length > 0;
+  /*
+    A TICKET ONLY WHERE THERE ARE TWO HALVES TO TEAR. The face is the copy and
+    its pictures, the stub is the session's facts — so a brief that is all
+    facts and no copy, or all copy and no facts, is one piece of card and is
+    drawn as one. Notching a seam that has nothing on the other side of it
+    would be a decoration pretending to be a structure.
+  */
+  const split = titled && fields.length > 0;
 
   return (
     <section
@@ -918,193 +927,231 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
       aria-label={titled ? undefined : "Session details"}
       className="mt-14 md:mt-16 lg:mt-20"
     >
-      <div className="plate relative isolate overflow-clip rounded-[1.75rem] bg-cream px-6 py-9 md:px-10 md:py-11 lg:px-12 lg:py-12">
-        {/*
-          NO MARK ON THE PLATE'S CORNER. There was a 7.25rem lilac splash
-          hanging off the top right; the pictures are the thing up there now
-          and three marks already sit on them, so a fourth above the cluster
-          was a second decoration arguing with the first.
-        */}
+      {/*
+        ==================================================================
+        THE BRIEF IS A TICKET, at the client's ask
+        ==================================================================
 
-        {titled ? (
-          <div className="grid grid-cols-12 gap-x-10 gap-y-9">
-            <div
-              className={cn(
-                "col-span-12 max-w-[58ch]",
-                shown.length > 0 && "lg:col-span-6",
-              )}
-            >
-            <Reveal>
-              <p className={TERM}>About</p>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <h2
-                id="event-about"
-                className="heading-script mt-4 pb-[0.22em] text-script-compact text-text"
+        The copy and its pictures are the face; the session's facts are the
+        stub torn off the foot, with a half-circle bitten from each side of
+        the seam and a perforation between them. It is the same anatomy the
+        booking step's place card uses — see components/ui/Ticket.module.css,
+        where it now lives so the two cannot drift.
+
+        NOT `plate`. The notches are masks and a mask clips the box-shadow
+        `plate` draws, so a notched plate shows no edge at all. The shadow is
+        a `drop-shadow` filter on this wrapper instead, which is computed from
+        what the halves actually paint and so follows the bites round.
+
+        AND `wide`, because this card runs the full measure. The place card's
+        10px bite is right on a card a few inches across and disappears into
+        the corner radius on one this long; see the note on `--notch`.
+      */}
+      <div
+        className={cn(
+          "relative",
+          split ? cn(ticket.card, ticket.wide) : "plate rounded-[1.75rem]",
+        )}
+      >
+        <div
+          className={cn(
+            "relative isolate overflow-clip bg-cream px-6 py-9 md:px-10 md:py-11 lg:px-12 lg:py-12",
+            split ? cn(ticket.faceCut, "rounded-t-[1.75rem]") : "rounded-[1.75rem]",
+          )}
+        >
+          {/*
+            NO MARK ON THE PLATE'S CORNER. There was a 7.25rem lilac splash
+            hanging off the top right; the pictures are the thing up there now
+            and three marks already sit on them, so a fourth above the cluster
+            was a second decoration arguing with the first.
+          */}
+
+          {titled ? (
+            <div className="grid grid-cols-12 gap-x-10 gap-y-9">
+              <div
+                className={cn(
+                  "col-span-12 max-w-[58ch]",
+                  shown.length > 0 && "lg:col-span-6",
+                )}
               >
-                About This Experience
-              </h2>
-            </Reveal>
-            {paragraphs.map((paragraph, i) => (
-              <Reveal key={i} delay={0.12 + i * 0.06}>
-                <p
-                  className={cn(
-                    "text-lead leading-[1.7] text-text/85",
-                    i === 0 ? "mt-2" : "mt-5",
-                  )}
-                >
-                  {paragraph}
-                </p>
+              <Reveal>
+                <p className={TERM}>About</p>
               </Reveal>
-            ))}
-            </div>
+              <Reveal delay={0.06}>
+                <h2
+                  id="event-about"
+                  className="heading-script mt-4 pb-[0.22em] text-script-compact text-text"
+                >
+                  About This Experience
+                </h2>
+              </Reveal>
+              {paragraphs.map((paragraph, i) => (
+                <Reveal key={i} delay={0.12 + i * 0.06}>
+                  <p
+                    className={cn(
+                      "text-lead leading-[1.7] text-text/85",
+                      i === 0 ? "mt-2" : "mt-5",
+                    )}
+                  >
+                    {paragraph}
+                  </p>
+                </Reveal>
+              ))}
+              </div>
 
-            {frames.length > 0 ? (
-              <div className="col-span-12 lg:col-span-6">
-                <div className="relative mx-auto flex max-w-[30rem] items-center justify-center gap-0 lg:max-w-none">
-                  {shown.map((frame, i) => (
-                    <Reveal
-                      key={frame.src}
-                      delay={0.18 + i * 0.08}
-                      variant="fadeIn"
-                      className={cn(FRAME_SLOT[i], FRAME_WIDTH[shown.length] ?? "w-[36%]")}
-                    >
-                      <figure
-                        className={cn(
-                          "plate block w-full overflow-clip rounded-[1.1rem] border-[3px] bg-cream",
-                          FRAME_TILT[i],
-                          FRAME_EDGE[i],
-                        )}
+              {frames.length > 0 ? (
+                <div className="col-span-12 lg:col-span-6">
+                  <div className="relative mx-auto flex max-w-[30rem] items-center justify-center gap-0 lg:max-w-none">
+                    {shown.map((frame, i) => (
+                      <Reveal
+                        key={frame.src}
+                        delay={0.18 + i * 0.08}
+                        variant="fadeIn"
+                        className={cn(FRAME_SLOT[i], FRAME_WIDTH[shown.length] ?? "w-[36%]")}
                       >
-                        <Image
-                          src={frame.src}
-                          alt={frame.alt}
-                          width={420}
-                          height={560}
-                          sizes="(min-width: 1024px) 18vw, 40vw"
-                          className="block h-full w-full object-cover"
-                          style={frame.position ? { objectPosition: frame.position } : undefined}
-                        />
-                      </figure>
+                        <figure
+                          className={cn(
+                            "plate block w-full overflow-clip rounded-[1.1rem] border-[3px] bg-cream",
+                            FRAME_TILT[i],
+                            FRAME_EDGE[i],
+                          )}
+                        >
+                          <Image
+                            src={frame.src}
+                            alt={frame.alt}
+                            width={420}
+                            height={560}
+                            sizes="(min-width: 1024px) 18vw, 40vw"
+                            className="block h-full w-full object-cover"
+                            style={frame.position ? { objectPosition: frame.position } : undefined}
+                          />
+                        </figure>
 
-                      {/*
-                        ON THE FIRST FRAME, NOT ON THE CLUSTER. This was hung
-                        off the cluster's own left edge at `-left-5`, which is
-                        the same place whatever the cluster holds — and the
-                        cluster narrows when an activity has two frames rather
-                        than three, so on those pages the mark landed in clear
-                        cream beside the pictures instead of across one. Inside
-                        the slot it is positioned against the frame itself and
-                        crosses its corner at every count.
-                      */}
-                      {/*
-                        ON THE LAST FRAME, for the reason the one below gives:
-                        the cluster is `justify-center` inside a column wider
-                        than itself, so its own right edge is the COLUMN's and
-                        not the pictures'. Hung there, both of these sat in
-                        clear cream on every activity that has fewer than three
-                        frames. Anchored to the last figure they cross it at
-                        one, two or three.
-                      */}
-                      {i === shown.length - 1 ? (
-                        <>
+                        {/*
+                          ON THE FIRST FRAME, NOT ON THE CLUSTER. This was hung
+                          off the cluster's own left edge at `-left-5`, which is
+                          the same place whatever the cluster holds — and the
+                          cluster narrows when an activity has two frames rather
+                          than three, so on those pages the mark landed in clear
+                          cream beside the pictures instead of across one. Inside
+                          the slot it is positioned against the frame itself and
+                          crosses its corner at every count.
+                        */}
+                        {/*
+                          ON THE LAST FRAME, for the reason the one below gives:
+                          the cluster is `justify-center` inside a column wider
+                          than itself, so its own right edge is the COLUMN's and
+                          not the pictures'. Hung there, both of these sat in
+                          clear cream on every activity that has fewer than three
+                          frames. Anchored to the last figure they cross it at
+                          one, two or three.
+                        */}
+                        {i === shown.length - 1 ? (
+                          <>
+                            <span
+                              aria-hidden
+                              className="pointer-events-none absolute -right-5 -top-6 z-30 w-14 rotate-[14deg] md:w-16"
+                            >
+                              <DoodleMark name="bow" color={INK.lilac} treatment="stamp" depth={0} />
+                            </span>
+                            <span
+                              aria-hidden
+                              className="pointer-events-none absolute -bottom-6 right-[18%] z-30 w-11 rotate-[8deg] md:w-[3.25rem]"
+                            >
+                              <DoodleMark
+                                name="coral"
+                                color={INK.lavender}
+                                treatment="stamp"
+                                depth={0}
+                              />
+                            </span>
+                          </>
+                        ) : null}
+
+                        {i === 0 ? (
                           <span
                             aria-hidden
-                            className="pointer-events-none absolute -right-5 -top-6 z-30 w-14 rotate-[14deg] md:w-16"
-                          >
-                            <DoodleMark name="bow" color={INK.lilac} treatment="stamp" depth={0} />
-                          </span>
-                          <span
-                            aria-hidden
-                            className="pointer-events-none absolute -bottom-6 right-[18%] z-30 w-11 rotate-[8deg] md:w-[3.25rem]"
+                            className="pointer-events-none absolute -bottom-5 -left-6 z-30 w-12 -rotate-[12deg] md:w-14"
                           >
                             <DoodleMark
-                              name="coral"
-                              color={INK.lavender}
+                              name="splash"
+                              color={INK.terracotta}
                               treatment="stamp"
                               depth={0}
                             />
                           </span>
-                        </>
-                      ) : null}
+                        ) : null}
+                      </Reveal>
+                    ))}
 
-                      {i === 0 ? (
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute -bottom-5 -left-6 z-30 w-12 -rotate-[12deg] md:w-14"
-                        >
-                          <DoodleMark
-                            name="splash"
-                            color={INK.terracotta}
-                            treatment="stamp"
-                            depth={0}
-                          />
-                        </span>
-                      ) : null}
-                    </Reveal>
-                  ))}
+                    {/*
+                      ==============================================================
+                      MARKS ON THE CLUSTER, AT THE CLIENT'S ASK
+                      ==============================================================
 
-                  {/*
-                    ==============================================================
-                    MARKS ON THE CLUSTER, AT THE CLIENT'S ASK
-                    ==============================================================
+                      There was one, off the shoulder. Three now, and every one of
+                      them CROSSES A FRAME'S EDGE rather than sitting beside the
+                      group — the standing rule for this brand's cut-outs, and the
+                      reason they read as laid on the photographs rather than as
+                      stickers parked nearby.
 
-                    There was one, off the shoulder. Three now, and every one of
-                    them CROSSES A FRAME'S EDGE rather than sitting beside the
-                    group — the standing rule for this brand's cut-outs, and the
-                    reason they read as laid on the photographs rather than as
-                    stickers parked nearby.
+                      THREE COLOURS BECAUSE THE COLOUR PICKS THE DRAWING. In this
+                      sheet `resolveIcon` keys off the ink and the shape word only
+                      chooses loose or slab, so three marks in one colour would be
+                      the same cut-out three times however they were named. Deep
+                      Lilac, Warm Terracotta and Soft Lavender give a bow, a splash
+                      and a coral — and they are the three edge colours the frames
+                      already carry, so each mark answers the frame it sits on.
 
-                    THREE COLOURS BECAUSE THE COLOUR PICKS THE DRAWING. In this
-                    sheet `resolveIcon` keys off the ink and the shape word only
-                    chooses loose or slab, so three marks in one colour would be
-                    the same cut-out three times however they were named. Deep
-                    Lilac, Warm Terracotta and Soft Lavender give a bow, a splash
-                    and a coral — and they are the three edge colours the frames
-                    already carry, so each mark answers the frame it sits on.
+                      `z-30` puts them over the top frame, which is `z-20`.
+                      `stamp` because a plate in the middle of a page never travels
+                      through the viewport the way a scroll-drawn mark needs to.
+                    */}
 
-                    `z-30` puts them over the top frame, which is `z-20`.
-                    `stamp` because a plate in the middle of a page never travels
-                    through the viewport the way a scroll-drawn mark needs to.
-                  */}
-
+                  </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+              ) : null}
+            </div>
+          ) : null}
+
+        </div>
 
         {fields.length > 0 ? (
-          <dl
+          <div
             className={cn(
-              "grid grid-cols-2 gap-y-7 md:grid-cols-3 lg:grid-cols-6",
-              titled ? "mt-9 border-t border-text/15 pt-8 md:mt-11 md:pt-9" : "",
+              "relative overflow-clip bg-cream px-6 pb-9 pt-8 md:px-10 md:pb-11 md:pt-9 lg:px-12",
+              split ? cn(ticket.stubCut, "rounded-b-[1.75rem]") : "rounded-[1.75rem] pt-9",
             )}
           >
-            {fields.map(({ term, value }, i) => (
-              <Reveal
-                key={term}
-                delay={i * 0.05}
-                /*
-                  Ruled between the columns at `lg`, where the six sit in one
-                  row: the hairline is what makes them read as one object
-                  rather than as six pairs floating at the same height. Below
-                  that they stack two and three up, where a rule between them
-                  would only chop the grid about.
-                */
-                className="lg:border-l lg:border-text/15 lg:px-5 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
-              >
-                <dt className={TERM}>{term}</dt>
-                {/* `text-balance`: six values in a twelfth of the measure each,
-                    and three of them run to two lines. Left to itself the time
-                    range broke after "5:30" and dropped a lone "PM"; balanced,
-                    the pair of lines come out even. */}
-                <dd className="mt-2.5 text-pretty text-body font-medium leading-snug text-text [text-wrap:balance]">
-                  {value}
-                </dd>
-              </Reveal>
-            ))}
-          </dl>
+            {/* The perforation. Decorative: both halves are one object to a
+                screen reader, and nothing is read off the line. */}
+            {split ? <span aria-hidden className={ticket.seam} /> : null}
+            <dl className="grid grid-cols-2 gap-y-7 md:grid-cols-3 lg:grid-cols-6">
+              {fields.map(({ term, value }, i) => (
+                <Reveal
+                  key={term}
+                  delay={i * 0.05}
+                  /*
+                    Ruled between the columns at `lg`, where the six sit in one
+                    row: the hairline is what makes them read as one object
+                    rather than as six pairs floating at the same height. Below
+                    that they stack two and three up, where a rule between them
+                    would only chop the grid about.
+                  */
+                  className="lg:border-l lg:border-text/15 lg:px-5 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
+                >
+                  <dt className={TERM}>{term}</dt>
+                  {/* `text-balance`: six values in a twelfth of the measure each,
+                      and three of them run to two lines. Left to itself the time
+                      range broke after "5:30" and dropped a lone "PM"; balanced,
+                      the pair of lines come out even. */}
+                  <dd className="mt-2.5 text-pretty text-body font-medium leading-snug text-text [text-wrap:balance]">
+                    {value}
+                  </dd>
+                </Reveal>
+              ))}
+            </dl>
+          </div>
         ) : null}
       </div>
     </section>
