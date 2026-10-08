@@ -10,7 +10,7 @@ import { EASE_EDITORIAL } from "@/lib/motion";
 import { PAINTS_ON_CREAM, paintAt } from "@/lib/paint";
 import { cn } from "@/lib/utils";
 
-const EYEBROW = "text-label font-medium uppercase tracking-eyebrow text-text/75";
+export const EYEBROW = "text-label font-medium uppercase tracking-eyebrow text-text/75";
 
 type CSSVars = React.CSSProperties & Record<`--${string}`, string>;
 
@@ -179,7 +179,7 @@ export function PlaceCardStub({
  * de la Cruz Villanueva" costs the card no more height than "Ana". `dir="auto"`
  * lets a right-to-left name sit at its own start.
  */
-function NameLine({ name }: { name: string }) {
+export function NameLine({ name }: { name: string }) {
   if (!name) {
     return (
       <p className="flex h-[2.75rem] items-end pb-1.5">
@@ -239,7 +239,7 @@ function Swatch({ show }: { show: boolean }) {
 }
 
 /** "Email ✓" or "Email —": that it is there, never what it is. */
-function Mark({ label, on }: { label: string; on: boolean }) {
+export function Mark({ label, on }: { label: string; on: boolean }) {
   const reduce = useReducedMotion();
 
   return (
@@ -284,7 +284,7 @@ const PROGRESS_TILTS = ["-1.5deg", "1deg", "-0.5deg", "1.5deg", "-1deg"] as cons
  * A picture of the form's state, not a measure anyone has to read: the
  * fields' own messages are what say what is missing.
  */
-function BrushProgress({
+export function BrushProgress({
   done,
   className,
 }: {
@@ -292,7 +292,20 @@ function BrushProgress({
   className?: string;
 }) {
   return (
-    <span aria-hidden className={cn("grid grid-cols-5 gap-1.5", className)}>
+    /*
+      THE COLUMN COUNT IS THE ARRAY'S, NOT A FIVE WRITTEN INTO THE CLASS.
+
+      This was `grid-cols-5`, which was true of the only caller it had: the
+      scheduled route passes places plus its four required fields. The
+      enquiry route has six things to answer, and a hard-coded five silently
+      wrapped the sixth stroke onto a second row — a progress bar with a
+      stray mark under it. The count belongs to whoever is counting.
+    */
+    <span
+      aria-hidden
+      className={cn("grid gap-1.5", className)}
+      style={{ gridTemplateColumns: `repeat(${done.length}, minmax(0, 1fr))` }}
+    >
       {done.map((isDone, i) => {
         const tilt = PROGRESS_TILTS[i % PROGRESS_TILTS.length];
         return (

@@ -569,12 +569,17 @@ export function BookingForm({ workshop, intro, summary, strip, scarce }: Booking
  * Whether the element fits in the window below its own sticky offset, with
  * 24px to spare — kept current as the window or the element changes size.
  *
+ * Exported because BOTH booking routes need it. `.stickyCard` only becomes
+ * `position: sticky` under `[data-fits]`, so a card carrying the class and
+ * not the attribute simply scrolls away — which is exactly what the private
+ * route's did until this was shared.
+ *
  * Read after mount only, so the server and the first client render agree that
  * it does not (yet): the card starts in the page's flow, which at the top of
  * the page looks exactly the same as stuck. See `stickyCard` in
  * PaintBooking.module.css for why this is measured at all.
  */
-function useFitsInView(ref: React.RefObject<HTMLElement | null>): boolean {
+export function useFitsInView(ref: React.RefObject<HTMLElement | null>): boolean {
   const [fits, setFits] = useState(false);
 
   useEffect(() => {

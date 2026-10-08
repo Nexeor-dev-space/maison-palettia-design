@@ -293,3 +293,147 @@
     position: sticky;
   }
 }
+
+/* --------------------------------------------------------------------------
+   05 — the choice chips
+   --------------------------------------------------------------------------
+
+   A WELL THAT HAS TO HOLD A WORD.
+
+   The wells above are the right object for "how many of us are coming": a
+   row of empty dishes you fill with paint, and the number sits under each
+   one rather than in it. That is what lets them flood at full strength —
+   nothing is ever read against the paint.
+
+   A choice between "Birthday Parties" and "Corporate Events" cannot do that.
+   The label IS the choice, so it has to sit on whatever the chip is filled
+   with, and the three paints behind it are the three that fail against
+   charcoal at full strength: Deep Lilac 2.37:1, Warm Terracotta 3.84:1 and
+   Soft Lavender 6.49:1. Two of the three are under the 4.5:1 a 15px label
+   owes before the fill is even considered.
+
+   SO THE ALPHA IS THE CONTROL, which is the same answer <PaintStroke> gives
+   to the same problem and for the same reason — see the note on its swatch.
+   The paint is laid at 0.35 rather than at full strength. Sampled off the
+   rendered pixels on this form's own ground, charcoal on the composite
+   measures:
+
+     Deep Lilac ......... fill rgb(206,192,210)   6.90:1
+     Warm Terracotta .... fill rgb(232,202,183)   7.74:1
+     Soft Lavender ...... fill rgb(225,224,241)   9.21:1
+
+   The ground matters as much as the alpha and is the easy thing to get
+   wrong: these sit on the page's pale sage, not on the White Rock the rest
+   of this file's figures are taken against. Estimated against White Rock
+   the same three come out around 5.9, 6.7 and 8 — still clear, and still
+   the wrong numbers to write down. Re-measure if this control is ever put
+   on a darker field; 0.35 is not safe everywhere, it is safe here.
+
+   EVERYTHING ELSE IS THE WELLS' OWN BEHAVIOUR, deliberately: dashed while
+   dry and solid once chosen, so the state survives greyscale and forced
+   colours; a quarter-strength ghost under the pointer that says "this is
+   what you would be choosing" rather than "this is chosen"; the site's press;
+   the focus ring on the chip, because the radio inside it is hidden.
+   -------------------------------------------------------------------------- */
+
+.choice {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  /* 44px, the target a thumb wants — see the note on tap targets in the
+     footer. The wells get there with a 48px circle; a pill gets there with
+     its padding and a floor. */
+  min-height: 2.75rem;
+  padding: 0.5rem 1.0625rem;
+  border-radius: 999px;
+  border: 1.5px dashed color-mix(in oklab, var(--color-text) 60%, transparent);
+  transition:
+    border-color var(--duration-fast) var(--ease-soft),
+    transform var(--duration-press) var(--ease-soft);
+}
+
+.choice:active .chip {
+  transform: translateY(1px) scale(0.994);
+}
+
+.choice[data-filled] .chip {
+  border-style: solid;
+  border-color: var(--color-text);
+}
+
+.choice[data-ghost] .chip {
+  border-style: solid;
+}
+
+/*
+  Two layers, never one, for the reason the wells give: a hover arriving while
+  the fill is still blooming would otherwise snap one property between two
+  owners. The fill owns `scale` as well as opacity so the paint lands in the
+  chip rather than appearing in it.
+*/
+.chipPaint,
+.chipGhost {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--paint);
+  pointer-events: none;
+}
+
+.chipPaint {
+  opacity: 0;
+  scale: 0.9;
+  transition:
+    opacity var(--duration-fast) var(--ease-soft),
+    scale 320ms var(--ease-editorial);
+}
+
+.choice[data-filled] .chipPaint {
+  opacity: 0.35;
+  scale: 1;
+}
+
+.chipGhost {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-soft);
+}
+
+.choice[data-ghost] .chipGhost {
+  opacity: 0.15;
+}
+
+/* The word, over both layers. */
+.chipLabel {
+  position: relative;
+}
+
+.choice:has(input:focus-visible) .chip {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+  .choice:has(input:focus-visible) .chip {
+    outline-color: CanvasText;
+  }
+
+  /* Paint disappears here, so a chosen chip takes a heavier rim — the same
+     fallback the wells use. */
+  .choice[data-filled] .chip {
+    border-width: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chipPaint {
+    transition: opacity var(--duration-fast) var(--ease-soft);
+    scale: 1;
+  }
+}

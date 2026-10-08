@@ -6,6 +6,13 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { sendEnquiry, type EnquiryResult } from "@/lib/enquiry";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
+import { PaintChoice } from "@/components/booking/PaintChoice";
+import cardStyles from "@/components/booking/PaintBooking.module.css";
+import { EnquiryStub } from "@/components/private-events/EnquiryStub";
+import { Reveal } from "@/components/motion/Reveal";
+import { PointerTilt } from "@/components/motion/PointerTilt";
+import { PeelNote } from "@/components/ui/PeelNote";
+import { useFitsInView } from "@/components/booking/BookingForm";
 import styles from "@/components/booking/PaintBooking.module.css";
 import { cn } from "@/lib/utils";
 
@@ -96,12 +103,48 @@ const FIELD_ORDER = ["name", "email", "phone", "date", "guests", "message"] as c
  * copy of the list kept here — is exactly the drift that had this form and the
  * homepage disagreeing about what the Maison offers.
  */
-export function PrivateEventEnquiry({ activities }: { activities: readonly string[] }) {
+export function PrivateEventEnquiry({
+  activities,
+  intro,
+  face,
+}: {
+  activities: readonly string[];
+  /**
+   * The masthead, and the ticket's face. Both are static and both belong to
+   * the server page — but the GRID that places them has to live here, for
+   * the same reason <BookingForm> owns the one on the other route: the card
+   * in the right-hand column mirrors values only this component holds, so
+   * the two columns cannot be siblings in a server page.
+   */
+  intro: React.ReactNode;
+  face: React.ReactNode;
+}) {
   const ids = useId();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [result, setResult] = useState<EnquiryResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  /*
+    A SECOND VIEW OF THE ANSWERS, NOT A SECOND COPY OF THEM.
+
+    The stub beside the form fills in as the form is written, which needs the
+    values during render — and the submit still reads them off the DOM with
+    `new FormData`, which is what keeps this component uncontrolled and the
+    fields cheap. So this is written by `onInput` on the form element itself:
+    one listener, bubbling, no `value`/`onChange` pair on nine inputs, and no
+    way for the two to disagree about what will actually be sent.
+  */
+  const [watched, setWatched] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    date: "",
+    message: "",
+    occasion: UNDECIDED,
+    activity: UNDECIDED,
+  });
   const formRef = useRef<HTMLFormElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const cardFits = useFitsInView(cardRef);
   const dateRef = useRef<HTMLInputElement>(null);
   const outcomeRef = useRef<HTMLDivElement>(null);
 
@@ -261,8 +304,41 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
 
   const errorCount = Object.keys(errors).length;
 
+  const stub = (
+    <EnquiryStub
+      name={watched.name}
+      email={watched.email}
+      phone={watched.phone}
+      date={watched.date}
+      occasion={watched.occasion}
+      activity={watched.activity}
+      message={watched.message}
+      undecided={UNDECIDED}
+    />
+  );
+
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate>
+    <div className="grid grid-cols-12 gap-x-6 gap-y-14 lg:gap-x-10">
+      <div className="col-span-12 lg:col-span-7 lg:col-start-1 lg:row-start-1">
+        {intro}
+
+        <div className="mt-14 md:mt-16">
+    <form
+      ref={formRef}
+      onSubmit={onSubmit}
+      noValidate
+      /* One bubbling listener for the typed fields. The choosers are radios
+         and report through <PaintChoice>'s `onChoose` instead — a radio fires
+         `change`, not `input`, and catching both here would be two code paths
+         for one job. */
+      onInput={(event) => {
+        /* The textarea bubbles `input` like the rest, which is why the
+           message needed no second path — only a key in `watched`. */
+        const el = event.target as HTMLInputElement | HTMLTextAreaElement;
+        if (!el.name || !(el.name in watched)) return;
+        setWatched((prev) => ({ ...prev, [el.name]: el.value }));
+      }}
+    >
       <fieldset className="border-0 p-0">
         <legend className="text-label font-medium uppercase tracking-eyebrow text-text">
           About you
@@ -316,28 +392,58 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
 
         <div className="mt-8 grid grid-cols-1 gap-x-10 gap-y-9 sm:grid-cols-2">
           {/*
-            The same four groups the page before this one sets out, read from
-            the same constant so a visitor is never offered a type here that
-            the page did not show them. "Something else" stays: these are
-            examples, and a select with no way out turns an example into a
-            requirement.
-          */}
-          <Select id={`${ids}-occasion`} name="occasion" label="Event type">
-            {PRIVATE_EVENT_AUDIENCES.map((audience) => (
-              <option key={audience.slug} value={audience.name}>
-                {audience.name}
-              </option>
-            ))}
-            <option value="Something else">Something else</option>
-          </Select>
+            ==============================================================
+            CHIPS RATHER THAN SELECTS — at the client's ask
+            ==============================================================
 
-          <Select id={`${ids}-activity`} name="activity" label="Creative activity">
-            {activities.map((activity) => (
-              <option key={activity} value={activity}>
-                {activity}
-              </option>
-            ))}
-          </Select>
+            Both of these were `<select>`s. The client's note was that this
+            form should answer the hand the way the scheduled route's booking
+            form does, and the one control that does it over there is
+            <PlacePalette> — dishes you fill with paint. <PaintChoice> is
+            that control for a question whose answers are words, built on the
+            palette's own CSS so the two cannot drift.
+
+            IT CHANGES NOTHING BELOW THE SURFACE, which is why it was safe to
+            do. The submit reads `new FormData(form)` and `data.get("occasion")`,
+            so a radio group under the same `name` submits exactly what the
+            select did; `validate` never looked at either field, and neither
+            is in FIELD_ORDER. The lists are still the same constants.
+
+            WHY THESE TWO AND NOT THE REST. A select is the right control for
+            a long or open list, and the wrong one for five or eight named
+            alternatives a visitor is meant to browse — it hides every option
+            but one behind a tap. Name, email, phone, date and guests are all
+            things somebody types; these two are the only places on this form
+            where the whole answer can be shown at once.
+
+            "Something else" stays: these are examples, and a list with no way
+            out turns an example into a requirement.
+          */}
+          <PaintChoice
+            name="occasion"
+            legend="Event type"
+            defaultValue={UNDECIDED}
+            options={[
+              UNDECIDED,
+              ...PRIVATE_EVENT_AUDIENCES.map((audience) => audience.name),
+              "Something else",
+            ]}
+          />
+
+          {/*
+            The note is the palette's "9 places available on this date." —
+            the line that tells you what the control means once you have used
+            it. Here the true thing to say is that choosing is not committing,
+            which the fieldset above already says once and which is the single
+            most common reason somebody abandons a form like this.
+          */}
+          <PaintChoice
+            name="activity"
+            legend="Creative activity"
+            defaultValue={UNDECIDED}
+            options={[UNDECIDED, ...activities]}
+            note="Pick the one you have in mind, or leave it undecided — nothing here is fixed."
+          />
 
           {/*
             A real date control, so a phone offers its own picker and a screen
@@ -477,6 +583,100 @@ export function PrivateEventEnquiry({ activities }: { activities: readonly strin
         </div>
       ) : null}
     </form>
+        </div>
+      </div>
+
+      {/*
+        ==================================================================
+        THE TICKET, BESIDE THE FORM THAT FILLS IT IN
+        ==================================================================
+
+        Columns 9 to 12 on one row with the masthead and the form, sticky
+        while it fits — the arrangement <BookingForm> uses, down to the
+        `stickyCard` class, so the two routes place their card identically.
+
+        The FACE comes from the server page because it is static — a
+        photograph and the three steps, neither of which this component has
+        any business holding. The STUB is built here because it is the only
+        part that moves.
+
+        `lg:` only. A phone gets the stub under the button instead — see
+        below — because a 2:1 photograph and three steps between the heading
+        and the first question is the fold spent on something nobody is
+        answering yet.
+      */}
+      {/*
+        `data-fits` IS WHAT MAKES IT STICK, and its absence is why this card
+        did not. `.stickyCard` declares a `top` and nothing else; the rule
+        that sets `position: sticky` is `.stickyCard[data-fits]`, gated that
+        way because a card taller than the window hides its own foot for as
+        long as it is stuck. The class was here from the start and the
+        attribute was not, so the card simply scrolled away with the page.
+
+        Measured rather than guessed at, and measured by the other route's
+        own hook — see <useFitsInView>. The height of this card depends on
+        the column's width and on how much of the form has been answered, so
+        no media query is right for all of it.
+      */}
+      <div
+        ref={cardRef}
+        data-fits={cardFits || undefined}
+        className={`col-span-12 hidden lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:block lg:self-start ${cardStyles.stickyCard}`}
+      >
+        <Reveal variant="fadeIn" delay={0.25}>
+          {/*
+            THE LEAN, which is the last thing this card was missing. The other
+            route wraps its own in <PointerTilt max={4}> and the card turns a
+            few degrees toward the hand — the near edge dipping, the way a
+            ticket held in two hands does. Four degrees and the same
+            component, so the two cards bend by the same amount; the tilt
+            gates itself off on a coarse pointer and under reduced motion.
+
+            AROUND THE TICKET, NOT THE WHOLE COLUMN. The link below it is
+            navigation and should not tip when the pointer crosses it, and a
+            tilt on the sticky element itself would fight `position: sticky`
+            for the same transform.
+          */}
+          <PointerTilt max={4}>
+            <aside aria-labelledby="what-happens-next" className={cardStyles.cardShadow}>
+              {face}
+              {stub}
+            </aside>
+          </PointerTilt>
+
+          {/*
+            THE SITE'S SECONDARY ACTION IS <PeelNote>, EVERYWHERE — see the
+            note on <BlobButton>'s tones. This was the navigation treatment:
+            a word on a hairline with an arrow after it, which is the right
+            object for a link inside a sentence and the wrong one for the
+            only other thing a visitor can do from this page.
+          */}
+          <PeelNote href="/events" className="mt-8 min-h-[3.25rem] px-7">
+            Or book a public event
+          </PeelNote>
+        </Reveal>
+      </div>
+
+      {/*
+        THE PHONE'S COPY OF THE STUB, under the form rather than over it.
+        Same component, its own shadow, and an eyebrow to say what it is —
+        the shape <PlaceCardStub variant="inline"> takes on the other route
+        and for the same reason: the summary is worth having on a phone, the
+        photograph above it is not.
+      */}
+      {/* `aria-hidden` on the WRAPPER, label included. <EnquiryStub> hides
+          itself — it is a picture of answers the form has already given, and
+          reading them twice is worse than not reading them at all — so a
+          label left outside it would announce a heading over nothing.
+          <PlaceCardStub variant="inline"> wraps its own eyebrow for exactly
+          this reason. */}
+      <div aria-hidden className="col-span-12 lg:hidden">
+        <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
+          Your enquiry
+        </p>
+        <div className={`mt-4 ${cardStyles.cardShadow}`}>{stub}</div>
+      </div>
+    </div>
   );
 }
 
@@ -537,59 +737,13 @@ function validate(v: {
   return errors;
 }
 
-/**
- * A select on the same hairline as every other field.
- *
- * `appearance-none` with a drawn chevron, because a native control would
- * arrive carrying the operating system's own radius and shadow. The element is
- * still a real <select>, so it keeps the platform picker, the keyboard
- * behaviour and the screen-reader semantics.
- */
-function Select({
-  id,
-  name,
-  label,
-  children,
-}: {
-  id: string;
-  name: string;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={styles.field}>
-      <label htmlFor={id} className={LABEL}>
-        {label}
-      </label>
-      <div className="relative">
-        <select
-          id={id}
-          name={name}
-          defaultValue={UNDECIDED}
-          className={cn(FIELD, "cursor-pointer appearance-none pr-8")}
-        >
-          {/*
-            The default, and a real answer rather than a disabled placeholder.
-            Someone who has not chosen an activity yet is telling the studio
-            something true, and the submit handler drops it rather than sending
-            a row that says nothing.
-          */}
-          <option value={UNDECIDED}>{UNDECIDED}</option>
-          {children}
-        </select>
-        {/* /70 rather than /50: measured on this ground, /50 composites to
-            2.78:1, under even the 3:1 a graphical mark owes. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute bottom-4 right-1 text-action text-text/70"
-        >
-          &#9662;
-        </span>
-        <span aria-hidden className={cn("dab", styles.stroke)} />
-      </div>
-    </div>
-  );
-}
+/*
+  (REMOVED) <Select> — its two callers became <PaintChoice> on 2026-10-08 and
+  nothing else on the site used it. The chevron, the `appearance-none` and the
+  /70 measurement it carried are in the component's own history if a select is
+  ever wanted back.
+*/
+
 
 function Field({
   ref,
