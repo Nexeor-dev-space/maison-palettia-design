@@ -380,11 +380,11 @@ function Purpose() {
             <div className="grid lg:min-h-[24rem] lg:grid-cols-2">
               <Purposeful
                 ground="lilac"
-                label="Our mission"
+                label="Our Mission"
                 id="purpose-heading"
                 body={MISSION}
               />
-              <Purposeful ground="cream" label="Our vision" body={VISION} />
+              <Purposeful ground="cream" label="Our Vision" body={VISION} />
             </div>
 
             {/*
