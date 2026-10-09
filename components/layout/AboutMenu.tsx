@@ -155,7 +155,12 @@ const ABOUT_DOORS: readonly AboutDoor[] = [
   60-90px. At that size they stop reading as the brand's marks and start
   reading as large abstract shapes, which is what the client saw.
 
-  So the size is fixed in rem and does not track the card.
+  So the size is fixed in rem and does not track the card. It went to a
+  5.2rem square-equivalent first and the client's answer was that they were
+  still very big — correctly, because a mark stacked ABOVE the type is
+  carrying the top of the card and wants presence, while one in a column
+  BESIDE the type is an ornament to it and wants none. The two-column card
+  came with the same note, so the two numbers moved together: 3rem here.
 
   AND IT IS NORMALISED BY AREA, which is the part a single width or a single
   height gets wrong. The four slabs are not near-square — Soft Lavender's
@@ -170,7 +175,7 @@ const ABOUT_DOORS: readonly AboutDoor[] = [
   drawing a door gets, so the geometry can never drift from the icon: swap a
   paint and the box follows the new shape on its own.
 */
-const MARK_SIDE = 5.2; // rem, the side of the square each mark is drawn to match
+const MARK_SIDE = 2.8; // rem, the side of the square each mark is drawn to match
 
 function markBox(name: DoodleName, ink: string) {
   const { w, h } = resolveIcon(name, ink);
@@ -179,13 +184,22 @@ function markBox(name: DoodleName, ink: string) {
 }
 
 /*
-  One shelf for all four, as tall as the tallest mark needs, with every mark
-  sitting on its floor. Two things come out of that: the names start at the
-  same height across the row rather than stepping up and down with each
-  shape, and the marks share a baseline the way a row of objects on a shelf
-  does. A per-card height would have neither.
+  THE MARK'S COLUMN IS AS WIDE AS THE WIDEST MARK AND NO WIDER.
+
+  Each card is two columns — the mark in the first, the name and its line in
+  the second — at the client's ask. The first is sized once, here, from the
+  widest of the four boxes rather than per card, which is what puts all four
+  marks on one vertical axis down the row: a column that fitted each shape
+  would start the Gallery waves 30px left of the Contact coral and the row
+  would read as four separately-placed drawings.
+
+  It is `auto`-like rather than a half share on purpose. Split a card down
+  the middle and at the tightest four-column width — 1024, where each card is
+  about 240px — the name gets 100px and "About the Maison" breaks into three
+  lines. Giving the mark only the width it needs hands the rest to the type,
+  which is the half a reader is actually there for.
 */
-const MARK_SHELF = Math.max(...ABOUT_DOORS.map((d) => markBox(d.mark.name, d.mark.ink).h));
+const MARK_COLUMN = Math.max(...ABOUT_DOORS.map((d) => markBox(d.mark.name, d.mark.ink).w));
 
 interface AboutMenuProps {
   label: string;
@@ -302,8 +316,21 @@ export function AboutMenu({
             `items-stretch` is the default and is what is wanted: all four take
             the height of the tallest, so a two-line sub on one does not leave
             the other three short.
+
+            FOUR ACROSS AT `xl`, NOT AT `lg`, and that is measured rather than
+            picked. Each card is two columns now, so its width is spent on a
+            mark column plus a line of type instead of on one stacked block.
+            At 1024 four-up leaves the type about 100px: "About the Maison"
+            broke after "the", "Where to find us." after "find", and the row
+            read as four paragraphs. Two-up there gives each card ~490px and
+            every name sits on one line. 1280 is where four across starts
+            fitting again — checked, not assumed, and it only fits because the
+            mark column, the gutter and the card's padding were each trimmed
+            to clear "About the Maison", the longest of the four names, on one
+            line at that width. Lengthen a name and this is the width that
+            breaks first.
           */
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:gap-3 xl:grid-cols-4">
             {ABOUT_DOORS.map((door, i) => (
               <Link
                 key={door.slug}
@@ -317,28 +344,34 @@ export function AboutMenu({
                     and so do not ask the question, but the default for new
                     work here is clip; see app/locations/page.tsx.
                   */
-                  "group/door relative flex flex-col overflow-clip rounded-[1.35rem] bg-surface",
+                  /*
+                    TWO COLUMNS, at the client's ask: the mark in the first and
+                    the words in the second, rather than the mark stacked over
+                    them. A stacked mark has to carry the top of the card and
+                    so has to be large; beside the type it is an ornament to a
+                    line of text and can be small, which is the same note the
+                    client raised twice. The layout and the size answer it
+                    together — neither would on its own.
+
+                    `items-center` so the mark is centred against the pair of
+                    lines rather than hung from their cap-height.
+                  */
+                  "group/door relative grid grid-cols-[auto_1fr] items-center gap-x-3 overflow-clip",
+                  "rounded-[1.35rem] bg-surface px-4 py-5",
                   "transition-colors duration-300 ease-soft hover:bg-sage",
                 )}
               >
                 {/*
-                  THE MARK, ON ITS SHELF AND RANGED LEFT WITH THE TYPE.
-
-                  Centred was the other half of what made these read wrong.
-                  The name and the line under it are ranged left, so a mark
-                  centred over them put the card's one drawn element on an
-                  axis nothing else shares — the eye saw a centred picture
-                  with left-aligned captions under it rather than one object.
-                  Sharing the type's left edge is what makes the card read as
-                  composed rather than as two stacked layouts.
-
-                  `items-end` stands every mark on the shelf's floor — see
-                  MARK_SHELF for why there is a shelf at all.
+                  THE MARK'S COLUMN IS ONE WIDTH FOR ALL FOUR CARDS, and the
+                  mark is centred in it — see MARK_COLUMN. Sized to each shape
+                  instead, the four marks would start at four different
+                  distances from their card's edge and the row would lose its
+                  vertical axis.
                 */}
                 <span
                   aria-hidden
-                  className="flex shrink-0 items-end px-6 pt-7"
-                  style={{ height: `${MARK_SHELF + 1.75}rem` }}
+                  className="flex items-center justify-center"
+                  style={{ width: `${MARK_COLUMN}rem` }}
                 >
                   <span
                     className="block"
@@ -358,9 +391,11 @@ export function AboutMenu({
                       drawn. <MenuSplash> carries the same pair for the same
                       reason.
 
-                      `depth` is 3 rather than the hero's 8: the drift is in
+                      `depth` is 2 rather than the hero's 8: the drift is in
                       pixels, so the same number that breathes on a large mark
-                      reads as a small one sliding about.
+                      reads as a small one sliding about — and these are now
+                      small enough that even 3 was visible as a wobble beside
+                      a fixed line of type.
                     */}
                     <DoodleMark
                       name={door.mark.name}
@@ -369,12 +404,12 @@ export function AboutMenu({
                       trigger="state"
                       on={shown}
                       delay={shown ? 140 + i * 90 : 0}
-                      depth={3}
+                      depth={2}
                     />
                   </span>
                 </span>
 
-                <span className="flex flex-1 flex-col gap-1.5 px-6 pb-7 pt-5">
+                <span className="flex min-w-0 flex-col gap-1">
                   {/*
                     NO SECOND MARK BESIDE THE NAME. There was a 1rem cut-out
                     here, in the same paint as the column, back when the panel
