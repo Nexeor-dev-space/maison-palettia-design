@@ -1,66 +1,27 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useId } from "react";
 
 import { MenuCard } from "@/components/layout/MenuCard";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import type { DoodleName } from "@/components/sections/hero/doodles";
 import { INK } from "@/components/sections/hero/composition";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { cn } from "@/lib/utils";
-import type { ImageAsset } from "@/types";
 
 /*
   ==========================================================================
-  THE FOUR PAGES, AND THE PICTURE EACH ONE ALREADY OWNS
+  FOUR DOORS, EACH ONE CARRYING A CUT-OUT RATHER THAN A PHOTOGRAPH
   ==========================================================================
 
-  At the client's ask: the other two panels show the thing they are offering
-  and this one showed four coloured tiles, so About was the one menu a reader
-  could not see into. It takes the same anatomy now — a rail of names on the
-  left, a preview filling the column beside it — which is <MenuCard>'s own
-  pair of primitives rather than a third arrangement invented for one panel.
+  At the client's ask: the pictures are out and the brand's own marks are in.
 
-  EVERY PICTURE IS THE ONE ITS PAGE ALREADY USES, which is what makes this
-  honest rather than decorated: a reader who opens Contact from here meets the
-  photograph that is on /contact when they arrive. Locations has no hero of
-  its own, so it takes the studio's own frame of a shared table — one of the
-  four stills cut from the studio's film, not a stock photograph.
+  THE PHOTOGRAPHS WERE THE PROBLEM, AND THE FILE SAID SO BEFORE THEY WENT.
+  Four frames sat here from 2026-10-06, and three of the four showed
+  something other than what the door above them said:
 
-  NOTHING HERE IS CAPTIONED AS THE STUDIO'S OWN WORK. `alt` describes the
-  frame and never the occasion, which is the rule lib/privateEvents.ts sets
-  out at length for the same reason.
-*/
-/* One colour per column, in the site's own rotation. The colour picks the
-   drawing, so four colours is four different cut-outs. */
-const DOOR_MARKS = [INK.lilac, INK.terracotta, INK.lavender, INK.whiteRock];
-
-/*
-  ==========================================================================
-  THE FOUR PICTURES — supplied by the client 2026-10-06
-  ==========================================================================
-
-  public/images/about-dropdown, one file named for each door. They replace
-  four frames borrowed from elsewhere on the site: the About page's own
-  cut-out, a community-table shot standing in for Locations, a candle
-  photograph standing in for Gallery, and the plate-painting frame /contact
-  shows. Borrowed frames are why three of the four doors were showing
-  something that belonged to a different page.
-
-  PROVENANCE. Checked with `strings`: no C2PA manifest, no SynthID, no Adobe,
-  Figma or OpenAI marker on any of the four — which proves nothing either
-  way, so none of them may be captioned as the studio's own photograph or as
-  its own guests. All four are 2000px-wide landscape and crop to the 4:3 box
-  centred, so none needs a `position`.
-
-  AND THREE OF THE FOUR SHOW SOMETHING OTHER THAN WHAT THE DOOR SAYS. Used
-  as asked and raised in full, because the one place this matters is the one
-  door that reads as a claim:
-
-    about.jpg ..... two women painting on a studio floor. On-brand, and the
-                    only one of the four that needs no caveat.
     gallery.jpg ... somebody photographing through a gilt frame in an ART
                     gallery. A pun on the word rather than the Maison's own
                     gallery of finished work: nothing in it was made here.
@@ -70,28 +31,72 @@ const DOOR_MARKS = [INK.lilac, INK.terracotta, INK.lavender, INK.whiteRock];
     location.jpg .. a mall interior that is NOT Times Square Center. The
                     signage is Chinese and the storefronts are other
                     retailers' — Petit Bateau, MCS, Marisfrolg, Toys'R'Us.
-                    It sits behind the one door whose words are an address
-                    question, "Where to find us", so a generic mall there is
+                    It sat behind the one door whose words are an address
+                    question, "Where to find us", so a generic mall there
                     read as the Maison's mall.
 
-  Swapping any of them is one `src` and one `alt`; nothing else moves.
+  A cut-out claims nothing. It is the studio's own drawing, it is the same
+  object the rest of the site decorates with, and no reader can mistake it
+  for a photograph of a place they will be standing in. The one honest frame,
+  about.jpg, goes with the other three rather than leaving one door
+  photographic and three drawn — a row of four has to be one kind of thing.
+
+  The four files are still in public/images/about-dropdown and are now unused
+  by anything; they are the client's own supply, so they are left on disk to
+  be deleted or re-pointed deliberately rather than swept up by this change.
+
+  ==========================================================================
+  WHICH DRAWING EACH DOOR GETS, AND WHY IT IS THE PAINT THAT DECIDES
+  ==========================================================================
+
+  `resolveIcon` keys off the COLOUR, not the shape word: the brand sheet
+  holds two icons per colour — one loose cut-out, one laid on a slab — and
+  the word only picks which of those two. So four different marks means four
+  different paints, and naming them four different shapes would change
+  nothing. See components/sections/hero/doodles.ts.
+
+  All four take the slab weight. A slab is the poster version of a mark —
+  two-tone and solid-edged, where a loose cut-out is a thin shape that would
+  float in a panel this size with nothing holding it. The ratios differ
+  because these are hand-cut shapes and genuinely are different shapes; each
+  one meets its box and centres, which is a sheet of cut-outs rather than
+  four icons forced to a grid.
+
+  THE PANEL KEEPS NO GROUND OF ITS OWN. The picture box was `bg-cream`,
+  because a photograph needs something under it while it loads — and cream is
+  what <MenuCard> itself is, so four cream boxes in a cream panel ran together
+  into one band and the cards lost their top edge entirely. Measured: only the
+  name strips showed as four objects. Dropping the fill lets each card's own
+  `bg-surface` run the full height, which is what draws the edge, and the
+  hover then washes the whole card rather than half of it.
+
+  All four are therefore chosen to read on `bg-surface` — Light Sage mixed
+  into white. Light Sage's own slab is the one colour that cannot: it is that
+  ground. Soft Lavender's slab carries Charcoal Slate, so Gallery is the
+  darkest of the four.
 */
+
 interface AboutDoor {
   slug: string;
   href: string;
   name: string;
   sub: string;
-  image: ImageAsset;
+  /**
+   * The cut-out standing on this door.
+   *
+   * `ink` is the paint, and the paint is what picks the drawing; `name` only
+   * asks for the slab of that colour rather than the loose one. Changing
+   * `name` between two slab words would hand back the same icon.
+   */
+  mark: { name: DoodleName; ink: string };
 }
 
 /*
   TYPED RATHER THAN `as const`, and the reason is a type error that was also
   a design one. With `as const` the array's type is the literal shape of
-  whatever is in it, so `position` existed only while one entry happened to
-  set it — the moment all four crops were centred, `door.image.position`
-  narrowed to `{}` and the render stopped compiling. The aiming knob should
-  not appear and disappear with the data. `ImageAsset` carries it optionally,
-  which is what it is.
+  whatever is in it, so a field existed only while one entry happened to set
+  it — the moment all four agreed, that field narrowed to `{}` and the render
+  stopped compiling. The knobs should not appear and disappear with the data.
 */
 const ABOUT_DOORS: readonly AboutDoor[] = [
   {
@@ -102,20 +107,19 @@ const ABOUT_DOORS: readonly AboutDoor[] = [
     name: "About the Maison",
     /* The footer's own heading over MISSION, word for word. */
     sub: "Why we do it.",
-    image: {
-      src: "/images/about-dropdown/about.jpg",
-      alt: "Two people sitting on a studio floor with paint across their palms, a brush held between them over sheets of finished painting.",
-    },
+    /* Deep Lilac's slab — the lilac leaf, the brand accent itself, under the
+       door that answers who the Maison is. */
+    mark: { name: "bean", ink: INK.lilac },
   },
   {
     slug: "locations",
     href: "/locations",
     name: "Locations",
     sub: "Where to find us.",
-    image: {
-      src: "/images/about-dropdown/location.jpg",
-      alt: "A wide mall atrium under a glazed roof, escalators crossing between balconied floors of shops.",
-    },
+    /* Warm Terracotta's slab: the one solid single-colour block in the set,
+       and the strongest mark on the row — the door a reader is most often
+       hunting for. */
+    mark: { name: "cutout", ink: INK.terracotta },
   },
   {
     slug: "gallery",
@@ -124,20 +128,19 @@ const ABOUT_DOORS: readonly AboutDoor[] = [
     /* "What gets made here." is the gallery's own description and one word
        too long for the column. */
     sub: "What gets made.",
-    image: {
-      src: "/images/about-dropdown/gallery.jpg",
-      alt: "Someone raising a camera to photograph through a gilt picture frame, a hung print and a tall vase behind them.",
-    },
+    /* Soft Lavender's slab, the one the sheet draws with Charcoal Slate
+       waves across it — the widest shape of the four. */
+    mark: { name: "wave", ink: INK.lavender },
   },
   {
     slug: "contact",
     href: "/contact",
     name: "Contact",
     sub: "Write to us.",
-    image: {
-      src: "/images/about-dropdown/contact.jpg",
-      alt: "Someone in an apron taking a call at a counter, a bouquet of pale roses beside an open notebook.",
-    },
+    /* White Rock's slab: a warm cream block with a Deep Lilac coral on it.
+       The quietest of the four, under the door that is a form rather than a
+       place to look at — and the only warm neutral on a row of three paints. */
+    mark: { name: "slabCoral", ink: INK.whiteRock },
   },
 ] as const;
 
@@ -247,11 +250,11 @@ export function AboutMenu({
             the preview is the only way to see what a name means: Experiences
             has seven rows, Private events four. This menu has four short
             names a reader already understands, so the preview was showing one
-            page at a time and three of the four stayed pictureless.
+            page at a time and three of the four stayed blank.
 
-            Four columns show all four at once, which is the thing the client
-            actually asked for when they asked for imagery — not a preview
-            pane, but a picture on every door.
+            Four columns show all four at once — not a preview pane, but a
+            drawing on every door, arriving in reading order as the panel
+            opens.
 
             `items-stretch` is the default and is what is wanted: all four take
             the height of the tallest, so a two-line sub on one does not leave
@@ -263,45 +266,67 @@ export function AboutMenu({
                 key={door.slug}
                 href={door.slug === "about" ? href : door.href}
                 className={cn(
-                  "group/door relative flex flex-col overflow-hidden rounded-[1.35rem] bg-surface",
+                  /*
+                    `overflow-clip`, not `overflow-hidden`. It clips the same
+                    and respects the radius the same, and it does not make a
+                    scroll container — which is what a mark's view timeline
+                    resolves against. The marks below are on `trigger="state"`
+                    and so do not ask the question, but the default for new
+                    work here is clip; see app/locations/page.tsx.
+                  */
+                  "group/door relative flex flex-col overflow-clip rounded-[1.35rem] bg-surface",
                   "transition-colors duration-300 ease-soft hover:bg-sage",
                 )}
               >
                 {/*
-                  THE PICTURE SETS THE COLUMN'S TOP AND NOTHING ELSE. A fixed
-                  ratio rather than `flex-1`: four columns side by side have
-                  to crop identically or the row reads as four different
-                  objects, and 4:3 is the shallowest crop that still keeps a
-                  subject held in somebody's hands whole at this width.
+                  THE MARK SETS THE COLUMN'S TOP AND NOTHING ELSE. A fixed
+                  ratio rather than `flex-1`: four columns side by side have to
+                  hold the same box or the row reads as four different objects.
+                  4:3 was the crop the photographs took and it suits the slabs
+                  too — none of the five is taller than it is wide by much.
+
+                  The inset is what keeps a shape off its own edges, so the
+                  widest of the four (Soft Lavender's waves) still has air
+                  either side rather than running out of the panel.
                 */}
-                <span className="relative block aspect-[4/3] w-full overflow-hidden bg-cream">
-                  <Image
-                    src={door.image.src}
-                    alt={door.image.alt}
-                    fill
-                    sizes="(min-width: 1024px) 23vw, (min-width: 640px) 46vw, 92vw"
-                    className="object-cover transition-transform duration-700 ease-editorial motion-safe:group-hover/door:scale-[1.03]"
-                    style={door.image.position ? { objectPosition: door.image.position } : undefined}
-                  />
+                <span className="relative block aspect-[4/3] w-full overflow-clip">
+                  <span aria-hidden className="absolute inset-[15%] block">
+                    {/*
+                      THEY DRAW THEMSELVES WHEN THE PANEL OPENS, left to right.
+
+                      `trigger="state"` with `on={shown}` because the panel
+                      owns the moment: the default trigger is a view timeline,
+                      and a timeline inside this panel resolves against the
+                      panel itself — a scroll container that never scrolls — so
+                      every mark would report as covered and sit permanently
+                      drawn. <MenuSplash> carries the same pair for the same
+                      reason.
+
+                      `depth` is low. A mark this size with the pointer right
+                      on it reads as the card wobbling at the 8 the hero uses.
+                    */}
+                    <DoodleMark
+                      name={door.mark.name}
+                      color={door.mark.ink}
+                      treatment="draw"
+                      trigger="state"
+                      on={shown}
+                      delay={shown ? 140 + i * 90 : 0}
+                      depth={4}
+                    />
+                  </span>
                 </span>
 
                 <span className="flex flex-1 flex-col gap-1 px-4 pb-4 pt-3.5">
-                  <span className="flex items-center gap-2">
-                    {/*
-                      The cut-out each door carries, one per column. The colour
-                      picks the drawing in this brand's sheet, so four colours
-                      is four different marks — see `resolveIcon`.
-                    */}
-                    <span aria-hidden className="block w-4 shrink-0">
-                      <DoodleMark
-                        name="bow"
-                        color={DOOR_MARKS[i % DOOR_MARKS.length]}
-                        treatment="stamp"
-                        depth={0}
-                      />
-                    </span>
-                    <span className="text-body font-medium text-text">{door.name}</span>
-                  </span>
+                  {/*
+                    NO SECOND MARK BESIDE THE NAME. There was a 1rem cut-out
+                    here, in the same paint as the column, back when the panel
+                    above it was a photograph and the mark was the only brand
+                    drawing on the card. With the drawing now filling that
+                    panel, a small copy of it under its own chin is a second
+                    decoration arguing with the first.
+                  */}
+                  <span className="text-body font-medium text-text">{door.name}</span>
                   <span className="text-fine text-text/75">{door.sub}</span>
                 </span>
               </Link>
