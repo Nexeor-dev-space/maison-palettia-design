@@ -5,7 +5,7 @@ import { useId } from "react";
 
 import { MenuCard } from "@/components/layout/MenuCard";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import type { DoodleName } from "@/components/sections/hero/doodles";
+import { resolveIcon, type DoodleName } from "@/components/sections/hero/doodles";
 import { INK } from "@/components/sections/hero/composition";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
@@ -57,10 +57,10 @@ import { cn } from "@/lib/utils";
 
   All four take the slab weight. A slab is the poster version of a mark —
   two-tone and solid-edged, where a loose cut-out is a thin shape that would
-  float in a panel this size with nothing holding it. The ratios differ
-  because these are hand-cut shapes and genuinely are different shapes; each
-  one meets its box and centres, which is a sheet of cut-outs rather than
-  four icons forced to a grid.
+  read as a scratch at this size. The ratios differ because these are
+  hand-cut shapes and genuinely are different shapes; what keeps them a set
+  rather than four mismatched icons is that they are sized by area — see
+  MARK_SIDE.
 
   THE PANEL KEEPS NO GROUND OF ITS OWN. The picture box was `bg-cream`,
   because a photograph needs something under it while it loads — and cream is
@@ -143,6 +143,49 @@ const ABOUT_DOORS: readonly AboutDoor[] = [
     mark: { name: "slabCoral", ink: INK.whiteRock },
   },
 ] as const;
+
+/*
+  ==========================================================================
+  HOW BIG EACH MARK IS DRAWN — by area, not by box
+  ==========================================================================
+
+  These used to fill a 4:3 panel the width of the card, which meant a mark
+  grew with the viewport: 237px tall at 1440 and 316px at 1920, where the
+  same cut-outs scattered across the page behind the menu are drawn at
+  60-90px. At that size they stop reading as the brand's marks and start
+  reading as large abstract shapes, which is what the client saw.
+
+  So the size is fixed in rem and does not track the card.
+
+  AND IT IS NORMALISED BY AREA, which is the part a single width or a single
+  height gets wrong. The four slabs are not near-square — Soft Lavender's
+  waves are 2.55:1 and White Rock's coral is 0.92:1, a factor of nearly
+  three between them. Give them all one height and the waves are twice the
+  width of anything else; give them all one width and the waves shrink to a
+  sliver. Matching the AREA instead — width = S x sqrt(r), height = S /
+  sqrt(r) for a ratio r — lands every mark on the same visual weight whatever
+  its proportion.
+
+  The ratio is read from `resolveIcon`, the same call that decides which
+  drawing a door gets, so the geometry can never drift from the icon: swap a
+  paint and the box follows the new shape on its own.
+*/
+const MARK_SIDE = 5.2; // rem, the side of the square each mark is drawn to match
+
+function markBox(name: DoodleName, ink: string) {
+  const { w, h } = resolveIcon(name, ink);
+  const root = Math.sqrt(w / h);
+  return { w: MARK_SIDE * root, h: MARK_SIDE / root };
+}
+
+/*
+  One shelf for all four, as tall as the tallest mark needs, with every mark
+  sitting on its floor. Two things come out of that: the names start at the
+  same height across the row rather than stepping up and down with each
+  shape, and the marks share a baseline the way a row of objects on a shelf
+  does. A per-card height would have neither.
+*/
+const MARK_SHELF = Math.max(...ABOUT_DOORS.map((d) => markBox(d.mark.name, d.mark.ink).h));
 
 interface AboutMenuProps {
   label: string;
@@ -279,18 +322,31 @@ export function AboutMenu({
                 )}
               >
                 {/*
-                  THE MARK SETS THE COLUMN'S TOP AND NOTHING ELSE. A fixed
-                  ratio rather than `flex-1`: four columns side by side have to
-                  hold the same box or the row reads as four different objects.
-                  4:3 was the crop the photographs took and it suits the slabs
-                  too — none of the five is taller than it is wide by much.
+                  THE MARK, ON ITS SHELF AND RANGED LEFT WITH THE TYPE.
 
-                  The inset is what keeps a shape off its own edges, so the
-                  widest of the four (Soft Lavender's waves) still has air
-                  either side rather than running out of the panel.
+                  Centred was the other half of what made these read wrong.
+                  The name and the line under it are ranged left, so a mark
+                  centred over them put the card's one drawn element on an
+                  axis nothing else shares — the eye saw a centred picture
+                  with left-aligned captions under it rather than one object.
+                  Sharing the type's left edge is what makes the card read as
+                  composed rather than as two stacked layouts.
+
+                  `items-end` stands every mark on the shelf's floor — see
+                  MARK_SHELF for why there is a shelf at all.
                 */}
-                <span className="relative block aspect-[4/3] w-full overflow-clip">
-                  <span aria-hidden className="absolute inset-[15%] block">
+                <span
+                  aria-hidden
+                  className="flex shrink-0 items-end px-6 pt-7"
+                  style={{ height: `${MARK_SHELF + 1.75}rem` }}
+                >
+                  <span
+                    className="block"
+                    style={{
+                      width: `${markBox(door.mark.name, door.mark.ink).w}rem`,
+                      height: `${markBox(door.mark.name, door.mark.ink).h}rem`,
+                    }}
+                  >
                     {/*
                       THEY DRAW THEMSELVES WHEN THE PANEL OPENS, left to right.
 
@@ -302,8 +358,9 @@ export function AboutMenu({
                       drawn. <MenuSplash> carries the same pair for the same
                       reason.
 
-                      `depth` is low. A mark this size with the pointer right
-                      on it reads as the card wobbling at the 8 the hero uses.
+                      `depth` is 3 rather than the hero's 8: the drift is in
+                      pixels, so the same number that breathes on a large mark
+                      reads as a small one sliding about.
                     */}
                     <DoodleMark
                       name={door.mark.name}
@@ -312,12 +369,12 @@ export function AboutMenu({
                       trigger="state"
                       on={shown}
                       delay={shown ? 140 + i * 90 : 0}
-                      depth={4}
+                      depth={3}
                     />
                   </span>
                 </span>
 
-                <span className="flex flex-1 flex-col gap-1 px-4 pb-4 pt-3.5">
+                <span className="flex flex-1 flex-col gap-1.5 px-6 pb-7 pt-5">
                   {/*
                     NO SECOND MARK BESIDE THE NAME. There was a 1rem cut-out
                     here, in the same paint as the column, back when the panel
