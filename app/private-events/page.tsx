@@ -759,8 +759,8 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
 
           <h2 id="private-events-experiences" className="mt-8 md:mt-10">
             <Stagger>
-              <SectionLine>Choose What</SectionLine>{" "}
-              <SectionLine>You Make.</SectionLine>
+              <SectionLine>Pick Your Kind of</SectionLine>{" "}
+              <SectionLine>Creative.</SectionLine>
             </Stagger>
           </h2>
         </div>
@@ -768,8 +768,10 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
         <Reveal delay={0.2} className="col-span-12 md:col-span-5 md:pb-3">
           {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
           <p className="text-lead text-text/80">
-            The Maison&rsquo;s creative world, as a starting point. We shape the
-            right activity for your group once you have told us about it.
+            From painting and bedazzling to candles, crochet and more,
+            there&rsquo;s plenty to get your hands on. Choose from our creative
+            experiences, or let&rsquo;s create something around your group,
+            occasion or idea.
           </p>
         </Reveal>
       </div>
@@ -982,15 +984,22 @@ function CreateWithUs({ partner }: { partner?: MallPartner }) {
 
             <h2 id="private-events-where" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine>Where People</SectionLine>{" "}
-                <SectionLine>Already Gather.</SectionLine>
+                {/* Split after "Next": it gives two lines of near-equal
+                    length in the half-measure this heading is set in, where
+                    "Your Next Creative" / "Stop." leaves a one-word orphan. */}
+                <SectionLine>Your Next</SectionLine>{" "}
+                <SectionLine>Creative Stop.</SectionLine>
               </Stagger>
             </h2>
 
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[30rem] text-lead text-text/85">
-                Maison Palettia brings creative experiences to spaces where
-                people already gather.
+              {/* 34rem, not the 30 this was set in. The new line is 24 words
+                  against the old 11 and at 30rem it ran to five lines against
+                  a two-line heading, which left the column bottom-heavy. */}
+              <p className="mt-8 max-w-[34rem] text-lead text-text/85">
+                Maison Palettia brings creativity into the places you already
+                visit — so you can stop by, pick a project and make something
+                along the way.
               </p>
             </Reveal>
           </div>

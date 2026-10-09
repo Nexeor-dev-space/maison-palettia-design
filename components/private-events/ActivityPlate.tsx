@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import type { CreativeExperience } from "@/lib/experiences";
 import { cn } from "@/lib/utils";
@@ -191,6 +192,7 @@ export function ActivityPlate({
   sizes,
   paint = 0,
   large = false,
+  href,
 }: {
   experience: CreativeExperience;
   className: string;
@@ -198,6 +200,23 @@ export function ActivityPlate({
   /** Which of PAINTS this tile takes — its position in the collage. */
   paint?: number;
   large?: boolean;
+  /**
+   * Where the whole tile goes when it is pressed, or nothing for a tile that
+   * is only a picture.
+   *
+   * THE TILE WAS NEVER CLICKABLE and the client has asked that it should be:
+   * on a private-events page an activity is not something to go and read
+   * about, it is something to ask for, so the destination is the enquiry.
+   * The caller passes it, because the same tile is used in places where there
+   * is nothing to send anyone to.
+   *
+   * THE WHOLE TILE, NOT A LINK IN THE CAPTION. The picture, the paint and the
+   * words are one object and a 300px card with a 90px target in the corner of
+   * it is the fault every "learn more" link has. Its accessible name comes
+   * from the caption — the photograph is `alt=""`, so a screen reader reads
+   * the activity's name and line, which is exactly what is on screen.
+   */
+  href?: string;
 }) {
   const stock = PAINTS[paint % PAINTS.length];
   /*
@@ -246,16 +265,29 @@ export function ActivityPlate({
     </div>
   );
 
+  /*
+    ONE ELEMENT, CHOSEN ONCE. `Shell` is <Link> when there is somewhere to go
+    and a plain <div> when there is not, so neither branch below has to carry
+    two copies of the tile — and a tile with no `href` renders exactly the
+    markup it always did, with no anchor wrapped round it.
+  */
+  const Shell = href ? Link : "div";
+  const shellProps = href ? { href } : {};
+
   if (!experience.image) {
     return (
-      <div className={cn("flex flex-col justify-end overflow-clip rounded-[1.25rem]", className)}>
+      <Shell
+        {...(shellProps as { href: string })}
+        className={cn("flex flex-col justify-end overflow-clip rounded-[1.25rem]", className)}
+      >
         {caption}
-      </div>
+      </Shell>
     );
   }
 
   return (
-    <div
+    <Shell
+      {...(shellProps as { href: string })}
       /* `rounded-[1.25rem]`, not the site's 8px `rounded-sm`: packed this
          tight the corners are what separate one tile from the next, and the
          client's reference rounds them hard. It is the same radius the
@@ -296,6 +328,6 @@ export function ActivityPlate({
       </div>
 
       {caption}
-    </div>
+    </Shell>
   );
 }

@@ -57,7 +57,8 @@ const MALL_PARTNERS: MallPartner[] = [
     name: "Times Square Center",
     locality: "Dubai",
     /*
-      REWRITTEN AT THE CLIENT'S ASK, 2026-10-08, and it is worth saying that
+      REWRITTEN AT THE CLIENT'S ASK TWICE — 2026-10-08, then again on
+      2026-10-09 — and it is worth saying that
       ONE STRING SERVES THREE SURFACES: the plate on /private-events, the one
       <PartnerPlate> draws on /locations and every event page, and the map's
       caption in <LocationMap>. The request came in against /private-events;
@@ -66,7 +67,7 @@ const MALL_PARTNERS: MallPartner[] = [
       all three move together — which is the point of it living here.
     */
     descriptor:
-      "Find us at Times Square Center, where creativity, community and a little time away from the everyday come together.",
+      "Find us at Times Square Center, where the Maison comes to life with hands-on experiences, workshops and plenty of reasons to stop by and make something.",
     locationHref:
       "https://www.google.com/maps/search/?api=1&query=Times+Square+Center+Dubai",
   },

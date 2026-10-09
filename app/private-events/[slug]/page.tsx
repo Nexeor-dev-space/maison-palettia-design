@@ -613,11 +613,17 @@ function Activities({
           {experiences.map((experience, i) => (
             <li key={experience.slug}>
               <Reveal variant="fadeIn" delay={Math.min(i, 5) * 0.05} className="h-full">
+                {/* EVERY TILE GOES TO THE ENQUIRY, at the client's ask. On
+                    this page an activity is not something to read about — it
+                    is something to ask for, and there is no per-activity
+                    private-events page to send anyone to. See `href` on
+                    <ActivityPlate>. */}
                 <ActivityPlate
                   experience={experience}
                   className="h-full"
                   sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
                   paint={i}
+                  href={PRIVATE_EVENT_ENQUIRY_HREF}
                 />
               </Reveal>
             </li>
