@@ -781,6 +781,26 @@ function PrimaryAction({
     a label. The statement's job is the half the page does NOT say anywhere
     else, which is that turning up has a when.
 
+    WHAT THE CLIENT REWROTE 2026-10-09, AND WHAT STILL CARRIES THE WHEN. The
+    body line was "There is nothing to reserve for this one. But the studio
+    travels, and each date runs at a mall for that day only." It is now "Just
+    drop in when the experience is available and start creating."
+
+    The dead end above does NOT come back, and the two things that stop it
+    are both still here: the heading over this line is "Come on a day we are
+    there.", which is the whole point stated plainly, and the <PeelNote> under
+    it goes to /events#where-we-set-up, where <WhereWeSetUp> prints "The
+    studio travels. Each date runs at a mall for that day only." and the real
+    dates beside it. The specific fact moved to the one surface that can also
+    answer "which day" — it did not leave the site.
+
+    What the new line does give up is saying that fact HERE, and "just drop
+    in" leans on the booking half that the row above already states. Both are
+    the client's call and are recorded rather than argued with; the clause
+    that has to survive any future edit is "when the experience is available",
+    because without a conditional of some kind this panel is back to promising
+    opening hours the Maison does not keep.
+
     THE EYEBROW OVER THE TITLE STILL READS "CREATE ANYTIME" AND SHOULD. That
     is the client's own site-wide name for this half of the menu — see
     lib/brand.ts — and renaming a category is not what this is. What changed
@@ -794,8 +814,7 @@ function PrimaryAction({
         Come on a day we are there.
       </p>
       <p className="mt-3 max-w-[30rem] text-body text-text/85">
-        There is nothing to reserve for this one. But the studio travels, and
-        each date runs at a mall for that day only.
+        Just drop in when the experience is available and start creating.
       </p>
       <PeelNote
         href="/events#where-we-set-up"
