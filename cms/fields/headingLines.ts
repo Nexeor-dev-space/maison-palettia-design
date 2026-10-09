@@ -11,7 +11,9 @@ import type { ArrayField } from "payload";
  * mirrors that: an array of short `text` rows, with a cap on rows and on
  * characters per row so an editor cannot type a line the face cannot fit.
  *
- * Defaults follow SPEC §E: two lines of 18 characters. The home hero takes
+ * Defaults: two lines of 24 characters. SPEC §E said 18, but the site
+ * already prints lines of up to 22 ("something of your own?" on /gallery), and
+ * the parity seed copies today's wording verbatim. The home hero takes
  * three lines of 16 (`headingLines({ maxRows: 3, maxChars: 16 })`), the
  * private-events intro three. `{ text }` is the one spelling every block,
  * renderer adapter and seed file must use.
@@ -27,7 +29,7 @@ export type HeadingLinesOptions = {
 };
 
 export function headingLines(opts: HeadingLinesOptions = {}): ArrayField {
-  const { name = "headingLines", label = "Heading", maxRows = 2, maxChars = 18, required = true, description } = opts;
+  const { name = "headingLines", label = "Heading", maxRows = 2, maxChars = 24, required = true, description } = opts;
   return {
     name,
     type: "array",

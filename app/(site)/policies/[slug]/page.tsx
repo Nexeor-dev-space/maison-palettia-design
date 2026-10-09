@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { groundShapes } from "@/components/motion/groundShapes";
 import { PolicyBody } from "@/components/policies/PolicyBody";
@@ -11,23 +10,30 @@ import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
-import { getPolicy, POLICIES } from "@/lib/policies";
-import { buildMetadata } from "@/lib/seo";
+import { labelLines, loadTemplateCopy, policyCopy } from "@/components/blocks/templateCopy";
+import { redirectOr404 } from "@/lib/cms/redirects";
+import { getPolicies, getPolicyBySlug } from "@/lib/policies";
+import { getMetadata } from "@/lib/seo";
 
 /**
  * Every policy is known at build time and none of them changes between
  * requests, so all eight are static. Same device as /private-events/[slug].
  */
-export function generateStaticParams() {
-  return POLICIES.map((policy) => ({ slug: policy.slug }));
+/*
+  Every published policy is prerendered; one published after the build
+  renders on its first request (`dynamicParams` defaults on) and the policies
+  hook revalidates it from then on.
+*/
+export async function generateStaticParams() {
+  return (await getPolicies()).map((policy) => ({ slug: policy.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const policy = getPolicy(slug);
-  if (!policy) return buildMetadata({ title: "Policy", description: "Maison Palettia policies.", path: "/policies" });
+  const policy = await getPolicyBySlug(slug);
+  if (!policy) return getMetadata({ title: "Policy", description: "Maison Palettia policies.", path: "/policies" });
 
-  return buildMetadata({
+  return getMetadata({
     title: policy.title,
     description: policy.summary,
     path: `/policies/${policy.slug}`,
@@ -73,8 +79,12 @@ const POLICY_SHAPES: readonly ShapePlan[] = groundShapes("cream");
  */
 export default async function PolicyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const policy = getPolicy(slug);
-  if (!policy) notFound();
+  const policy = await getPolicyBySlug(slug);
+  // A renamed policy's old address redirects; anything else is the 404.
+  if (!policy) return redirectOr404(`/policies/${slug}`);
+
+  await loadTemplateCopy();
+  const copy = policyCopy();
 
   return (
     <>
@@ -110,14 +120,14 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
               >
                 &#8592;
               </span>
-              All policies
+              {copy.backLabel}
             </Link>
           </Reveal>
 
           <div className="mt-7 grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
             <div className="col-span-12 lg:col-span-7">
               <Reveal>
-                <Eyebrow>Policy</Eyebrow>
+                <Eyebrow>{copy.eyebrow}</Eyebrow>
               </Reveal>
               <DisplayHeading
                 as="h1"
@@ -155,13 +165,10 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
         <SectionShapes plan={groundShapes("lilac")} />
         <Container className="text-center">
           <div className="mx-auto max-w-[44rem]">
-            <DisplayHeading id="policy-close" ground="lilac" lines={["Still", "Wondering?"]} />
+            <DisplayHeading id="policy-close" ground="lilac" lines={labelLines(copy.closeHeading)} />
 
             <Reveal delay={0.2}>
-              <p className="mx-auto mt-7 max-w-[40ch] text-lead text-surface">
-                If anything here does not cover what you need, ask us before
-                you book.
-              </p>
+              <p className="mx-auto mt-7 max-w-[40ch] text-lead text-surface">{copy.closeBody}</p>
             </Reveal>
 
             <Reveal delay={0.3}>
@@ -173,10 +180,10 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
               */}
               <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
                 <BlobButton href="/contact" tone="cream" className="min-h-[3.25rem] px-7">
-                  Ask the Maison
+                  {copy.closeCta}
                 </BlobButton>
                 <PeelNote href="/policies" className="min-h-[3.25rem] px-7">
-                  All policies
+                  {copy.backLabel}
                 </PeelNote>
               </div>
             </Reveal>

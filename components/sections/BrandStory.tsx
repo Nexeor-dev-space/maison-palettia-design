@@ -5,6 +5,27 @@ import { DoodleMark } from "@/components/ui/DoodleMark";
 import { forScript } from "@/components/ui/SectionHeader";
 import { OPENING_STATEMENT } from "@/lib/brand";
 import { cn } from "@/lib/utils";
+import type { ImageAsset } from "@/types";
+
+/*
+  THE WORDS ARE NOW HANDED IN. The opening statement lives in the Brand
+  wording global (`openingStatement`) or, when the homepage block turns
+  "Use Brand wording" off, in the block itself — components/blocks/
+  OpeningStatement.tsx decides which and passes it here. Left out, each
+  prop falls back to lib/brand.ts, which is what this section printed
+  before the CMS; `null` leaves the line out.
+*/
+export type BrandStoryWords = {
+  heading?: string | null;
+  body?: string | null;
+  closer?: string | null;
+};
+
+export type BrandStoryPanel = {
+  heading?: string | null;
+  body?: string | null;
+  signOff?: string | null;
+};
 
 /**
  * ==========================================================================
@@ -63,11 +84,17 @@ export function BrandStoryLead({
   as: Tag = "h2",
   id,
   className,
+  words = {},
 }: {
   as?: "h2" | "p";
   id?: string;
   className?: string;
+  words?: BrandStoryWords;
 }) {
+  const heading = words.heading === undefined ? OPENING_STATEMENT.heading : words.heading;
+  const body = words.body === undefined ? OPENING_STATEMENT.body : words.body;
+  const closer = words.closer === undefined ? OPENING_STATEMENT.closer : words.closer;
+
   return (
     <div className={className}>
       <Tag
@@ -87,7 +114,7 @@ export function BrandStoryLead({
         */
         className="heading-script max-w-[22ch] pb-[0.18em] text-script-section text-text"
       >
-        {forScript(OPENING_STATEMENT.heading)}
+        {forScript(heading ?? "")}
       </Tag>
 
       {/*
@@ -105,13 +132,17 @@ export function BrandStoryLead({
         75 characters a reader tracks comfortably, so it is 46ch now and the
         block holds the same physical width it always had.
       */}
-      <p className="script-lede max-w-[46ch] text-statement font-medium text-text">
-        {OPENING_STATEMENT.body}
-      </p>
+      {body ? (
+        <p className="script-lede max-w-[46ch] text-statement font-medium text-text">
+          {body}
+        </p>
+      ) : null}
 
-      <p className="mt-6 max-w-[40ch] text-statement font-semibold leading-[1.4] text-text">
-        {OPENING_STATEMENT.closer}
-      </p>
+      {closer ? (
+        <p className="mt-6 max-w-[40ch] text-statement font-semibold leading-[1.4] text-text">
+          {closer}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -137,7 +168,28 @@ export function BrandStoryLead({
  * the frame has no ratio of its own and the picture fills whatever height the
  * field beside it asks for.
  */
-export function BrandStoryObject({ className }: { className?: string }) {
+export function BrandStoryObject({
+  className,
+  panel = {},
+  image,
+}: {
+  className?: string;
+  panel?: BrandStoryPanel;
+  /** The photograph beside the panel; `undefined` keeps the launch file. */
+  image?: ImageAsset | null;
+}) {
+  const heading = panel.heading === undefined ? OPENING_STATEMENT.panel.heading : panel.heading;
+  const body = panel.body === undefined ? OPENING_STATEMENT.panel.body : panel.body;
+  const signOff = panel.signOff === undefined ? OPENING_STATEMENT.panel.signOff : panel.signOff;
+  const photo =
+    image === undefined
+      ? {
+          src: "/images/about-sec-img.png",
+          alt: "Three poured candles in a lined gift box: one in a cut-glass tumbler set with raspberries, one in a brass tin with raspberries and blueberries, and one swirled in a fluted white pot.",
+          position: "50% 50%",
+        }
+      : image;
+
   return (
     <div
       className={cn(
@@ -151,14 +203,16 @@ export function BrandStoryObject({ className }: { className?: string }) {
         data-paint
         style={{ "--paint": "var(--color-terracotta)" } as React.CSSProperties}
       >
-        <Image
-          src="/images/about-sec-img.png"
-          alt="Three poured candles in a lined gift box: one in a cut-glass tumbler set with raspberries, one in a brass tin with raspberries and blueberries, and one swirled in a fluted white pot."
-          fill
-          sizes="(min-width: 1024px) 48vw, 100vw"
-          className="object-cover"
-          style={{ objectPosition: "50% 50%" }}
-        />
+        {photo ? (
+          <Image
+            src={photo.src}
+            alt={photo.alt}
+            fill
+            sizes="(min-width: 1024px) 48vw, 100vw"
+            className="object-cover"
+            style={{ objectPosition: photo.position ?? "50% 50%" }}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col justify-center bg-primary px-7 py-11 text-surface md:px-12 md:py-14 lg:px-14">
@@ -170,21 +224,27 @@ export function BrandStoryObject({ className }: { className?: string }) {
           sage the client's mock shows is safe here — and the paragraph under
           it stays `surface` for exactly the same reason.
         */}
-        <p className="heading-script pb-[0.14em] text-script-panel text-sage">
-          {forScript(OPENING_STATEMENT.panel.heading)}
-        </p>
+        {heading ? (
+          <p className="heading-script pb-[0.14em] text-script-panel text-sage">
+            {forScript(heading)}
+          </p>
+        ) : null}
 
-        <p className="script-lede max-w-[48ch] text-body">
-          {OPENING_STATEMENT.panel.body}
-        </p>
+        {body ? (
+          <p className="script-lede max-w-[48ch] text-body">
+            {body}
+          </p>
+        ) : null}
 
         {/* The sign-off, in the sage that reads on Deep Lilac. */}
-        <p className="mt-7 flex items-center gap-3 text-body font-medium text-sage">
-          <span aria-hidden className="block w-5 shrink-0">
-            <DoodleMark name="splash" color={INK.lavender} delay={220} />
-          </span>
-          {OPENING_STATEMENT.panel.signOff}
-        </p>
+        {signOff ? (
+          <p className="mt-7 flex items-center gap-3 text-body font-medium text-sage">
+            <span aria-hidden className="block w-5 shrink-0">
+              <DoodleMark name="splash" color={INK.lavender} delay={220} />
+            </span>
+            {signOff}
+          </p>
+        ) : null}
       </div>
     </div>
   );

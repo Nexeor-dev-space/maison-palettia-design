@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="">
+  <!-- The stand-in the site's mappers print when a picture is missing or was
+       removed from Media (SPEC §D.1): the brand's cream ground with one soft
+       lavender wash, so a gap reads as a quiet plate, never as a broken
+       image. No text, no scripts; static file, not a media document. -->
+  <rect width="1200" height="900" fill="#EFE2CA"/>
+  <ellipse cx="600" cy="450" rx="250" ry="190" fill="#C4B5FD" fill-opacity="0.35"/>
+  <ellipse cx="660" cy="410" rx="120" ry="90" fill="#9059A4" fill-opacity="0.12"/>
+</svg>

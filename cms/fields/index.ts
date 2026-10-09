@@ -1,7 +1,7 @@
 /**
  * Shared field factories (SPEC §A.3 `cms/fields/`). Import from `@/cms/fields`.
- * `brandCopyLink` joins this list in Phase 2A-0.
  */
+export * from "./brandCopyLink";
 export * from "./cta";
 export * from "./encryptedText";
 export * from "./headingLines";

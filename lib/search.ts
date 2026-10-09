@@ -1,4 +1,4 @@
-import { sessionDateParts } from "@/lib/workshops";
+import { sessionDateParts } from "@/lib/workshopHelpers";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { Workshop } from "@/types";
 

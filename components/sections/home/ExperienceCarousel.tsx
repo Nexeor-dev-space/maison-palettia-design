@@ -54,7 +54,14 @@ import type { CreativeExperience } from "@/lib/experiences";
   next to itself — 1 4 7 lilac, 2 5 terracotta, 3 6 lavender.
 */
 
-export function ExperienceCarousel({ experiences }: { experiences: CreativeExperience[] }) {
+export function ExperienceCarousel({
+  experiences,
+  cardAction,
+}: {
+  experiences: CreativeExperience[];
+  /** The label each card's paint carries in; the card's own default when absent. */
+  cardAction?: string;
+}) {
   const track = useRef<HTMLUListElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
@@ -190,6 +197,7 @@ export function ExperienceCarousel({ experiences }: { experiences: CreativeExper
             index={i}
             sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 29vw, (min-width: 640px) 44vw, 74vw"
             as="li"
+            actionLabel={cardAction}
             className={cn(
               "w-[74%] shrink-0 snap-start sm:w-[44%] lg:w-[29%] xl:w-[22%]",
               i % 2 === 0 ? "lg:mt-0" : "lg:mt-7",

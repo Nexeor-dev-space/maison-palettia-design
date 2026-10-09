@@ -1,10 +1,12 @@
 import { readFile } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
 
+import { imageDataUri } from "@/components/cms/ogImage";
 import { INK } from "@/components/sections/hero/composition";
 import { BRAND_LOGO } from "@/lib/constants";
+import { getBrandLogo } from "@/lib/constants.server";
 import { eventImage, eventTitle, getEventDetail, getEventSlugs } from "@/lib/eventDetail";
 
 /**
@@ -72,40 +74,35 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
-/* Request-independent, so read once. Both are the client's own files. */
+/* Request-independent, so read once. Both are the client's own files; the
+   committed logo is only the fallback for the Site details one below. */
 const scriptFont = await readFile(
   join(process.cwd(), "public", "fonts", "HapshaSophiaScript_01.otf"),
 );
 const logo = await readFile(join(process.cwd(), "public", BRAND_LOGO.src));
-const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+const committedLogoSrc = `data:image/png;base64,${logo.toString("base64")}`;
 
-const MIME: Record<string, string> = {
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-};
-
-/**
- * A /public path as a data URI, or null when it cannot be drawn. Satori takes
- * only what it is handed — it cannot fetch a root-relative path from a server
- * that, at build time, is not running.
- */
-async function publicImage(src: string): Promise<string | null> {
-  const mime = MIME[extname(src).toLowerCase()];
-  if (!mime) return null;
-  try {
-    const bytes = await readFile(join(process.cwd(), "public", src));
-    return `data:${mime};base64,${bytes.toString("base64")}`;
-  } catch {
-    return null;
-  }
+/*
+  THE LOGO IS SITE DETAILS' ("on dark" cut, `getBrandLogo`), read per render
+  as the site-wide card does, so replacing it in the admin changes this card
+  on the next revalidation; the committed file answers when it cannot be read.
+*/
+async function brandLogo(): Promise<{ src: string; width: number }> {
+  const cut = await getBrandLogo();
+  const src = (await imageDataUri(cut.src, { width: 1200, keepAlpha: true })) ?? committedLogoSrc;
+  return { src, width: Math.round((LOGO_HEIGHT * cut.width) / cut.height) };
 }
 
+/*
+  The photograph comes from the event's own record — a Media upload once the
+  CMS has the activity, a committed /public file before — so it is read and
+  re-encoded by components/cms/ogImage.ts, which knows both places and turns
+  the Media sizes' WebP into something Satori can draw.
+*/
 /** Scale from the 1200x630 the card was composed at to the size it ships at. */
 const U = size.height / 630;
 const SIDE = size.height;
 const LOGO_HEIGHT = Math.round(92 * U);
-const LOGO_WIDTH = Math.round((LOGO_HEIGHT * BRAND_LOGO.width) / BRAND_LOGO.height);
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -121,7 +118,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     out and the name given the width — still its own, still on brand, and it
     fills in by itself once a photograph is added to its entry.
   */
-  const photoSrc = photo ? await publicImage(photo.src) : null;
+  const photoSrc = photo ? await imageDataUri(photo.src) : null;
+
+  const logoCut = await brandLogo();
 
   return new ImageResponse(
     (
@@ -155,7 +154,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           >
             {title}
           </div>
-          <img src={logoSrc} width={LOGO_WIDTH} height={LOGO_HEIGHT} alt="" />
+          <img src={logoCut.src} width={logoCut.width} height={LOGO_HEIGHT} alt="" />
         </div>
       </div>
     ),

@@ -1,6 +1,6 @@
 import { BlobButton } from "@/components/ui/BlobButton";
 
-import { PRIMARY_CTA } from "@/lib/constants";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { cn } from "@/lib/utils";
 
 interface BookActionProps {
@@ -43,10 +43,12 @@ interface BookActionProps {
  */
 export function BookAction({ onNavigate, size = "bar", className }: BookActionProps) {
   const bar = size === "bar";
+  // Menus → Primary action button, through the layout (see SiteChrome).
+  const { primaryCta } = useSiteChrome();
 
   return (
     <BlobButton
-      href={PRIMARY_CTA.href}
+      href={primaryCta.href}
       onClick={onNavigate}
       className={cn(
         "justify-center font-medium",
@@ -64,7 +66,7 @@ export function BookAction({ onNavigate, size = "bar", className }: BookActionPr
         className,
       )}
     >
-      {PRIMARY_CTA.label}
+      {primaryCta.label}
     </BlobButton>
   );
 }

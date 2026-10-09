@@ -1,3 +1,6 @@
+import { TAGS } from "@/lib/cms/cache";
+import { toCreativeExperience } from "@/lib/cms/mappers";
+import { contentReader, findDocs } from "@/lib/cms/query";
 import type { VibeSlug } from "@/lib/vibes";
 import type { ImageAsset } from "@/types";
 
@@ -25,6 +28,11 @@ import type { ImageAsset } from "@/types";
  *
  * ORDER is the client's own stated priority: the DIY activities first, in the
  * order they gave them, then the scheduled ones.
+ *
+ * SERVER ONLY since Phase 2: `getCreativeExperiences` reads the CMS through
+ * the Local API. Client components import the type (erased) and
+ * `EXPERIENCE_KIND_LABEL` from lib/experienceLabels.ts — never a value from
+ * here.
  */
 
 export interface CreativeExperience {
@@ -133,6 +141,10 @@ export interface CreativeExperience {
    be: it is pottery-making, which the client has asked stays off the site.
    ========================================================================== */
 
+/* The CMS (`experiences`, seeded from this array by 2B) is the source now.
+   This array is only what `getCreativeExperiences` returns when the
+   collection cannot be read at all (a build without the database); an empty
+   CMS answer is "nothing published" and is never replaced by it. */
 const EXPERIENCES: readonly CreativeExperience[] = [
   {
     slug: "tote-bag-painting",
@@ -408,18 +420,30 @@ const EXPERIENCES: readonly CreativeExperience[] = [
   },
 ];
 
-/** How each kind is labelled in the interface. */
-export const EXPERIENCE_KIND_LABEL: Record<CreativeExperience["kind"], string> = {
-  diy: "Any time",
-  scheduled: "Scheduled",
-};
+/** How each kind is labelled — lives in lib/experienceLabels.ts so client cards can import it. */
+export { EXPERIENCE_KIND_LABEL } from "@/lib/experienceLabels";
+
+/**
+ * The published experiences, in the studio's own order (`order`, the
+ * collection's default sort), mapped to `CreativeExperience`. Depth 1
+ * populates the photograph, the gallery and the vibe tags.
+ */
+const readExperiences = contentReader("experiences", [TAGS.experiences, TAGS.vibes], async (draft) => {
+  const docs = await findDocs("experiences", draft, { drafts: true, sort: "order", depth: 1 });
+  return docs.map(toCreativeExperience);
+});
 
 /**
  * Every creative experience, in the studio's own order.
  *
  * Async and returning a copy, like every other content seam in this project,
- * so pointing it at a CMS is a change to this function body alone.
+ * so pointing it at a CMS was a change to this function body alone — which
+ * is what Phase 2 did: the `experiences` collection through `cached`, under
+ * the experiences and vibes tags, draft-aware in preview (SPEC §G.1).
  */
 export async function getCreativeExperiences(): Promise<CreativeExperience[]> {
-  return [...EXPERIENCES];
+  const fromCms = await readExperiences();
+  // The in-file list only when the CMS could not be read (null); an empty
+  // answer means "nothing published".
+  return [...(fromCms ?? EXPERIENCES)];
 }

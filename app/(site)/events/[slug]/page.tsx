@@ -3,9 +3,9 @@ import Link from "next/link";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { BlobButton } from "@/components/ui/BlobButton";
-import { notFound } from "next/navigation";
 
 import { EventBookingBar } from "@/components/booking/EventBookingBar";
+import { eventCopy, eventUtilityBar, loadTemplateCopy } from "@/components/blocks/templateCopy";
 import { SessionGate } from "@/components/booking/SessionClock";
 import { EventCard } from "@/components/events/EventCard";
 import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
@@ -31,7 +31,8 @@ import {
   type EventDetail,
   eventGallery,} from "@/lib/eventDetail";
 import { getMallPartners } from "@/lib/partners";
-import { buildMetadata } from "@/lib/seo";
+import { redirectOr404 } from "@/lib/cms/redirects";
+import { getMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import {
   bookingStepHref,
@@ -95,7 +96,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const detail = await getEventDetail(slug);
-  return buildMetadata({
+  return getMetadata({
     title: detail ? eventTitle(detail) : "Event",
     description:
       (detail && eventIntro(detail)) ??
@@ -158,10 +159,33 @@ export default async function EventPage({
   const { slug } = await params;
   const detail = await getEventDetail(slug);
 
-  if (!detail) notFound();
+  /*
+    No session and no activity by this name: a renamed slug's redirect (or an
+    editor's), else the branded 404 (lib/cms/redirects.ts, SPEC §D.2).
+  */
+  if (!detail) return redirectOr404(`/events/${slug}`);
 
+  /* Page labels and the foot bar, from the admin (components/blocks/templateCopy.ts). */
+  const [, utilityBar] = await Promise.all([
+    loadTemplateCopy(),
+    eventUtilityBar({
+      note: "Everything you need is waiting for you. Just bring yourself, pick a project and start creating.",
+      links: [
+        { label: "All events", href: "/events" },
+        { label: "Questions", href: "/faq" },
+        { label: "Contact", href: "/contact" },
+      ],
+    }),
+  ]);
+
+  /*
+    "Other sessions" means other than the one this page shows — which, when
+    the address is the activity's bare slug (/events/candle-making), is the
+    dated session it resolved to, not the slug in the URL.
+  */
+  const shownSlug = detail.kind === "scheduled" ? detail.workshop.slug : slug;
   const [related, partners] = await Promise.all([
-    getRelatedWorkshops(slug),
+    getRelatedWorkshops(shownSlug),
     getMallPartners(),
   ]);
 
@@ -276,7 +300,7 @@ export default async function EventPage({
         <ActionArea detail={detail} bookable={bookable} />
 
         {related.length > 0 ? (
-          <MoreEvents sessions={related} currentSlug={slug} />
+          <MoreEvents sessions={related} currentSlug={shownSlug} />
         ) : null}
 
         {/* The bar's own height, given back to the page — only where a bar mounts. */}
@@ -285,14 +309,7 @@ export default async function EventPage({
         <div id={CONTENT_END} aria-hidden />
 
         {/* The client's line, PDF p21, in place of the one it replaced. */}
-        <PageUtilityBar
-          note="Everything you need is waiting for you. Just bring yourself, pick a project and start creating."
-          links={[
-            { label: "All events", href: "/events" },
-            { label: "Questions", href: "/faq" },
-            { label: "Contact", href: "/contact" },
-          ]}
-        />
+        <PageUtilityBar note={utilityBar.note} links={utilityBar.links} />
 
         {/*
           THE STICKY BAR MOUNTS FOR ONE CASE ONLY.
@@ -319,6 +336,13 @@ export default async function EventPage({
             <StickyBar workshop={detail.workshop} />
           </div>
         ) : null}
+
+        {/* The live seat count for a dated session (SPEC §G.3,
+            components/cms/SeatsLive.tsx) is NOT mounted yet: it asks
+            /api/site/availability/{slug}, which Phase 3 lands, and until then
+            every page view logged a 404. Phase 3 mounts
+            `<SeatsLive slug={detail.workshop.slug} />` here, for
+            `detail.kind === "scheduled"`, in the same change as the route. */}
       </Container>
     </div>
   );
@@ -348,7 +372,7 @@ function Breadcrumb({ detail }: { detail: EventDetail }) {
       <nav aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-label font-medium uppercase tracking-eyebrow text-text/75">
           <Crumb href="/">Home</Crumb>
-          <Crumb href="/events">Events</Crumb>
+          <Crumb href="/events">{eventCopy().breadcrumbRoot}</Crumb>
           <Crumb>{category}</Crumb>
           <li className="text-text" aria-current="page">
             {eventTitle(detail)}
@@ -602,10 +626,10 @@ function ScheduledFacts({
         ) : null}
 
         <div>
-          <dt className={TERM}>Price</dt>
+          <dt className={TERM}>{eventCopy().priceTerm}</dt>
           <dd className="mt-3 text-lead font-medium leading-snug text-text">
             {formatPrice(workshop.price)}
-            <Sub>per person</Sub>
+            <Sub>{eventCopy().perPersonLabel}</Sub>
           </dd>
         </div>
       </dl>
@@ -685,7 +709,7 @@ function WalkInFacts({ detail }: { detail: EventDetail }) {
 
       {flag ? (
         <div>
-          <dt className={TERM}>Status</dt>
+          <dt className={TERM}>{eventCopy().statusTerm}</dt>
           <dd className="mt-3 text-lead font-medium leading-snug text-text">
             {/* The studio's own wording, carried through rather than
                 paraphrased into something that sounds more certain. */}
@@ -1206,7 +1230,7 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
                   id="event-about"
                   className="heading-script pb-[0.22em] text-script-compact text-text"
                 >
-                  About This Experience
+                  {eventCopy().aboutHeading}
                 </h2>
               </Reveal>
               {paragraphs.map((paragraph, i) => (
@@ -1415,6 +1439,7 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
 function sessionFields(
   workshop: Workshop,
 ): { term: string; value: React.ReactNode }[] {
+  const copy = eventCopy();
   const { weekday } = sessionDateParts(workshop.startsAt);
   const { start, end } = sessionTimeRange(
     workshop.startsAt,
@@ -1423,7 +1448,7 @@ function sessionFields(
 
   const fields: { term: string; value: React.ReactNode }[] = [
     {
-      term: "Date",
+      term: copy.whenTerm,
       value: (
         <time dateTime={workshop.startsAt}>
           {weekday} {formatSessionDate(workshop.startsAt)}
@@ -1431,7 +1456,7 @@ function sessionFields(
       ),
     },
     {
-      term: "Time",
+      term: copy.timeTerm,
       value: (
         <>
           <span className="tabular-nums">{start}</span>
@@ -1442,7 +1467,7 @@ function sessionFields(
       ),
     },
     {
-      term: "Duration",
+      term: copy.durationTerm,
       value: (
         <time dateTime={durationToIso(workshop.durationMinutes)}>
           {formatDuration(workshop.durationMinutes)}
@@ -1452,7 +1477,7 @@ function sessionFields(
     ...(workshop.venue
       ? [
           {
-            term: "Location",
+            term: copy.whereTerm,
             value: (
               <>
                 {workshop.venue.name}
@@ -1463,15 +1488,15 @@ function sessionFields(
         ]
       : []),
     {
-      term: "Price",
+      term: copy.priceTerm,
       value: (
         <>
           {formatPrice(workshop.price)}
-          <Sub>per person</Sub>
+          <Sub>{copy.perPersonLabel}</Sub>
         </>
       ),
     },
-    { term: "Experience", value: workshop.category },
+    { term: copy.howItRunsTerm, value: workshop.category },
   ];
 
   return fields;
@@ -1540,8 +1565,8 @@ function LocationSection({
   */
   const heading =
     detail.kind === "scheduled"
-      ? "Where It Happens"
-      : "Your Next Creative Stop.";
+      ? eventCopy().locationHeadingScheduled
+      : eventCopy().locationHeadingDiy;
 
   return (
     <section
@@ -1684,7 +1709,7 @@ function LocationSection({
               */
               <Reveal>
                 <p className="max-w-[34rem] text-fine leading-[1.75] text-text/75">
-                  Full directions for this centre are confirmed with your booking.
+                  {eventCopy().directionsNote}
                 </p>
               </Reveal>
             )}
@@ -1842,7 +1867,7 @@ function MoreEvents({
           id="more-events"
           className="heading-script relative pb-[0.3em] text-script-compact text-text"
         >
-          <ScriptTitle>More Events</ScriptTitle>
+          <ScriptTitle>{eventCopy().moreEventsHeading}</ScriptTitle>
         </h2>
       </Reveal>
 
@@ -1938,7 +1963,7 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
 
         <span className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
           <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-primary" />
-          Scheduled session
+          {eventCopy().soloEyebrow}
         </span>
 
         <span className="heading-script mt-3 block pb-[0.2em] text-script-compact text-text">
@@ -1989,7 +2014,7 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
           action.
         */}
         <PeelNote trigger="card" className="mt-7 w-fit px-5 py-2.5">
-          View this session
+          {eventCopy().soloCta}
         </PeelNote>
       </div>
     </Link>

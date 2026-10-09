@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { VIBES, VIBE_QUESTION, type VibeSlug } from "@/lib/vibes";
+import { VIBE_QUESTION, type VibeSlug } from "@/lib/vibes";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
 
 interface FindYourVibeProps {
   /** How many activities sit behind each vibe, keyed by slug. */
@@ -55,7 +56,9 @@ export function FindYourVibe({
   size = "compact",
   className,
 }: FindYourVibeProps) {
-  const live = VIBES.filter((vibe) => counts[vibe.slug] > 0).length;
+  // The vibes taxonomy from the CMS, through the layout (see SiteChrome).
+  const { vibes } = useSiteChrome();
+  const live = vibes.filter((vibe) => counts[vibe.slug] > 0).length;
 
   return (
     <div className={className}>
@@ -96,7 +99,7 @@ export function FindYourVibe({
         aria-label="Find your vibe"
         className={cn("mt-5 flex flex-wrap gap-2.5", size === "full" && "mt-7 gap-3")}
       >
-        {VIBES.map((vibe) => {
+        {vibes.map((vibe) => {
           const count = counts[vibe.slug] ?? 0;
           const isSelected = selected === vibe.slug;
           const unavailable = count === 0;

@@ -7,6 +7,8 @@ import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
+import { labelLines } from "@/components/blocks/templateCopy";
+import { getGlobal } from "@/lib/cms/query";
 
 /**
  * ==========================================================================
@@ -50,7 +52,27 @@ export const metadata: Metadata = {
   description: "There is no page at this address on the Maison Palettia site.",
 };
 
-export default function NotFound() {
+/*
+  THE WORDS ARE PAGE LABELS' (Settings → Page labels → "Page not found",
+  `template-copy.notFound`): the eyebrow, the heading — " | " marks its line
+  break — the paragraph and the homepage button. Anything left empty keeps
+  the wording below. The second button stays "Explore upcoming events": it is
+  the same door every page's navigation offers, not this page's copy.
+*/
+const FALLBACK = {
+  eyebrow: "Page not found",
+  heading: ["This page has", "wandered off."],
+  body: "The address may have changed, or it was never one of ours. The programme and the studio are a step away.",
+  cta: "Back to the homepage",
+};
+
+export default async function NotFound() {
+  const stored = (await getGlobal("template-copy", 0))?.notFound;
+  const eyebrow = stored?.eyebrow?.trim() || FALLBACK.eyebrow;
+  const heading = stored?.heading?.trim() ? labelLines(stored.heading) : FALLBACK.heading;
+  const body = stored?.body?.trim() || FALLBACK.body;
+  const cta = stored?.cta?.trim() || FALLBACK.cta;
+
   return (
     <section
       aria-labelledby="not-found-title"
@@ -62,26 +84,23 @@ export default function NotFound() {
         <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
           <div className="col-span-12 lg:col-span-7">
             <Reveal>
-              <Eyebrow>Page not found</Eyebrow>
+              <Eyebrow>{eyebrow}</Eyebrow>
             </Reveal>
             <DisplayHeading
               as="h1"
               id="not-found-title"
               className="mt-8 md:mt-10"
-              lines={["This page has", "wandered off."]}
+              lines={heading}
             />
           </div>
 
           <div className="col-span-12 lg:col-span-5 lg:pb-3">
             <Reveal delay={0.15}>
               {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
-              <p className="text-lead text-text/85">
-                The address may have changed, or it was never one of ours. The
-                programme and the studio are a step away.
-              </p>
+              <p className="text-lead text-text/85">{body}</p>
 
               <div className="mt-9 flex flex-wrap items-center gap-4">
-                <BlobButton href="/">Back to the homepage</BlobButton>
+                <BlobButton href="/">{cta}</BlobButton>
                 {/* A secondary BUTTON, not an underlined word — the site's
                     secondary action is the sticky note; see <PeelNote>. */}
                 <PeelNote href="/events" className="min-h-[3.25rem] px-7">

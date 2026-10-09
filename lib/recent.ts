@@ -90,6 +90,13 @@ const PLACEHOLDER_ITEMS: RecentItem[] = [
  * curation rather than a gallery. The section renders whatever it is given.
  *
  * TODO(client): replace the body with the CMS query, sorted newest first.
+ *
+ * STILL IN-FILE AFTER PHASE 2, DELIBERATELY. The CMS model (SPEC §D) has no
+ * "Just Added" collection, nothing on the site renders this strip today, and
+ * no page-builder block asks for it — so there is nothing to read and no
+ * page whose parity depends on it. If the strip comes back, the natural
+ * source is `media` tagged for it (or a page block with its own image list),
+ * read through lib/cms/query.ts like every other getter here.
  */
 export async function getRecentAdditions(limit = 6): Promise<RecentItem[]> {
   return PLACEHOLDER_ITEMS.slice(0, limit);

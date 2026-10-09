@@ -4,7 +4,7 @@ import { ExperienceCarousel } from "@/components/sections/home/ExperienceCarouse
 import { Container } from "@/components/ui/Container";
 import { DeckSheet } from "@/components/ui/deck/Deck";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
-import { getCreativeExperiences } from "@/lib/experiences";
+import { getCreativeExperiences, type CreativeExperience } from "@/lib/experiences";
 import { EXPERIENCE_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
@@ -35,8 +35,28 @@ import { EXPERIENCE_SPOTS } from "@/components/sections/home/homeSpots";
  * behaviour ships to the browser.
  */
 
-export async function ExperienceDiscovery() {
-  const experiences = await getCreativeExperiences();
+/*
+  WHAT THE CMS SUPPLIES (the `experienceCarousel` block,
+  components/blocks/ExperienceCarousel.tsx): the eyebrow, the heading lines,
+  the standfirst, which activities the track shows and the card's action
+  label. Each defaults to what this section shipped with; `null` leaves a
+  line out. `experiences` left out means "all of them, in the studio's
+  order" — the launch behaviour.
+*/
+export async function ExperienceDiscovery({
+  eyebrow = "The Maison Palettia experience",
+  lines = ["Pick a Colour,", "Pick a Table."],
+  standfirst = "Create Anytime (pick your palette and start whenever you like), or Create Together in a guided session and make something new with us.",
+  experiences: chosen,
+  cardAction,
+}: {
+  eyebrow?: string | null;
+  lines?: readonly string[] | null;
+  standfirst?: string | null;
+  experiences?: CreativeExperience[];
+  cardAction?: string;
+} = {}) {
+  const experiences = chosen ?? (await getCreativeExperiences());
 
   return (
     <DeckSheet
@@ -91,13 +111,15 @@ export async function ExperienceDiscovery() {
             one to keep is the one that reads as the website.
           */}
           <div className="col-span-12 lg:col-span-7">
-            <Reveal>
-              <Eyebrow>The Maison Palettia experience</Eyebrow>
-            </Reveal>
+            {eyebrow ? (
+              <Reveal>
+                <Eyebrow>{eyebrow}</Eyebrow>
+              </Reveal>
+            ) : null}
             <DisplayHeading
               id="experiences-heading"
               className="mt-7 md:mt-9"
-              lines={["Pick a Colour,", "Pick a Table."]}
+              lines={lines ?? []}
             />
           </div>
 
@@ -139,10 +161,7 @@ export async function ExperienceDiscovery() {
               "a guided session" — which is the distinction the section
               exists to teach.
             */}
-            <p className="text-statement text-text/85">
-              Create Anytime (pick your palette and start whenever you like), or
-              Create Together in a guided session and make something new with us.
-            </p>
+            {standfirst ? <p className="text-statement text-text/85">{standfirst}</p> : null}
           </Reveal>
         </div>
       </Container>
@@ -153,7 +172,7 @@ export async function ExperienceDiscovery() {
         tells a visitor there is more of it without a label saying so.
       */}
       <div className="mt-10 pl-gutter md:mt-14">
-        <ExperienceCarousel experiences={experiences} />
+        <ExperienceCarousel experiences={experiences} cardAction={cardAction} />
       </div>
     </DeckSheet>
   );

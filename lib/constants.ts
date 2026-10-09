@@ -12,6 +12,33 @@ import type {
   VisitInvitation,
 } from "@/types";
 
+/* ==========================================================================
+   THE CMS HOLDS THESE NOW — THIS FILE IS THE FALLBACK AND THE CLIENT COPY
+   ==========================================================================
+
+   Since Phase 2 the site settings, the menus, the FAQs and the booking terms
+   live in the admin (globals `site-settings`, `navigation`,
+   `booking-settings`; collection `faqs`), and the async getters that read
+   them are in lib/constants.server.ts — `getSite`, `getContact`,
+   `getMainNav`, `getFooterNav`, `getFaqGroups`, `getBookingTerms` and the
+   rest, one per constant below.
+
+   This file stays, for two reasons, and both are temporary:
+
+     1. It is the FALLBACK those getters return while the CMS has nothing
+        to say (an array not yet seeded, a database that cannot be reached),
+        so the site reads exactly as it did before the CMS existed.
+     2. CLIENT COMPONENTS IMPORT IT (BottomNav, HeaderBar, Checkout,
+        Confirmation, HeroIntro…), and a client component cannot await a
+        getter or import the Local API. They move to props from a server
+        parent that calls the getter; until each one has, it reads the
+        constant here.
+
+   TODO(phase2-cleanup): once every consumer reads a getter or a prop and
+   the seed has run everywhere, delete the content constants here — the UI
+   chrome ones (`WORKSHOPS_HREF`) can stay.
+   ========================================================================== */
+
 /** Canonical brand + site-wide identity values. */
 export const SITE = {
   name: "Maison Palettia",
@@ -995,10 +1022,20 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
 /** Somewhere a customer can actually send a reference — see the note above. */
 export const REFERENCE_CHANNEL_SET = Boolean(CONTACT.email || CONTACT.phone || ENQUIRY_CONFIGURED);
 
+/**
+ * The two wordings of the `request` sentence, picked by whether a channel
+ * exists. Named so lib/constants.server.ts can make the same choice from the
+ * CMS's contact details (`getBookingTerms`) rather than from {@link CONTACT}.
+ */
+export const BOOKING_REQUEST_TERMS = {
+  withChannel:
+    "Booking here makes a request that is not yet confirmed. No payment is taken, the request is saved only in this browser, and the studio confirms it once you send them your reference.",
+  withoutChannel:
+    "Booking here makes a request that is not yet confirmed. No payment is taken and the request is saved only in this browser, so keep the reference you are given.",
+} as const;
+
 export const BOOKING_TERMS = {
-  request: REFERENCE_CHANNEL_SET
-    ? "Booking here makes a request that is not yet confirmed. No payment is taken, the request is saved only in this browser, and the studio confirms it once you send them your reference."
-    : "Booking here makes a request that is not yet confirmed. No payment is taken and the request is saved only in this browser, so keep the reference you are given.",
+  request: REFERENCE_CHANNEL_SET ? BOOKING_REQUEST_TERMS.withChannel : BOOKING_REQUEST_TERMS.withoutChannel,
   recorded:
     "Your booking goes straight to the studio. No payment is taken through this site.",
   paid: "Your booking is confirmed once your payment has gone through.",

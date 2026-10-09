@@ -64,7 +64,7 @@ export function slug(opts: SlugOptions = {}): TextField {
   return {
     name: "slug",
     type: "text",
-    label: "URL slug",
+    label: "Web address",
     unique: true,
     index: true,
     required: true,

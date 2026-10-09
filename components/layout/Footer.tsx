@@ -8,10 +8,10 @@ import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { forScript } from "@/components/ui/SectionHeader";
-import { MISSION, TAGLINE } from "@/lib/brand";
 import { PaintStroke, linkPaint } from "@/components/layout/PaintStroke";
-import { BRAND_LOGO, CONTACT, FOOTER_NAV, LEGAL_NAV, SITE, SOCIAL_LINKS } from "@/lib/constants";
-import { POLICIES } from "@/lib/policies";
+import { getBrandCopy } from "@/lib/brand.server";
+import { getBrandLogo, getContact, getFooterNav, getLegalNav, getSite, getSocialLinks } from "@/lib/constants.server";
+import { getPolicies } from "@/lib/policies";
 import { getMallPartners } from "@/lib/partners";
 
 /*
@@ -168,7 +168,23 @@ const LINK =
  * reveal falls back to a footer in the flow.
  */
 export async function Footer() {
-  const partners = await getMallPartners();
+  /*
+    Everything printed here is the admin's: Site details (name, legal name,
+    the light logo cut, contact, socials), Menus (the link columns and the
+    legal row), Brand wording (tagline, mission) and the policies. Each getter
+    is cached under its own tag, so a save reaches the footer on every page.
+  */
+  const [partners, site, logo, contact, socialLinks, footerNav, legalNav, brand, policies] = await Promise.all([
+    getMallPartners(),
+    getSite(),
+    getBrandLogo(),
+    getContact(),
+    getSocialLinks(),
+    getFooterNav(),
+    getLegalNav(),
+    getBrandCopy(),
+    getPolicies(),
+  ]);
   const year = new Date().getFullYear();
   /*
     One counter for every painted link in the footer's groups, so the palette
@@ -179,7 +195,7 @@ export async function Footer() {
   */
   let paintCursor = 0;
 
-  const socials = SOCIAL_LINKS.filter((link): link is typeof link & { href: string } =>
+  const socials = socialLinks.filter((link): link is typeof link & { href: string } =>
     Boolean(link.href),
   );
 
@@ -320,7 +336,7 @@ export async function Footer() {
             where left is right.
           */}
           <div className="col-span-12 text-center lg:col-span-4 lg:text-left">
-            <Link href="/" aria-label={`${SITE.name} home`} className="inline-block">
+            <Link href="/" aria-label={`${site.name} home`} className="inline-block">
               {/*
                 THE DEEP LILAC CUT, BECAUSE THE GROUND IS LIGHT NOW. The client
                 supplied two: Light Sage for dark grounds and Deep Lilac for
@@ -333,10 +349,10 @@ export async function Footer() {
                 aspect; see the note on BRAND_LOGO.onLight.
               */}
               <Image
-                src={BRAND_LOGO.onLight.src}
+                src={logo.onLight.src}
                 alt=""
-                width={BRAND_LOGO.onLight.width}
-                height={BRAND_LOGO.onLight.height}
+                width={logo.onLight.width}
+                height={logo.onLight.height}
                 className="h-16 w-auto md:h-20"
               />
             </Link>
@@ -383,7 +399,7 @@ export async function Footer() {
               palette — see the note at the head of this file.
             */}
             <p className="mt-7 heading-script mx-auto max-w-[34rem] text-script-panel text-primary lg:mx-0">
-              {forScript(TAGLINE)}
+              {forScript(brand.tagline)}
             </p>
 
           </div>
@@ -437,7 +453,7 @@ export async function Footer() {
               Starting at column 5 and filling the span does the same thing.
             */}
             <div className="grid grid-cols-1 gap-y-9 text-center sm:grid-cols-3 sm:gap-x-8 sm:gap-y-10 sm:text-left">
-              {FOOTER_NAV.map((group, g) => (
+              {footerNav.map((group, g) => (
                 <div key={group.title}>
                   <FooterHeading
                     mark={GROUP_MARKS[g % GROUP_MARKS.length].name}
@@ -652,26 +668,26 @@ export async function Footer() {
               The studio
             </FooterHeading>
             <address className="mt-4 text-body not-italic text-text/75">
-              {CONTACT.addressLines.map((line) => (
+              {contact.addressLines.map((line) => (
                 <span key={line} className="block">
                   {line}
                 </span>
               ))}
             </address>
-            {CONTACT.email ? (
-              <a href={`mailto:${CONTACT.email}`} className={`${LINK} mt-2 items-center gap-2`}>
+            {contact.email ? (
+              <a href={`mailto:${contact.email}`} className={`${LINK} mt-2 items-center gap-2`}>
                 <Mail
                   aria-hidden
                   size={15}
                   strokeWidth={1.9}
                   className="shrink-0 text-primary transition-transform duration-300 ease-editorial motion-safe:group-hover/link:-translate-y-px"
                 />
-                {CONTACT.email}
+                {contact.email}
               </a>
             ) : null}
-            {CONTACT.phone ? (
+            {contact.phone ? (
               <a
-                href={`tel:${CONTACT.phone.replace(/\s/g, "")}`}
+                href={`tel:${contact.phone.replace(/\s/g, "")}`}
                 className={`${LINK} items-center gap-2`}
               >
                 <Phone
@@ -680,7 +696,7 @@ export async function Footer() {
                   strokeWidth={1.9}
                   className="shrink-0 text-primary transition-transform duration-300 ease-editorial motion-safe:group-hover/link:-translate-y-px"
                 />
-                {CONTACT.phone}
+                {contact.phone}
               </a>
             ) : null}
           </div>
@@ -695,7 +711,7 @@ export async function Footer() {
             <FooterHeading mark="bow" markColor="#9059A4">
               Why we do it
             </FooterHeading>
-            <p className="mx-auto mt-4 max-w-[22rem] text-body text-text/75 sm:mx-0">{MISSION}</p>
+            <p className="mx-auto mt-4 max-w-[22rem] text-body text-text/75 sm:mx-0">{brand.mission}</p>
           </div>
 
           {socials.length > 0 ? (
@@ -892,7 +908,7 @@ export async function Footer() {
             at 47.25 and clears by 2. The full arithmetic is on `LINK`.
           */}
             <ul className="relative col-span-12 grid grid-cols-1 gap-x-7 gap-y-1 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3 xl:col-span-9">
-            {POLICIES.map((policy) => {
+            {policies.map((policy) => {
               return (
                 <li key={policy.slug}>
                   <Link
@@ -1018,12 +1034,12 @@ export async function Footer() {
                 className="size-5 shrink-0 rounded-[5px]"
               />
               <span>
-                &copy; {year} {SITE.legalName}
+                &copy; {year} {site.legalName}
               </span>
             </p>
-            {LEGAL_NAV.length > 0 ? (
+            {legalNav.length > 0 ? (
               <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">
-                {LEGAL_NAV.map((item) => (
+                {legalNav.map((item) => (
                   <li key={item.href}>
                     <Link href={item.href} className="transition-colors hover:text-text">
                       {item.label}

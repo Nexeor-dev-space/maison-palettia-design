@@ -21,7 +21,7 @@ import {
   sessionTimeRange,
   spotsLabel,
   workshopHref,
-} from "@/lib/workshops";
+} from "@/lib/workshopHelpers";
 import { cn } from "@/lib/utils";
 import type { Workshop } from "@/types";
 

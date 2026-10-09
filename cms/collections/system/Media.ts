@@ -1,4 +1,7 @@
-import type { CollectionConfig } from "payload";
+import { stat } from "node:fs/promises";
+import path from "node:path";
+
+import type { CollectionConfig, UploadConfig } from "payload";
 
 import { anyone, isAdmin, isEditor, isEditorField } from "@/cms/access/roles";
 import {
@@ -23,7 +26,8 @@ import { MEDIA_DIR } from "@/cms/lib/paths";
  * would quietly start a second media folder inside the build output, to be
  * deleted by the next release (docs/cms/research/00-spike.md, G12). Files
  * are served same-origin at `/api/media/file/<filename>`, so `next/image`
- * needs no `remotePatterns`.
+ * needs no `remotePatterns`. Replacing a file removes the old name: links
+ * to it then answer 404 (`missingFileIs404` below), never the new file.
  *
  * SIZES. Six renditions per image, named for where the site uses them —
  * `thumb` 96² (menus), `menu` 192², `card` 640 wide, `plate` 1200 wide,
@@ -66,6 +70,56 @@ export const MEDIA_TAGS = [
   "font",
 ] as const;
 
+/**
+ * What an editor reads for each tag. The stored values above stay the
+ * code's (the gallery block filters by them, and a select's values are a
+ * database enum); only the wording in the admin is theirs.
+ */
+export const MEDIA_TAG_LABELS: Record<(typeof MEDIA_TAGS)[number], string> = {
+  "experience-hero": "Experience — main photograph",
+  "experience-gallery": "Experience — gallery",
+  programme: "Private-event programme",
+  venue: "Venue",
+  "gallery-make": "Gallery — What you make",
+  "gallery-making": "Gallery — In the making",
+  "gallery-keep": "Gallery — What you keep",
+  logo: "Logo",
+  og: "Share image (social links)",
+  hero: "Large page-top photograph",
+  seasonal: "Seasonal",
+  kids: "Children’s sessions",
+  film: "Studio film",
+  font: "PDF font",
+};
+
+export const MEDIA_TAG_OPTIONS = MEDIA_TAGS.map((value) => ({ value, label: MEDIA_TAG_LABELS[value] }));
+
+/**
+ * A file that is not on disk answers 404, not 500.
+ *
+ * Replacing a photograph in the admin writes a new file and removes the old
+ * one, so a cached page, a shared link or an email that still points at
+ * `/api/media/file/<old name>` asks for a file that is gone — and Payload's
+ * own handler answers that with a 500 "Something went wrong." This runs
+ * first: the same containment check Payload makes (the name may not climb
+ * out of the media folder), then a `stat`. A file that exists falls through
+ * to Payload's handler, which streams it with its usual headers.
+ */
+type FileHandler = NonNullable<UploadConfig["handlers"]>[number];
+
+const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Parameters<FileHandler>[1]): Promise<Response | undefined> => {
+  const root = path.resolve(MEDIA_DIR);
+  const file = path.resolve(root, params.filename ?? "");
+  if (!file.startsWith(root + path.sep)) return undefined; // Payload refuses it with its own 400
+  try {
+    await stat(file);
+    return undefined;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") return undefined;
+    return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+  }
+};
+
 export const Media: CollectionConfig = {
   slug: "media",
   labels: { singular: "Media file", plural: "Media" },
@@ -91,6 +145,8 @@ export const Media: CollectionConfig = {
   },
   upload: {
     staticDir: MEDIA_DIR,
+    // Payload types a handler as "a Response or nothing", not "maybe a Response"; the cast says the same thing.
+    handlers: [missingFileIs404 as FileHandler],
     mimeTypes: [
       "image/jpeg",
       "image/png",
@@ -187,7 +243,7 @@ export const Media: CollectionConfig = {
       type: "select",
       label: "Where it may be used",
       hasMany: true,
-      options: MEDIA_TAGS.map((value) => ({ value, label: value })),
+      options: MEDIA_TAG_OPTIONS,
     },
     {
       // Virtual: computed on read from `width`, shown only when it applies,

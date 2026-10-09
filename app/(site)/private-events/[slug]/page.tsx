@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
@@ -13,13 +12,11 @@ import { ActivityPlate } from "@/components/private-events/ActivityPlate";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { getCreativeExperiences } from "@/lib/experiences";
-import {
-  PRIVATE_EVENT_AUDIENCES,
-  PRIVATE_EVENT_ENQUIRY_HREF,
-  PRIVATE_EVENT_STEPS,
-  type PrivateEventAudience,
-} from "@/lib/privateEvents";
-import { buildMetadata } from "@/lib/seo";
+import { labelLines, loadTemplateCopy, programmeCopy } from "@/components/blocks/templateCopy";
+import { redirectOr404 } from "@/lib/cms/redirects";
+import { PRIVATE_EVENT_ENQUIRY_HREF, type PrivateEventAudience, type PrivateEventStep } from "@/lib/privateEvents";
+import { getPrivateEventAudience, getPrivateEventAudiences, getPrivateEventSteps } from "@/lib/privateEvents.server";
+import { getMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 /**
@@ -198,26 +195,27 @@ function mastheadShapes(tone: PageTone): readonly ShapePlan[] {
   return groundShapes(tone.ground === "light" ? "surface" : "lilac");
 }
 
-function audienceFor(slug: string): PrivateEventAudience | undefined {
-  return PRIVATE_EVENT_AUDIENCES.find((a) => a.slug === slug);
-}
-
-export function generateStaticParams() {
-  return PRIVATE_EVENT_AUDIENCES.map((audience) => ({ slug: audience.slug }));
+/*
+  Every programme the data layer returns (published, in the studio's order);
+  one published after the build renders on first request and is revalidated
+  by the programmes hook from then on.
+*/
+export async function generateStaticParams() {
+  return (await getPrivateEventAudiences()).map((audience) => ({ slug: audience.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const audience = audienceFor(slug);
+  const audience = await getPrivateEventAudience(slug);
   if (!audience) {
-    return buildMetadata({
+    return getMetadata({
       title: "Private events",
       description: "Private creative sessions at Maison Palettia.",
       path: "/private-events",
     });
   }
 
-  return buildMetadata({
+  return getMetadata({
     title: audience.name,
     /* The longer lead where the programme has one; the card line otherwise.
        A search result that disagrees with the page it opens is the one place
@@ -236,16 +234,17 @@ export default async function PrivateEventProgrammePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const audience = audienceFor(slug);
-  if (!audience) notFound();
+  const audience = await getPrivateEventAudience(slug);
+  // A renamed programme's old address redirects; anything else is the 404.
+  if (!audience) return redirectOr404(`/private-events/${slug}`);
 
-  const experiences = await getCreativeExperiences();
+  const [experiences, steps] = await Promise.all([getCreativeExperiences(), getPrivateEventSteps(), loadTemplateCopy()]);
 
   return (
     <>
       <Masthead audience={audience} />
       <Activities experiences={experiences} />
-      <HowItWorks />
+      <HowItWorks steps={steps} />
       <Enquiry />
     </>
   );
@@ -337,7 +336,7 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
 
             <Reveal delay={0.08}>
               <Eyebrow ground="light" className="mt-9">
-                Who it is for
+                {programmeCopy().eyebrow}
               </Eyebrow>
             </Reveal>
 
@@ -373,7 +372,7 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
                   tone="deep"
                   className="min-h-[3.25rem] px-8"
                 >
-                  Enquire about a session
+                  {programmeCopy().ctaPrimaryLabel}
                 </BlobButton>
 
                 {/*
@@ -571,7 +570,7 @@ function Activities({
               id="programme-activities"
               size="section"
               className="mt-8 md:mt-10"
-              lines={["Pick Your Creative"]}
+              lines={headingOf(programmeCopy().activitiesHeading)}
             />
           </div>
 
@@ -587,10 +586,7 @@ function Activities({
                 440px column, so this description was 144px narrower than the
                 same thing on /faq and /events and started 120px further
                 right. Two caps on one measure is how a pattern drifts. */}
-            <p className="text-lead text-text/80">
-              Choose from the Maison&rsquo;s creative experiences, or let us help you find the
-              one that fits your group, occasion and vibe.
-            </p>
+            <p className="text-lead text-text/80">{programmeCopy().activitiesLead}</p>
           </Reveal>
         </div>
 
@@ -643,7 +639,7 @@ function Activities({
  * coordinator" — because each of those is a commitment somebody at the studio
  * would have to keep. See lib/privateEvents.ts.
  */
-function HowItWorks() {
+function HowItWorks({ steps }: { steps: readonly PrivateEventStep[] }) {
   return (
     <section
       aria-labelledby="programme-how"
@@ -655,7 +651,7 @@ function HowItWorks() {
       <SectionShapes plan={groundShapes("sage")} />
       <Container>
         <Reveal>
-          <Eyebrow>How it works</Eyebrow>
+          <Eyebrow>{programmeCopy().stepsEyebrow}</Eyebrow>
         </Reveal>
 
         {/* THE OVERVIEW'S HEADING, because it is the overview's block: the
@@ -670,11 +666,11 @@ function HowItWorks() {
           id="programme-how"
           size="section"
           className="mt-8 md:mt-10"
-          lines={["Let’s Make It", "Happen."]}
+          lines={labelLines(programmeCopy().closeHeading)}
         />
 
         <ol className="mt-12 grid grid-cols-1 gap-6 md:mt-16 md:grid-cols-3 lg:gap-8">
-          {PRIVATE_EVENT_STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <li key={step.number}>
               <Reveal variant="fadeIn" delay={i * 0.08} className="h-full">
                 {/* THE CARD THE PROGRAMME LINKS WERE, at the client's ask: a
@@ -814,11 +810,16 @@ function Enquiry() {
               tone="cream"
               className="min-h-[3.25rem] px-8"
             >
-              Start an enquiry
+              {programmeCopy().ctaSecondaryLabel}
             </BlobButton>
           </div>
         </Reveal>
       </Container>
     </section>
   );
+}
+
+/** A one-line heading, broken only where an editor put " | ". */
+function headingOf(label: string): string[] {
+  return label.includes("|") ? labelLines(label) : [label];
 }

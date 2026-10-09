@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
 
-import { SITE } from "@/lib/constants";
+import { getLandingPageSlugs } from "@/components/blocks/data";
+import { FIXED_PAGE_SLUGS } from "@/cms/collections/content/Pages";
+import { getSite } from "@/lib/constants.server";
 import { getEventSlugs } from "@/lib/eventDetail";
 import { PASSES_CONFIGURED } from "@/lib/passes";
-import { POLICIES } from "@/lib/policies";
-import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
+import { getPolicies } from "@/lib/policies";
+import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
 
 /**
  * ==========================================================================
@@ -17,9 +19,11 @@ import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
  * few places.
  *
  * THE DYNAMIC PAGES COME FROM THE SAME GETTERS THEIR ROUTES PRERENDER FROM —
- * `getEventSlugs`, `PRIVATE_EVENT_AUDIENCES`, `POLICIES` — so an activity
- * added to lib/experiences.ts is in this file the moment it has a page, and
- * one removed is gone from it the moment it does not.
+ * `getEventSlugs`, `getPrivateEventAudiences`, `getPolicies`, and the CMS
+ * landing pages the catch-all serves — so a document published in the admin
+ * is in this file the moment it has a page, and one unpublished is gone from
+ * it the moment it does not. Every content hook revalidates
+ * `/sitemap.xml` (cms/hooks/revalidate.ts, SPEC §G.4).
  *
  * WHAT IS LEFT OUT, and it is exactly the set of pages that print `noindex`
  * or are blocked in app/robots.ts. Listing a page here while telling search
@@ -32,14 +36,15 @@ import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
  *   /loyalty    while PASSES_CONFIGURED is false — the page's own noindex is
  *               tied to the same flag, so the two lift together
  *
- * NO lastModified, changeFrequency OR priority. There is no real edit date
- * for any of this content, and `new Date()` would tell crawlers every page
- * changed on every fetch, which teaches them to ignore the field. Google
- * ignores the other two outright. A bare list of URLs is the honest sitemap
- * for this site until a CMS can supply dates.
+ * NO changeFrequency OR priority — Google ignores both outright. A landing
+ * page carries `lastModified`, its real `updatedAt`; nothing else does yet,
+ * because `new Date()` would tell crawlers every page changed on every fetch,
+ * which teaches them to ignore the field.
  *
- * URLs are absolute, as the protocol requires, and built from SITE.url.
- * TODO(client): SITE.url is still the assumed domain — see lib/constants.ts.
+ * URLs are absolute, as the protocol requires, and built from Site details'
+ * public address once an admin has confirmed it (`getSite`, which until
+ * then uses an https NEXT_PUBLIC_SERVER_URL, else lib/constants.ts) — so a
+ * domain change in the admin moves them.
  */
 
 /** Indexable pages with no parameters. "" is the homepage. */
@@ -57,15 +62,24 @@ const STATIC_PATHS = [
 ] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const eventSlugs = await getEventSlugs();
+  const [site, eventSlugs, audiences, policies, landing] = await Promise.all([
+    getSite(),
+    getEventSlugs(),
+    getPrivateEventAudiences(),
+    getPolicies(),
+    getLandingPageSlugs(FIXED_PAGE_SLUGS),
+  ]);
 
   const paths: string[] = [
     ...STATIC_PATHS,
     ...(PASSES_CONFIGURED ? ["/loyalty"] : []),
     ...eventSlugs.map((slug) => `/events/${slug}`),
-    ...PRIVATE_EVENT_AUDIENCES.map((audience) => `/private-events/${audience.slug}`),
-    ...POLICIES.map((policy) => `/policies/${policy.slug}`),
+    ...audiences.map((audience) => `/private-events/${audience.slug}`),
+    ...policies.map((policy) => `/policies/${policy.slug}`),
   ];
 
-  return paths.map((path) => ({ url: `${SITE.url}${path}` }));
+  return [
+    ...paths.map((path) => ({ url: `${site.url}${path}` })),
+    ...landing.map((page) => ({ url: `${site.url}/${page.slug}`, lastModified: page.updatedAt })),
+  ];
 }

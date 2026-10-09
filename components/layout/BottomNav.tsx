@@ -6,7 +6,7 @@ import { BookingSheet } from "@/components/booking/BookingSheet";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AboutIcon,
   BookIcon,
@@ -18,7 +18,8 @@ import {
 } from "@/components/layout/bottomNavIcons";
 import { AboutSheet } from "@/components/layout/AboutSheet";
 import styles from "@/components/layout/BottomNav.module.css";
-import { MAIN_NAV, PRIMARY_CTA } from "@/lib/constants";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
+import type { NavItem as MenuItem } from "@/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -214,8 +215,10 @@ const BAR_LABELS: Record<string, string> = {
   "/private-events": "Private",
 };
 
-const ITEMS: readonly NavItem[] = [
-  ...MAIN_NAV.filter((item) => item.mobileSurface === "bar").map((item) => {
+/* The bar's slots from the Menus list (Settings → Menus, read by the layout
+   and handed down through <SiteChromeProvider>), then Contact. */
+const barItemsOf = (mainNav: readonly MenuItem[]): readonly NavItem[] => [
+  ...mainNav.filter((item) => item.mobileSurface === "bar").map((item) => {
     const short = BAR_LABELS[item.href];
     return {
       href: item.href,
@@ -228,11 +231,7 @@ const ITEMS: readonly NavItem[] = [
   CONTACT_ITEM,
 ];
 
-/* What About opens onto. Same list, the other flag — and the same four doors
-   <AboutMenu> opens on a desktop, in the same order. */
-const SHEET_ITEMS = MAIN_NAV.filter((item) => item.mobileSurface === "sheet");
-
-const BOOK = { href: PRIMARY_CTA.href, label: "Book a Session" } as const;
+const BOOK = { label: "Book a Session" } as const;
 /* Static rather than `useId`, because the trigger and the dialog are in two
    different components and both have to name the same string. */
 const BOOK_SHEET_ID = "bottom-nav-book";
@@ -250,6 +249,11 @@ const WAVE =
 export function BottomNav({ bookingOptions }: { bookingOptions: readonly BookingOption[] }) {
   const pathname = usePathname();
   const reduce = useReducedMotion();
+  const { mainNav } = useSiteChrome();
+  const barItems = useMemo(() => barItemsOf(mainNav), [mainNav]);
+  /* What About opens onto. Same list, the other flag — and the same four doors
+     <AboutMenu> opens on a desktop, in the same order. */
+  const sheetItems = useMemo(() => mainNav.filter((item) => item.mobileSurface === "sheet"), [mainNav]);
   const [aboutOpen, setAboutOpen] = useState(false);
   const aboutRef = useRef<HTMLButtonElement>(null);
   const [bookOpen, setBookOpen] = useState(false);
@@ -287,15 +291,15 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
     reach directly.
   */
   const onSheetRoute =
-    !ITEMS.some(isCurrent) &&
-    SHEET_ITEMS.some(
+    !barItems.some(isCurrent) &&
+    sheetItems.some(
       (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
     );
 
   /* The blob only travels once there is somewhere to travel to. On a route
      none of them lists — /faq, /checkout — nothing is marked, which is
      honest: none of the five is where you are. */
-  const anyCurrent = ITEMS.some(isCurrent) || onSheetRoute;
+  const anyCurrent = barItems.some(isCurrent) || onSheetRoute;
 
   const bar = (
     <motion.nav
@@ -393,7 +397,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         <span aria-hidden className="pointer-events-none absolute right-[33%] bottom-2 size-1 rounded-full bg-sage/60" />
 
         <ul className="relative grid grid-cols-5 items-end">
-          {ITEMS.slice(0, 2).map((item) => (
+          {barItems.slice(0, 2).map((item) => (
             <Item key={item.href} item={item} current={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
           ))}
 
@@ -401,7 +405,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
               nav, not against this cell, so it can rise out of the sheet. */}
           <li aria-hidden className="h-11" />
 
-          {ITEMS.slice(2).map((item) => (
+          {barItems.slice(2).map((item) => (
             <Item key={item.href} item={item} current={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
           ))}
 
@@ -516,7 +520,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
       <AboutSheet
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
-        items={SHEET_ITEMS}
+        items={sheetItems}
         returnFocusTo={aboutRef}
       />
 

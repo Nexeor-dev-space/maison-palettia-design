@@ -12,6 +12,7 @@
     "generate:importmap": "payload generate:importmap",
     "payload": "payload",
     "migrate": "payload migrate",
+    "seed": "payload run cms/seed/index.ts",
     "preflight:db": "node scripts/preflight-db.mjs",
     "ci": "npm run preflight:db && tsc --noEmit && eslint . && next build"
   },

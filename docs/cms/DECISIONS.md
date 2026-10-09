@@ -40,3 +40,28 @@ SPEC.md disagree, this file wins.
    process environment only. Phase 5B: health-check a real route (e.g.
    `/api/users/me` → `{"user":null}`), not the port, and decide whether
    `register()` should exit non-zero so the supervisor restarts and alerts.
+8. **Phase 2 parity exception: the placeholder Candle Making session shows
+   12 seats, not 9.** The design-phase data (lib/workshops.ts) printed
+   `seatsAvailable: 9`; SPEC §F.4 deliberately does not carry demo "seats
+   sold" into `session-inventory` (a seeded `seatsSold` would be counted by
+   the Phase 3 reconcile job as real sales with no orders behind them), so
+   the seeded row has `seatsSold: 0` and the page reads "12 spots
+   available", and the /book quantity picker offers up to 12. SPEC §F.4
+   wins; this is the one accepted visible difference in the Phase 2 parity
+   gate (/events, the seven experience pages, the session pages and
+   /events/candle-making/book). It disappears when the placeholder sessions
+   are replaced with real ones or saved as drafts (`npm run seed -- launch`).
+9. **The site's canonical origin waits for a confirmed address.** Canonicals,
+   `og:url`, the sitemap and robots use Site details → `publicUrl` only once
+   an admin has saved it (`system-state.publicUrlConfirmedAt`); before that
+   an https `NEXT_PUBLIC_SERVER_URL`, else `SITE.url`
+   (lib/constants.server.ts `getSite`). Reason: on the shared database (#1)
+   the seeded `publicUrl` is the dev machine's `http://localhost:3200`.
+   Emails, payment returns and preview links keep the SPEC §A.4 order
+   (cms/lib/publicUrl.ts), which needs a working address on this machine.
+10. **`POST /api/site/revalidate` landed in Phase 2**, not 3B, because
+    scheduled publishing (enabled on every drafted collection) purges
+    through it — without it a scheduled publish changed the database but not
+    the cached page. It implements the SPEC §G.4 contract exactly; 3B owns
+    the folder and may restyle it. `<SeatsLive>` is the opposite case: it is
+    not mounted until 3B's availability route exists.

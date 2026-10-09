@@ -8,10 +8,11 @@ import { BookAction } from "@/components/layout/BookAction";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
+import { PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { cn } from "@/lib/utils";
 import { FindYourVibe } from "@/components/layout/FindYourVibe";
-import { VIBES, experiencesByVibe, hasVibeTags, type VibeSlug } from "@/lib/vibes";
+import { experiencesByVibe, hasVibeTags, type VibeSlug } from "@/lib/vibes";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { NavItem } from "@/types";
 
@@ -74,6 +75,8 @@ export function MobileNav({
   isActive,
 }: MobileNavProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  // The vibes taxonomy from the CMS, through the layout (see SiteChrome).
+  const { vibes } = useSiteChrome();
 
   /*
     Same contract as the desktop panel: null means unfiltered, so the menu a
@@ -97,9 +100,9 @@ export function MobileNav({
   const vibeCounts = useMemo(
     () =>
       Object.fromEntries(
-        VIBES.map((entry) => [entry.slug, experiencesByVibe(experiences, entry.slug).length]),
+        vibes.map((entry) => [entry.slug, experiencesByVibe(experiences, entry.slug).length]),
       ) as Record<VibeSlug, number>,
-    [experiences],
+    [experiences, vibes],
   );
 
   const shortlist = vibe ? experiencesByVibe(experiences, vibe) : experiences;
@@ -491,7 +494,8 @@ function PrivateEventsGroup({
 }) {
   const [open, setOpen] = useState(false);
   const panelId = "mobile-private-events";
-  const programmes = PRIVATE_EVENT_AUDIENCES.filter((a) => a.inPrivateEventsMenu);
+  const { audiences } = useSiteChrome();
+  const programmes = audiences.filter((a) => a.inPrivateEventsMenu);
 
   return (
     <div>

@@ -4,7 +4,9 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 import { INK } from "@/components/sections/hero/composition";
+import { imageDataUri } from "@/components/cms/ogImage";
 import { BRAND_LOGO } from "@/lib/constants";
+import { getBrandLogo } from "@/lib/constants.server";
 import { DEFAULT_SHARE_IMAGE, SHARE_IMAGE_SIZE } from "@/lib/seo";
 
 /**
@@ -70,12 +72,19 @@ export const size = SHARE_IMAGE_SIZE;
 export const contentType = "image/png";
 
 /*
-  Read once, at module scope: the logo does not depend on the request. Inlined
-  as a data URI because Satori draws only what it is handed — it cannot fetch
-  a root-relative path from a server that is, at build time, not running.
+  THE LOGO IS SITE DETAILS' (the "on dark" cut, `getBrandLogo`), falling back
+  to the committed file. Inlined as a data URI because Satori draws only what
+  it is handed — it cannot fetch a root-relative path from a server that is,
+  at build time, not running — and read per render rather than once at
+  module scope, so replacing the logo in the admin changes the card on the
+  next revalidation (Site details purges the whole layout, SPEC §G.4).
 */
-const logo = await readFile(join(process.cwd(), "public", BRAND_LOGO.src));
-const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+async function logoSrc(src: string): Promise<string> {
+  const fromCms = await imageDataUri(src, { width: 1200, keepAlpha: true });
+  if (fromCms) return fromCms;
+  const bytes = await readFile(join(process.cwd(), "public", BRAND_LOGO.src));
+  return `data:image/png;base64,${bytes.toString("base64")}`;
+}
 
 /*
   Set by height, as everywhere else the mark is drawn — the file keeps its own
@@ -84,9 +93,11 @@ const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
   crop, small enough to keep a margin in Facebook's wide one.
 */
 const LOGO_HEIGHT = 300;
-const LOGO_WIDTH = Math.round((LOGO_HEIGHT * BRAND_LOGO.width) / BRAND_LOGO.height);
 
-export default function Image() {
+export default async function Image() {
+  const logo = await getBrandLogo();
+  const src = await logoSrc(logo.src);
+  const width = Math.round((LOGO_HEIGHT * logo.width) / logo.height);
   return new ImageResponse(
     (
       <div
@@ -99,7 +110,7 @@ export default function Image() {
           background: INK.charcoal,
         }}
       >
-        <img src={logoSrc} width={LOGO_WIDTH} height={LOGO_HEIGHT} alt="" />
+        <img src={src} width={width} height={LOGO_HEIGHT} alt="" />
       </div>
     ),
     size,

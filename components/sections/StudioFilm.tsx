@@ -57,7 +57,21 @@ const DURATION = "1:01";
  *  about the work — the two lines in the middle carry the brand's own copy. */
 const KIND = "A short film";
 
-export function StudioFilm() {
+/*
+  The `film` block (SPEC §E.2, dormant) hands in its own clip, poster, label
+  and running time; left out, the studio's launch film.
+*/
+export function StudioFilm({
+  video = "/videos/maison-film.mp4",
+  poster = "/images/hero/film-poster.jpg",
+  label = KIND,
+  duration = DURATION,
+}: {
+  video?: string;
+  poster?: string;
+  label?: string;
+  duration?: string;
+} = {}) {
   return (
     <section
       aria-labelledby="studio-film"
@@ -65,10 +79,10 @@ export function StudioFilm() {
     >
       <div className="sticky top-0 flex h-svh items-center overflow-hidden">
         <FilmStage
-          src="/videos/maison-film.mp4"
-          poster="/images/hero/film-poster.jpg"
+          src={video}
+          poster={poster}
           posterAlt=""
-          duration={DURATION}
+          duration={duration}
         />
 
         {/*
@@ -124,7 +138,7 @@ export function StudioFilm() {
                   aria-hidden
                   className="h-px w-9 shrink-0 bg-cream/55 md:w-12"
                 />
-                {KIND}
+                {label}
               </p>
             </Reveal>
 

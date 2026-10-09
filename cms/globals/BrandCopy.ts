@@ -209,7 +209,7 @@ export const BrandCopy: GlobalConfig = {
               "whatSetsUsApart",
               "What sets us apart",
               [
-                stableKey("A stable key for the card; renderers use it, visitors never see it."),
+                stableKey("Internal name — visitors never see it. Leave it as it is."),
                 copy("name", "Card title", { description: "Set in capitals; keep it to 22 characters.", max: 22, required: true }),
                 prose("description", "Description", { max: 160, required: true }),
               ],

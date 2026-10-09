@@ -23,6 +23,18 @@ export interface Config {
     users: User;
     media: Media;
     'settings-audit': SettingsAudit;
+    pages: Page;
+    experiences: Experience;
+    sessions: Session;
+    'session-inventory': SessionInventory;
+    venues: Venue;
+    programmes: Programme;
+    policies: Policy;
+    faqs: Faq;
+    passes: Pass;
+    testimonials: Testimonial;
+    vibes: Vibe;
+    redirects: Redirect;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -31,6 +43,9 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    sessions: {
+      inventory: 'session-inventory';
+    };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
     };
@@ -39,6 +54,18 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'settings-audit': SettingsAuditSelect<false> | SettingsAuditSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    experiences: ExperiencesSelect<false> | ExperiencesSelect<true>;
+    sessions: SessionsSelect<false> | SessionsSelect<true>;
+    'session-inventory': SessionInventorySelect<false> | SessionInventorySelect<true>;
+    venues: VenuesSelect<false> | VenuesSelect<true>;
+    programmes: ProgrammesSelect<false> | ProgrammesSelect<true>;
+    policies: PoliciesSelect<false> | PoliciesSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
+    passes: PassesSelect<false> | PassesSelect<true>;
+    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
+    vibes: VibesSelect<false> | VibesSelect<true>;
+    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -86,6 +113,7 @@ export interface Config {
   jobs: {
     tasks: {
       noop: TaskNoop;
+      schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
         output: unknown;
@@ -310,6 +338,1932 @@ export interface SettingsAudit {
   createdAt: string;
 }
 /**
+ * Each page is a list of sections. The eleven pages that make up the site cannot be deleted or renamed; add new pages for landing pages.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: string;
+  /**
+   * Used in the admin and as the fallback search title.
+   */
+  title: string;
+  /**
+   * Top to bottom, as the page reads. Drag to reorder.
+   */
+  blocks?:
+    | (
+        | HeroBlock
+        | OpeningStatementBlock
+        | ExperienceCarouselBlock
+        | WaysToTakePartBlock
+        | TwoWaysBlock
+        | WhereWeCreateBlock
+        | ClosingInvitationBlock
+        | AboutWelcomeBlock
+        | MissionVisionBlock
+        | CommunityJourneyBlock
+        | WhatSetsUsApartBlock
+        | ClosingCtaLilacBlock
+        | PageHeaderBlock
+        | FaqListBlock
+        | GalleryCollectionsBlock
+        | LocationsHeroBlock
+        | ContactIntroBlock
+        | PrivateEventsIntroBlock
+        | ProgrammesGridBlock
+        | ActivitiesGridBlock
+        | VenueSpotlightBlock
+        | StepsBlock
+        | EnquiryFormBlock
+        | PassesListBlock
+        | PoliciesIndexBlock
+        | EventsBrowserBlock
+        | WhereWeSetUpBlock
+        | UtilityBarBlock
+        | RichTextBlock
+        | SeasonalBlock
+        | WorkshopJourneyBlock
+        | PrivateEventsTeaserBlock
+        | ImagePairBlock
+        | FullBleedStatementBlock
+        | FilmBlock
+        | UpcomingSessionsBlock
+        | TestimonialsBlock
+        | CollaborateTeaserBlock
+      )[]
+    | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * The page's address, e.g. about → /about. Home is /. The eleven fixed pages keep theirs; on other published pages a change creates a redirect from the old address.
+   */
+  slug: string;
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock".
+ */
+export interface HeroBlock {
+  /**
+   * On: the heading comes from Settings → Brand wording and changes everywhere it is printed. Off: write this section's own.
+   */
+  useTagline?: boolean | null;
+  /**
+   * Three lines of up to 16 characters in the script face.
+   */
+  headingLines?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Which heading line is set in the accent colour when you write your own lines.
+   */
+  accentLineIndex?: number | null;
+  sub?: string | null;
+  lead?: string | null;
+  primaryCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  secondaryCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  /**
+   * Landscape, at least 1920 px wide.
+   */
+  imageDesktop?: (string | null) | Media;
+  /**
+   * Portrait, at least 768 px wide. Falls back to the desktop photograph.
+   */
+  imageMobile?: (string | null) | Media;
+  scrollCueLabel?: string | null;
+  /**
+   * Leave as it is unless a developer asks: the internal name of the section the arrow scrolls to (“experience-discovery” is the section straight after this one).
+   */
+  scrollCueTarget?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'hero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "OpeningStatementBlock".
+ */
+export interface OpeningStatementBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * On: the statement comes from Settings → Brand wording and changes everywhere it is printed. Off: write this section's own.
+   */
+  useBrandCopy?: boolean | null;
+  heading?: string | null;
+  body?: string | null;
+  closer?: string | null;
+  panel?: {
+    heading?: string | null;
+    body?: string | null;
+    signOff?: string | null;
+  };
+  panelImage?: (string | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'openingStatement';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ExperienceCarouselBlock".
+ */
+export interface ExperienceCarouselBlock {
+  /**
+   * The small line above the heading. Up to 36 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One sentence, printed large under the heading.
+   */
+  standfirst?: string | null;
+  source: 'all' | 'diy' | 'scheduled' | 'manual';
+  /**
+   * In the order they should appear.
+   */
+  experiences?: (string | Experience)[] | null;
+  cardCta?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'experienceCarousel';
+}
+/**
+ * The creative activities. Scheduled dates for an experience are Sessions.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "experiences".
+ */
+export interface Experience {
+  id: string;
+  /**
+   * Up to 24 characters: it is a script-face title and a menu caption.
+   */
+  name: string;
+  /**
+   * Only Create Together experiences can have Sessions.
+   */
+  kind: 'diy' | 'scheduled';
+  /**
+   * Printed under the name in menus, cards and the Book sheet.
+   */
+  description: string;
+  /**
+   * One row per paragraph; two is the house length. Craft only — no price, age, duration or group size here.
+   */
+  about?:
+    | {
+        paragraph: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Square works best: menu thumbs are 48 px squares and cards are near-square. At least 1000 px.
+   */
+  image?: (string | null) | Media;
+  /**
+   * Fanned beside the About section on the experience page. Must not repeat the main photograph.
+   */
+  gallery?: (string | Media)[] | null;
+  /**
+   * e.g. “Age 12 and over.” Printed in the policy pages' age tables.
+   */
+  ageGuidance?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * The address: /events/{slug}. Sessions take their slugs from it.
+   */
+  slug: string;
+  /**
+   * Shown verbatim instead of “Any time” / “Scheduled”, e.g. Coming soon. Leave blank when live.
+   */
+  status?: string | null;
+  /**
+   * Tag the mood. The “Find your vibe” filter appears once anything is tagged.
+   */
+  vibes?: (string | Vibe)[] | null;
+  /**
+   * Listed on the programme pages and in the enquiry form.
+   */
+  privateEventEligible?: boolean | null;
+  /**
+   * Position in lists: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Moods an experience can be tagged with. The filter on the Experiences page appears once anything is tagged.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vibes".
+ */
+export interface Vibe {
+  id: string;
+  /**
+   * Set in capitals by the design.
+   */
+  label: string;
+  /**
+   * Internal name — visitors never see it. The Events filter uses it.
+   */
+  slug: string;
+  /**
+   * A mood, never a fact about the programme.
+   */
+  blurb: string;
+  /**
+   * Position in lists: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WaysToTakePartBlock".
+ */
+export interface WaysToTakePartBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  groups?:
+    | {
+        /**
+         * One word, set in capitals: Create, Celebrate…
+         */
+        name: string;
+        lede: string;
+        photo?: (string | null) | Media;
+        tint: 'lilac' | 'terracotta' | 'lavender' | 'sage';
+        /**
+         * The links inside the card, each with a label and a short note.
+         */
+        doors?:
+          | {
+              label: string;
+              noteSource: 'text' | 'diyCount' | 'scheduledCount' | 'programmeDescription';
+              note?: string | null;
+              /**
+               * The door links to this programme's page and borrows its description.
+               */
+              programme?: (string | null) | Programme;
+              /**
+               * Ignored when a programme is chosen above.
+               */
+              link: {
+                type: 'internal' | 'external';
+                url?: string | null;
+                /**
+                 * Scrolls to a section, e.g. scheduled → /events#scheduled
+                 */
+                anchor?: string | null;
+                newTab?: boolean | null;
+              };
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'waysToTakePart';
+}
+/**
+ * Who private events are for. Each programme has a card, a page and a place in the Private events menu.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "programmes".
+ */
+export interface Programme {
+  id: string;
+  /**
+   * A script-face title. The share image shrinks its type over 16 characters.
+   */
+  name: string;
+  /**
+   * Read beside three neighbours; keep it parallel with theirs.
+   */
+  description: string;
+  /**
+   * The standfirst on the programme's own page. Falls back to the short line.
+   */
+  lead?: string | null;
+  /**
+   * 3:2 crops well everywhere: the card, the masthead, the menu thumb and the share image.
+   */
+  image?: (string | null) | Media;
+  /**
+   * Drawn when there is no photograph.
+   */
+  mark?: {
+    name?:
+      | (
+          | 'splash'
+          | 'coral'
+          | 'starleaf'
+          | 'bow'
+          | 'zigzag'
+          | 'cutout'
+          | 'starburst'
+          | 'wave'
+          | 'bean'
+          | 'slabCoral'
+          | 'dot'
+        )
+      | null;
+    color?: ('lilac' | 'lavender' | 'terracotta' | 'cream') | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * The address: /private-events/{slug}. A spelling in an existing address stays as it is.
+   */
+  slug: string;
+  inPrivateEventsMenu?: boolean | null;
+  /**
+   * Presentation only: one of the card palettes the page already has.
+   */
+  tone?: ('lavender' | 'charcoal' | 'sage' | 'lilac' | 'default') | null;
+  /**
+   * Position in lists: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TwoWaysBlock".
+ */
+export interface TwoWaysBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  roads?:
+    | {
+        eyebrow: string;
+        title: string;
+        line: string;
+        /**
+         * Short facts under the title. The venue and the next date are added automatically.
+         */
+        facts?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        cta: {
+          label?: string | null;
+          link: {
+            type: 'internal' | 'external';
+            url?: string | null;
+            /**
+             * Scrolls to a section, e.g. scheduled → /events#scheduled
+             */
+            anchor?: string | null;
+            newTab?: boolean | null;
+          };
+        };
+        ground: 'terracotta' | 'lilac';
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'twoWays';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WhereWeCreateBlock".
+ */
+export interface WhereWeCreateBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * On: the lead comes from Settings → Brand wording and changes everywhere it is printed. Off: write this section's own.
+   */
+  useFindUsLine?: boolean | null;
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  findUsNowLabel?: string | null;
+  /**
+   * Leave empty to show the current venue.
+   */
+  venue?: (string | null) | Venue;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'whereWeCreate';
+}
+/**
+ * The centres the Maison sets up in. Only “Current” venues are shown as somewhere to find us.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "venues".
+ */
+export interface Venue {
+  id: string;
+  /**
+   * As it is signposted, e.g. Times Square Center.
+   */
+  name: string;
+  /**
+   * Printed under the name, e.g. Dubai.
+   */
+  locality: string;
+  /**
+   * Internal name — visitors never see it; not an address on the site.
+   */
+  slug: string;
+  /**
+   * Past venues are never shown as somewhere to go.
+   */
+  status: 'current' | 'upcoming' | 'past';
+  /**
+   * The Locations page plate and the “Our home” card on Private events.
+   */
+  descriptor: string;
+  /**
+   * The Experiences page and every event page. Falls back to the description above when empty.
+   */
+  eventDescriptor?: string | null;
+  /**
+   * The centre's own page or a Google Maps link. Behind “View location” and “Get directions”.
+   */
+  locationHref?: string | null;
+  /**
+   * What the embedded map searches for. Leave empty to use “name, locality”.
+   */
+  mapQuery?: string | null;
+  /**
+   * Optional. Leave empty rather than guess; the map falls back to a search.
+   */
+  coordinates?: {
+    lat?: number | null;
+    lng?: number | null;
+  };
+  /**
+   * Only the centre's own approved asset. Nothing is drawn or traced.
+   */
+  logo?: (string | null) | Media;
+  /**
+   * A photograph of the destination, when the client supplies one.
+   */
+  image?: (string | null) | Media;
+  /**
+   * Street, floor, unit — one row per line.
+   */
+  address?:
+    | {
+        line: string;
+        id?: string | null;
+      }[]
+    | null;
+  hours?:
+    | {
+        days: string;
+        hours: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Position in lists: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ClosingInvitationBlock".
+ */
+export interface ClosingInvitationBlock {
+  primaryCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  secondaryCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'closingInvitation';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AboutWelcomeBlock".
+ */
+export interface AboutWelcomeBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  image?: (string | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'aboutWelcome';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MissionVisionBlock".
+ */
+export interface MissionVisionBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'missionVision';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CommunityJourneyBlock".
+ */
+export interface CommunityJourneyBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'communityJourney';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WhatSetsUsApartBlock".
+ */
+export interface WhatSetsUsApartBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'whatSetsUsApart';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ClosingCtaLilacBlock".
+ */
+export interface ClosingCtaLilacBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  body?: string | null;
+  primaryCta: {
+    label: string;
+    link: {
+      type: 'internal' | 'external';
+      url: string;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  secondaryCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'closingCtaLilac';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PageHeaderBlock".
+ */
+export interface PageHeaderBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  standfirstSource: 'text' | 'openingStatementBody' | 'findUsLine';
+  /**
+   * One sentence, printed large under the heading.
+   */
+  standfirst?: string | null;
+  /**
+   * Optional. The gallery header shows two.
+   */
+  sideImage?: (string | null) | Media;
+  sideImageSecondary?: (string | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'pageHeader';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FaqListBlock".
+ */
+export interface FaqListBlock {
+  /**
+   * Each section lists the questions filed under it, in order.
+   */
+  groups?:
+    | {
+        key: 'coming' | 'booking' | 'groups';
+        title: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'faqList';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GalleryCollectionsBlock".
+ */
+export interface GalleryCollectionsBlock {
+  collections?:
+    | {
+        /**
+         * e.g. Collection 01.
+         */
+        folio: string;
+        heading: string;
+        /**
+         * One or two sentences under the heading.
+         */
+        lede?: string | null;
+        ground: 'surface' | 'cream' | 'sage';
+        source: 'experiences' | 'mediaTag' | 'manual';
+        /**
+         * Set on each file in Media → “Where it may be used”.
+         */
+        mediaTag?:
+          | (
+              | 'experience-hero'
+              | 'experience-gallery'
+              | 'programme'
+              | 'venue'
+              | 'gallery-make'
+              | 'gallery-making'
+              | 'gallery-keep'
+              | 'logo'
+              | 'og'
+              | 'hero'
+              | 'seasonal'
+              | 'kids'
+              | 'film'
+              | 'font'
+            )
+          | null;
+        images?: (string | Media)[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'galleryCollections';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LocationsHeroBlock".
+ */
+export interface LocationsHeroBlock {
+  findUsNowLabel?: string | null;
+  emptyNote?: string | null;
+  /**
+   * Leave empty to show every venue with status “Current”.
+   */
+  venues?: (string | Venue)[] | null;
+  /**
+   * Adds a “Where we have been” list of venues with status “Past”.
+   */
+  showPastDestinations?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'locationsHero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactIntroBlock".
+ */
+export interface ContactIntroBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  findUsHeading?: string | null;
+  whereTerm?: string | null;
+  emailTerm?: string | null;
+  phoneTerm?: string | null;
+  followTerm?: string | null;
+  venuesLinkLabel?: string | null;
+  venuesLink: {
+    type: 'internal' | 'external';
+    url?: string | null;
+    /**
+     * Scrolls to a section, e.g. scheduled → /events#scheduled
+     */
+    anchor?: string | null;
+    newTab?: boolean | null;
+  };
+  formHeading?: string | null;
+  formLead?: string | null;
+  portrait?: (string | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'contactIntro';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PrivateEventsIntroBlock".
+ */
+export interface PrivateEventsIntroBlock {
+  /**
+   * The small line above the heading. Up to 48 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 3 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  image?: (string | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'privateEventsIntro';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProgrammesGridBlock".
+ */
+export interface ProgrammesGridBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  cardCta?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'programmesGrid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ActivitiesGridBlock".
+ */
+export interface ActivitiesGridBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  linkTo: 'none' | 'experiencePage' | 'enquiry';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'activitiesGrid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "VenueSpotlightBlock".
+ */
+export interface VenueSpotlightBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  cardLabel?: string | null;
+  /**
+   * Leave empty to show the current venue.
+   */
+  venue?: (string | null) | Venue;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'venueSpotlight';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StepsBlock".
+ */
+export interface StepsBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  source: 'brandCopyPrivateEventSteps' | 'custom';
+  /**
+   * Numbered in order, 01 upwards.
+   */
+  steps?:
+    | {
+        title: string;
+        detail?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  variant: 'cards' | 'list';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'steps';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EnquiryFormBlock".
+ */
+export interface EnquiryFormBlock {
+  legendAboutYou?: string | null;
+  legendAboutEvent?: string | null;
+  note?: string | null;
+  submitLabel?: string | null;
+  successHeading?: string | null;
+  successBody?: string | null;
+  sidebarSteps: {
+    heading?: string | null;
+    source: 'brandCopyPrivateEventSteps' | 'custom';
+    /**
+     * Numbered in order, 01 upwards.
+     */
+    steps?:
+      | {
+          title: string;
+          detail?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'enquiryForm';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PassesListBlock".
+ */
+export interface PassesListBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  listHeading?: string | null;
+  /**
+   * Shown under the list while Booking settings → “Passes are final” is off.
+   */
+  previewDisclaimer?: string | null;
+  sessionsTerm?: string | null;
+  validTerm?: string | null;
+  addLabel?: string | null;
+  notOnSale?: string | null;
+  askLabel?: string | null;
+  /**
+   * {count} becomes “ (3 in total)” when more than one is held.
+   */
+  addedNote?: string | null;
+  viewBookingLabel?: string | null;
+  failedNote?: string | null;
+  emptyTitle?: string | null;
+  emptyBody?: string | null;
+  emptyCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  footerBefore?: string | null;
+  footerFirstLink: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  footerBetween?: string | null;
+  footerSecondLink: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  footerAfter?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'passesList';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PoliciesIndexBlock".
+ */
+export interface PoliciesIndexBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'policiesIndex';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EventsBrowserBlock".
+ */
+export interface EventsBrowserBlock {
+  /**
+   * Create Anytime first, Create Together second.
+   */
+  doors?:
+    | {
+        title: string;
+        noteSource: 'journey0' | 'journey1' | 'custom';
+        note?: string | null;
+        /**
+         * The chip on the door, e.g. “No booking” or “Booked online”.
+         */
+        modeLabel?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  groupLeads?: {
+    diy?: string | null;
+    scheduled?: string | null;
+  };
+  viewLocationLabel?: string | null;
+  emptyTitle?: string | null;
+  emptyBody?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'eventsBrowser';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WhereWeSetUpBlock".
+ */
+export interface WhereWeSetUpBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * On: the lead comes from Settings → Brand wording and changes everywhere it is printed. Off: write this section's own.
+   */
+  useFindUsLine?: boolean | null;
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  /**
+   * {weekday} and {date} are filled from the next session at that venue.
+   */
+  nextLabelTemplate?: string | null;
+  cta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'whereWeSetUp';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "UtilityBarBlock".
+ */
+export interface UtilityBarBlock {
+  /**
+   * Optional sentence beside the links.
+   */
+  note?: string | null;
+  links?:
+    | {
+        label: string;
+        link: {
+          type: 'internal' | 'external';
+          url: string;
+          /**
+           * Scrolls to a section, e.g. scheduled → /events#scheduled
+           */
+          anchor?: string | null;
+          newTab?: boolean | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'utilityBar';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock".
+ */
+export interface RichTextBlock {
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  width: 'narrow' | 'wide';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'richText';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SeasonalBlock".
+ */
+export interface SeasonalBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  intro?: string | null;
+  source: 'brandCopy' | 'manual';
+  moments?:
+    | {
+        occasion: string;
+        experience?: string | null;
+        image?: (string | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'seasonal';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WorkshopJourneyBlock".
+ */
+export interface WorkshopJourneyBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  image?: (string | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'workshopJourney';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PrivateEventsTeaserBlock".
+ */
+export interface PrivateEventsTeaserBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 3 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  cta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'privateEventsTeaser';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImagePairBlock".
+ */
+export interface ImagePairBlock {
+  first: string | Media;
+  second: string | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'imagePair';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FullBleedStatementBlock".
+ */
+export interface FullBleedStatementBlock {
+  /**
+   * Large: it fills the width of the page.
+   */
+  image: string | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'fullBleedStatement';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FilmBlock".
+ */
+export interface FilmBlock {
+  /**
+   * A web encode, not a master.
+   */
+  video: string | Media;
+  /**
+   * Holds the stage while the film loads, and stands in under reduced motion.
+   */
+  poster: string | Media;
+  label?: string | null;
+  duration?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'film';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "UpcomingSessionsBlock".
+ */
+export interface UpcomingSessionsBlock {
+  heading?: string | null;
+  limit?: number | null;
+  /**
+   * Leave empty for every scheduled session.
+   */
+  experience?: (string | null) | Experience;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'upcomingSessions';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TestimonialsBlock".
+ */
+export interface TestimonialsBlock {
+  heading?: string | null;
+  source: 'latest' | 'manual';
+  limit?: number | null;
+  items?: (string | Testimonial)[] | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'testimonials';
+}
+/**
+ * Quotes from visitors. Only quotes with written permission on file can be published.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonial {
+  id: string;
+  /**
+   * One or two sentences. Anything longer stops being a quote.
+   */
+  quote: string;
+  /**
+   * A first name with permission, or the session they came to.
+   */
+  attribution: string;
+  experience?: (string | null) | Experience;
+  /**
+   * Required before the quote can be published.
+   */
+  permissionOnFile?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CollaborateTeaserBlock".
+ */
+export interface CollaborateTeaserBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * One row per line of the heading — up to 2 lines of 24 characters each.
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  primaryCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  secondaryCta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'collaborateTeaser';
+}
+/**
+ * Dated, bookable sessions of the Create Together experiences. Seats sold and held are counted by the booking system.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sessions".
+ */
+export interface Session {
+  id: string;
+  /**
+   * A Create Together experience. The session inherits its name, photograph and About unless overridden below.
+   */
+  experience: string | Experience;
+  /**
+   * Leave empty to use the experience's name.
+   */
+  title?: string | null;
+  /**
+   * Free text, e.g. Craft. Becomes a filter option on the Experiences page.
+   */
+  category: string;
+  /**
+   * Studio time (Gulf Standard). Booking closes at the start time unless a sales close is set.
+   */
+  startsAt: string;
+  startsAt_tz: SupportedTimezones;
+  /**
+   * 15 to 480, in steps of 15.
+   */
+  durationMinutes: number;
+  /**
+   * Where this date runs. Printed as the “Where” fact; omitted cleanly when empty.
+   */
+  venue?: (string | null) | Venue;
+  /**
+   * In AED, e.g. 240.00
+   */
+  priceFils: number;
+  /**
+   * Capacity. Cannot go below the seats already sold or held.
+   */
+  seatsTotal: number;
+  price?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * One or two sentences: the card line, the page lead and the search snippet.
+   */
+  excerpt?: string | null;
+  /**
+   * Leave empty to use the experience's main photograph.
+   */
+  image?: (string | null) | Media;
+  /**
+   * Shown on the session page only when there is something here.
+   */
+  gallery?: (string | Media)[] | null;
+  /**
+   * Leave empty to print the experience's About.
+   */
+  about?:
+    | {
+        paragraph: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Printed with the facts and on the ticket.
+   */
+  includes?: string | null;
+  /**
+   * Leave empty for no age line.
+   */
+  minAge?: number | null;
+  /**
+   * Staff only — not printed on the site yet.
+   */
+  instructor?: string | null;
+  /**
+   * A session with no seats left shows the waitlist form automatically; this switch is for closing it by hand.
+   */
+  bookingStatus: 'open' | 'waitlist' | 'closed';
+  /**
+   * Optional. Online booking stops at this time instead of at the start time.
+   */
+  salesCloseAt?: string | null;
+  salesCloseAt_tz?: SupportedTimezones;
+  /**
+   * How early and how late a ticket may be scanned around the start time.
+   */
+  checkInWindow?: {
+    beforeMinutes?: number | null;
+    afterMinutes?: number | null;
+  };
+  /**
+   * Written by the booking system only.
+   */
+  inventory?: {
+    docs?: (string | SessionInventory)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Staff only. Never printed.
+   */
+  internalNotes?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * Generated as experience-date-time (e.g. candle-making-2026-10-11-1530). Editable until published; a later change creates a redirect.
+   */
+  slug: string;
+  /**
+   * Seats minus sold minus held.
+   */
+  seatsAvailable?: number | null;
+  isFullyBooked?: boolean | null;
+  seatsSold?: number | null;
+  /**
+   * In baskets right now, awaiting payment.
+   */
+  seatsHeld?: number | null;
+  /**
+   * Stamped when the 24-hour reminder emails go out.
+   */
+  reminderSentAt?: string | null;
+  /**
+   * Set by “Cancel session & refund all”.
+   */
+  cancelledAt?: string | null;
+  cancelReason?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Seats sold and held per session. Maintained by the booking system; read-only here.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "session-inventory".
+ */
+export interface SessionInventory {
+  id: string;
+  session: string | Session;
+  /**
+   * Paid or desk-confirmed seats.
+   */
+  seatsSold: number;
+  /**
+   * In baskets awaiting payment; released when the hold expires.
+   */
+  seatsHeld: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * The studio policies, reproduced as written. Do not paraphrase: a policy restated in nicer words is a different policy.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "policies".
+ */
+export interface Policy {
+  id: string;
+  /**
+   * The page title and the list entry. In the large heading the words after “ & ” (or else the last word) are set in the script face.
+   */
+  title: string;
+  navLabel: string;
+  /**
+   * One line on the Policies page and the standfirst on the policy's own. Describes the page; never adds a rule to it.
+   */
+  summary: string;
+  /**
+   * Each section has a heading and one or more paragraphs, lists, age tables or callouts.
+   */
+  sections?:
+    | {
+        /**
+         * A label, never a claim.
+         */
+        heading: string;
+        blocks?: (PolicyTextBlock | PolicyListBlock | PolicyAgesBlock | PolicyCalloutBlock)[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * The address: /policies/{slug}. A change on a published policy creates a redirect.
+   */
+  slug: string;
+  /**
+   * Optional. Printed as “Effective from …” when set.
+   */
+  effectiveDate?: string | null;
+  /**
+   * For Privacy and Terms when written; the other policies live in the footer's Policies column.
+   */
+  showInLegalRow?: boolean | null;
+  /**
+   * Adds the policy to the “I have read and agree” box; the agreed version is stored on the order.
+   */
+  requiresCheckoutConsent?: boolean | null;
+  /**
+   * Counts publishes. Orders record the version agreed to.
+   */
+  version?: number | null;
+  /**
+   * Position in lists: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyTextBlock".
+ */
+export interface PolicyTextBlock {
+  body: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'text';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyListBlock".
+ */
+export interface PolicyListBlock {
+  items?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'list';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyAgesBlock".
+ */
+export interface PolicyAgesBlock {
+  /**
+   * DIY and Workshop read each experience's Age guidance, so an age is edited once.
+   */
+  source: 'diy' | 'workshop' | 'custom';
+  rows?:
+    | {
+        activity: string;
+        guidance: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'ages';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyCalloutBlock".
+ */
+export interface PolicyCalloutBlock {
+  title: string;
+  body: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'callout';
+}
+/**
+ * Questions on the FAQ page, filed under three sections. The sections' headings are set on the FAQ page itself.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: string;
+  question: string;
+  answerSource: 'text' | 'bookingTerms';
+  /**
+   * A paragraph or two. Keep it under about 600 characters.
+   */
+  answer?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  group: 'coming' | 'booking' | 'groups';
+  /**
+   * Reserved: no homepage FAQ section exists yet.
+   */
+  showOnHomepage?: boolean | null;
+  /**
+   * Position within its section.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Multi-session passes sold on the Passes page. A pass without a price shows as not on sale yet.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "passes".
+ */
+export interface Pass {
+  id: string;
+  /**
+   * Set in capitals by the design.
+   */
+  name: string;
+  /**
+   * Internal name — visitors never see it. The basket refers to the pass by it, so leave it once the pass is on sale.
+   */
+  slug: string;
+  /**
+   * The benefits carry the detail.
+   */
+  description: string;
+  /**
+   * In AED, e.g. 1400.00. Leave empty to show “not on sale yet”.
+   */
+  priceFils?: number | null;
+  /**
+   * How many session credits the pass holds.
+   */
+  sessions?: number | null;
+  price?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Counted from purchase by the booking system.
+   */
+  validityDays?: number | null;
+  /**
+   * e.g. 12 months from purchase.
+   */
+  validityLabel?: string | null;
+  /**
+   * Three or four short lines. Never paragraphs.
+   */
+  benefits?:
+    | {
+        line: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The plate beside the entry.
+   */
+  image?: (string | null) | Media;
+  /**
+   * Leave empty to use the description saved with the photograph in Media. Fill it only when this pass should describe the same photograph differently (screen readers read it aloud).
+   */
+  imageAlt?: string | null;
+  /**
+   * Off: the pass is listed but cannot be added to a booking.
+   */
+  sellable?: boolean | null;
+  /**
+   * Position in lists: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Old addresses and where they go now. Created automatically when a published slug changes; add your own for campaign links.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects".
+ */
+export interface Redirect {
+  id: string;
+  /**
+   * The address visitors still arrive at.
+   */
+  from: string;
+  /**
+   * Where they should land.
+   */
+  to: string;
+  /**
+   * Search engines move their links to the new address. Untick for a temporary move, e.g. a page that is coming back.
+   */
+  permanent?: boolean | null;
+  source: 'manual' | 'auto';
+  /**
+   * Not counted yet.
+   */
+  hits?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -378,7 +2332,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'noop';
+        taskSlug: 'inline' | 'noop' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -409,13 +2363,13 @@ export interface PayloadJob {
           | boolean
           | null;
         parent?: {
-          taskSlug?: ('inline' | 'noop') | null;
+          taskSlug?: ('inline' | 'noop' | 'schedulePublish') | null;
           taskID?: string | null;
         };
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'noop') | null;
+  taskSlug?: ('inline' | 'noop' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -444,6 +2398,54 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'settings-audit';
         value: string | SettingsAudit;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: string | Page;
+      } | null)
+    | ({
+        relationTo: 'experiences';
+        value: string | Experience;
+      } | null)
+    | ({
+        relationTo: 'sessions';
+        value: string | Session;
+      } | null)
+    | ({
+        relationTo: 'session-inventory';
+        value: string | SessionInventory;
+      } | null)
+    | ({
+        relationTo: 'venues';
+        value: string | Venue;
+      } | null)
+    | ({
+        relationTo: 'programmes';
+        value: string | Programme;
+      } | null)
+    | ({
+        relationTo: 'policies';
+        value: string | Policy;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: string | Faq;
+      } | null)
+    | ({
+        relationTo: 'passes';
+        value: string | Pass;
+      } | null)
+    | ({
+        relationTo: 'testimonials';
+        value: string | Testimonial;
+      } | null)
+    | ({
+        relationTo: 'vibes';
+        value: string | Vibe;
+      } | null)
+    | ({
+        relationTo: 'redirects';
+        value: string | Redirect;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -621,6 +2623,1252 @@ export interface SettingsAuditSelect<T extends boolean = true> {
   user?: T;
   at?: T;
   ipHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  blocks?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        openingStatement?: T | OpeningStatementBlockSelect<T>;
+        experienceCarousel?: T | ExperienceCarouselBlockSelect<T>;
+        waysToTakePart?: T | WaysToTakePartBlockSelect<T>;
+        twoWays?: T | TwoWaysBlockSelect<T>;
+        whereWeCreate?: T | WhereWeCreateBlockSelect<T>;
+        closingInvitation?: T | ClosingInvitationBlockSelect<T>;
+        aboutWelcome?: T | AboutWelcomeBlockSelect<T>;
+        missionVision?: T | MissionVisionBlockSelect<T>;
+        communityJourney?: T | CommunityJourneyBlockSelect<T>;
+        whatSetsUsApart?: T | WhatSetsUsApartBlockSelect<T>;
+        closingCtaLilac?: T | ClosingCtaLilacBlockSelect<T>;
+        pageHeader?: T | PageHeaderBlockSelect<T>;
+        faqList?: T | FaqListBlockSelect<T>;
+        galleryCollections?: T | GalleryCollectionsBlockSelect<T>;
+        locationsHero?: T | LocationsHeroBlockSelect<T>;
+        contactIntro?: T | ContactIntroBlockSelect<T>;
+        privateEventsIntro?: T | PrivateEventsIntroBlockSelect<T>;
+        programmesGrid?: T | ProgrammesGridBlockSelect<T>;
+        activitiesGrid?: T | ActivitiesGridBlockSelect<T>;
+        venueSpotlight?: T | VenueSpotlightBlockSelect<T>;
+        steps?: T | StepsBlockSelect<T>;
+        enquiryForm?: T | EnquiryFormBlockSelect<T>;
+        passesList?: T | PassesListBlockSelect<T>;
+        policiesIndex?: T | PoliciesIndexBlockSelect<T>;
+        eventsBrowser?: T | EventsBrowserBlockSelect<T>;
+        whereWeSetUp?: T | WhereWeSetUpBlockSelect<T>;
+        utilityBar?: T | UtilityBarBlockSelect<T>;
+        richText?: T | RichTextBlockSelect<T>;
+        seasonal?: T | SeasonalBlockSelect<T>;
+        workshopJourney?: T | WorkshopJourneyBlockSelect<T>;
+        privateEventsTeaser?: T | PrivateEventsTeaserBlockSelect<T>;
+        imagePair?: T | ImagePairBlockSelect<T>;
+        fullBleedStatement?: T | FullBleedStatementBlockSelect<T>;
+        film?: T | FilmBlockSelect<T>;
+        upcomingSessions?: T | UpcomingSessionsBlockSelect<T>;
+        testimonials?: T | TestimonialsBlockSelect<T>;
+        collaborateTeaser?: T | CollaborateTeaserBlockSelect<T>;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noindex?: T;
+      };
+  slug?: T;
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock_select".
+ */
+export interface HeroBlockSelect<T extends boolean = true> {
+  useTagline?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  accentLineIndex?: T;
+  sub?: T;
+  lead?: T;
+  primaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  secondaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  imageDesktop?: T;
+  imageMobile?: T;
+  scrollCueLabel?: T;
+  scrollCueTarget?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "OpeningStatementBlock_select".
+ */
+export interface OpeningStatementBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  useBrandCopy?: T;
+  heading?: T;
+  body?: T;
+  closer?: T;
+  panel?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        signOff?: T;
+      };
+  panelImage?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ExperienceCarouselBlock_select".
+ */
+export interface ExperienceCarouselBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  standfirst?: T;
+  source?: T;
+  experiences?: T;
+  cardCta?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WaysToTakePartBlock_select".
+ */
+export interface WaysToTakePartBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  groups?:
+    | T
+    | {
+        name?: T;
+        lede?: T;
+        photo?: T;
+        tint?: T;
+        doors?:
+          | T
+          | {
+              label?: T;
+              noteSource?: T;
+              note?: T;
+              programme?: T;
+              link?:
+                | T
+                | {
+                    type?: T;
+                    url?: T;
+                    anchor?: T;
+                    newTab?: T;
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TwoWaysBlock_select".
+ */
+export interface TwoWaysBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  lead?: T;
+  roads?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        line?: T;
+        facts?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        cta?:
+          | T
+          | {
+              label?: T;
+              link?:
+                | T
+                | {
+                    type?: T;
+                    url?: T;
+                    anchor?: T;
+                    newTab?: T;
+                  };
+            };
+        ground?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WhereWeCreateBlock_select".
+ */
+export interface WhereWeCreateBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  useFindUsLine?: T;
+  lead?: T;
+  findUsNowLabel?: T;
+  venue?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ClosingInvitationBlock_select".
+ */
+export interface ClosingInvitationBlockSelect<T extends boolean = true> {
+  primaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  secondaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AboutWelcomeBlock_select".
+ */
+export interface AboutWelcomeBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  image?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MissionVisionBlock_select".
+ */
+export interface MissionVisionBlockSelect<T extends boolean = true> {
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CommunityJourneyBlock_select".
+ */
+export interface CommunityJourneyBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WhatSetsUsApartBlock_select".
+ */
+export interface WhatSetsUsApartBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ClosingCtaLilacBlock_select".
+ */
+export interface ClosingCtaLilacBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  body?: T;
+  primaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  secondaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PageHeaderBlock_select".
+ */
+export interface PageHeaderBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  standfirstSource?: T;
+  standfirst?: T;
+  sideImage?: T;
+  sideImageSecondary?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FaqListBlock_select".
+ */
+export interface FaqListBlockSelect<T extends boolean = true> {
+  groups?:
+    | T
+    | {
+        key?: T;
+        title?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GalleryCollectionsBlock_select".
+ */
+export interface GalleryCollectionsBlockSelect<T extends boolean = true> {
+  collections?:
+    | T
+    | {
+        folio?: T;
+        heading?: T;
+        lede?: T;
+        ground?: T;
+        source?: T;
+        mediaTag?: T;
+        images?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LocationsHeroBlock_select".
+ */
+export interface LocationsHeroBlockSelect<T extends boolean = true> {
+  findUsNowLabel?: T;
+  emptyNote?: T;
+  venues?: T;
+  showPastDestinations?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactIntroBlock_select".
+ */
+export interface ContactIntroBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  findUsHeading?: T;
+  whereTerm?: T;
+  emailTerm?: T;
+  phoneTerm?: T;
+  followTerm?: T;
+  venuesLinkLabel?: T;
+  venuesLink?:
+    | T
+    | {
+        type?: T;
+        url?: T;
+        anchor?: T;
+        newTab?: T;
+      };
+  formHeading?: T;
+  formLead?: T;
+  portrait?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PrivateEventsIntroBlock_select".
+ */
+export interface PrivateEventsIntroBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  image?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProgrammesGridBlock_select".
+ */
+export interface ProgrammesGridBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  cardCta?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ActivitiesGridBlock_select".
+ */
+export interface ActivitiesGridBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  linkTo?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "VenueSpotlightBlock_select".
+ */
+export interface VenueSpotlightBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  cardLabel?: T;
+  venue?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StepsBlock_select".
+ */
+export interface StepsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  source?: T;
+  steps?:
+    | T
+    | {
+        title?: T;
+        detail?: T;
+        id?: T;
+      };
+  variant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EnquiryFormBlock_select".
+ */
+export interface EnquiryFormBlockSelect<T extends boolean = true> {
+  legendAboutYou?: T;
+  legendAboutEvent?: T;
+  note?: T;
+  submitLabel?: T;
+  successHeading?: T;
+  successBody?: T;
+  sidebarSteps?:
+    | T
+    | {
+        heading?: T;
+        source?: T;
+        steps?:
+          | T
+          | {
+              title?: T;
+              detail?: T;
+              id?: T;
+            };
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PassesListBlock_select".
+ */
+export interface PassesListBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  lead?: T;
+  listHeading?: T;
+  previewDisclaimer?: T;
+  sessionsTerm?: T;
+  validTerm?: T;
+  addLabel?: T;
+  notOnSale?: T;
+  askLabel?: T;
+  addedNote?: T;
+  viewBookingLabel?: T;
+  failedNote?: T;
+  emptyTitle?: T;
+  emptyBody?: T;
+  emptyCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  footerBefore?: T;
+  footerFirstLink?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  footerBetween?: T;
+  footerSecondLink?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  footerAfter?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PoliciesIndexBlock_select".
+ */
+export interface PoliciesIndexBlockSelect<T extends boolean = true> {
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EventsBrowserBlock_select".
+ */
+export interface EventsBrowserBlockSelect<T extends boolean = true> {
+  doors?:
+    | T
+    | {
+        title?: T;
+        noteSource?: T;
+        note?: T;
+        modeLabel?: T;
+        id?: T;
+      };
+  groupLeads?:
+    | T
+    | {
+        diy?: T;
+        scheduled?: T;
+      };
+  viewLocationLabel?: T;
+  emptyTitle?: T;
+  emptyBody?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WhereWeSetUpBlock_select".
+ */
+export interface WhereWeSetUpBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  useFindUsLine?: T;
+  lead?: T;
+  nextLabelTemplate?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "UtilityBarBlock_select".
+ */
+export interface UtilityBarBlockSelect<T extends boolean = true> {
+  note?: T;
+  links?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock_select".
+ */
+export interface RichTextBlockSelect<T extends boolean = true> {
+  body?: T;
+  width?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SeasonalBlock_select".
+ */
+export interface SeasonalBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  source?: T;
+  moments?:
+    | T
+    | {
+        occasion?: T;
+        experience?: T;
+        image?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WorkshopJourneyBlock_select".
+ */
+export interface WorkshopJourneyBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  image?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PrivateEventsTeaserBlock_select".
+ */
+export interface PrivateEventsTeaserBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  cta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImagePairBlock_select".
+ */
+export interface ImagePairBlockSelect<T extends boolean = true> {
+  first?: T;
+  second?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FullBleedStatementBlock_select".
+ */
+export interface FullBleedStatementBlockSelect<T extends boolean = true> {
+  image?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FilmBlock_select".
+ */
+export interface FilmBlockSelect<T extends boolean = true> {
+  video?: T;
+  poster?: T;
+  label?: T;
+  duration?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "UpcomingSessionsBlock_select".
+ */
+export interface UpcomingSessionsBlockSelect<T extends boolean = true> {
+  heading?: T;
+  limit?: T;
+  experience?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TestimonialsBlock_select".
+ */
+export interface TestimonialsBlockSelect<T extends boolean = true> {
+  heading?: T;
+  source?: T;
+  limit?: T;
+  items?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CollaborateTeaserBlock_select".
+ */
+export interface CollaborateTeaserBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  primaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  secondaryCta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "experiences_select".
+ */
+export interface ExperiencesSelect<T extends boolean = true> {
+  name?: T;
+  kind?: T;
+  description?: T;
+  about?:
+    | T
+    | {
+        paragraph?: T;
+        id?: T;
+      };
+  image?: T;
+  gallery?: T;
+  ageGuidance?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noindex?: T;
+      };
+  slug?: T;
+  status?: T;
+  vibes?: T;
+  privateEventEligible?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sessions_select".
+ */
+export interface SessionsSelect<T extends boolean = true> {
+  experience?: T;
+  title?: T;
+  category?: T;
+  startsAt?: T;
+  startsAt_tz?: T;
+  durationMinutes?: T;
+  venue?: T;
+  priceFils?: T;
+  seatsTotal?: T;
+  price?: T;
+  excerpt?: T;
+  image?: T;
+  gallery?: T;
+  about?:
+    | T
+    | {
+        paragraph?: T;
+        id?: T;
+      };
+  includes?: T;
+  minAge?: T;
+  instructor?: T;
+  bookingStatus?: T;
+  salesCloseAt?: T;
+  salesCloseAt_tz?: T;
+  checkInWindow?:
+    | T
+    | {
+        beforeMinutes?: T;
+        afterMinutes?: T;
+      };
+  inventory?: T;
+  internalNotes?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noindex?: T;
+      };
+  slug?: T;
+  seatsAvailable?: T;
+  isFullyBooked?: T;
+  seatsSold?: T;
+  seatsHeld?: T;
+  reminderSentAt?: T;
+  cancelledAt?: T;
+  cancelReason?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "session-inventory_select".
+ */
+export interface SessionInventorySelect<T extends boolean = true> {
+  session?: T;
+  seatsSold?: T;
+  seatsHeld?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "venues_select".
+ */
+export interface VenuesSelect<T extends boolean = true> {
+  name?: T;
+  locality?: T;
+  slug?: T;
+  status?: T;
+  descriptor?: T;
+  eventDescriptor?: T;
+  locationHref?: T;
+  mapQuery?: T;
+  coordinates?:
+    | T
+    | {
+        lat?: T;
+        lng?: T;
+      };
+  logo?: T;
+  image?: T;
+  address?:
+    | T
+    | {
+        line?: T;
+        id?: T;
+      };
+  hours?:
+    | T
+    | {
+        days?: T;
+        hours?: T;
+        id?: T;
+      };
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "programmes_select".
+ */
+export interface ProgrammesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  lead?: T;
+  image?: T;
+  mark?:
+    | T
+    | {
+        name?: T;
+        color?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noindex?: T;
+      };
+  slug?: T;
+  inPrivateEventsMenu?: T;
+  tone?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "policies_select".
+ */
+export interface PoliciesSelect<T extends boolean = true> {
+  title?: T;
+  navLabel?: T;
+  summary?: T;
+  sections?:
+    | T
+    | {
+        heading?: T;
+        blocks?:
+          | T
+          | {
+              text?: T | PolicyTextBlockSelect<T>;
+              list?: T | PolicyListBlockSelect<T>;
+              ages?: T | PolicyAgesBlockSelect<T>;
+              callout?: T | PolicyCalloutBlockSelect<T>;
+            };
+        id?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noindex?: T;
+      };
+  slug?: T;
+  effectiveDate?: T;
+  showInLegalRow?: T;
+  requiresCheckoutConsent?: T;
+  version?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyTextBlock_select".
+ */
+export interface PolicyTextBlockSelect<T extends boolean = true> {
+  body?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyListBlock_select".
+ */
+export interface PolicyListBlockSelect<T extends boolean = true> {
+  items?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyAgesBlock_select".
+ */
+export interface PolicyAgesBlockSelect<T extends boolean = true> {
+  source?: T;
+  rows?:
+    | T
+    | {
+        activity?: T;
+        guidance?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyCalloutBlock_select".
+ */
+export interface PolicyCalloutBlockSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answerSource?: T;
+  answer?: T;
+  group?: T;
+  showOnHomepage?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "passes_select".
+ */
+export interface PassesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  priceFils?: T;
+  sessions?: T;
+  price?: T;
+  validityDays?: T;
+  validityLabel?: T;
+  benefits?:
+    | T
+    | {
+        line?: T;
+        id?: T;
+      };
+  image?: T;
+  imageAlt?: T;
+  sellable?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  quote?: T;
+  attribution?: T;
+  experience?: T;
+  permissionOnFile?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vibes_select".
+ */
+export interface VibesSelect<T extends boolean = true> {
+  label?: T;
+  slug?: T;
+  blurb?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects_select".
+ */
+export interface RedirectsSelect<T extends boolean = true> {
+  from?: T;
+  to?: T;
+  permanent?: T;
+  source?: T;
+  hits?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -895,12 +4143,12 @@ export interface Navigation {
           newTab?: boolean | null;
         };
         /**
-         * Which panel drops under this item on desktop. The panels' contents come from Experiences, Programmes and the About doors below.
+         * Which panel drops under this item on desktop. The panels' contents come from Experiences, Programmes and the About links below.
          */
         menu?: ('none' | 'experiences' | 'private-events' | 'about') | null;
         mobileSurface: 'bar' | 'sheet' | 'none';
         /**
-         * Falls back to the label. Up to 10 characters.
+         * Falls back to the label. Up to 12 characters.
          */
         mobileShortLabel?: string | null;
         /**
@@ -960,7 +4208,7 @@ export interface Navigation {
         }[]
       | null;
     /**
-     * The highlighted door at the end of the panel (today: Upcoming dates).
+     * The highlighted link at the end of the panel (today: Upcoming dates).
      */
     door: {
       title: string;
@@ -987,7 +4235,7 @@ export interface Navigation {
     previewEyebrow?: string | null;
     previewAction?: string | null;
     /**
-     * Two doors: all programmes, and the enquiry form.
+     * Two links: all programmes, and the enquiry form.
      */
     doors?:
       | {
@@ -1022,7 +4270,7 @@ export interface Navigation {
             newTab?: boolean | null;
           };
           /**
-           * The cut-out shape drawn on the door.
+           * The cut-out shape drawn beside the link.
            */
           mark?:
             | (
@@ -1197,7 +4445,7 @@ export interface BrandCopy {
   whatSetsUsApart?:
     | {
         /**
-         * A stable key for the card; renderers use it, visitors never see it.
+         * Internal name — visitors never see it. Leave it as it is.
          */
         slug?: string | null;
         /**
@@ -3001,6 +6249,55 @@ export interface CollectionsWidget {
  */
 export interface TaskNoop {
   input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSchedulePublish".
+ */
+export interface TaskSchedulePublish {
+  input: {
+    type?: ('publish' | 'unpublish') | null;
+    locale?: string | null;
+    doc?:
+      | ({
+          relationTo: 'pages';
+          value: string | Page;
+        } | null)
+      | ({
+          relationTo: 'experiences';
+          value: string | Experience;
+        } | null)
+      | ({
+          relationTo: 'sessions';
+          value: string | Session;
+        } | null)
+      | ({
+          relationTo: 'programmes';
+          value: string | Programme;
+        } | null)
+      | ({
+          relationTo: 'policies';
+          value: string | Policy;
+        } | null)
+      | ({
+          relationTo: 'faqs';
+          value: string | Faq;
+        } | null)
+      | ({
+          relationTo: 'passes';
+          value: string | Pass;
+        } | null)
+      | ({
+          relationTo: 'testimonials';
+          value: string | Testimonial;
+        } | null);
+    global?: string | null;
+    user?: {
+      relationTo: 'users';
+      value: string | User;
+    } | null;
+  };
   output?: unknown;
 }
 /**

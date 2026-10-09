@@ -152,6 +152,14 @@ import { WAYS_SPOTS } from "@/components/sections/home/homeSpots";
   `alt=""`: each one sits directly above the name of its own group, so a
   screen reader is about to be told what it is. Describing it twice is noise.
 */
+/*
+  THE FOUR TINTS ARE NAMED NOW, so the CMS can pick one per group
+  (`waysToTakePart.groups[].tint`). The names are the brand colours each
+  panel is a tint of; the order is the order the launch page deals them.
+*/
+export type WaysTint = "lilac" | "terracotta" | "lavender" | "sage";
+const TINT_ORDER: readonly WaysTint[] = ["lilac", "terracotta", "lavender", "sage"];
+
 const CARDS = [
   {
     tint: "color-mix(in oklab, #9059A4 30%, var(--color-cream))",
@@ -179,7 +187,143 @@ const CARDS = [
   }, // 9.07:1
 ] as const;
 
-export async function WaysToExperience() {
+/*
+  WHAT THE CMS SUPPLIES (the `waysToTakePart` block,
+  components/blocks/WaysToTakePart.tsx): the eyebrow, the heading, the lead
+  and the groups — each group's name, lede, photograph, tint and doors. Left
+  out, each falls back to the launch wording below; the marks, the trail
+  and the tint recipes stay here.
+*/
+export interface WaysGroup {
+  name: string;
+  lede: string;
+  /** The cut-out for this way in; by position when absent. */
+  mark?: DoodleName;
+  /** `undefined` keeps the launch photograph for this position; `null` shows none. */
+  photo?: string | null;
+  tint?: WaysTint;
+  doors: Door[];
+}
+
+export async function WaysToExperience({
+  eyebrow = "Ways to take part",
+  lines = ["There Is More", "Than One Way In."],
+  lead = "Maison Palettia is a place to make, gather and create \u2014 whether you\u2019re joining us at the Maison or bringing the experience to your own space.",
+  groups: given,
+}: {
+  eyebrow?: string | null;
+  lines?: readonly string[] | null;
+  lead?: string | null;
+  groups?: WaysGroup[];
+} = {}) {
+  const groups = given ?? (await launchGroups());
+
+  return (
+    <section
+      aria-labelledby="ways-to-experience"
+      /* `overflow-x-clip`, not `hidden`: `hidden` would make this a scroll
+         container and a scroll container is what stops <DoodleMark>'s draw
+         ever filling for a mark inside it. The x-axis only, so the page still
+         scrolls normally — the same rule every other section on this site
+         that moves something sideways follows. */
+      className="relative isolate overflow-x-clip bg-cream py-[5rem] md:py-section lg:py-section-lg"
+    >
+      {/* The section's doodles, on the section itself so they can use its top
+          and bottom padding. The trail draws its own marks down the middle.
+          See homeSpots.ts. */}
+      <SectionShapes plan={WAYS_SPOTS} />
+      <Container>
+        {/* The question, asked once across the whole measure. */}
+        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
+          <div className="col-span-12 lg:col-span-6">
+            {eyebrow ? (
+              <Reveal>
+                <Eyebrow>{eyebrow}</Eyebrow>
+              </Reveal>
+            ) : null}
+            <DisplayHeading
+              id="ways-to-experience"
+              className="mt-8 md:mt-10"
+              lines={lines ?? []}
+            />
+          </div>
+
+          <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
+            {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
+            {lead ? <p className="text-lead text-text/85">{lead}</p> : null}
+          </Reveal>
+        </div>
+
+        {/*
+          ==================================================================
+          A TRAIL, NOT A ROW OF FOUR — the client's ask for this section
+          ==================================================================
+
+          It has now been three shapes. Four full-measure rows, which was the
+          "messy to scroll" the client first called out; then four cards
+          across, which fixed the height and made the section a grid of
+          articles; and now a path with the four ways hanging off it, which is
+          what the client asked for in so many words: "each card comes within
+          a path", "the path colours fill when you scroll".
+
+          NOTHING WAS CUT TO DO IT. All four groups, all eight doors, every
+          photograph and every line of approved copy are the ones that were
+          here — the same `groups` array below feeds it, and the tints are the
+          measured ones in CARDS with their ratios still recorded beside them.
+          What changed is the arrangement and the way it arrives.
+
+          See <WaysTrail> for how the path stays right at every width without
+          measuring the DOM.
+        */}
+
+        <WaysTrail
+          items={groups.map((group, i) => {
+            const at = group.tint ? TINT_ORDER.indexOf(group.tint) : -1;
+            const card = CARDS[(at >= 0 ? at : i) % CARDS.length];
+            return {
+              name: group.name,
+              lede: group.lede,
+              doors: group.doors.map((door) => ({
+                label: door.label,
+                href: door.href,
+                mode: door.mode,
+              })),
+              mark: group.mark ?? MARKS[i % MARKS.length],
+              /* A SECOND, SMALLER SHAPE per way in — it is the node on the
+                 trail and the mark at the foot of the text box, so the line
+                 and the card are marked with the same cut-out.
+
+                 ALL FOUR ARE "LOOSE" SHAPES, and that is not a preference.
+                 The icon set splits into loose cut-outs and SLABS — a shape
+                 sitting on a coloured tile — and a slab used as a node reads
+                 as a small cropped square pinned to the line rather than as a
+                 mark. See WEIGHT in sections/hero/doodles.ts for which is
+                 which; coral, starleaf, bow and zigzag are loose. */
+              trailMark: card.trail,
+              tint: card.tint,
+              paint: card.mark,
+              photo: group.photo === undefined ? CARDS[i % CARDS.length].photo : group.photo,
+            };
+          })}
+        />
+      </Container>
+    </section>
+  );
+}
+
+export interface Door {
+  label: string;
+  note?: string;
+  href: string;
+  /** Only the two creating modes carry the shared walk-in / scheduled mark. */
+  mode?: "diy" | "scheduled";
+}
+
+/** Each way in's cut-out, by position — the order the launch page set them. */
+const MARKS: readonly DoodleName[] = ["splash", "starburst", "starleaf", "bow"];
+
+/** The four groups as the launch page set them, with the live activity counts. */
+async function launchGroups(): Promise<WaysGroup[]> {
   const experiences = await getCreativeExperiences();
   const walkIn = experiences.filter((e) => e.kind === "diy").length;
   const scheduled = experiences.filter((e) => e.kind === "scheduled").length;
@@ -190,7 +334,7 @@ export async function WaysToExperience() {
   const schools = audience("school-programs");
   const activations = audience("mall-and-community-activations");
 
-  const groups: Group[] = [
+  return [
     {
       mark: "splash",
       name: "Create",
@@ -293,112 +437,4 @@ export async function WaysToExperience() {
       ],
     },
   ];
-
-  return (
-    <section
-      aria-labelledby="ways-to-experience"
-      /* `overflow-x-clip`, not `hidden`: `hidden` would make this a scroll
-         container and a scroll container is what stops <DoodleMark>'s draw
-         ever filling for a mark inside it. The x-axis only, so the page still
-         scrolls normally — the same rule every other section on this site
-         that moves something sideways follows. */
-      className="relative isolate overflow-x-clip bg-cream py-[5rem] md:py-section lg:py-section-lg"
-    >
-      {/* The section's doodles, on the section itself so they can use its top
-          and bottom padding. The trail draws its own marks down the middle.
-          See homeSpots.ts. */}
-      <SectionShapes plan={WAYS_SPOTS} />
-      <Container>
-        {/* The question, asked once across the whole measure. */}
-        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-8 lg:gap-x-10">
-          <div className="col-span-12 lg:col-span-6">
-            <Reveal>
-              <Eyebrow>Ways to take part</Eyebrow>
-            </Reveal>
-            <DisplayHeading
-              id="ways-to-experience"
-              className="mt-8 md:mt-10"
-              lines={["There Is More", "Than One Way In."]}
-            />
-          </div>
-
-          <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:col-start-8 lg:pb-3">
-            {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
-            <p className="text-lead text-text/85">
-              Maison Palettia is a place to make, gather and create — whether you&rsquo;re
-              joining us at the Maison or bringing the experience to your own space.
-            </p>
-          </Reveal>
-        </div>
-
-        {/*
-          ==================================================================
-          A TRAIL, NOT A ROW OF FOUR — the client's ask for this section
-          ==================================================================
-
-          It has now been three shapes. Four full-measure rows, which was the
-          "messy to scroll" the client first called out; then four cards
-          across, which fixed the height and made the section a grid of
-          articles; and now a path with the four ways hanging off it, which is
-          what the client asked for in so many words: "each card comes within
-          a path", "the path colours fill when you scroll".
-
-          NOTHING WAS CUT TO DO IT. All four groups, all eight doors, every
-          photograph and every line of approved copy are the ones that were
-          here — the same `groups` array below feeds it, and the tints are the
-          measured ones in CARDS with their ratios still recorded beside them.
-          What changed is the arrangement and the way it arrives.
-
-          See <WaysTrail> for how the path stays right at every width without
-          measuring the DOM.
-        */}
-
-        <WaysTrail
-          items={groups.map((group, i) => {
-            const card = CARDS[i % CARDS.length];
-            return {
-              name: group.name,
-              lede: group.lede,
-              doors: group.doors.map((door) => ({
-                label: door.label,
-                href: door.href,
-                mode: door.mode,
-              })),
-              mark: group.mark,
-              /* A SECOND, SMALLER SHAPE per way in — it is the node on the
-                 trail and the mark at the foot of the text box, so the line
-                 and the card are marked with the same cut-out.
-
-                 ALL FOUR ARE "LOOSE" SHAPES, and that is not a preference.
-                 The icon set splits into loose cut-outs and SLABS — a shape
-                 sitting on a coloured tile — and a slab used as a node reads
-                 as a small cropped square pinned to the line rather than as a
-                 mark. See WEIGHT in sections/hero/doodles.ts for which is
-                 which; coral, starleaf, bow and zigzag are loose. */
-              trailMark: card.trail,
-              tint: card.tint,
-              paint: card.mark,
-              photo: card.photo,
-            };
-          })}
-        />
-      </Container>
-    </section>
-  );
-}
-
-interface Door {
-  label: string;
-  note?: string;
-  href: string;
-  /** Only the two creating modes carry the shared walk-in / scheduled mark. */
-  mode?: "diy" | "scheduled";
-}
-
-interface Group {
-  name: string;
-  lede: string;
-  doors: Door[];
-  /** The cut-out for this door, drawn in its row's own paint. */
-  mark: DoodleName;
 }

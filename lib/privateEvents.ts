@@ -129,6 +129,14 @@ export interface PrivateEventAudience {
    * nobody books privately.
    */
   inPrivateEventsMenu?: boolean;
+  /**
+   * The card colourway on /private-events, as the programme's `tone` select
+   * in the CMS (lavender | charcoal | sage | lilac). Unset means the page's
+   * own default — and, today, the page still picks the colourway by slug
+   * from its `AUDIENCE_TONES` table, so this is the value it should read
+   * once it renders from CMS data (2D).
+   */
+  tone?: "lavender" | "charcoal" | "sage" | "lilac";
 }
 
 /**
@@ -142,8 +150,11 @@ export interface PrivateEventAudience {
  * The three brand colours the menu's marks are drawn in, named here rather
  * than reached for one by one. They are the deck's own — the same values
  * `INK` in the hero's composition carries.
+ *
+ * Exported because the CMS stores the KEY (`mark.color` on a programme) and
+ * the renderer owns the hex: lib/cms/mappers.ts turns one into the other.
  */
-const INK_MARK = {
+export const INK_MARK = {
   lilac: "#9059A4",
   lavender: "#C4B5FD",
   terracotta: "#D97757",

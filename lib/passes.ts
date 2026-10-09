@@ -1,11 +1,14 @@
+import { TAGS } from "@/lib/cms/cache";
+import { toPass } from "@/lib/cms/mappers";
+import { contentReader, findDocs } from "@/lib/cms/query";
 import type { Pass } from "@/types";
 
 /**
  * The Maison's passes, and the seam where they will meet a CMS.
  *
  * Everything reads these through {@link getPasses}, so replacing the array
- * below with a query is a change to one function body — the same arrangement
- * lib/workshops.ts and lib/disciplines.ts already use.
+ * below with a query was a change to one function body — the same arrangement
+ * lib/workshops.ts uses. The query is the `passes` collection (Phase 2).
  *
  * A pass is the only thing on this site that is bought rather than booked, and
  * it still goes through the one basket and the one checkout. The whole of that
@@ -32,6 +35,11 @@ import type { Pass } from "@/types";
  * prices presented as the Maison's own terms.
  *
  * TODO(client): supply the real passes, replace the array, then set this true.
+ *
+ * TODO(phase2-cleanup): still a constant after Phase 2 — no setting in the
+ * admin carries "passes are final" yet (booking-settings has no `passesLive`
+ * field; each pass has its own `sellable`). It wants to become one so the
+ * studio can flip it without a deploy (DECISIONS.md #5).
  * There is still no payment provider — see `PAYMENT_CONFIGURED` — so a pass
  * bought here is recorded in the visitor's own browser and nowhere else.
  */
@@ -116,19 +124,28 @@ const PLACEHOLDER_PASSES: Pass[] = [
   },
 ];
 
+/** The published passes, in editorial order (`order`), mapped to `Pass`. */
+const readPasses = contentReader("passes", [TAGS.passes], async (draft) => {
+  const docs = await findDocs("passes", draft, { drafts: true, sort: "order", depth: 1 });
+  return docs.map(toPass);
+});
+
 /**
  * The passes, in the order they should be read.
  *
- * Async on purpose, for the reason `getUpcomingWorkshops` is: the placeholder
- * resolves immediately but the signature is already the one a CMS fetch needs,
- * so nothing downstream changes shape when the data goes remote.
+ * Since Phase 2 the `passes` collection, through `cached` under the passes
+ * tag, draft-aware in preview (SPEC §G.1). Order is editorial — the page
+ * numbers what it renders — so it is the studio's `order` field and never a
+ * sort by price, which would turn an offer into a price list.
  *
- * Order is editorial — the page numbers what it renders — so a query replacing
- * this body should preserve whatever order the studio sets rather than sorting
- * by price, which would turn an offer into a price list.
- *
- * TODO(client): replace the body with the CMS query.
+ * The seed saves the three placeholders as drafts (SPEC §F.5), so until the
+ * studio publishes real passes the CMS answers with nothing and the in-file
+ * placeholders below still render — with `PASSES_CONFIGURED` false and the
+ * "not final yet" line under them, exactly as before.
  */
 export async function getPasses(): Promise<Pass[]> {
-  return PLACEHOLDER_PASSES;
+  const fromCms = await readPasses();
+  // The placeholders only when the CMS could not be read (null); an empty
+  // answer means "no passes on offer".
+  return fromCms ? [...fromCms] : PLACEHOLDER_PASSES;
 }

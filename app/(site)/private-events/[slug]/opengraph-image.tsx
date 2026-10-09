@@ -1,11 +1,13 @@
 import { readFile } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
 
+import { imageDataUri } from "@/components/cms/ogImage";
 import { INK } from "@/components/sections/hero/composition";
 import { BRAND_LOGO } from "@/lib/constants";
-import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
+import { getBrandLogo } from "@/lib/constants.server";
+import { getPrivateEventAudience, getPrivateEventAudiences } from "@/lib/privateEvents.server";
 
 /**
  * ==========================================================================
@@ -38,44 +40,43 @@ export const alt = "A Maison Palettia private event: its photograph beside its n
 export const size = { width: 684, height: 360 };
 export const contentType = "image/png";
 
-export function generateStaticParams() {
-  return PRIVATE_EVENT_AUDIENCES.map((audience) => ({ slug: audience.slug }));
+export async function generateStaticParams() {
+  return (await getPrivateEventAudiences()).map((audience) => ({ slug: audience.slug }));
 }
 
-/* Request-independent, so read once. Both are the client's own files. */
+/* Request-independent, so read once. Both are the client's own files; the
+   committed logo is only the fallback for the Site details one below. */
 const scriptFont = await readFile(
   join(process.cwd(), "public", "fonts", "HapshaSophiaScript_01.otf"),
 );
 const logo = await readFile(join(process.cwd(), "public", BRAND_LOGO.src));
-const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+const committedLogoSrc = `data:image/png;base64,${logo.toString("base64")}`;
 
-const MIME: Record<string, string> = {
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-};
-
-/** A /public path as a data URI, or null when it cannot be drawn. */
-async function publicImage(src: string): Promise<string | null> {
-  const mime = MIME[extname(src).toLowerCase()];
-  if (!mime) return null;
-  try {
-    const bytes = await readFile(join(process.cwd(), "public", src));
-    return `data:${mime};base64,${bytes.toString("base64")}`;
-  } catch {
-    return null;
-  }
+/*
+  THE LOGO IS SITE DETAILS' ("on dark" cut, `getBrandLogo`), read per render
+  as the site-wide card does, so replacing it in the admin changes this card
+  on the next revalidation; the committed file answers when it cannot be read.
+*/
+async function brandLogo(): Promise<{ src: string; width: number }> {
+  const cut = await getBrandLogo();
+  const src = (await imageDataUri(cut.src, { width: 1200, keepAlpha: true })) ?? committedLogoSrc;
+  return { src, width: Math.round((LOGO_HEIGHT * cut.width) / cut.height) };
 }
+
+/*
+  The programme's photograph is a Media upload once the CMS has it, a
+  committed /public file before — components/cms/ogImage.ts reads either and
+  re-encodes the Media sizes' WebP into something Satori can draw.
+*/
 
 /** Scale from the 1200x630 the card was composed at to the size it ships at. */
 const U = size.height / 630;
 const SIDE = size.height;
 const LOGO_HEIGHT = Math.round(92 * U);
-const LOGO_WIDTH = Math.round((LOGO_HEIGHT * BRAND_LOGO.width) / BRAND_LOGO.height);
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const audience = PRIVATE_EVENT_AUDIENCES.find((a) => a.slug === slug);
+  const audience = await getPrivateEventAudience(slug);
 
   /* The page 404s for an unknown slug; its card does the same. */
   if (!audience) return new Response("Not found", { status: 404 });
@@ -83,7 +84,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const title = audience.name;
   const photo = audience.image;
   /* `image` is optional on a programme; without one the name takes the card. */
-  const photoSrc = photo ? await publicImage(photo.src) : null;
+  const photoSrc = photo ? await imageDataUri(photo.src) : null;
+
+  const logoCut = await brandLogo();
 
   return new ImageResponse(
     (
@@ -117,7 +120,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           >
             {title}
           </div>
-          <img src={logoSrc} width={LOGO_WIDTH} height={LOGO_HEIGHT} alt="" />
+          <img src={logoCut.src} width={logoCut.width} height={LOGO_HEIGHT} alt="" />
         </div>
       </div>
     ),

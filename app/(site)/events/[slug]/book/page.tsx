@@ -10,6 +10,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
+import { getEventDetail } from "@/lib/eventDetail";
 import { buildMetadata } from "@/lib/seo";
 import {
   formatDuration,
@@ -73,9 +74,23 @@ export async function generateStaticParams() {
 */
 export const revalidate = 600;
 
+/*
+  The session this address books. Since the CMS, a session has its own dated
+  slug (`candle-making-2026-10-11-1530`), so the activity's bare slug —
+  /events/candle-making/book, the address every link carried before — is
+  resolved the way the event page resolves it: to that activity's next
+  session (lib/eventDetail.ts). Either address books the same date.
+*/
+async function bookableSession(slug: string): Promise<Workshop | null> {
+  const session = await getWorkshopBySlug(slug);
+  if (session) return session;
+  const detail = await getEventDetail(slug);
+  return detail?.kind === "scheduled" ? detail.workshop : null;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const workshop = await getWorkshopBySlug(slug);
+  const workshop = await bookableSession(slug);
   return buildMetadata({
     title: workshop ? `Book: ${workshop.title}` : "Book an event",
     description: "Book your place at a Maison Palettia event.",
@@ -90,7 +105,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BookSessionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const workshop = await getWorkshopBySlug(slug);
+  const workshop = await bookableSession(slug);
 
   if (!workshop) notFound();
   if (isFullyBooked(workshop)) notFound();

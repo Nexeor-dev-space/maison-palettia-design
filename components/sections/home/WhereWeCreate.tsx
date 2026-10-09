@@ -5,7 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
-import { getMallPartners } from "@/lib/partners";
+import { getMallPartners, type PartnerRecord } from "@/lib/partners";
 import { WHERE_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
@@ -24,9 +24,28 @@ import { WHERE_SPOTS } from "@/components/sections/home/homeSpots";
  * frame. It is the project's existing keyless embed, built from the partner
  * record: no coordinates are invented.
  */
-export async function WhereWeCreate() {
-  const partners = await getMallPartners();
-  const home = partners[0];
+/*
+  WHAT THE CMS SUPPLIES (the `whereWeCreate` block,
+  components/blocks/WhereWeCreate.tsx): the eyebrow, the heading, the line
+  under it (Brand wording's "find us" line unless the block writes its own),
+  the plate's label and which venue the map shows. Left out, the venue is the
+  first current one — the launch behaviour — and the words are the launch
+  wording.
+*/
+export async function WhereWeCreate({
+  eyebrow = "Find us",
+  lines = ["Your Next Creative", "Stop."],
+  lead = "Find Maison Palettia in the places you already love to visit \u2014 and come make something while you\u2019re there.",
+  findUsNowLabel = "Find us now",
+  venue,
+}: {
+  eyebrow?: string | null;
+  lines?: readonly string[] | null;
+  lead?: string | null;
+  findUsNowLabel?: string | null;
+  venue?: PartnerRecord | null;
+} = {}) {
+  const home = venue === undefined ? (await getMallPartners())[0] : venue;
 
   return (
     /*
@@ -141,23 +160,22 @@ export async function WhereWeCreate() {
               `EXPERIENCE_STATEMENT` is untouched in lib/brand.ts and nothing
               reads it now — it is one import away from a collaboration page.
             */}
-            <Reveal>
-              <Eyebrow>Find us</Eyebrow>
-            </Reveal>
+            {eyebrow ? (
+              <Reveal>
+                <Eyebrow>{eyebrow}</Eyebrow>
+              </Reveal>
+            ) : null}
             <DisplayHeading
               id="where-heading"
               className="mt-8 md:mt-10"
-              lines={["Your Next Creative", "Stop."]}
+              lines={lines ?? []}
             />
             {/* 60 characters: the measure has to fill the column it is
                 actually in, or the dead ground it leaves reads as the
                 section being empty — the note this section keeps getting.
                 At five columns the column is about 480px and so is 60ch. */}
             <Reveal delay={0.15}>
-              <p className="mt-8 max-w-[60ch] text-lead text-text">
-                Find Maison Palettia in the places you already love to visit — and come
-                make something while you&rsquo;re there.
-              </p>
+              {lead ? <p className="mt-8 max-w-[60ch] text-lead text-text">{lead}</p> : null}
             </Reveal>
           </div>
 
@@ -341,7 +359,7 @@ export async function WhereWeCreate() {
                     <span aria-hidden className="block w-4 shrink-0">
                       <DoodleMark name="dot" color={INK.lilac} />
                     </span>
-                    Find us now
+                    {findUsNowLabel}
                   </h3>
                   <p className="mt-3 text-h3 font-light tracking-[-0.01em] text-text">
                     {home.name}

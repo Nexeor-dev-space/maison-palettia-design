@@ -59,6 +59,10 @@ export interface Vibe {
   blurb: string;
 }
 
+/* The taxonomy as the code knows it. Since Phase 2 the `vibes` collection is
+   the source (`getVibes()`, lib/vibes.server.ts); this list is its fallback
+   and the default for the client helpers below.
+   TODO(phase2-cleanup): retire once client consumers receive the CMS list. */
 export const VIBES: readonly Vibe[] = [
   {
     slug: "messy-expressive",
@@ -80,9 +84,15 @@ export const VIBES: readonly Vibe[] = [
 /** The question above the row. Kept here so every surface asks it the same way. */
 export const VIBE_QUESTION = "How do you feel like creating today?";
 
-/** One vibe by slug, or null — so a stale link cannot throw. */
-export function getVibe(slug: string): Vibe | null {
-  return VIBES.find((vibe) => vibe.slug === slug) ?? null;
+/**
+ * One vibe by slug, or null — so a stale link cannot throw.
+ *
+ * `vibes` is the list to look in: the CMS's (`getVibes()` in
+ * lib/vibes.server.ts, handed down as a prop) where the caller has it, the
+ * in-file {@link VIBES} otherwise.
+ */
+export function getVibe(slug: string, vibes: readonly Vibe[] = VIBES): Vibe | null {
+  return vibes.find((vibe) => vibe.slug === slug) ?? null;
 }
 
 /**
@@ -110,11 +120,16 @@ export function hasVibeTags(experiences: readonly CreativeExperience[]): boolean
   return experiences.some((experience) => (experience.vibes?.length ?? 0) > 0);
 }
 
-/** How many activities sit behind each vibe, in the order {@link VIBES} sets. */
+/**
+ * How many activities sit behind each vibe, in the order the vibe list sets —
+ * the CMS's when the caller passes it (see {@link getVibe}), {@link VIBES}
+ * otherwise.
+ */
 export function vibeCounts(
   experiences: readonly CreativeExperience[],
+  vibes: readonly Vibe[] = VIBES,
 ): { vibe: Vibe; count: number }[] {
-  return VIBES.map((vibe) => ({
+  return vibes.map((vibe) => ({
     vibe,
     count: experiencesByVibe(experiences, vibe.slug).length,
   }));

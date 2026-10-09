@@ -125,7 +125,18 @@ const GROUND: Record<GalleryCollection["ground"], string> = {
   cream: "bg-cream",
 };
 
-export function GalleryExperience({ collections }: { collections: GalleryCollection[] }) {
+export function GalleryExperience({
+  collections,
+  beats,
+}: {
+  collections: GalleryCollection[];
+  /**
+   * The two beats between collections, from Brand wording (the opening
+   * statement's closer, then the community closer) when the page is drawn
+   * from the CMS. Left out, the lines below; `null` drops that beat.
+   */
+  beats?: readonly (string | null)[];
+}) {
   const flat = collections.flatMap((collection) => collection.items);
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -157,13 +168,15 @@ export function GalleryExperience({ collections }: { collections: GalleryCollect
   return (
     <>
       {collections.map((collection, ci) => (
-        <div key={collection.id}>
+        <div key={`${collection.id}-${ci}`}>
           <GallerySection
             collection={collection}
             start={starts[ci]}
             onOpen={open}
           />
-          {ci < STATEMENTS.length ? <GalleryStatement {...STATEMENTS[ci]} /> : null}
+          {ci < STATEMENTS.length && (beats?.[ci] === undefined || beats[ci]) ? (
+            <GalleryStatement {...STATEMENTS[ci]} text={beats?.[ci] ?? STATEMENTS[ci].text} />
+          ) : null}
         </div>
       ))}
 

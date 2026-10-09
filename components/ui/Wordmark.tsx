@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { BRAND_LOGO, SITE } from "@/lib/constants";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { cn } from "@/lib/utils";
 
 interface WordmarkProps {
@@ -38,12 +38,14 @@ interface WordmarkProps {
  * (`alt=""`) — otherwise a screen reader announces the brand twice.
  */
 export function Wordmark({ className, onLight = false }: WordmarkProps) {
-  const art = onLight ? BRAND_LOGO.onLight : BRAND_LOGO;
+  // Site details → name and the two logo cuts, through the layout (see SiteChrome).
+  const { site, logo } = useSiteChrome();
+  const art = onLight ? logo.onLight : logo;
 
   return (
     <Link
         href="/"
-        aria-label={`${SITE.name} home`}
+        aria-label={`${site.name} home`}
         className={cn(
           "inline-flex items-center transition-opacity duration-200 hover:opacity-80",
           className,

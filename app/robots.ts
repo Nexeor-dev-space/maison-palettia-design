@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
-import { SITE } from "@/lib/constants";
+import { getSite } from "@/lib/constants.server";
+import { getRobotsDisallow } from "@/lib/seo";
 
 /**
  * ==========================================================================
@@ -41,22 +42,23 @@ import { SITE } from "@/lib/constants";
  * which are the crawlers this file is for.
  *
  * The Sitemap line is absolute because the standard requires it, and it is
- * built from SITE.url, so it moves with the production domain.
- * TODO(client): SITE.url is still the assumed domain — see lib/constants.ts.
+ * built from Site details' public address, so it moves with the domain.
+ *
+ * FROM THE ADMIN NOW (SPEC §G.2). The Disallow list is Search & sharing →
+ * "Paths hidden from search engines" (`seo-defaults.robotsDisallow`, seeded
+ * with exactly the list below); the list below is what is served when the
+ * CMS cannot be read. The seo-defaults hook revalidates /robots.txt.
  */
-export default function robots(): MetadataRoute.Robots {
+const DISALLOW = ["/checkout", "/payment-success", "/booking-status", "/events/*/book", "/button-preview"];
+
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const [site, disallow] = await Promise.all([getSite(), getRobotsDisallow()]);
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: [
-        "/checkout",
-        "/payment-success",
-        "/booking-status",
-        "/events/*/book",
-        "/button-preview",
-      ],
+      disallow: disallow ?? DISALLOW,
     },
-    sitemap: `${SITE.url}/sitemap.xml`,
+    sitemap: `${site.url}/sitemap.xml`,
   };
 }

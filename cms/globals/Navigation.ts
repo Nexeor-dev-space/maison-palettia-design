@@ -24,6 +24,7 @@
 import type { GlobalConfig } from "payload";
 
 import { anyone, isEditor } from "@/cms/access/roles";
+import { DOODLE_OPTIONS } from "@/cms/collections/content/Programmes";
 import { link, type LinkValue } from "@/cms/fields/link";
 import { TAGS } from "@/lib/cms/cache";
 
@@ -55,9 +56,10 @@ const validatePrimary: RowsValidate = (value) => {
   const barItems = items.filter((row) => row.mobileSurface === "bar");
   if (barItems.length > 3) return "At most three items can sit in the phone's bottom bar (plus Contact and Book).";
 
-  const tooLongForBar = barItems.find((row) => (row.mobileShortLabel || row.label || "").length > 10);
+  // 12, not 10: the bar already prints "Experiences" (11) in full and fits.
+  const tooLongForBar = barItems.find((row) => (row.mobileShortLabel || row.label || "").length > 12);
   if (tooLongForBar) {
-    return `“${tooLongForBar.label}” needs a short label of 10 characters or fewer for the bottom bar.`;
+    return `“${tooLongForBar.label}” needs a short label of 12 characters or fewer for the bottom bar.`;
   }
 
   const seen = new Set<string>();
@@ -135,7 +137,7 @@ export const Navigation: GlobalConfig = {
                       ],
                       {
                         description:
-                          "Which panel drops under this item on desktop. The panels' contents come from Experiences, Programmes and the About doors below.",
+                          "Which panel drops under this item on desktop. The panels' contents come from Experiences, Programmes and the About links below.",
                         defaultValue: "none",
                         lock: true,
                         admin: { width: "50%" },
@@ -154,8 +156,8 @@ export const Navigation: GlobalConfig = {
                   ],
                 },
                 copy("mobileShortLabel", "Short label for the bottom bar", {
-                  description: "Falls back to the label. Up to 10 characters.",
-                  max: 10,
+                  description: "Falls back to the label. Up to 12 characters.",
+                  max: 12,
                 }),
                 {
                   type: "row",
@@ -260,14 +262,14 @@ export const Navigation: GlobalConfig = {
                 ),
                 section(
                   "door",
-                  "Accent door",
+                  "Highlighted link",
                   // Today's values, from WorkshopsMenu.tsx via the inventory §3.2.
                   doorFields(20, 40, {
                     title: "Upcoming dates",
                     sub: "Guided sessions you can book.",
                     link: { type: "internal", url: "/events", anchor: "scheduled" },
                   }),
-                  { description: "The highlighted door at the end of the panel (today: Upcoming dates)." },
+                  { description: "The highlighted link at the end of the panel (today: Upcoming dates)." },
                 ),
                 {
                   type: "row",
@@ -312,9 +314,9 @@ export const Navigation: GlobalConfig = {
                 },
                 rows(
                   "doors",
-                  "Doors",
-                  [...doorFields(24, 40), toggle("accent", "Highlight this door")],
-                  { description: "Two doors: all programmes, and the enquiry form.", maxRows: 2 },
+                  "Links",
+                  [...doorFields(24, 40), toggle("accent", "Highlight this link")],
+                  { description: "Two links: all programmes, and the enquiry form.", maxRows: 2 },
                 ),
               ],
               { description: "Rows in the rail are the Programmes with “Show in menu” ticked." },
@@ -325,7 +327,7 @@ export const Navigation: GlobalConfig = {
               [
                 rows(
                   "doors",
-                  "Four doors",
+                  "Four links",
                   [
                     copy("name", "Name", { max: 20, required: true }),
                     copy("sub", "Line under the name", { max: 24 }),
@@ -333,10 +335,8 @@ export const Navigation: GlobalConfig = {
                     choice(
                       "mark",
                       "Doodle",
-                      ["splash", "coral", "starleaf", "bow", "zigzag", "cutout", "starburst", "wave", "bean", "slabCoral", "dot"].map(
-                        (value) => ({ label: value, value }),
-                      ),
-                      { description: "The cut-out shape drawn on the door." },
+                      DOODLE_OPTIONS,
+                      { description: "The cut-out shape drawn beside the link." },
                     ),
                   ],
                   { maxRows: 4 },

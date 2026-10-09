@@ -28,8 +28,26 @@ export const noindexField: CheckboxField = {
   },
 };
 
-/** For `seoPlugin({ fields: seoFields })` — keeps the plugin's defaults and appends ours. */
-export const seoFields = ({ defaultFields }: { defaultFields: Field[] }): Field[] => [...defaultFields, noindexField];
+/**
+ * The plugin's share-image field speaks developer ("Meta Image", "Maximum
+ * upload file size: 12MB. Recommended file size for images is <500KB.").
+ * Same field, same column — only the words an editor reads change.
+ */
+const plainWords = (field: Field): Field =>
+  "name" in field && field.name === "image" && field.type === "upload"
+    ? ({
+        ...field,
+        label: "Share image",
+        admin: {
+          ...field.admin,
+          description:
+            "The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).",
+        },
+      } as Field)
+    : field;
+
+/** For `seoPlugin({ fields: seoFields })` — keeps the plugin's defaults (relabelled) and appends ours. */
+export const seoFields = ({ defaultFields }: { defaultFields: Field[] }): Field[] => [...defaultFields.map(plainWords), noindexField];
 
 export function seo(): Field[] {
   return [noindexField];

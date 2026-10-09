@@ -1,7 +1,32 @@
 import type { Metadata } from "next";
 
+import { getGlobal } from "@/lib/cms/query";
 import { SITE } from "@/lib/constants";
+import { getSite } from "@/lib/constants.server";
 import type { PageSeo } from "@/types";
+
+/**
+ * ==========================================================================
+ * TWO WAYS IN: THE CONSTANTS BELOW, AND THEIR CMS-BACKED TWINS AT THE FOOT
+ * ==========================================================================
+ *
+ * Every builder in this file is now a pure function of a {@link SeoContext}
+ * — the site's name, tagline, locale and origin, the title template, the
+ * Twitter card type and the default share image. Two contexts exist:
+ *
+ *   IN_FILE ..... built from `SITE` in lib/constants.ts. `defaultMetadata`,
+ *                 `homeMetadata` and `buildMetadata` use it, synchronously,
+ *                 exactly as they always have — the routes that call them
+ *                 at module scope keep compiling and keep their output.
+ *   the CMS ..... `getSeoContext()` reads Site details (`site-settings`)
+ *                 and Search & sharing (`seo-defaults`) through `cached`
+ *                 (SPEC §G.2 "Metadata"). `getDefaultMetadata`,
+ *                 `getHomeMetadata` and `getMetadata` are the async twins
+ *                 the routes move to, inside `generateMetadata`.
+ *
+ * TODO(phase2-cleanup): once every route calls the async twins, the sync
+ * exports and IN_FILE go.
+ */
 
 /**
  * The size of the default share card: the 1.91:1 frame Facebook, LinkedIn, X
@@ -80,31 +105,58 @@ const ROUTES_WITH_OWN_SHARE_IMAGE: readonly RegExp[] = [
   /^\/private-events\/(?!book$)[^/]+$/,
 ];
 
+/** Everything the builders below read about the site. */
+export interface SeoContext {
+  name: string;
+  tagline: string;
+  locale: string;
+  /** Absolute origin — `metadataBase`. */
+  url: string;
+  /** "%s · Maison Palettia" — `%s` is the page title. */
+  titleTemplate: string;
+  twitterCard: "summary_large_image" | "summary";
+  shareImage: { url: string; width: number; height: number; type: string; alt: string };
+}
+
+/** The context the sync exports have always used: lib/constants.ts. */
+const IN_FILE: SeoContext = {
+  name: SITE.name,
+  tagline: SITE.tagline,
+  locale: SITE.locale,
+  url: SITE.url,
+  titleTemplate: `%s · ${SITE.name}`,
+  twitterCard: "summary_large_image",
+  shareImage: DEFAULT_SHARE_IMAGE,
+};
+
+const titled = (context: SeoContext, title: string) => context.titleTemplate.replace("%s", title);
+
 /**
  * The Open Graph block every page starts from: the defaults print it as it
  * is, and `homeMetadata` repeats it with the homepage's own `url`.
  */
-const SITE_OPEN_GRAPH = {
-  type: "website",
-  siteName: SITE.name,
-  locale: SITE.locale,
-  title: SITE.name,
-  description: SITE.tagline,
-} as const;
+const siteOpenGraph = (context: SeoContext) =>
+  ({
+    type: "website",
+    siteName: context.name,
+    locale: context.locale,
+    title: context.name,
+    description: context.tagline,
+  }) as const;
 
 /**
  * Site-wide metadata defaults. Individual pages override title/description
  * and canonical URL through `buildMetadata`; the homepage through
  * `homeMetadata`.
  */
-export const defaultMetadata: Metadata = {
-  metadataBase: new URL(SITE.url),
+const defaultMetadataFor = (context: SeoContext): Metadata => ({
+  metadataBase: new URL(context.url),
   title: {
-    default: SITE.name,
-    template: `%s · ${SITE.name}`,
+    default: context.name,
+    template: context.titleTemplate,
   },
-  description: SITE.tagline,
-  applicationName: SITE.name,
+  description: context.tagline,
+  applicationName: context.name,
   /*
     NO CANONICAL AND NO `openGraph.url` HERE — "/" and then "./" were both
     tried, and both were wrong somewhere.
@@ -128,8 +180,8 @@ export const defaultMetadata: Metadata = {
     sets its own through `homeMetadata` below; every page built with
     `buildMetadata` already set its own and is unaffected.
   */
-  openGraph: SITE_OPEN_GRAPH,
-  twitter: { card: "summary_large_image" },
+  openGraph: siteOpenGraph(context),
+  twitter: { card: context.twitterCard },
   /*
     NO `robots` HERE, deliberately. A page with no robots tag is indexable —
     that is the default every crawler applies — so `index, follow` said
@@ -138,7 +190,9 @@ export const defaultMetadata: Metadata = {
     alongside it, so every 404 carried two robots tags that disagree. The
     pages that must stay out of search set `noindex` through `buildMetadata`.
   */
-};
+});
+
+export const defaultMetadata: Metadata = defaultMetadataFor(IN_FILE);
 
 /**
  * The homepage's canonical and share URL — the two fields `defaultMetadata`
@@ -148,13 +202,19 @@ export const defaultMetadata: Metadata = {
  * name, locale, title and description. `images` stays absent, which is what
  * lets app/opengraph-image.tsx keep supplying the homepage's card.
  */
-export const homeMetadata: Metadata = {
+const homeMetadataFor = (context: SeoContext): Metadata => ({
   alternates: { canonical: "/" },
-  openGraph: { ...SITE_OPEN_GRAPH, url: "/" },
-};
+  openGraph: { ...siteOpenGraph(context), url: "/" },
+});
+
+export const homeMetadata: Metadata = homeMetadataFor(IN_FILE);
 
 /** Build per-page metadata without repeating the shared defaults. */
-export function buildMetadata({ title, description, path, image, noindex }: PageSeo): Metadata {
+export function buildMetadata(seo: PageSeo): Metadata {
+  return metadataFor(IN_FILE, seo);
+}
+
+function metadataFor(context: SeoContext, { title, description, path, image, noindex }: PageSeo): Metadata {
   /*
     WHICH PICTURE, in order:
 
@@ -170,7 +230,7 @@ export function buildMetadata({ title, description, path, image, noindex }: Page
     whether the file is allowed to supply it.
   */
   const ownsShareImage = ROUTES_WITH_OWN_SHARE_IMAGE.some((route) => route.test(path));
-  const ogImage = ownsShareImage ? null : image ? { url: image } : DEFAULT_SHARE_IMAGE;
+  const ogImage = ownsShareImage ? null : image ? { url: image } : context.shareImage;
 
   const imageFields = ogImage ? { images: [ogImage] } : {};
 
@@ -191,7 +251,7 @@ export function buildMetadata({ title, description, path, image, noindex }: Page
     ...robotsFields,
     alternates: { canonical: path },
     openGraph: {
-      title: `${title} · ${SITE.name}`,
+      title: titled(context, title),
       description,
       url: path,
       ...imageFields,
@@ -204,10 +264,74 @@ export function buildMetadata({ title, description, path, image, noindex }: Page
         comes from its opengraph-image file was being announced as a small
         `summary` card with a large image attached.
       */
-      card: "summary_large_image",
-      title: `${title} · ${SITE.name}`,
+      card: context.twitterCard,
+      title: titled(context, title),
       description,
       ...imageFields,
     },
   };
+}
+
+/* ==========================================================================
+   FROM THE CMS — the async twins (SPEC §G.2 "Metadata")
+   ========================================================================== */
+
+/**
+ * The site's SEO context from the admin: name, tagline, locale and origin
+ * from Site details (`getSite`, which resolves the origin as the confirmed
+ * publicUrl → an https NEXT_PUBLIC_SERVER_URL → the old constant), the
+ * title template, card type and default share image from Search & sharing. A share image left empty
+ * keeps the generated brand card at /opengraph-image.
+ */
+export async function getSeoContext(): Promise<SeoContext> {
+  const [site, defaults] = await Promise.all([getSite(), getGlobal("seo-defaults", 1)]);
+  const upload = defaults?.shareImage && typeof defaults.shareImage === "object" ? defaults.shareImage : undefined;
+  const rendition = upload?.sizes?.og?.url ? upload.sizes.og : upload;
+  const shareImage =
+    upload && rendition?.url
+      ? {
+          url: rendition.url,
+          width: rendition.width ?? SHARE_IMAGE_SIZE.width,
+          height: rendition.height ?? SHARE_IMAGE_SIZE.height,
+          type: rendition.mimeType ?? upload.mimeType ?? "image/jpeg",
+          alt: upload.alt || `${site.name} — ${site.tagline}`,
+        }
+      : { ...DEFAULT_SHARE_IMAGE, alt: `${site.name} — ${site.tagline}` };
+  return {
+    name: site.name,
+    tagline: site.tagline,
+    locale: site.locale,
+    url: site.url,
+    titleTemplate: defaults?.titleTemplate?.includes("%s") ? defaults.titleTemplate : `%s · ${site.name}`,
+    twitterCard: defaults?.twitterCard ?? IN_FILE.twitterCard,
+    shareImage,
+  };
+}
+
+/** `defaultMetadata`, from the CMS — for the site layout's `generateMetadata`. */
+export async function getDefaultMetadata(): Promise<Metadata> {
+  return defaultMetadataFor(await getSeoContext());
+}
+
+/** `homeMetadata`, from the CMS. */
+export async function getHomeMetadata(): Promise<Metadata> {
+  return homeMetadataFor(await getSeoContext());
+}
+
+/**
+ * `buildMetadata`, from the CMS. A route with a CMS document passes that
+ * document's own `meta` (plugin-seo) title/description/image through `seo`,
+ * falling back to the name and one-liner as it does today.
+ */
+export async function getMetadata(seo: PageSeo): Promise<Metadata> {
+  return metadataFor(await getSeoContext(), seo);
+}
+
+/**
+ * Search & sharing → "Paths hidden from search engines", for app/robots.ts.
+ * `null` when the CMS cannot answer, so the route keeps its own list.
+ */
+export async function getRobotsDisallow(): Promise<string[] | null> {
+  const rows = (await getGlobal("seo-defaults", 0))?.robotsDisallow;
+  return rows ? rows.map((row) => row.path) : null;
 }

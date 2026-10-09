@@ -5,7 +5,8 @@ import { useId, useState } from "react";
 import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/components/layout/MenuCard";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
-import { PRIVATE_EVENT_AUDIENCES, PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
+import { PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { cn } from "@/lib/utils";
 
 interface PrivateEventsMenuProps {
@@ -65,7 +66,9 @@ export function PrivateEventsMenu({
   const { isOpen, mounted, shown, regionProps, triggerProps, cardProps } =
     useMenuDisclosure(onOpenChange);
 
-  const items = PRIVATE_EVENT_AUDIENCES.filter((audience) => audience.inPrivateEventsMenu);
+  // The programmes from the CMS, through the layout (see SiteChrome).
+  const { audiences } = useSiteChrome();
+  const items = audiences.filter((audience) => audience.inPrivateEventsMenu);
 
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const active = items.find((item) => item.slug === activeSlug) ?? items[0];

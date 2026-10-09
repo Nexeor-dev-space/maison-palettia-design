@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { seoPlugin } from "@payloadcms/plugin-seo";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { buildConfig } from "payload";
 import sharp from "sharp";
@@ -14,8 +15,10 @@ import { contentCollections } from "@/cms/collections/content";
 import { inboxCollections } from "@/cms/collections/inbox";
 import { systemCollections } from "@/cms/collections/system";
 import { endpoints } from "@/cms/endpoints";
+import { seoFields } from "@/cms/fields/seo";
 import { globals } from "@/cms/globals";
 import { jobsConfig } from "@/cms/jobs";
+import { livePreviewUrl, publicUrl, routeFor } from "@/cms/lib/publicUrl";
 import { seedDefaults } from "@/cms/seed/defaults";
 
 /**
@@ -27,7 +30,7 @@ import { seedDefaults } from "@/cms/seed/defaults";
  * and job reaches it through a barrel (`cms/**\/index.ts`), so the phases
  * that build the CMS add files to folders, not keys to this config. The
  * keys each phase MAY touch are listed in SPEC §A.4's ownership table;
- * Phase 1 owns the skeleton you see. Phase 2 adds `plugins` (SEO) and
+ * Phase 1 owns the skeleton. Phase 2 added `plugins` (SEO) and
  * `admin.livePreview`; Phase 3 adds `email`; Phases 3–4 add admin views
  * and dashboard components.
  *
@@ -83,6 +86,9 @@ const ssl =
       ? { rejectUnauthorized: true, ...(sslrootcert ? { ca: fs.readFileSync(sslrootcert, "utf8") } : {}) }
       : undefined;
 
+/** The collections with a route of their own: SEO tab and live preview (SPEC §A.4). */
+const SEO_COLLECTIONS = ["pages", "experiences", "sessions", "programmes", "policies"] as const;
+
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || "",
   csrf: Array.from(new Set([serverUrl, ...(isProd ? [] : ["http://localhost:3200", "http://127.0.0.1:3200"])].filter(Boolean))) as string[],
@@ -109,7 +115,24 @@ export default buildConfig({
       // says "Payments is in MOCK mode" (SPEC §I) — mounted here rather than
       // on the dashboard so it is visible on the page where someone is about
       // to trust a test checkout. Phase 3/4 append their own providers.
-      providers: ["@/cms/components/settings/MockBanner#MockBanner"],
+      // FocusListener (P2 2D, SPEC §G.5) is the admin's end of click-to-edit:
+      // it answers the live-preview iframe's "Edit" pills by scrolling to the
+      // block, or by opening Brand wording at the field.
+      providers: ["@/cms/components/settings/MockBanner#MockBanner", "@/cms/components/admin/FocusListener#FocusListener"],
+    },
+    // Live preview (P2 2A, SPEC §G.5): the iframe loads `/preview?path=…` on
+    // the public origin, which enables draft mode for staff and redirects;
+    // the site's RefreshRouteOnSave re-renders on every save and autosave.
+    // `pages` also opens it by default (its own `admin.livePreview`).
+    livePreview: {
+      url: livePreviewUrl,
+      collections: [...SEO_COLLECTIONS],
+      globals: ["site-settings", "navigation", "brand-copy"],
+      breakpoints: [
+        { label: "Phone", name: "phone", width: 390, height: 844 },
+        { label: "Tablet", name: "tablet", width: 820, height: 1180 },
+        { label: "Desktop", name: "desktop", width: 1440, height: 900 },
+      ],
     },
   },
   collections: [
@@ -124,6 +147,21 @@ export default buildConfig({
   endpoints,
   jobs: jobsConfig,
   editor: lexicalEditor(),
+  plugins: [
+    // The SEO tab (P2 2A, SPEC §A.4, §I) on the five collections with a page of
+    // their own: meta title, description, share image, snippet preview and
+    // the generate buttons, plus our `noindex` checkbox (cms/fields/seo.ts).
+    // Canonical URLs come from Site details' public address, never the Host.
+    seoPlugin({
+      collections: [...SEO_COLLECTIONS],
+      uploadsCollection: "media",
+      tabbedUI: true,
+      fields: seoFields,
+      generateTitle: ({ doc }) => doc?.title ?? doc?.name ?? "",
+      generateDescription: ({ doc }) => doc?.excerpt ?? doc?.description ?? doc?.summary ?? "",
+      generateURL: async ({ doc, collectionConfig, req }) => `${await publicUrl(req)}${routeFor(collectionConfig?.slug ?? "", doc)}`,
+    }),
+  ],
   graphQL: { disable: true },
   defaultDepth: 1,
   maxDepth: 4,

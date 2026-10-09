@@ -1,3 +1,7 @@
+import { TAGS } from "@/lib/cms/cache";
+import { ageRowOf, toPolicy, type AgeRow, type AgeTables } from "@/lib/cms/mappers";
+import { contentReader, findDocs } from "@/lib/cms/query";
+
 /* ==========================================================================
    MAISON PALETTIA — THE STUDIO POLICIES
    ==========================================================================
@@ -149,6 +153,9 @@ export const WORKSHOP_AGE_GUIDANCE: readonly { activity: string; guidance: strin
   { activity: "Crocheting", guidance: "Age 14 and over." },
 ];
 
+/* Fallback only — the `policies` collection (seeded from this array by 2B)
+   is the source; see FROM THE CMS at the foot. Read only when the CMS cannot
+   answer at all (a build without the database), and by the sync `getPolicy`. */
 export const POLICIES: readonly Policy[] = [
   /* ======================================================================
      GENERAL CUSTOMER POLICY
@@ -671,7 +678,92 @@ export const POLICIES: readonly Policy[] = [
   },
 ];
 
-/** One policy by slug, or null — the shape every other lookup here uses. */
+/**
+ * One policy by slug, or null — from the in-file copy.
+ *
+ * TODO(phase2-cleanup): synchronous, so it cannot read the CMS. Kept with
+ * its signature so the routes that call it keep compiling while they move to
+ * {@link getPolicyBySlug}; delete it, `POLICIES` and the age tables above
+ * once nothing imports them.
+ */
 export function getPolicy(slug: string): Policy | null {
   return POLICIES.find((policy) => policy.slug === slug) ?? null;
+}
+
+/* ==========================================================================
+   FROM THE CMS (Phase 2, SPEC §G.1)
+
+   The `policies` collection carries the same sections and blocks one to one
+   (block slugs = `PolicyBlock.type`), seeded from `POLICIES` above. An
+   `ages` block either types its own rows (`custom`) or points at a shared
+   table (`diy` | `workshop`), and the shared tables are not stored on the
+   policy at all: they are built from each activity's `ageGuidance` in the
+   `experiences` collection — "an age written twice is an age that disagrees
+   with itself" (see THE AGE GUIDANCE, ONCE, above), now edited in one place
+   for every policy that prints it.
+   ========================================================================== */
+
+/**
+ * The shared age tables from the activities: `diy` from walk-in activities,
+ * `workshop` from scheduled ones, each row the activity's name in sentence
+ * case and its guidance.
+ *
+ * TODO(phase2-cleanup): ORDER. The tables above list activities in the
+ * document's order (ceramic, bedazzling, tote bag, glass, mandala), which is
+ * not the activities' display order, and three policy pages print them. So
+ * that the pages read exactly as before the CMS, rows are put in the order
+ * of the in-file table, with any activity it does not know appended in
+ * display order. Once the in-file copy is retired, display order alone
+ * should decide. A table the CMS cannot fill (no activity of that kind has
+ * guidance yet) keeps the in-file rows, for the same reason.
+ */
+function ageTablesOf(experiences: { kind: "diy" | "scheduled"; name: string; ageGuidance?: string | null }[]): AgeTables {
+  const inLegacyOrder = (rows: AgeRow[], legacy: readonly AgeRow[]) => {
+    const rank = (row: AgeRow) => {
+      const index = legacy.findIndex((known) => known.activity === row.activity);
+      return index === -1 ? legacy.length : index;
+    };
+    return rows
+      .map((row, index) => ({ row, index }))
+      .sort((a, b) => rank(a.row) - rank(b.row) || a.index - b.index)
+      .map(({ row }) => row);
+  };
+  const table = (kind: "diy" | "scheduled", legacy: readonly AgeRow[]) => {
+    const rows = experiences
+      .filter((experience) => experience.kind === kind)
+      .map(ageRowOf)
+      .filter((row): row is AgeRow => Boolean(row));
+    return rows.length ? inLegacyOrder(rows, legacy) : legacy;
+  };
+  return { diy: table("diy", DIY_AGE_GUIDANCE), workshop: table("scheduled", WORKSHOP_AGE_GUIDANCE) };
+}
+
+/**
+ * Published policies in display order (`order`), with their age tables
+ * resolved. Tagged policies AND experiences: editing an activity's age
+ * guidance changes three policy pages.
+ */
+const readPolicies = contentReader("policies", [TAGS.policies, TAGS.experiences], async (draft) => {
+  const [docs, experiences] = await Promise.all([
+    findDocs("policies", draft, { drafts: true, sort: "order", depth: 0 }),
+    findDocs("experiences", draft, { drafts: true, sort: "order", depth: 0 }),
+  ]);
+  const tables = ageTablesOf(experiences);
+  return docs.map((doc) => toPolicy(doc, tables));
+});
+
+/** Every policy, in the order the index and the footer list them. */
+export async function getPolicies(): Promise<Policy[]> {
+  const fromCms = await readPolicies();
+  // The in-file policies only when the CMS could not be read (null).
+  return [...(fromCms ?? POLICIES)];
+}
+
+/**
+ * One policy by slug, or null — the async, CMS-backed {@link getPolicy}.
+ * A null answer is the route's cue for `redirectOr404` (lib/cms/redirects.ts):
+ * a renamed policy leaves a redirect behind.
+ */
+export async function getPolicyBySlug(slug: string): Promise<Policy | null> {
+  return (await getPolicies()).find((policy) => policy.slug === slug) ?? null;
 }
