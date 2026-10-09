@@ -586,8 +586,8 @@ function Activities({
                 same thing on /faq and /events and started 120px further
                 right. Two caps on one measure is how a pattern drifts. */}
             <p className="text-lead text-text/80">
-              The studio&rsquo;s activities, any of which a session can be shaped around. We will
-              help choose the one that fits the group.
+              Choose from the Maison&rsquo;s creative experiences, or let us help you find the
+              one that fits your group, occasion and vibe.
             </p>
           </Reveal>
         </div>

@@ -221,11 +221,33 @@ export async function WaysToExperience() {
       name: "Celebrate",
       lede:
         "Make your next celebration a little more hands-on. Bring your people, and we\u2019ll bring the creative setup, materials and activities.",
+      /*
+        A PROGRAMME'S OWN PAGE, NOT AN ANCHOR ON THE OVERVIEW — and this was a real
+        bug, not a tidy-up. The overview lays the four programmes out as a GRID:
+        one column on a phone, two from `sm`, FOUR from `lg`. Every card in a row
+        shares a `top`, so `#corporate-events` and `#birthday-parties` scroll to the
+        same pixel and the visitor lands looking at the first card in the row.
+
+        Measured on /private-events#corporate-events:
+
+          1440 (4 across) ... all four anchors at y1153 ... lands on birthday
+           900 (2 across) ... birthday+corporate at 1327 ... lands on birthday
+           390 (1 column) ... all four distinct ............ lands on corporate
+
+        Which is exactly the "sometimes" in the report: it is wrong on a desktop and
+        a tablet and right on a phone. No amount of `scroll-mt` fixes it, because
+        the two elements genuinely occupy the same y.
+
+        Each programme has had its own route at /private-events/[slug] since the
+        detail pages were built — `generateStaticParams` covers all four — so the
+        link goes there. The note in <PrivateEventsMenu> anticipated exactly this:
+        "when the routes exist this becomes one href per programme".
+      */
       doors: [
         {
           label: birthdays?.name ?? "Birthday parties",
           note: birthdays?.description,
-          href: "/private-events#birthday-parties",
+          href: "/private-events/birthday-parties",
         },
         {
           label: "Other private events",
@@ -243,12 +265,12 @@ export async function WaysToExperience() {
         {
           label: corporate?.name ?? "Corporate events",
           note: corporate?.description,
-          href: "/private-events#corporate-events",
+          href: "/private-events/corporate-events",
         },
         {
           label: schools?.name ?? "School programmes",
           note: schools?.description,
-          href: "/private-events#school-programs",
+          href: "/private-events/school-programs",
         },
       ],
     },
@@ -261,7 +283,7 @@ export async function WaysToExperience() {
         {
           label: activations?.name ?? "Mall & community activations",
           note: activations?.description,
-          href: "/private-events#mall-and-community-activations",
+          href: "/private-events/mall-and-community-activations",
         },
         {
           label: "Retail & brand partnerships",

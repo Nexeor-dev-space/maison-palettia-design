@@ -295,8 +295,9 @@ function Introduction() {
                 the type is set by <SectionLine>. */}
             <h1 id="private-events-intro" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine>Bring People Together</SectionLine>{" "}
-                <SectionLine>Through Making.</SectionLine>
+                <SectionLine>Memories</SectionLine>{" "}
+                <SectionLine>Made by</SectionLine>{" "}
+                <SectionLine>Hand.</SectionLine>
               </Stagger>
             </h1>
 
@@ -305,9 +306,11 @@ function Introduction() {
                   heading is a token, because Hapsha's descenders hang into
                   it. */}
               <p className="script-lede max-w-[46ch] text-lead text-text/80">
-                From team gatherings to celebrations, Maison Palettia creates
-                hands-on experiences that give people a reason to sit down
-                together, make something, and take it home.
+                From birthdays and celebrations to team gatherings and private
+                events, Maison Palettia brings people together to create,
+                connect and have a little fun. Choose an experience, bring your
+                people and leave with something you made &mdash; and a memory
+                to go with it.
               </p>
             </Reveal>
           </div>
@@ -449,8 +452,8 @@ function WhoItIsFor() {
 
             <h2 id="private-events-audiences" className="mt-8 md:mt-10">
               <Stagger>
-                <SectionLine>Groups of</SectionLine>{" "}
-                <SectionLine>Every Kind.</SectionLine>
+                <SectionLine>Made for Your</SectionLine>{" "}
+                <SectionLine>Kind of Crowd.</SectionLine>
               </Stagger>
             </h2>
           </div>
@@ -1216,8 +1219,10 @@ function HowItWorks() {
 
       <h2 id="private-events-process" className="mt-8 md:mt-10">
         <Stagger>
-          <SectionLine>Three Steps,</SectionLine>{" "}
-          <SectionLine>Then the Day.</SectionLine>
+          {/* Straight apostrophe, not &rsquo;: Hapsha has no curly quote glyph
+              and draws the straight one curled. <SectionLine> renders its text
+              raw, so there is no forScript() pass here to swap it. */}
+          <SectionLine>Let&apos;s Make it Happen</SectionLine>
         </Stagger>
       </h2>
 
@@ -1361,23 +1366,28 @@ function EnquiryCta() {
                 under the bar — which is the kind of miss an opacity modifier
                 makes easy to ship.
 
-                TWO LINES, AT THE CLIENT'S ASK, AND 44rem IS WHERE IT BREAKS.
-                The sentence is 1270px set on one line, so half of it is 635 —
-                but 40rem (640) still came out as three, because a line breaks
-                at a word and not at the halfway mark. 44rem is the first width
-                that takes it to two, and it is also the column this sits in,
-                so the cap is really just the paragraph no longer being
-                narrower than its own parent.
+                44rem, AND IT IS NO LONGER THE TWO-LINE WIDTH IT WAS WRITTEN
+                FOR. This note used to say the cap was chosen as the first
+                width that took the sentence to two lines. The copy has been
+                rewritten since — twice — and measured at 1440 both the
+                sentence this replaces and the one below it set in THREE at
+                44rem (704px, 37px line box, 110px tall). Nobody should read
+                the old claim and go hunting for a two-line setting that has
+                not existed for a while.
 
-                `text-balance` then evens the two: without it the first line
-                runs to the full measure and the second sits about 130px
-                short, which under a centred script heading reads as a
-                paragraph that ran out rather than as two lines.
+                The cap still earns its place without it: 44rem is the column
+                this sits in, so it is really just the paragraph no longer
+                being narrower than its own parent.
+
+                `text-balance` is what the three lines actually need. Without
+                it the first runs to the full measure and the last sits short,
+                which under a centred script heading reads as a paragraph that
+                ran out rather than as a block of them.
               */}
               <p className="mx-auto mt-9 max-w-[44rem] text-balance text-lead text-surface">
-                Tell us what you are planning: roughly when, roughly how many,
-                and what you would like everyone to make. We will help you shape
-                the experience.
+                Have something in mind? Tell us when, who’s coming and what
+                you’d like to make. We’ll help turn the idea into an experience
+                made for your group.
               </p>
             </Reveal>
           </div>

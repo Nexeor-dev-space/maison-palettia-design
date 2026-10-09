@@ -41,7 +41,11 @@ interface PrivateEventsMenuProps {
  * here invents a package, a price, a capacity, an inclusion or a duration, and
  * three of the programmes have no page of their own yet — so each entry points
  * at its own anchor on /private-events, which is where the studio's approved
- * words about it live today. When the routes exist this becomes one `href` per
+ * words about it live today. THE ROUTES NOW EXIST and this does link straight
+ * at them — see the note in <WaysToExperience> for why an anchor on the
+ * overview could not work once the four programmes became a grid.
+ *
+ * (Originally: "when the routes exist this becomes one `href` per
  * item and nothing else moves.
  *
  * Behaviour — the grace period, the frame the open waits for, Escape, the
@@ -118,7 +122,7 @@ export function PrivateEventsMenu({
                 {items.map((audience) => (
                   <MenuRailRow
                     key={audience.slug}
-                    href={`${href}#${audience.slug}`}
+                    href={`${href}/${audience.slug}`}
                     name={audience.name}
                     image={audience.image}
                     active={active?.slug === audience.slug}
@@ -148,7 +152,7 @@ export function PrivateEventsMenu({
               {active ? (
                 <MenuPreview
                   key={active.slug}
-                  href={`${href}#${active.slug}`}
+                  href={`${href}/${active.slug}`}
                   eyebrow="Private events"
                   name={active.name}
                   description={active.description}

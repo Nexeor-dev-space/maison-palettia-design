@@ -534,7 +534,7 @@ function PrivateEventsGroup({
           {programmes.map((programme) => (
             <li key={programme.slug}>
               <Link
-                href={`${item.href}#${programme.slug}`}
+                href={`${item.href}/${programme.slug}`}
                 onClick={onClose}
                 className="block py-2.5 pl-4 text-body font-medium text-text/85"
               >

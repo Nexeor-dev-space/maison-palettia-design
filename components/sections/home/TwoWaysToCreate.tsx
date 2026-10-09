@@ -160,7 +160,7 @@ export async function TwoWaysToCreate() {
             id="two-ways-heading"
             size="section"
             className="mt-6 md:mt-7"
-            lines={["Create Anytime,", "or Make It Your Way."]}
+            lines={["Make It Your Way."]}
           />
 
           <Reveal delay={0.12}>
