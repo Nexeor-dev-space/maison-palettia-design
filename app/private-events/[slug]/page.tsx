@@ -382,7 +382,7 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
                   absolutely placed so it simply wraps away when there is no
                   room for it.
                 */}
-                <span aria-hidden className="pointer-events-none hidden w-[3.25rem] sm:block">
+                <span aria-hidden className="pointer-events-none deco-mark w-[3.25rem]">
                   <DoodleMark name="starleaf" color={INK.terracotta} treatment="draw" delay={580} />
                 </span>
               </div>
@@ -756,13 +756,13 @@ function Enquiry() {
       <Container className="relative py-[4.5rem] text-center md:py-section lg:py-[6.5rem]">
         <span
           aria-hidden
-          className="pointer-events-none absolute left-[5%] top-10 hidden w-[5rem] rotate-[-10deg] md:block"
+          className="pointer-events-none absolute left-[5%] top-10 deco-mark w-[5rem] rotate-[-10deg]"
         >
           <DoodleMark name="starburst" color={INK.lavender} treatment="draw" delay={280} />
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute bottom-10 right-[6%] hidden w-[4.5rem] rotate-[8deg] md:block"
+          className="pointer-events-none absolute bottom-10 right-[6%] deco-mark w-[4.5rem] rotate-[8deg]"
         >
           <DoodleMark name="splash" color={INK.whiteRock} treatment="draw" delay={400} />
         </span>

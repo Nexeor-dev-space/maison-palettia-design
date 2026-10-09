@@ -98,7 +98,7 @@ export function WorkshopJourney() {
           >
             <span
               aria-hidden
-              className="pointer-events-none absolute -left-5 -top-6 z-10 hidden w-[5.5rem] rotate-[-8deg] lg:block"
+              className="pointer-events-none absolute -left-5 -top-6 z-10 deco-mark w-[5.5rem] rotate-[-8deg]"
             >
               <DoodleMark name="coral" color="var(--color-lavender)" delay={200} />
             </span>

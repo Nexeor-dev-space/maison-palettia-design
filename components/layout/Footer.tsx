@@ -267,19 +267,19 @@ export async function Footer() {
       */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-[27%] top-[7.5rem] hidden w-16 rotate-[-12deg] opacity-[0.18] xl:block"
+        className="pointer-events-none absolute left-[27%] top-[7.5rem] deco-mark w-16 rotate-[-12deg] opacity-[0.18]"
       >
         <DoodleMark name="bow" color="#9059A4" treatment="stamp" depth={0} />
       </span>
       <span
         aria-hidden
-        className="pointer-events-none absolute -left-12 top-[58%] hidden w-28 rotate-[8deg] opacity-[0.13] lg:block"
+        className="pointer-events-none absolute -left-12 top-[58%] deco-mark w-28 rotate-[8deg] opacity-[0.13]"
       >
         <DoodleMark name="splash" color="#D97757" treatment="stamp" depth={0} />
       </span>
       <span
         aria-hidden
-        className="pointer-events-none absolute bottom-1 left-[27%] hidden w-20 rotate-[-18deg] opacity-[0.15] lg:block"
+        className="pointer-events-none absolute bottom-1 left-[27%] deco-mark w-20 rotate-[-18deg] opacity-[0.15]"
       >
         <DoodleMark name="bow" color="#9059A4" treatment="stamp" depth={0} />
       </span>
@@ -832,7 +832,7 @@ export async function Footer() {
                be clipped by the edge it is breaking, or it is not a cut-out,
                it is a sticker. 5.5rem with half of it outside is what every
                other plate on this site shows. */
-            className="pointer-events-none absolute -right-7 -top-8 hidden w-24 rotate-[14deg] sm:block"
+            className="pointer-events-none absolute -right-7 -top-8 deco-mark w-24 rotate-[14deg]"
           >
             <DoodleMark name="coral" color="#9059A4" treatment="stamp" delay={200} />
           </span>
@@ -850,7 +850,25 @@ export async function Footer() {
             tidy columns instead of four tight ones, and the plate stops
             being a heading with a grid bolted under it.
           */}
-          <div className="grid grid-cols-12 gap-x-8 gap-y-7">
+          {/*
+            NO COLUMN GAP UNTIL THERE ARE COLUMNS — and the arithmetic is why
+            this mattered. `gap-x-8` on a twelve-column grid is eleven
+            gutters of 32px: 352px of gap before a single column has any
+            width. The plate's inner box at a 320px viewport is 296px, so the
+            gutters alone were wider than the box, every column collapsed to
+            zero, and the grid's min-content width pinned at 352 — the
+            heading, the line under it and all eight links ran 80px past the
+            plate's edge and were cut off by its own `overflow-clip`.
+
+            It never showed as page overflow BECAUSE of that clip, which is
+            why an hScroll check reported the footer clean at every width. It
+            took a screenshot at 320 to see it.
+
+            Both children are `col-span-12` until `lg`, so below that the
+            horizontal gap is doing nothing except breaking the grid. It
+            arrives with the columns.
+          */}
+          <div className="grid grid-cols-12 gap-y-7 lg:gap-x-8">
             <div className="col-span-12 lg:col-span-4 xl:col-span-3">
               {/* Deep Lilac on the sage plate is 3.83:1 — the same ink the
                   cut-out breaking this plate's corner is drawn in. */}

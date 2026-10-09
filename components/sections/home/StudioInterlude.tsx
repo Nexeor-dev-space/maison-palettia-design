@@ -79,7 +79,7 @@ export function StudioInterlude() {
             {/* Riding the corner, not sitting beside it. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -left-7 -top-8 z-10 hidden w-[5.5rem] rotate-[-10deg] lg:block"
+              className="pointer-events-none absolute -left-7 -top-8 z-10 deco-mark w-[5.5rem] rotate-[-10deg]"
             >
               <DoodleMark name="coral" color={INK.lavender} delay={120} depth={12} />
             </span>
@@ -122,7 +122,7 @@ export function StudioInterlude() {
             */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -bottom-10 -right-7 z-10 hidden w-[4.5rem] rotate-[14deg] lg:block"
+              className="pointer-events-none absolute -bottom-10 -right-7 z-10 deco-mark w-[4.5rem] rotate-[14deg]"
             >
               <DoodleMark name="starleaf" color={INK.lilac} treatment="stamp" depth={10} />
             </span>
@@ -151,7 +151,7 @@ export function StudioInterlude() {
                 of this plate, closing the staircase the two frames make. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -right-6 -top-7 z-10 hidden w-[4.75rem] rotate-[18deg] lg:block"
+              className="pointer-events-none absolute -right-6 -top-7 z-10 deco-mark w-[4.75rem] rotate-[18deg]"
             >
               <DoodleMark name="splash" color={INK.terracotta} delay={220} depth={12} />
             </span>

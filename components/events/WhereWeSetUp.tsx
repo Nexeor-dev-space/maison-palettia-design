@@ -113,13 +113,13 @@ export function WhereWeSetUp({ workshops }: WhereWeSetUpProps) {
       <Container className="relative py-[5rem] text-center md:py-section lg:py-[7rem]">
         <span
           aria-hidden
-          className="pointer-events-none absolute left-[6%] top-10 hidden w-[5rem] rotate-[-10deg] md:block"
+          className="pointer-events-none absolute left-[6%] top-10 deco-mark w-[5rem] rotate-[-10deg]"
         >
           <DoodleMark name="starburst" color={INK.lavender} treatment="draw" delay={300} />
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute bottom-12 right-[7%] hidden w-[4.5rem] rotate-[8deg] md:block"
+          className="pointer-events-none absolute bottom-12 right-[7%] deco-mark w-[4.5rem] rotate-[8deg]"
         >
           <DoodleMark name="splash" color={INK.whiteRock} treatment="draw" delay={420} />
         </span>

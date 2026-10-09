@@ -113,13 +113,13 @@ export function PageUtilityBar({ note, links }: PageUtilityBarProps) {
       */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -left-5 -top-9 hidden w-[4.5rem] -rotate-12 md:block"
+        className="pointer-events-none absolute -left-5 -top-9 deco-mark w-[4.5rem] -rotate-12"
       >
         <DoodleMark name="starburst" color={INK.lavender} treatment="draw" delay={260} />
       </span>
       <span
         aria-hidden
-        className="pointer-events-none absolute -top-7 right-[6%] hidden w-[5.5rem] rotate-[18deg] lg:block"
+        className="pointer-events-none absolute -top-7 right-[6%] deco-mark w-[5.5rem] rotate-[18deg]"
       >
         <DoodleMark name="bean" color={INK.lavender} treatment="draw" delay={420} />
       </span>

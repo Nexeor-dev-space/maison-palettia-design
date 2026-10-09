@@ -270,10 +270,28 @@ export async function TwoWaysToCreate() {
         against a section that began at the first photograph; with a header
         band above it the same figure lands a third of the way down the
         heading instead.
+
+        ==================================================================
+        AND THE PHONE NEEDED ITS OWN FIGURE, WHICH THE NOTE ABOVE ASSUMED
+        ==================================================================
+
+        "On a phone the halves stack, so it lands on the horizontal seam
+        instead" was the intent and was not what happened. 29% is measured
+        down a side-by-side fork, where the seam this mark straddles is the
+        VERTICAL one at `left-1/2`. Stacked, the seam between the two halves
+        is horizontal and sits at half the height — so 29% put the mark a
+        third of the way down the FIRST half, on top of its chips. At 320 it
+        covered the G of "No booking" and the sentence above it, in opaque
+        White Rock at `z-10`, which paints over everything.
+
+        It was invisible until now because the mark was `hidden lg:block`:
+        the layout it was wrong for was the one layout that never drew it.
+
+        `top-1/2` is the stacked seam. The desktop figure is unchanged.
       */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[29%] z-10 hidden w-[9rem] -translate-x-1/2 -translate-y-1/2 lg:block"
+        className="pointer-events-none absolute left-1/2 top-1/2 z-10 deco-mark w-[9rem] -translate-x-1/2 -translate-y-1/2 lg:top-[29%]"
       >
         {/* White Rock, not Terracotta: this mark straddles the seam, and half
             of it now lies on a Terracotta ground. */}

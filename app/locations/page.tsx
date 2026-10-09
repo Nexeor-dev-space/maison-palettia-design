@@ -221,7 +221,7 @@ export default async function LocationsPage() {
                   */}
                   <span
                     aria-hidden
-                    className="pointer-events-none relative mt-8 hidden h-[7rem] select-none lg:block"
+                    className="pointer-events-none relative mt-8 deco-mark h-[7rem] select-none"
                   >
                     {/* SPREAD WIDER THAN THEY WERE. The icons are the
                         client's own set now and their proportions are not the

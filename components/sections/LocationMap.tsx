@@ -154,7 +154,7 @@ export function LocationMap({ partners, className, caption = true, aspect }: Loc
             <div className="relative">
               <span
                 aria-hidden
-                className="pointer-events-none absolute -left-5 top-[54%] z-10 hidden w-[4rem] rotate-[12deg] md:block md:w-[5rem]"
+                className="pointer-events-none absolute -left-5 top-[54%] z-10 deco-mark w-[4rem] rotate-[12deg] md:w-[5rem]"
               >
                 <DoodleMark name="bean" color={INK.terracotta} treatment="stamp" delay={320} />
               </span>

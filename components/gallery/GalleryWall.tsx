@@ -136,7 +136,7 @@ export function GalleryWall({ items }: { items: readonly WallItem[] }) {
             {mark ? (
               <span
                 aria-hidden
-                className="pointer-events-none absolute -right-3 -top-3 hidden w-[3.25rem] rotate-[-8deg] md:block lg:-right-4 lg:-top-4 lg:w-[4rem]"
+                className="pointer-events-none absolute -right-3 -top-3 deco-mark w-[3.25rem] rotate-[-8deg] lg:-right-4 lg:-top-4 lg:w-[4rem]"
               >
                 <DoodleMark name={mark.name} color={mark.color} treatment="stamp" delay={200} />
               </span>

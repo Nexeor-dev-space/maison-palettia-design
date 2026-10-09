@@ -321,13 +321,14 @@ function Crumb({
       {href ? (
         <Link
           href={href}
-          // `-my-3 py-3` grows the target without moving the trail: the label
-          // sets a 16px box and the padding lifts the target to 40, which is
-          // what a finger wants. Measured at 29px with the 6px this used to
-          // pay. The negative margin cancels the padding, so the row still
-          // measures as a row of labels — the same device as every other
-          // action on the site.
-          className="-my-3 py-3 transition-colors duration-300 ease-soft hover:text-text focus-visible:text-text"
+          // `-my-3.5 py-3.5` grows the target without moving the trail: the
+          // label sets a 19px line box and the padding lifts the target to 47.
+          // Measured at 29px with the 6px this used to pay, then at 43 with
+          // `py-3` — a pixel under the 44 a finger is owed, which is the one
+          // number this was reaching for. The negative margin cancels the
+          // padding, so the row still measures as a row of labels — the same
+          // device as every other action on the site.
+          className="-my-3.5 py-3.5 transition-colors duration-300 ease-soft hover:text-text focus-visible:text-text"
         >
           {children}
         </Link>
@@ -1624,7 +1625,7 @@ function MoreEvents({
       */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -top-8 right-2 hidden w-[4.5rem] rotate-[-14deg] lg:block"
+        className="pointer-events-none absolute -top-8 right-2 deco-mark w-[4.5rem] rotate-[-14deg]"
       >
         <DoodleMark name="splash" color={INK.lavender} treatment="stamp" delay={200} />
       </span>

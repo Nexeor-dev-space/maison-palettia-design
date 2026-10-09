@@ -108,7 +108,7 @@ export function LittleCreators() {
             */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -left-7 -top-[4.5rem] hidden w-[4.25rem] rotate-[-14deg] lg:block"
+              className="pointer-events-none absolute -left-7 -top-[4.5rem] deco-mark w-[4.25rem] rotate-[-14deg]"
             >
               <DoodleMark name="coral" color={INK.lilac} delay={120} depth={12} />
             </span>
@@ -135,7 +135,7 @@ export function LittleCreators() {
                 the one edge this half of the header has to offer. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -bottom-5 right-[6%] hidden w-[3.5rem] rotate-[14deg] lg:block"
+              className="pointer-events-none absolute -bottom-5 right-[6%] deco-mark w-[3.5rem] rotate-[14deg]"
             >
               <DoodleMark name="starburst" color={INK.terracotta} delay={300} depth={10} />
             </span>
@@ -150,7 +150,7 @@ export function LittleCreators() {
                 the first letter: at -left-9 it sat on the "T" of "Three". */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -left-14 -top-11 hidden w-[3.25rem] rotate-[-10deg] lg:block"
+              className="pointer-events-none absolute -left-14 -top-11 deco-mark w-[3.25rem] rotate-[-10deg]"
             >
               <DoodleMark name="bow" color={INK.lilac} delay={420} depth={10} />
             </span>
@@ -201,7 +201,7 @@ export function LittleCreators() {
                 {plate.mark ? (
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute -right-4 -top-5 hidden w-14 rotate-[-8deg] rounded-[0.35rem] bg-cream p-2.5 sm:block"
+                    className="pointer-events-none absolute -right-4 -top-5 deco-mark w-14 rotate-[-8deg] rounded-[0.35rem] bg-cream p-2.5"
                   >
                     <DoodleMark name={plate.mark.name} color={plate.mark.color} treatment="stamp" />
                   </span>

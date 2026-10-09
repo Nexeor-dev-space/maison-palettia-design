@@ -1079,7 +1079,12 @@
   /* The standalone property, not a `transform`: <DoodleMark>'s own drift owns
      the transform on the element inside this one, and two rules writing the
      same property is how that movement would be lost. */
-  scale: calc(1 + var(--lift, 0.16) * var(--near));
+  /* `--deco-mark` is the responsive size of a decorative mark — 1 on a
+     desktop, smaller below it. It is multiplied in here rather than applied
+     by a second utility because `scale` is ONE property: an element carrying
+     both `pointer-lift` and `deco-mark` would otherwise have one of the two
+     silently win. See the knob's own note further down. */
+  scale: calc(var(--deco-mark, 1) * (1 + var(--lift, 0.16) * var(--near)));
   transform-origin: 50% 50%;
   transition: scale 420ms var(--ease-soft);
   will-change: scale;
@@ -1087,7 +1092,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pointer-lift {
-    scale: 1;
+    /* Still the responsive size — what reduced motion removes is the LIFT,
+       not the mark. A flat `1` here would make these three marks the only
+       ones that ignore the knob. */
+    scale: var(--deco-mark, 1);
     transition: none;
   }
 }
@@ -1550,7 +1558,39 @@ html[data-paint-cursor] iframe {
   ground, never an object, and they sit at -z-10 behind the type at ~0.18
   opacity, so nothing they land on becomes harder to read.
 */
+/*
+  ==========================================================================
+  `--deco-mark` — A DECORATIVE MARK'S SIZE, AS A SHARE OF ITS DRAWN SIZE
+  ==========================================================================
+
+  THE PROBLEM IT EXISTS FOR. Thirty-two of this site's brand cut-outs were
+  written as `hidden … lg:block`: drawn on a desktop, `display: none` on
+  every phone and most tablets. They are not ornament the layout can spare —
+  they are the thing that makes a page look like this studio rather than
+  like a template, and a phone was getting the template.
+
+  WHY THEY WERE HIDDEN, AND WHY SCALING IS THE ANSWER. Each is absolutely
+  positioned against an edge at a size chosen for a 1440 composition — a 7rem
+  coral hung 24px off the right margin. At 320px that margin does not exist,
+  so at full size the mark lands on the words. Hiding it was the quick fix.
+  Shrinking it is the real one: the mark keeps its artwork, its colour, its
+  angle and its relationship to the thing it marks, and takes a share of the
+  room it used to need.
+
+  THE SAME DEVICE `--shape-mobile` ALREADY USES for <SectionShapes>, and
+  deliberately a SECOND knob rather than the same one. Those are background
+  shapes at `-z-10` and 0.18 opacity with a whole band to drift in; these sit
+  on an edge at full strength. They want different numbers, and one variable
+  serving both would make every future change to either a guess about the
+  other.
+
+  TWO STEPS RATHER THAN ONE. 0.66 at tablet is a mark that still reads as
+  drawn at that size; 0.52 below 640 is what keeps a 7rem shape out of a
+  320px measure. Below that the marks are small enough that a third step
+  would make them specks.
+*/
 :root {
+  --deco-mark: 1;
   --shape-mobile: 1;
   --bottom-nav-h: 0px;
   /* The crests above the sheet. Page content may sit under them — they are
@@ -1561,6 +1601,7 @@ html[data-paint-cursor] iframe {
 
 @media (max-width: 1023px) {
   :root {
+    --deco-mark: 0.66;
     --shape-mobile: 0.72;
     /* 4.25rem, down from 4.9. The bar's wave lost 0.75rem (see <BottomNav>),
        so the band it reserves comes down by the same amount — the sheet and
@@ -1762,5 +1803,29 @@ html[data-intro="settle"] body:has([data-hero-intro]) > header {
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+
+/*
+  The utility a decorative mark wears instead of `hidden … lg:block`. It is
+  two declarations and no media query of its own: the knob above carries the
+  breakpoints, so a mark cannot be scaled on one page and hidden on another.
+
+  `scale`, not `width`: these wrappers set their size with a Tailwind `w-*`
+  class that a utility cannot multiply, and the mark inside takes its height
+  from the artwork's own ratio — so scaling the box is the only change that
+  keeps the drawing's proportions exactly.
+*/
+@utility deco-mark {
+  display: block;
+  scale: var(--deco-mark, 1);
+}
+
+/* The small-phone step. Separate from the block above because that one also
+   carries the bottom bar's measurements, which do not change here. */
+@media (max-width: 639px) {
+  :root {
+    --deco-mark: 0.52;
   }
 }

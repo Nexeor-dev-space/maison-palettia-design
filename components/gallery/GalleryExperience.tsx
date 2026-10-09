@@ -332,7 +332,7 @@ function Tile({
       {feature ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute -right-3 -top-3 z-10 hidden w-[3.25rem] rotate-[-8deg] md:block lg:-right-4 lg:-top-4 lg:w-[4.25rem]"
+          className="pointer-events-none absolute -right-3 -top-3 z-10 deco-mark w-[3.25rem] rotate-[-8deg] lg:-right-4 lg:-top-4 lg:w-[4.25rem]"
         >
           <DoodleMark name={feature.mark} color={feature.color} treatment="stamp" delay={200} />
         </span>

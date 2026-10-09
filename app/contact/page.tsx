@@ -117,7 +117,7 @@ function Invitation() {
           cut-out — never floating in clear space. */}
       <Reveal
         delay={0.3}
-        className="pointer-events-none absolute -right-5 top-12 hidden w-[8rem] lg:block xl:w-[9.5rem]"
+        className="pointer-events-none absolute -right-5 top-12 deco-mark w-[8rem] xl:w-[9.5rem]"
       >
         <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={320} />
       </Reveal>

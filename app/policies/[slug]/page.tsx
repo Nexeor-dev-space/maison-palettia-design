@@ -86,7 +86,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
         <SectionShapes plan={groundShapes("sage")} />
         <span
           aria-hidden
-          className="pointer-lift pointer-events-none absolute -right-6 top-[16%] hidden w-24 -rotate-12 lg:block xl:w-28"
+          className="pointer-lift pointer-events-none absolute -right-6 top-[16%] deco-mark w-24 -rotate-12 xl:w-28"
           style={{ "--ax": 0.9, "--lift": 0.18 } as React.CSSProperties}
         >
           <DoodleMark name="bean" color={INK.lavender} treatment="draw" delay={420} depth={16} />

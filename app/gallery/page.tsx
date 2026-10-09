@@ -175,7 +175,7 @@ export default async function GalleryPage() {
                   </span>
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute -right-3 bottom-[18%] hidden w-[2.5rem] rotate-[-6deg] md:block"
+                    className="pointer-events-none absolute -right-3 bottom-[18%] deco-mark w-[2.5rem] rotate-[-6deg]"
                   >
                     <DoodleMark name="coral" color={INK.terracotta} treatment="draw" delay={420} />
                   </span>
@@ -195,13 +195,13 @@ export default async function GalleryPage() {
         <Container className="relative py-[5rem] text-center md:py-section lg:py-[7rem]">
           <span
             aria-hidden
-            className="pointer-events-none absolute left-[7%] top-12 hidden w-[4.25rem] rotate-[-10deg] md:block"
+            className="pointer-events-none absolute left-[7%] top-12 deco-mark w-[4.25rem] rotate-[-10deg]"
           >
             <DoodleMark name="coral" color={INK.lavender} treatment="draw" delay={300} />
           </span>
           <span
             aria-hidden
-            className="pointer-events-none absolute bottom-12 right-[8%] hidden w-[4.5rem] rotate-[8deg] md:block"
+            className="pointer-events-none absolute bottom-12 right-[8%] deco-mark w-[4.5rem] rotate-[8deg]"
           >
             <DoodleMark name="splash" color={INK.whiteRock} treatment="draw" delay={420} />
           </span>

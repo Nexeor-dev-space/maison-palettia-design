@@ -203,6 +203,18 @@ const WHATSAPP_ITEM: NavItem | null = WHATSAPP.number
 
   The desktop bar and the footer are untouched — they read MAIN_NAV directly
   and have the room for the whole label.
+
+  AND WHERE SHORTENING CANNOT HELP, THE TYPE GIVES WAY INSTEAD. The rule above
+  only reaches labels that can be cut back to a prefix. "Experiences" is one
+  word, so it never wraps — it OVERFLOWS, which is the quieter failure: at 11px
+  with this tracking it sets to 72.5px against a 64px slot at 320, so it began
+  at x = -4.3 and the E was cut off by the window. Nothing scrolled and nothing
+  was clipped, so no overflow check could see it.
+
+  The arithmetic says where it starts: the label must be no wider than a slot,
+  so the break is 5 x 72.5 = 362px. 375 and up already fit and keep the drawn
+  size. Below that the tracking goes — decorative, and 4.8px of the 8.5px
+  deficit — and the type steps to 10px, which sets to 61.5px in that 64px slot.
 */
 const BAR_LABELS: Record<string, string> = {
   "/private-events": "Private",
@@ -282,7 +294,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
      honest: none of the five is where you are. */
   const anyCurrent = ITEMS.some(isCurrent) || onSheetRoute;
 
-  return (
+  const bar = (
     <motion.nav
       aria-label="Primary"
       className={cn(styles.bar, "fixed inset-x-0 bottom-0 z-40 lg:hidden")}
@@ -418,7 +430,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
                 </motion.span>
               </span>
               <span className="relative block">
-                <span className="block text-[0.6875rem] font-medium leading-none tracking-[0.04em] text-on-primary">
+                <span className="block text-[0.6875rem] font-medium leading-none tracking-[0.04em] max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em] text-on-primary">
                   About
                 </span>
                 <span
@@ -435,13 +447,6 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         </ul>
       </div>
 
-      <AboutSheet
-        open={aboutOpen}
-        onClose={() => setAboutOpen(false)}
-        items={SHEET_ITEMS}
-        returnFocusTo={aboutRef}
-      />
-
       <BookBadge
         reduce={!!reduce}
         open={bookOpen}
@@ -455,6 +460,39 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         controls={bookOpen ? BOOK_SHEET_ID : undefined}
       />
 
+    </motion.nav>
+  );
+
+  /*
+    THE TWO SHEETS ARE SIBLINGS OF THE BAR, NOT CHILDREN OF IT.
+
+    Both are modals — `fixed`, z-50, over their own scrim — and inside
+    <motion.nav> neither could ever reach that. The bar is z-40, which opens a
+    stacking context and caps everything inside it at 40, while <Header> is
+    z-50: the logo and the search button painted straight over the open sheet,
+    and the scrim dimmed the page but not the header. The bar also animates `y`
+    on mount, and a transformed ancestor becomes the containing block for
+    `fixed` descendants, so the sheets were being positioned against the bar
+    rather than against the window.
+
+    Out here they are direct children of <body> — app/layout.tsx already mounts
+    <BottomNav> last — so their z-50 stands beside the header's and wins on
+    document order, which is what the scrim and `role="dialog"` always meant.
+
+    <BookBadge> stays inside the bar: it is the bar's own raised control, not a
+    modal, and it rises out of the sheet it belongs to.
+  */
+  return (
+    <>
+      {bar}
+
+      <AboutSheet
+        open={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+        items={SHEET_ITEMS}
+        returnFocusTo={aboutRef}
+      />
+
       <BookingSheet
         id={BOOK_SHEET_ID}
         open={bookOpen}
@@ -462,7 +500,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         options={bookingOptions}
         returnFocusTo={bookRef}
       />
-    </motion.nav>
+    </>
   );
 }
 
@@ -562,7 +600,7 @@ function Item({
         </span>
 
         <span className="relative block">
-          <span className="block text-[0.6875rem] font-medium leading-none tracking-[0.04em] text-on-primary">
+          <span className="block text-[0.6875rem] font-medium leading-none tracking-[0.04em] max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em] text-on-primary">
             {item.label}
           </span>
           {/* The brush, drawn only under the word it belongs to. White Rock
@@ -684,7 +722,7 @@ function BookBadge({
           <BookIcon size={23} className="block" />
         </motion.span>
 
-        <span className="mt-1 block text-[0.6875rem] font-semibold leading-none tracking-[0.04em] text-on-primary">
+        <span className="mt-1 block text-[0.6875rem] font-semibold leading-none tracking-[0.04em] max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em] text-on-primary">
           Book
         </span>
       </button>
