@@ -759,17 +759,32 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
 
           <h2 id="private-events-experiences" className="mt-8 md:mt-10">
             <Stagger>
-              <SectionLine>Choose What</SectionLine>{" "}
-              <SectionLine>You Make.</SectionLine>
+              <SectionLine>Pick Your Kind of</SectionLine>{" "}
+              <SectionLine>Creative.</SectionLine>
             </Stagger>
           </h2>
         </div>
 
         <Reveal delay={0.2} className="col-span-12 md:col-span-5 md:pb-3">
-          {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
+          {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>.
+
+              AT THE CLIENT'S ASK 2026-10-09, AND IT NAMES ACTIVITIES IN PROSE,
+              which is the one thing to watch here. The page's own note at the
+              top says the activities come from `getCreativeExperiences()` "so
+              this page cannot name something the studio does not offer" — and
+              that still holds for the collage below, which is rendered from
+              that list. It does not hold for this sentence: "painting",
+              "bedazzling", "candles" and "crochet" are typed here.
+
+              All four are in the approved list today — tote-bag, ceramic,
+              mandala and glass painting, bedazzling, candle-making,
+              crocheting. If one is ever withdrawn, the tile disappears on its
+              own and this line does not. Check it when the list changes. */}
           <p className="text-lead text-text/80">
-            The Maison&rsquo;s creative world, as a starting point. We shape the
-            right activity for your group once you have told us about it.
+            From painting and bedazzling to candles, crochet and more,
+            there&rsquo;s plenty to get your hands on. Choose from our creative
+            experiences, or let&rsquo;s create something around your group,
+            occasion or idea.
           </p>
         </Reveal>
       </div>
