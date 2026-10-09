@@ -10,15 +10,15 @@ import { useRef, useState } from "react";
 import {
   AboutIcon,
   BookIcon,
+  ContactIcon,
   ExperiencesIcon,
   HomeIcon,
   LocationsIcon,
   PrivateEventsIcon,
-  WhatsAppIcon,
 } from "@/components/layout/bottomNavIcons";
 import { AboutSheet } from "@/components/layout/AboutSheet";
 import styles from "@/components/layout/BottomNav.module.css";
-import { MAIN_NAV, PRIMARY_CTA, WHATSAPP } from "@/lib/constants";
+import { MAIN_NAV, PRIMARY_CTA } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /**
@@ -93,8 +93,9 @@ import { cn } from "@/lib/utils";
  * The bar publishes its own height as `--bottom-nav-h` (globals.css), and
  * everything else that pins itself to the bottom of a phone reads that
  * variable rather than knowing about this file: <main>'s padding, the footer,
- * <WhatsAppWidget>, and <EventBookingBar> — which is `fixed bottom-0 z-40` on
- * every event page and would otherwise have been sitting underneath this.
+ * and <EventBookingBar> — which is `fixed bottom-0 z-40` on every event page
+ * and would otherwise have been sitting underneath this. <ContactWidget> does
+ * not need it: it is drawn from `lg` up, where this bar is not.
  */
 
 type NavIcon = (props: { size?: number; className?: string }) => React.ReactElement;
@@ -102,8 +103,6 @@ type NavIcon = (props: { size?: number; className?: string }) => React.ReactElem
 interface NavItem {
   href: string;
   label: string;
-  /** Leaves the site: rendered as a plain anchor in a new tab, not a <Link>. */
-  external?: boolean;
   /** Spoken name, where the visible label is too terse to stand alone. */
   ariaLabel?: string;
   /* Drawn for this bar — see ./bottomNavIcons.tsx for why lucide came out. */
@@ -132,47 +131,42 @@ const ICONS: Record<string, NavIcon> = {
 
 /*
   ==========================================================================
-  THE FOURTH SLOT: WHATSAPP, OR HOME WHERE THERE IS NO WHATSAPP
+  THE FOURTH SLOT: CONTACT
   ==========================================================================
 
-  The client asked for Home to be replaced by a WhatsApp action, and that is
-  what this does — but only once there is a number to open. `WHATSAPP.number`
-  is `null` in this project and has been since the constant was written: there
-  is no WhatsApp number anywhere in the repo, no `.env`, and `CONTACT.phone`
-  is null beside it. A tab that opens `https://wa.me/null` is a broken control
-  on the most prominent surface the phone has.
+  It was WhatsApp — an anchor out to `wa.me` in a new tab — and the client
+  asked for WhatsApp to come off the site, on a phone and on a desktop alike,
+  with the contact page in its place. So the slot is an ordinary internal
+  destination now: a <Link> to /contact, marked current while you are on it,
+  exactly like the two programme slots beside it. The `WHATSAPP` constant that
+  pointed the old slot at a number went with it; nothing in lib/constants.ts
+  is read here.
 
-  So the slot falls back to Home, which is what it has always been, and
-  becomes WhatsApp the moment somebody sets the number — one value, no build.
-  That is the same rule <WhatsAppWidget>, the footer's social links and the
-  newsletter block already follow: the code is ready and the absence is
-  honest.
+  The desktop has the same door as a floating button, <ContactWidget>, and the
+  two never share a screen: that one is `lg` and up, this bar is below it.
 
-  WHY HOME IS THE FALLBACK AND NOT AN EMPTY SLOT. Below `lg` the header
-  carries no navigation at all — its links are `hidden lg:block` and there is
-  no hamburger — so the wordmark is the only way back to the homepage on a
-  phone, and it scrolls away. Dropping Home without putting WhatsApp there
-  would leave the bar with four slots and the site with no visible way home.
+  CONTACT IS ALSO A CARD IN THE ABOUT SHEET, and stays one. The sheet is the
+  same four doors <AboutMenu> opens on a desktop, and a desktop has Contact
+  both there and in its floating button too. What must not double up is the
+  CURRENT mark — see `onSheetRoute` below, which hands /contact to this slot.
+
+  HOME IS NOT IN THE BAR, as it has not been since this slot first turned into
+  WhatsApp. Below `lg` the header carries no navigation — its links are
+  `hidden lg:block` and there is no hamburger — so the wordmark is the way back
+  to the homepage on a phone.
 */
-const HOME: NavItem = { href: "/", label: "Home", Icon: HomeIcon };
+const CONTACT_HREF = "/contact";
 
-const WHATSAPP_ITEM: NavItem | null = WHATSAPP.number
-  ? {
-      href: WHATSAPP.greeting
-        ? `https://wa.me/${WHATSAPP.number}?text=${encodeURIComponent(WHATSAPP.greeting)}`
-        : `https://wa.me/${WHATSAPP.number}`,
-      label: "WhatsApp",
-      ariaLabel: "Chat with us on WhatsApp",
-      external: true,
-      Icon: WhatsAppIcon,
-      /* An outbound chat is never "the page you are on". */
-      match: () => false,
-    }
-  : null;
+const CONTACT_ITEM: NavItem = {
+  href: CONTACT_HREF,
+  label: "Contact",
+  Icon: ContactIcon,
+  match: (p) => p === CONTACT_HREF || p.startsWith(`${CONTACT_HREF}/`),
+};
 
 /*
   AND THE TWO DESTINATIONS COME FROM THE SHARED LIST, filtered by
-  `mobileSurface: "bar"` — Experiences and Private events. With WhatsApp, the
+  `mobileSurface: "bar"` — Experiences and Private events. With Contact, the
   action and About that is five, which is what five slots hold.
 
   THEY ARE THE DESKTOP BAR'S OWN TOP LEVEL, which is the point of the pair.
@@ -231,7 +225,7 @@ const ITEMS: readonly NavItem[] = [
       match: (p: string) => p === item.href || p.startsWith(`${item.href}/`),
     };
   }),
-  WHATSAPP_ITEM ?? HOME,
+  CONTACT_ITEM,
 ];
 
 /* What About opens onto. Same list, the other flag — and the same four doors
@@ -284,10 +278,19 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
     that reaches it is marked. Without this the bar went blank on three of the
     site's pages and said "you are nowhere", which is worse than imprecise.
     The drawer being open marks it too, for the same reason.
+
+    UNLESS A SLOT ALREADY SAYS IT. /contact is a card in the drawer AND the
+    fourth slot, and marking both would put `aria-current="page"` on two
+    controls and hand the one `layoutId` blob to two elements at once — framer
+    has to pick, and the bar says "you are here" twice. A route a slot marks
+    belongs to that slot; the drawer only speaks for the pages the bar cannot
+    reach directly.
   */
-  const onSheetRoute = SHEET_ITEMS.some(
-    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-  );
+  const onSheetRoute =
+    !ITEMS.some(isCurrent) &&
+    SHEET_ITEMS.some(
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+    );
 
   /* The blob only travels once there is somewhere to travel to. On a route
      none of them lists — /faq, /checkout — nothing is marked, which is
@@ -297,11 +300,32 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
   const bar = (
     <motion.nav
       aria-label="Primary"
-      className={cn(styles.bar, "fixed inset-x-0 bottom-0 z-40 lg:hidden")}
+      /*
+        `--color-focus` IS CREAM HERE because the ring would otherwise be the
+        bar. globals.css draws every `:focus-visible` outline in this variable,
+        falling back to Deep Lilac — and the sheet is Deep Lilac, so a focused
+        slot drew a lilac ring on lilac: 1:1, there and invisible. Sections on
+        the other saturated grounds set it the same way (see /faq's close).
+        Only this bar's own slots and its Book badge read it: the two sheets
+        are siblings of the nav, not children, so they keep the default.
+      */
+      className={cn(styles.bar, "fixed inset-x-0 bottom-0 z-40 lg:hidden [--color-focus:var(--color-cream)]")}
       /* The entrance: the sheet arrives from under the fold once, on mount.
          Not scroll-driven — a bar that reacts to scrolling is a bar that is
-         sometimes missing, and this one is the whole map. */
-      initial={reduce ? false : { y: "110%" }}
+         sometimes missing, and this one is the whole map.
+
+         `initial` IS THE SAME FOR EVERYONE, AND ONLY THE TRANSITION ASKS
+         ABOUT MOTION. It was `reduce ? false : { y: "110%" }`, and `reduce`
+         cannot be known on the server — framer's useReducedMotion() is
+         `null` there and only reads the media query in the browser — so the
+         server always wrote `translateY(110%)` while a reduced-motion
+         client's first render wrote `transform: none`: a hydration mismatch
+         on every page, for exactly the visitors who asked for less going on.
+         Now both render 110%, and for them the move to 0 takes no time at
+         all. Nothing is lost: the server HTML had the bar below the fold for
+         them before this change too, because the server never knew. See the
+         note on the dots in <Item> for the other half of the same bug. */
+      initial={{ y: "110%" }}
       animate={{ y: 0 }}
       transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 30, delay: 0.35 }}
     >
@@ -402,7 +426,8 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
               aria-controls={aboutOpen ? "bottom-nav-about" : undefined}
               aria-current={onSheetRoute ? "page" : undefined}
               onClick={() => setAboutOpen((v) => !v)}
-              className="group/nav flex min-h-11 w-full flex-col items-center justify-center gap-[3px] px-1 py-0 text-on-primary outline-offset-4"
+              /* The ring sits INSIDE the slot — see the note on <Item>. */
+              className="group/nav flex min-h-11 w-full flex-col items-center justify-center gap-[3px] px-1 py-0 text-on-primary -outline-offset-2"
             >
               <span className="relative flex size-[1.375rem] items-center justify-center">
                 {aboutOpen || onSheetRoute ? (
@@ -415,8 +440,10 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
                     }
                   />
                 ) : null}
+                {/* `tabIndex={-1}`: see the note on the same span in <Item>. */}
                 <motion.span
                   className="relative"
+                  tabIndex={-1}
                   whileTap={reduce ? undefined : { scale: 0.82 }}
                   transition={{ type: "spring", stiffness: 600, damping: 20 }}
                 >
@@ -518,28 +545,26 @@ function Item({
 }) {
   const { Icon } = item;
 
-  /*
-    AN OUTBOUND ACTION IS AN ANCHOR, NOT A <Link>. next/link prefetches and
-    routes client-side, both of which are wrong for `wa.me`: there is no route
-    to prefetch and the hand-off belongs to the OS, which opens the WhatsApp
-    app on a phone and web.whatsapp.com on a desktop. `rel="noopener
-    noreferrer"` because `target="_blank"` without it hands the opened tab a
-    live `window.opener` back into this one.
-  */
-  const Tag = item.external ? "a" : Link;
-  const linkProps = item.external
-    ? { href: item.href, target: "_blank", rel: "noopener noreferrer" as const }
-    : { href: item.href };
-
+  /* Every slot is a page on this site now — the one outbound slot, WhatsApp's
+     anchor to `wa.me`, went with WhatsApp — so every slot is a <Link>. */
   return (
     <li>
-      <Tag
-        {...linkProps}
+      <Link
+        href={item.href}
         aria-label={item.ariaLabel}
         aria-current={current ? "page" : undefined}
         /* 56px of height plus the label's line box clears the 44px a touch
-           target owes at every width this bar is drawn at. */
-        className="group/nav flex min-h-11 flex-col items-center justify-center gap-[3px] px-1 py-0 text-on-primary outline-offset-4"
+           target owes at every width this bar is drawn at.
+
+           THE FOCUS RING IS DRAWN INSIDE THE SLOT (`-outline-offset-2`), not
+           4px outside it as it was. A slot's top edge IS the sheet's top edge
+           (`pt-0`), and the sheet is `overflow-hidden` for its corner
+           colours, so a ring set outside the slot lost its whole top side to
+           the clip once it was cream enough to see. Inset, it uses 2px of the
+           4px of slack the 44px target leaves above and below the content,
+           and all four sides draw. The Book badge keeps its outer ring: it
+           stands outside the clipped sheet. */
+        className="group/nav flex min-h-11 flex-col items-center justify-center gap-[3px] px-1 py-0 text-on-primary -outline-offset-2"
       >
         <span className="relative flex size-[1.375rem] items-center justify-center">
           {current && any ? (
@@ -554,8 +579,20 @@ function Item({
           ) : null}
 
           {/* Three dots thrown off the paint as it lands. They belong to the
-              item, not to the shared blob, so they pop where it arrives. */}
-          {current && any && !reduce ? (
+              item, not to the shared blob, so they pop where it arrives.
+
+              ALWAYS RENDERED; REDUCED MOTION HIDES THEM IN CSS. This was
+              `current && any && !reduce`, and `reduce` comes from framer's
+              useReducedMotion(), which is `null` on the server and `true` in
+              a reduced-motion browser — so the server wrote three dot spans
+              that the client's first render did not have. React cannot
+              patch a missing element: it threw #418, discarded the server
+              HTML and re-rendered the whole document on the client, on every
+              page with a current slot (/events and /private-events and
+              everything under them). The markup is identical everywhere now
+              and <Dot>'s own `motion-reduce:hidden` takes the dots off for
+              the visitors the `!reduce` was for. */}
+          {current && any ? (
             <>
               <Dot className="-right-1 -top-0.5 bg-terracotta" delay={0.12} />
               <Dot className="-left-1.5 top-1.5 bg-lavender" delay={0.18} />
@@ -563,8 +600,20 @@ function Item({
             </>
           ) : null}
 
+          {/*
+            `tabIndex={-1}`, OR THE ICON IS A SECOND TAB STOP. Motion's press
+            gesture — what `whileTap` runs on — gives any element it is put on
+            `tabindex="0"` unless that element is focusable already or carries
+            a tabindex of its own, so a keyboard could reach it. Here the slot
+            around it is the control, so every slot took two Tabs, the second
+            onto a nameless 21px glyph; with the ring now cream, that stop drew
+            a ring of its own. -1 is the tabindex Motion respects and it keeps
+            the span out of the sequence; the tap scale still runs on touch,
+            which is the only place this bar is drawn.
+          */}
           <motion.span
             className="relative"
+            tabIndex={-1}
             whileTap={reduce ? undefined : { scale: 0.82 }}
             transition={{ type: "spring", stiffness: 600, damping: 20 }}
           >
@@ -616,17 +665,24 @@ function Item({
             )}
           />
         </span>
-      </Tag>
+      </Link>
     </li>
   );
 }
 
-/** One of the dots thrown off the paint. */
+/**
+ * One of the dots thrown off the paint.
+ *
+ * `motion-reduce:hidden` rather than not rendering it: whether to show it is
+ * decided by the media query in CSS, which the server's HTML and the browser
+ * agree on, instead of by a hook that only the browser can answer. See the
+ * note where <Item> draws these.
+ */
 function Dot({ className, delay }: { className: string; delay: number }) {
   return (
     <motion.span
       aria-hidden
-      className={cn("absolute size-1 rounded-full", className)}
+      className={cn("absolute size-1 rounded-full motion-reduce:hidden", className)}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 500, damping: 18, delay }}
@@ -708,6 +764,9 @@ function BookBadge({
                and why no third colour was available. */
             "relative flex size-[3.4rem] items-center justify-center bg-sage text-primary shadow-[0_6px_18px_-6px_rgba(45,55,72,0.55)]",
           )}
+          /* Not a second tab stop inside the button — see the note on the
+             icon span in <Item>; Motion's press gesture is the same here. */
+          tabIndex={-1}
           whileTap={reduce ? undefined : { scale: 0.9 }}
           whileHover={reduce ? undefined : { scale: 1.04 }}
           transition={{ type: "spring", stiffness: 520, damping: 18 }}

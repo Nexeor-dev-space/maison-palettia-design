@@ -1,4 +1,7 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
+
+import { SessionGate } from "@/components/booking/SessionClock";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
@@ -9,7 +12,12 @@ import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { PaintStroke } from "@/components/layout/PaintStroke";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { getCreativeExperiences } from "@/lib/experiences";
-import { getUpcomingWorkshops } from "@/lib/workshops";
+import {
+  formatWorkshopDate,
+  getAllWorkshops,
+  hasSessionPassed,
+  serverClock,
+} from "@/lib/workshops";
 import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
 
 /**
@@ -59,9 +67,11 @@ import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
  * ==========================================================================
  *
  * Two colour fields meeting on a hard seam, both running to the edge of the
- * screen — White Rock where you can simply turn up, Deep Lilac where there is
- * a seat with your name on it. One cut-out sits across the join; it is the
- * only thing belonging to both halves and it is what stops the split reading
+ * screen — Warm Terracotta where you can simply turn up (White Rock until the
+ * client's ask; a touch lighter than neat since, see WARM_GROUND), Deep Lilac
+ * where there is a seat with your name on it. One cut-out sits across the
+ * join; it is the only thing belonging to both halves and it is what stops
+ * the split reading
  * as two unrelated panels.
  *
  * NOTHING HERE IS WRITTEN FOR THE LAYOUT. The counts are the real records —
@@ -101,7 +111,7 @@ import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
 export async function TwoWaysToCreate() {
   const [experiences, sessions] = await Promise.all([
     getCreativeExperiences(),
-    getUpcomingWorkshops(3),
+    getAllWorkshops(),
   ]);
 
   const walkIn = experiences.filter((experience) => experience.kind === "diy");
@@ -117,14 +127,36 @@ export async function TwoWaysToCreate() {
     the honest answer is that they are coming.
   */
   const home = "Times Square Center, Dubai";
-  const next = sessions.find((session) => session.kind !== "diy");
-  const nextDate = next
-    ? new Date(next.startsAt).toLocaleDateString("en-GB", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-      })
-    : "Dates coming";
+  /*
+    THE NEXT DATE THAT HAS NOT BEGUN — asked twice, like every date on the
+    site. This printed the first scheduled session whatever its date, so once
+    the 11 October placeholder went by the homepage kept calling it "next".
+    The server drops what it can already see has passed — against one clock
+    for the whole list, so no two sessions are judged at different instants —
+    and the rest become a chain of <SessionGate>s, each handing over to the
+    date after it when its own begins in the visitor's browser, down to
+    "Dates coming" once none is left. The whole programme goes in rather than
+    the first three: a cut list could run out while a later date was still
+    ahead. This page is static, so without the browser's half it would hold
+    the build's answer indefinitely. See components/booking/SessionClock.tsx.
+
+    `formatWorkshopDate`, not `toLocaleDateString`: it pins the studio's time
+    zone, as every date formatter in lib/workshops does, so the weekday and
+    the day never depend on where the build machine happens to be.
+  */
+  const now = serverClock();
+  const nextDate = sessions
+    .filter((session) => session.kind !== "diy" && !hasSessionPassed(session, now))
+    .reduceRight<ReactNode>(
+      (later, session) => (
+        <SessionGate
+          startsAt={session.startsAt}
+          open={formatWorkshopDate(session.startsAt)}
+          passed={later}
+        />
+      ),
+      "Dates coming",
+    );
 
   const walkInPlate = walkIn.find((experience) => experience.image)?.image;
   const scheduledPlate = experiences.find(
@@ -339,23 +371,53 @@ export async function TwoWaysToCreate() {
  * ==========================================================================
  *
  * Both grounds are saturated now — the left half was White Rock and is Warm
- * Terracotta at the client's ask — so both carry the same near-white ink at
- * FULL strength. There is no room to soften either: the left half used to run
- * its line at `text-text/80`, which was 5.5:1 on White Rock and is nothing
- * like that on Terracotta.
+ * Terracotta at the client's ask — so each carries its ink at FULL strength.
+ * There is no room to soften either: the left half used to run its line at
+ * `text-text/80`, which was 5.5:1 on White Rock and is nothing like that on
+ * Terracotta.
  *
  * WARM TERRACOTTA IS A LIGHT GROUND, AND THIS IS THE ONE THING TO KNOW ABOUT
  * IT. #D97757 has a relative luminance of 0.286 — nearly twice Deep Lilac's
- * 0.158 — so a near-white on it reads 2.88:1 where the same ink on the lilac
+ * 0.158 — so the near-white on it read 2.88:1 where the same ink on the lilac
  * half reads 4.67:1. Body copy owes 4.5:1 and large text 3:1, and 2.88 is
- * under both. Charcoal on it is 3.84:1, which is also under 4.5.
+ * under both: the 52px name, the 20–23px line (under the 24px that "large"
+ * starts at) and the 13px label all failed, and the label's 60% numeral was
+ * 1.93:1. Charcoal on neat #D97757 is 3.84:1 — enough for the name, not for
+ * the line or the label. No palette ink clears 4.5:1 on the neat colour.
  *
- * There is no ink that clears 4.5:1 on neat #D97757; the ground itself is the
- * variable. Deepening it to about 75% Terracotta in Charcoal would take the
- * near-white over 4.5:1 and keep the hue, at the cost of the colour the client
- * named. That is a decision about the brand, not about the code, so this ships
- * the colour as asked and the note is here so the number is not rediscovered.
+ * SO THE GROUND MOVED, AS LITTLE AS IT COULD, AND THE INK TURNED. The warm
+ * half is now Terracotta with a fifth of White Rock in it (WARM_GROUND,
+ * #DF8D6E rendered, luminance 0.359) and every word on it is Charcoal at full
+ * strength: 4.67:1 for the name, the line, the label and its numeral alike.
+ * That is the smallest step that works — the alternatives, measured:
+ *
+ *   Charcoal on a lighter Terracotta .. 80% in White Rock, 4.67:1. Shipped.
+ *                                        84% is the edge at 4.49 and fails.
+ *   near-white on a deeper Terracotta . about 65% in Charcoal before the
+ *                                        near-white reaches 4.5:1 — over twice
+ *                                        the shift in colour (oklab ΔE 0.13 vs
+ *                                        0.05), and a brown rather than a
+ *                                        terracotta. (The 75% this note used
+ *                                        to suggest measures 3.97 and fails.)
+ *   Ink #231F20 on neat Terracotta .... 5.22:1 with the ground untouched, but
+ *                                        Ink is outside the six and has a
+ *                                        TODO(client) on whether it stays at
+ *                                        all — see globals.css.
+ *
+ * TODO(client): this changes how the brand colour is presented — the warm
+ * panel is a lighter Terracotta than #D97757 and its type is Charcoal, not
+ * White Rock. It needs brand sign-off. If the client would rather keep the
+ * neat colour, the Ink route above is the one that does it; if they would
+ * rather keep the white type, it is the deeper ground. Either is a one-line
+ * change to WARM_GROUND and the ink classes in <Road>.
  */
+/*
+  The warm half's ground — see "SO THE GROUND MOVED" above. A mix of two of
+  the six, which is the only way globals.css allows a tone the six cannot
+  make, and written out as a literal because Tailwind generates only the
+  classes it can read whole in the source.
+*/
+const WARM_GROUND = "bg-[color-mix(in_oklab,var(--color-terracotta)_80%,var(--color-cream))]";
 /*
   ==========================================================================
   A COLOUR PER CHIP, AND WHY THESE THREE
@@ -394,6 +456,10 @@ const CHIP_PAINTS = [
   flat cream against a saturated orange, and carries Charcoal at 9.4:1, which
   is the best of the four. Only the third changes: the first two are a mauve
   and a green and were never at risk here.
+
+  (Those separations were taken on neat #D97757. On WARM_GROUND, which is a
+  little lighter, White Rock separates at 2.00:1 and the 30% mix would at
+  1.57, so the choice stands; the chips' own Charcoal is unchanged.)
 */
 const CHIP_PAINTS_ON_TERRACOTTA = [
   CHIP_PAINTS[0],
@@ -419,7 +485,8 @@ function Road({
   dot: string;
   plate?: { src: string; alt: string; position?: string };
   line: string;
-  facts: readonly string[];
+  /* Words, or (for the date) a <SessionGate> that settles on words. */
+  facts: readonly ReactNode[];
   action: { label: string; href: string; tone: "sage" | "cream" };
 }) {
   const warm = ground === "terracotta";
@@ -427,9 +494,11 @@ function Road({
 
   return (
     <div
+      /* The warm half is WARM_GROUND with Charcoal type, not neat Terracotta
+         with near-white — see "SO THE GROUND MOVED" above. 4.67:1. */
       className={
         warm
-          ? "relative bg-terracotta px-gutter py-[3.5rem] text-surface md:py-[4rem] lg:pl-[10%] lg:pr-[8%]"
+          ? `relative ${WARM_GROUND} px-gutter py-[3.5rem] text-text md:py-[4rem] lg:pl-[10%] lg:pr-[8%]`
           : "relative bg-primary px-gutter py-[3.5rem] text-surface md:py-[4rem] lg:pl-[8%] lg:pr-[10%]"
       }
     >
@@ -445,7 +514,15 @@ function Road({
           on Warm Terracotta ... White Rock 2.44, Light Sage 2.36, Soft
                                  Lavender 1.69 — every pale brand colour is too
                                  close to be seen. Charcoal is 3.84 and is the
-                                 only one that reads.
+                                 only one that reads. On WARM_GROUND, the
+                                 lighter mix this half now uses, the pale ones
+                                 fall further (2.00, 1.94, 1.39) and Charcoal
+                                 rises to 4.67 — the same answer, by more.
+                                 (What is DRAWN for `INK.charcoal` is the lilac
+                                 pair — doodles.ts has no Charcoal icon — and
+                                 that reads 1.62 on neat Terracotta, 1.97 on
+                                 WARM_GROUND: decorative either way, and a
+                                 little better for the change, not worse.)
           on Deep Lilac ........ White Rock 3.95 and Light Sage 3.83 both read;
                                  Charcoal is 2.37 and Soft Lavender 2.74, so
                                  the warm panel's answer is wrong here and the
@@ -516,7 +593,14 @@ function Road({
           <span aria-hidden className="block w-4 shrink-0">
             <DoodleMark name="dot" color={dot} />
           </span>
-          <span aria-hidden className="tabular-nums opacity-60">
+          {/* FULL STRENGTH, NOT `opacity-60`. `aria-hidden` takes the numeral
+              out of what is announced, not out of what is seen — it is still
+              13px text and owes 4.5:1. At 60% it was 1.93:1 on neat
+              Terracotta, would be 2.46 on WARM_GROUND, and is 2.71 on Deep
+              Lilac (axe flags both). At full it is the label's own 4.67 on
+              either half; what sets it apart is the tabular figures and the
+              space, not a fade. Both halves, so the pair still match. */}
+          <span aria-hidden className="tabular-nums">
             {String(index).padStart(2, "0")}
           </span>
           {eyebrow}
@@ -530,7 +614,7 @@ function Road({
       </Reveal>
 
       <Reveal delay={0.16}>
-        <p className="mt-3 max-w-[34ch] text-lead tracking-[-0.01em] text-surface">
+        <p className={`mt-3 max-w-[34ch] text-lead tracking-[-0.01em] ${warm ? "text-text" : "text-surface"}`}>
           {line}
         </p>
       </Reveal>
@@ -547,7 +631,7 @@ function Road({
         here is told apart by which doodle it got, which is the rule every
         other mark on this site follows.
 
-        The ink is the side's own — Charcoal on the cream half, the near-white
+        The ink is the side's own — Charcoal on the warm half, the near-white
         `surface` on the lilac one — so the row inherits whichever way the
         panel has turned instead of stating a colour that only works on one.
       */}
@@ -594,7 +678,9 @@ function Road({
               already a stacking context above its own ground.
             */
             <li
-              key={fact}
+              /* By position: a fact can be an element now (the date), and the
+                 three never reorder. */
+              key={i}
               /*
                 `--swell` AND `--wet` ARE SET HERE, NOT VIA `isCurrent`.
                 <PaintStroke> is tuned for a nav item, where the paint is a

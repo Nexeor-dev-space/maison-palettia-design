@@ -1,27 +1,16 @@
 import { MapPin } from "lucide-react";
+import type { ReactNode } from "react";
+
+import { SessionGate } from "@/components/booking/SessionClock";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
-import { formatSessionDate, sessionDateParts } from "@/lib/workshops";
+import { Eyebrow } from "@/components/ui/SectionHeader";
+import { formatSessionDate, hasSessionPassed, sessionDateParts } from "@/lib/workshops";
 import type { Workshop } from "@/types";
-
-const NUMBER_WORDS = [
-  "No", "One", "Two", "Three", "Four", "Five", "Six",
-  "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve",
-];
-
-/**
- * The count for a heading set in the script, in words. Hapsha's 7, 8 and 9
- * are placeholder marks rather than figures, so a number past twelve is set in
- * Montserrat rather than risk one.
- */
-function countInWords(count: number) {
-  return NUMBER_WORDS[count] ?? <span className="font-sans text-[0.75em]">{count}</span>;
-}
 
 /**
  * Where the studio sets up — and the last thing on /events.
@@ -51,9 +40,15 @@ function countInWords(count: number) {
  * coordinates anywhere in this project. Drawing pins would mean inventing
  * positions for real malls, which is worse than not drawing them.
  *
- * Each entry carries the count and the next date at that mall, both derived —
- * nothing is stored per venue, so a mall the studio stops running at simply
- * stops appearing. Nothing here is written by hand.
+ * Each entry carries the next date at that mall, derived — nothing is stored
+ * per venue, so a mall the studio stops running at simply stops appearing.
+ *
+ * NO COUNTS, AT THE CLIENT'S ASK. The heading was the number of destinations
+ * in words ("One Location") and each plate said how many events it held. The
+ * client's rule from the homepage chips (PDF p05: "it can change in the
+ * future") now applies site-wide, so neither is shown: the heading is the
+ * client's own location heading and the plate keeps only the next date, which
+ * is a date rather than a tally.
  *
  * ==========================================================================
  * MEASURED, BECAUSE DEEP LILAC IS THE HARDEST GROUND IN THE PALETTE
@@ -66,39 +61,69 @@ function countInWords(count: number) {
  * is 2.0:1 and a lilac mark disappears into the field entirely.
  */
 interface WhereWeSetUpProps {
-  /** The whole catalogue, so the counts describe the programme. */
+  /** The whole catalogue, so each destination's next date is the programme's. */
   workshops: Workshop[];
+  /**
+   * The page's one `Date.now()`, so this panel's "Next" date and the cards
+   * above it never disagree about which sessions the server saw go by.
+   */
+  renderedAt: number;
 }
 
 interface LocationSummary {
   name: string;
   locality: string;
-  count: number;
-  /** The soonest session at this mall; the catalogue is already date-sorted. */
-  next: Workshop;
+  /**
+   * Every session at this mall the server does not already see as begun,
+   * soonest first — the catalogue is date-sorted. It was only the first
+   * session at all, so a date that had gone by went on being called "Next".
+   * Empty is allowed: the mall is still where the studio sets up.
+   */
+  upcoming: Workshop[];
 }
 
-function summarise(workshops: Workshop[]): LocationSummary[] {
+function summarise(workshops: Workshop[], renderedAt: number): LocationSummary[] {
   const byVenue = new Map<string, LocationSummary>();
 
   for (const workshop of workshops) {
     if (!workshop.venue) continue;
-    const existing = byVenue.get(workshop.venue.name);
-    if (existing) existing.count += 1;
-    else
-      byVenue.set(workshop.venue.name, {
-        name: workshop.venue.name,
-        locality: workshop.venue.locality,
-        count: 1,
-        next: workshop,
-      });
+    let summary = byVenue.get(workshop.venue.name);
+    if (!summary) {
+      summary = { name: workshop.venue.name, locality: workshop.venue.locality, upcoming: [] };
+      byVenue.set(workshop.venue.name, summary);
+    }
+    if (!hasSessionPassed(workshop, renderedAt)) summary.upcoming.push(workshop);
   }
 
   return [...byVenue.values()];
 }
 
-export function WhereWeSetUp({ workshops }: WhereWeSetUpProps) {
-  const locations = summarise(workshops);
+/**
+ * "Next Sat 11 Oct", for the first of these that has not begun — re-asked in
+ * the browser, because /events is prerendered and the server's list is only
+ * as fresh as the last render. Each <SessionGate> hands over to the date
+ * after it when its own begins; once none is left the line is simply not
+ * there, rather than a date that has gone by or a promise of one to come.
+ */
+function nextDateLine(upcoming: readonly Workshop[]): ReactNode {
+  return upcoming.reduceRight<ReactNode>((later, session) => {
+    const { weekday } = sessionDateParts(session.startsAt);
+    return (
+      <SessionGate
+        startsAt={session.startsAt}
+        open={
+          <span className="mt-4 block text-label font-medium uppercase tracking-eyebrow text-text/75">
+            Next {weekday} {formatSessionDate(session.startsAt)}
+          </span>
+        }
+        passed={later}
+      />
+    );
+  }, null);
+}
+
+export function WhereWeSetUp({ workshops, renderedAt }: WhereWeSetUpProps) {
+  const locations = summarise(workshops, renderedAt);
   if (locations.length === 0) return null;
 
   return (
@@ -124,27 +149,34 @@ export function WhereWeSetUp({ workshops }: WhereWeSetUpProps) {
           <DoodleMark name="splash" color={INK.whiteRock} treatment="draw" delay={420} />
         </span>
 
+        {/*
+          THE CLIENT'S LOCATION SECTION, WORD FOR WORD. "Find us" over "Your
+          Next Creative Stop." and the line under it are the homepage's (PDF
+          p06), where the client rewrote this same idea; "Where we set up",
+          a counted heading and "The studio travels…" were the wording that
+          rewrite retired.
+        */}
         <Reveal>
           {/* `ground="lilac"` takes the near-white ink and the Light Sage
               rule; `justify-center` is all that centring an eyebrow needs. */}
           <Eyebrow ground="lilac" className="justify-center">
-            Where we set up
+            Find us
           </Eyebrow>
         </Reveal>
 
         <Reveal delay={0.06}>
           <h2
             id="locations-heading"
-            className="heading-script mx-auto mt-6 max-w-[16ch] pb-[0.3em] text-script-section text-surface"
+            className="heading-script mx-auto mt-6 max-w-[16ch] text-balance pb-[0.3em] text-script-section text-surface"
           >
-            {countInWords(locations.length)}{" "}
-            {forScript(locations.length === 1 ? "Location" : "Locations")}
+            Your Next Creative Stop.
           </h2>
         </Reveal>
 
         <Reveal delay={0.12}>
-          <p className="mx-auto mt-2 max-w-[34ch] text-lead text-surface">
-            The studio travels. Each date runs at a mall for that day only.
+          <p className="mx-auto mt-2 max-w-[40ch] text-lead text-surface">
+            Find Maison Palettia in the places you already love to visit — and come
+            make something while you&rsquo;re there.
           </p>
         </Reveal>
 
@@ -157,8 +189,6 @@ export function WhereWeSetUp({ workshops }: WhereWeSetUpProps) {
         */}
         <ul className="mx-auto mt-11 flex max-w-[56rem] flex-wrap justify-center gap-4 md:mt-12 md:gap-5">
           {locations.map((location) => {
-            const { weekday } = sessionDateParts(location.next.startsAt);
-
             return (
               <li key={location.name} className="w-full sm:w-[27rem]">
                 <Reveal variant="drop" className="h-full">
@@ -175,16 +205,10 @@ export function WhereWeSetUp({ workshops }: WhereWeSetUpProps) {
                       </span>
                       <span className="mt-1 block text-fine text-text/75">{location.locality}</span>
 
-                      {/* TWO LINES, NOT ONE WITH A DOT IN IT. The count and
-                          the next date are two facts, and at this width the
-                          single line broke mid-date — "next Sun 11" above
-                          "October 2026" — which reads as a wrap accident. */}
-                      <span className="mt-4 block text-label font-medium uppercase tracking-eyebrow text-text/75">
-                        {location.count} {location.count === 1 ? "event" : "events"}
-                      </span>
-                      <span className="mt-1.5 block text-label font-medium uppercase tracking-eyebrow text-text/75">
-                        Next {weekday} {formatSessionDate(location.next.startsAt)}
-                      </span>
+                      {/* The next date only. The count of events that sat above
+                          it is gone with the client's no-counts rule — see the
+                          note at the head of this file. */}
+                      {nextDateLine(location.upcoming)}
                     </span>
                   </div>
                 </Reveal>

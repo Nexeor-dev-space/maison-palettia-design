@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
 
+import { useSessionPassed } from "@/components/booking/SessionClock";
 import { WORKSHOPS_HREF } from "@/lib/constants";
 import { getPopularSearches, searchExperiences, searchWorkshops } from "@/lib/search";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
@@ -643,8 +644,16 @@ function ActivityResults({
  */
 function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: () => void }) {
   const { start } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
-  const closed = isFullyBooked(workshop);
-  const scarce = isScarce(workshop);
+  /*
+    A date that has begun reads as closed, in the event card's words. The
+    panel only ever renders in the browser, so the visitor's own clock decides
+    from the first frame — nothing here to agree with a server. Without it the
+    11 October placeholder went on offering "3 spots left" in Deep Lilac, the
+    accent that means "book this", after it had run.
+  */
+  const passed = useSessionPassed(workshop.startsAt);
+  const closed = passed || isFullyBooked(workshop);
+  const scarce = !passed && isScarce(workshop);
 
   return (
     <article className="group relative flex items-center gap-4">
@@ -716,7 +725,7 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
           {scarce ? (
             <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-on-primary/90" />
           ) : null}
-          {spotsLabel(workshop)}
+          {passed ? "Date passed" : spotsLabel(workshop)}
         </p>
       </div>
 

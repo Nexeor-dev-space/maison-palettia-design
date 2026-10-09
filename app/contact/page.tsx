@@ -466,8 +466,8 @@ function Details() {
             IT STILL RENDERS NOTHING TODAY, and that is the project's own rule
             rather than an oversight: every `href` in SOCIAL_LINKS is `null`
             (lib/constants.ts), and this site does not ship a link that goes
-            nowhere — the same reason LEGAL_NAV, WHATSAPP and the newsletter
-            are all absent. Put the two URLs on that constant and the row below
+            nowhere — the same reason LEGAL_NAV and the newsletter are
+            absent. Put the two URLs on that constant and the row below
             appears with no other change.
 
             The label is on `aria-label`, not beside the glyph: an icon with

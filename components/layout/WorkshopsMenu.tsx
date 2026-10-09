@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 
+import { SessionGate } from "@/components/booking/SessionClock";
 import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/components/layout/MenuCard";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
@@ -33,6 +34,8 @@ interface WorkshopsMenuProps {
    * a seat count only when a session with that slug exists, and both values
    * come from the same helpers the listing and the event page read. An empty
    * array is a perfectly good answer — the rows simply go back to being names.
+   * Once a date has begun (the visitor's clock, through <SessionGate>) its row
+   * says "Date passed" and its seat count goes, as the listing's card does.
    */
   sessions: Workshop[];
   isActive: boolean;
@@ -104,9 +107,11 @@ const GROUPS = [
  * cannot survive), so it has never rendered here and the card does not carry
  * the branch.
  *
- * Behaviour is unchanged and not in this file — see `useMenuDisclosure`. The
- * trigger is a <button> with `aria-expanded`, the panel opens on hover and on
- * focus, Escape returns focus to the trigger, and the closed card is `inert`.
+ * Behaviour is not in this file — see `useMenuDisclosure`. The trigger is a
+ * <button> with `aria-expanded`; the panel opens on a mouse's hover, on focus,
+ * and on a click or a tap; a click after a hover keeps it open rather than
+ * toggling it shut; Escape returns focus to the trigger, and the closed card
+ * is `inert`.
  */
 export function WorkshopsMenu({
   label,
@@ -118,7 +123,7 @@ export function WorkshopsMenu({
   onOpenChange,
 }: WorkshopsMenuProps) {
   const menuId = useId();
-  const { isOpen, mounted, shown, trigger, openNow, closeSoon, closeNow, regionProps } =
+  const { isOpen, mounted, shown, regionProps, triggerProps, cardProps } =
     useMenuDisclosure(onOpenChange);
 
   const groups = GROUPS.map((group) => ({
@@ -176,7 +181,19 @@ export function WorkshopsMenu({
             */
             href={`/events/${experience.slug}`}
             name={experience.name}
-            sub={experience.status ?? (session ? formatWorkshopDate(session.startsAt) : undefined)}
+            sub={
+              experience.status ??
+              (session ? (
+                /* The date, until it has begun — then what the event page
+                   and the listing say. The panel only mounts in the browser,
+                   so the visitor's clock decides from its first frame. */
+                <SessionGate
+                  startsAt={session.startsAt}
+                  open={formatWorkshopDate(session.startsAt)}
+                  passed="Date passed"
+                />
+              ) : undefined)
+            }
             image={experience.image}
             active={active?.slug === experience.slug}
             onActivate={() => setActiveSlug(experience.slug)}
@@ -194,17 +211,16 @@ export function WorkshopsMenu({
       className="static flex h-full items-center"
     >
       <button
-        ref={trigger}
+        {...triggerProps}
         type="button"
         aria-expanded={isOpen}
         aria-controls={menuId}
-        onClick={() => (isOpen ? closeNow() : openNow())}
         className={cn(linkClassName, "cursor-none items-center")}
       >
         <NavLabel isActive={isActive || isOpen} paint={paint}>{label}</NavLabel>
       </button>
 
-      <MenuCard id={menuId} open={isOpen} shown={shown} onMouseEnter={openNow} onMouseLeave={closeSoon}>
+      <MenuCard id={menuId} open={isOpen} shown={shown} {...cardProps}>
         {mounted ? (
           <div className="grid grid-cols-12 gap-2.5 md:gap-3">
             {/*
@@ -312,18 +328,27 @@ export function WorkshopsMenu({
                         {active.status}
                       </span>
                     ) : activeSession ? (
-                      <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        {formatWorkshopDate(activeSession.startsAt)}
-                        <span aria-hidden className="text-text/30">
-                          &middot;
-                        </span>
-                        <span className="flex items-center gap-2">
-                          {isScarce(activeSession) ? (
-                            <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-terracotta" />
-                          ) : null}
-                          {spotsLabel(activeSession)}
-                        </span>
-                      </span>
+                      /* No seat count on a date that has begun: "3 spots
+                         left" under it would be an offer the event page
+                         behind this link no longer makes. */
+                      <SessionGate
+                        startsAt={activeSession.startsAt}
+                        open={
+                          <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                            {formatWorkshopDate(activeSession.startsAt)}
+                            <span aria-hidden className="text-text/30">
+                              &middot;
+                            </span>
+                            <span className="flex items-center gap-2">
+                              {isScarce(activeSession) ? (
+                                <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-terracotta" />
+                              ) : null}
+                              {spotsLabel(activeSession)}
+                            </span>
+                          </span>
+                        }
+                        passed="Date passed"
+                      />
                     ) : null
                   }
                   action={active.kind === "diy" ? "See the activity" : "See the session"}

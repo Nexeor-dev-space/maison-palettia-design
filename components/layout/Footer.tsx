@@ -1033,7 +1033,18 @@ export async function Footer() {
               </ul>
             ) : null}
           </div>
-          <BackToTop />
+          {/*
+            A GUTTER FOR THE FLOATING CONTACT BUTTON, `lg` up only. That
+            button (<ContactWidget>) is fixed 24px off the bottom right and
+            64px across at rest, and at the foot of every page it sat on this
+            one: measured at 1024, the middle of "Back to top" hit-tested to
+            the Contact link. 6.5rem from the window's edge, less the gutter
+            the Container already gives, ends this 16px short of the button —
+            measured at 1024, 1280 and 1440. Below `lg` the button is not
+            drawn (the bottom bar carries Contact), so the row keeps its full
+            width there.
+          */}
+          <BackToTop className="lg:mr-[calc(6.5rem_-_var(--spacing-gutter))]" />
         </div>
       </Container>
     </footer>

@@ -34,9 +34,9 @@ import type { MallPartner } from "@/types";
        studio photograph stands in for one: a picture of a pottery wheel
        captioned as a shopping centre would be the one fabrication a section
        about real partnerships must not contain.
-     - `descriptor`. The line below says only what the client has confirmed —
-       that this is where the Maison sets up in Dubai. Replace it with the
-       centre's own wording once there is some.
+     - `descriptor` and `eventDescriptor` are the client's own lines, one per
+       surface (see the note on the entry). Neither is the centre's wording
+       about itself; replace them with it once there is some.
 
    `locationHref` is a Google Maps *search* rather than a pinned coordinate.
    The project has no coordinates for anywhere — see the note in
@@ -51,23 +51,50 @@ import type { MallPartner } from "@/types";
    names the studio has no agreement with. Pointing those placeholder venues at
    the confirmed destination is the fix; it is out of this section's scope.
    ========================================================================== */
-const MALL_PARTNERS: MallPartner[] = [
+/**
+ * A partner as this module holds it: everything {@link MallPartner} carries,
+ * plus the line the client wrote for the experience pages.
+ *
+ * Optional, and declared beside the only data that sets it: a centre with no
+ * event-page line of its own falls back to `descriptor` wherever this is read,
+ * so a second partner can be added with one line and still render everywhere.
+ * It can move onto {@link MallPartner} itself when the CMS shape is settled.
+ */
+export interface PartnerRecord extends MallPartner {
+  /** The line under the plate on /events and /events/[slug] (PDF p19). */
+  eventDescriptor?: string;
+}
+
+const MALL_PARTNERS: PartnerRecord[] = [
   {
     slug: "times-square-center",
     name: "Times Square Center",
     locality: "Dubai",
     /*
-      REWRITTEN AT THE CLIENT'S ASK TWICE — 2026-10-08, then again on
-      2026-10-09 — and it is worth saying that
-      ONE STRING SERVES THREE SURFACES: the plate on /private-events, the one
-      <PartnerPlate> draws on /locations and every event page, and the map's
-      caption in <LocationMap>. The request came in against /private-events;
-      the new line is written about the destination rather than about a
-      private booking, so it reads correctly on all three. Change it here and
-      all three move together — which is the point of it living here.
+      TWO LINES, BECAUSE THE CLIENT WROTE TWO.
+
+      This was one string serving every surface, and that is how it broke:
+      the client supplied the p19 line for the event pages' location card
+      (2026-10-08), then the p35 line for the "Our home" plate on
+      /private-events (2026-10-09). The second was written into the shared
+      string, so it replaced the first on every event page too — a request
+      against one page silently rewrote another.
+
+      So each surface reads the line written for it:
+
+        descriptor ........ p35. The plate on /private-events, and the default
+                            <PartnerPlate> prints — /locations, which the PDF
+                            does not cover, reads it too.
+        eventDescriptor ... p19. The plate on every /events/[slug] page, and
+                            the destination line on /events. Passed to
+                            <PartnerPlate> as `line`.
+
+      Change either and only its own surfaces move.
     */
     descriptor:
       "Find us at Times Square Center, where the Maison comes to life with hands-on experiences, workshops and plenty of reasons to stop by and make something.",
+    eventDescriptor:
+      "Find us at Times Square Center, where creativity, community and a little time away from the everyday come together.",
     locationHref:
       "https://www.google.com/maps/search/?api=1&query=Times+Square+Center+Dubai",
   },
@@ -85,6 +112,6 @@ const MALL_PARTNERS: MallPartner[] = [
  *
  * TODO(client): replace the body with the CMS query.
  */
-export async function getMallPartners(): Promise<MallPartner[]> {
+export async function getMallPartners(): Promise<PartnerRecord[]> {
   return MALL_PARTNERS;
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { useSessionPassed } from "@/components/booking/SessionClock";
 import { cn } from "@/lib/utils";
 
 /**
@@ -33,6 +34,24 @@ import { cn } from "@/lib/utils";
  * page gave before and the one outcome that must not be got wrong — someone
  * believing they have booked a closed date.
  *
+ * A DATE THAT HAS GONE BY TAKES THE BAR AWAY, AND THIS IS WHERE THAT IS
+ * NOTICED. The page only mounts the bar for a date its server render thought
+ * was open, but that render is prerendered and can be days old. So the bar
+ * asks the visitor's own clock (`useSessionPassed`, components/booking/
+ * SessionClock) and, once the start time is behind it, stands down entirely —
+ * not into the closed shape. That is what the page looks like when the
+ * server already knew (`bookable` is false, so no bar is mounted), and what
+ * the foot of the page does too (<ActionArea>), so a stale page and a fresh
+ * one end up identical. The closed shape would also have been the wrong
+ * answer: its "See what else is open" cannot know whether anything is, and
+ * on /events/candle-making it sat under the header's "nothing else is open
+ * just now". The header says why in counted words; a persistent bar repeating
+ * "Date passed" at the foot of every screen adds nothing to it.
+ *
+ * The server's verdict here is always "open" — it would not have mounted
+ * otherwise — so hydration renders exactly the HTML and the bar goes
+ * straight after, never as a mismatch.
+ *
  * EVERY VALUE ARRIVES FORMATTED. This is a client component, and lib/workshops
  * holds the session array as well as the helpers; importing it here to borrow
  * a formatter would pull the whole catalogue into the browser bundle. No other
@@ -62,7 +81,11 @@ export interface EventBookingBarProps {
   priceLabel: string;
   /** "5 spots left" — the listing's own wording, never a number invented here. */
   spotsLabel: string;
-  /** True when the existing data says the date is full. */
+  /**
+   * True when the existing data says the date is full. A date that has gone
+   * by is not a closed state here: it is worked out against the visitor's
+   * clock from `startsAt`, and the bar stands down — see above.
+   */
   closed: boolean;
   /** True when the existing data says places are running low. */
   scarce: boolean;
@@ -75,6 +98,7 @@ export interface EventBookingBarProps {
 
 export function EventBookingBar({ sentinelId, closed, ...event }: EventBookingBarProps) {
   const [isRetracted, setIsRetracted] = useState(false);
+  const passed = useSessionPassed(event.startsAt);
   const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,6 +139,10 @@ export function EventBookingBar({ sentinelId, closed, ...event }: EventBookingBa
       window.removeEventListener("resize", schedule);
     };
   }, [sentinelId]);
+
+  // After every hook, so the hooks run in the same order either way. The bar
+  // is `fixed`, so going takes nothing out of the page's flow.
+  if (passed) return null;
 
   return (
     <div
@@ -196,7 +224,7 @@ function Facts({
   spotsLabel,
   scarce,
   closed,
-}: Omit<EventBookingBarProps, "sentinelId" | "bookingHref"> & { closed: boolean }) {
+}: Omit<EventBookingBarProps, "sentinelId" | "bookingHref">) {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-8">
       {/* --- phone: price, then how many places are left ----------------- */}
@@ -241,7 +269,14 @@ function Facts({
               {venueName}
             </Fact>
           ) : null}
-          {closed ? null : <Fact label="Price">{priceLabel}</Fact>}
+          {/* A shut date trades its price for the reason it is shut — the
+              phone says it in the same place, and "See what else is open"
+              on its own does not say why. */}
+          {closed ? (
+            <Fact label="Status">Fully booked</Fact>
+          ) : (
+            <Fact label="Price">{priceLabel}</Fact>
+          )}
         </dl>
       </div>
     </div>

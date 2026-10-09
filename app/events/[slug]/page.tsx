@@ -6,6 +6,7 @@ import { BlobButton } from "@/components/ui/BlobButton";
 import { notFound } from "next/navigation";
 
 import { EventBookingBar } from "@/components/booking/EventBookingBar";
+import { SessionGate } from "@/components/booking/SessionClock";
 import { EventCard } from "@/components/events/EventCard";
 import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
 import { Reveal } from "@/components/motion/Reveal";
@@ -39,6 +40,7 @@ import {
   formatPrice,
   formatSessionDate,
   getRelatedWorkshops,
+  hasSessionPassed,
   workshopHref,
   isFullyBooked,
   isScarce,
@@ -46,7 +48,8 @@ import {
   sessionTimeRange,
   spotsLabel,
 } from "@/lib/workshops";
-import type { MallPartner, Workshop } from "@/types";
+import type { PartnerRecord } from "@/lib/partners";
+import type { Workshop } from "@/types";
 
 /** Ties the sentinel to the bar that observes it. */
 const CONTENT_END = "event-content-end";
@@ -59,6 +62,31 @@ export async function generateStaticParams() {
   const slugs = await getEventSlugs();
   return slugs.map((slug) => ({ slug }));
 }
+
+/*
+  ==========================================================================
+  REGENERATED EVERY TEN MINUTES, BECAUSE A DATE IS A FACT THAT EXPIRES
+  ==========================================================================
+
+  These pages are prerendered from `generateStaticParams`, and whether a
+  session can still be booked is decided on the server against the clock at
+  render time (`hasSessionPassed`). Without revalidation that clock is the
+  build's: a page built on the 9th goes on saying the 11th is open for as long
+  as the deployment lives. ISR re-renders the page in the background at most
+  this often — see node_modules/next/dist/docs/01-app/02-guides/
+  incremental-static-regeneration.md, the route-segment `revalidate` without
+  Cache Components, which this project does not enable.
+
+  IT IS NOT WHAT KEEPS A PAST DATE FROM BEING BOOKED. Ten minutes of stale HTML
+  is still stale, and the first visitor after the window gets the old page
+  while the new one renders. That job belongs to <SessionGate>, which asks the
+  visitor's own clock once the page is live; this only keeps the HTML — and
+  the "other sessions" counted below — close to true for anyone without
+  JavaScript and for the first paint.
+
+  A literal, not `60 * 10`: the value has to be statically analysable.
+*/
+export const revalidate = 600;
 
 export async function generateMetadata({
   params,
@@ -159,10 +187,10 @@ export default async function EventPage({
         no venue field. What the project does hold is lib/partners.ts: the
         studio's confirmed destinations, and there is exactly one.
 
-        So the single partner is shown, under a heading that says what is true
-        — where the Maison sets up — with the centre's own descriptor carrying
-        the framing. Nothing here claims this particular activity runs there;
-        the data does not say so, and neither does the page.
+        So the single partner is shown, as the visitor's next creative stop,
+        with the client's event-page line (`eventDescriptor`, p19) carrying the
+        framing. Nothing here claims this particular activity runs there; the
+        data does not say so, and neither does the page.
 
         Guarded on there being exactly one. The moment the studio confirms a
         second centre, picking one of them for an activity that names neither
@@ -172,8 +200,21 @@ export default async function EventPage({
       ? partners[0]
       : undefined;
 
+  /*
+    TWO GATES ON A BOOKING NOW, NOT ONE: seats, and the date still ahead.
+
+    The date half used to be missing entirely, so a session stayed bookable
+    after it had run — QA moved the clock to the 12th and booked the 11th.
+    `passed` is the server's verdict, as of this render (see the note on
+    `revalidate` above), and it is what the HTML says. Every control it lets
+    through is also wrapped in <SessionGate>, which takes the same decision
+    against the visitor's clock after hydration, so a page rendered while the
+    date was open still closes the moment it is not.
+  */
+  const passed =
+    detail.kind === "scheduled" && hasSessionPassed(detail.workshop);
   const bookable =
-    detail.kind === "scheduled" && !isFullyBooked(detail.workshop);
+    detail.kind === "scheduled" && !isFullyBooked(detail.workshop) && !passed;
 
   return (
     /*
@@ -221,12 +262,14 @@ export default async function EventPage({
         <Breadcrumb detail={detail} />
 
         {/* `related` is already "every other session that can be booked" —
-            see getRelatedWorkshops. The header's full-date sentence counts
-            it rather than assuming it. */}
+            see getRelatedWorkshops. The header's closed-date sentence counts
+            it rather than assuming it, and is handed the start times so it
+            can stop claiming them once they have gone by. */}
         <EventHeader
           detail={detail}
           bookable={bookable}
-          openElsewhere={related.length}
+          passed={passed}
+          openElsewhere={related.map((session) => session.startsAt)}
         />
         <SessionBrief detail={detail} />
         <LocationSection detail={detail} partner={partner} />
@@ -241,8 +284,9 @@ export default async function EventPage({
 
         <div id={CONTENT_END} aria-hidden />
 
+        {/* The client's line, PDF p21, in place of the one it replaced. */}
         <PageUtilityBar
-          note="Everything is provided, and no experience is needed. If something is unclear, ask before you book."
+          note="Everything you need is waiting for you. Just bring yourself, pick a project and start creating."
           links={[
             { label: "All events", href: "/events" },
             { label: "Questions", href: "/faq" },
@@ -255,9 +299,15 @@ export default async function EventPage({
 
           A walk-in activity has nothing to book, so a persistent booking bar on
           its page would be an offer the studio cannot honour — and a sold-out
-          date has the same problem. `bookable` is the single gate, so neither
-          can reach it. Below `lg` only: the header's own column is the desktop
-          affordance and this is the phone's.
+          date has the same problem, and so does a date that has already gone
+          by. `bookable` is the single gate, so none of them can reach it.
+          Below `lg` only: the header's own column is the desktop affordance
+          and this is the phone's.
+
+          A date that passes AFTER this was rendered still mounts the bar —
+          the server could not know — and the bar stands itself down against
+          the visitor's clock, leaving the page as it would be had the server
+          known; see `useSessionPassed` in <EventBookingBar>.
 
           Every value is resolved here, on the server, and handed down as
           strings. <EventBookingBar> is a client component and lib/workshops.ts
@@ -368,12 +418,15 @@ function Crumb({
 function EventHeader({
   detail,
   bookable,
+  passed,
   openElsewhere,
 }: {
   detail: EventDetail;
   bookable: boolean;
+  /** The server's verdict on the date; see `passed` on the page. */
+  passed: boolean;
   /** Passed straight to <PrimaryAction>; see the note there. */
-  openElsewhere: number;
+  openElsewhere: readonly string[];
 }) {
   const image = eventImage(detail);
   const intro = eventIntro(detail);
@@ -471,7 +524,7 @@ function EventHeader({
               </span>
 
               {detail.kind === "scheduled" ? (
-                <ScheduledFacts workshop={detail.workshop} />
+                <ScheduledFacts workshop={detail.workshop} passed={passed} />
               ) : (
                 <WalkInFacts detail={detail} />
               )}
@@ -480,6 +533,7 @@ function EventHeader({
                 <PrimaryAction
                   detail={detail}
                   bookable={bookable}
+                  passed={passed}
                   openElsewhere={openElsewhere}
                 />
               </div>
@@ -498,7 +552,14 @@ function EventHeader({
  * run at a mall on a fixed afternoon, and "am I free then" is the question that
  * decides everything after it.
  */
-function ScheduledFacts({ workshop }: { workshop: Workshop }) {
+function ScheduledFacts({
+  workshop,
+  passed,
+}: {
+  workshop: Workshop;
+  /** The server's verdict on the date — what the availability line opens on. */
+  passed: boolean;
+}) {
   const { weekday } = sessionDateParts(workshop.startsAt);
   const { start, end } = sessionTimeRange(
     workshop.startsAt,
@@ -557,15 +618,29 @@ function ScheduledFacts({ workshop }: { workshop: Workshop }) {
 
         The dot is an accent beside a label that already says the same thing in
         words, so nothing here is carried by colour alone.
+
+        ONCE THE DATE HAS GONE BY, THE SEAT COUNT STOPS BEING NEWS. "9 spots
+        available" on a session that ran yesterday reads as an offer, so the
+        line says what is true instead — on the server's word in the HTML, and
+        on the visitor's clock once the page is live.
       */}
       <p className="mt-7 flex items-center gap-2.5 border-t border-line pt-7 text-label font-medium uppercase tracking-eyebrow text-text">
-        {isScarce(workshop) ? (
-          <span
-            aria-hidden
-            className="h-1.5 w-1.5 shrink-0 rounded-pill bg-primary"
-          />
-        ) : null}
-        {spotsLabel(workshop)}
+        <SessionGate
+          startsAt={workshop.startsAt}
+          passedAtRender={passed}
+          open={
+            <>
+              {isScarce(workshop) ? (
+                <span
+                  aria-hidden
+                  className="h-1.5 w-1.5 shrink-0 rounded-pill bg-primary"
+                />
+              ) : null}
+              {spotsLabel(workshop)}
+            </>
+          }
+          passed="Date passed"
+        />
       </p>
     </>
   );
@@ -640,21 +715,31 @@ function Sub({ children }: { children: React.ReactNode }) {
  *
  *   scheduled, open ......... a filled button into the existing booking route
  *   scheduled, full ......... no control; the state, in words
+ *   scheduled, passed ....... no control; the state, in words
  *   walk-in, running ........ no control; walk in and create
  *   walk-in, flagged ........ no control; the studio's flag
  *
  * `bookingStepHref` is the project's own resolver and the booking flow behind
  * it is untouched — this page decides whether to offer the door, never what is
  * behind it.
+ *
+ * THE OPEN BUTTON IS DRAWN BEHIND A GATE. "Open" is the server's verdict as of
+ * the last render, and this page is prerendered, so the button sits inside
+ * <SessionGate>: the moment the visitor's clock is past the start, the passed
+ * sentence takes its place — on hydration if the HTML was already stale, or
+ * live, at the start time, on a page someone left open.
  */
 function PrimaryAction({
   detail,
   bookable,
-  openElsewhere = 0,
+  passed = false,
+  openElsewhere = [],
   tone = "lilac",
 }: {
   detail: EventDetail;
   bookable: boolean;
+  /** The server's verdict on the date; picks the closed branch's sentence. */
+  passed?: boolean;
   /**
    * ========================================================================
    * THE GROUND THIS IS STANDING ON, BECAUSE THE BUTTON CANNOT SEE IT
@@ -678,68 +763,45 @@ function PrimaryAction({
    */
   tone?: "lilac" | "deep";
   /**
-   * How many OTHER sessions can be booked right now — `getRelatedWorkshops`
-   * already filters itself to exactly that, and the page already has it.
+   * The start times of the OTHER sessions that could be booked when the page
+   * rendered — `getRelatedWorkshops` already filters itself to exactly that,
+   * and the page already has it.
    *
-   * It is a count rather than a boolean so the sentence below cannot drift
-   * away from the thing it is counting. See the full-date branch.
+   * The sessions themselves rather than a boolean, so the sentence below
+   * cannot drift away from the thing it is counting; their start times
+   * rather than a count, so it can also stop counting them once the
+   * visitor's clock is past the last one. See <ClosedDate>.
    */
-  openElsewhere?: number;
+  openElsewhere?: readonly string[];
 }) {
   if (bookable && detail.kind === "scheduled") {
     return (
-      <BlobButton
-        href={bookingStepHref(detail.workshop)}
-        tone={tone}
-        className="w-full justify-center px-8 py-5 sm:w-auto"
-      >
-        Book this experience
-      </BlobButton>
+      <SessionGate
+        startsAt={detail.workshop.startsAt}
+        open={
+          <BlobButton
+            href={bookingStepHref(detail.workshop)}
+            tone={tone}
+            className="w-full justify-center px-8 py-5 sm:w-auto"
+          >
+            Book this experience
+          </BlobButton>
+        }
+        passed={<ClosedDate reason="passed" openElsewhere={openElsewhere} />}
+      />
     );
   }
 
   if (detail.kind === "scheduled") {
-    /*
-      ====================================================================
-      "THE PROGRAMME HAS OTHER DATES" WAS NOT TRUE OF THE ONE PAGE THAT
-      EVER SAID IT
-      ====================================================================
-
-      A `Workshop` carries ONE `startsAt`. There is no second date for a
-      programme anywhere in the model, so the sentence promised a thing the
-      project cannot hold — and the only page that reaches this branch is
-      /events/crocheting, the single full session. The "other dates" it sent
-      people looking for were one date for a DIFFERENT activity: candle
-      making, three weeks earlier.
-
-      So the sentence is now counted rather than assumed. `openElsewhere` is
-      the number of sessions that can actually be booked, and the two
-      branches are the only two things the data supports:
-
-        some are open .... say so, and go to the list that holds them.
-        none are open .... say that, and stop. No door, because there is
-                           nothing behind it — a button to a page of full
-                           dates is the same dead end wearing a button.
-
-      <EventBookingBar> carried the same promise as "See other dates" and is
-      fixed with it.
-    */
+    /* Full now, and gone by later: a full date's own start time still comes
+       round, and past it "has passed" is the more useful of the two facts. */
     return (
-      <div>
-        <p className="max-w-[30rem] text-body text-text/85">
-          {openElsewhere > 0
-            ? "This date is full. Other sessions are open."
-            : "This date is full, and nothing else is open just now."}
-        </p>
-        {openElsewhere > 0 ? (
-          <PeelNote
-            href="/events#scheduled"
-            className="mt-6 min-h-[3.25rem] px-7"
-          >
-            See what is open
-          </PeelNote>
-        ) : null}
-      </div>
+      <SessionGate
+        startsAt={detail.workshop.startsAt}
+        passedAtRender={passed}
+        open={<ClosedDate reason="full" openElsewhere={openElsewhere} />}
+        passed={<ClosedDate reason="passed" openElsewhere={openElsewhere} />}
+      />
     );
   }
 
@@ -758,9 +820,12 @@ function PrimaryAction({
 
     This said "Create anytime. There is no date to book and nothing to
     reserve", and sent anyone who wanted a date to /events. Both halves read
-    as "we are always open" — and the Maison is not. <WhereWeSetUp> states the
-    actual arrangement: "The studio travels. Each date runs at a mall for that
-    day only."
+    as "we are always open" — and the Maison is not: the studio travels, and
+    each date runs at a mall for that day only. <WhereWeSetUp> used to say so
+    in those words. It prints the client's p06 line now ("Find Maison
+    Palettia in the places you already love to visit…"), and what still
+    carries the arrangement there is the next date it lists against each
+    destination.
 
     So five of the seven activities — every walk-in, the majority of the menu —
     told a visitor to come whenever, to a place that is only there on certain
@@ -785,10 +850,12 @@ function PrimaryAction({
     The client has replaced it with "just drop in when the experience is
     available and start creating". "When the experience is available" keeps
     that when, loosely; "just drop in" does lean back on the label two rows
-    above it, and the travelling-studio detail has gone entirely. The link
-    below is now the only thing on this page carrying it — which is an
-    argument for keeping that link exactly where it is, not for rewriting
-    their sentence.
+    above it, and the travelling-studio detail has gone entirely — not only
+    from here but from the whole site, since <WhereWeSetUp> took the client's
+    p06 line too. The link below is now the only thing on this page that
+    leads to a when: the next date at each destination. That is an argument
+    for keeping that link exactly where it is, not for rewriting their
+    sentence.
 
     THE EYEBROW OVER THE TITLE STILL READS "CREATE ANYTIME" AND SHOULD. That
     is the client's own site-wide name for this half of the menu — see
@@ -812,6 +879,86 @@ function PrimaryAction({
         See where we are set up
       </PeelNote>
     </div>
+  );
+}
+
+/**
+ * A scheduled date that cannot be booked, and why — full, or gone by.
+ *
+ * ==========================================================================
+ * "THE PROGRAMME HAS OTHER DATES" WAS NOT TRUE OF THE ONE PAGE THAT EVER
+ * SAID IT
+ * ==========================================================================
+ *
+ * A `Workshop` carries ONE `startsAt`. There is no second date for a
+ * programme anywhere in the model, so the sentence promised a thing the
+ * project cannot hold — and the only page that reached this branch was
+ * /events/crocheting, the single full session. The "other dates" it sent
+ * people looking for were one date for a DIFFERENT activity: candle making,
+ * three weeks earlier.
+ *
+ * So the sentence is counted rather than assumed. `openElsewhere` holds the
+ * sessions that can actually be booked, and the two branches are the only
+ * two things the data supports:
+ *
+ *   some are open .... say so, and go to the list that holds them.
+ *   none are open .... say that, and stop. No door, because there is nothing
+ *                      behind it — a button to a page of full dates is the
+ *                      same dead end wearing a button.
+ *
+ * A PASSED DATE IS THE SAME ANSWER WITH A DIFFERENT REASON. It used to have
+ * no branch at all: a session past its start fell through to the open button
+ * and could be booked. It shares this one because what the visitor can do
+ * next is identical — and every invented date in lib/workshops.ts will land
+ * here once it lapses, so it has to read as a plain fact, not an error.
+ *
+ * "OTHER SESSIONS ARE OPEN" EXPIRES TOO. The list is the server's, as of the
+ * last render, and those sessions have start times of their own. So the
+ * "some are open" branch sits behind <SessionGate> over all of them: once the
+ * visitor's clock is past the last one, the sentence becomes the "none" one
+ * and the door goes, rather than sending someone to a listing of dates that
+ * have all gone by.
+ *
+ * <EventBookingBar> carried the same "See other dates" promise and is fixed
+ * with it.
+ */
+function ClosedDate({
+  reason,
+  openElsewhere,
+}: {
+  reason: "full" | "passed";
+  openElsewhere: readonly string[];
+}) {
+  const fact = reason === "full" ? "This date is full" : "This date has passed";
+
+  const noneOpen = (
+    <div>
+      <p className="max-w-[30rem] text-body text-text/85">
+        {`${fact}, and nothing else is open just now.`}
+      </p>
+    </div>
+  );
+
+  if (openElsewhere.length === 0) return noneOpen;
+
+  return (
+    <SessionGate
+      startsAt={openElsewhere}
+      open={
+        <div>
+          <p className="max-w-[30rem] text-body text-text/85">
+            {`${fact}. Other sessions are open.`}
+          </p>
+          <PeelNote
+            href="/events#scheduled"
+            className="mt-6 min-h-[3.25rem] px-7"
+          >
+            See what is open
+          </PeelNote>
+        </div>
+      }
+      passed={noneOpen}
+    />
   );
 }
 
@@ -1033,12 +1180,25 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
             was a second decoration arguing with the first.
           */}
 
+          {/*
+            ONE COLUMN UNTIL `lg`, AND NO COLUMN GAP UNTIL THERE ARE COLUMNS.
+            This was `grid-cols-12 gap-x-10` at every width, and eleven 40px
+            gaps are 440px before a column gets a pixel — wider than this card
+            is on a phone (288-366px inside its padding). The grid overflowed
+            the card, the card's `overflow-clip` cut it, and the client's About
+            copy read "Start with a blank ceramic and se" with the third
+            picture sliced off. Below `lg` the copy and the pictures simply
+            stack, which is what `col-span-12` was asking for anyway.
+
+            The spans are `lg:` for the same reason: a `col-span-12` in a
+            one-column grid does not fill it, it adds eleven implicit columns.
+          */}
           {titled ? (
-            <div className="grid grid-cols-12 gap-x-10 gap-y-9">
+            <div className="grid grid-cols-1 gap-y-9 lg:grid-cols-12 lg:gap-x-10">
               <div
                 className={cn(
-                  "col-span-12 max-w-[58ch]",
-                  shown.length > 0 && "lg:col-span-6",
+                  "max-w-[58ch]",
+                  shown.length > 0 ? "lg:col-span-6" : "lg:col-span-12",
                 )}
               >
               <Reveal>
@@ -1064,7 +1224,7 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
               </div>
 
               {frames.length > 0 ? (
-                <div className="col-span-12 lg:col-span-6">
+                <div className="lg:col-span-6">
                   <div className="relative mx-auto flex max-w-[30rem] items-center justify-center gap-0 lg:max-w-none">
                     {shown.map((frame, i) => (
                       <Reveal
@@ -1356,24 +1516,32 @@ function sessionFields(
  *   venue matches a partner ... the centre, its own line, and the map
  *   venue with no partner ..... the venue line alone, no map
  *   walk-in activity .......... the Maison's confirmed destination, framed as
- *                               where the studio sets up — never as a claim
- *                               that this particular activity runs there,
- *                               which the data does not say
+ *                               the visitor's next creative stop (the
+ *                               client's heading) — never as a claim that
+ *                               this particular activity runs there, which
+ *                               the data does not say
  */
 function LocationSection({
   detail,
   partner,
 }: {
   detail: EventDetail;
-  partner?: MallPartner;
+  partner?: PartnerRecord;
 }) {
   const venue = detail.kind === "scheduled" ? detail.workshop.venue : undefined;
   if (!venue && !partner) return null;
 
+  /*
+    The walk-in heading is the client's own location heading — "Your Next
+    Creative Stop." replaced "Where We Set Up." on the homepage (p06) and the
+    location heading on /private-events (p35), so the event pages say it too
+    rather than keep the wording both of those retired. A scheduled session
+    has a real venue and a real date, so it keeps the plainer heading.
+  */
   const heading =
     detail.kind === "scheduled"
       ? "Where It Happens"
-      : "Where the Maison Sets Up";
+      : "Your Next Creative Stop.";
 
   return (
     <section
@@ -1467,6 +1635,9 @@ function LocationSection({
                 */
                 <PartnerPlate
                   partner={partner}
+                  /* p19, the line the client wrote for this card — not the
+                     p35 `descriptor` /private-events prints. */
+                  line={partner.eventDescriptor}
                   className="lg:h-full lg:flex-col lg:justify-between lg:gap-8 2xl:flex-row 2xl:items-start 2xl:gap-10"
                 />
               ) : (
@@ -1531,9 +1702,14 @@ function LocationSection({
 /**
  * The action, restated at the foot for someone who has read the whole page.
  *
- * It renders for a bookable date only. A walk-in activity and a sold-out date
- * both said everything they can in the header, and repeating "there is nothing
- * to book" at the bottom of the page is the site apologising twice.
+ * It renders for a bookable date only. A walk-in activity, a sold-out date and
+ * a date gone by all said everything they can in the header, and repeating
+ * "there is nothing to book" at the bottom of the page is the site
+ * apologising twice.
+ *
+ * So when the visitor's clock overtakes the server's "bookable", the whole
+ * close goes rather than its button turning into a sentence: <SessionGate>
+ * with nothing in its `passed` slot. The header has already said why.
  */
 function ActionArea({
   detail,
@@ -1544,6 +1720,22 @@ function ActionArea({
 }) {
   if (!bookable || detail.kind !== "scheduled") return null;
 
+  return (
+    <SessionGate
+      startsAt={detail.workshop.startsAt}
+      open={<CloseSection detail={detail} bookable={bookable} />}
+    />
+  );
+}
+
+/** The close itself — split from <ActionArea> so the gate can hand it over whole. */
+function CloseSection({
+  detail,
+  bookable,
+}: {
+  detail: EventDetail;
+  bookable: boolean;
+}) {
   return (
     <section
       aria-labelledby="event-close"
@@ -1557,6 +1749,16 @@ function ActionArea({
           >
             Ready to Create?
           </h2>
+          {/*
+            NOTE(client), raise with the p22 hold: this close only renders on a
+            bookable scheduled session, which today means /events/candle-making
+            — and there the client's p21 note follows it at the foot of the
+            page ("Just bring yourself, pick a project and start creating."),
+            so the same idea is said twice, in two voices. This line is also the one the
+            FAQ answers dropped ("Bring nothing but yourself"). Left as it is
+            because the page is on hold; when the client signs off p22, this
+            sentence goes or takes their wording.
+          */}
           <p className="mt-5 max-w-[32rem] text-lead text-text/80">
             Everything is laid out before you arrive. You bring nothing but
             yourself.
@@ -1757,9 +1959,18 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
 
         <span className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-body text-text">
           <span className="font-medium">{formatPrice(workshop.price)}</span>
-          {spots ? (
-            <span className={cn(scarce ? "text-terracotta" : "text-text/85")}>{spots}</span>
-          ) : null}
+          {/* Only open dates reach this card (see getRelatedWorkshops), but
+              "open" was the server's word at render time. Past the start, the
+              seat count is replaced rather than left standing as an offer. */}
+          <SessionGate
+            startsAt={workshop.startsAt}
+            open={
+              spots ? (
+                <span className={cn(scarce ? "text-terracotta" : "text-text/85")}>{spots}</span>
+              ) : null
+            }
+            passed={<span className="text-text/85">Date passed</span>}
+          />
         </span>
 
         {/*

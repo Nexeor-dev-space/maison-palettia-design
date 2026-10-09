@@ -33,10 +33,20 @@ import {
 import { PAINTS_ON_CREAM, paintAt } from "@/lib/paint";
 import { buildMetadata } from "@/lib/seo";
 
+/*
+  THE DESCRIPTION IS THE CLIENT'S OWN SENTENCE, verbatim: the first sentence
+  of their p.24 rewrite, which is the first sentence of BRAND_STORY and so the
+  first thing the page itself says. It was "a creative lifestyle brand
+  celebrating creativity, mindfulness…" — the wording that rewrite retired —
+  so search results and shared links (one string feeds the meta, Open Graph
+  and Twitter descriptions; see buildMetadata) still described the brand the
+  old way. One sentence rather than the paragraph: the paragraph runs to 250
+  characters and a result shows about 155.
+*/
 export const metadata = buildMetadata({
   title: "About",
   description:
-    "Maison Palettia is a creative lifestyle brand celebrating creativity, mindfulness and meaningful human connection: hands-on experiences that bring people together.",
+    "Maison Palettia is a creative space built for slowing down, switching off and getting your hands busy.",
   path: "/about",
 });
 
@@ -376,15 +386,17 @@ function Purpose() {
             `surface` is 4.90:1, which carries the paragraph. On White Rock the
             two are Deep Lilac and Charcoal.
           */}
-          <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem]">
-            <div className="grid lg:min-h-[24rem] lg:grid-cols-2">
-              <Purposeful
-                ground="lilac"
-                label="Our Mission"
-                id="purpose-heading"
-                body={MISSION}
-              />
-              <Purposeful ground="cream" label="Our Vision" body={VISION} />
+          <div className="relative">
+            <div className="overflow-hidden rounded-[1.5rem] md:rounded-[2rem]">
+              <div className="grid lg:min-h-[24rem] lg:grid-cols-2">
+                <Purposeful
+                  ground="lilac"
+                  label="Our Mission"
+                  id="purpose-heading"
+                  body={MISSION}
+                />
+                <Purposeful ground="cream" label="Our Vision" body={VISION} />
+              </div>
             </div>
 
             {/*
@@ -392,10 +404,39 @@ function Purpose() {
               reads as a sticker covering a joint rather than as the join being
               made well — which is why the homepage's own two-field object had
               its seam mark removed.
+
+              ACROSS THE CORNER'S EDGE, NOT INSIDE IT — and that is a legibility
+              fix. The mark was a child of the clipping box at `-bottom-3`, so
+              all of it that showed was ON the White Rock, and the vision's last
+              line runs into exactly that corner: at 360-430px the splash sat
+              over "life." (the `deco-mark` shrink scales about the centre, so
+              on a phone it also rose off the edge it was placed on and
+              floated), and at 1024-1180px, where the half is narrow enough
+              for the sentence to take four lines, it sat over the last two.
+
+              So it is a sibling of the clipping box now, and its centre sits
+              just below the card's foot: half of it, a little less, on the
+              card, the rest on the paper — the same device as the lavender
+              wave hanging off the picture in <Welcome>, on the same Light
+              Sage. Soft Lavender reads the same on either side of the edge —
+              1.44:1 on the White Rock, 1.40 on the sage — so the half on the
+              paper is no fainter than the half that was always there. Because
+              the shrink is about the centre, that share holds at every
+              `--deco-mark` step, and the part on the card stays inside the
+              bottom padding. Measured, scrolled into view: wherever the mark
+              sits under the vision's last line it clears it by 20px, at
+              every width from 360 to 1440.
+
+              The Purpose section's own floor (`pb-[5rem]` and up) is far
+              deeper than the half that hangs, so it never reaches <Community>.
+              `right-5` / `lg:right-8` are unchanged: the gutter is 14px at
+              1024, so pushing the mark past the card's right edge would push
+              it past the window's. The ground's own bottom-right mark is left
+              out of PURPOSE_SHAPES so the two do not stack.
             */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -bottom-3 right-5 deco-mark w-[4.5rem] rotate-[-8deg] lg:right-8 lg:w-[5.5rem]"
+              className="pointer-events-none absolute -bottom-[3.5rem] right-5 deco-mark w-[4.5rem] rotate-[-8deg] lg:-bottom-[4.75rem] lg:right-8 lg:w-[5.5rem]"
             >
               <DoodleMark name="splash" color={INK.lavender} treatment="stamp" delay={260} />
             </span>
@@ -866,7 +907,17 @@ const APART_CARDS = [
 */
 const CLOSE_SHAPES: readonly ShapePlan[] = groundShapes("lilac");
 
-const PURPOSE_SHAPES: readonly ShapePlan[] = groundShapes("sage");
+/*
+  The sage ground's six, less its bottom-right one (right 7%, bottom 15% in
+  groundShapes). The pair's own lavender splash hangs off the card into that
+  corner of the band now — see <Purpose> — and the ground's lilac bow drifts
+  through the same spot at every width from 1024 up, so the two read as one
+  muddy shape rather than as a mark and a ground. Matched on the anchor, not
+  on an index: if the anchors move, nothing is dropped and the bow comes back.
+*/
+const PURPOSE_SHAPES: readonly ShapePlan[] = groundShapes("sage").filter(
+  (shape) => !(shape.right === "7%" && shape.bottom === "15%"),
+);
 
 const APART_SHAPES: readonly ShapePlan[] = groundShapes("lavender");
 

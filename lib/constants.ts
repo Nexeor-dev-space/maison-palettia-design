@@ -1,3 +1,4 @@
+import { BOOKING_CONFIGURED, PAYMENT_CONFIGURED } from "@/lib/bookingFlags";
 import type {
   ContactDetails,
   EditorialPanel,
@@ -177,7 +178,7 @@ export const MAIN_NAV: NavItem[] = [
       Private events .. sheet -> bar. It is a top-level trigger on the
                         desktop bar, so it is a thumb slot here.
       Locations ....... bar -> sheet. It is a door inside the About panel on
-                        the desktop bar, so it is a card inside the About
+                        the desktop bar, so it is a row inside the About
                         sheet here.
 
     What the two flags now say, in one line each: `bar` is the desktop's
@@ -413,78 +414,20 @@ export const CONTACT: ContactDetails = {
   phone: null,
 };
 
-/**
- * The floating WhatsApp widget's destination, and nothing else.
- *
- * Deliberately its own constant rather than a field on {@link CONTACT}: that
- * shape is the studio's published contact details, read by the footer, the
- * contact page and the invitation, and a chat handle is a different kind of
- * thing with a different lifecycle. Keeping it separate also means the widget
- * can be switched on or off without touching anything that renders an address.
- *
- * HOW TO TURN IT ON — ONE ENVIRONMENT VARIABLE, NO CODE CHANGE.
- *
- *     NEXT_PUBLIC_WHATSAPP_NUMBER=9715XXXXXXXX
- *
- * Digits only, country code first, no `+`, no spaces, no dashes. Set it in
- * the host's environment panel (or a local `.env.local`) and REBUILD: both
- * surfaces appear on their own — <WhatsAppWidget> bottom-right from `lg`, and
- * <BottomNav>'s fourth slot turns from Home into WhatsApp below it.
- *
- * WHY AN ENV VAR RATHER THAN A LITERAL HERE. The number differs between a
- * staging site somebody is clicking through and the studio's real line, and
- * it is the client's to supply rather than a developer's to commit. This way
- * it is set once per environment by whoever owns that environment.
- *
- * `NEXT_PUBLIC_` is required: this value is read in the browser, and Next
- * only exposes variables with that prefix to client code. It is therefore
- * PUBLIC — which is correct for a published business number and wrong for
- * anything secret.
- *
- * WHAT IT FALLS BACK TO, AND WHY THAT CHANGED. It fell back to null, on the
- * reasoning that a control opening a chat with nobody is worse than no
- * control. The client has since asked for both surfaces to be on the site
- * before the number arrives, so the fallback is a placeholder of zeros
- * instead — see the note on it below, which is also where the TODO lives.
- * Null still hides both surfaces, so the rule itself is intact.
- *
- * TODO(client): supply the studio's WhatsApp business number.
- */
-export const WHATSAPP: {
-  /** Digits only, country code first. `null` hides the widget entirely. */
-  number: string | null;
-  /** Prefilled first message. Optional; the chat opens empty without it. */
-  greeting: string | null;
-} = {
-  /*
-    `?? null` AND THE TRIM MATTER. An unset variable is `undefined`, and a
-    variable set to an empty string in a host's panel — which is what a
-    half-filled field leaves behind — is `""`. Both have to collapse to null
-    or the UI believes it is configured and renders `wa.me/` with nothing
-    after it. `|| null` after a trim catches the empty string; `?? null`
-    alone would not.
-  */
-  /*
-    ======================================================================
-    THE FALLBACK IS A PLACEHOLDER AND IT MUST NOT SHIP
-    ======================================================================
-
-    TODO(client): replace this with the studio's real WhatsApp business
-    number, or set NEXT_PUBLIC_WHATSAPP_NUMBER and delete the fallback.
-
-    The client asked for both WhatsApp surfaces to be visible now and has not
-    supplied a number yet, so this stands in: +971 50 000 0000, which is a
-    valid UAE mobile SHAPE with a body of zeros. It is deliberately not a
-    number anybody owns, because a plausible-looking stand-in is the version
-    of this that gets dialled by a visitor and reaches a stranger.
-
-    Everything downstream is unchanged: the env var still wins where one is
-    set, so staging and production can each carry their own without touching
-    this file, and a number of null still hides both surfaces outright.
-  */
-  number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim() || "971500000000",
-  greeting: "Hello! I would like to ask about an upcoming event.",
-};
+/*
+  THERE IS NO WHATSAPP CONSTANT ANY MORE. A `WHATSAPP` export sat here — a
+  business number read from NEXT_PUBLIC_WHATSAPP_NUMBER, with a placeholder of
+  zeros as its fallback — and pointed two surfaces at `wa.me`: a floating
+  widget from `lg` and the bottom bar's fourth slot. The client asked for
+  WhatsApp to come off the site, on a desktop and on a phone alike, and
+  <ContactWidget> and <BottomNav>'s Contact slot link to /contact in their
+  place; neither reads anything from this file. The constant went with the
+  widget rather than staying as a dead export with a TODO on it, and the
+  environment variable went from .env.example for the same reason. If the
+  studio ever wants a chat handle published, it belongs on {@link CONTACT}
+  beside the phone number, as a contact detail — not as a switch for a
+  control that no longer exists.
+*/
 
 /**
  * The footer's mailing-list signup, and the switch that hides it.
@@ -496,8 +439,8 @@ export const WHATSAPP: {
  * posts nowhere is the worst version of this, because it takes an address and
  * loses it, so the block renders nothing at all until `actionUrl` is set.
  *
- * That is the same rule {@link SOCIAL_LINKS}, {@link WHATSAPP} and
- * {@link LEGAL_NAV} already follow: the code is ready, the absence is honest,
+ * That is the same rule {@link SOCIAL_LINKS} and {@link LEGAL_NAV} already
+ * follow: the code is ready, the absence is honest,
  * and switching it on is a value rather than a build.
  *
  * HOW TO TURN IT ON. Put the provider's form endpoint in `actionUrl` — the
@@ -964,7 +907,12 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
   {
     question: "Where Do the Events Happen?",
     answer:
-      "Maison Palettia has no studio door of its own. We set up inside a mall for the day. Every event on the programme names its mall and the area it is in, so you know where you are going before you book.",
+      // Opens on the client's own sentence (p.06), verbatim — the homepage's
+      // "Find us" line and /locations' opening. It replaced "has no studio
+      // door of its own… set up inside a mall", which is what this answer
+      // said; the second sentence is unchanged because it is the part that
+      // answers the question.
+      "Find Maison Palettia in the places you already love to visit — and come make something while you’re there. Every event on the programme names its mall and the area it is in, so you know where you are going before you book.",
   },
   {
     question: "How Long Does an Event Run?",
@@ -974,10 +922,12 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
   {
     question: "Do I Need to Bring Anything?",
     answer:
-      // TODO(client): confirm. This is the line the events page and the About
-      // page already use, and it is the one claim here about what the studio
-      // supplies rather than about how the programme is organised.
-      "Everything is provided. Bring nothing but yourself.",
+      // The client's own line (p.21 of their copy document), verbatim — the
+      // note they wrote for the foot of every event page. It is the one claim
+      // here about what the studio supplies, and it was a TODO(client) to
+      // confirm while it was ours ("Everything is provided. Bring nothing but
+      // yourself."); in their words it no longer needs one.
+      "Everything you need is waiting for you. Just bring yourself, pick a project and start creating.",
   },
   {
     question: "How Do I Book a Place?",
@@ -985,6 +935,70 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
       "Choose a date from the programme, open it, and keep your place from that page. Each event shows how many places are left before you start.",
   },
 ];
+
+/* ==========================================================================
+   WHAT A BOOKING IS — one sentence, said the same way everywhere it is said
+   ==========================================================================
+
+   Four places told a customer what pressing "Confirm booking" does, and they
+   disagreed. Checkout's foot said "your place is held when you reserve it";
+   the line under the button said "nothing is charged now and nothing is
+   charged later" and that the studio would confirm "directly"; the
+   confirmation said the reference was "a request, not a confirmed booking";
+   the FAQ repeated "held". Only the confirmation was right. While
+   BOOKING_CONFIGURED is false (lib/bookingFlags.ts) the booking is written
+   to the visitor's own browser and nowhere else — the record's status is Pending,
+   the studio is not told, and nothing holds a place. "Nothing charged later"
+   was worse than wrong: it read as "this session is free", and the client's
+   own policy says a booking is confirmed once payment or a deposit is in.
+
+   So there is one sentence per state of the backend, and every surface
+   prints the one the flags select (`bookingTerms`). Today that is `request`.
+
+     request ... neither flag set. The truth today: a request, not yet
+                 confirmed; no payment; saved in this browser; the studio
+                 confirms once it has the reference — which the customer has
+                 to send, because nothing else will.
+     recorded .. BOOKING_CONFIGURED only: bookings reach the studio, no money
+                 moves through the site.
+     paid ...... PAYMENT_CONFIGURED as well: confirmed once payment is in,
+                 which is the client's policy wording.
+
+   NONE OF THEM SAYS "PLACE" OR "SEAT". The same basket checks out a pass
+   (lib/passes.ts), which holds no seat until it is redeemed against a date,
+   and the sentence is printed under every basket — so it speaks of the
+   booking, never of a place in a room.
+
+   TODO(client): `recorded` and `paid` are written for a backend that does
+   not exist yet. Confirm them with the studio when it does — how a customer
+   pays when the site takes no payment is theirs to say, not ours.
+
+   NOTE: "send them your reference" needs a working way to send it. The
+   studio's email and phone are still TODO(client) further up this file;
+   until they are filled the sentence is true and not yet useful.
+   ========================================================================== */
+export const BOOKING_TERMS = {
+  request:
+    "Booking here makes a request that is not yet confirmed. No payment is taken, the request is saved only in this browser, and the studio confirms it once you send them your reference.",
+  recorded:
+    "Your booking goes straight to the studio. No payment is taken through this site.",
+  paid: "Your booking is confirmed once your payment has gone through.",
+} as const;
+
+/**
+ * The sentence for the backend's current state, read straight from the flags.
+ *
+ * It used to take the flags as arguments, because they lived in
+ * lib/booking.ts and this file is read by server components that cannot
+ * import that one — so the FAQ, rendered on the server, pinned its answer to
+ * `request` by hand. The flags now sit in lib/bookingFlags.ts, which anything
+ * can import, so every surface asks this and none can fall out of step.
+ */
+export function bookingTerms(): string {
+  if (PAYMENT_CONFIGURED) return BOOKING_TERMS.paid;
+  if (BOOKING_CONFIGURED) return BOOKING_TERMS.recorded;
+  return BOOKING_TERMS.request;
+}
 
 /* ==========================================================================
    /faq — the same questions, grouped, plus the ones the rest of the site
@@ -998,16 +1012,27 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
    rewritten, and the six added to them are each lifted from the place that
    already says it:
 
-     "no experience is needed"  .... the note at the foot of an event page
-     walking in vs booking ......... the two roads on the homepage, and the
-                                     `kind` split lib/workshops.ts describes
-     "nothing is charged" .......... the note at the foot of checkout
+     "No experience needed" ........ the client's "Create" line on /about
+                                     (p.26 of their copy document)
+     walking in vs booking ......... opens on the client's "Make It Your
+                                     Way." standfirst on the homepage (p.04),
+                                     then the `kind` split lib/workshops.ts
+                                     describes
+     "am I charged" ................ BOOKING_TERMS, the sentence checkout
+                                     and the confirmation print
      "no account to create" ........ the loyalty page's own line
      what a pass is ................ the loyalty page's own line
-     private events ................ the page that exists for it
+     private events ................ the page that exists for it: its group
+                                     intro (p.31) and its enquiry band (p.37)
 
    Nothing is paraphrased into a new claim. Where two places said the same
    thing in different words, the longer of the two is the one kept.
+
+   THE CLIENT'S COPY WINS WHERE IT EXISTS. Their copy document rewrote the
+   sentences several of these answers were lifted from, and they have asked
+   for wording the document did not reach to follow it — so where an answer
+   was the old sentence, it is now theirs, verbatim, and no answer says
+   "two kinds" or any other count of what the Maison runs, which can change.
 
    TODO(client): the answers a studio normally needs and this one has still
    not written down — MINIMUM AGE, WHETHER CHILDREN CAN ATTEND, ACCESSIBILITY
@@ -1032,8 +1057,7 @@ export const FAQ_GROUPS: readonly FaqGroup[] = [
       HOMEPAGE_FAQ[2],
       {
         question: "Do I Need Any Experience?",
-        answer:
-          "Everything is provided, and no experience is needed. If something is unclear, ask before you book.",
+        answer: "No experience needed, just pick a project and make it yours.",
       },
     ],
   },
@@ -1043,13 +1067,22 @@ export const FAQ_GROUPS: readonly FaqGroup[] = [
       {
         question: "What Is the Difference Between Create Anytime and Create Together?",
         answer:
-          "The Maison runs two kinds of thing. Create Anytime activities are DIY: come in and make something at your own pace, any time we are set up, with nothing to book. Create Together sessions are guided, each runs on a set date, and those are the ones you book online.",
+          "Drop in and create, or book a seat for a scheduled session. Create Anytime activities are DIY: come in and make something at your own pace, any time we are set up, with nothing to book. Create Together sessions are guided, each runs on a set date, and those are the ones you book online.",
       },
       HOMEPAGE_FAQ[3],
       {
         question: "Am I Charged When I Book?",
-        answer:
-          "Your place is held when you reserve it. Nothing is charged through this site yet.",
+        /*
+          The same sentence checkout and the confirmation print — see
+          BOOKING_TERMS above. It said "your place is held when you reserve
+          it", which no part of the flow does.
+
+          Picked by the flags like the other two, so it changes with them.
+          It was pinned to `request` by hand while the flags could only be
+          read from lib/booking.ts, which a server component cannot import;
+          they are in lib/bookingFlags.ts now.
+        */
+        answer: bookingTerms(),
       },
       {
         question: "Do I Need an Account?",
@@ -1063,7 +1096,7 @@ export const FAQ_GROUPS: readonly FaqGroup[] = [
       {
         question: "Can You Run Something for My Group?",
         answer:
-          "Yes. The Maison brings creative experiences to spaces where people already gather, and shapes the activity around the group once you have told us about it. Tell us what you are planning: roughly when, roughly how many, and what you would like everyone to make.",
+          "Yes. Maison Palettia creates hands-on experiences for all kinds of groups. Tell us when, who’s coming and what you’d like to make. We’ll help turn the idea into an experience made for your group.",
       },
       {
         question: "What Is a Pass?",

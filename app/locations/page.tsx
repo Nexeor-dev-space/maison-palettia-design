@@ -9,34 +9,36 @@ import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { getMallPartners } from "@/lib/partners";
 import { buildMetadata } from "@/lib/seo";
 
+/*
+  The description is the client's own sentence, the one the page opens on
+  (PDF p06), so a search result promises what the page shows. It used to add
+  "and the UAE destinations where the Maison has delivered creative workshops
+  and activations" — a list the client had taken off this page (see the
+  REMOVED note at its foot), which left the snippet describing a section that
+  no longer exists.
+*/
 export const metadata = buildMetadata({
   title: "Locations",
   description:
-    "Where to find Maison Palettia now, and the UAE destinations where the Maison has delivered creative workshops and activations.",
+    "Find Maison Palettia in the places you already love to visit — and come make something while you’re there.",
   path: "/locations",
 });
 
 /**
- * /locations — where to find the Maison, and where it has been.
+ * /locations — where to find the Maison, and nothing else.
  *
  * THE BRIEF ASKED FOR THIS PAGE, AND THE DATA DECIDES ITS SHAPE. The Maison
- * has no studio door; it sets up inside malls. So "where" has two honest
- * answers, and they must never be confused:
+ * has no studio door; it sets up inside malls. So "where" is the confirmed
+ * partnerships in lib/partners.ts — one today, Times Square Center — named on
+ * a plate and shown on the project's existing map.
  *
- *   Now ........ the confirmed partnerships in lib/partners.ts — one today,
- *                Times Square Center — shown with the project's existing map.
- *   Before ..... the ten destinations the deck says the studio has delivered
- *                workshops and activations at over the past year (p.12).
+ * IT USED TO ANSWER "WHERE HAS IT BEEN" TOO: the ten destinations the deck
+ * says the studio delivered workshops and activations at over the past year
+ * (p.12), and a partner door under them. The client asked for the page to be
+ * the location alone, so both went — see the two REMOVED notes at the foot.
  *
- * The second list is labelled as past every time it appears and never links
- * to a map, so nobody sets off for Yas Mall expecting a table to be there.
- *
- * NO COORDINATES, NO ADDRESSES, NO EMIRATES. The project holds none, and two
- * of the ten (Wasl, Ithra) are organisations rather than single addresses.
- * The map is the existing keyless embed built from the partner record.
- *
- * The close is for partners — malls and F&B outlets — because this is where a
- * destination deciding whether to host the Maison will read.
+ * NO COORDINATES, NO ADDRESSES, NO EMIRATES. The project holds none. The map
+ * is the existing keyless embed built from the partner record.
  */
 export default async function LocationsPage() {
   const partners = await getMallPartners();
@@ -87,8 +89,8 @@ export default async function LocationsPage() {
             them. Two problems with that, and the client named the second:
 
             THE STATEMENT WAS NOT WITH ITS HEADING. "Where to find us." asks
-            a question and the paragraph answers it — the Maison has no
-            studio door, it sets up inside malls — but the two sat in
+            a question and the paragraph answers it — in the places you
+            already love to visit — but the two sat in
             different columns separated by the width of the page, so the
             answer read as an unrelated aside rather than as the second half
             of the sentence. It sits under the heading now, which is simply
@@ -119,9 +121,19 @@ export default async function LocationsPage() {
                 {/* Full-strength charcoal and the role's own 1.6, not 85%
                     ink opened to 1.7 — see the note on --text-lead. 9.07:1
                     on the pale green. */}
+                {/*
+                  THE CLIENT'S SENTENCE, verbatim (p.06 of their copy
+                  document). It replaced this page's old line on the
+                  homepage's "Find us" block — "brings creative experiences
+                  into the places people already gather, set up inside a mall
+                  rather than behind a studio door" — and the client has
+                  asked for wording the document did not reach to follow its
+                  new copy, so the page that exists to answer "where" opens
+                  on the same answer the homepage gives.
+                */}
                 <p className="mt-6 max-w-[30rem] text-lead text-text md:mt-8">
-                  Maison Palettia brings creative experiences into the places people already gather,
-                  set up inside a mall rather than behind a studio door.
+                  Find Maison Palettia in the places you already love to visit — and come
+                  make something while you&rsquo;re there.
                 </p>
               </Reveal>
 
@@ -133,9 +145,9 @@ export default async function LocationsPage() {
                 <LocationMap> draws this plate as its own caption and it sat
                 under the map, in the right-hand column. The client has asked
                 for it here, and it is the better reading: the statement says
-                the Maison sets up inside a mall rather than behind a studio
-                door, and the plate names the mall. An answer belongs under
-                its own sentence, not across a gutter and below a map.
+                the Maison is found in the places you already love to visit,
+                and the plate names the place. An answer belongs under its
+                own sentence, not across a gutter and below a map.
 
                 The map turns its caption off rather than this drawing a
                 second one — same component, one definition. See
@@ -159,6 +171,12 @@ export default async function LocationsPage() {
                          and "Find us now" in the next column is an h2 too.
                          It drew an h3 and the page skipped a level. */
                       headingLevel="h2"
+                      /* STACKED FROM `lg`, because that is where this column
+                         stops being the full measure and becomes 5 of 12 —
+                         391px at 1024. Side by side in that, the 200px
+                         button left the line 97px wide, one word to a line
+                         and the plate 1,080px tall. See `stackAt`. */
+                      stackAt="lg"
                     />
                   ))}
                 </div>
@@ -205,7 +223,11 @@ export default async function LocationsPage() {
                     What is short now is this column: the map stops about
                     150px above the row's foot. So the marks move here, and
                     there are two rather than three, at the size 150px of
-                    band can hold.
+                    band can hold. (Re-measured once the plate stacked from
+                    `lg` — see `stackAt` on it: the left column is still the
+                    taller, and the map now stops about 330px above the
+                    row's foot at 1440 and 540 at 1024, so the band under it
+                    has more room than it uses, not less.)
 
                     MEASURED, AS EVERY MARK ON THIS SITE IS — and re-measured
                     each time the ground has changed. On this Light Sage the

@@ -82,10 +82,12 @@ export const BRAND_STORY_SET = {
   THE OPENING STATEMENT — the client's words, not the deck's
   ==========================================================================
 
-  `BRAND_STORY` above is the deck's sentence about what the brand IS: a
-  creative lifestyle brand, inspired by the word Palette, celebrating
-  creativity and mindfulness. It is corporate-facing and it is still the
-  copy /about opens on.
+  `BRAND_STORY` above is what the brand IS, in the client's p.24 rewrite: a
+  creative space for slowing down and getting your hands busy. It is the
+  copy /about opens on, and its first sentence is that page's search
+  description. (It used to be the deck's "creative lifestyle brand, inspired
+  by the word Palette" — see `BRAND_STORY_SET` — and nothing prints that
+  wording now.)
 
   What the homepage's "what this is" block carries now is different, and it
   is supplied by the client verbatim in their feedback: an invitation rather

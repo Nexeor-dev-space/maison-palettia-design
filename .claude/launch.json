@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "maison-palettia-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3000
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev"],
+      "port": 3200,
+      "autoPort": true
     }
   ]
 }

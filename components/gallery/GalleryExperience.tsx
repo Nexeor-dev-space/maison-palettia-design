@@ -386,8 +386,12 @@ function FramedTile({
    ==========================================================================
 
    Approved copy only. The first is the opening statement's own closer, set in
-   the script; the second is the community line, set in the sans because it
-   opens on "It's" and Hapsha draws a capital I like a J. */
+   the script; the second is the community closer in the client's p.26
+   rewrite (COMMUNITY.closer, which /about sets in the script), set here in
+   the sans as the editorial beat. The sans was first chosen because the old
+   line opened on "It's" and Hapsha draws a capital I like a J; the new line
+   opens on "More", so that reason has gone and only the pairing remains —
+   one script beat, one sans. */
 interface StatementData {
   variant: "script" | "editorial";
   text: string;
@@ -516,7 +520,7 @@ const SHAPE_PLANS: Record<GalleryCollection["ground"], readonly ShapePlacement[]
    focus moved in and trapped, Escape and the backdrop and the close control
    all shutting it, arrows and swipe stepping it, and focus handed back to the
    tile that opened it. It sits at `z-[70]`, above the header, the bottom bar
-   and the WhatsApp button, which top out at `z-50`. The same contract
+   and the Contact button, which top out at `z-50`. The same contract
    <BookingSheet> keeps, extended with prev/next. */
 function Lightbox({
   items,
@@ -539,7 +543,7 @@ function Lightbox({
     PORTALLED TO <body>, AND IT HAS TO BE. This viewer renders inside the
     gallery page, which lives in <main> — and <main> carries `z-10` and so is
     its own stacking context. A child of it cannot paint above the bottom bar
-    (`z-40`), the header (`z-50`) or the WhatsApp button (`z-30`) however high
+    (`z-40`), the header (`z-50`) or the Contact button (`z-30`) however high
     its own z-index climbs, because the whole of main is pinned at 10 against
     them. The booking sheet and the search panel escape this by being rendered
     at body level; this does the same with a portal, so `z-[70]` means what it

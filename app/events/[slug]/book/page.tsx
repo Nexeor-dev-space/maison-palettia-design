@@ -3,10 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BookingForm } from "@/components/booking/BookingForm";
+import { SessionGate } from "@/components/booking/SessionClock";
 import { Steps } from "@/components/booking/Steps";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
+import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import { buildMetadata } from "@/lib/seo";
 import {
@@ -15,6 +17,7 @@ import {
   formatSessionDate,
   getAllWorkshops,
   getWorkshopBySlug,
+  hasSessionPassed,
   isFullyBooked,
   isScarce,
   sessionDateParts,
@@ -34,6 +37,20 @@ import type { Workshop } from "@/types";
  * A full session never reaches this page: the route sends it back to the
  * session itself rather than rendering a form that cannot be honoured.
  *
+ * A DATE THAT HAS GONE BY GETS A PAGE, NOT A 404 AND NOT A FORM. This route
+ * used to check seats only, so a session past its start rendered a working
+ * form and went on through checkout to a reference. Someone reaching it now —
+ * from a bookmark, a shared link, or an event page that was open when they
+ * last looked — is told plainly that the date has passed and pointed back to
+ * the listing. A 404 would read as a broken link; a redirect would drop them on
+ * the event page with no word about why.
+ *
+ * Decided twice, like every date check on the site: on the server for the
+ * HTML (`hasSessionPassed`, as fresh as the `revalidate` below), and by
+ * <SessionGate> against the visitor's clock once the page is live — so a form
+ * rendered while the date was open still gives way the moment it is not, even
+ * with the page left open on the form.
+ *
  * THE PAGE STAYS ON THE SERVER. Everything that is a fact about the session —
  * the intro, the card's face, the phone's strip, whether it is nearly gone — is
  * drawn here and handed to <BookingForm> as rendered slots and values, the
@@ -46,6 +63,16 @@ export async function generateStaticParams() {
   return workshops.filter((w) => !isFullyBooked(w)).map(({ slug }) => ({ slug }));
 }
 
+/*
+  Re-rendered at most every ten minutes, for the reason set out on the event
+  page beside this one: whether the date has passed is a fact about the clock,
+  and a prerendered page otherwise keeps the build's answer for as long as the
+  deployment lives. It keeps the HTML close to true; <SessionGate> is what
+  actually closes the form. See node_modules/next/dist/docs/01-app/02-guides/
+  incremental-static-regeneration.md.
+*/
+export const revalidate = 600;
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const workshop = await getWorkshopBySlug(slug);
@@ -53,6 +80,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: workshop ? `Book: ${workshop.title}` : "Book an event",
     description: "Reserve your place at a Maison Palettia event.",
     path: `/events/${slug}/book`,
+    /* A step in a booking, not a page anyone searches for — and seven of
+       them saying the same thing. app/robots.ts disallows the path as well;
+       this is the tag for any copy a crawler fetched before that line. */
+    noindex: true,
   });
 }
 
@@ -67,6 +98,8 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
   // is the site's one rule for when availability takes the accent; the form
   // repeats it rather than writing its own threshold.
   const scarce = isScarce(workshop);
+  // The server's verdict on the date, as of this render — see the note above.
+  const passed = hasSessionPassed(workshop);
 
   return (
     <div className="relative isolate overflow-clip">
@@ -91,14 +124,28 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
           </Link>
         </Reveal>
 
-        <Steps current={1} />
+        {/*
+          The steps go with the form: "1 Your details · 2 Checkout" over a page
+          that cannot take either step would be a progress bar for a journey
+          that is not happening.
+        */}
+        <SessionGate
+          startsAt={workshop.startsAt}
+          passedAtRender={passed}
+          open={
+            <>
+              <Steps current={1} />
 
-        <BookingForm
-          workshop={workshop}
-          intro={<Intro />}
-          summary={<SessionSummary workshop={workshop} />}
-          strip={<SessionStrip workshop={workshop} />}
-          scarce={scarce}
+              <BookingForm
+                workshop={workshop}
+                intro={<Intro />}
+                summary={<SessionSummary workshop={workshop} />}
+                strip={<SessionStrip workshop={workshop} />}
+                scarce={scarce}
+              />
+            </>
+          }
+          passed={<SessionPassed workshop={workshop} />}
         />
       </Container>
     </div>
@@ -121,6 +168,45 @@ function Intro() {
         Choose your places and tell us who&rsquo;s coming. You&rsquo;ll see everything once more
         before you confirm.
       </p>
+    </Reveal>
+  );
+}
+
+/**
+ * The date has gone by: what happened, and the one useful next step.
+ *
+ * It names the session and the date rather than saying "this session", so
+ * someone who arrived from an old link can see at once which booking they
+ * were trying to make. "Closed when the session began" rather than "has
+ * ended": a two-hour session that started ten minutes ago has not ended, and
+ * it is still not bookable.
+ *
+ * One door, to the whole listing — "Browse all experiences", the booking
+ * sheet's own last option — and deliberately not "See what is open" into
+ * the scheduled half. This page cannot see whether any other date is still
+ * open, and the moment the placeholder dates have all gone by nothing is: the
+ * event page says "nothing else is open just now" in that case, and a button
+ * here promising otherwise would argue with it. The full listing is true
+ * either way, and its walk-in half needs no date at all. No promise that new
+ * dates are coming — the project holds no schedule beyond the placeholder
+ * one, and lib/workshops.ts says so.
+ */
+function SessionPassed({ workshop }: { workshop: Workshop }) {
+  const { weekday } = sessionDateParts(workshop.startsAt);
+
+  return (
+    <Reveal className="mt-12 md:mt-14">
+      <h1 className="text-h1 font-light tracking-[-0.02em]">This Date Has Passed.</h1>
+      <p className="mt-5 max-w-[34rem] text-body text-text/80">
+        Booking for {workshop.title} on{" "}
+        <time dateTime={workshop.startsAt}>
+          {weekday} {formatSessionDate(workshop.startsAt)}
+        </time>{" "}
+        closed when the session began, so this date can no longer be reserved.
+      </p>
+      <BlobButton href="/events" className="mt-9 justify-center px-8 py-5">
+        Browse all experiences
+      </BlobButton>
     </Reveal>
   );
 }

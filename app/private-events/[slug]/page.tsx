@@ -224,7 +224,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
        the distinction is visible to somebody who never saw both. */
     description: audience.lead ?? audience.description,
     path: `/private-events/${audience.slug}`,
-    image: audience.image?.src,
+    /* No `image`: the share card is drawn from this programme's photograph
+       by ./opengraph-image.tsx, and lib/seo.ts would ignore one here anyway
+       (ROUTES_WITH_OWN_SHARE_IMAGE). */
   });
 }
 
@@ -656,11 +658,19 @@ function HowItWorks() {
           <Eyebrow>How it works</Eyebrow>
         </Reveal>
 
+        {/* THE OVERVIEW'S HEADING, because it is the overview's block: the
+            same eyebrow over the same three steps. It was "Three Steps,
+            Start to Finish." here while /private-events read "Let's Make It
+            Happen." — the client's p36 copy — and one block with two names
+            reads as two blocks. Their pages for these four programmes give
+            this section no copy of its own, so the overview's is the one
+            there is. The curly apostrophe is fine here: <DisplayHeading>
+            runs forScript() over every line. */}
         <DisplayHeading
           id="programme-how"
           size="section"
           className="mt-8 md:mt-10"
-          lines={["Three Steps,", "Start to Finish."]}
+          lines={["Let’s Make It", "Happen."]}
         />
 
         <ol className="mt-12 grid grid-cols-1 gap-6 md:mt-16 md:grid-cols-3 lg:gap-8">
@@ -774,8 +784,24 @@ function Enquiry() {
         </span>
 
         <Reveal>
-          <p className="mx-auto max-w-[30ch] text-statement leading-[1.35] tracking-[-0.01em] text-surface">
-            Tell us about your group and your date, and we will shape a session around it.
+          {/*
+            THE CLIENT'S CLOSING LINE, the one they wrote for the same band on
+            /private-events (p37), quoted exactly. This said "Tell us about
+            your group and your date, and we will shape a session around it."
+            — the old voice their p37 rewrite replaced over there, and the
+            same invitation, so it is the same words now on all five pages.
+
+            WIDER, AND BALANCED, BECAUSE THE COPY IS. 30ch was set for one
+            sentence of 78 characters, which it took in two lines; these 144
+            held to it set in four lines of 520px at 1440. 40ch (694px) takes
+            them to three — the count the same words set in on /private-events
+            — and `text-balance` evens them, so the last line under a centred
+            block does not read as the paragraph running out. On a phone the
+            column is narrower than either cap, so neither one applies there.
+          */}
+          <p className="mx-auto max-w-[40ch] text-balance text-statement leading-[1.35] tracking-[-0.01em] text-surface">
+            Have something in mind? Tell us when, who’s coming and what you’d like to make.
+            We’ll help turn the idea into an experience made for your group.
           </p>
         </Reveal>
 

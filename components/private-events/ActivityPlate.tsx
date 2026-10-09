@@ -184,6 +184,16 @@ const DROPS: readonly { x: number; y: number; w: number; h: number; o: number }[
  * taller photograph rather than a taller caption, and the grid closes flush
  * the way it did. The tracks grew by about a fifth to pay for the foot.
  *
+ * "WHATEVER THE CELL HAS LEFT" CAN BE ALMOST NOTHING, which is what
+ * `photoFloor` is for. A fixed track minus a caption that wraps to three lines
+ * at a narrow width left the /private-events collage with six of its seven
+ * pictures at 77–116px — strips, with the paint's wave over a third of that.
+ * A caller whose grid can grow (`minmax(…, auto)` tracks) passes a floor for
+ * the picture, and the track takes the floor plus the caption instead of the
+ * caption eating the picture. A caller with FIXED tracks must not pass one:
+ * the tile is `overflow-clip` at the track's height, so a floor there would
+ * push the caption out of the bottom of the card instead.
+ *
  * An entry with no photograph is the same card with the picture left out.
  */
 export function ActivityPlate({
@@ -193,6 +203,7 @@ export function ActivityPlate({
   paint = 0,
   large = false,
   href,
+  photoFloor,
 }: {
   experience: CreativeExperience;
   className: string;
@@ -200,6 +211,16 @@ export function ActivityPlate({
   /** Which of PAINTS this tile takes — its position in the collage. */
   paint?: number;
   large?: boolean;
+  /**
+   * The least height the photograph may have, as `min-h-*` classes (with
+   * breakpoints if it wants them). They replace the picture's `min-h-0` rather
+   * than sit beside it — `cn` does no conflict resolution, so two `min-h`s on
+   * one element would be won by stylesheet order, not by intent.
+   *
+   * Only for a grid whose tracks can grow to fit — see "WHATEVER THE CELL HAS
+   * LEFT" above. Omitted, the plate is exactly what it was.
+   */
+  photoFloor?: string;
   /**
    * Where the whole tile goes when it is pressed, or nothing for a tile that
    * is only a picture.
@@ -297,9 +318,11 @@ export function ActivityPlate({
       {/*
         `min-h-0` with `flex-1`: without it a flex child will not shrink below
         its content's intrinsic height, and an absolutely-filled <Image> in a
-        fixed-height grid cell is exactly the case where that bites.
+        fixed-height grid cell is exactly the case where that bites. A caller's
+        `photoFloor` takes its place — a floor is the opposite instruction, and
+        it is also what the picture contributes when its track sizes to fit.
       */}
-      <div className="relative min-h-0 flex-1 overflow-hidden">
+      <div className={cn("relative flex-1 overflow-hidden", photoFloor ?? "min-h-0")}>
         <Image
           src={experience.image.src}
           alt=""

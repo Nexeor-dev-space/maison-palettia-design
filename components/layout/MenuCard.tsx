@@ -207,7 +207,8 @@ export function MenuRailRow({
 }: {
   href: string;
   name: string;
-  sub?: string;
+  /** A line of text — or a <SessionGate> that settles on one, for a date. */
+  sub?: ReactNode;
   image?: ImageAsset & { position?: string };
   active: boolean;
   onActivate: () => void;
@@ -459,42 +460,33 @@ export function MenuPreview({
  * size Deep Lilac is a bar of colour along the foot rather than a slab.
  */
 /*
-  THE DOOR'S FIELDS, AND WHY THE PAINT IS A PROP NOW.
+  THE DOOR'S TWO FIELDS: the near-white `quiet` and the Deep Lilac `accent`.
 
-  <MenuDoor> knew two grounds — the Deep Lilac accent and a near-white quiet —
-  with the mark's paint hard-wired to each. <AboutMenu>'s own note recorded
-  what that cost: `resolveIcon` picks the DRAWING from the COLOUR, not from
-  the shape word, so four doors sharing one paint render four identical shapes
-  however many different words the call sites pass. That panel settled for
-  saying `bow` four times rather than reading as four shapes it did not draw.
-
-  The client has asked for those four boxes to carry different colours and
-  different cut-outs, and that is the same change: vary the paint and the
-  drawing follows. So the grounds live here and a caller names one.
+  There were briefly five. The About panel's four doors were each given a
+  ground of their own — Soft Lavender, Light Sage, a Terracotta wash — so the
+  cut-out on each would come out a different drawing (`resolveIcon` picks the
+  DRAWING from the COLOUR, not from the shape word). The client then asked for
+  that panel to be "just the text": its doors now carry no mark and take the
+  quiet field like every other door, so the three coloured grounds had no
+  caller left and went with the drawings. Bring one back with the measurement
+  for its ink, as below.
 
   EVERY INK IS MEASURED, because each of these is a field with words on it —
   a 20px title over a 17px line, and 17px is not large text, so both owe
-  4.5:1:
+  4.5:1, in every state the field has:
 
-    Deep Lilac       + on-primary ... 4.90:1  the one light ink that clears it
-    Soft Lavender    + Charcoal ..... 6.49:1
-    Light Sage       + Charcoal ..... 9.07:1
-    Terracotta  30%  + Charcoal ..... 7.3:1   the dilution <TwoWaysToCreate>
-                                              measured for its chips. Neat
-                                              Warm Terracotta is about 3.5:1
-                                              and fails, which is why no door
-                                              takes it at full strength.
-    near-white       + Charcoal ..... the quiet default, unchanged
+    accent  Deep Lilac + on-primary ............. 4.90:1  the one light ink
+                                                          that clears it
+    quiet   near-white + Charcoal at 80% ........ 6.1:1
+            Light Sage (hover) + Charcoal 80% ... 5.4:1
 
-  THE THREE COLOURED DOORS CARRY THEIR LINE AT FULL STRENGTH, where the quiet
-  one can afford `/70`. Charcoal at 70% over Soft Lavender lands near 4:1 —
-  under the bar for a 17px line — and the saving in softness is not worth the
-  ink. The quiet door's ground is a near-white and has the headroom.
-
-  `quiet` and `accent` are untouched, so the Experiences and Private events
-  panels render exactly as they did.
+  THE QUIET LINE WAS `/70`, and that measured 4.6:1 at rest but about 4.15:1
+  on the Light Sage hover — under the bar for a 17px line, on every door the
+  pointer was actually on. It now matches the About sheet's rows, which made
+  the same move for the same reason. The title stays at full strength, so the
+  line still reads as the quieter of the two.
 */
-type DoorTone = "quiet" | "accent" | "lavender" | "sage" | "blush";
+type DoorTone = "quiet" | "accent";
 
 const DOOR_TONE: Record<
   DoorTone,
@@ -505,7 +497,7 @@ const DOOR_TONE: Record<
        panel's own ground, so the door vanished on hover. Same rule as
        <MenuRailRow>. */
     field: "bg-surface text-text hover:bg-sage",
-    ink: "text-text/70",
+    ink: "text-text/80",
     mark: INK.lilac,
     markOpacity: "opacity-55",
   },
@@ -513,27 +505,6 @@ const DOOR_TONE: Record<
     field: "bg-primary text-on-primary hover:bg-text",
     ink: "text-on-primary",
     mark: INK.whiteRock,
-    markOpacity: "opacity-70",
-  },
-  lavender: {
-    field: "bg-lavender text-text hover:bg-lavender/75",
-    ink: "text-text",
-    mark: INK.lilac,
-    markOpacity: "opacity-75",
-  },
-  sage: {
-    field: "bg-sage text-text hover:bg-sage/75",
-    ink: "text-text",
-    mark: INK.terracotta,
-    markOpacity: "opacity-85",
-  },
-  blush: {
-    /* Warm Terracotta cut into the panel's own cream by its alpha, which is
-       what a `color-mix` would do here and needs no custom value: the panel
-       underneath is opaque. */
-    field: "bg-terracotta/30 text-text hover:bg-terracotta/45",
-    ink: "text-text",
-    mark: INK.lilac,
     markOpacity: "opacity-70",
   },
 };
@@ -614,8 +585,8 @@ export function MenuDoor({
         <span
           className={cn(
             "mt-1 block text-body",
-            /* Every one of these is measured — see DOOR_TONE. Only the quiet
-               door's near-white ground has the headroom for an alpha. */
+            /* Both are measured, hover included — see DOOR_TONE. Only the
+               quiet door's near-white ground has the headroom for an alpha. */
             paint.ink,
           )}
         >

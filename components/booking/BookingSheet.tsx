@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
 
+import { useSessionPassed } from "@/components/booking/SessionClock";
 import type { BookingOption } from "@/lib/bookingOptions";
 import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
@@ -152,9 +153,10 @@ export function BookingSheet({
     first run as well as on every close, and the first run is the page load.
     Measured at 390 and 768, on / and /events: `document.activeElement` was
     the bar's "Book a Session" button before anyone had touched anything. A
-    keyboard visitor arrived at the foot of the page — first Tab went to
-    WhatsApp, then More, and the header, the skip link and the whole of the
-    content were behind Shift+Tab. A screen reader opened on the bar.
+    keyboard visitor arrived at the foot of the page — first Tab went to the
+    bar's next slots (Contact, then About), and the header, the skip link and
+    the whole of the content were behind Shift+Tab. A screen reader opened on
+    the bar.
 
     It did not show up on a desktop only because `lg:hidden` is
     `display: none` and `.focus()` on an undisplayed element is a no-op, so
@@ -272,77 +274,15 @@ export function BookingSheet({
 
               {/* ---- the options ---- */}
               <ul className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-6 pb-2 md:px-7">
-                {options.map((option, i) => {
-                  const accent = OPTION_ACCENTS[i % OPTION_ACCENTS.length];
-                  return (
+                {options.map((option, i) => (
                   <li key={option.slug}>
-                    <Link
-                      href={option.href}
-                      onClick={onClose}
-                      style={{ background: accent.wash } as React.CSSProperties}
-                      className={cn(
-                        "group plate relative isolate flex items-center gap-4 overflow-clip rounded-[1.1rem] p-2.5 pr-4",
-                        "outline-offset-2 transition-transform duration-[var(--duration-hover)] ease-soft",
-                        "active:scale-[0.985] motion-safe:hover:scale-[1.01] motion-reduce:transition-none",
-                      )}
-                    >
-                      {/*
-                        THE BRAND CUT-OUT THAT GIVES EACH CARD ITS COLOUR, the
-                        way <MoreSheet>'s blots do. Clipped to the card's own
-                        corner — a shape inside a shape, the brand sheet's
-                        device — and `-z-10` under the isolated card so it rides
-                        on the wash, behind the photo and the words. `stamp`
-                        renders it filled and still and answers the card's
-                        hover, so it never needs the scroll timeline a sheet
-                        cannot give it.
-                      */}
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute -right-5 -top-6 -z-10 w-[4.5rem] rotate-6"
-                      >
-                        <DoodleMark name={accent.mark} color={accent.color} treatment="stamp" depth={0} />
-                      </span>
-
-                      <span className="relative block size-[4.25rem] shrink-0 overflow-clip rounded-[0.85rem] bg-surface-alt">
-                        {option.image ? (
-                          <Image
-                            src={option.image.src}
-                            alt=""
-                            fill
-                            /* A 68px box, and the source is a tall crop — the
-                               cover crop is what decides the fetch, not the
-                               element's width. */
-                            sizes="140px"
-                            style={{ objectPosition: option.image.position ?? "50% 50%" }}
-                            className="object-cover"
-                          />
-                        ) : null}
-                      </span>
-
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[1.0625rem] font-semibold leading-snug text-text">
-                          {option.name}
-                        </span>
-                        {option.description ? (
-                          <span className="mt-1 block text-fine leading-[1.5] text-text/75">
-                            {option.description}
-                          </span>
-                        ) : null}
-                        <span className="mt-1.5 block text-label font-medium uppercase tracking-eyebrow text-primary">
-                          {option.action}
-                        </span>
-                      </span>
-
-                      <span
-                        aria-hidden
-                        className="shrink-0 text-text/40 transition-transform duration-300 ease-editorial motion-safe:group-hover:translate-x-0.5"
-                      >
-                        &#8250;
-                      </span>
-                    </Link>
+                    <OptionCard
+                      option={option}
+                      accent={OPTION_ACCENTS[i % OPTION_ACCENTS.length]}
+                      onClose={onClose}
+                    />
                   </li>
-                  );
-                })}
+                ))}
               </ul>
 
               {/*
@@ -379,6 +319,99 @@ export function BookingSheet({
         </>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+/**
+ * One option. A component of its own for one reason: it asks the clock.
+ *
+ * `option.href` was decided when the layout rendered — on a prerendered page,
+ * at build time — so after a session began it went on sending "Choose
+ * session" straight to a booking step that could no longer be taken. Once
+ * `option.startsAt` has begun in the visitor's browser the card falls back
+ * to the activity's own page with "See dates", the same answer
+ * lib/bookingOptions.ts gives an activity with nothing still to come; that
+ * page lists whatever is open. The sheet only mounts in the browser, so there
+ * is no server render for the clock to agree with.
+ */
+function OptionCard({
+  option,
+  accent,
+  onClose,
+}: {
+  option: BookingOption;
+  accent: (typeof OPTION_ACCENTS)[number];
+  onClose: () => void;
+}) {
+  const passed = useSessionPassed(option.startsAt ?? "");
+  const href = passed ? `/events/${option.slug}` : option.href;
+  const action = passed ? "See dates" : option.action;
+
+  return (
+    <Link
+      href={href}
+      onClick={onClose}
+      style={{ background: accent.wash } as React.CSSProperties}
+      className={cn(
+        "group plate relative isolate flex items-center gap-4 overflow-clip rounded-[1.1rem] p-2.5 pr-4",
+        "outline-offset-2 transition-transform duration-[var(--duration-hover)] ease-soft",
+        "active:scale-[0.985] motion-safe:hover:scale-[1.01] motion-reduce:transition-none",
+      )}
+    >
+      {/*
+        THE BRAND CUT-OUT THAT GIVES EACH CARD ITS COLOUR, the
+        way <MoreSheet>'s blots do. Clipped to the card's own
+        corner — a shape inside a shape, the brand sheet's
+        device — and `-z-10` under the isolated card so it rides
+        on the wash, behind the photo and the words. `stamp`
+        renders it filled and still and answers the card's
+        hover, so it never needs the scroll timeline a sheet
+        cannot give it.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-5 -top-6 -z-10 w-[4.5rem] rotate-6"
+      >
+        <DoodleMark name={accent.mark} color={accent.color} treatment="stamp" depth={0} />
+      </span>
+
+      <span className="relative block size-[4.25rem] shrink-0 overflow-clip rounded-[0.85rem] bg-surface-alt">
+        {option.image ? (
+          <Image
+            src={option.image.src}
+            alt=""
+            fill
+            /* A 68px box, and the source is a tall crop — the
+               cover crop is what decides the fetch, not the
+               element's width. */
+            sizes="140px"
+            style={{ objectPosition: option.image.position ?? "50% 50%" }}
+            className="object-cover"
+          />
+        ) : null}
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span className="block text-[1.0625rem] font-semibold leading-snug text-text">
+          {option.name}
+        </span>
+        {option.description ? (
+          <span className="mt-1 block text-fine leading-[1.5] text-text/75">
+            {option.description}
+          </span>
+        ) : null}
+        <span className="mt-1.5 block text-label font-medium uppercase tracking-eyebrow text-primary">
+          {action}
+        </span>
+      </span>
+
+      <span
+        aria-hidden
+        className="shrink-0 text-text/40 transition-transform duration-300 ease-editorial motion-safe:group-hover:translate-x-0.5"
+      >
+        &#8250;
+      </span>
+    </Link>
   );
 }
 

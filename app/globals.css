@@ -1531,10 +1531,12 @@ html[data-paint-cursor] iframe {
   THE BOTTOM NAVIGATION'S HEIGHT, AS A TOKEN
   ==========================================================================
 
-  <BottomNav> is `fixed` and below `lg` only. Four other things on this site
-  pin themselves to the bottom of the window — <main>'s own foot, the footer,
-  <WhatsAppWidget> and <EventBookingBar>, which is `fixed bottom-0 z-40` on
-  every event page — and all four would otherwise have been underneath it.
+  <BottomNav> is `fixed` and below `lg` only. Three other things on this site
+  pin themselves to the bottom of the window — <main>'s own foot, the footer
+  and <EventBookingBar>, which is `fixed bottom-0 z-40` on every event page —
+  and all three would otherwise have been underneath it. (<ContactWidget>
+  floats bottom-right too, but only from `lg`, where the bar is not drawn, so
+  it carries no offset.)
 
   Publishing the height here means none of them has to know the bar exists;
   they read one number. It is 0 at `lg` and up, where the bar is not drawn, so
@@ -1730,11 +1732,11 @@ html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
 }
 
 /*
-  AND THE FLOATING WHATSAPP ACTION, for the same reason the header and the
-  footer go.
+  AND THE FLOATING CONTACT ACTION (<ContactWidget>), for the same reason the
+  header and the footer go.
 
   The intro is a logo and a ring of cut-outs on a clean Light Sage field, and
-  a chat button parked in the corner of it is the one piece of site furniture
+  a contact button parked in the corner of it is the one piece of site furniture
   left standing in a frame that is meant to have none. It was visible through
   the whole entrance.
 
@@ -1744,19 +1746,19 @@ html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   throws must not take a contact route down with it. Scoped to
   `body:has([data-hero-intro])`, so every other page shows it immediately.
 */
-html:not([data-intro]) body:has([data-hero-intro]) [data-whatsapp-fab],
-html[data-intro="play"] body:has([data-hero-intro]) [data-whatsapp-fab],
-html[data-intro="dots"] body:has([data-hero-intro]) [data-whatsapp-fab],
-html[data-intro="burst"] body:has([data-hero-intro]) [data-whatsapp-fab],
-html[data-intro="settle"] body:has([data-hero-intro]) [data-whatsapp-fab] {
+html:not([data-intro]) body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="play"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="dots"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="burst"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="settle"] body:has([data-hero-intro]) [data-contact-fab] {
   opacity: 0;
   visibility: hidden;
   animation: intro-failsafe 0.01s 2.5s forwards;
 }
 
 /* It arrives with the bar, once the mark has landed. */
-html[data-intro="done"] body:has([data-hero-intro]) [data-whatsapp-fab],
-html[data-intro="skip"] body:has([data-hero-intro]) [data-whatsapp-fab] {
+html[data-intro="done"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="skip"] body:has([data-hero-intro]) [data-contact-fab] {
   opacity: 1;
   visibility: visible;
   transition:

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CartSummary } from "@/components/booking/CartSummary";
+import { useAnySessionPassed } from "@/components/booking/SessionClock";
 import { Reveal } from "@/components/motion/Reveal";
-import { PAYMENT_CONFIGURED, placeBooking } from "@/lib/booking";
+import { placeBooking } from "@/lib/booking";
 import {
   BOOKING_FIELD_ORDER,
   clearBookingDetails,
@@ -17,6 +18,7 @@ import {
   validateBookingDetails,
   type BookingDetails,
 } from "@/lib/cart";
+import { bookingTerms } from "@/lib/constants";
 import { cn, formatMoney } from "@/lib/utils";
 
 const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
@@ -24,6 +26,10 @@ const FIELD =
   "w-full border-0 border-b bg-transparent px-0 py-3 text-body text-text " +
   "placeholder:text-text/40 transition-colors duration-300 ease-soft " +
   "focus:outline-none focus:ring-0";
+
+/** Said beside the disabled button and on a refused press — one wording. */
+const PASSED_LINE_MESSAGE =
+  "A date in your booking has already passed, so it cannot be confirmed. Remove it to continue.";
 
 /**
  * Checkout — the basket, the details and the last action, on one page.
@@ -62,6 +68,30 @@ export function Checkout() {
   const router = useRouter();
 
   /*
+    A LAPSED DATE CANNOT BE CONFIRMED.
+
+    Every page before this one closes a date once it has begun, but a basket
+    outlives the page it was filled from: it can be held in a tab across the
+    start time, or filled from an event page whose HTML was rendered before
+    the date went by. QA did exactly that with the clock moved forward and
+    came away with a reference for a session that had already run.
+
+    So checkout asks the visitor's clock about every session line — live, so
+    a tab left open flips at the start time — and while any of them has gone
+    by the button is disabled, with the reason beside it and on the line
+    itself (<CartSummary>). The press is checked again in `onSubmit`, against
+    the clock at that instant, because a disabled attribute is a hint and not
+    a lock.
+
+    Above the early returns, because it is a hook. A pass has no date and is
+    never the reason.
+  */
+  const sessionStarts = lines.flatMap((line) =>
+    line.kind === "session" ? [line.startsAt] : [],
+  );
+  const hasPassedLine = useAnySessionPassed(sessionStarts);
+
+  /*
     Move focus to the first field that needs attention.
 
     Without this a keyboard or screen-reader visitor presses the button, the
@@ -84,6 +114,14 @@ export function Checkout() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
+
+    // Asked again at the instant of the press, not read from the render:
+    // the button's disabled state is only as fresh as the last render.
+    const now = Date.now();
+    if (sessionStarts.some((startsAt) => Date.parse(startsAt) <= now)) {
+      setFormError(PASSED_LINE_MESSAGE);
+      return;
+    }
 
     const data = new FormData(event.currentTarget);
     const get = (key: string) => String(data.get(key) ?? "").trim();
@@ -174,6 +212,7 @@ export function Checkout() {
         <CustomerDetails details={details} errors={errors} />
         <Complete
           submitting={submitting}
+          blocked={hasPassedLine}
           total={subtotal}
           currency={currency}
           formError={formError}
@@ -271,17 +310,31 @@ function CustomerDetails({
  */
 function Complete({
   submitting,
+  blocked,
   total,
   currency,
   formError,
   hasFieldErrors,
 }: {
   submitting: boolean;
+  /** A session in the basket has already begun — see `hasPassedLine`. */
+  blocked: boolean;
   total: number;
   currency: string;
   formError: string | null;
   hasFieldErrors: boolean;
 }) {
+  /*
+    The lapsed-date message has two ways in — the button's own state, and a
+    press refused by `onSubmit` — and must be said once, not twice. A refused
+    press puts it in the alert below (so it is announced); otherwise the
+    status line under the button carries it. Once the line is removed the
+    alert's copy is stale, and it goes with `blocked` rather than waiting for
+    another press to clear it.
+  */
+  const passedPress = formError === PASSED_LINE_MESSAGE;
+  const shownError = passedPress && !blocked ? null : formError;
+
   return (
     <div className="mt-12 border-t border-line pt-9 md:mt-14 md:pt-10">
       {/*
@@ -290,9 +343,9 @@ function Complete({
         silent to someone who has not moved focus into the form yet.
       */}
       <div role="alert" aria-live="assertive">
-        {formError ? (
+        {shownError ? (
           <p className="mb-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text">
-            {formError}
+            {shownError}
           </p>
         ) : hasFieldErrors ? (
           <p className="mb-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text">
@@ -316,7 +369,7 @@ function Complete({
         */}
         <BlobButton
           type="submit"
-          disabled={submitting}
+          disabled={submitting || blocked}
           className="w-full justify-center px-8 py-5 sm:w-auto"
         >
           {submitting ? "Confirming…" : "Confirm booking"}
@@ -324,17 +377,36 @@ function Complete({
       </div>
 
       {/*
+        Why the button is dead, said beside it. The line in the basket says
+        which date; this says that it is the reason, so nobody is left
+        pressing a disabled control and wondering. `role="status"` so it is
+        announced when it appears on a page that was already open.
+      */}
+      {blocked && !passedPress ? (
+        <p
+          role="status"
+          className="mt-6 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text"
+        >
+          {PASSED_LINE_MESSAGE}
+        </p>
+      ) : null}
+
+      {/*
         Stated before the button is pressed, not after. Someone about to hand
         over a name and a phone number is entitled to know what the button
         does, and finding out on the next screen is finding out too late.
+
+        THE SAME SENTENCE THE CONFIRMATION AND THE FAQ PRINT — BOOKING_TERMS
+        in lib/constants.ts, picked by the two flags in lib/bookingFlags.ts. It
+        used to say "nothing is charged now and nothing is charged later" and
+        that the studio would confirm "directly", which contradicted the
+        confirmation's "a request, not a confirmed booking" one screen later
+        and read as though the session were free. Printed in every state now:
+        there is always something true to say about what the button does.
       */}
-      {!PAYMENT_CONFIGURED ? (
-        <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-fine leading-[1.8] text-text/80">
-          This is a preview booking. Maison Palettia has no payment provider connected yet, so
-          nothing is charged now and nothing is charged later. You will get a reference to keep
-          and the studio will confirm your place directly.
-        </p>
-      ) : null}
+      <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-fine leading-[1.8] text-text/80">
+        {bookingTerms()}
+      </p>
     </div>
   );
 }

@@ -26,11 +26,24 @@ import type { Workshop } from "@/types";
  * loading state and no navigation.
  *
  * Facets are memoised against the catalogue rather than the filters: the
- * options a visitor is offered describe the whole programme, so the count
- * beside "Painting" does not drop to zero the moment they pick a different
+ * options a visitor is offered describe the whole programme, so the count a
+ * screen reader hears on "Painting" (it is no longer drawn — see
+ * <EventFilterBar>) does not drop to zero the moment they pick a different
  * mall. Only the list below reacts.
+ *
+ * `renderedAt` is the page's one `Date.now()`, passed straight through to each
+ * <EventCard> so the HTML can already say "Date passed" where the server saw
+ * a date go by. It is not read here, and must not be re-taken here: this is a
+ * client component, and a clock read while rendering would differ between
+ * the server and the browser.
  */
-export function EventsBrowser({ workshops }: { workshops: Workshop[] }) {
+export function EventsBrowser({
+  workshops,
+  renderedAt,
+}: {
+  workshops: Workshop[];
+  renderedAt: number;
+}) {
   const [filters, setFilters] = useState<EventFilters>(NO_FILTERS);
 
   const facets = useMemo(() => buildFacets(workshops), [workshops]);
@@ -76,7 +89,7 @@ export function EventsBrowser({ workshops }: { workshops: Workshop[] }) {
               <ol className="mt-5 grid gap-6 md:mt-6 md:grid-cols-2 lg:gap-8">
                 {events.map(({ workshop, position }) => (
                   <li key={workshop.slug} className="h-full">
-                    <EventCard workshop={workshop} index={position} />
+                    <EventCard workshop={workshop} index={position} renderedAt={renderedAt} />
                   </li>
                 ))}
               </ol>

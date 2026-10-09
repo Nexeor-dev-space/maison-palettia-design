@@ -1,7 +1,9 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+
+import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
 
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { DoodleMark } from "@/components/ui/DoodleMark";
@@ -58,7 +60,11 @@ import { cn } from "@/lib/utils";
  *
  * Under reduced motion the range is flattened rather than dropped, the same
  * way <ParallaxPlate> and <ScrollReveal> do it — the value is still Framer's,
- * so the marks can never be left holding whatever the server rendered.
+ * so the marks can never be left holding whatever the server rendered. The
+ * preference is read through `useHydratedReducedMotion`, which holds it back
+ * until hydration is done: the server always draws the drifting composition,
+ * and a first client render that flattened it disagreed with that HTML on
+ * every mark (`translateY(-11%) rotate(-12deg)` against `rotate(-12deg)`).
  */
 
 export interface ShapePlan {
@@ -111,7 +117,7 @@ export interface ShapePlan {
 
 export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[]; className?: string }) {
   const field = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
+  const reduced = useHydratedReducedMotion();
 
   const { scrollYProgress } = useScroll({
     target: field,
@@ -125,7 +131,7 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
       className={cn("pointer-events-none absolute inset-0 -z-10 overflow-hidden", className)}
     >
       {plan.map((shape, i) => (
-        <Shape key={`${shape.name}-${i}`} shape={shape} progress={scrollYProgress} reduced={!!reduced} />
+        <Shape key={`${shape.name}-${i}`} shape={shape} progress={scrollYProgress} reduced={reduced} />
       ))}
     </div>
   );

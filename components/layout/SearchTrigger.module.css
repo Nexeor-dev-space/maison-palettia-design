@@ -6,13 +6,13 @@
   The client asked for the search bar to read as a paint blot with a search
   icon rather than as a stock pill. It was `rounded-pill`: the one geometry
   on this site that nothing else is, sitting in a bar where the booking
-  badge, the floating WhatsApp action and every plate are hand-cut.
+  badge, the floating Contact action and every plate are hand-cut.
 
   WHY ABSOLUTE RADII AND NOT PERCENTAGES. The blob utilities elsewhere use
   percentage radii, and they are right for a roughly square box. This box is
   240x44 — five and a half times wider than it is tall — and percentage radii
   on a box that shape resolve to an ELLIPSE, which is the exact mistake the
-  floating WhatsApp button made on hover (see WhatsAppWidget.module.css).
+  floating Contact button made on hover (see ContactWidget.module.css).
   Pixel radii do, and the VERTICAL ones have to stay under 22 — half the
   box's height — or the browser scales the whole set down proportionally to
   make them fit and flattens the asymmetry back out. So the vertical radii

@@ -184,6 +184,10 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     slug: "ceramic-painting",
     name: "Ceramic Painting",
     about: [
+      /* The client's headline line (PDF p12), first like every other
+         activity's — the brief sets each entry as its own paragraph and the
+         first one is the line that leads. */
+      "Ceramic is better with a little colour.",
       "Start with a blank ceramic and see what happens. Play with shapes, patterns and colour until an everyday piece becomes something you’ll want to use again and again.",
     ],
     gallery: [

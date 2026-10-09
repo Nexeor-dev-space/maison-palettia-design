@@ -1,7 +1,11 @@
 /*
   ==========================================================================
-  THE FLOATING WHATSAPP ACTION — a cut shape, not a circle
+  THE FLOATING CONTACT ACTION — a cut shape, not a circle
   ==========================================================================
+
+  It was WhatsApp's button until the client took WhatsApp off the site, and
+  the shape carried straight over to the Contact link that replaced it:
+  nothing below was ever about whose chat it opened.
 
   It was `rounded-pill`: a perfect circle, which is the one shape on this site
   nothing else is. The client asked for it to match the buttons in the bottom
@@ -86,6 +90,20 @@
     inset 0 0 0 1.5px var(--color-primary),
     0 10px 28px color-mix(in oklab, var(--color-text) 26%, transparent);
 }
+
+/*
+  THE FOCUS RING IS THE SITE'S OWN — globals.css's `:focus-visible` outline,
+  2px of Deep Lilac 3px out, which nothing here overrides.
+
+  It used to be Tailwind's `focus-visible:ring-2 ring-offset-2` on the element
+  with `outline-none` beside it, and that ring never drew: Tailwind's ring is a
+  `box-shadow`, its utilities sit in a cascade layer, and this module's rules
+  are unlayered, so the `box-shadow` above won on every focus. Measured, the
+  shadow on focus was the inset edge and the drop and nothing else — a
+  keyboard user got the opened pill with no ring round it. Dropping both
+  utilities lets the global outline through, and an outline follows
+  `border-radius`, so it traces the 900px pill this rule eases to.
+*/
 
 @keyframes fab-morph {
   0%,

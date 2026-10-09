@@ -716,6 +716,34 @@ function WhoItIsFor() {
  * their name rather than borrowing a picture of a different craft: the field
  * is optional on {@link CreativeExperience} for exactly that reason.
  */
+/*
+  THE LEAST PICTURE A TILE MAY SHOW, handed to every <ActivityPlate> in the
+  collage as `photoFloor` — see the note on the tracks in <Experiences>.
+
+  A SHAPE, NOT A HEIGHT. The tile's width is a fixed share of the viewport at
+  each layout (all of it below sm, about half from sm, about a quarter from
+  lg — the Container has no ceiling), so a floor in `vw` holds the picture
+  near one proportion, roughly 1.8:1, as the screen widens. A flat 10rem did
+  not: it was a 3:2 frame on a 238px tile at 1024 but a 2.1:1 band on the
+  340px tiles at 1440 and 2.3:1 on the 365px ones at 768 — with the paint's
+  wave over the bottom 36–44px of every one of them.
+
+    base  clamp(12rem, 50vw, 18rem)    195px on a 366px tile at 390
+    sm    clamp(10rem, 26vw, 15rem)    200px on a 365px tile at 768
+    lg    clamp(10rem, 13.5vw, 16rem)  160 / 173 / 194px on the 238 / 301 /
+                                       340px tiles at 1024 / 1280 / 1440
+
+  The clamps' floors are where the vw runs out at the narrow end of each
+  layout (1024's 238px tile would get 138px from 13.5vw — under what reads
+  as a picture once the wave is over it), and their ceilings stop a very
+  wide monitor turning a tile into a poster.
+
+  A literal, because Tailwind only generates classes it can read whole in
+  the source.
+*/
+const PHOTO_FLOOR =
+  "min-h-[clamp(12rem,50vw,18rem)] sm:min-h-[clamp(10rem,26vw,15rem)] lg:min-h-[clamp(10rem,13.5vw,16rem)]";
+
 function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
   if (experiences.length === 0) return null;
 
@@ -828,9 +856,25 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
             pictures — the foot is a fixed block and it has to come from
             somewhere, and taking it out of the photograph would have left the
             single-cell tiles as strips. See <ActivityPlate>.
+
+            IT DID ANYWAY, because a fixed track cannot know how many lines a
+            caption will wrap to. Measured before this change, the picture in
+            six of the seven tiles was 89–116px at 390, 77–105 at 768, 89–104
+            at 1024 and 1280 (Bedazzling, Mandala, Glass, Crocheting) and
+            95–152 at 1440 — and the paint's wave covers the bottom 36–44px of
+            that, so what showed was a band of photograph you could not name.
+
+            SO EVERY TRACK IS NOW `minmax(<the old height>, auto)`, and the
+            picture carries a floor (PHOTO_FLOOR, below). The old height is
+            still the least a row can be, so wherever the tiles fitted they
+            are unchanged; where a caption wraps, the row grows by what the
+            caption needs and the picture keeps its floor rather than
+            donating it. The tiles are still `h-full`, so a row that grew for
+            one tile grows its neighbours with it and the block still closes
+            flush.
           */
-          "auto-rows-[clamp(13rem,52vw,16rem)]",
-          "sm:auto-rows-[clamp(10.5rem,30vw,12.5rem)]",
+          "auto-rows-[minmax(clamp(13rem,52vw,16rem),auto)]",
+          "sm:auto-rows-[minmax(clamp(10.5rem,30vw,12.5rem),auto)]",
           /*
             THREE EXPLICIT TRACKS AT lg, NOT THREE EQUAL ONES.
 
@@ -852,8 +896,12 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
             Bedazzling tile had 176px to hold a 156px caption, which left 20px
             of photograph. The floor now clears the tallest caption at the
             narrowest four-column width, measured.
+
+            "Clears the caption" was not enough: it left 90px of picture. The
+            three tracks are `minmax(…, auto)` now for the reason given above,
+            with the same clamps as their least height.
           */
-          "lg:auto-rows-auto lg:grid-rows-[repeat(2,clamp(14rem,16vw,17rem))_clamp(16.5rem,20vw,22rem)]",
+          "lg:auto-rows-auto lg:grid-rows-[repeat(2,minmax(clamp(14rem,16vw,17rem),auto))_minmax(clamp(16.5rem,20vw,22rem),auto)]",
         )}
       >
         <Reveal variant="fadeIn" className="row-span-2 sm:col-span-2">
@@ -863,6 +911,7 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
             sizes="(min-width: 1024px) 46vw, 92vw"
             paint={0}
             large
+            photoFloor={PHOTO_FLOOR}
           />
         </Reveal>
 
@@ -886,6 +935,7 @@ function Experiences({ experiences }: { experiences: CreativeExperience[] }) {
               /* `i + 1`, so the lead is the first paint and the six after it
                  carry on the rotation rather than restarting it. */
               paint={i + 1}
+              photoFloor={PHOTO_FLOOR}
             />
           </Reveal>
         ))}
@@ -1211,7 +1261,10 @@ function HowItWorks() {
         about x 280 though its box runs the full width, and the cards do not
         begin until y 426. That leaves roughly 1000 x 290 of nothing between
         the two — the whole right of the masthead — which is what reads as
-        empty rather than as air.
+        empty rather than as air. (Those figures were taken on the old
+        two-line heading. Re-measured on the client's "Let's Make It /
+        Happen.": 1440x913, ink to about x 400, cards from y 414 — the same
+        empty band, a little narrower, and still clear of the x 420 below.)
 
         Four marks fill it, placed against that box rather than scattered, and
         solved against their own travel the same way every other plan on this
@@ -1233,10 +1286,17 @@ function HowItWorks() {
 
       <h2 id="private-events-process" className="mt-8 md:mt-10">
         <Stagger>
-          {/* Straight apostrophe, not &rsquo;: Hapsha has no curly quote glyph
+          {/* The client's p36 heading, word for word: "Let's Make It Happen."
+              — capital I and the full stop every other heading on this page
+              ends on. Broken where their mock-up breaks it, which also gives
+              back the two-line shape the band beside it was measured against
+              (see the note on <SectionShapes> above).
+
+              Straight apostrophe, not &rsquo;: Hapsha has no curly quote glyph
               and draws the straight one curled. <SectionLine> renders its text
               raw, so there is no forScript() pass here to swap it. */}
-          <SectionLine>Let&apos;s Make it Happen</SectionLine>
+          <SectionLine>Let&apos;s Make It</SectionLine>{" "}
+          <SectionLine>Happen.</SectionLine>
         </Stagger>
       </h2>
 

@@ -37,23 +37,24 @@ export default function PaymentSuccessPage() {
             Your booking
           </p>
           {/*
-            This said "Booking confirmed" and "Your place is held." — over a card
-            that, while no backend records anything, reads "Pending · waiting on
-            confirmation from the Maison". The page was contradicting its own
-            record in the one place a customer most needs to trust it, and the
-            old wording would have sent someone across Dubai to a table nobody
-            had set.
+            THE HEADING MOVED INTO <Confirmation>.
 
-            The heading is now true in both states and says nothing the record
-            does not: a reference always exists, and the card carries the status.
-            It deliberately does NOT read the BOOKING_CONFIGURED flag — lib/
-            booking.ts pulls in `useSyncExternalStore` without a "use client"
-            directive, so importing it here breaks the build. See the note in the
-            Phase 9 report; that module should carry the directive.
+            It said "Booking confirmed" and "Your place is held." once — over a
+            card that, while no backend records anything, reads "Pending ·
+            waiting on confirmation from the Maison". Then "Your reference is
+            ready.", which was meant to be true in both states and was not:
+            with no `?ref=`, or one this browser has never seen, it sat
+            directly above "No booking to show", announcing a reference the
+            box beneath it said did not exist.
+
+            Only <Confirmation> knows whether a booking was found, so it draws
+            the h1 for each branch — "Your reference is ready." over a record,
+            "Find your booking." over the empty state — with the same classes
+            this used. The eyebrow stays here because it is true of every
+            branch. The flags would not decide it either: they are readable
+            here now (lib/bookingFlags.ts), but whether there is a booking to
+            show is a fact about this browser's storage, not about the backend.
           */}
-          <h1 className="mt-9 max-w-[20ch] text-h1 font-light uppercase tracking-[-0.02em]">
-            Your reference is ready.
-          </h1>
         </Reveal>
 
         <Suspense

@@ -97,12 +97,15 @@ export interface PageSeo {
   /** Path to an Open Graph image inside /public. */
   image?: string;
   /**
-   * Keep this page out of search.
+   * Keep this page out of search — opt-in, and the only robots tag the site
+   * prints.
    *
    * For pages that are real but are nobody's entry point: a checkout, a
-   * payment receipt, a booking lookup, an unbuilt placeholder. The site sets
-   * `index, follow` globally in lib/seo.ts, which was putting all four of
-   * those in Google.
+   * payment receipt, a booking lookup, an unbuilt placeholder. Pages carry no
+   * robots tag by default, which every crawler reads as `index, follow`, so
+   * without this all four of those would be in Google. (The site used to set
+   * `index, follow` globally in lib/seo.ts; it no longer does — see the note
+   * in `defaultMetadata` there.)
    */
   noindex?: boolean;
 }

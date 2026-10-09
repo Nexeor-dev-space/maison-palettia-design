@@ -1,10 +1,14 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef, type ElementType, type ReactNode } from "react";
 
 import { StaggerContext } from "@/components/motion/StaggerContext";
-import { VIEWPORT, stagger } from "@/lib/motion";
+import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
+import { VIEWPORT, instantVariants, stagger } from "@/lib/motion";
+
+/* No `staggerChildren`, no time: the group lands complete, together. */
+const STILL = instantVariants(stagger);
 
 interface StaggerProps {
   children: ReactNode;
@@ -18,7 +22,8 @@ interface StaggerProps {
  * element's animation state — so the whole group runs from one trigger.
  */
 export function Stagger({ children, as = "div", className }: StaggerProps) {
-  const prefersReducedMotion = useReducedMotion();
+  // False while hydrating — see components/motion/useHydratedReducedMotion.ts.
+  const prefersReducedMotion = useHydratedReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, VIEWPORT);
   const MotionTag = motion[as as keyof typeof motion] as typeof motion.div;
@@ -28,13 +33,17 @@ export function Stagger({ children, as = "div", className }: StaggerProps) {
   // stay: a plain one would inherit the server's hidden inline style and never
   // clear it. `initial={false}` propagates to the passive children too, so the
   // sequence lands complete rather than playing at speed.
+  //
+  // After a hydration the preference only arrives on the second render, when
+  // `initial` is spent; STILL is what keeps that late jump instant, here and
+  // (through <Reveal>'s own STILL variants) in every child.
   return (
     <StaggerContext value>
       <MotionTag
         ref={ref}
         data-reveal=""
         className={className}
-        variants={stagger}
+        variants={prefersReducedMotion ? STILL : stagger}
         initial={prefersReducedMotion ? false : "hidden"}
         animate={prefersReducedMotion || isInView ? "visible" : "hidden"}
       >
