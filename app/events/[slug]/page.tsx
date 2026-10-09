@@ -1034,18 +1034,15 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
                 )}
               >
               <Reveal>
-                <p className={TERM}>About</p>
-              </Reveal>
-              <Reveal delay={0.06}>
                 <h2
                   id="event-about"
-                  className="heading-script mt-4 pb-[0.22em] text-script-compact text-text"
+                  className="heading-script pb-[0.22em] text-script-compact text-text"
                 >
                   About This Experience
                 </h2>
               </Reveal>
               {paragraphs.map((paragraph, i) => (
-                <Reveal key={i} delay={0.12 + i * 0.06}>
+                <Reveal key={i} delay={0.06 + i * 0.06}>
                   <p
                     className={cn(
                       "text-lead leading-[1.7] text-text/85",
