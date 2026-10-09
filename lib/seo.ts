@@ -81,8 +81,21 @@ const ROUTES_WITH_OWN_SHARE_IMAGE: readonly RegExp[] = [
 ];
 
 /**
+ * The Open Graph block every page starts from: the defaults print it as it
+ * is, and `homeMetadata` repeats it with the homepage's own `url`.
+ */
+const SITE_OPEN_GRAPH = {
+  type: "website",
+  siteName: SITE.name,
+  locale: SITE.locale,
+  title: SITE.name,
+  description: SITE.tagline,
+} as const;
+
+/**
  * Site-wide metadata defaults. Individual pages override title/description
- * and canonical URL through `buildMetadata`.
+ * and canonical URL through `buildMetadata`; the homepage through
+ * `homeMetadata`.
  */
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -93,28 +106,29 @@ export const defaultMetadata: Metadata = {
   description: SITE.tagline,
   applicationName: SITE.name,
   /*
-    "./" — THIS PAGE — AND NOT "/".
+    NO CANONICAL AND NO `openGraph.url` HERE — "/" and then "./" were both
+    tried, and both were wrong somewhere.
 
-    These defaults are inherited by every route that does not set its own
-    canonical, which is the homepage and every error page. "/" made each of
-    them claim the homepage as its canonical: a 404 at /events/not-a-slug
-    told search engines it was a copy of the front page. Next resolves a
-    "./" URL against the route's own pathname (resolveRelativeUrl in
-    next/dist/lib/metadata/resolvers/resolve-url.js), so the homepage still
-    resolves to the bare domain and nothing else is pointed at it. Every page
-    built with `buildMetadata` sets its own and is unaffected.
+    These defaults are inherited by every route that does not set its own,
+    which is the homepage and every error page. "/" made each of them claim
+    the homepage as its canonical: a 404 at /events/not-a-slug told search
+    engines it was a copy of the front page.
 
-    `openGraph.url` below follows the same rule, for the same reason.
+    "./" resolves against the route's own pathname (resolveRelativeUrl in
+    next/dist/lib/metadata/resolvers/resolve-url.js), and under `next dev`,
+    where every request renders afresh, that looked right — /does-not-exist
+    pointed at itself. Production is different: the default 404 is
+    prerendered ONCE, as the static route /_not-found, and every unmatched
+    URL is served that one file. Built, .next/server/app/_not-found.html
+    carried `canonical` and `og:url` of "https://…/_not-found" — an internal
+    path, on every 404.
+
+    A 404 has no canonical page, so the honest tag is none, and the defaults
+    now carry neither field. The homepage, the one page that relied on them,
+    sets its own through `homeMetadata` below; every page built with
+    `buildMetadata` already set its own and is unaffected.
   */
-  alternates: { canonical: "./" },
-  openGraph: {
-    type: "website",
-    siteName: SITE.name,
-    locale: SITE.locale,
-    url: "./",
-    title: SITE.name,
-    description: SITE.tagline,
-  },
+  openGraph: SITE_OPEN_GRAPH,
   twitter: { card: "summary_large_image" },
   /*
     NO `robots` HERE, deliberately. A page with no robots tag is indexable —
@@ -124,6 +138,19 @@ export const defaultMetadata: Metadata = {
     alongside it, so every 404 carried two robots tags that disagree. The
     pages that must stay out of search set `noindex` through `buildMetadata`.
   */
+};
+
+/**
+ * The homepage's canonical and share URL — the two fields `defaultMetadata`
+ * no longer carries (see the note there). The whole Open Graph block is
+ * repeated rather than only `url`, because Next replaces a parent's
+ * `openGraph` object wholesale: `{ url: "/" }` alone would drop the site
+ * name, locale, title and description. `images` stays absent, which is what
+ * lets app/opengraph-image.tsx keep supplying the homepage's card.
+ */
+export const homeMetadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { ...SITE_OPEN_GRAPH, url: "/" },
 };
 
 /** Build per-page metadata without repeating the shared defaults. */

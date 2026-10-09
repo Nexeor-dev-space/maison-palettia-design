@@ -8,7 +8,7 @@ import { useSyncExternalStore } from "react";
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { Reveal } from "@/components/motion/Reveal";
 import { findBooking, useBookings } from "@/lib/booking";
-import { bookingTerms } from "@/lib/constants";
+import { BOOKING_TERMS, bookingTerms, CONTACT, REFERENCE_CHANNEL_SET } from "@/lib/constants";
 
 /**
  * The confirmation, read back from the reference in the URL.
@@ -75,13 +75,15 @@ export function Confirmation() {
         changes everywhere at once when a backend is wired. This page's own
         version was the only one of the four that was right — a request, kept
         in this browser, confirmed once the studio has the reference — and it
-        is what the shared sentence says. It no longer says "a place" or "a
-        seat" either, so it stays true of a pass, which holds no seat until it
-        is redeemed against a date.
+        is what the shared sentence says, less "send them your reference"
+        while there is nowhere to send it (see <SendReference> below). It no
+        longer says "a place" or "a seat" either, so it stays true of a pass,
+        which holds no seat until it is redeemed against a date.
       */}
       <p className="mt-8 max-w-[42rem] text-fine leading-[1.8] text-text/75">
         {bookingTerms()}
       </p>
+      <SendReference />
 
       <div className="mt-11 flex flex-wrap items-center gap-x-9 gap-y-5">
         <BlobButton href="/events" className="px-7 py-4">
@@ -104,6 +106,61 @@ export function Confirmation() {
         </Link>
       </div>
     </>
+  );
+}
+
+/*
+  WHERE "SEND THEM YOUR REFERENCE" GOES — said only when there is somewhere.
+
+  The request line asks the customer to send their reference to the studio
+  only while REFERENCE_CHANNEL_SET says a channel exists (see the note over
+  BOOKING_TERMS in lib/constants.ts), and this page is where they are holding
+  the reference when they read it, so it names the channel as a link instead
+  of leaving them to go and find one: the studio's email, its phone, or — with
+  neither published but the form wired — the contact page. Today all three
+  are missing, the line ends at "keep the reference you are given", and this
+  renders nothing. Nor does it under the `recorded` or `paid` sentences,
+  which ask the customer to send nothing.
+
+  The links take the contact page's own treatment for an address and a
+  number — a hairline that warms to Terracotta — so they read as links in a
+  sentence without relying on colour alone.
+*/
+const SEND_LINK =
+  "border-b border-line pb-0.5 text-text transition-colors duration-300 ease-soft hover:border-terracotta";
+
+function SendReference() {
+  if (!REFERENCE_CHANNEL_SET || bookingTerms() !== BOOKING_TERMS.request) return null;
+
+  const email = CONTACT.email ? (
+    <a href={`mailto:${CONTACT.email}`} className={SEND_LINK}>
+      {CONTACT.email}
+    </a>
+  ) : null;
+  const phone = CONTACT.phone ? (
+    <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className={SEND_LINK}>
+      {CONTACT.phone}
+    </a>
+  ) : null;
+
+  return (
+    <p className="mt-3 max-w-[42rem] text-fine leading-[1.8] text-text/75">
+      {email || phone ? (
+        <>
+          Send it to {email}
+          {email && phone ? " or " : null}
+          {phone}.
+        </>
+      ) : (
+        <>
+          Send it through the{" "}
+          <Link href="/contact" className={SEND_LINK}>
+            contact page
+          </Link>
+          .
+        </>
+      )}
+    </p>
   );
 }
 

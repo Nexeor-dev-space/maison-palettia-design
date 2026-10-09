@@ -78,6 +78,15 @@ interface LocationSummary {
    * soonest first — the catalogue is date-sorted. It was only the first
    * session at all, so a date that had gone by went on being called "Next".
    * Empty is allowed: the mall is still where the studio sets up.
+   *
+   * FULL SESSIONS STAY IN, ON PURPOSE — unlike the homepage's "next date"
+   * chip in <TwoWaysToCreate>, which skips them. That chip sits under "A date
+   * and a seat / Booked online" and so offers a seat; this plate answers
+   * "when is the studio next at this mall", which a fully booked session
+   * still answers — the studio is there that day, and the card for it sits
+   * just above saying "Fully booked". TODO(client): confirm that is what
+   * "Next" should mean here; if it should be the next bookable date, filter
+   * with `isBookable(workshop, renderedAt)` below instead.
    */
   upcoming: Workshop[];
 }

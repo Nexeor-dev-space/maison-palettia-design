@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Written by `payload migrate:create`, committed, and never hand-edited.
+    // Payload's template leaves the `payload` and `req` arguments of `up`/
+    // `down` unused in every migration, so linting them is only noise
+    // (docs/cms/research/00-spike.md, G16).
+    "migrations/**",
   ]),
 ]);
 
