@@ -426,9 +426,13 @@ const INTRO_SHAPES: readonly ShapePlan[] = groundShapes("sage");
  * not have. See lib/privateEvents.ts for the TODO that turns this image-led
  * the day the studio shoots a group.
  *
- * The copy says these are the kinds of group a session can be built around —
- * a description of the offer. It is careful never to imply the studio has
- * already run them, which is a claim nobody has verified.
+ * The copy is a description of the offer — what the studio makes, and for
+ * whom — and it stays one. At the client's ask 2026-10-09 it now says the
+ * Maison "creates hands-on experiences for all kinds of groups", which is a
+ * present-tense claim about the business rather than about any booking it has
+ * taken, and still never implies the studio has already run a birthday, a
+ * corporate day or an activation. That distinction is the one to hold on to
+ * when this line is next rewritten: nobody has verified the past tense.
  */
 function WhoItIsFor() {
   return (
@@ -461,8 +465,9 @@ function WhoItIsFor() {
           <Reveal delay={0.2} className="col-span-12 md:col-span-5 md:pb-3">
             {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
             <p className="text-lead text-text/80">
-              Examples of the groups a session can be built around. If yours is
-              none of these, it is still worth asking.
+              Maison Palettia creates hands-on experiences for all kinds of
+              groups. Don&rsquo;t see yours? That&rsquo;s probably a
+              conversation worth having.
             </p>
           </Reveal>
         </div>
