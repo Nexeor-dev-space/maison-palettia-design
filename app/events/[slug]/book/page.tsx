@@ -78,10 +78,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const workshop = await getWorkshopBySlug(slug);
   return buildMetadata({
     title: workshop ? `Book: ${workshop.title}` : "Book an event",
-    description: "Reserve your place at a Maison Palettia event.",
+    description: "Book your place at a Maison Palettia event.",
     path: `/events/${slug}/book`,
-    /* A step in a booking, not a page anyone searches for — and seven of
-       them saying the same thing. app/robots.ts disallows the path as well;
+    /* A step in a booking, not a page anyone searches for — and one of them
+       per dated session that still has seats (`generateStaticParams` above),
+       each saying the same thing. app/robots.ts disallows the path as well;
        this is the tag for any copy a crawler fetched before that line. */
     noindex: true,
   });
@@ -159,11 +160,19 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
  * it was not true: nothing is booked until the next page, and the line was
  * promising the visitor an outcome the button does not deliver. What replaces
  * it says what happens here and what happens next.
+ *
+ * "BOOK", NOT "HOLD". The heading was "Hold Your Place." — on the step
+ * just before checkout and the confirmation print BOOKING_TERMS, which says
+ * the booking is a request not yet confirmed, and while lib/booking.ts has
+ * no backend nothing on the site holds a place. "Book" is the verb that line
+ * itself starts with ("Booking here makes a request…") and the one the next
+ * step's heading continues ("Complete Your Booking."), so the three read as
+ * one sentence instead of a promise and its retraction.
  */
 function Intro() {
   return (
     <Reveal>
-      <h1 className="text-h1 font-light tracking-[-0.02em]">Hold Your Place.</h1>
+      <h1 className="text-h1 font-light tracking-[-0.02em]">Book Your Place.</h1>
       <p className="mt-5 max-w-[32rem] text-body text-text/80">
         Choose your places and tell us who&rsquo;s coming. You&rsquo;ll see everything once more
         before you confirm.

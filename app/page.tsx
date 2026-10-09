@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { Hero } from "@/components/sections/Hero";
 import { ClosingStatement } from "@/components/sections/home/ClosingStatement";
 import { OpeningStatement } from "@/components/sections/home/OpeningStatement";
@@ -5,6 +7,14 @@ import { ExperienceDiscovery } from "@/components/sections/home/ExperienceDiscov
 import { TwoWaysToCreate } from "@/components/sections/home/TwoWaysToCreate";
 import { WaysToExperience } from "@/components/sections/home/WaysToExperience";
 import { WhereWeCreate } from "@/components/sections/home/WhereWeCreate";
+import { homeMetadata } from "@/lib/seo";
+
+/*
+  The homepage's own canonical ("/") and og:url. They used to be inherited
+  from the root layout's defaults, which is also what every 404 inherited —
+  see the note in `defaultMetadata` for why they moved here.
+*/
+export const metadata: Metadata = homeMetadata;
 
 /**
  * ==========================================================================

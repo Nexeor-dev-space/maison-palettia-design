@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { ABOUT_DOORS } from "@/components/layout/AboutMenu";
-import { AboutIcon } from "@/components/layout/bottomNavIcons";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types";
 
@@ -186,11 +185,16 @@ export function AboutSheet({
             }
           >
             <div className="rounded-[1.75rem] bg-cream px-4 pb-7 pt-4 shadow-[0_-10px_30px_-14px_rgba(45,55,72,0.45)]">
+              {/*
+                TEXT ONLY, THE HEADING TOO. The client asked for the About
+                menu to be words and nothing else; the desktop panel already
+                is, and the rows below are, but this heading kept the bottom
+                bar's 16px About glyph beside its word — the one drawing left
+                in the sheet. The slot that opened it still carries that
+                glyph, so nothing is lost in finding the way back.
+              */}
               <div className="flex items-center justify-between gap-4 px-1 pb-3">
-                <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
-                  <span aria-hidden className="block w-4 text-primary">
-                    <AboutIcon size={16} />
-                  </span>
+                <p className="text-label font-medium uppercase tracking-eyebrow text-text">
                   About
                 </p>
                 <button

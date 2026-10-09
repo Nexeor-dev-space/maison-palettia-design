@@ -1,4 +1,5 @@
 import { BOOKING_CONFIGURED, PAYMENT_CONFIGURED } from "@/lib/bookingFlags";
+import { ENQUIRY_CONFIGURED } from "@/lib/enquiry";
 import type {
   ContactDetails,
   EditorialPanel,
@@ -956,9 +957,9 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
    prints the one the flags select (`bookingTerms`). Today that is `request`.
 
      request ... neither flag set. The truth today: a request, not yet
-                 confirmed; no payment; saved in this browser; the studio
-                 confirms once it has the reference — which the customer has
-                 to send, because nothing else will.
+                 confirmed; no payment; saved in this browser. Whether it
+                 then asks the customer to send their reference depends on
+                 there being somewhere to send it — see below.
      recorded .. BOOKING_CONFIGURED only: bookings reach the studio, no money
                  moves through the site.
      paid ...... PAYMENT_CONFIGURED as well: confirmed once payment is in,
@@ -973,13 +974,30 @@ export const HOMEPAGE_FAQ: FaqItem[] = [
    not exist yet. Confirm them with the studio when it does — how a customer
    pays when the site takes no payment is theirs to say, not ours.
 
-   NOTE: "send them your reference" needs a working way to send it. The
-   studio's email and phone are still TODO(client) further up this file;
-   until they are filled the sentence is true and not yet useful.
+   "SEND THEM YOUR REFERENCE" ONLY WHEN THERE IS A WAY TO. Nothing tells
+   the studio about a request today, so the request line ended "the studio
+   confirms it once you send them your reference" — and printed it on every
+   confirmation, checkout and the FAQ while {@link CONTACT} had no email and
+   no phone, WhatsApp had come off the site, and the /contact form was not
+   wired (ENQUIRY_CONFIGURED in lib/enquiry.ts). Every visitor was told to do
+   something the site gave them no way to do; an end-to-end booking ended on
+   that sentence, a Pending status and no channel. So the clause follows the
+   channels: with an email or a phone in CONTACT, or the /contact form wired,
+   it is said, and <Confirmation> prints the address, the number or the
+   contact page as a link under it; with none, the line stops at "keep the
+   reference you are given", which is true and actionable at checkout, on
+   the confirmation and in the FAQ alike.
+   TODO(client): the studio's email and phone, further up this file — filling
+   either one (or wiring the form) switches this back with no other edit.
    ========================================================================== */
+
+/** Somewhere a customer can actually send a reference — see the note above. */
+export const REFERENCE_CHANNEL_SET = Boolean(CONTACT.email || CONTACT.phone || ENQUIRY_CONFIGURED);
+
 export const BOOKING_TERMS = {
-  request:
-    "Booking here makes a request that is not yet confirmed. No payment is taken, the request is saved only in this browser, and the studio confirms it once you send them your reference.",
+  request: REFERENCE_CHANNEL_SET
+    ? "Booking here makes a request that is not yet confirmed. No payment is taken, the request is saved only in this browser, and the studio confirms it once you send them your reference."
+    : "Booking here makes a request that is not yet confirmed. No payment is taken and the request is saved only in this browser, so keep the reference you are given.",
   recorded:
     "Your booking goes straight to the studio. No payment is taken through this site.",
   paid: "Your booking is confirmed once your payment has gone through.",

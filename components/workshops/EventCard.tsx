@@ -69,8 +69,8 @@ import type { Workshop } from "@/types";
  * A DATE GONE BY STILL LISTS, AND STOPS SELLING. lib/workshops.ts keeps every
  * session in the listing on purpose (see `getAllWorkshops`), so a lapsed date
  * is still a card here — but its availability line stops counting seats and
- * says "Date passed", and its contents dim as a full one's do. The card's only
- * action was already "View event", never "Book", so nothing else changes.
+ * says "Date passed", and its photograph dims as a full one's does. The card's
+ * only action was already "View event", never "Book", so nothing else changes.
  *
  * DECIDED TWICE, LIKE EVERY DATE ON THE SITE. app/events/page.tsx takes one
  * `Date.now()` for its whole render and hands it down as `renderedAt`, so the
@@ -126,10 +126,21 @@ export function EventCard({
     A shut date stays in the grid and stays readable — it is still
     information — but stops competing with the ones that can be had.
 
-    ON THE CONTENTS, NOT ON THE CARD. This was `opacity-75` on the <Reveal>,
-    and it never showed: Reveal animates its own element's opacity to 1 and
-    the inline style wins over the class — a full session measured 0.99 on
-    /events. The two halves inside take it instead, which nothing animates.
+    ON THE PHOTOGRAPH, NOT ON THE CARD. This was `opacity-75` on the
+    <Reveal>, and it never showed: Reveal animates its own element's opacity
+    to 1 and the inline style wins over the class — a full session measured
+    0.99 on /events.
+
+    AND NOT ON THE WORDS EITHER. It moved onto both halves inside, which
+    nothing animates, and so for the first time it applied — to text that
+    had been measured at full ink. At 75% the 14px venue, duration and price
+    lines (Charcoal at 75% already) fell to 2.97:1 on Light Sage, the 13px
+    weekday to 2.71:1 and "View event" to 2.64:1, and the card is still a
+    live link, so the inactive-control exemption does not cover it: with
+    the clock past both dates, axe counted 13 violations on /events, not 9.
+    The availability line already says "Fully booked" or "Date passed" in
+    full ink; the picture fading is the quiet half of that, and the words
+    stay at the contrast they were set at.
   */
   const dim = (closed || passed) && "opacity-75";
 
@@ -165,7 +176,7 @@ export function EventCard({
       </div>
 
       {/* ---- what it is -------------------------------------------------- */}
-      <div className={cn("flex flex-1 flex-col px-2 pb-1.5 pt-5 md:px-2.5 md:pt-6", dim)}>
+      <div className="flex flex-1 flex-col px-2 pb-1.5 pt-5 md:px-2.5 md:pt-6">
         <div className="flex items-start justify-between gap-4">
           {/*
             THE DAY AND THE WEEKDAY, AND NO MONTH. The month is the heading

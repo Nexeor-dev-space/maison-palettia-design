@@ -15,7 +15,7 @@ import { getCreativeExperiences } from "@/lib/experiences";
 import {
   formatWorkshopDate,
   getAllWorkshops,
-  hasSessionPassed,
+  isBookable,
   serverClock,
 } from "@/lib/workshops";
 import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
@@ -140,13 +140,24 @@ export async function TwoWaysToCreate() {
     ahead. This page is static, so without the browser's half it would hold
     the build's answer indefinitely. See components/booking/SessionClock.tsx.
 
+    AND THAT STILL HAS A SEAT. The chain dropped a date once it had begun but
+    kept one with no seats left, so with the 11 October session gone by the
+    chip under "A date and a seat / Booked online" read SAT 24 OCT — the
+    Crocheting session, fully booked. A full session is not a date anyone
+    can book, and the event pages' "other dates" (`getRelatedWorkshops`)
+    already skip it, so this asks `isBookable`, the same test: seats left and
+    not yet begun. The browser's half still only re-checks the date — seats
+    are the server's to know. The "Find us" plate on /events keeps full
+    dates on purpose, because it answers a different question; see
+    <WhereWeSetUp>.
+
     `formatWorkshopDate`, not `toLocaleDateString`: it pins the studio's time
     zone, as every date formatter in lib/workshops does, so the weekday and
     the day never depend on where the build machine happens to be.
   */
   const now = serverClock();
   const nextDate = sessions
-    .filter((session) => session.kind !== "diy" && !hasSessionPassed(session, now))
+    .filter((session) => session.kind !== "diy" && isBookable(session, now))
     .reduceRight<ReactNode>(
       (later, session) => (
         <SessionGate

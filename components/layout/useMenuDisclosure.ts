@@ -64,7 +64,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
  *   keyboard ....... focus opens in passing (unchanged), Enter or Space keeps
  *                    it and a second press closes; ArrowDown opens it and
  *                    moves into the panel's first link.
- *   all three ...... Escape and a press outside close it at once.
+ *   all three ...... Escape and a press outside close it at once. A press
+ *                    INSIDE the panel that is not on a link — its padding, a
+ *                    rail heading, the gap between two doors — leaves it
+ *                    open; see the note on `onBlur` below for why that needed
+ *                    saying.
  *
  * WHY A CLAIM AND NOT A TIMER. The obvious fix is "ignore a close within
  * ~300ms of a hover open", and it fixes the tap — those events land in one
@@ -93,6 +97,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * already shut cannot speak for the bar either. The grace still does its job
  * inside one menu: it was only ever for crossing from a trigger to ITS panel.
  *
+ * EXCEPT FROM A PANEL THAT HOLDS THE FOCUS. Shutting a panel makes it
+ * `inert`, and a focused element inside an inert one is blurred to <body> —
+ * measured at 1440: focus on About, ArrowDown onto "About the Maison", then
+ * the mouse passing over "Experiences" swapped the panels and left
+ * `document.activeElement` on BODY, so the next Tab started from the top of
+ * the document. A pointer passing a word is not a request; a keyboard
+ * visitor standing in a panel is. So a hover neither opens another menu over
+ * a panel that holds focus nor lets that panel's own grace timer shut it —
+ * `holdsFocus` below. Focus leaving it, Escape, a press outside and a click
+ * on another trigger all still close it, because each of those moves the
+ * focus (or the visitor) on first.
+ *
  * THE WORD OPENS IT, NOT ITS COLUMN — which is what made that safe. Each
  * region is the full 88px of the bar, and the panels all hang 2px under it.
  * With the whole column opening on hover, a pointer cutting diagonally from
@@ -110,7 +126,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
   state, and it is only ever written from an event, never during a render,
   so the server never sees it hold anything.
 */
-let openMenu: { close: () => void } | null = null;
+interface MenuEntry {
+  close: () => void;
+  /** Whether focus is inside this menu's panel — see "EXCEPT FROM A PANEL". */
+  holdsFocus: () => boolean;
+}
+let openMenu: MenuEntry | null = null;
 
 export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
   const [isOpen, setIsOpen] = useState(false);
@@ -164,10 +185,10 @@ export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
   const focusFirst = useRef(false);
   /*
     This menu's entry in `openMenu`: a stable identity for the comparison,
-    with its `close` pointed at `closeNow` by an effect below once that
-    exists.
+    with its `close` pointed at `closeNow` and its `holdsFocus` at the one
+    below by an effect once those exist.
   */
-  const self = useRef<{ close: () => void }>({ close: () => {} });
+  const self = useRef<MenuEntry>({ close: () => {}, holdsFocus: () => false });
 
   const cancelClose = useCallback(() => {
     if (closeTimer.current) {
@@ -218,6 +239,17 @@ export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
   }, [cancelClose, report]);
 
   /*
+    Focus is in the PANEL — anywhere in the region but the trigger. The
+    trigger sits outside <MenuCard>, which is the part that goes `inert` when
+    the menu shuts, so a focused trigger loses nothing and does not count.
+    See "EXCEPT FROM A PANEL THAT HOLDS THE FOCUS" at the top.
+  */
+  const holdsFocus = useCallback(() => {
+    const active = document.activeElement;
+    return Boolean(active && active !== trigger.current && region.current?.contains(active));
+  }, []);
+
+  /*
     HOVER, BUT ONLY A REAL ONE. These are what the trigger, the region and
     the card wire to the pointer arriving and leaving. A touch's emulated
     `mouseenter` is not somebody resting a pointer on the word, and a touch's
@@ -230,7 +262,10 @@ export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
     is already open — see "THE WORD OPENS IT" at the top.
   */
   const hoverOpen = useCallback(() => {
-    if (pointerType.current !== "touch") openNow();
+    if (pointerType.current === "touch") return;
+    // Passing over this word must not shut a panel the keyboard is in.
+    if (openMenu && openMenu !== self.current && openMenu.holdsFocus()) return;
+    openNow();
   }, [openNow]);
 
   const hoverStay = useCallback(() => {
@@ -238,8 +273,10 @@ export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
   }, [cancelClose]);
 
   const hoverClose = useCallback(() => {
-    if (pointerType.current !== "touch") closeSoon();
-  }, [closeSoon]);
+    // Nor may the pointer drifting out of the region shut it from under them.
+    if (pointerType.current === "touch" || holdsFocus()) return;
+    closeSoon();
+  }, [closeSoon, holdsFocus]);
 
   /** The first link in the panel — the region holds the trigger and the card,
       and the trigger is a button, so the first anchor in it is the panel's. */
@@ -314,10 +351,12 @@ export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
   useEffect(() => cancelClose, [cancelClose]);
 
   /* Wire this menu's entry to its own close — again whenever `closeNow` is
-     rebuilt, which an inline `onOpenChange` would do every render. */
+     rebuilt, which an inline `onOpenChange` would do every render — and to
+     its own focus check, which never is. */
   useEffect(() => {
     self.current.close = closeNow;
-  }, [closeNow]);
+    self.current.holdsFocus = holdsFocus;
+  }, [closeNow, holdsFocus]);
 
   /* And take it out of `openMenu` on the way out, so a later open never calls
      into an unmounted menu. Mount-only, so a rebuilt `closeNow` above cannot
@@ -409,11 +448,31 @@ export function useMenuDisclosure(onOpenChange?: (open: boolean) => void) {
       const target = event.target as HTMLElement | null;
       if (target?.closest("a[href]")) closeNow();
     },
-    // Fires when focus leaves the region entirely, which is how a keyboard
-    // visitor tabbing past the last item closes it. No grace period here —
-    // focus does not drift across a gap the way a pointer does.
+    /*
+      FOCUS MOVING TO SOMETHING OUTSIDE THE REGION — which is how a keyboard
+      visitor tabbing past the last item closes it. No grace period here:
+      focus does not drift across a gap the way a pointer does.
+
+      ONLY TO SOMETHING. This was "focus is no longer in here", and that
+      includes focus going nowhere: press anything in the panel that cannot
+      take focus — its padding, the gap between two doors, a rail heading
+      such as "Create Anytime" or the line under it — and the browser moves
+      focus to <body>, `relatedTarget` is null, and the menu shut under the
+      press. It used to take a keyboard visitor to get there; once a click or
+      a tap opened the menu (and focused the trigger, as Chrome, Edge,
+      Firefox and Android do), every pointer visitor did. Measured on all
+      three menus, mouse at 1440 and touch at 1024: open, press the panel's
+      padding, `aria-expanded` back to "false" and focus on BODY — and about
+      a fifth of each panel's area is that kind of surface.
+
+      A null `relatedTarget` is not the keyboard leaving: Tab out of a panel
+      always lands on something, because the header is never the last thing
+      on a page. The press that really is outside the region is the document
+      `pointerdown` listener's to close, and it already does.
+    */
     onBlur: (event: React.FocusEvent<HTMLDivElement>) => {
-      if (!event.currentTarget.contains(event.relatedTarget as Node)) closeNow();
+      const next = event.relatedTarget;
+      if (next instanceof Node && !event.currentTarget.contains(next)) closeNow();
     },
     onFocus: () => {
       // Not when Escape put the focus here — see `dismissed` above.
