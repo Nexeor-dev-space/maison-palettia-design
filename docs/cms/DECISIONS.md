@@ -22,3 +22,21 @@ SPEC.md disagree, this file wins.
    this machine). `.claude/launch.json` encodes this.
 5. Everything else configurable lives in the admin panel (SPEC §C.3), with
    no redeploy — the owner's hard constraint.
+6. **`NEXT_PUBLIC_SERVER_URL` is fixed per build.** Next inlines
+   `NEXT_PUBLIC_*` variables into the server bundle (confirmed in the Phase 1
+   review: the production chunk carries the literal, and the standalone
+   server's csrf allowlist is the build-time value). A domain change
+   therefore needs `next build` on the host with the new `.env`, not a
+   restart; a Dockerfile that only COPYs the build output inherits the build
+   host's value. If runtime configurability is ever wanted, rename the key
+   without the `NEXT_PUBLIC_` prefix (nothing reads it on the client) — a
+   SPEC §C.1 decision, not made here.
+7. **Production-mode verification is blocked on the database gate.** With
+   `NODE_ENV=production` and no `sslmode` in `DATABASE_URL`, the config
+   forces verified TLS (SPEC §A.5) and today's owner Postgres refuses it
+   ("The server does not support SSL connections"), so `getPayload` rejects
+   in `instrumentation.ts` and Next keeps a dead process up answering 500.
+   The Phase 1 standalone smoke was run with `?sslmode=disable` in the
+   process environment only. Phase 5B: health-check a real route (e.g.
+   `/api/users/me` → `{"user":null}`), not the port, and decide whether
+   `register()` should exit non-zero so the supervisor restarts and alerts.
