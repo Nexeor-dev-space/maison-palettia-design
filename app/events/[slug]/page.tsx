@@ -775,11 +775,20 @@ function PrimaryAction({
     the project says. So the page does not invent a date — it sends them to
     the one place that holds the real ones.
 
-    AND NOT "NO BOOKING NEEDED" EITHER, which is what this first became.
-    <WalkInFacts> already says it two rows up — "How it runs: Walk-in / No
-    booking needed" — and that row carries the same note about not repeating
-    a label. The statement's job is the half the page does NOT say anywhere
-    else, which is that turning up has a when.
+    WHAT THE SENTENCE UNDER IT NOW SAYS, AND WHAT IT STOPPED SAYING. It read
+    "there is nothing to reserve for this one. But the studio travels, and
+    each date runs at a mall for that day only" — written that way because
+    <WalkInFacts> already prints "No booking needed" two rows up, so the
+    statement's job was the half the page says nowhere else: that turning up
+    has a when.
+
+    The client has replaced it with "just drop in when the experience is
+    available and start creating". "When the experience is available" keeps
+    that when, loosely; "just drop in" does lean back on the label two rows
+    above it, and the travelling-studio detail has gone entirely. The link
+    below is now the only thing on this page carrying it — which is an
+    argument for keeping that link exactly where it is, not for rewriting
+    their sentence.
 
     THE EYEBROW OVER THE TITLE STILL READS "CREATE ANYTIME" AND SHOULD. That
     is the client's own site-wide name for this half of the menu — see
@@ -794,8 +803,7 @@ function PrimaryAction({
         Come on a day we are there.
       </p>
       <p className="mt-3 max-w-[30rem] text-body text-text/85">
-        There is nothing to reserve for this one. But the studio travels, and
-        each date runs at a mall for that day only.
+        Just drop in when the experience is available and start creating.
       </p>
       <PeelNote
         href="/events#where-we-set-up"
