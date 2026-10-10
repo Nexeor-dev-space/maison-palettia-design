@@ -90,7 +90,9 @@ scripts/backup.sh          # pg_dump + media/ + private/, rotated (nightly from 
 | `scripts/backup.sh` | nightly backup with rotation |
 | `deploy/maison-palettia.service` | systemd unit |
 | `deploy/nginx.conf.example` | TLS, `X-Forwarded-For`, login rate limits, upload size |
-| `Dockerfile`, `docker-compose.yml`, `.dockerignore` | the Docker alternative — runtime only; the host builds |
+| `Dockerfile.runtime` (+ `Dockerfile.runtime.dockerignore`), `docker-compose.yml` | the Docker alternative — runtime only; the host builds |
+| `nixpacks.toml`, `.dockerignore`, `scripts/start-standalone.sh` | Coolify / Nixpacks — builds from source (docs/cms-runbook.md, "Deploying with Coolify") |
+| `nixpacks.toml`, `.dockerignore`, `scripts/start-standalone.sh` | Coolify / Nixpacks — builds from source (see docs/cms-runbook.md, "Deploying with Coolify") |
 
 Rules that bite: migrations are **additive within a release** (runbook §7);
 `NEXT_PUBLIC_SERVER_URL` is compiled in, so changing it needs a deploy;

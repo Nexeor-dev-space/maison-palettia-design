@@ -429,9 +429,9 @@ scripts/deploy.sh --restart compose
 does steps 1–4 on the host, then `docker compose build app` (tagged
 `maison-palettia:<release>`) and `docker compose up -d app`, health check,
 purge. `--rollback` re-runs the previous tag. The
-[`Dockerfile`](../Dockerfile) is **runtime only** — it copies
+[`Dockerfile.runtime`](../Dockerfile.runtime) is **runtime only** — it copies
 `.next/standalone`, `.next/static` and `public/`; it never builds (the build
-needs the database). [`.dockerignore`](../.dockerignore) is a whitelist that
+needs the database). [`Dockerfile.runtime.dockerignore`](../Dockerfile.runtime.dockerignore) (BuildKit picks it up for `-f Dockerfile.runtime`) is a whitelist that
 also keeps `.env` and the traced snapshot of `media/` out of the image.
 The host that runs `npm ci` must match the image (linux/amd64, glibc): the
 traced `node_modules` carry sharp's native binary. `media/` and `private/`
@@ -471,3 +471,41 @@ SPEC §A.5, "the Vercel delta" — what changes, nothing else does:
 | Red banner about the Mamo webhook address | the site address changed: Payments → Register/Update webhook |
 | Pages show old content after an edit | should not happen (on-demand revalidation); force it with `node scripts/revalidate.mjs` on the server |
 | Uploads disappear after a deploy | something started the server from `.next/standalone` instead of `releases/current`; check `ExecStart`. The boot check in `cms/seed/defaults.ts` refuses an upload folder inside `.next/`. |
+
+## Deploying with Coolify (Nixpacks)
+
+Coolify builds this repository from source with Nixpacks — a different path
+from `scripts/deploy.sh` and `Dockerfile.runtime` above. What makes it work:
+
+- **`.dockerignore`** keeps the source in the build context (only
+  `node_modules`, `.next`, `.git`, `.env*`, `media/`, `private/` are left
+  out). The runtime-only whitelist lives in `Dockerfile.runtime.dockerignore`;
+  putting it back at the root strips `.nixpacks/` and the source and the
+  build fails with `"/.nixpacks/nixpkgs-….nix": not found`.
+- **`nixpacks.toml`** keeps install/build as `npm ci` / `npm run build` and
+  starts with `npm run start:prod` = `payload migrate` then
+  `scripts/start-standalone.sh` (links `.next/static` and `public/` into the
+  standalone folder, binds `0.0.0.0`, listens on `PORT`, default 3000).
+
+### Coolify settings
+
+| Setting | Value |
+|---|---|
+| Build pack | Nixpacks |
+| Ports exposes | `3000` |
+| Health check path | `/api/users/me` (expects 200) |
+| Persistent storage | volume → `/app/media` (uploads) and volume → `/app/private` (invoice PDFs). **Without these every deploy deletes uploaded photos and invoices.** |
+
+### Environment variables (tick **Build Variable** on the first three — `next build` prerenders from the database)
+
+| Key | Notes |
+|---|---|
+| `DATABASE_URL` | Must end in `?sslmode=disable` while the Postgres server has no TLS. In production the app otherwise insists on a verified TLS connection and fails with "The server does not support SSL connections". When TLS is enabled on Postgres, switch to `?sslmode=verify-full&sslrootcert=…` (§ Database gate). |
+| `PAYLOAD_SECRET` | Must be identical everywhere the same database is used (laptops included) — it decrypts the payment/email keys stored in the admin. Rotating it needs `cms/scripts/reseal.ts` first. |
+| `NEXT_PUBLIC_SERVER_URL` | `https://<the public domain>`; baked in at build time (CSRF allowlist). Also set Settings → Site details → Site address to the same URL. |
+| `NODE_OPTIONS` | `--max-old-space-size=1536` recommended. The build measured ~850 MB peak and passes at 768, but with little headroom. |
+| `NIXPACKS_NODE_VERSION` | `22` |
+
+`scripts/preflight-db.mjs` is not run by Coolify; the database gate (dedicated
+non-superuser role, TLS or a private network) is still owed before real
+customer data lands — see "Database gate".

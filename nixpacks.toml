@@ -1,0 +1,19 @@
+# ==========================================================================
+# Nixpacks plan overrides — used by Coolify (docs/cms-runbook.md,
+# "Deploying with Coolify")
+# ==========================================================================
+#
+# Install and build stay Nixpacks' defaults (`npm ci`, `npm run build`).
+# `next build` prerenders through Payload's Local API, so DATABASE_URL,
+# PAYLOAD_SECRET and NEXT_PUBLIC_SERVER_URL must be available at BUILD time
+# (Coolify: tick "Build Variable" on each).
+#
+# Start: apply any pending migrations, then run the standalone server
+# (next.config.ts has `output: "standalone"`, which `next start` does not
+# serve). See scripts/start-standalone.sh.
+
+[phases.setup]
+nixPkgs = ["nodejs_22", "npm-9_x", "openssl"]
+
+[start]
+cmd = "npm run start:prod"

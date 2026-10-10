@@ -7,6 +7,7 @@
     "dev": "next dev -p 3200",
     "build": "next build && bash scripts/prune-standalone.sh",
     "start": "next start",
+    "start:prod": "payload migrate && bash scripts/start-standalone.sh",
     "lint": "eslint",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
