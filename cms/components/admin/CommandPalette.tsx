@@ -19,7 +19,7 @@ import { Icon, type IconName } from "./icons";
  *
  * WHAT IT SEARCHES. Typing runs, in parallel and debounced, one REST query
  * per collection the signed-in role may read — pages, experiences,
- * sessions, orders (reference, name, email, phone), customers, enquiries,
+ * sessions, journal posts, orders (reference, name, email, phone), customers, enquiries,
  * media, promo codes, staff, email templates — through Payload's own
  * `?where[or][…][like]=` so access control is Payload's, not a copy kept
  * here; a 403 is simply an empty group. Settings pages and the actions
@@ -92,6 +92,16 @@ const SOURCES: Source[] = [
     sub: (d) => (typeof d.startsAt === "string" ? new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dubai", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(d.startsAt)) : undefined),
   },
   {
+    slug: "posts",
+    group: "Journal",
+    icon: "pen",
+    roles: ["admin", "editor", "front-desk"],
+    fields: ["title", "slug", "excerpt"],
+    draft: true,
+    label: (d) => str(d.title) || str(d.slug),
+    sub: (d) => `/journal/${str(d.slug)}`,
+  },
+  {
     slug: "orders",
     group: "Orders",
     icon: "bag",
@@ -112,6 +122,7 @@ type Static = { label: string; href: string; icon: IconName; group: string; role
 
 const STATIC: Static[] = [
   { label: "Add a session", href: "/collections/sessions/create", icon: "plus", group: "Actions", roles: ["admin", "editor"], keywords: "new create date event workshop" },
+  { label: "Write a journal post", href: "/collections/posts/create", icon: "pen", group: "Actions", roles: ["admin", "editor"], keywords: "new blog article story news journal write" },
   { label: "Create a desk booking", href: "/collections/orders?desk=1", icon: "bag", group: "Actions", roles: ["admin", "front-desk"], keywords: "manual order walk-in cash card" },
   { label: "Open check-in", href: "/check-in", icon: "check", group: "Actions", roles: ["admin", "front-desk"], keywords: "scan door tickets arrive attendees" },
   { label: "Invite a staff member", href: "/collections/users?invite=1", icon: "users", group: "Actions", roles: ["admin"], keywords: "user colleague editor front desk login" },
@@ -120,6 +131,8 @@ const STATIC: Static[] = [
   { label: "Pages", href: "/collections/pages", icon: "page", group: "Go to", roles: ["admin", "editor", "front-desk"] },
   { label: "Experiences", href: "/collections/experiences", icon: "star", group: "Go to", roles: ["admin", "editor", "front-desk"], keywords: "workshops activities" },
   { label: "Sessions", href: "/collections/sessions", icon: "calendar", group: "Go to", roles: ["admin", "editor", "front-desk"], keywords: "dates calendar events" },
+  { label: "Journal", href: "/collections/posts", icon: "pen", group: "Go to", roles: ["admin", "editor", "front-desk"], keywords: "blog posts articles stories news" },
+  { label: "Journal categories", href: "/collections/post-categories", icon: "pen", group: "Go to", roles: ["admin", "editor", "front-desk"], keywords: "blog sections topics" },
   { label: "Media", href: "/collections/media", icon: "image", group: "Go to", roles: ["admin", "editor", "front-desk"], keywords: "photos images pictures upload swap" },
   { label: "Orders", href: "/collections/orders", icon: "bag", group: "Go to", roles: ["admin", "front-desk"], keywords: "bookings refunds" },
   { label: "Customers", href: "/collections/customers", icon: "person", group: "Go to", roles: ["admin", "front-desk"] },

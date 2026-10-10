@@ -5,6 +5,8 @@ import { Faqs } from "./Faqs";
 import { Pages } from "./Pages";
 import { Passes } from "./Passes";
 import { Policies } from "./Policies";
+import { PostCategories } from "./PostCategories";
+import { Posts } from "./Posts";
 import { Programmes } from "./Programmes";
 import { Redirects } from "./Redirects";
 import { SessionInventory } from "./SessionInventory";
@@ -18,6 +20,8 @@ export { Faqs } from "./Faqs";
 export { FIXED_PAGE_SLUGS, isFixedPageSlug, Pages, type FixedPageSlug } from "./Pages";
 export { Passes } from "./Passes";
 export { Policies, policyBlocks } from "./Policies";
+export { PostCategories } from "./PostCategories";
+export { journalEditor, Posts } from "./Posts";
 export { DOODLE_NAMES, DOODLE_OPTIONS, MARK_INKS, PROGRAMME_TONES, Programmes } from "./Programmes";
 export { REDIRECT_FROM, REDIRECT_TO, Redirects } from "./Redirects";
 export { SessionInventory } from "./SessionInventory";
@@ -48,5 +52,7 @@ export const contentCollections: CollectionConfig[] = [
   Passes,
   Testimonials,
   Vibes,
+  Posts,
+  PostCategories,
   Redirects,
 ];

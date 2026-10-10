@@ -39,6 +39,9 @@ const C: Record<string, { create: string; read: string; update: string; delete: 
   faqs: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   passes: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   testimonials: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
+  posts: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
+  // journal categories: no drafts; deleting one is admin-only (and refused while posts use it)
+  "post-categories": { create: "YY--", read: "YYYY", update: "YY--", delete: "Y---" },
   venues: { create: "YY--", read: "YYYY", update: "YY--", delete: "YY--" },
   vibes: { create: "YY--", read: "YYYY", update: "YY--", delete: "YY--" },
   redirects: { create: "YY--", read: "YYYY", update: "YY--", delete: "YY--" },
