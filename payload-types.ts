@@ -5895,11 +5895,11 @@ export interface SiteSetting {
       | null;
   };
   /**
-   * Only rows with a URL are shown. Instagram and Facebook have icons; the others render as text links.
+   * Only rows with a URL are shown, in the footer's Follow column and on the Contact page. Every platform here has its own icon.
    */
   socials?:
     | {
-        platform: 'instagram' | 'facebook' | 'tiktok' | 'youtube' | 'x' | 'linkedin';
+        platform: 'instagram' | 'facebook' | 'tiktok' | 'pinterest' | 'youtube' | 'x' | 'linkedin';
         url?: string | null;
         id?: string | null;
       }[]

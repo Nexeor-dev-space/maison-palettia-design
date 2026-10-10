@@ -386,6 +386,7 @@ export const SiteSettings: GlobalConfig = {
                         { label: "Instagram", value: "instagram" },
                         { label: "Facebook", value: "facebook" },
                         { label: "TikTok", value: "tiktok" },
+                        { label: "Pinterest", value: "pinterest" },
                         { label: "YouTube", value: "youtube" },
                         { label: "X", value: "x" },
                         { label: "LinkedIn", value: "linkedin" },
@@ -402,9 +403,15 @@ export const SiteSettings: GlobalConfig = {
               ],
               {
                 description:
-                  "Only rows with a URL are shown. Instagram and Facebook have icons; the others render as text links.",
-                maxRows: 6,
-                defaultValue: [{ platform: "instagram" }, { platform: "facebook" }],
+                  "Only rows with a URL are shown, in the footer's Follow column and on the Contact page. Every platform here has its own icon.",
+                maxRows: 7,
+                defaultValue: [
+                  { platform: "instagram", url: "https://www.instagram.com/maison.palettia/" },
+                  { platform: "facebook", url: "https://www.facebook.com/profile.php?id=61594873157618" },
+                  { platform: "tiktok", url: "https://www.tiktok.com/@maison.palettia" },
+                  { platform: "pinterest", url: "https://www.pinterest.com/1fz0ruautd3l2gr85mxiksyx4z7ejo/" },
+                  { platform: "linkedin", url: "https://www.linkedin.com/company/maison-palettia/" },
+                ],
               },
             ),
           ],
