@@ -9,8 +9,10 @@ import { expireHoldsTask } from "./tasks/expireHolds";
 import { notifyStaffTask } from "./tasks/notifyStaff";
 import { generateInvoicePdfTask, issueInvoiceTask, issueTicketsTask } from "./tasks/orderSteps";
 import { processRefundTask } from "./tasks/processRefund";
+import { purgeRetentionTask } from "./tasks/purgeRetention";
 import { reconcileInventoryTask } from "./tasks/reconcileInventory";
 import { reconcilePaymentsTask } from "./tasks/reconcilePayments";
+import { rollupAnalyticsTask } from "./tasks/rollupAnalytics";
 import { sendDailyDigestTask } from "./tasks/sendDailyDigest";
 import { sendEmailTask } from "./tasks/sendEmail";
 import { sendRemindersTask } from "./tasks/sendReminders";
@@ -55,6 +57,8 @@ export { enqueue } from "./shared";
  *   complete-orders         0 0 1 * * *          default  0              complete-orders
  *   reconcile-inventory     0 15 1 * * *         default  0              reconcile-inventory
  *   send-daily-digest       0 0 * * * * (gated)  email    1              send-daily-digest
+ *   rollup-analytics        0 7 * * * *          default  1              rollup-analytics
+ *   purge-retention         0 30 2 * * *         default  0              purge-retention
  *   finalize-order (wf)     on capture/desk      default  3, exp 30 s    order:<orderId>
  *   issue-tickets           workflow / action    default  3              order:<orderId>
  *   issue-invoice           workflow / action    default  3              order:<orderId>
@@ -67,7 +71,7 @@ export { enqueue } from "./shared";
  * `runJobs` runs a picked batch in parallel and overlapping ticks can pick
  * new jobs, so EXCLUSIVITY COMES ONLY FROM CONCURRENCY KEYS: a sweep has a
  * fixed key (one at a time), per-entity work keys on the entity. Phase 4A
- * adds `rollup-analytics` and `purge-retention` here.
+ * added `rollup-analytics` and `purge-retention` (cms/jobs/tasks/).
  *
  * WHY THE PHASE 1 KEYS ARE HERE:
  *
@@ -110,6 +114,9 @@ export const jobsConfig: JobsConfig = {
     completeOrdersTask,
     reconcileInventoryTask,
     sendDailyDigestTask,
+    // Phase 4A (analytics): hourly page-view summaries, nightly retention purge.
+    rollupAnalyticsTask,
+    purgeRetentionTask,
     // Per-order / per-entity work.
     issueTicketsTask,
     issueInvoiceTask,

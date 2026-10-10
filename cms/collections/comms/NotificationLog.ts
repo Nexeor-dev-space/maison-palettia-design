@@ -66,6 +66,11 @@ export const NotificationLog: CollectionConfig = {
     description: "Every email the site has sent or tried to send, with its outcome. Resend from here; wording lives under Email templates.",
     hidden: ({ user }) => roleOf({ user } as never) === "editor" || roleOf({ user } as never) === undefined,
     listSearchableFields: ["to", "subject", "templateKey", "providerMessageId"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "send", heading: "Nothing sent yet", body: "Every email the site sends — confirmations, tickets, staff alerts, login links — is logged here with its outcome, so you can see what a customer received and resend it. Set up and verify Email sending first; until then emails are logged but not delivered.", actions: [{ label: "Email settings", href: "/globals/email-settings" }] } },
+      ],
+    },
   },
   defaultSort: "-createdAt",
   hooks: {
@@ -98,7 +103,11 @@ export const NotificationLog: CollectionConfig = {
           defaultValue: "queued",
           index: true,
           options: [...NOTIFICATION_STATUSES],
-          admin: { width: "35%", readOnly: true },
+          admin: {
+            width: "35%",
+            readOnly: true,
+            components: { Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: { labels: Object.fromEntries(NOTIFICATION_STATUSES.map((o) => [o.value, o.label])), tones: { sent: "ok", queued: "lilac", failed: "bad", skipped: "muted" } } } },
+          },
         },
       ],
     },

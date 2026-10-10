@@ -31,8 +31,6 @@ import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
  *
  *   /checkout, /payment-success, /booking-status, /events/{slug}/book
  *       steps in a booking, not destinations
- *   /blog       the unbuilt Journal placeholder
- *   /button-preview   a temporary design-review page
  *   /loyalty    while PASSES_CONFIGURED is false — the page's own noindex is
  *               tied to the same flag, so the two lift together
  *

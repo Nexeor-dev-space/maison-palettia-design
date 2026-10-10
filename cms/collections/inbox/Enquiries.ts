@@ -76,7 +76,10 @@ export const Enquiries: CollectionConfig = {
     // version of the same filter.
     groupBy: true,
     components: {
-      beforeListTable: ["@/cms/components/inbox/StatusChips#StatusChips"],
+      beforeListTable: [
+        "@/cms/components/inbox/StatusChips#StatusChips",
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "mail", heading: "Inbox is empty", body: "Messages from the contact form and the private-events form land here with a reference, so a colleague can reply from their own email and mark it done. New messages also alert whoever is listed under Settings → Who gets notified." } },
+      ],
     },
   },
   defaultSort: "-createdAt",

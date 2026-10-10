@@ -35,10 +35,10 @@ import { previewUrl } from "@/cms/lib/publicUrl";
 export const CONTENT_GROUP = "Content";
 
 /** §D: `versions: { drafts: { autosave: { interval: 1500 }, schedulePublish: true }, maxPerDoc: 25 }`. */
-export const contentDrafts: NonNullable<CollectionConfig["versions"]> = {
+export const contentDrafts = {
   drafts: { autosave: { interval: 1500 }, schedulePublish: true },
   maxPerDoc: 25,
-};
+} satisfies NonNullable<CollectionConfig["versions"]>;
 
 /** Collections with drafts: published rows for the public, everything for content staff. */
 export const draftedContentAccess: CollectionConfig["access"] = {

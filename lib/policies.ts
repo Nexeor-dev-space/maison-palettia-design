@@ -678,18 +678,6 @@ export const POLICIES: readonly Policy[] = [
   },
 ];
 
-/**
- * One policy by slug, or null — from the in-file copy.
- *
- * TODO(phase2-cleanup): synchronous, so it cannot read the CMS. Kept with
- * its signature so the routes that call it keep compiling while they move to
- * {@link getPolicyBySlug}; delete it, `POLICIES` and the age tables above
- * once nothing imports them.
- */
-export function getPolicy(slug: string): Policy | null {
-  return POLICIES.find((policy) => policy.slug === slug) ?? null;
-}
-
 /* ==========================================================================
    FROM THE CMS (Phase 2, SPEC §G.1)
 

@@ -66,6 +66,11 @@ export const Experiences: CollectionConfig = {
     defaultColumns: ["name", "kind", "status", "order", "_status", "updatedAt"],
     description: "The creative activities. Scheduled dates for an experience are Sessions.",
     listSearchableFields: ["name", "description", "slug"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "star", heading: "No experiences yet", body: "An experience is an activity the studio offers — Create Anytime (walk in) or Create Together (booked for a date). Sessions are the dates of a Create Together experience.", actions: [{ label: "Add an experience", href: "/collections/experiences/create", primary: true }] } },
+      ],
+    },
     preview: previewFor("experiences"),
   },
   defaultSort: "order",

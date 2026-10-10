@@ -33,7 +33,9 @@ export const SettingsAudit: CollectionConfig = {
   slug: "settings-audit",
   labels: { singular: "Settings change", plural: "Settings changes" },
   admin: {
-    group: "System",
+    // With the admin-only settings it audits (4B review); also what makes the
+    // "Settings (admin)" group come before "System" in the sidebar (navOrder.ts).
+    group: "Settings (admin)",
     useAsTitle: "field",
     defaultColumns: ["at", "global", "field", "from", "to", "user"],
     description: "Every change to a behaviour-changing setting, with who made it. Read-only.",

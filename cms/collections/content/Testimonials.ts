@@ -27,6 +27,11 @@ export const Testimonials: CollectionConfig = {
     defaultColumns: ["attribution", "experience", "permissionOnFile", "_status", "updatedAt"],
     description: "Quotes from visitors. Only quotes with written permission on file can be published.",
     listSearchableFields: ["quote", "attribution"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "text", heading: "No testimonials yet", body: "Short quotes from guests, shown on the site where a page asks for them. Tick “permission on file” once the person has agreed to be quoted — only those are published.", actions: [{ label: "Add a testimonial", href: "/collections/testimonials/create", primary: true }] } },
+      ],
+    },
   },
   defaultSort: "-createdAt",
   versions: contentDrafts,

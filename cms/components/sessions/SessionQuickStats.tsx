@@ -94,11 +94,8 @@ export function SessionQuickStats() {
   if (!stats) return null;
 
   return (
-    <div
-      className="mp-session-stats"
-      aria-label="Seats"
-      style={{ display: "flex", flexWrap: "wrap", gap: "0.4em", alignItems: "center", marginInlineEnd: "calc(var(--base) / 2)" }}
-    >
+    // Layout lives in custom.scss (`.mp-session-stats`) so a phone can put the chips on their own row.
+    <div className="mp-session-stats" aria-label="Seats">
       {stats.sold !== undefined ? <Chip label="Sold" value={stats.sold} /> : null}
       {stats.held !== undefined ? <Chip label="Held" value={stats.held} /> : null}
       {stats.available !== undefined ? (

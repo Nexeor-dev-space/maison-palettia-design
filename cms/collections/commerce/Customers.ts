@@ -34,6 +34,12 @@ export const Customers: CollectionConfig = {
     description: "Everyone who has booked, by email address. Created by the checkout; names come from the booking form.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["email", "firstName", "lastName", "phone"],
+    components: {
+      edit: { beforeDocumentControls: ["@/cms/components/orders/CustomerActions#CustomerActions"] },
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "person", heading: "No customers yet", body: "A customer record is created the first time someone books, by email address. Names, phone numbers and booking counts fill in from their orders; you can add notes the next booking should know about." } },
+      ],
+    },
   },
   defaultSort: "-lastOrderAt",
   access: {

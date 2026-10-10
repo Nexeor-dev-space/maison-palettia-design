@@ -33,6 +33,7 @@ import { adminUrl } from "./notifyStaff";
 import { appendTimeline, timelineEntry, timelineOf, transition } from "./orderState";
 import { allocate, assertPayable, quote, reservePassSql, reservePromoSql, restorePassSql, restoreReservations } from "./pricing";
 import { DEFAULT_REFERENCE_PREFIX, mintReference } from "./reference";
+import { REPEAT_MAX, repeatDates } from "./sessionSeries";
 import { cancelWaitlistFor, validWaitlistTokenFor } from "./waitlist";
 import {
   customerOrderVars,
@@ -1501,37 +1502,23 @@ export async function rescheduleSession(req: PayloadRequest, sessionId: string, 
   return { notified: notify.length, newSlug };
 }
 
-/**
- * The dates a weekly series lands on: every day after the source up to and
- * including `until` whose Dubai weekday (0 = Sunday … 6 = Saturday) is in
- * `weekdays`, at the source's wall-clock time, capped at `max`. Dubai has no
- * daylight saving, so "same wall-clock time" is exactly +24 h per day.
- */
-export function repeatDates(sourceStartsAt: string, until: string, weekdays: number[], max = 26): Date[] {
-  const start = new Date(sourceStartsAt);
-  const end = new Date(until);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
-  // `until` as a date means "through the end of that Dubai day".
-  const endMs = /^\d{4}-\d{2}-\d{2}$/.test(until) ? new Date(`${until}T23:59:59+04:00`).getTime() : end.getTime();
-  const wanted = new Set(weekdays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6));
-  const out: Date[] = [];
-  for (let day = 1; day <= 366 && out.length < max; day += 1) {
-    const at = new Date(start.getTime() + day * 86_400_000);
-    if (at.getTime() > endMs) break;
-    const dubaiWeekday = new Date(at.getTime() + 4 * 3_600_000).getUTCDay();
-    if (wanted.has(dubaiWeekday)) out.push(at);
-  }
-  return out;
-}
+// The weekly-series date rule and its cap live in ./sessionSeries.ts so the
+// RepeatDialog previews exactly what this creates; re-exported for callers.
+export { REPEAT_MAX, repeatDates };
 
-/** Repeat… (§H.7): up to 26 drafts on the matching weekdays until `until`, inventory rows at zero. */
+/**
+ * Repeat… (§H.7): up to REPEAT_MAX drafts on the matching weekdays until
+ * `until`, inventory rows at zero. `after` (optional) skips dates up to that
+ * instant — the dialog's batches; the cap applies per call, and the dialog
+ * never asks for more than REPEAT_MAX in all.
+ */
 export async function repeatSession(
   req: PayloadRequest,
   sessionId: string,
-  input: { every: "weekly"; until: string; weekdays: number[] },
+  input: { every: "weekly"; until: string; weekdays: number[]; after?: string },
 ): Promise<{ created: Array<{ id: string; startsAt: string; slug: string }> }> {
   const source = (await req.payload.findByID({ collection: "sessions", id: sessionId, depth: 0, overrideAccess: true, draft: true, req })) as Session & { slug?: string };
-  const dates = repeatDates(source.startsAt, input.until, input.weekdays);
+  const dates = repeatDates(source.startsAt, input.until, input.weekdays, REPEAT_MAX, input.after);
   if (dates.length === 0) throw new CheckoutError("no_dates", "No dates match those weekdays before the end date.", 400);
   const offset = (date: Date) => date.getTime() - new Date(source.startsAt).getTime();
 

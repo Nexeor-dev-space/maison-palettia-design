@@ -331,4 +331,7 @@ export interface JobInputs {
   "complete-orders": Record<string, never>;
   "reconcile-inventory": Record<string, never>;
   "send-daily-digest": Record<string, never>;
+  // Phase 4A (analytics) — the two sweeps it registers in cms/jobs/index.ts.
+  "rollup-analytics": Record<string, never>;
+  "purge-retention": Record<string, never>;
 }

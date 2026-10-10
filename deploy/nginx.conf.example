@@ -1,0 +1,128 @@
+# ==========================================================================
+# nginx.conf.example — the reverse proxy in front of the app (SPEC §A.5)
+# ==========================================================================
+#
+# Copy to /etc/nginx/sites-available/maison-palettia, replace
+# maisonpalettia.example with the real domain (both server blocks and the
+# certificate paths), link into sites-enabled, `nginx -t && systemctl reload nginx`.
+# Certificates: `certbot --nginx -d <domain> -d www.<domain>` (Let's Encrypt).
+#
+# What this file is responsible for, because the app cannot do it itself:
+#
+#   1. TLS. Mamo Pay only sends webhooks to https, the check-in camera only
+#      works on https, and the admin cookie is `Secure`.
+#   2. X-Forwarded-For, APPENDED. The app's rate limits key on the LAST hop
+#      (cms/lib/rateLimit.ts::clientIp) — the address this proxy saw. With
+#      $proxy_add_x_forwarded_for whatever a client claims stays to the
+#      left and is ignored. If a CDN (e.g. Cloudflare) is ever put in front,
+#      the last hop becomes the CDN: restore the real address first with
+#      the realip module (set_real_ip_from <CDN ranges>; real_ip_header
+#      CF-Connecting-IP) so $remote_addr is the visitor again.
+#   3. Login rate limits. Payload 3 has no request rate limit of its own,
+#      and its per-account lockout (maxLoginAttempts) would otherwise let
+#      anyone lock the owner out by guessing. 10 requests a minute per IP on
+#      the endpoints that take a password or send an email (SPEC §A.5).
+#   4. Upload size. The Media collection accepts files up to 25 MB
+#      (payload.config.ts `upload.limits.fileSize`); nginx's default is 1 MB,
+#      which fails every photo upload with a bare "413".
+#   5. The app listens on 127.0.0.1:3200 only (systemd HOSTNAME / compose
+#      port binding) — this server block is the one way in.
+# ==========================================================================
+
+# 10 r/min per client address for password, reset and first-user endpoints.
+limit_req_zone $binary_remote_addr zone=mp_auth:10m rate=10r/m;
+# Everything else under /api/users/ (the admin polls /api/users/me): generous.
+limit_req_zone $binary_remote_addr zone=mp_users:10m rate=120r/m;
+limit_req_status 429;
+
+upstream maison_palettia {
+    server 127.0.0.1:3200;
+    keepalive 16;
+}
+
+# http → https, and the ACME challenge for certificate renewals.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name maisonpalettia.example www.maisonpalettia.example;
+
+    location /.well-known/acme-challenge/ { root /var/www/letsencrypt; }
+    location / { return 301 https://maisonpalettia.example$request_uri; }
+}
+
+# www → apex (one canonical origin; it must equal Site details → Site address).
+server {
+    # `http2` on the listen line works on every nginx in current distros
+    # (1.25.1+ prefers a separate `http2 on;` and only warns about this form).
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name www.maisonpalettia.example;
+    ssl_certificate     /etc/letsencrypt/live/maisonpalettia.example/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/maisonpalettia.example/privkey.pem;
+    return 301 https://maisonpalettia.example$request_uri;
+}
+
+server {
+    # `http2` on the listen line works on every nginx in current distros
+    # (1.25.1+ prefers a separate `http2 on;` and only warns about this form).
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name maisonpalettia.example;
+
+    ssl_certificate     /etc/letsencrypt/live/maisonpalettia.example/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/maisonpalettia.example/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:mp_tls:10m;
+    ssl_session_timeout 1d;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options "nosniff" always;
+
+    # 25 MB uploads plus multipart overhead.
+    client_max_body_size 30m;
+
+    # Shared proxy settings. Host is passed through so the app sees its real
+    # origin (CSRF allowlist, absolute URLs); X-Forwarded-For is APPENDED.
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header Connection        "";
+    proxy_read_timeout 60s;
+    proxy_buffering on;
+
+    # --- login, password reset, first user: 10/min/IP --------------------
+    location ~ ^/api/users/(login|forgot-password|reset-password|first-register|unlock)/?$ {
+        limit_req zone=mp_auth burst=5 nodelay;
+        proxy_pass http://maison_palettia;
+    }
+
+    # --- the rest of /api/users/* ------------------------------------------
+    location /api/users/ {
+        limit_req zone=mp_users burst=60 nodelay;
+        proxy_pass http://maison_palettia;
+    }
+
+    # --- the signed purge is a loopback-only call --------------------------
+    # scripts/deploy.sh and the jobs runner post it to 127.0.0.1:3200
+    # directly; from outside it has no business being reachable.
+    location = /api/site/revalidate { return 404; }
+
+    # --- CSV exports stream for a while on a large date range --------------
+    location /api/actions/exports/ {
+        proxy_read_timeout 300s;
+        proxy_buffering off;
+        proxy_pass http://maison_palettia;
+    }
+
+    # (No special block for /_next/static/: Next already sends
+    # `Cache-Control: public, max-age=31536000, immutable` for it, and an
+    # `add_header` inside a location would silently drop the HSTS and nosniff
+    # headers above — nginx does not merge add_header across levels.)
+
+    location / {
+        proxy_pass http://maison_palettia;
+    }
+}

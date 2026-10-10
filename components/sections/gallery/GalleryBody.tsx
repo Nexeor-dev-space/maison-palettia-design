@@ -97,7 +97,7 @@ async function launchCollections(): Promise<GalleryCollection[]> {
 }
 
 /*
-  The six process frames, described where they were first used — /about's hero,
+  The five process frames, described where they were first used — /about's hero,
   /contact's banner, the experience sections — so the same photograph is never
   described two different ways on the same site. All are the Maison's own
   footage, and all carry no C2PA web-source record (checked), unlike
@@ -111,10 +111,6 @@ const PROCESS_FRAMES: readonly { src: string; alt: string }[] = [
   {
     src: "/images/experience/painting.jpg",
     alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
-  },
-  {
-    src: "/images/experience/pigment-on-paper.jpg",
-    alt: "Pigment sinking into damp paper: deep red blooms bleeding into blue and yellow-green washes.",
   },
   {
     src: "/images/studio/marbling.jpg",

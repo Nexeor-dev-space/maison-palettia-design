@@ -102,7 +102,10 @@ export const Payments: CollectionConfig = {
           defaultValue: "created",
           index: true,
           options: [...PAYMENT_STATUSES],
-          admin: { width: "50%" },
+          admin: {
+            width: "50%",
+            components: { Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: { labels: Object.fromEntries(PAYMENT_STATUSES.map((o) => [o.value, o.label])), tones: { captured: "ok", processing: "lilac", link_ready: "lilac", created: "muted", refund_pending: "warn", partially_refunded: "warn", refunded: "muted", failed: "bad", expired: "muted", voided: "bad" } } } },
+          },
         }),
       ],
     },
@@ -130,7 +133,7 @@ export const Payments: CollectionConfig = {
         {
           type: "row",
           fields: [
-            systemField({ name: "type", type: "select", label: "Type", hasMany: false, options: [...PAYMENT_METHOD_TYPES], admin: { width: "34%" } }),
+            systemField({ name: "type", type: "select", label: "Type", hasMany: false, options: [...PAYMENT_METHOD_TYPES], admin: { width: "34%", components: { Label: { path: "@/cms/components/fields/PlainLabel#PlainLabel", clientProps: { text: "Paid with" } } } } }),
             systemField({ name: "cardLast4", type: "text", label: "Card ends in", maxLength: 4, admin: { width: "33%" } }),
             systemField({
               name: "cardOrigin",

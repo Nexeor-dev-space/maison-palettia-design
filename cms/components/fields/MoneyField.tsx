@@ -56,7 +56,8 @@ export function MoneyField({ field, path, readOnly }: NumberFieldClientProps) {
   const description = typeof field.admin?.description === "string" ? field.admin.description : undefined;
 
   return (
-    <div className="field-type number mp-money">
+    // `read-only` like Payload's own fields, so the admin theme drops the required star on a value nobody can edit.
+    <div className={`field-type number mp-money${readOnly ? " read-only" : ""}`}>
       <FieldLabel label={field.label} path={path} required={field.required} />
       <div className="mp-money__row">
         <span className="mp-money__currency" aria-hidden="true">

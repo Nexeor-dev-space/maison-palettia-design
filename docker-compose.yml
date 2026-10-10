@@ -1,0 +1,60 @@
+# ==========================================================================
+# docker-compose.yml — the app as one container, for hosts that prefer Docker
+# ==========================================================================
+#
+# The alternative to deploy/maison-palettia.service; pick one. Same rules:
+# the HOST builds (`scripts/deploy.sh --restart compose` runs preflight →
+# npm ci → migrate → next build, then `docker compose build` + `up -d` with
+# the image tagged by release), the image only runs it (see Dockerfile).
+#
+# Postgres is NOT in this file. The database is the shared Nexeor Postgres
+# 16 (`maison_palettia_prod`), reached either
+#   (a) over TLS — DATABASE_URL ends `?sslmode=verify-full&sslrootcert=/etc/ssl/nexeor-pg.crt`
+#       and the CA file is mounted read-only below; or
+#   (b) on a private Docker network shared with the Postgres container —
+#       uncomment the `networks` blocks, use the Postgres service name as
+#       the host and `?sslmode=disable`, and firewall 5433 from the internet.
+# (SPEC §A.5 — scripts/preflight-db.mjs refuses anything else.)
+#
+# `.env` holds exactly DATABASE_URL, PAYLOAD_SECRET, NEXT_PUBLIC_SERVER_URL.
+# Keep `$` out of every value (generate the database password as hex): Compose
+# interpolates `$…` in it, and so does Next's own .env loader, each with a
+# different escape rule.
+# Note NEXT_PUBLIC_SERVER_URL is compiled in by `next build` on the host; the
+# copy passed here only matters for the server-side code that reads it at
+# runtime (DECISIONS.md #6).
+#
+# The port is published on 127.0.0.1 only: the reverse proxy in front
+# (deploy/nginx.conf.example) is the one public entrance. That is also what
+# makes the app's rate limits trustworthy — it reads the LAST
+# X-Forwarded-For hop, which only the proxy can append.
+# ==========================================================================
+services:
+  app:
+    image: maison-palettia:${MP_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "3200"
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "127.0.0.1:3200:3200"
+    volumes:
+      - ./media:/app/media
+      - ./private:/app/private
+      # (a) TLS to the shared Postgres: the CA that signed its certificate.
+      # - /etc/ssl/nexeor-pg.crt:/etc/ssl/nexeor-pg.crt:ro
+    # (b) private network shared with the Postgres container:
+    # networks: [nexeor-db]
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+# networks:
+#   nexeor-db:
+#     external: true

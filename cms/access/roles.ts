@@ -39,9 +39,18 @@ export const ROLES: readonly Role[] = ["admin", "editor", "front-desk"];
  * `payload-types.ts` has been generated the user type is untyped, and after
  * it has, the cast below still compiles — so the helpers never depend on the
  * generated file being present.
+ *
+ * FAILS CLOSED ON DEACTIVATED ACCOUNTS. A user whose "Can sign in" box is
+ * unticked (`active: false`) has no role here, so every rule built on this
+ * function refuses them — even if a token issued before the untick is still
+ * presented. The users collection also clears that person's sessions when
+ * the box is unticked (Users.ts, beforeChange), which makes Payload's JWT
+ * strategy drop the token outright; this check is the second layer.
  */
 export function roleOf(req: PayloadRequest | undefined): Role | undefined {
-  const role = (req?.user as { role?: unknown } | null | undefined)?.role;
+  const user = req?.user as { role?: unknown; active?: unknown } | null | undefined;
+  if (!user || user.active === false) return undefined;
+  const role = user.role;
   return typeof role === "string" && (ROLES as readonly string[]).includes(role) ? (role as Role) : undefined;
 }
 
@@ -88,7 +97,7 @@ export const systemOnly: Access = ({ req }) => req.context?.system === true;
  * The signed-in user acting on their own document (profile edits). Returns
  * a row filter so it composes with list queries.
  */
-export const self: Access = ({ req }) => (req.user ? { id: { equals: req.user.id } } : false);
+export const self: Access = ({ req }) => (req.user && roleOf(req) !== undefined ? { id: { equals: req.user.id } } : false);
 
 // ─── field level ─────────────────────────────────────────────────────────────
 

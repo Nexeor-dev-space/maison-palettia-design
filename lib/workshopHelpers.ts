@@ -113,14 +113,6 @@ export function isBookable(workshop: Workshop, now: number = Date.now()): boolea
 }
 
 /**
- * What the call to action promises. A full session still links through to its
- * page — it just stops claiming there is something to book.
- */
-export function workshopActionLabel(workshop: Workshop): string {
-  return isFullyBooked(workshop) ? "View workshop" : "Explore workshop";
-}
-
-/**
  * The one availability fact worth surfacing on the homepage, or null when
  * there is nothing notable to say. A comfortably open session says nothing —
  * scarcity only reads as scarcity when it is used sparingly.
@@ -288,21 +280,6 @@ export function isScarce(workshop: Workshop): boolean {
     workshop.status === "open" &&
     workshop.seatsAvailable <= LOW_SEAT_THRESHOLD
   );
-}
-
-/**
- * Where "Book session" goes from a listing.
- *
- * The session's own page, which is where someone decides — not straight into
- * the booking form. A listing tile carries four facts; the page carries the
- * rest, and skipping it would be asking for a commitment before the question
- * has been answered.
- *
- * This used to resolve to the schedule route because `/workshops/{slug}` did
- * not exist and answered 404. It exists now.
- */
-export function bookSessionHref(workshop: Workshop): string {
-  return workshopHref(workshop);
 }
 
 /** The booking step for one session. */

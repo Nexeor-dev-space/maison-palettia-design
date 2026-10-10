@@ -15,7 +15,7 @@ import { json, parseBody, requireRole } from "./requireRole";
  * `requireRole` (which also refuses `Sec-Fetch-Site: cross-site`) and
  * validates its body with zod; the work is in cms/lib/orders.ts.
  *
- *   POST /actions/sessions/:id/repeat          admin, editor       { every: "weekly", until, weekdays[] } → drafts for review
+ *   POST /actions/sessions/:id/repeat          admin, editor       { every: "weekly", until, weekdays[], after? } → drafts for review
  *   POST /actions/sessions/:id/reschedule      admin               { startsAt, venueId?, message? } → holders emailed, old URL redirected
  *   POST /actions/sessions/:id/cancel          admin               { reason, message? } → refunds queued, tickets void, emails
  *   GET  /actions/sessions/:id/attendees.csv   admin, front-desk   printable list (3E builds the rows)
@@ -32,6 +32,8 @@ const repeatBody = z.object({
   every: z.literal("weekly"),
   until: isoDate,
   weekdays: z.array(z.number().int().min(0).max(6)).min(1, "Pick at least one weekday.").max(7),
+  // The dialog's batches: only dates after this instant (cms/lib/sessionSeries.ts).
+  after: isoDate.optional(),
 });
 
 const rescheduleBody = z.object({

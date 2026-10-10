@@ -20,8 +20,6 @@ import { getRobotsDisallow } from "@/lib/seo";
  *   /events/{slug}/book . the seat picker for one scheduled session — one
  *                         per dated workshop that still has seats, so the
  *                         set changes with the calendar (hence the wildcard)
- *   /button-preview ..... a temporary design-review page (the route itself
- *                         says to delete it once the choice is made)
  *
  * Each of these is a URL a customer is sent to, never one anybody searches
  * for, and the receipt and lookup can carry a booking reference in the query
@@ -31,12 +29,12 @@ import { getRobotsDisallow } from "@/lib/seo";
  * before this file existed. Nothing links to them from outside a booking, so
  * a blocked-but-listed URL is not a realistic outcome here.
  *
- * WHAT IS DELIBERATELY NOT BLOCKED. /blog (the unbuilt Journal) and /loyalty
- * (passes with placeholder prices) are `noindex` and stay crawlable, because
- * that is how a crawler reads the tag — and both are meant to come back into
- * the index the day their content is real, which a Disallow line would have
- * to be remembered to undo. /private-events/book is the enquiry form a host
- * is meant to find, not a transaction, and it is indexable on purpose.
+ * WHAT IS DELIBERATELY NOT BLOCKED. /loyalty (passes with placeholder
+ * prices) is `noindex` and stays crawlable, because that is how a crawler
+ * reads the tag — and it is meant to come back into the index the day its
+ * content is real, which a Disallow line would have to be remembered to
+ * undo. /private-events/book is the enquiry form a host is meant to find,
+ * not a transaction, and it is indexable on purpose.
  *
  * The wildcard in the event-booking line is honoured by Google and Bing,
  * which are the crawlers this file is for.
@@ -49,7 +47,7 @@ import { getRobotsDisallow } from "@/lib/seo";
  * with exactly the list below); the list below is what is served when the
  * CMS cannot be read. The seo-defaults hook revalidates /robots.txt.
  */
-const DISALLOW = ["/checkout", "/payment-success", "/booking-status", "/events/*/book", "/button-preview"];
+const DISALLOW = ["/checkout", "/payment-success", "/booking-status", "/events/*/book"];
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const [site, disallow] = await Promise.all([getSite(), getRobotsDisallow()]);

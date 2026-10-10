@@ -92,19 +92,32 @@ export const Sessions: CollectionConfig = {
   admin: {
     group: CONTENT_GROUP,
     useAsTitle: "title",
-    defaultColumns: ["title", "startsAt", "venue", "seatsAvailable", "bookingStatus", "_status"],
+    defaultColumns: ["title", "startsAt", "venue", "seatsSold", "seatsAvailable", "bookingStatus", "_status"],
     description: "Dated, bookable sessions of the Create Together experiences. Seats sold and held are counted by the booking system.",
     listSearchableFields: ["title", "category", "slug"],
     preview: previewFor("sessions"),
     components: {
       edit: {
-        // SessionActions (Repeat / Reschedule / Cancel / Attendees) joins this list in Phase 3.
-        beforeDocumentControls: ["@/cms/components/sessions/SessionQuickStats#SessionQuickStats"],
+        // 4B: the sold/held/left chips, then the Actions menu (Repeat weekly,
+        // Desk booking, Check-in, Reschedule, Cancel & refund all).
+        beforeDocumentControls: ["@/cms/components/sessions/SessionQuickStats#SessionQuickStats", "@/cms/components/sessions/SessionActions#SessionActions"],
       },
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "calendar", heading: "No sessions yet", body: "A session is one bookable date of a Create Together experience: the time, venue, price and number of seats. Add one, publish it, and it is on the Events page within a second. Open a session and use Repeat weekly to build a series of drafts.", actions: [{ label: "Add a session", href: "/collections/sessions/create", primary: true }, { label: "See the experiences", href: "/collections/experiences" }] } },
+      ],
     },
   },
   defaultSort: "startsAt",
-  versions: contentDrafts,
+  // `validate: true` on drafts (4B review): with autosave alone, Payload
+  // INSERTS a document the moment "Add a session" opens, so every abandoned
+  // click left a "<No Title> · Draft" row that counted in the dashboard's
+  // Drafts tile. With draft validation Payload creates the row on the first
+  // Save draft / Publish instead (next/dist/views/Document: `shouldAutosave
+  // && !validateDraftData`), and autosave carries on from there — so live
+  // preview still refreshes as the owner types. A session draft needs its
+  // experience, date and price to be saved, which every real one has; the
+  // nightly purge-retention removes any empty drafts left from before.
+  versions: { ...contentDrafts, drafts: { ...contentDrafts.drafts, validate: true } },
   access: draftedContentAccess,
   hooks: {
     beforeValidate: [
@@ -258,7 +271,11 @@ export const Sessions: CollectionConfig = {
               required: true,
               defaultValue: "open",
               options: [...BOOKING_STATUSES],
-              admin: { description: "A session with no seats left shows the waitlist form automatically; this switch is for closing it by hand." },
+              admin: {
+                description: "A session with no seats left shows the waitlist form automatically; this switch is for closing it by hand.",
+                // List chip; says "Cancelled" for a cancelled date (4B review).
+                components: { Cell: "@/cms/components/sessions/SessionStatusCell#SessionStatusCell" },
+              },
             },
             {
               name: "salesCloseAt",

@@ -39,6 +39,11 @@ export const PassPurchases: CollectionConfig = {
     description: "Passes customers have bought and how many sessions each has left. Credits are spent at checkout by entering the code.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["code"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "ticket", heading: "No passes bought yet", body: "When a customer buys a pass they get a code; entering it at checkout spends one credit per seat. Each purchase shows how many sessions are left and when it expires.", actions: [{ label: "Edit the passes on sale", href: "/collections/passes" }] } },
+      ],
+    },
   },
   defaultSort: "-createdAt",
   access: {

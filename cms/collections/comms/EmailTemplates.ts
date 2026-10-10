@@ -107,6 +107,11 @@ export const EmailTemplates: CollectionConfig = {
     defaultColumns: ["label", "key", "subject", "enabled", "updatedAt"],
     description: "The wording of each email the site sends. Use {{variables}} from the list on each template; the logo and footer are added automatically.",
     listSearchableFields: ["label", "subject", "key"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "mail", heading: "Templates are being installed", body: "One template per email the site can send is created on first start. If this list stays empty, restart the server once." } },
+      ],
+    },
   },
   defaultSort: "label",
   hooks: {

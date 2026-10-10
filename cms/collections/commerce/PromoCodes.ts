@@ -61,6 +61,11 @@ export const PromoCodes: CollectionConfig = {
     description: "Discount codes customers enter at checkout. One code per order; uses are counted as orders are placed.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["code", "label"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "star", heading: "No promo codes yet", body: "A code gives a percentage or a fixed amount off at checkout — for everything, for certain experiences or only certain dates, with an optional start, end, minimum spend and use limit. One code per order.", actions: [{ label: "Create a promo code", href: "/collections/promo-codes/create", primary: true }] } },
+      ],
+    },
   },
   defaultSort: "-createdAt",
   access: {

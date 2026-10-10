@@ -45,6 +45,11 @@ export const Invoices: CollectionConfig = {
     description: "Tax invoices and credit notes, numbered without gaps. Figures never change after issue; regenerate the PDF from the order if needed.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["number", "buyer.name", "buyer.email"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "page", heading: "No invoices yet", body: "A tax invoice is numbered and issued automatically when an order is confirmed, and a credit note when a refund completes. Numbers never have gaps and figures never change after issue. Set the legal name and TRN under Settings → Invoices & VAT so they print as tax invoices rather than receipts.", actions: [{ label: "Invoice settings", href: "/globals/invoice-settings" }] } },
+      ],
+    },
   },
   defaultSort: "-issuedAt",
   access: {
@@ -153,7 +158,7 @@ export const Invoices: CollectionConfig = {
           fields: [
             systemField(money("netFils", { label: "Net", required: true, admin: { width: "25%" } })),
             systemField(money("vatFils", { label: "VAT", required: true, admin: { width: "25%" } })),
-            systemField(money("grossFils", { label: "Gross", required: true, admin: { width: "25%" } })),
+            systemField(money("grossFils", { label: "Gross", required: true, admin: { width: "25%", components: { Label: { path: "@/cms/components/fields/PlainLabel#PlainLabel", clientProps: { text: "Total" } } } } })),
             systemField(money("discountFils", { label: "Discounts", defaultValue: 0, admin: { width: "25%" } })),
           ],
         },

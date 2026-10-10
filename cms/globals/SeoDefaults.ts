@@ -76,7 +76,6 @@ export const SeoDefaults: GlobalConfig = {
         "/booking-status",
         "/my-bookings",
         "/events/*/book",
-        "/button-preview",
         "/dev",
       ],
     }),

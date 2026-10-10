@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Order } from "../../cms/lib/contracts";
 import { creditNoteLinesFor, dubaiYear, formatInvoiceNumber, invoiceLinesFor, paymentLabel, pricesIncludedVat } from "../../cms/lib/invoiceNumber";
 import { repeatDates, seatsBySession, sessionShareFils } from "../../cms/lib/orders";
+import { allRepeatDates, dubaiDay, REPEAT_BATCH, REPEAT_MAX } from "../../cms/lib/sessionSeries";
 
 /**
  * Invoice numbering and the invoice snapshot (SPEC §H.7), plus the pure
@@ -99,5 +100,19 @@ describe("session operations (pure parts)", () => {
     // Monday 12 Oct 2026, 02:00 Dubai = Sunday 22:00Z; weekly on Mondays (1)
     const dates = repeatDates("2026-10-11T22:00:00.000Z", "2026-10-27", [1]);
     expect(dates.map((d) => d.toISOString())).toEqual(["2026-10-18T22:00:00.000Z", "2026-10-25T22:00:00.000Z"]);
+  });
+
+  it("the dialog's batches (after → until) add up to exactly the capped series, and the preview shares the cap", () => {
+    const source = "2026-10-11T11:30:00.000Z";
+    const full = repeatDates(source, "2027-02-11", [1, 3]); // Mon + Wed for four months: 34 dates, capped
+    expect(allRepeatDates(source, "2027-02-11", [1, 3]).length).toBeGreaterThan(REPEAT_MAX);
+    expect(full).toHaveLength(REPEAT_MAX);
+    const batched: string[] = [];
+    for (let i = 0; i < full.length; i += REPEAT_BATCH) {
+      const batch = full.slice(i, i + REPEAT_BATCH);
+      const after = i > 0 ? full[i - 1].toISOString() : undefined;
+      batched.push(...repeatDates(source, dubaiDay(batch[batch.length - 1]), [1, 3], REPEAT_MAX, after).map((d) => d.toISOString()));
+    }
+    expect(batched).toEqual(full.map((d) => d.toISOString()));
   });
 });

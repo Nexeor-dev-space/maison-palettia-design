@@ -5,8 +5,9 @@
  * THE ARTWORK IS THEIRS, EXACTLY, AND SO ARE THE COLOURS NOW
  * ==========================================================================
  *
- * The ten shapes are `public/images/doodles/*.png`, the set the client
- * supplied, read out of the same artwork in their brand guidelines
+ * The ten shapes were `public/images/doodles/*.png` (removed in the Phase 5
+ * cleanup — see docs/cms/deleted-assets.md; they remain in git history), the
+ * set the client supplied, read out of the same artwork in their brand guidelines
  * ("MP Brand Guidelines - 4.pdf", the "Brand Icons" block) as vectors rather
  * than as 1000x1000 pictures. Every path below was overlaid on its PNG before
  * it was used; they match shape for shape. Vectors because these are drawn

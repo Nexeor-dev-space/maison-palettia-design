@@ -5,6 +5,9 @@ import { commitTransaction, initTransaction, killTransaction, type PayloadReques
 
 import type { Order, Session, Ticket, User } from "@/payload-types";
 
+// One formula-injection rule for every CSV the admin hands out (cms/lib/exports.ts).
+import { csvCell } from "./exports";
+
 /**
  * ==========================================================================
  * Tickets — minting, QR lookup, check-in and the attendee list (SPEC §H.7)
@@ -564,13 +567,6 @@ export async function listAttendees(req: PayloadRequest, sessionId: string): Pro
   rows.sort((a, b) => a.holder.localeCompare(b.holder) || a.orderReference.localeCompare(b.orderReference) || a.seatNo - b.seatNo);
   return { session, rows };
 }
-
-const csvCell = (value: unknown): string => {
-  let s = value == null ? "" : String(value);
-  // Spreadsheet formula injection: a cell starting with = + - @ is data, not a formula.
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
 
 const dubaiDateTime = (iso: string | null): string =>
   iso ? new Intl.DateTimeFormat("en-GB", { timeZone: DUBAI_TZ, dateStyle: "short", timeStyle: "short" }).format(new Date(iso)) : "";

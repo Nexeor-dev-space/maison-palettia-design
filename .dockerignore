@@ -1,33 +1,34 @@
-# What the image does not need.
+# ==========================================================================
+# .dockerignore — a WHITELIST for the runtime-only Dockerfile
+# ==========================================================================
 #
-# The build context was 158 MB a deploy — the whole working tree, including
-# 40 MB of photographic masters that are never served and the local build
-# output. None of it reaches the image; all of it is copied to the daemon on
-# every build, and on a server that is tight for disk that is the first thing
-# worth not sending.
+# The image is built from what the host's `next build` produced (see
+# Dockerfile), so the context is exactly three folders and nothing else:
+# no source, no node_modules (the standalone folder carries its own traced
+# copy), no photographic masters, no .git. That keeps the context small —
+# it used to be the whole 158 MB working tree — and keeps secrets out of it.
 #
-# `public/` is NOT here: those files are the site's images, fonts and video,
-# and Next serves them from the image.
+# Order matters: `*` excludes everything, the `!` lines bring the three
+# folders back, and the lines after them take out what the standalone
+# tracer copies in but an image must never contain.
 
-.git
-.gitignore
-node_modules
-.next
-out
+*
+!.next/standalone
+!.next/static
+!public
 
-# The originals the files in public/images were cut from. Nothing imports
-# them; they are kept in the repo as the source of a crop, not as an asset.
-assets
+# The tracer copies the whole checkout into .next/standalone. These would
+# bake a secret (.env), a stale snapshot of uploads and invoices (media/,
+# private/ — the live ones are volumes), or dead weight into the image.
+.next/standalone/.env*
+.next/standalone/media
+.next/standalone/private
+.next/standalone/assets
+.next/standalone/docs
+.next/standalone/tests
+.next/standalone/.git
+.next/standalone/.claude
+.next/standalone/*.tsbuildinfo
+.next/standalone/.next/cache
 
-# Local tooling and editor state.
-.claude
-.vscode
-.idea
-.DS_Store
 **/.DS_Store
-
-# Nothing here is read by the build.
-*.log
-README.md
-AGENTS.md
-CLAUDE.md

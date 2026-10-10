@@ -54,6 +54,11 @@ export const Tickets: CollectionConfig = {
     description: "One ticket per seat, each with its own QR code. Check in from /admin/check-in or the session's attendee list.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["code", "holderName"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "ticket", heading: "No tickets yet", body: "One ticket per seat is issued the moment an order is confirmed, each with its own QR code. Scan them at the door from Check-in, or mark people as arrived from the session's attendee list.", actions: [{ label: "Open check-in", href: "/check-in" }] } },
+      ],
+    },
   },
   defaultSort: "-createdAt",
   access: {
@@ -78,7 +83,11 @@ export const Tickets: CollectionConfig = {
             defaultValue: "valid",
             index: true,
             options: [...TICKET_STATUSES],
-            admin: { width: "60%", description: "Changed by check-in, refunds and cancellations — not by hand." },
+            admin: {
+              width: "60%",
+              description: "Changed by check-in, refunds and cancellations — not by hand.",
+              components: { Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: { labels: Object.fromEntries(TICKET_STATUSES.map((o) => [o.value, o.label])), tones: { valid: "lilac", checked_in: "ok", void: "muted", refunded: "warn" } } } },
+            },
           }),
         ],
       },

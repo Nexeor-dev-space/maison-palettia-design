@@ -33,6 +33,11 @@ export const Passes: CollectionConfig = {
     defaultColumns: ["name", "priceFils", "sessions", "sellable", "order", "_status"],
     description: "Multi-session passes sold on the Passes page. A pass without a price shows as not on sale yet.",
     listSearchableFields: ["name", "description", "slug"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "ticket", heading: "No passes yet", body: "A pass is a bundle of sessions bought up front at a better price. Customers get a code and spend a credit per seat at checkout. Keep a pass as a draft, or untick “sellable”, to take it off the Loyalty page.", actions: [{ label: "Add a pass", href: "/collections/passes/create", primary: true }] } },
+      ],
+    },
   },
   defaultSort: "order",
   versions: contentDrafts,

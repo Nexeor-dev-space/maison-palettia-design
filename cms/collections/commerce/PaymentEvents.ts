@@ -2,7 +2,7 @@ import type { CollectionConfig } from "payload";
 
 import { isAdmin, systemOnly } from "@/cms/access/roles";
 
-import { BOOKINGS_GROUP, modeField, sidebarFor, systemDate, systemField, systemJson } from "./shared";
+import { modeField, sidebarFor, systemDate, systemField, systemJson } from "./shared";
 
 /**
  * ==========================================================================
@@ -39,7 +39,8 @@ export const PaymentEvents: CollectionConfig = {
   slug: "payment-events",
   labels: { singular: "Payment event", plural: "Payment events" },
   admin: {
-    group: BOOKINGS_GROUP,
+    // 4B review: internal bookkeeping lives in the admin-only "System" group, last in the sidebar.
+    group: "System",
     useAsTitle: "dedupeKey",
     defaultColumns: ["receivedAt", "eventType", "providerPaymentId", "verified", "processedAt", "needsReview"],
     description: "Every webhook delivery from Mamo Pay, verified or not. Read-only; the booking system processes them.",

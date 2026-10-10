@@ -17,7 +17,9 @@ import { publicUrl } from "@/cms/lib/publicUrl";
  * ROLES. `role` is a select only an admin may change; the first account ever
  * created is forced to `admin` by the beforeChange hook so a fresh install
  * cannot lock itself out, and `active: false` refuses sign-in without
- * deleting history (`beforeLogin`).
+ * deleting history (`beforeLogin`), signs the person out of every session
+ * they already have (`beforeChange` empties `sessions`), and leaves them
+ * with no role in `roleOf()` so any token that survives is refused anyway.
  *
  * WHO SEES WHOM. Admins see everyone. Editors and the front desk see ACTIVE
  * colleagues' names and roles — the enquiries "assigned to" picker needs the
@@ -66,10 +68,17 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: "name",
     defaultColumns: ["name", "email", "role", "active", "lastLoginAt"],
-    group: "System",
+    // Under Settings (4B review): "who can sign in" is a setting to the owner,
+    // and the System group is kept for the internal tables.
+    group: "Settings",
     description: "Who can sign in to this admin, and what they may do. Invite colleagues rather than sharing passwords.",
     hidden: ({ user }) => roleOf({ user } as never) !== "admin",
     listSearchableFields: ["name", "email"],
+    components: {
+      // 4B (SPEC §I "Users"): Invite staff above the list, Send login link on a person.
+      beforeListTable: ["@/cms/components/users/InviteStaff#InviteStaff"],
+      edit: { beforeDocumentControls: ["@/cms/components/users/SendLoginLink#SendLoginLink"] },
+    },
   },
   auth: {
     maxLoginAttempts: 5,
@@ -88,6 +97,10 @@ export const Users: CollectionConfig = {
     },
   },
   access: {
+    // Who may open /admin at all. Payload's default is "any signed-in user";
+    // a deactivated account (whose token somehow outlived its sessions) has
+    // no role in roleOf() and is turned away from the panel too.
+    admin: ({ req }) => roleOf(req) !== undefined,
     // The first account is created through /admin's create-first-user screen
     // with no user on the request; after that, only admins add staff.
     create: async ({ req }) => {
@@ -97,14 +110,14 @@ export const Users: CollectionConfig = {
     },
     read: ({ req }) => {
       if (roleOf(req) === "admin") return true;
-      return req.user ? { active: { equals: true } } : false;
+      return req.user && roleOf(req) !== undefined ? { active: { equals: true } } : false;
     },
     // Everyone may edit their own account (name, password — SPEC §J "U self");
     // `role` and `active` stay admin-only at field level, so a self-edit can
     // never escalate. Admins edit anyone.
     update: ({ req }) => {
       if (roleOf(req) === "admin") return true;
-      return req.user ? { id: { equals: req.user.id } } : false;
+      return req.user && roleOf(req) !== undefined ? { id: { equals: req.user.id } } : false;
     },
     delete: isAdmin,
   },
@@ -114,6 +127,23 @@ export const Users: CollectionConfig = {
         if (operation === "create") {
           const { totalDocs } = await req.payload.count({ collection: "users", overrideAccess: true, req });
           if (totalDocs === 0) data.role = "admin";
+        }
+        // OFFBOARDING SIGNS THEM OUT EVERYWHERE. Unticking "Can sign in" must
+        // end the sessions this person already has, not only refuse the next
+        // login: Payload's JWT strategy accepts a token for as long as its
+        // session id is still in `users.sessions`, and a token refresh extends
+        // that session without running `beforeLogin`. Emptying the array here
+        // (the field's own `update: false` access rule is applied before
+        // collection hooks, so this server-side write is kept) makes every
+        // existing token fail on its next request. Saving an already-blocked
+        // account again is harmless: it has no sessions to clear.
+        //
+        // An admin changing SOMEONE ELSE'S password needs nothing here:
+        // Payload's update operation already resets `sessions` whenever a
+        // password is saved, keeping only the current session when people
+        // change their own (collections/operations/utilities/update.js).
+        if (operation === "update" && data.active === false) {
+          (data as { sessions?: unknown[] }).sessions = [];
         }
         return data;
       },
@@ -209,6 +239,8 @@ export const Users: CollectionConfig = {
       admin: {
         description: "Untick to stop this person signing in without deleting their account or history.",
         position: "sidebar",
+        // The list showed a monospace `true`; a chip in words instead (4B review).
+        components: { Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: { labels: { true: "Can sign in", false: "Blocked" }, tones: { true: "ok", false: "muted" } } } },
       },
     },
     {

@@ -87,9 +87,13 @@ export const LINE_KINDS = [
 const lines: Field = {
   name: "lines",
   type: "array",
-  label: "Lines",
+  label: "What was booked",
   labels: { singular: "Line", plural: "Lines" },
-  admin: { description: "What was bought, priced from the database at checkout. Titles and times are copies from that moment." },
+  admin: {
+    description: "What was bought, priced from the database at checkout. Titles and times are copies from that moment.",
+    // 4B review: a compact read-only table instead of every snapshot column as a disabled input.
+    components: { Field: "@/cms/components/orders/OrderLines#OrderLines" },
+  },
   fields: [
     {
       type: "row",
@@ -157,7 +161,8 @@ const totals: Field = {
       fields: [
         money("subtotalFils", { label: "Subtotal", required: true, admin: { width: "33%" } }),
         money("discountFils", { label: "Discounts", required: true, defaultValue: 0, admin: { width: "33%" } }),
-        money("grossFils", { label: "Total charged", required: true, admin: { width: "33%" } }),
+        // PlainLabel: the list column reads "Total charged", not "Totals > Total charged".
+        money("grossFils", { label: "Total charged", required: true, admin: { width: "33%", components: { Label: { path: "@/cms/components/fields/PlainLabel#PlainLabel" } } } }),
       ],
     },
     {
@@ -192,7 +197,10 @@ const fields: Field[] = [
     index: true,
     defaultValue: "pending_payment",
     options: [...ORDER_STATUSES],
-    admin: { description: "Changed only by the booking system and the order actions, never by hand." },
+    admin: {
+      description: "Changed only by the booking system and the order actions, never by hand.",
+      components: { Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: { labels: Object.fromEntries(ORDER_STATUSES.map((o) => [o.value, o.label])), tones: { confirmed: "ok", completed: "ok", confirming: "lilac", awaiting_payment: "lilac", pending_payment: "lilac", failed: "warn", expired: "warn", cancelled: "muted", refunded: "muted" } } } },
+    },
   }),
   {
     type: "row",
@@ -206,14 +214,10 @@ const fields: Field[] = [
         index: true,
         defaultValue: "online",
         options: [...CHANNELS],
-        admin: { width: "50%" },
-      }),
-      systemField({
-        name: "basketId",
-        type: "text",
-        label: "Basket",
-        index: true,
-        admin: { width: "50%", description: "The browser's basket id. A double-submit of the same basket reuses this order instead of holding seats twice." },
+        admin: {
+          width: "50%",
+          components: { Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: { labels: { online: "Online", desk: "Desk" }, tones: { online: "lilac", desk: "muted" } } } },
+        },
       }),
     ],
   },
@@ -240,7 +244,7 @@ const fields: Field[] = [
       {
         type: "row",
         fields: [
-          { name: "email", type: "email", label: "Email", admin: { width: "50%", description: "Blank only on a desk booking without an email." } },
+          { name: "email", type: "email", label: "Email", admin: { width: "50%", description: "Blank only on a desk booking without an email.", components: { Label: { path: "@/cms/components/fields/PlainLabel#PlainLabel" } } } },
           { name: "phone", type: "text", label: "Phone", maxLength: 32, admin: { width: "50%" } },
         ],
       },
@@ -287,7 +291,7 @@ const fields: Field[] = [
     type: "group",
     name: "promo",
     label: "Promo code applied",
-    admin: { description: "At most one promo code per order." },
+    admin: { description: "At most one promo code per order.", condition: (data) => Boolean(data?.promo?.code || data?.promo?.promoCode) },
     fields: [
       {
         type: "row",
@@ -341,13 +345,7 @@ const fields: Field[] = [
       },
     ],
   },
-  {
-    type: "row",
-    fields: [
-      { name: "payment", type: "relationship", relationTo: "payments", label: "Current payment attempt", admin: { width: "50%", readOnly: true } },
-      { name: "invoice", type: "relationship", relationTo: "invoices", label: "Invoice", admin: { width: "50%", readOnly: true } },
-    ],
-  },
+  { name: "invoice", type: "relationship", relationTo: "invoices", label: "Invoice", admin: { readOnly: true } },
   {
     name: "tickets",
     type: "join",
@@ -373,38 +371,16 @@ const fields: Field[] = [
     admin: { allowCreate: false, defaultColumns: ["amountFils", "reason", "status", "createdAt"] },
   },
   {
-    type: "group",
-    name: "hold",
-    label: "Seat hold",
-    admin: { description: "Seats are held while the customer pays and released when this runs out." },
-    fields: [
-      systemDate("expiresAt", "Hold expires", { index: true }),
-      systemJson("seatsBySession", "Seats held per session", { description: "{ sessionId: qty }" }),
-    ],
-  },
-  {
-    type: "collapsible",
-    label: "Where the booking came from",
-    admin: { initCollapsed: true },
-    fields: [
-      {
-        type: "group",
-        name: "source",
-        label: "Source",
-        fields: [
-          systemField({ name: "ipHash", type: "text", label: "IP (hashed)", maxLength: 64 }),
-          systemField({ name: "userAgent", type: "text", label: "Browser", maxLength: 300 }),
-          systemField({ name: "referrer", type: "text", label: "Referrer", maxLength: 300 }),
-        ],
-      },
-    ],
-  },
-  {
     name: "timeline",
     type: "array",
-    label: "Timeline",
+    label: "History",
     labels: { singular: "Entry", plural: "Entries" },
-    admin: { readOnly: true, description: "Every state change and staff action, oldest first. Written by the system." },
+    admin: {
+      readOnly: true,
+      description: "Every state change and staff action, oldest first. Written by the system.",
+      // SPEC §I "timeline rendered as a list": plain dated sentences, not array rows with a JSON editor.
+      components: { Field: "@/cms/components/orders/OrderTimeline#OrderTimeline" },
+    },
     fields: [
       {
         type: "row",
@@ -424,9 +400,70 @@ const fields: Field[] = [
     maxLength: 4000,
     admin: { description: "For staff. “Collect AED 40 at the venue”, “Spoke to customer about the move”. Never shown to the customer." },
   },
-  systemJson("consentedPolicyVersions", "Policies accepted at checkout", {
-    description: "{ policySlug: version } — which wording the customer agreed to.",
-  }),
+  /*
+   * TECHNICAL DETAILS (4B review). The ids and bookkeeping the booking
+   * system keeps for itself — basket, current payment attempt, seat hold,
+   * where the booking came from, policy versions — collapsed at the bottom
+   * and shown to admins only, so the front desk's page is the booking, not
+   * the plumbing. A collapsible is presentation only: no column moves.
+   */
+  {
+    type: "collapsible",
+    label: "Technical details",
+    admin: {
+      initCollapsed: true,
+      description: "Ids and bookkeeping the booking system keeps. Nothing here needs editing.",
+      condition: (_data, _sibling, { user }) => (user as { role?: string } | null | undefined)?.role === "admin",
+    },
+    fields: [
+      {
+        type: "row",
+        fields: [
+          systemField({
+            name: "basketId",
+            type: "text",
+            label: "Basket",
+            index: true,
+            admin: { width: "50%", description: "The browser's basket id. A double-submit of the same basket reuses this order instead of holding seats twice." },
+          }),
+          { name: "payment", type: "relationship", relationTo: "payments", label: "Current payment attempt", admin: { width: "50%", readOnly: true } },
+        ],
+      },
+      {
+        type: "group",
+        name: "hold",
+        label: "Seat hold",
+        admin: { description: "Seats are held while the customer pays and released when this runs out." },
+        fields: [
+          systemDate("expiresAt", "Hold expires", { index: true }),
+          {
+            ...systemJson("seatsBySession", "Seats held per session"),
+            admin: { readOnly: true, components: { Field: { path: "@/cms/components/orders/KeyValueField#KeyValueField", clientProps: { empty: "No seats held." } } } },
+          },
+        ],
+      },
+      {
+        type: "group",
+        name: "source",
+        label: "Where the booking came from",
+        fields: [
+          systemField({ name: "ipHash", type: "text", label: "IP (hashed)", maxLength: 64 }),
+          systemField({ name: "userAgent", type: "text", label: "Browser", maxLength: 300 }),
+          systemField({ name: "referrer", type: "text", label: "Referrer", maxLength: 300 }),
+        ],
+      },
+      {
+        ...systemJson("consentedPolicyVersions", "Policies accepted at checkout", {
+          description: "Which wording of each policy the customer agreed to.",
+        }),
+        admin: {
+          readOnly: true,
+          description: "Which wording of each policy the customer agreed to.",
+          components: { Field: { path: "@/cms/components/orders/KeyValueField#KeyValueField", clientProps: { empty: "None recorded (desk bookings skip the checkbox).", valuePrefix: "version" } } },
+        },
+      },
+    ],
+  },
   // ── sidebar ──
   modeField(),
   systemDate("confirmedAt", "Confirmed", { sidebar: true, index: true }),
@@ -475,7 +512,14 @@ export const Orders: CollectionConfig = {
     defaultColumns: ["reference", "status", "channel", "contact.email", "totals.grossFils", "createdAt"],
     description: "Every booking, online or at the desk. Use the actions on an order to refund, move or cancel; statuses change on their own.",
     hidden: sidebarFor("admin", "front-desk"),
-    listSearchableFields: ["reference", "contact.email", "contact.lastName", "contact.phone"],
+    listSearchableFields: ["reference", "contact.email", "contact.lastName", "contact.firstName", "contact.phone"],
+    components: {
+      // 4B (SPEC §I "Orders UX"): the status chip + Actions menu beside Save
+      // (refund, move, cancel, resends, invoice, review) and, above the list,
+      // the one-click views, "Create desk booking" and the teaching empty state.
+      edit: { beforeDocumentControls: ["@/cms/components/orders/OrderActions#OrderActions"] },
+      beforeListTable: ["@/cms/components/orders/OrdersToolbar#OrdersToolbar"],
+    },
   },
   defaultSort: "-createdAt",
   access: {

@@ -50,6 +50,11 @@ export const Waitlist: CollectionConfig = {
     description: "People waiting for a seat on a full session. They are emailed in order when seats free up; seats are not held for them.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["email", "name", "phone"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "clock", heading: "Nobody is waiting", body: "When a session is full, the site shows a “join the waitlist” form instead of the Book button. People who sign up appear here in order and are emailed a personal link, first come first served, as soon as a seat frees up." } },
+      ],
+    },
   },
   defaultSort: "position",
   access: {

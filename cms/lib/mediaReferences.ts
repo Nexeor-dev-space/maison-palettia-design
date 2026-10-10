@@ -31,7 +31,8 @@ import { hasGlobal } from "./publicUrl";
  * user, who may not be allowed to read every collection it has to check.
  */
 
-export type MediaReference = { collection: string; id: string; where: string };
+/** `href` is the admin page to fix it on (4B review: the refusal and the "Used on" panel link there). */
+export type MediaReference = { collection: string; id: string; where: string; href?: string };
 
 type FieldRef = { path: string; label: string };
 type CollectionRefs = { slug: string; titleField: string; label: string; fields: FieldRef[]; walkBlocks?: boolean };
@@ -120,6 +121,65 @@ function refersTo(value: unknown, mediaId: string): boolean {
   return false;
 }
 
+type AnyField = { name?: string; label?: unknown; type?: string; fields?: AnyField[]; tabs?: AnyField[]; blocks?: AnyBlock[]; blockReferences?: Array<string | AnyBlock> };
+type AnyBlock = { slug: string; labels?: { singular?: unknown }; fields?: AnyField[] };
+
+const plain = (label: unknown, fallback: string): string => (typeof label === "string" && label.trim() ? label : fallback.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^\w/, (c) => c.toUpperCase()));
+
+/**
+ * The admin's own words for the block trail (4B review: the refusal read
+ * "Home → hero → imageDesktop"). Block slugs become the block's label
+ * ("Hero") and field names the field's label ("Photograph — desktop"),
+ * read from the running config so a renamed label is never out of date.
+ */
+function blockLabels(payload: PayloadRequest["payload"], collection: string): { block: Map<string, string>; field: Map<string, Map<string, string>> } {
+  const block = new Map<string, string>();
+  const field = new Map<string, Map<string, string>>();
+  const globalBlocks = ((payload.config as { blocks?: AnyBlock[] }).blocks ?? []) as AnyBlock[];
+  const collect = (fields: AnyField[] | undefined, into: Map<string, string>) => {
+    for (const f of fields ?? []) {
+      if (f.name && !into.has(f.name)) into.set(f.name, plain(f.label, f.name));
+      if (f.fields) collect(f.fields, into);
+      if (f.tabs) collect(f.tabs, into);
+    }
+  };
+  const visit = (fields: AnyField[] | undefined) => {
+    for (const f of fields ?? []) {
+      if (f.type === "blocks") {
+        const list = [...(f.blocks ?? []), ...((f.blockReferences ?? []).map((ref) => (typeof ref === "string" ? globalBlocks.find((b) => b.slug === ref) : ref)).filter(Boolean) as AnyBlock[])];
+        for (const b of list) {
+          if (block.has(b.slug)) continue;
+          block.set(b.slug, plain(b.labels?.singular, b.slug));
+          const names = new Map<string, string>();
+          collect(b.fields, names);
+          field.set(b.slug, names);
+          visit(b.fields);
+        }
+      }
+      if (f.fields) visit(f.fields);
+      if (f.tabs) visit(f.tabs);
+    }
+  };
+  const config = (payload.collections as Record<string, { config?: { fields?: AnyField[] } }>)[collection]?.config;
+  visit(config?.fields);
+  return { block, field };
+}
+
+/** "hero → imageDesktop" → "Hero → Photograph — desktop". */
+function readableTrail(trail: string, labels: ReturnType<typeof blockLabels>): string {
+  const parts = trail.split(" → ");
+  let lastBlock: string | undefined;
+  return parts
+    .map((part) => {
+      if (labels.block.has(part)) {
+        lastBlock = part;
+        return labels.block.get(part)!;
+      }
+      return (lastBlock && labels.field.get(lastBlock)?.get(part)) || plain(undefined, part);
+    })
+    .join(" → ");
+}
+
 /**
  * Walks a blocks tree and reports every field (by block type and field name)
  * whose value is the media id. `id` and `blockType` keys are skipped: a
@@ -147,64 +207,64 @@ function walkBlocks(value: unknown, mediaId: string, trail: string[], out: strin
 
 export async function findMediaReferences(req: PayloadRequest, mediaId: string): Promise<MediaReference[]> {
   const { payload } = req;
-  const refs: MediaReference[] = [];
   const id = String(mediaId);
+  const admin = payload.config.routes.admin;
+
+  // Every lookup is independent, so they run together (4B review: a refused
+  // delete sat on "Deleting…" for 3 s while the queries ran one by one).
+  const lookups: Array<Promise<MediaReference[]>> = [];
 
   for (const collection of COLLECTION_REFS) {
     // The registry names collections from later phases; a slug the running config lacks is skipped.
     if (!(payload.collections as Record<string, unknown>)[collection.slug]) continue;
     const slug = collection.slug as CollectionSlug;
-    const titleOf = (doc: Record<string, unknown>) =>
-      typeof doc[collection.titleField] === "string" && (doc[collection.titleField] as string).trim()
-        ? (doc[collection.titleField] as string)
-        : `${collection.label} ${String(doc.id)}`;
+    // Pages read as "Home page", everything else by its own name.
+    const titleOf = (doc: Record<string, unknown>) => {
+      const title = typeof doc[collection.titleField] === "string" ? (doc[collection.titleField] as string).trim() : "";
+      if (!title) return `${collection.label} ${String(doc.id)}`;
+      return collection.slug === "pages" ? `${title} page` : title;
+    };
+    const hrefOf = (doc: Record<string, unknown>) => `${admin}/collections/${collection.slug}/${String(doc.id)}`;
 
     for (const field of collection.fields) {
-      const result = await payload.find({
-        collection: slug,
-        where: { [field.path]: { equals: id } },
-        depth: 0,
-        limit: 100,
-        pagination: false,
-        draft: true,
-        overrideAccess: true,
-        req,
-      });
-      for (const doc of result.docs as unknown as Record<string, unknown>[]) {
-        refs.push({ collection: collection.slug, id: String(doc.id), where: `${titleOf(doc)} → ${field.label}` });
-      }
+      lookups.push(
+        payload
+          .find({ collection: slug, where: { [field.path]: { equals: id } }, depth: 0, limit: 100, pagination: false, draft: true, overrideAccess: true, req })
+          .then((result) =>
+            (result.docs as unknown as Record<string, unknown>[]).map((doc) => ({ collection: collection.slug, id: String(doc.id), where: `${titleOf(doc)} → ${field.label}`, href: hrefOf(doc) })),
+          ),
+      );
     }
 
     if (collection.walkBlocks) {
-      const result = await payload.find({
-        collection: slug,
-        depth: 0,
-        limit: 500,
-        pagination: false,
-        draft: true,
-        overrideAccess: true,
-        req,
-      });
-      for (const doc of result.docs as unknown as Record<string, unknown>[]) {
-        const hits: string[] = [];
-        walkBlocks(doc.blocks, id, [], hits);
-        for (const hit of hits) refs.push({ collection: collection.slug, id: String(doc.id), where: `${titleOf(doc)} → ${hit}` });
-      }
+      const labels = blockLabels(payload, collection.slug);
+      lookups.push(
+        payload.find({ collection: slug, depth: 0, limit: 500, pagination: false, draft: true, overrideAccess: true, req }).then((result) => {
+          const found: MediaReference[] = [];
+          for (const doc of result.docs as unknown as Record<string, unknown>[]) {
+            const hits: string[] = [];
+            walkBlocks(doc.blocks, id, [], hits);
+            for (const hit of hits) found.push({ collection: collection.slug, id: String(doc.id), where: `${titleOf(doc)} → ${readableTrail(hit, labels)}`, href: hrefOf(doc) });
+          }
+          return found;
+        }),
+      );
     }
   }
 
   for (const global of GLOBAL_REFS) {
     if (!hasGlobal(payload, global.slug)) continue;
-    const doc = (await payload.findGlobal({ slug: global.slug as GlobalSlug, depth: 0, overrideAccess: true, req })) as unknown as Record<
-      string,
-      unknown
-    >;
-    for (const field of global.fields) {
-      if (refersTo(getByPath(doc, field.path), id)) {
-        refs.push({ collection: `global:${global.slug}`, id: global.slug, where: `${global.label} → ${field.label}` });
-      }
-    }
+    lookups.push(
+      payload.findGlobal({ slug: global.slug as GlobalSlug, depth: 0, overrideAccess: true, req }).then((raw) => {
+        const doc = raw as unknown as Record<string, unknown>;
+        return global.fields
+          .filter((field) => refersTo(getByPath(doc, field.path), id))
+          .map((field) => ({ collection: `global:${global.slug}`, id: global.slug, where: `${global.label} → ${field.label}`, href: `${admin}/globals/${global.slug}` }));
+      }),
+    );
   }
+
+  const refs = (await Promise.all(lookups)).flat();
 
   // The same document can reference a file twice (hero + gallery); list each place once.
   const seen = new Set<string>();
@@ -220,5 +280,5 @@ export async function findMediaReferences(req: PayloadRequest, mediaId: string):
 export function describeMediaReferences(refs: MediaReference[], max = 6): string {
   const shown = refs.slice(0, max).map((ref) => ref.where);
   const more = refs.length > max ? ` (+${refs.length - max} more)` : "";
-  return `This file is still used — remove it from: ${shown.join("; ")}${more}.`;
+  return `This photo is still used, so it was not deleted. Remove it from ${shown.join("; ")}${more} first — or replace the file instead, which updates every place at once.`;
 }

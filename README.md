@@ -14,6 +14,9 @@ lifestyle brand offering hands-on art and craft workshops.
 | Icons | lucide-react |
 | Animation | Framer Motion |
 | Linting | ESLint (`eslint-config-next`) |
+| CMS | Payload 3.90 in the same Next process (`/admin`), Postgres 16, migrations only |
+| Payments | Mamo Pay (hosted payment page) |
+| Hosting | self-hosted Node 22 behind nginx (systemd, or Docker as runtime only) |
 
 ## Development setup
 
@@ -56,12 +59,42 @@ when `NODE_ENV=production`.
 ```bash
 npx next dev -p 3200   # development server (the port matters — see above)
 npm run build          # production build (needs the database)
-npm run start -- -p 3200   # serve the production build
 npm run lint           # ESLint
 npx tsc --noEmit       # type check
+npx vitest run         # unit tests
 npx payload migrate    # apply committed migrations
 npx payload migrate:create <name>   # write a new migration after a schema change
+npm run seed           # load today's site into the CMS (idempotent; see cms/seed/index.ts)
+npm run preflight:db   # check the DB connection against the production gate
 ```
+
+## Production
+
+Self-hosted: one Node process behind nginx, on the owner's server, against
+the shared Nexeor Postgres. Everything an operator needs is in
+**[`docs/cms-runbook.md`](docs/cms-runbook.md)**; what the owner does in the
+admin after go-live is **[`docs/owner-checklist.md`](docs/owner-checklist.md)**.
+
+```bash
+scripts/deploy.sh --seed   # FIRST deploy only (refused once the DB has content)
+scripts/deploy.sh          # every deploy after: preflight → npm ci → migrate → build → restart → purge
+scripts/deploy.sh --rollback   # previous release, seconds, database untouched
+scripts/backup.sh          # pg_dump + media/ + private/, rotated (nightly from cron)
+```
+
+| File | What it is |
+|---|---|
+| `scripts/deploy.sh` | the deploy (release directories, health check, automatic rollback, signed purge) |
+| `scripts/preflight-db.mjs` | the database gate — dedicated role, TLS or private network (hard gate in production) |
+| `scripts/revalidate.mjs` | the signed post-deploy cache purge |
+| `scripts/backup.sh` | nightly backup with rotation |
+| `deploy/maison-palettia.service` | systemd unit |
+| `deploy/nginx.conf.example` | TLS, `X-Forwarded-For`, login rate limits, upload size |
+| `Dockerfile`, `docker-compose.yml`, `.dockerignore` | the Docker alternative — runtime only; the host builds |
+
+Rules that bite: migrations are **additive within a release** (runbook §7);
+`NEXT_PUBLIC_SERVER_URL` is compiled in, so changing it needs a deploy;
+rotating `PAYLOAD_SECRET` needs the reseal script first (runbook §9).
 
 ## Structure
 
@@ -93,6 +126,10 @@ lib/
   workshops.ts       workshop content + formatting (the CMS seam)
 types/               shared TypeScript types
 public/images/       brand · hero · workshops · creative · experience · gallery · blog
+scripts/             deploy.sh · backup.sh · preflight-db.mjs · revalidate.mjs
+deploy/              systemd unit and nginx example
+docs/                cms-runbook.md (operations) · owner-checklist.md (go-live, for the owner)
+                     cms/SPEC.md (the build spec) · cms/DECISIONS.md (environment overrides)
 ```
 
 ## Design tokens
@@ -151,17 +188,15 @@ visible when JavaScript is unavailable.
 
 ## Build phases
 
-1. ✅ Project setup — **done**
-2. Global header + navigation design
-3. Homepage hero
-4. Homepage sections
-5. Workshop listing
-6. Workshop detail + booking
-7. About
-8. Gallery
-9. Journal
-10. FAQ + Contact
-11. Responsive refinement, animation, SEO, polish
+The design-phase site (header, homepage, workshops, about, gallery, FAQ,
+contact, SEO) is done. The CMS was built in the phases of
+`docs/cms/SPEC.md` §L:
+
+1. ✅ Foundation — Payload in-app, staff roles, media, encrypted settings
+2. ✅ Content model, seed, CMS-driven site, page builder, live preview
+3. ✅ Commerce — checkout, Mamo Pay, orders, tickets, invoices, email, jobs, inbox
+4. ✅ Admin experience and analytics
+5. Hardening, tests, deploy and docs — then the first production deploy
 
 ## Outstanding client assets
 

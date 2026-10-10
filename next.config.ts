@@ -11,7 +11,7 @@ import { withPayload } from "@payloadcms/next/withPayload";
  * `@import` deprecation that Payload's own SCSS still trips, externalises
  * `graphql`/`sharp`/drizzle so one copy loads at runtime, and adds the
  * `Sec-CH-Prefers-Color-Scheme` client-hint headers the admin theme reads.
- * It also attaches a `webpack()` function; on 16.3.4 that only flips an
+ * It also attaches a `webpack()` function; on 16.3.x that only flips an
  * internal flag and the Turbopack build still passes, so `next build` stays
  * as it is — do NOT add `--webpack` (docs/cms/research/00-spike.md, G7).
  *
@@ -37,6 +37,25 @@ const nextConfig: NextConfig = {
    */
   output: "standalone",
   poweredByHeader: false,
+
+  /**
+   * Keep the standalone copy to code. The tracer follows Payload's and
+   * sharp's dynamic `fs` reads up to the project root and copies the whole
+   * checkout into `.next/standalone` — including `.env`, a snapshot of
+   * `media/` and `private/` (invoice PDFs with customers' names, addresses
+   * and TRNs). deploy.sh and .dockerignore already leave those out of the
+   * release, but the copy itself stayed behind on the server, out of reach
+   * of the retention job. None of these is ever loaded through the trace:
+   * the server reads `.env`, `media/` and `private/` from its cwd (the
+   * release links them), and the rest is source, tests and docs. `"*"`
+   * matches every route. Turbopack does not apply this to the trace of
+   * `instrumentation.ts`, which still pulls the checkout in, so
+   * scripts/prune-standalone.sh deletes the same folders after every build
+   * (`npm run build`, ci.sh and deploy.sh run it) and fails if any remain.
+   */
+  outputFileTracingExcludes: {
+    "*": ["./.env*", "./media/**", "./private/**", "./assets/**", "./docs/**", "./tests/**", "./e2e/**", "./.git/**", "./.claude/**"],
+  },
 
   /**
    * pdfkit (Phase 3 invoices and tickets) opens its AFM font files from disk
@@ -86,11 +105,25 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  /**
+   * Clickjacking. No other site may frame any page here — above all the
+   * signed-in admin, where a framed, disguised click could press Refund,
+   * Switch to Live or Invite staff. `frame-ancestors` is the modern rule and
+   * `X-Frame-Options` the one older browsers know; both allow the site's own
+   * origin, which is all live preview needs (the admin frames same-origin
+   * pages). Only `frame-ancestors` is set in the CSP, so nothing else about
+   * what pages may load changes. They are set here, not in nginx, so dev,
+   * Docker and any proxy all get them, and nginx does not send them twice.
+   */
   async headers() {
     return [
       {
         source: "/:path*",
-        headers: [{ key: "Referrer-Policy", value: "strict-origin-when-cross-origin" }],
+        headers: [
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+        ],
       },
       ...NO_REFERRER_ROUTES.map((source) => ({
         source,

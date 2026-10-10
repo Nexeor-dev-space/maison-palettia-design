@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { getBookingOptions } from "@/lib/bookingOptions";
 
+import { hasExternalTags } from "@/cms/collections/analytics/shared";
+import { getSiteAnalyticsConfig } from "@/cms/lib/analytics";
+import { AnalyticsBeacon } from "@/components/cms/AnalyticsBeacon";
 import { ClickToEdit } from "@/components/cms/ClickToEdit";
+import { ConsentBanner } from "@/components/cms/ConsentBanner";
+import { ExternalAnalytics } from "@/components/cms/ExternalAnalytics";
 import { LivePreviewListener } from "@/components/cms/LivePreviewListener";
 import { Footer } from "@/components/layout/Footer";
 import { FooterReveal } from "@/components/layout/FooterReveal";
@@ -69,7 +74,12 @@ async function getChrome(): Promise<SiteChromeData> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [bookingOptions, draft, chrome] = await Promise.all([getBookingOptions(), isDraft(), getChrome()]);
+  const [bookingOptions, draft, chrome, analytics] = await Promise.all([
+    getBookingOptions(),
+    isDraft(),
+    getChrome(),
+    getSiteAnalyticsConfig(),
+  ]);
 
   return (
     <html
@@ -168,6 +178,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               paints over the page's own foot, and before <CursorLayer>'s
               siblings so nothing of it is caught by the brush. */}
           <BottomNav bookingOptions={bookingOptions} />
+
+          {/*
+            ANALYTICS (SPEC §D.6, §C.3). The first-party beacon is cookieless
+            and needs no consent; it is off in draft mode (an editor
+            previewing is not a visitor). Third-party tags load only after
+            the banner's Accept, and both they and the banner stay silent on
+            the booking pages (/checkout, /payment-success, /my-bookings,
+            /booking-status, /dev) — the components check the path on every
+            navigation, since a layout cannot know its page. Settings live in
+            Analytics & tracking; see cms/lib/analytics.ts.
+          */}
+          {draft ? null : <AnalyticsBeacon {...analytics.beacon} />}
+          <ExternalAnalytics
+            external={analytics.external}
+            consentRequired={analytics.consent.required}
+            excludePaths={analytics.beacon.excludePaths}
+          />
+          <ConsentBanner
+            consent={analytics.consent}
+            active={hasExternalTags(analytics)}
+            excludePaths={analytics.beacon.excludePaths}
+          />
 
           {/*
             AN EDITOR'S PREVIEW ONLY (SPEC §G.5). Draft mode is switched on by

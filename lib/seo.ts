@@ -14,18 +14,20 @@ import type { PageSeo } from "@/types";
  * — the site's name, tagline, locale and origin, the title template, the
  * Twitter card type and the default share image. Two contexts exist:
  *
- *   IN_FILE ..... built from `SITE` in lib/constants.ts. `defaultMetadata`,
- *                 `homeMetadata` and `buildMetadata` use it, synchronously,
- *                 exactly as they always have — the routes that call them
- *                 at module scope keep compiling and keep their output.
+ *   IN_FILE ..... built from `SITE` in lib/constants.ts. `buildMetadata`
+ *                 uses it, synchronously — the booking-flow routes that
+ *                 call it at module scope (checkout, payment-success,
+ *                 booking-status, my-bookings, the seat picker) keep
+ *                 compiling and keep their output.
  *   the CMS ..... `getSeoContext()` reads Site details (`site-settings`)
  *                 and Search & sharing (`seo-defaults`) through `cached`
  *                 (SPEC §G.2 "Metadata"). `getDefaultMetadata`,
  *                 `getHomeMetadata` and `getMetadata` are the async twins
  *                 the routes move to, inside `generateMetadata`.
  *
- * TODO(phase2-cleanup): once every route calls the async twins, the sync
- * exports and IN_FILE go.
+ * The sync `defaultMetadata` and `homeMetadata` constants are gone (the layout
+ * and the homepage call the async twins); `buildMetadata` and IN_FILE stay for
+ * the routes above, which carry no CMS document of their own.
  */
 
 /**
@@ -192,8 +194,6 @@ const defaultMetadataFor = (context: SeoContext): Metadata => ({
   */
 });
 
-export const defaultMetadata: Metadata = defaultMetadataFor(IN_FILE);
-
 /**
  * The homepage's canonical and share URL — the two fields `defaultMetadata`
  * no longer carries (see the note there). The whole Open Graph block is
@@ -206,8 +206,6 @@ const homeMetadataFor = (context: SeoContext): Metadata => ({
   alternates: { canonical: "/" },
   openGraph: { ...siteOpenGraph(context), url: "/" },
 });
-
-export const homeMetadata: Metadata = homeMetadataFor(IN_FILE);
 
 /** Build per-page metadata without repeating the shared defaults. */
 export function buildMetadata(seo: PageSeo): Metadata {
@@ -236,8 +234,8 @@ function metadataFor(context: SeoContext, { title, description, path, image, noi
 
   /*
     `noindex, nofollow` for the pages that are not anybody's entry point —
-    /checkout, /payment-success, /booking-status and the /blog placeholder
-    were all indexable, so a customer's own confirmation page could turn up
+    /checkout, /payment-success, /booking-status and the (since removed)
+    /blog placeholder were all indexable, so a customer's own confirmation page could turn up
     in search. Every other page carries no robots tag, which is `index,
     follow` by default (see the note in `defaultMetadata`).
   */
@@ -308,12 +306,12 @@ export async function getSeoContext(): Promise<SeoContext> {
   };
 }
 
-/** `defaultMetadata`, from the CMS — for the site layout's `generateMetadata`. */
+/** The site-wide default metadata, from the CMS — for the site layout's `generateMetadata`. */
 export async function getDefaultMetadata(): Promise<Metadata> {
   return defaultMetadataFor(await getSeoContext());
 }
 
-/** `homeMetadata`, from the CMS. */
+/** The homepage's canonical and share URL, from the CMS. */
 export async function getHomeMetadata(): Promise<Metadata> {
   return homeMetadataFor(await getSeoContext());
 }

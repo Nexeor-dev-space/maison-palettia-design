@@ -137,7 +137,8 @@ export const AnalyticsSettings: GlobalConfig = {
         defaultValue: 90,
       }),
       pathList("excludePaths", "Paths never recorded", {
-        description: "Checkout and account pages stay out of every chart. Query strings and #fragments are never sent anyway.",
+        description:
+          "Pages that are never counted. Checkout, payment and booking-account pages are always left out, even if removed here. Query strings and #fragments are never sent anyway.",
         maxRows: 30,
         defaultValue: ["/checkout", "/payment-success", "/my-bookings", "/booking-status", "/dev"],
       }),

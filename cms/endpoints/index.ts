@@ -1,6 +1,7 @@
 import type { Endpoint } from "payload";
 
 import { adminOrdersEndpoints } from "./admin-orders";
+import { adminWarningsEndpoints } from "./admin-warnings";
 import { adminSessionsEndpoints } from "./admin-sessions";
 import { checkoutEndpoints } from "./checkout";
 import { emailEndpoints } from "./email";
@@ -35,6 +36,7 @@ export const endpoints: Endpoint[] = [
   ...settingsEmailEndpoints,
   ...adminOrdersEndpoints,
   ...adminSessionsEndpoints,
+  ...adminWarningsEndpoints,
   ...usersEndpoints,
   ...exportsEndpoints,
   ...findTextEndpoints,

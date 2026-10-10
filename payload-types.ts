@@ -20,13 +20,10 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
     media: Media;
-    'settings-audit': SettingsAudit;
     pages: Page;
     experiences: Experience;
     sessions: Session;
-    'session-inventory': SessionInventory;
     venues: Venue;
     programmes: Programme;
     policies: Policy;
@@ -44,13 +41,18 @@ export interface Config {
     'promo-codes': PromoCode;
     waitlist: Waitlist;
     payments: Payment;
+    enquiries: Enquiry;
+    'email-templates': EmailTemplate;
+    'notification-log': NotificationLog;
+    users: User;
+    'settings-audit': SettingsAudit;
+    'session-inventory': SessionInventory;
     'payment-events': PaymentEvent;
     'seat-holds': SeatHold;
     'invoice-files': InvoiceFile;
     'invoice-counters': InvoiceCounter;
-    'email-templates': EmailTemplate;
-    'notification-log': NotificationLog;
-    enquiries: Enquiry;
+    'analytics-events': AnalyticsEvent;
+    'analytics-daily': AnalyticsDaily;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -75,13 +77,10 @@ export interface Config {
     };
   };
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    'settings-audit': SettingsAuditSelect<false> | SettingsAuditSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     experiences: ExperiencesSelect<false> | ExperiencesSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
-    'session-inventory': SessionInventorySelect<false> | SessionInventorySelect<true>;
     venues: VenuesSelect<false> | VenuesSelect<true>;
     programmes: ProgrammesSelect<false> | ProgrammesSelect<true>;
     policies: PoliciesSelect<false> | PoliciesSelect<true>;
@@ -99,13 +98,18 @@ export interface Config {
     'promo-codes': PromoCodesSelect<false> | PromoCodesSelect<true>;
     waitlist: WaitlistSelect<false> | WaitlistSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
+    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
+    'notification-log': NotificationLogSelect<false> | NotificationLogSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
+    'settings-audit': SettingsAuditSelect<false> | SettingsAuditSelect<true>;
+    'session-inventory': SessionInventorySelect<false> | SessionInventorySelect<true>;
     'payment-events': PaymentEventsSelect<false> | PaymentEventsSelect<true>;
     'seat-holds': SeatHoldsSelect<false> | SeatHoldsSelect<true>;
     'invoice-files': InvoiceFilesSelect<false> | InvoiceFilesSelect<true>;
     'invoice-counters': InvoiceCountersSelect<false> | InvoiceCountersSelect<true>;
-    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
-    'notification-log': NotificationLogSelect<false> | NotificationLogSelect<true>;
-    enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
+    'analytics-events': AnalyticsEventsSelect<false> | AnalyticsEventsSelect<true>;
+    'analytics-daily': AnalyticsDailySelect<false> | AnalyticsDailySelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -161,6 +165,8 @@ export interface Config {
       'complete-orders': TaskCompleteOrders;
       'reconcile-inventory': TaskReconcileInventory;
       'send-daily-digest': TaskSendDailyDigest;
+      'rollup-analytics': TaskRollupAnalytics;
+      'purge-retention': TaskPurgeRetention;
       'issue-tickets': TaskIssueTickets;
       'issue-invoice': TaskIssueInvoice;
       'generate-invoice-pdf': TaskGenerateInvoicePdf;
@@ -196,47 +202,6 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
-}
-/**
- * Who can sign in to this admin, and what they may do. Invite colleagues rather than sharing passwords.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: string;
-  /**
-   * As colleagues see it — in the enquiries 'assigned to' list, in the audit log.
-   */
-  name: string;
-  /**
-   * What this person may do. Only admins can change roles; the first account created is always an admin.
-   */
-  role: 'admin' | 'editor' | 'front-desk';
-  /**
-   * Untick to stop this person signing in without deleting their account or history.
-   */
-  active?: boolean | null;
-  lastLoginAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
  * Photographs, the studio film, logos and PDF fonts. A file that is still used somewhere cannot be deleted.
@@ -373,24 +338,6 @@ export interface FolderInterface {
     totalDocs?: number;
   };
   folderType?: 'media'[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Every change to a behaviour-changing setting, with who made it. Read-only.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "settings-audit".
- */
-export interface SettingsAudit {
-  id: string;
-  global: string;
-  field: string;
-  from?: string | null;
-  to?: string | null;
-  user?: (string | null) | User;
-  at: string;
-  ipHash?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2346,10 +2293,6 @@ export interface Order {
     | 'cancelled'
     | 'refunded';
   channel: 'online' | 'desk';
-  /**
-   * The browser's basket id. A double-submit of the same basket reuses this order instead of holding seats twice.
-   */
-  basketId?: string | null;
   customer?: (string | null) | Customer;
   /**
    * A copy of what the customer typed. Correcting the email or phone here is logged in the timeline and updates the customer record.
@@ -2473,7 +2416,6 @@ export interface Order {
     note?: string | null;
     takenBy?: (string | null) | User;
   };
-  payment?: (string | null) | Payment;
   invoice?: (string | null) | Invoice;
   tickets?: {
     docs?: (string | Ticket)[];
@@ -2489,29 +2431,6 @@ export interface Order {
     docs?: (string | Refund)[];
     hasNextPage?: boolean;
     totalDocs?: number;
-  };
-  /**
-   * Seats are held while the customer pays and released when this runs out.
-   */
-  hold?: {
-    expiresAt?: string | null;
-    /**
-     * { sessionId: qty }
-     */
-    seatsBySession?:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
-  };
-  source?: {
-    ipHash?: string | null;
-    userAgent?: string | null;
-    referrer?: string | null;
   };
   /**
    * Every state change and staff action, oldest first. Written by the system.
@@ -2541,7 +2460,32 @@ export interface Order {
    */
   internalNotes?: string | null;
   /**
-   * { policySlug: version } — which wording the customer agreed to.
+   * The browser's basket id. A double-submit of the same basket reuses this order instead of holding seats twice.
+   */
+  basketId?: string | null;
+  payment?: (string | null) | Payment;
+  /**
+   * Seats are held while the customer pays and released when this runs out.
+   */
+  hold?: {
+    expiresAt?: string | null;
+    seatsBySession?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  source?: {
+    ipHash?: string | null;
+    userAgent?: string | null;
+    referrer?: string | null;
+  };
+  /**
+   * Which wording of each policy the customer agreed to.
    */
   consentedPolicyVersions?:
     | {
@@ -2744,89 +2688,45 @@ export interface PromoCode {
   createdAt: string;
 }
 /**
- * Every payment attempt, online and at the desk. Written by the payment system; read-only here.
+ * Who can sign in to this admin, and what they may do. Invite colleagues rather than sharing passwords.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payments".
+ * via the `definition` "users".
  */
-export interface Payment {
+export interface User {
   id: string;
-  order: string | Order;
-  provider: 'mamo' | 'desk';
-  status:
-    | 'created'
-    | 'link_ready'
-    | 'processing'
-    | 'captured'
-    | 'refund_pending'
-    | 'partially_refunded'
-    | 'refunded'
-    | 'failed'
-    | 'expired'
-    | 'voided';
   /**
-   * In AED, e.g. 240.00
+   * As colleagues see it — in the enquiries 'assigned to' list, in the audit log.
    */
-  amountFils: number;
-  currency: string;
-  method?: {
-    type?: ('card' | 'wallet' | 'cash' | 'card_terminal' | 'complimentary' | 'bank_transfer') | null;
-    cardLast4?: string | null;
-    /**
-     * As Mamo reports it, e.g. “International card”.
-     */
-    cardOrigin?: string | null;
-  };
-  providerLinkId?: string | null;
+  name: string;
   /**
-   * Mamo's MPB-CHRG-… id. Quote it to Mamo support.
+   * What this person may do. Only admins can change roles; the first account created is always an admin.
    */
-  providerPaymentId?: string | null;
+  role: 'admin' | 'editor' | 'front-desk';
   /**
-   * Admin only: anyone with this URL can pay for the basket.
+   * Untick to stop this person signing in without deleting their account or history.
    */
-  providerLinkUrl?: string | null;
-  failureCode?: string | null;
-  failureMessage?: string | null;
-  /**
-   * Admin only. The verified object the last snapshot was taken from.
-   */
-  raw?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * What Mamo pays out for this payment, as reported — text, exactly as Mamo formats it.
-   */
-  settlement?: {
-    amount?: string | null;
-    fee?: string | null;
-    vat?: string | null;
-    currency?: string | null;
-    /**
-     * YYYY-MM-DD as Mamo sends it.
-     */
-    date?: string | null;
-  };
-  /**
-   * Which gateway this went through. A sandbox row can never touch a live order, or the reverse.
-   */
-  mode: 'test' | 'live' | 'mock';
-  capturedAt?: string | null;
-  failedAt?: string | null;
-  webhookSeenAt?: string | null;
-  /**
-   * When the payment object was last fetched from Mamo's API.
-   */
-  verifiedAt?: string | null;
-  linkDeactivatedAt?: string | null;
+  active?: boolean | null;
+  lastLoginAt?: string | null;
   updatedAt: string;
   createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
 }
 /**
  * Tax invoices and credit notes, numbered without gaps. Figures never change after issue; regenerate the PDF from the order if needed.
@@ -2985,6 +2885,91 @@ export interface Refund {
   createdAt: string;
 }
 /**
+ * Every payment attempt, online and at the desk. Written by the payment system; read-only here.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments".
+ */
+export interface Payment {
+  id: string;
+  order: string | Order;
+  provider: 'mamo' | 'desk';
+  status:
+    | 'created'
+    | 'link_ready'
+    | 'processing'
+    | 'captured'
+    | 'refund_pending'
+    | 'partially_refunded'
+    | 'refunded'
+    | 'failed'
+    | 'expired'
+    | 'voided';
+  /**
+   * In AED, e.g. 240.00
+   */
+  amountFils: number;
+  currency: string;
+  method?: {
+    type?: ('card' | 'wallet' | 'cash' | 'card_terminal' | 'complimentary' | 'bank_transfer') | null;
+    cardLast4?: string | null;
+    /**
+     * As Mamo reports it, e.g. “International card”.
+     */
+    cardOrigin?: string | null;
+  };
+  providerLinkId?: string | null;
+  /**
+   * Mamo's MPB-CHRG-… id. Quote it to Mamo support.
+   */
+  providerPaymentId?: string | null;
+  /**
+   * Admin only: anyone with this URL can pay for the basket.
+   */
+  providerLinkUrl?: string | null;
+  failureCode?: string | null;
+  failureMessage?: string | null;
+  /**
+   * Admin only. The verified object the last snapshot was taken from.
+   */
+  raw?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * What Mamo pays out for this payment, as reported — text, exactly as Mamo formats it.
+   */
+  settlement?: {
+    amount?: string | null;
+    fee?: string | null;
+    vat?: string | null;
+    currency?: string | null;
+    /**
+     * YYYY-MM-DD as Mamo sends it.
+     */
+    date?: string | null;
+  };
+  /**
+   * Which gateway this went through. A sandbox row can never touch a live order, or the reverse.
+   */
+  mode: 'test' | 'live' | 'mock';
+  capturedAt?: string | null;
+  failedAt?: string | null;
+  webhookSeenAt?: string | null;
+  /**
+   * When the payment object was last fetched from Mamo's API.
+   */
+  verifiedAt?: string | null;
+  linkDeactivatedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * One ticket per seat, each with its own QR code. Check in from /admin/check-in or the session's attendee list.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3088,104 +3073,51 @@ export interface Waitlist {
   createdAt: string;
 }
 /**
- * Every webhook delivery from Mamo Pay, verified or not. Read-only; the booking system processes them.
+ * Messages from the contact and private-events forms. Work them by status; assign to a colleague; reply from your own email.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payment-events".
+ * via the `definition` "enquiries".
  */
-export interface PaymentEvent {
+export interface Enquiry {
   id: string;
-  provider: string;
+  status: 'new' | 'in_progress' | 'closed';
   /**
-   * payment.succeeded, payment.refunded, dispute.received…
+   * Active colleagues only. Assigning a new enquiry moves it to In progress.
    */
-  eventType?: string | null;
+  assignedTo?: (string | null) | User;
   /**
-   * The delivery carried our webhook secret.
+   * Set when you press Reply by email; or set it by hand. Moves a new enquiry to In progress.
    */
-  verified: boolean;
-  needsReview?: boolean | null;
-  providerPaymentId?: string | null;
-  providerLinkId?: string | null;
+  repliedAt?: string | null;
+  source: 'contact' | 'private-event';
+  topic: 'event' | 'booking' | 'private' | 'collaboration' | 'general';
+  name: string;
+  email: string;
+  phone?: string | null;
+  message: string;
   /**
-   * Resolved from the payment's external_id, custom_data or link id.
+   * The extra questions that form asked (guests, preferred date…), in the order asked.
    */
-  order?: (string | null) | Order;
-  /**
-   * One row per payment × event × status × refunded amount. A second delivery of the same thing is answered 200 and ignored.
-   */
-  dedupeKey: string;
-  /**
-   * Names only, always recorded — this is how a different auth header name shows up.
-   */
-  headerNames?: string[] | null;
-  headers?:
+  details?:
     | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  payload?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
     | null;
   /**
-   * The first kilobyte of an unverified delivery, for diagnosis.
+   * For the team. Never sent to the enquirer.
    */
-  bodyExcerpt?: string | null;
-  ipHash?: string | null;
-  /**
-   * Blank once processed. A row with an error and no “Processed” time will be retried.
-   */
-  error?: string | null;
-  /**
-   * Which set of webhook secrets matched: test or live.
-   */
-  mode: 'test' | 'live' | 'mock';
-  receivedAt?: string | null;
-  /**
-   * A claim older than 2 minutes with no “Processed” time can be re-claimed by a retry.
-   */
-  processingStartedAt?: string | null;
-  processedAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Seats reserved by baskets awaiting payment. Released automatically when the hold runs out.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "seat-holds".
- */
-export interface SeatHold {
-  id: string;
-  order: string | Order;
-  session: string | Session;
-  qty: number;
-  status: 'held' | 'released' | 'consumed';
-  expiresAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * The last invoice and credit-note number issued each year. Maintained by the numbering SQL; read-only.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "invoice-counters".
- */
-export interface InvoiceCounter {
-  id: string;
-  kind: 'invoice' | 'credit_note';
-  year: number;
-  last: number;
+  internalNotes?: string | null;
+  meta?: {
+    ipHash?: string | null;
+    referer?: string | null;
+    userAgent?: string | null;
+    /**
+     * The hidden form field was filled in. Stored, not notified.
+     */
+    honeypotTripped?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -3344,53 +3276,167 @@ export interface NotificationLog {
   createdAt: string;
 }
 /**
- * Messages from the contact and private-events forms. Work them by status; assign to a colleague; reply from your own email.
+ * Every change to a behaviour-changing setting, with who made it. Read-only.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "enquiries".
+ * via the `definition` "settings-audit".
  */
-export interface Enquiry {
+export interface SettingsAudit {
   id: string;
-  status: 'new' | 'in_progress' | 'closed';
-  /**
-   * Active colleagues only. Assigning a new enquiry moves it to In progress.
-   */
-  assignedTo?: (string | null) | User;
-  /**
-   * Set when you press Reply by email; or set it by hand. Moves a new enquiry to In progress.
-   */
-  repliedAt?: string | null;
-  source: 'contact' | 'private-event';
-  topic: 'event' | 'booking' | 'private' | 'collaboration' | 'general';
-  name: string;
-  email: string;
-  phone?: string | null;
-  message: string;
-  /**
-   * The extra questions that form asked (guests, preferred date…), in the order asked.
-   */
-  details?:
-    | {
-        label: string;
-        value: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * For the team. Never sent to the enquirer.
-   */
-  internalNotes?: string | null;
-  meta?: {
-    ipHash?: string | null;
-    referer?: string | null;
-    userAgent?: string | null;
-    /**
-     * The hidden form field was filled in. Stored, not notified.
-     */
-    honeypotTripped?: boolean | null;
-  };
+  global: string;
+  field: string;
+  from?: string | null;
+  to?: string | null;
+  user?: (string | null) | User;
+  at: string;
+  ipHash?: string | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Every webhook delivery from Mamo Pay, verified or not. Read-only; the booking system processes them.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-events".
+ */
+export interface PaymentEvent {
+  id: string;
+  provider: string;
+  /**
+   * payment.succeeded, payment.refunded, dispute.received…
+   */
+  eventType?: string | null;
+  /**
+   * The delivery carried our webhook secret.
+   */
+  verified: boolean;
+  needsReview?: boolean | null;
+  providerPaymentId?: string | null;
+  providerLinkId?: string | null;
+  /**
+   * Resolved from the payment's external_id, custom_data or link id.
+   */
+  order?: (string | null) | Order;
+  /**
+   * One row per payment × event × status × refunded amount. A second delivery of the same thing is answered 200 and ignored.
+   */
+  dedupeKey: string;
+  /**
+   * Names only, always recorded — this is how a different auth header name shows up.
+   */
+  headerNames?: string[] | null;
+  headers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  payload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * The first kilobyte of an unverified delivery, for diagnosis.
+   */
+  bodyExcerpt?: string | null;
+  ipHash?: string | null;
+  /**
+   * Blank once processed. A row with an error and no “Processed” time will be retried.
+   */
+  error?: string | null;
+  /**
+   * Which set of webhook secrets matched: test or live.
+   */
+  mode: 'test' | 'live' | 'mock';
+  receivedAt?: string | null;
+  /**
+   * A claim older than 2 minutes with no “Processed” time can be re-claimed by a retry.
+   */
+  processingStartedAt?: string | null;
+  processedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Seats reserved by baskets awaiting payment. Released automatically when the hold runs out.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seat-holds".
+ */
+export interface SeatHold {
+  id: string;
+  order: string | Order;
+  session: string | Session;
+  qty: number;
+  status: 'held' | 'released' | 'consumed';
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * The last invoice and credit-note number issued each year. Maintained by the numbering SQL; read-only.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-counters".
+ */
+export interface InvoiceCounter {
+  id: string;
+  kind: 'invoice' | 'credit_note';
+  year: number;
+  last: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * The last few weeks of individual page views, before they are summarised. No names, no IP addresses, no cookies. For the charts, open Analytics.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-events".
+ */
+export interface AnalyticsEvent {
+  id: string;
+  ts: string;
+  /**
+   * YYYY-MM-DD in the studio's timezone.
+   */
+  day: string;
+  kind: 'pv' | 'checkout_started' | 'payment_redirect' | 'order_paid';
+  path: string;
+  entry?: boolean | null;
+  /**
+   * Only on the first page of a visit, and only the site name — never the full address.
+   */
+  referrerHost?: string | null;
+  channel?: ('direct' | 'search' | 'social' | 'email' | 'referral') | null;
+  device?: ('desktop' | 'mobile' | 'tablet' | 'other') | null;
+  browser?: string | null;
+  /**
+   * Two-letter code, when the server's proxy provides one.
+   */
+  country?: string | null;
+  visitor: string;
+}
+/**
+ * Page views summarised per day, kept for good. Built automatically every hour; the charts in Analytics read these.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-daily".
+ */
+export interface AnalyticsDaily {
+  id: string;
+  day: string;
+  dimension: 'total' | 'page' | 'referrer' | 'channel' | 'device' | 'browser' | 'country' | 'funnel';
+  key: string;
+  views: number;
+  visitors: number;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3472,6 +3518,8 @@ export interface PayloadJob {
           | 'complete-orders'
           | 'reconcile-inventory'
           | 'send-daily-digest'
+          | 'rollup-analytics'
+          | 'purge-retention'
           | 'issue-tickets'
           | 'issue-invoice'
           | 'generate-invoice-pdf'
@@ -3520,6 +3568,8 @@ export interface PayloadJob {
                 | 'complete-orders'
                 | 'reconcile-inventory'
                 | 'send-daily-digest'
+                | 'rollup-analytics'
+                | 'purge-retention'
                 | 'issue-tickets'
                 | 'issue-invoice'
                 | 'generate-invoice-pdf'
@@ -3546,6 +3596,8 @@ export interface PayloadJob {
         | 'complete-orders'
         | 'reconcile-inventory'
         | 'send-daily-digest'
+        | 'rollup-analytics'
+        | 'purge-retention'
         | 'issue-tickets'
         | 'issue-invoice'
         | 'generate-invoice-pdf'
@@ -3583,16 +3635,8 @@ export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
-        relationTo: 'users';
-        value: string | User;
-      } | null)
-    | ({
         relationTo: 'media';
         value: string | Media;
-      } | null)
-    | ({
-        relationTo: 'settings-audit';
-        value: string | SettingsAudit;
       } | null)
     | ({
         relationTo: 'pages';
@@ -3605,10 +3649,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sessions';
         value: string | Session;
-      } | null)
-    | ({
-        relationTo: 'session-inventory';
-        value: string | SessionInventory;
       } | null)
     | ({
         relationTo: 'venues';
@@ -3679,6 +3719,30 @@ export interface PayloadLockedDocument {
         value: string | Payment;
       } | null)
     | ({
+        relationTo: 'enquiries';
+        value: string | Enquiry;
+      } | null)
+    | ({
+        relationTo: 'email-templates';
+        value: string | EmailTemplate;
+      } | null)
+    | ({
+        relationTo: 'notification-log';
+        value: string | NotificationLog;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: string | User;
+      } | null)
+    | ({
+        relationTo: 'settings-audit';
+        value: string | SettingsAudit;
+      } | null)
+    | ({
+        relationTo: 'session-inventory';
+        value: string | SessionInventory;
+      } | null)
+    | ({
         relationTo: 'payment-events';
         value: string | PaymentEvent;
       } | null)
@@ -3695,16 +3759,12 @@ export interface PayloadLockedDocument {
         value: string | InvoiceCounter;
       } | null)
     | ({
-        relationTo: 'email-templates';
-        value: string | EmailTemplate;
+        relationTo: 'analytics-events';
+        value: string | AnalyticsEvent;
       } | null)
     | ({
-        relationTo: 'notification-log';
-        value: string | NotificationLog;
-      } | null)
-    | ({
-        relationTo: 'enquiries';
-        value: string | Enquiry;
+        relationTo: 'analytics-daily';
+        value: string | AnalyticsDaily;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -3751,33 +3811,6 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
- */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  role?: T;
-  active?: T;
-  lastLoginAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  resetPasswordRequestedAt?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3869,21 +3902,6 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "settings-audit_select".
- */
-export interface SettingsAuditSelect<T extends boolean = true> {
-  global?: T;
-  field?: T;
-  from?: T;
-  to?: T;
-  user?: T;
-  at?: T;
-  ipHash?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -4884,17 +4902,6 @@ export interface SessionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "session-inventory_select".
- */
-export interface SessionInventorySelect<T extends boolean = true> {
-  session?: T;
-  seatsSold?: T;
-  seatsHeld?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "venues_select".
  */
 export interface VenuesSelect<T extends boolean = true> {
@@ -5139,7 +5146,6 @@ export interface OrdersSelect<T extends boolean = true> {
   reference?: T;
   status?: T;
   channel?: T;
-  basketId?: T;
   customer?: T;
   contact?:
     | T
@@ -5211,11 +5217,22 @@ export interface OrdersSelect<T extends boolean = true> {
         note?: T;
         takenBy?: T;
       };
-  payment?: T;
   invoice?: T;
   tickets?: T;
   paymentAttempts?: T;
   refunds?: T;
+  timeline?:
+    | T
+    | {
+        at?: T;
+        event?: T;
+        by?: T;
+        detail?: T;
+        id?: T;
+      };
+  internalNotes?: T;
+  basketId?: T;
+  payment?: T;
   hold?:
     | T
     | {
@@ -5229,16 +5246,6 @@ export interface OrdersSelect<T extends boolean = true> {
         userAgent?: T;
         referrer?: T;
       };
-  timeline?:
-    | T
-    | {
-        at?: T;
-        event?: T;
-        by?: T;
-        detail?: T;
-        id?: T;
-      };
-  internalNotes?: T;
   consentedPolicyVersions?: T;
   mode?: T;
   confirmedAt?: T;
@@ -5500,6 +5507,134 @@ export interface PaymentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "enquiries_select".
+ */
+export interface EnquiriesSelect<T extends boolean = true> {
+  status?: T;
+  assignedTo?: T;
+  repliedAt?: T;
+  source?: T;
+  topic?: T;
+  name?: T;
+  email?: T;
+  phone?: T;
+  message?: T;
+  details?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  internalNotes?: T;
+  meta?:
+    | T
+    | {
+        ipHash?: T;
+        referer?: T;
+        userAgent?: T;
+        honeypotTripped?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates_select".
+ */
+export interface EmailTemplatesSelect<T extends boolean = true> {
+  key?: T;
+  label?: T;
+  subject?: T;
+  preheader?: T;
+  body?: T;
+  attachInvoice?: T;
+  attachTickets?: T;
+  enabled?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notification-log_select".
+ */
+export interface NotificationLogSelect<T extends boolean = true> {
+  channel?: T;
+  to?: T;
+  status?: T;
+  templateKey?: T;
+  subject?: T;
+  provider?: T;
+  providerMessageId?: T;
+  attempts?: T;
+  error?: T;
+  sentAt?: T;
+  order?: T;
+  session?: T;
+  ticket?: T;
+  refund?: T;
+  enquiry?: T;
+  variables?: T;
+  html?: T;
+  text?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  active?: T;
+  lastLoginAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings-audit_select".
+ */
+export interface SettingsAuditSelect<T extends boolean = true> {
+  global?: T;
+  field?: T;
+  from?: T;
+  to?: T;
+  user?: T;
+  at?: T;
+  ipHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "session-inventory_select".
+ */
+export interface SessionInventorySelect<T extends boolean = true> {
+  session?: T;
+  seatsSold?: T;
+  seatsHeld?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payment-events_select".
  */
 export interface PaymentEventsSelect<T extends boolean = true> {
@@ -5566,78 +5701,31 @@ export interface InvoiceCountersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "email-templates_select".
+ * via the `definition` "analytics-events_select".
  */
-export interface EmailTemplatesSelect<T extends boolean = true> {
-  key?: T;
-  label?: T;
-  subject?: T;
-  preheader?: T;
-  body?: T;
-  attachInvoice?: T;
-  attachTickets?: T;
-  enabled?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "notification-log_select".
- */
-export interface NotificationLogSelect<T extends boolean = true> {
+export interface AnalyticsEventsSelect<T extends boolean = true> {
+  ts?: T;
+  day?: T;
+  kind?: T;
+  path?: T;
+  entry?: T;
+  referrerHost?: T;
   channel?: T;
-  to?: T;
-  status?: T;
-  templateKey?: T;
-  subject?: T;
-  provider?: T;
-  providerMessageId?: T;
-  attempts?: T;
-  error?: T;
-  sentAt?: T;
-  order?: T;
-  session?: T;
-  ticket?: T;
-  refund?: T;
-  enquiry?: T;
-  variables?: T;
-  html?: T;
-  text?: T;
-  updatedAt?: T;
-  createdAt?: T;
+  device?: T;
+  browser?: T;
+  country?: T;
+  visitor?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "enquiries_select".
+ * via the `definition` "analytics-daily_select".
  */
-export interface EnquiriesSelect<T extends boolean = true> {
-  status?: T;
-  assignedTo?: T;
-  repliedAt?: T;
-  source?: T;
-  topic?: T;
-  name?: T;
-  email?: T;
-  phone?: T;
-  message?: T;
-  details?:
-    | T
-    | {
-        label?: T;
-        value?: T;
-        id?: T;
-      };
-  internalNotes?: T;
-  meta?:
-    | T
-    | {
-        ipHash?: T;
-        referer?: T;
-        userAgent?: T;
-        honeypotTripped?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
+export interface AnalyticsDailySelect<T extends boolean = true> {
+  day?: T;
+  dimension?: T;
+  key?: T;
+  views?: T;
+  visitors?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -6999,7 +7087,7 @@ export interface AnalyticsSetting {
    */
   rawRetentionDays?: number | null;
   /**
-   * Checkout and account pages stay out of every chart. Query strings and #fragments are never sent anyway.
+   * Pages that are never counted. Checkout, payment and booking-account pages are always left out, even if removed here. Query strings and #fragments are never sent anyway.
    */
   excludePaths?:
     | {
@@ -8093,6 +8181,22 @@ export interface TaskReconcileInventory {
  * via the `definition` "TaskSend-daily-digest".
  */
 export interface TaskSendDailyDigest {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskRollup-analytics".
+ */
+export interface TaskRollupAnalytics {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskPurge-retention".
+ */
+export interface TaskPurgeRetention {
   input?: unknown;
   output?: unknown;
 }

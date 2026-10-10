@@ -58,6 +58,11 @@ export const Refunds: CollectionConfig = {
     description: "Refund requests and their outcome. Request from an order; an admin approves; Mamo Pay does the rest.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["providerRefundId", "idempotencyKey"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "refund", heading: "No refunds yet", body: "Refunds are started from an order (Actions → Refund). The front desk can request one; an admin approves it here or on the order, and Mamo Pay returns the money. Desk bookings are repaid at the studio and marked repaid.", actions: [{ label: "Go to orders", href: "/collections/orders" }] } },
+      ],
+    },
   },
   defaultSort: "-createdAt",
   access: {
@@ -100,7 +105,10 @@ export const Refunds: CollectionConfig = {
         defaultValue: "requested",
         index: true,
         options: [...REFUND_STATUSES],
-        admin: { description: "Moves on its own: Approve on the order, then the refund job." },
+        admin: {
+          description: "Moves on its own: Approve on the order, then the refund job.",
+          components: { Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: { labels: Object.fromEntries(REFUND_STATUSES.map((o) => [o.value, o.label])), tones: { requested: "warn", approved: "lilac", processing: "lilac", succeeded: "ok", failed: "bad" } } } },
+        },
       }),
       {
         type: "row",

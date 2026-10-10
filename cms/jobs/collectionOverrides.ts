@@ -98,19 +98,63 @@ const retryEndpoint: Endpoint = {
   },
 };
 
+/**
+ * Plain words for Payload's own job fields (4B review: the list read "Task
+ * slug, Workflow slug, Has error false, Processing false"). Only labels and
+ * the two yes/no columns' chips change — the fields themselves are Payload's.
+ */
+const JOB_LABELS: Record<string, string> = {
+  taskSlug: "Task",
+  workflowSlug: "Workflow",
+  queue: "Queue",
+  hasError: "Result",
+  processing: "Running now",
+  totalTried: "Attempts",
+  completedAt: "Finished",
+  waitUntil: "Not before",
+};
+
+const JOB_CELLS: Record<string, { labels: Record<string, string>; tones: Record<string, string> }> = {
+  hasError: { labels: { true: "Failed", false: "OK" }, tones: { true: "bad", false: "ok" } },
+  processing: { labels: { true: "Running", false: "—" }, tones: { true: "lilac", false: "muted" } },
+};
+
+// Payload keeps these fields inside an unnamed tabs/row layout, so walk the
+// presentational containers (never into named arrays: the log's own
+// `taskSlug` is a different field and keeps its label).
+const plainJobFields = (fields: CollectionConfig["fields"]): CollectionConfig["fields"] =>
+  fields.map((field) => {
+    if (field.type === "tabs") return { ...field, tabs: field.tabs.map((tab) => ("name" in tab && tab.name ? tab : { ...tab, fields: plainJobFields(tab.fields) })) };
+    if (field.type === "row" || field.type === "collapsible") return { ...field, fields: plainJobFields(field.fields) };
+    if (!("name" in field) || !field.name || !(field.name in JOB_LABELS)) return field;
+    const cell = JOB_CELLS[field.name];
+    const admin = (field as { admin?: Record<string, unknown> }).admin ?? {};
+    const components = (admin.components as Record<string, unknown> | undefined) ?? {};
+    return {
+      ...field,
+      label: JOB_LABELS[field.name],
+      admin: cell ? { ...admin, components: { ...components, Cell: { path: "@/cms/components/admin/StatusCell#StatusCell", clientProps: cell } } } : admin,
+    } as typeof field;
+  });
+
 export const jobsCollectionOverrides = ({ defaultJobsCollection }: { defaultJobsCollection: CollectionConfig }): CollectionConfig => ({
   ...defaultJobsCollection,
   labels: { singular: "Background job", plural: "Background jobs" },
+  fields: plainJobFields(defaultJobsCollection.fields),
   admin: {
     ...defaultJobsCollection.admin,
     group: "System",
     hidden: ({ user }) => roleOf({ user } as PayloadRequest) !== "admin",
     useAsTitle: "id",
-    defaultColumns: ["taskSlug", "workflowSlug", "queue", "hasError", "totalTried", "processing", "completedAt", "createdAt"],
+    // Five columns that fit the page (the eighth, Created, was clipped); the rest are on the job itself.
+    defaultColumns: ["taskSlug", "hasError", "totalTried", "completedAt", "createdAt"],
+    hideAPIURL: true,
     description:
       "What the server did in the background: emails, payment checks, holds, reminders. A job that failed for good shows its error and a Retry button.",
     components: {
       ...defaultJobsCollection.admin?.components,
+      // "Failed / Last hour / Everything" above the list: the every-minute checks would otherwise bury the failures.
+      beforeListTable: ["@/cms/components/jobs/JobsViews#JobsViews"],
       edit: {
         ...defaultJobsCollection.admin?.components?.edit,
         beforeDocumentControls: [...(defaultJobsCollection.admin?.components?.edit?.beforeDocumentControls ?? []), RETRY_COMPONENT],

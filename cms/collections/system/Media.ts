@@ -129,6 +129,11 @@ export const Media: CollectionConfig = {
     defaultColumns: ["filename", "alt", "provenance", "tags", "updatedAt"],
     description: "Photographs, the studio film, logos and PDF fonts. A file that is still used somewhere cannot be deleted.",
     listSearchableFields: ["filename", "alt", "caption", "credit"],
+    components: {
+      beforeListTable: [
+        { path: "@/cms/components/admin/ListIntro#ListIntro", clientProps: { icon: "image", heading: "No photos yet", body: "Upload photographs here, then pick them on pages, experiences and sessions. Replacing a file or changing its alt text updates the live site straight away. A photo that is still in use cannot be deleted — the message tells you where it is used.", actions: [{ label: "Upload a photo", href: "/collections/media/create", primary: true }] } },
+      ],
+    },
   },
   folders: true,
   access: {
@@ -172,6 +177,8 @@ export const Media: CollectionConfig = {
     ],
   },
   fields: [
+    // 4B review: where this photo is used, before anyone tries to delete it.
+    { name: "usedOn", type: "ui", label: "Used on", admin: { position: "sidebar", components: { Field: "@/cms/components/fields/MediaUsage#MediaUsage" } } },
     {
       name: "alt",
       type: "textarea",

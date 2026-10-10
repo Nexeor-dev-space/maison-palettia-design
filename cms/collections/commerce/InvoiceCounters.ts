@@ -2,7 +2,7 @@ import type { CollectionConfig } from "payload";
 
 import { isAdmin, never, systemOnly } from "@/cms/access/roles";
 
-import { BOOKINGS_GROUP, sidebarFor, systemField } from "./shared";
+import { sidebarFor, systemField } from "./shared";
 import { INVOICE_KINDS } from "./Invoices";
 
 /**
@@ -28,7 +28,8 @@ export const InvoiceCounters: CollectionConfig = {
   slug: "invoice-counters",
   labels: { singular: "Invoice counter", plural: "Invoice counters" },
   admin: {
-    group: BOOKINGS_GROUP,
+    // 4B review: internal bookkeeping lives in the admin-only "System" group, last in the sidebar.
+    group: "System",
     useAsTitle: "id",
     defaultColumns: ["kind", "year", "last", "updatedAt"],
     description: "The last invoice and credit-note number issued each year. Maintained by the numbering SQL; read-only.",

@@ -5,7 +5,7 @@ import type { CollectionConfig } from "payload";
 import { isAdmin, isStaff, systemOnly } from "@/cms/access/roles";
 import { PRIVATE_DIR } from "@/cms/lib/paths";
 
-import { BOOKINGS_GROUP, sidebarFor, systemField } from "./shared";
+import { sidebarFor, systemField } from "./shared";
 
 /**
  * ==========================================================================
@@ -33,7 +33,8 @@ export const InvoiceFiles: CollectionConfig = {
   slug: "invoice-files",
   labels: { singular: "Invoice PDF", plural: "Invoice PDFs" },
   admin: {
-    group: BOOKINGS_GROUP,
+    // 4B review: internal bookkeeping lives in the admin-only "System" group, last in the sidebar.
+    group: "System",
     useAsTitle: "filename",
     defaultColumns: ["filename", "invoice", "filesize", "createdAt"],
     description: "Generated invoice and credit-note PDFs. Stored privately; customers receive them by email or a signed link.",

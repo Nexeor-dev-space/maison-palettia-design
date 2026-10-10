@@ -20,13 +20,14 @@ import { isStaff, never, roleOf, systemOnly } from "@/cms/access/roles";
  *
  * No drafts, no versions — a counter has no draft state. Staff may read it
  * (the session's "Seat counters" join and the quick stats); it is hidden
- * from the sidebar for everyone but admins and grouped with Bookings.
+ * from the sidebar for everyone but admins and grouped under System.
  */
 export const SessionInventory: CollectionConfig = {
   slug: "session-inventory",
   labels: { singular: "Seat counter", plural: "Seat counters" },
   admin: {
-    group: "Bookings",
+    // 4B review: internal bookkeeping lives in the admin-only "System" group, last in the sidebar.
+    group: "System",
     useAsTitle: "id",
     defaultColumns: ["session", "seatsSold", "seatsHeld", "updatedAt"],
     description: "Seats sold and held per session. Maintained by the booking system; read-only here.",

@@ -2,7 +2,7 @@ import type { CollectionConfig } from "payload";
 
 import { isAdmin, never, systemOnly } from "@/cms/access/roles";
 
-import { BOOKINGS_GROUP, sidebarFor, systemDate, systemField } from "./shared";
+import { sidebarFor, systemDate, systemField } from "./shared";
 
 /**
  * ==========================================================================
@@ -29,7 +29,8 @@ export const SeatHolds: CollectionConfig = {
   slug: "seat-holds",
   labels: { singular: "Seat hold", plural: "Seat holds" },
   admin: {
-    group: BOOKINGS_GROUP,
+    // 4B review: internal bookkeeping lives in the admin-only "System" group, last in the sidebar.
+    group: "System",
     useAsTitle: "id",
     defaultColumns: ["order", "session", "qty", "status", "expiresAt"],
     description: "Seats reserved by baskets awaiting payment. Released automatically when the hold runs out.",

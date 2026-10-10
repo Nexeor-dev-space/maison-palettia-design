@@ -159,17 +159,6 @@ export async function getAllWorkshops(): Promise<Workshop[]> {
 }
 
 /**
- * The next sessions, soonest first.
- *
- * No date filter, on purpose and as before: a listed session whose date has
- * passed is still never offered for booking — see `hasSessionPassed` and
- * <SessionGate>.
- */
-export async function getUpcomingWorkshops(limit = 3): Promise<Workshop[]> {
-  return (await getAllWorkshops()).slice(0, limit);
-}
-
-/**
  * One session by its slug, or null.
  *
  * Reads the same list as the listing so the two can never disagree, and

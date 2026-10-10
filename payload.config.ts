@@ -12,6 +12,7 @@ import { analyticsCollections } from "@/cms/collections/analytics";
 import { commerceCollections } from "@/cms/collections/commerce";
 import { commsCollections } from "@/cms/collections/comms";
 import { contentCollections } from "@/cms/collections/content";
+import { inNavOrder, withoutApiTab } from "@/cms/collections/navOrder";
 import { inboxCollections } from "@/cms/collections/inbox";
 import { systemCollections } from "@/cms/collections/system";
 import { endpoints } from "@/cms/endpoints";
@@ -119,14 +120,36 @@ export default buildConfig({
       // FocusListener (P2 2D, SPEC §G.5) is the admin's end of click-to-edit:
       // it answers the live-preview iframe's "Edit" pills by scrolling to the
       // block, or by opening Brand wording at the field.
-      providers: ["@/cms/components/settings/MockBanner#MockBanner", "@/cms/components/admin/FocusListener#FocusListener"],
+      // WarningsBar (P4 review, SPEC §I): the dashboard's RED checks as a slim
+      // strip on every other admin page.
+      providers: ["@/cms/components/settings/MockBanner#MockBanner", "@/cms/components/admin/WarningsBar#WarningsBar", "@/cms/components/admin/FocusListener#FocusListener"],
+      // P4 4B (SPEC §I): the admin home — the setup checks first (red
+      // banners, then the "finish setting up" list), then the owner's
+      // dashboard (greeting, quick actions, KPIs, today's sessions, orders,
+      // enquiries, drafts). Both are server components; Payload's own
+      // collection cards follow them as the "everything" index.
+      beforeDashboard: ["@/cms/components/admin/Warnings#Warnings", "@/cms/components/admin/Dashboard#Dashboard"],
+      // P4 4B: the ⌘K command palette lives at the top of the sidebar — a
+      // search box that is also the trigger; the overlay portals to <body>.
       // P3 3E (SPEC §H.7, §I): sidebar entries for the custom views ("Front
-      // desk → Check-in"), shown only to the roles that may open them.
-      afterNavLinks: ["@/cms/components/admin/NavLinks#NavLinks"],
+      // desk → Check-in", "Reports → Analytics"), shown only to the roles that
+      // may open them — right under the search since the 4B review, so the
+      // sidebar's DOM order is its visual order (no CSS reordering).
+      beforeNavLinks: ["@/cms/components/admin/CommandPalette#CommandPalette", "@/cms/components/admin/NavLinks#NavLinks"],
       views: {
         // P3 3E: the door — camera scan, typed codes, attendee lists. The view
         // checks sign-in and role itself (Payload skips both for custom views).
         checkIn: { Component: "@/cms/views/checkIn#CheckInView", path: "/check-in", exact: true },
+        // P4 4C (SPEC §I): the studio's numbers — period picker, sales,
+        // website traffic, the booking funnel, VAT summary and CSV exports.
+        // The view signs people in and checks the role itself (admins all,
+        // editors traffic only, front desk none).
+        analytics: {
+          Component: "@/cms/views/analytics#AnalyticsView",
+          path: "/analytics",
+          exact: true,
+          meta: { title: "Analytics", description: "Sales, website visits and VAT for any period." },
+        },
       },
     },
     // Live preview (P2 2A, SPEC §G.5): the iframe loads `/preview?path=…` on
@@ -144,15 +167,17 @@ export default buildConfig({
       ],
     },
   },
-  collections: [
+  // Sorted into the sidebar's order (Content … System) and without the API
+  // tab — cms/collections/navOrder.ts says why (4B review).
+  collections: inNavOrder([
     ...systemCollections,
     ...contentCollections,
     ...commerceCollections,
     ...commsCollections,
     ...inboxCollections,
     ...analyticsCollections,
-  ],
-  globals,
+  ]),
+  globals: withoutApiTab(globals),
   endpoints,
   jobs: jobsConfig,
   // Phase 3C (SPEC §H.8): our own adapter, which reads Settings → Email
@@ -160,6 +185,11 @@ export default buildConfig({
   // password-reset mail included — so no email setting needs a redeploy.
   email: runtimeEmailAdapter,
   editor: lexicalEditor(),
+  // Plain words for Payload's own strings where they reach the owner
+  // (4B review): a session opened with "Add a session" is titled
+  // "[New — not saved yet]" instead of "[Untitled]" until its first save
+  // names it. Merged over Payload's English; nothing else changes.
+  i18n: { translations: { en: { general: { untitled: "New — not saved yet" } } } },
   plugins: [
     // The SEO tab (P2 2A, SPEC §A.4, §I) on the five collections with a page of
     // their own: meta title, description, share image, snippet preview and
