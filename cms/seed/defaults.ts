@@ -6,6 +6,7 @@ import type { Payload } from "payload";
 import { bootStatus, isSealed } from "@/cms/lib/crypto";
 import { assertOutsideBuildOutput } from "@/cms/lib/paths";
 import { envPublicUrl, hasGlobal } from "@/cms/lib/publicUrl";
+import { seedEmailTemplates } from "@/cms/seed/emailTemplates";
 
 /**
  * ==========================================================================
@@ -39,8 +40,9 @@ import { envPublicUrl, hasGlobal } from "@/cms/lib/publicUrl";
  * defaults rather than `{}`), mint `system-state.canary` once and stamp
  * `installedAt`, open the canary and set the in-memory "secret changed" flag
  * on failure (the red banner, SPEC §C.1), then assert the inventory schema
- * the Phase 3 SQL depends on. Email templates are upserted here too once
- * Phase 3C lands them (3A-1 adds the import line, SPEC §L).
+ * the Phase 3 SQL depends on. Missing email templates are created from the
+ * house copy (3C's `seedEmailTemplates`, never overwriting an edited one;
+ * the call is 3A-1's line, SPEC §L).
  *
  * It mints NO webhook secret — Register/Rotate does (SPEC §C.3).
  */
@@ -98,6 +100,7 @@ export async function seedDefaults(payload: Payload): Promise<void> {
     await lockClient.query(`SELECT pg_advisory_lock(${LOCK_KEY})`);
 
     await ensureGlobals(payload);
+    if ((payload.collections as Record<string, unknown>)["email-templates"]) await seedEmailTemplates(payload);
     await ensureCanary(payload);
     assertSchema(payload);
 

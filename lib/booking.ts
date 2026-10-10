@@ -1,338 +1,513 @@
-import { useSyncExternalStore } from "react";
+import { createLocalReq, type PayloadRequest, type Where } from "payload";
 
-import {
-  BOOKING_CONFIGURED,
-  PASS_CODES_CONFIGURED,
-  PAYMENT_CONFIGURED,
-} from "@/lib/bookingFlags";
-import type { BookingDetails, CartLine } from "@/lib/cart";
-
-export type { BookingDetails };
+import type { OrderView, OrderViewTicket } from "@/components/booking/orderView";
+import { applyReturnTransaction } from "@/cms/lib/mamo/orderView";
+import { verifyReturnK } from "@/cms/lib/mamo/returnToken";
+import { signPdf } from "@/cms/lib/pdf/links";
+import { isProduction } from "@/cms/lib/publicUrl";
+import { REFERENCE_PATTERN } from "@/cms/lib/reference";
+import { makeSignedToken, parseSignedToken, sign, verifySig } from "@/cms/lib/signing";
+import { TAGS } from "@/lib/cms/cache";
+import { hrefOf } from "@/lib/cms/mappers";
+import { getCms } from "@/lib/cms/payload";
+import { contentReader, getGlobal } from "@/lib/cms/query";
+import { BOOKING_REQUEST_TERMS, BOOKING_TERMS } from "@/lib/constants";
+import type { Customer, Order } from "@/payload-types";
 
 /**
- * The seam between this site and a business that can actually take a booking,
- * and the demo reservation that stands in until there is one.
+ * ==========================================================================
+ * lib/booking.ts — the server side of the booking journey (SPEC §H.3, §H.10)
+ * ==========================================================================
  *
- * AUDITED, NOT ASSUMED. The project has no authentication, no database, no API
- * route, no server action, no mail service and no payment provider. Its entire
- * runtime dependency list is next, react, react-dom, framer-motion, lenis and
- * lucide-react. Nothing here is being replaced or worked around; there was
- * nothing to work around.
+ * This file used to be the demo store: a reservation minted in the browser
+ * (MP-D…), kept in localStorage, labelled a "preview booking" everywhere it
+ * appeared. That store is gone. A booking is now an `orders` document,
+ * created by `startCheckout` (cms/lib/orders.ts, through
+ * `POST /api/site/checkout/start`) and paid on Mamo Pay's hosted page — or
+ * the mock one at /dev/mamo-mock outside production when no key is set.
  *
- * WHAT CHANGED, AND WHY IT IS NOT THE THING THIS FILE USED TO FORBID. The
- * previous version refused to mint a reference at all, on the grounds that a
- * success screen over a booking that went nowhere is indistinguishable from a
- * working system. That reasoning still holds for anything claiming a payment.
- * The client has asked for a working demo of the journey — a reservation, a
- * confirmation page and a status lookup — so the line moves from "no outcome"
- * to "an outcome that never claims to be more than a demo":
+ * SERVER ONLY. Everything here reads the Local API, the signing keys or the
+ * request cookies, so it is imported by server components and route
+ * handlers alone. Client components import TYPES from it at most (erased at
+ * build); the browser half of the journey — the basket, the basketId, the
+ * fetch to the checkout routes — is lib/cart.ts.
  *
- *   - No money is taken and the interface never says any was. The reference is
- *     labelled a preview booking wherever it appears.
- *   - The reference is prefixed MP-D (D for demo) so a real one can never be
- *     confused with one of these, in this codebase or in the studio's inbox.
- *   - The record lives in the visitor's own browser and nowhere else. The
- *     studio is not notified, because there is nothing to notify it with, and
- *     every surface that shows a booking says so.
+ * WHAT LIVES HERE
  *
- * Wiring the real thing up is `placeBooking` and the two flags in
- * lib/bookingFlags.ts (re-exported below). The demo store then becomes dead
- * code and should be deleted with them.
+ *   gate ........ `getBookingGate`: is the site taking bookings right now
+ *                 (`booking-settings.bookingsOpen`), and what every booking
+ *                 surface says while it is not (`closedMessage` + Contact).
+ *   checkout .... `getCheckoutSettings` (terms box, hold, the line under
+ *                 Pay) and `getCheckoutCatalogue` (slug → CMS id, because
+ *                 the basket remembers slugs and `startCheckout` takes ids).
+ *   return ...... `verifyReturnKey` for `/payment-success?ref&k`, and
+ *                 `applyReturnSnapshot` — the "Mamo appended transactionId"
+ *                 fast path of SPEC §H.5.
+ *   views ....... `orderViewOf` — an order as a customer may see it.
+ *   guest access  magic-link tokens, the `mp_session` cookie, and the
+ *                 customer's orders for /my-bookings (SPEC §H.10).
+ *   downloads ... `signedPdfPath` — signed ticket and invoice links for the
+ *                 customer's own pages (3C's `signPdf`, verified by the
+ *                 download routes).
  */
 
-export interface BookingRequest {
-  lines: CartLine[];
-  details: BookingDetails;
-  subtotal: number;
-  currency: string;
+/* ────────────────────────────────────────────────────────────────────────── */
+/* The gate                                                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export interface BookingGate {
+  /** `booking-settings.bookingsOpen`. False when the CMS cannot be read: no booking without a backend. */
+  open: boolean;
+  /** What every Book surface shows while closed. */
+  closed: { message: string; ctaLabel: string; ctaHref: string };
+  /** The one "what a booking is" sentence. */
+  terms: string;
+  /** Status wording for the four states the admin words (confirmation, lookup, my-bookings). */
+  statusCopy: Partial<Record<"confirmed" | "pending" | "completed" | "cancelled", { label?: string; note?: string }>>;
+  /** Pass-only purchase note. */
+  purchaseConfirmedNote: string;
+  /** "MP-" — the start of every reference, for the lookup's hint. */
+  referencePrefix: string;
 }
 
-/*
-  PAYMENT_CONFIGURED, BOOKING_CONFIGURED and PASS_CODES_CONFIGURED live in
-  lib/bookingFlags.ts — a module with no imports, so the server-rendered
-  surfaces can read them too (see the note there). Re-exported so every
-  existing import from this file keeps working.
-*/
-export { BOOKING_CONFIGURED, PASS_CODES_CONFIGURED, PAYMENT_CONFIGURED };
+const CLOSED_DEFAULTS = { message: "Online bookings open soon.", ctaLabel: "Enquire", ctaHref: "/contact" } as const;
+
+type LinkLike = Parameters<typeof hrefOf>[0];
 
 /**
- * What came back from offering a code.
- *
- * Four outcomes, and only two of them reachable today. `invalid` and `applied`
- * are written now so that wiring a real ledger is a change to this file alone
- * and not to the interface that renders the answer.
- *
- * NOTE ON `applied`. It carries no amount, and that is deliberate rather than
- * unfinished: a discount that moves a total has to be calculated where the
- * price is, which is server-side, and inventing a subtraction in the browser
- * is exactly the fake discount this must never produce. When the ledger is
- * real, the re-priced total comes back from it and the totals here follow.
+ * The admin's "what a booking is" sentence — unless it is one of the two
+ * demo-era sentences ("…saved only in this browser…"). Those described the
+ * localStorage store this phase deleted, and the Phase 2 seed wrote one into
+ * the field on databases seeded before launch. Printed under Pay they would
+ * be false, so they fall back to the paid sentence (SPEC §F.6: the seed for
+ * real bookings). Any sentence the owner writes is printed as written.
  */
-export type PassCodeResult =
-  /** Nothing was typed. */
-  | { status: "empty" }
-  /** No ledger to check against — see {@link PASS_CODES_CONFIGURED}. */
-  | { status: "unavailable" }
-  /** Checked, and no such code. Unreachable while the flag above is false. */
-  | { status: "invalid" }
-  /** Checked and genuine. Unreachable while the flag above is false. */
-  | { status: "applied"; code: string; message: string };
-
-/**
- * Offer a pass, loyalty or gift code against the booking in progress.
- *
- * Async because the real one will be, so nothing downstream changes shape when
- * it starts talking to a service: the field already renders a pending state
- * and already disables itself while a check is running.
- *
- * Deliberately does not touch the basket. Nothing in this function can alter a
- * price, and while `PASS_CODES_CONFIGURED` is false nothing in it can succeed
- * either — there are no codes to recognise, so there is no branch that could
- * quietly award one.
- *
- * TODO(client): replace the body with the ledger call. It must validate the
- * code, check it against this basket's sessions and this customer, and return
- * the re-priced total rather than a percentage for the browser to apply.
- */
-export async function redeemPassCode(code: string): Promise<PassCodeResult> {
-  const trimmed = code.trim();
-  if (!trimmed) return { status: "empty" };
-
-  if (!PASS_CODES_CONFIGURED) return { status: "unavailable" };
-
-  // Unreachable while the flag is false, and left as the shape the real
-  // implementation returns rather than as a throw, so the branch above is the
-  // only thing standing between this and a working redemption.
-  return { status: "invalid" };
+function currentTerms(stored: unknown): string {
+  const text = typeof stored === "string" ? stored.trim() : "";
+  const demoEra: readonly string[] = [BOOKING_REQUEST_TERMS.withChannel, BOOKING_REQUEST_TERMS.withoutChannel];
+  return text && !demoEra.includes(text) ? text : BOOKING_TERMS.paid;
 }
 
 /**
- * A booking's state.
- *
- * Four, because those are the four a visitor could meaningfully be told. Only
- * two are reachable without a backend and the reachable pair is derived from
- * data rather than invented: a demo reservation is `confirmed` until its event
- * has finished, and `completed` after. `pending` and `cancelled` are real
- * states of a real system — a payment awaiting settlement, a date the studio
- * called off — and nothing in the browser can know either, so nothing here
- * ever produces them. The status page renders all four so that wiring a
- * backend needs no change to the interface.
+ * The booking switch and its wording, cached under `global:booking-settings`
+ * — the tag the global's afterChange purges, so flipping "Bookings open" in
+ * the admin reaches every prerendered booking page without a deploy.
  */
-export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed";
-
-/** One reservation, as it is stored and as the confirmation reads it back. */
-export interface BookingRecord {
-  reference: string;
-  /** Placed at, ISO 8601. */
-  createdAt: string;
-  status: BookingStatus;
-  /** Whether money actually moved. Always false while PAYMENT_CONFIGURED is. */
-  paid: boolean;
-  details: BookingDetails;
-  lines: CartLine[];
-  subtotal: number;
-  currency: string;
-}
-
-export type BookingResult =
-  | { status: "ok"; record: BookingRecord }
-  | { status: "empty" };
-
-/* ==========================================================================
-   The demo store.
-
-   localStorage, not the sessionStorage the basket uses, and the difference is
-   the whole point of the status page: a basket is abandoned when the tab
-   closes, a booking reference has to still be there tomorrow when someone
-   comes back to look it up.
-
-   Every read is wrapped. Storage throws rather than returning null in a
-   private window and in browsers set to block site data, and a booking
-   confirmation that white-screens because of a browser setting is worse than
-   one that quietly cannot find an old reference.
-   ========================================================================== */
-
-const STORE_KEY = "maison-palettia:bookings";
-
-/** Demo references are visibly demo. See the note at the top of this file. */
-const REFERENCE_PREFIX = "MP-D";
-
-/*
-  Held in a module variable and mirrored to storage, exactly as the basket is
-  in lib/cart.ts, and for a reason beyond consistency: the pages that read a
-  booking do it through `useSyncExternalStore`, which compares snapshots with
-  `Object.is` and spins forever if the getter builds a new array each call.
-  Parsing storage on every render would do precisely that.
-*/
-const EMPTY: readonly BookingRecord[] = [];
-
-let records: readonly BookingRecord[] = EMPTY;
-let hydrated = false;
-const listeners = new Set<() => void>();
-
-function readAll(): readonly BookingRecord[] {
-  if (typeof window === "undefined") return EMPTY;
-  try {
-    const raw = window.localStorage.getItem(STORE_KEY);
-    if (!raw) return EMPTY;
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return EMPTY;
-    // Storage is not a trusted input: it survives deploys and can be
-    // hand-edited, and a malformed entry must not be able to crash a
-    // confirmation screen.
-    return parsed.filter(
-      (r): r is BookingRecord =>
-        !!r && typeof r.reference === "string" && Array.isArray(r.lines),
-    );
-  } catch {
-    return EMPTY;
-  }
-}
-
-function writeAll(next: readonly BookingRecord[]): void {
-  records = next;
-  try {
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(next));
-  } catch {
-    /* Storage full or blocked. The confirmation still renders from the record
-       it was handed; only the later lookup is lost. */
-  }
-  listeners.forEach((listener) => listener());
-}
-
-function subscribe(listener: () => void): () => void {
-  if (!hydrated) {
-    records = readAll();
-    hydrated = true;
-  }
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
+export async function getBookingGate(): Promise<BookingGate> {
+  const settings = await getGlobal("booking-settings", 1);
+  const copy = (value: unknown, fallback: string) => (typeof value === "string" && value.trim() ? value.trim() : fallback);
+  return {
+    open: settings?.bookingsOpen === true,
+    closed: {
+      message: copy(settings?.closedMessage, CLOSED_DEFAULTS.message),
+      ctaLabel: copy(settings?.closedCtaLabel, CLOSED_DEFAULTS.ctaLabel),
+      ctaHref: settings?.closedCtaLink ? hrefOf(settings.closedCtaLink as LinkLike, CLOSED_DEFAULTS.ctaHref) : CLOSED_DEFAULTS.ctaHref,
+    },
+    terms: currentTerms(settings?.bookingTerms),
+    statusCopy: (settings?.statusCopy ?? {}) as BookingGate["statusCopy"],
+    purchaseConfirmedNote: copy(settings?.purchaseConfirmedNote, "Your purchase is confirmed."),
+    referencePrefix: copy(settings?.referencePrefix, "MP-"),
   };
 }
 
-const getSnapshot = () => records;
-/** The server has no bookings. A stable empty list avoids a hydration mismatch. */
-const getServerSnapshot = () => EMPTY;
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Checkout                                                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
 
-/**
- * Every booking this browser holds, kept live.
- *
- * The hook the confirmation and the status page read through. It exists so
- * neither of them has to reach into storage from an effect — which is both a
- * cascading render and, on the first paint, a different answer on the server
- * than on the client.
- */
-export function useBookings(): readonly BookingRecord[] {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+export interface ConsentPolicy {
+  /** The policy's slug — what `StartCheckoutInput.consents[].policy` carries. */
+  policy: string;
+  version: number;
+  title: string;
+  href: string;
+}
+
+export interface CheckoutSettings {
+  /** `payment-settings.checkout.requireTerms`: show the "I have read and agree" box. */
+  requireTerms: boolean;
+  /** Policies flagged "Require agreement at checkout", with the version agreed to. */
+  consents: ConsentPolicy[];
+  /** The line under the Pay button ("You will be taken to Mamo Pay…"). */
+  captureNote: string;
+  holdMinutes: number;
 }
 
 /**
- * Six characters from an unambiguous alphabet.
- *
- * No I, O, 1 or 0: a reference is read off a screen and typed into the status
- * page by hand, and those four are the pairs people get wrong. `crypto` rather
- * than `Math.random` because it is available in every browser this ships to
- * and there is no reason to use the weaker one.
+ * The wording-only part of `payment-settings` (an admin-only global: read
+ * here with the Local API's default override, and narrowed with `select` so
+ * no key, sealed or not, is ever loaded into this render) plus the consent
+ * policies. Not cached: checkout is a dynamic route and the terms version a
+ * customer agrees to must be the one published at that moment.
  */
-function mintReference(): string {
-  const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(6);
-  crypto.getRandomValues(bytes);
-  const body = Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join("");
-  return `${REFERENCE_PREFIX}${body}`;
-}
-
-/**
- * Place the booking.
- *
- * Returns rather than throws, so the checkout can render a specific outcome
- * instead of a generic failure. While the flags above are false this makes a
- * demo reservation: it mints a reference, stores it in this browser, and
- * reports `paid: false` — which every surface downstream is required to show.
- *
- * TODO(client): the real implementation must, server-side and in this order:
- * re-read each event from the source of truth, re-check availability and price
- * against the held lines (the basket is a client-side snapshot and must never
- * be trusted for either), take payment, record the booking, decrement seats,
- * then return the provider's own reference. Delete the demo store with it.
- */
-export async function placeBooking(request: BookingRequest): Promise<BookingResult> {
-  if (request.lines.length === 0) return { status: "empty" };
-
-  const record: BookingRecord = {
-    reference: mintReference(),
-    createdAt: new Date().toISOString(),
-    /*
-      "confirmed" only once something has actually recorded it.
-
-      This read "confirmed" unconditionally, and that was the most dangerous
-      sentence on the site. Nothing here reaches a server: the record is
-      written to this browser's own storage, so while BOOKING_CONFIGURED is
-      false the studio has no idea anyone is coming. The confirmation page
-      then told the customer their place was held and — in <BookingSummaryCard>
-      — "come to the venue at the time below", which would send someone across
-      Dubai to a table that was never set for them.
-
-      `pending` is not a workaround; it is the accurate one of the four states
-      this type already carries, and every surface downstream already renders
-      it properly ("waiting on confirmation from the Maison", terracotta rule).
-      The moment a real backend sets BOOKING_CONFIGURED, this becomes
-      "confirmed" on its own.
-    */
-    status: BOOKING_CONFIGURED ? "confirmed" : "pending",
-    paid: PAYMENT_CONFIGURED,
-    details: request.details,
-    lines: request.lines,
-    subtotal: request.subtotal,
-    currency: request.currency,
+export async function getCheckoutSettings(): Promise<CheckoutSettings> {
+  const fallback: CheckoutSettings = {
+    requireTerms: true,
+    consents: [],
+    captureNote: "You will be taken to Mamo Pay to complete payment securely.",
+    holdMinutes: 15,
   };
+  try {
+    const payload = await getCms();
+    const payment = (await payload.findGlobal({ slug: "payment-settings", depth: 0, select: { checkout: true } })) as {
+      checkout?: { requireTerms?: boolean | null; captureNote?: string | null; holdMinutes?: number | null };
+    };
+    const checkout = payment?.checkout ?? {};
+    const requireTerms = checkout.requireTerms !== false;
+    const policies = requireTerms
+      ? await payload.find({
+          collection: "policies",
+          where: { and: [{ requiresCheckoutConsent: { equals: true } }, { _status: { equals: "published" } }] },
+          depth: 0,
+          pagination: false,
+          select: { slug: true, title: true, navLabel: true, version: true },
+        })
+      : { docs: [] };
+    return {
+      requireTerms,
+      captureNote: checkout.captureNote?.trim() || fallback.captureNote,
+      holdMinutes: typeof checkout.holdMinutes === "number" ? checkout.holdMinutes : fallback.holdMinutes,
+      consents: policies.docs
+        .filter((doc) => typeof doc.slug === "string" && doc.slug)
+        .map((doc) => ({
+          policy: doc.slug as string,
+          version: typeof doc.version === "number" && doc.version > 0 ? doc.version : 1,
+          title: (doc.navLabel || doc.title || doc.slug) as string,
+          href: `/policies/${doc.slug}`,
+        })),
+    };
+  } catch {
+    return fallback;
+  }
+}
 
-  writeAll([record, ...readAll()].slice(0, 20));
-  return { status: "ok", record };
+export interface CheckoutCatalogue {
+  /** Session slug → CMS id, for every published session that has not started. */
+  sessions: Record<string, string>;
+  /** Pass slug → CMS id, for every published pass with a price. */
+  passes: Record<string, string>;
 }
 
 /**
- * One booking by reference, or null.
+ * Slugs → ids for what can be bought right now.
  *
- * Case- and space-insensitive, because the reference is typed by hand off a
- * confirmation screen and "mp-d 4k7xy2" is the same booking as "MP-D4K7XY2".
+ * THE BASKET REMEMBERS SLUGS, `startCheckout` TAKES IDS. A basket line is a
+ * snapshot made on the event or loyalty page (lib/cart.ts) and the URL-facing
+ * slug is what those pages know; `QuoteLineInput.id` is the document id. New
+ * lines carry the id from the booking step, so this map is the fallback for
+ * a basket filled before that — and it doubles as the "is this still on
+ * sale" check: a slug missing here is a line the server would refuse.
  */
-export function findBooking(
-  all: readonly BookingRecord[],
-  reference: string,
-): BookingRecord | null {
-  const wanted = reference.replace(/[\s-]/g, "").toUpperCase();
-  if (!wanted) return null;
-  return all.find((r) => r.reference.replace(/[\s-]/g, "").toUpperCase() === wanted) ?? null;
+export async function getCheckoutCatalogue(): Promise<CheckoutCatalogue> {
+  try {
+    const payload = await getCms();
+    const [sessions, passes] = await Promise.all([
+      payload.find({
+        collection: "sessions",
+        where: { and: [{ _status: { equals: "published" } }, { startsAt: { greater_than: new Date().toISOString() } }] },
+        depth: 0,
+        pagination: false,
+        select: { slug: true },
+      }),
+      payload.find({
+        collection: "passes",
+        where: { and: [{ _status: { equals: "published" } }, { priceFils: { exists: true } }] },
+        depth: 0,
+        pagination: false,
+        select: { slug: true },
+      }),
+    ]);
+    const map = (docs: Array<{ id: string; slug?: string | null }>) =>
+      Object.fromEntries(docs.filter((doc) => doc.slug).map((doc) => [doc.slug as string, doc.id]));
+    return { sessions: map(sessions.docs), passes: map(passes.docs) };
+  } catch {
+    return { sessions: {}, passes: {} };
+  }
+}
+
+export interface SessionBookingRef {
+  id: string;
+  /** The editor's switch: `closed` is "no more bookings for this date", whatever the seats say. */
+  bookingStatus: "open" | "waitlist" | "closed";
+}
+
+const readSessionRef = contentReader("booking:session-ref", [TAGS.sessions], async (draft, slug: string) => {
+  const payload = await getCms();
+  const result = await payload.find({
+    collection: "sessions",
+    where: draft ? { slug: { equals: slug } } : { and: [{ slug: { equals: slug } }, { _status: { equals: "published" } }] },
+    depth: 0,
+    limit: 1,
+    draft,
+    overrideAccess: draft,
+    select: { bookingStatus: true },
+  });
+  const doc = result.docs[0];
+  if (!doc) return null;
+  const status = doc.bookingStatus;
+  return { id: doc.id, bookingStatus: status === "waitlist" || status === "closed" ? status : "open" } satisfies SessionBookingRef;
+});
+
+/** The id and booking switch for a session slug (book page, waitlist route). */
+export async function getSessionBookingRef(slug: string): Promise<SessionBookingRef | null> {
+  return (await readSessionRef(slug)) ?? null;
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* The payment return                                                         */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * `k` on `/payment-success?ref&k` (SPEC §H.3 step 5):
+ * `k = <exp>.<b64url(hmac("return-v1", "<ref>|<exp>"))>`, unix seconds, 24 h.
+ * Minted by `startCheckout` and by the reference + email lookup; checked
+ * with its expiry, constant-time, by 3B's `verifyReturnK` — one verifier for
+ * the page and the status route, so they can never disagree about a key.
+ */
+export function verifyReturnKey(reference: string, k: string | null | undefined): boolean {
+  return verifyReturnK(reference, k);
+}
+
+/** A Local API request for calling the cross-agent contracts outside an HTTP handler. */
+export async function localRequest(context: Record<string, unknown> = {}): Promise<PayloadRequest> {
+  const payload = await getCms();
+  return createLocalReq({ context }, payload);
 }
 
 /**
- * The status to show for a record, derived at read time rather than trusted
- * from the stored field.
+ * The return page's fast path (SPEC §H.5, "Return page"): the customer is
+ * back from the hosted page before the webhook, and Mamo appended the
+ * payment id. 3B's `applyReturnTransaction` asks the gateway for that
+ * payment in the order's own mode and applies Mamo's answer exactly as the
+ * webhook would (`applyPaymentSnapshot` — idempotent, refuses a payment
+ * whose link is not this order's current one), throttled per order. The id
+ * on the URL is only a pointer; nothing is trusted from the redirect itself.
  *
- * A reservation written last month for an event that has since happened is
- * `completed`, and storing "confirmed" and never revisiting it would leave the
- * status page insisting a finished morning is still upcoming. Only the two
- * derivable states are produced here; see {@link BookingStatus}.
+ * Never throws: a gateway that is down or a contract not landed leaves the
+ * order to the webhook and the poller, and the page polls the status.
  */
-export function resolveStatus(record: BookingRecord): BookingStatus {
-  if (record.status === "cancelled" || record.status === "pending") return record.status;
+export async function applyReturnSnapshot(order: Order, transactionId: string | null | undefined): Promise<void> {
+  if (!transactionId) return;
+  try {
+    await applyReturnTransaction(await localRequest(), order, transactionId);
+  } catch {
+    // The page keeps polling; the webhook and reconcile-payments are the backstop.
+  }
+}
 
-  /*
-    Only the sessions have an end. A pass line carries no `startsAt`, and
-    including one here would put a NaN through `Math.max` and take the whole
-    reduction with it — a booking with a pass in it would then never be
-    reported as completed, however long ago its sessions finished.
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Orders as a customer sees them                                             */
+/* ────────────────────────────────────────────────────────────────────────── */
 
-    A record of passes alone leaves `last` at 0 and stays confirmed, which is
-    right: a pass does not finish on a date.
-  */
-  const last = record.lines.reduce((latest, line) => {
-    if (line.kind !== "session") return latest;
-    const ends = new Date(line.startsAt).getTime() + line.durationMinutes * 60_000;
-    return Math.max(latest, ends);
-  }, 0);
+/** "mp-4k7xy2", "MP 4K7XY2" → "MP-4K7XY2" — a reference typed by hand off an email. */
+export function normaliseReference(input: string): string {
+  const compact = input.replace(/[\s-]/g, "").toUpperCase();
+  const match = /^([A-Z]{2,4})([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6})$/.exec(compact);
+  return match ? `${match[1]}-${match[2]}` : compact;
+}
 
-  return last !== 0 && last < Date.now() ? "completed" : "confirmed";
+/** One order by reference, with its lines' sessions, payment and invoice populated. */
+export async function findOrderByReference(reference: string): Promise<Order | null> {
+  const wanted = normaliseReference(reference);
+  // Junk never reaches a query (cms/lib/reference.ts).
+  if (!REFERENCE_PATTERN.test(wanted)) return null;
+  try {
+    const payload = await getCms();
+    const result = await payload.find({ collection: "orders", where: { reference: { equals: wanted } }, depth: 1, limit: 1 });
+    return (result.docs[0] as Order | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * An order → `OrderView` (components/booking/orderView.ts). `detail: false`
+ * is the reference, state and hold only; `detail: true` reads the tickets
+ * and signs their download links. Exported for 3B's status and lookup
+ * routes, so every customer surface renders the same shape.
+ */
+export async function orderViewOf(order: Order, { detail }: { detail: boolean }): Promise<OrderView> {
+  const view: OrderView = { reference: order.reference, status: order.status, holdExpiresAt: order.hold?.expiresAt ?? null };
+  if (!detail) return view;
+
+  let tickets: OrderViewTicket[] = [];
+  try {
+    const payload = await getCms();
+    const result = await payload.find({
+      collection: "tickets",
+      where: { order: { equals: order.id } },
+      depth: 1,
+      pagination: false,
+      sort: "seatNo",
+      select: { code: true, status: true, seatNo: true, holderName: true, session: true },
+    });
+    tickets = result.docs.map((ticket) => ({
+      code: ticket.code,
+      status: ticket.status,
+      seatNo: ticket.seatNo,
+      holderName: ticket.holderName ?? undefined,
+      sessionTitle: typeof ticket.session === "object" && ticket.session ? (ticket.session.title ?? undefined) : undefined,
+      pdfUrl: signedPdfPath("ticket", ticket.code),
+    }));
+  } catch {
+    // No tickets yet (or the table is not there): the card says they are on their way.
+  }
+
+  const payment = typeof order.payment === "object" ? order.payment : null;
+  const invoice = typeof order.invoice === "object" ? order.invoice : null;
+  const paid = ["confirming", "confirmed", "completed", "refunded"].includes(order.status) || order.totals.grossFils === 0;
+
+  view.detail = {
+    createdAt: order.createdAt,
+    guest: { firstName: order.contact.firstName, lastName: order.contact.lastName, email: order.contact.email ?? undefined },
+    lines: (order.lines ?? []).map((line) => {
+      const session = typeof line.session === "object" ? line.session : null;
+      return {
+        kind: line.kind,
+        title: line.title,
+        category: line.category ?? undefined,
+        startsAt: line.startsAt ?? undefined,
+        durationMinutes: line.durationMinutes ?? undefined,
+        venueName: line.venueName ?? undefined,
+        href: line.kind === "session" ? (session?.slug ? `/events/${session.slug}` : undefined) : "/loyalty",
+        qty: line.qty,
+        lineFils: line.lineFils,
+      };
+    }),
+    totals: {
+      subtotalFils: order.totals.subtotalFils,
+      discountFils: order.totals.discountFils,
+      grossFils: order.totals.grossFils,
+      vatFils: order.totals.vatFils,
+      currency: order.totals.currency || "AED",
+    },
+    paid,
+    tickets,
+    invoice: invoice?.number ? { number: invoice.number, pdfUrl: signedPdfPath("invoice", invoice.id) } : null,
+    // Mamo's customer-facing decline text, only while the attempt is the failed one.
+    failureMessage: order.status === "failed" ? (payment?.failureMessage ?? null) : null,
+  };
+  return view;
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Signed downloads                                                           */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+/** Seven days: long enough to open from the page at the venue; every page view mints fresh ones. */
+export const PDF_LINK_TTL_S = 7 * 24 * 60 * 60;
+
+/**
+ * `/api/site/tickets/{code}/pdf?exp&sig` and `/api/site/invoices/{id}/pdf?exp&sig`
+ * — site-relative, signed by 3C's `signPdf` (cms/lib/pdf/links.ts), which
+ * the two download routes verify. Relative so the page works on whichever
+ * origin served it.
+ */
+export function signedPdfPath(kind: "ticket" | "invoice", id: string, ttlSeconds = PDF_LINK_TTL_S): string {
+  const { exp, sig } = signPdf(kind, id, { ttlSeconds });
+  const base = kind === "ticket" ? `/api/site/tickets/${encodeURIComponent(id)}/pdf` : `/api/site/invoices/${encodeURIComponent(id)}/pdf`;
+  return `${base}?exp=${exp}&sig=${sig}`;
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Guest access — magic links and the session cookie (SPEC §H.10)            */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export const MAGIC_LINK_TTL_S = 30 * 60;
+export const SESSION_TTL_S = 30 * 24 * 60 * 60;
+
+/**
+ * `__Host-` in production: the browser then refuses the cookie unless it is
+ * Secure, Path=/ and host-only, so no subdomain can plant or read it. Plain
+ * `mp_session` without Secure only outside production, where the dev origin
+ * is http.
+ */
+export const SESSION_COOKIE = isProduction() ? "__Host-mp_session" : "mp_session";
+
+export const sessionCookieOptions = () => ({
+  httpOnly: true,
+  secure: isProduction(),
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: SESSION_TTL_S,
+});
+
+/**
+ * The emailed token: `b64url("<customerId>.<issuedAtMs>").<exp>.<hmac>` under
+ * `magic-link-v1`, 30 minutes. `issuedAtMs` is also written to
+ * `customers.lastMagicLinkIssuedAt`; consumption requires the two to match
+ * and then clears the stamp — so a link works once, and only the newest one
+ * sent works at all.
+ */
+export function mintMagicLinkToken(customerId: string, issuedAtMs: number): string {
+  const inner = Buffer.from(`${customerId}.${issuedAtMs}`, "utf8").toString("base64url");
+  return makeSignedToken("magic-link-v1", inner, MAGIC_LINK_TTL_S);
+}
+
+export function readMagicLinkToken(token: string): { customerId: string; issuedAtMs: number } | null {
+  if (typeof token !== "string" || token.length > 512) return null;
+  const parsed = parseSignedToken("magic-link-v1", token);
+  if (!parsed) return null;
+  const [customerId, issued] = Buffer.from(parsed.payload, "base64url").toString("utf8").split(".");
+  const issuedAtMs = Number(issued);
+  if (!customerId || !Number.isSafeInteger(issuedAtMs)) return null;
+  return { customerId, issuedAtMs };
+}
+
+/** `<customerId>.<exp>.<sessionVersion>.<hmac>` under `session-v1`. */
+export function mintSessionValue(customerId: string, sessionVersion: number): string {
+  const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_S;
+  const body = `${customerId}.${exp}.${sessionVersion}`;
+  return `${body}.${sign("session-v1", body)}`;
+}
+
+function readSessionValue(value: string | undefined): { customerId: string; sessionVersion: number } | null {
+  if (!value || value.length > 256) return null;
+  const parts = value.split(".");
+  if (parts.length !== 4) return null;
+  const [customerId, expRaw, versionRaw, sig] = parts;
+  const exp = Number(expRaw);
+  const sessionVersion = Number(versionRaw);
+  if (!Number.isInteger(exp) || exp <= Math.floor(Date.now() / 1000) || !Number.isInteger(sessionVersion)) return null;
+  if (!verifySig("session-v1", `${customerId}.${expRaw}.${versionRaw}`, sig)) return null;
+  return { customerId, sessionVersion };
+}
+
+/**
+ * The signed-in customer, or null. Every read re-checks `sessionVersion`
+ * against the customer row, so the admin's "Sign out everywhere" (which
+ * bumps it) ends every outstanding cookie at once.
+ */
+export async function customerFromSession(value: string | undefined): Promise<Customer | null> {
+  const session = readSessionValue(value);
+  if (!session) return null;
+  try {
+    const payload = await getCms();
+    const customer = (await payload.findByID({
+      collection: "customers",
+      id: session.customerId,
+      depth: 0,
+      disableErrors: true,
+    })) as Customer | null;
+    if (!customer || (customer.sessionVersion ?? 0) !== session.sessionVersion) return null;
+    return customer;
+  } catch {
+    return null;
+  }
+}
+
+/** States a customer would not recognise as a booking: an abandoned basket, a lapsed hold. */
+const HIDDEN_FROM_GUESTS: Order["status"][] = ["pending_payment", "expired"];
+
+/** The customer's orders, newest first, as full views (they are signed in). */
+export async function ordersForCustomer(customer: Customer): Promise<OrderView[]> {
+  const payload = await getCms();
+  const mine: Where = { or: [{ customer: { equals: customer.id } }, { "contact.email": { equals: customer.email.toLowerCase() } }] };
+  const result = await payload.find({
+    collection: "orders",
+    where: { and: [mine, { status: { not_in: HIDDEN_FROM_GUESTS } }] },
+    depth: 1,
+    limit: 50,
+    sort: "-createdAt",
+  });
+  return Promise.all((result.docs as Order[]).map((order) => orderViewOf(order, { detail: true })));
 }

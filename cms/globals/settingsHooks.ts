@@ -210,11 +210,11 @@ function diffWatched(
 }
 
 /**
- * 📣 seam. Phase 3C replaces this body with
- * `notifyStaff(req, "settings_changed", { entries })` (SPEC §O, `cms/lib/notifyStaff.ts`),
- * which emails every recipient subscribed to `settings_changed`. Until the
- * mailer exists the change is still visible: in the audit log and in the
- * server log line written here.
+ * 📣 fields: email every recipient subscribed to `settings_changed`
+ * (`notifyStaff`, SPEC §O). The server log line stays so the change is visible
+ * even with log-only email. A mail failure never fails the settings save — the
+ * audit log already holds the change. Loaded lazily: the mailer pulls in the
+ * template/notification collections, which import these hooks.
  */
 export async function notifySettingsChanged(req: PayloadRequest, entries: AuditEntry[]): Promise<void> {
   req.payload.logger.info({
@@ -222,6 +222,12 @@ export async function notifySettingsChanged(req: PayloadRequest, entries: AuditE
     by: (req.user as { email?: string } | null)?.email ?? "system",
     changes: entries.map((e) => `${e.global}.${e.field}: ${e.from || "—"} → ${e.to || "—"}`),
   });
+  try {
+    const { notifyStaff } = await import("@/cms/lib/notifyStaff");
+    await notifyStaff(req, "settings_changed", { entries });
+  } catch (error) {
+    req.payload.logger.warn({ msg: "settings_changed: staff email not queued", err: error instanceof Error ? error.message : "unknown" });
+  }
 }
 
 /**

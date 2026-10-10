@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BookingClosed } from "@/components/booking/BookingClosed";
 import { Steps } from "@/components/booking/Steps";
 import { Checkout } from "@/components/booking/Checkout";
 import { groundShapes } from "@/components/motion/groundShapes";
@@ -7,6 +8,8 @@ import { Reveal } from "@/components/motion/Reveal";
 import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { Container } from "@/components/ui/Container";
+import { REFERENCE_PATTERN } from "@/cms/lib/reference";
+import { getBookingGate, getCheckoutCatalogue, getCheckoutSettings, normaliseReference } from "@/lib/booking";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -16,6 +19,14 @@ export const metadata = buildMetadata({
   noindex: true,
 });
 
+/*
+  Per request: the open/closed switch, the terms versions and what is on sale
+  are read at the moment of paying, never from a prerender.
+*/
+export const dynamic = "force-dynamic";
+
+type Search = Record<string, string | string[] | undefined>;
+
 /**
  * Step four — the basket, the details and the payment, on one page.
  *
@@ -23,13 +34,27 @@ export const metadata = buildMetadata({
  * checkout, and a basket that holds one session on one date has nothing to
  * browse back to. See <Checkout> for the rest of that argument.
  *
- * A thin server shell around a client tree, because the basket lives in the
- * browser. The header and footer come from the root layout unchanged — the
- * brief allows a reduced checkout navigation and it is not worth taking: this
- * is a studio booking a Saturday morning, not a cart worth defending with a
- * stripped chrome.
+ * A server shell around a client tree, because the basket lives in the
+ * browser. The shell reads what only the server knows — whether bookings are
+ * open, which policies must be agreed to and in which version, the slug → id
+ * map for what is on sale — and hands it down.
+ *
+ * CLOSED (`booking-settings.bookingsOpen` off): no form and no Pay button,
+ * only the admin's closed message and its Contact link (SPEC §H.3: the UI
+ * never shows Pay while closed; the 503 from the route is only the guard).
+ *
+ * `?ref&payment=failed` is Mamo's `failure_return_url`: the customer is back
+ * from a declined or abandoned payment, and <Checkout> says so above the
+ * form and retries on the same order.
  */
-export default function CheckoutPage() {
+export default async function CheckoutPage({ searchParams }: { searchParams: Promise<Search> }) {
+  const params = await searchParams;
+  const rawRef = typeof params.ref === "string" ? normaliseReference(params.ref) : null;
+  const retryReference = params.payment === "failed" && rawRef && REFERENCE_PATTERN.test(rawRef) ? rawRef : null;
+
+  const gate = await getBookingGate();
+  const [settings, catalogue] = gate.open ? await Promise.all([getCheckoutSettings(), getCheckoutCatalogue()]) : [null, null];
+
   return (
     /* `pb-0` — see the note on the same change in app/events/[slug]: the
        utility bar closes this page as a Deep Lilac field and meets the
@@ -54,15 +79,28 @@ export default function CheckoutPage() {
           </Link>
         </Reveal>
 
-        <Steps current={2} />
+        {settings && catalogue ? (
+          <>
+            <Steps current={2} />
 
-        <Reveal className="mt-12 md:mt-14">
-          <h1 className="text-h1 font-light tracking-[-0.02em]">
-            Complete Your Booking.
-          </h1>
-        </Reveal>
+            <Reveal className="mt-12 md:mt-14">
+              <h1 className="text-h1 font-light tracking-[-0.02em]">
+                Complete Your Booking.
+              </h1>
+            </Reveal>
 
-        <Checkout />
+            <Checkout
+              catalogue={catalogue}
+              requireTerms={settings.requireTerms}
+              consents={settings.consents}
+              captureNote={settings.captureNote}
+              terms={gate.terms}
+              retryReference={retryReference}
+            />
+          </>
+        ) : (
+          <BookingClosed message={gate.closed.message} ctaLabel={gate.closed.ctaLabel} ctaHref={gate.closed.ctaHref} />
+        )}
 
         {/*
           Reassurance and a way out, not a second action. Checkout already has
@@ -70,14 +108,10 @@ export default function CheckoutPage() {
           is nothing here that books, pays or confirms — only the two questions
           someone actually has at this moment, and where each is answered.
 
-          NO NOTE ANY MORE, ON PURPOSE. It read "Your place is held when you
-          reserve it. Nothing is charged through this site yet." — the first
-          half false (nothing holds a place while lib/booking.ts has no
-          backend; the record is a Pending request in this browser) and the
-          pair contradicting the line under the button. What a booking is now
-          has one sentence, BOOKING_TERMS in lib/constants.ts, and <Checkout>
-          prints it beside "Confirm booking", where it is read before the
-          press. Repeating it here would be the page saying it twice.
+          NO NOTE HERE, ON PURPOSE. What a booking is has one sentence
+          (booking-settings → "What a booking is"), and <Checkout> prints it
+          beside Pay, where it is read before the press. Repeating it here
+          would be the page saying it twice.
         */}
         <PageUtilityBar
           links={[

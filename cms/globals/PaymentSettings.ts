@@ -24,11 +24,10 @@
  * fields are read-only here; the `[set]` entries in the audit log are the
  * admin's record of a rotation.
  *
- * Phase 3B wires the action buttons (`PaymentActions`:
- * `admin.components.elements.beforeDocumentControls`) and adds the
- * `afterChange` that drops the cached gateway client. They are not referenced
- * here because `generate:importmap` would fail on components that do not
- * exist yet.
+ * The action buttons are 3B's `PaymentActions`, mounted through
+ * `admin.components.elements.beforeDocumentControls` below (the line itself
+ * is 3A-1's, SPEC §L, added once the component existed so
+ * `generate:importmap` could resolve it).
  */
 
 import type { GlobalBeforeValidateHook, GlobalConfig, RadioFieldValidation } from "payload";
@@ -160,6 +159,7 @@ export const PaymentSettings: GlobalConfig = {
   admin: {
     group: "Settings (admin)",
     description: "Test/Live keys, webhook, checkout options.",
+    components: { elements: { beforeDocumentControls: ["@/cms/components/settings/PaymentActions#PaymentActions"] } },
   },
   access: { read: isAdmin, update: isAdmin },
   hooks: {

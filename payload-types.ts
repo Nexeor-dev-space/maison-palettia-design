@@ -35,6 +35,22 @@ export interface Config {
     testimonials: Testimonial;
     vibes: Vibe;
     redirects: Redirect;
+    orders: Order;
+    customers: Customer;
+    tickets: Ticket;
+    refunds: Refund;
+    invoices: Invoice;
+    'pass-purchases': PassPurchase;
+    'promo-codes': PromoCode;
+    waitlist: Waitlist;
+    payments: Payment;
+    'payment-events': PaymentEvent;
+    'seat-holds': SeatHold;
+    'invoice-files': InvoiceFile;
+    'invoice-counters': InvoiceCounter;
+    'email-templates': EmailTemplate;
+    'notification-log': NotificationLog;
+    enquiries: Enquiry;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -45,6 +61,14 @@ export interface Config {
   collectionsJoins: {
     sessions: {
       inventory: 'session-inventory';
+    };
+    orders: {
+      tickets: 'tickets';
+      paymentAttempts: 'payments';
+      refunds: 'refunds';
+    };
+    customers: {
+      orders: 'orders';
     };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
@@ -66,6 +90,22 @@ export interface Config {
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     vibes: VibesSelect<false> | VibesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
+    tickets: TicketsSelect<false> | TicketsSelect<true>;
+    refunds: RefundsSelect<false> | RefundsSelect<true>;
+    invoices: InvoicesSelect<false> | InvoicesSelect<true>;
+    'pass-purchases': PassPurchasesSelect<false> | PassPurchasesSelect<true>;
+    'promo-codes': PromoCodesSelect<false> | PromoCodesSelect<true>;
+    waitlist: WaitlistSelect<false> | WaitlistSelect<true>;
+    payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    'payment-events': PaymentEventsSelect<false> | PaymentEventsSelect<true>;
+    'seat-holds': SeatHoldsSelect<false> | SeatHoldsSelect<true>;
+    'invoice-files': InvoiceFilesSelect<false> | InvoiceFilesSelect<true>;
+    'invoice-counters': InvoiceCountersSelect<false> | InvoiceCountersSelect<true>;
+    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
+    'notification-log': NotificationLogSelect<false> | NotificationLogSelect<true>;
+    enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -90,6 +130,7 @@ export interface Config {
     'notification-settings': NotificationSetting;
     'analytics-settings': AnalyticsSetting;
     'system-state': SystemState;
+    'payload-jobs-stats': PayloadJobsStat;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
@@ -104,6 +145,7 @@ export interface Config {
     'notification-settings': NotificationSettingsSelect<false> | NotificationSettingsSelect<true>;
     'analytics-settings': AnalyticsSettingsSelect<false> | AnalyticsSettingsSelect<true>;
     'system-state': SystemStateSelect<false> | SystemStateSelect<true>;
+    'payload-jobs-stats': PayloadJobsStatsSelect<false> | PayloadJobsStatsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -113,13 +155,28 @@ export interface Config {
   jobs: {
     tasks: {
       noop: TaskNoop;
+      'expire-holds': TaskExpireHolds;
+      'reconcile-payments': TaskReconcilePayments;
+      'send-reminders': TaskSendReminders;
+      'complete-orders': TaskCompleteOrders;
+      'reconcile-inventory': TaskReconcileInventory;
+      'send-daily-digest': TaskSendDailyDigest;
+      'issue-tickets': TaskIssueTickets;
+      'issue-invoice': TaskIssueInvoice;
+      'generate-invoice-pdf': TaskGenerateInvoicePdf;
+      'send-email': TaskSendEmail;
+      'notify-staff': TaskNotifyStaff;
+      'process-refund': TaskProcessRefund;
+      'waitlist-notify': TaskWaitlistNotify;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
         output: unknown;
       };
     };
-    workflows: unknown;
+    workflows: {
+      'finalize-order': WorkflowFinalizeOrder;
+    };
   };
 }
 export interface UserAuthOperations {
@@ -2264,6 +2321,1078 @@ export interface Redirect {
   createdAt: string;
 }
 /**
+ * Every booking, online or at the desk. Use the actions on an order to refund, move or cancel; statuses change on their own.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  /**
+   * MP- and six characters. Minted when the order is created; printed on tickets and invoices.
+   */
+  reference: string;
+  /**
+   * Changed only by the booking system and the order actions, never by hand.
+   */
+  status:
+    | 'pending_payment'
+    | 'awaiting_payment'
+    | 'confirming'
+    | 'confirmed'
+    | 'completed'
+    | 'failed'
+    | 'expired'
+    | 'cancelled'
+    | 'refunded';
+  channel: 'online' | 'desk';
+  /**
+   * The browser's basket id. A double-submit of the same basket reuses this order instead of holding seats twice.
+   */
+  basketId?: string | null;
+  customer?: (string | null) | Customer;
+  /**
+   * A copy of what the customer typed. Correcting the email or phone here is logged in the timeline and updates the customer record.
+   */
+  contact: {
+    firstName: string;
+    lastName: string;
+    /**
+     * Blank only on a desk booking without an email.
+     */
+    email?: string | null;
+    phone?: string | null;
+    marketingOptIn?: boolean | null;
+  };
+  /**
+   * Typed by the customer at the booking step.
+   */
+  notes?: string | null;
+  /**
+   * What was bought, priced from the database at checkout. Titles and times are copies from that moment.
+   */
+  lines?:
+    | {
+        kind: 'session' | 'pass';
+        session?: (string | null) | Session;
+        pass?: (string | null) | Pass;
+        title: string;
+        category?: string | null;
+        startsAt?: string | null;
+        durationMinutes?: number | null;
+        venueName?: string | null;
+        qty: number;
+        /**
+         * In AED, e.g. 240.00
+         */
+        unitFils: number;
+        /**
+         * In AED, e.g. 240.00
+         */
+        lineFils: number;
+        /**
+         * Seats on this line covered by a pass rather than money.
+         */
+        passCredits?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Promo and pass codes the customer typed, and what each one did.
+   */
+  codes?:
+    | {
+        code: string;
+        kind?: ('promo' | 'pass') | null;
+        purchase?: (string | null) | PassPurchase;
+        seatsCovered?: number | null;
+        /**
+         * In AED, e.g. 240.00
+         */
+        discountFils?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * At most one promo code per order.
+   */
+  promo?: {
+    promoCode?: (string | null) | PromoCode;
+    code?: string | null;
+    /**
+     * In AED, e.g. 240.00
+     */
+    discountFils?: number | null;
+  };
+  /**
+   * Credits taken from each pass at checkout; restored if the order expires or fails.
+   */
+  passRedemptions?:
+    | {
+        passPurchase: string | PassPurchase;
+        n: number;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Prices include VAT. Net and VAT are split per line and summed, so the invoice adds up.
+   */
+  totals: {
+    /**
+     * In AED, e.g. 240.00
+     */
+    subtotalFils: number;
+    /**
+     * In AED, e.g. 240.00
+     */
+    discountFils: number;
+    /**
+     * In AED, e.g. 240.00
+     */
+    grossFils: number;
+    /**
+     * In AED, e.g. 240.00
+     */
+    netFils: number;
+    /**
+     * In AED, e.g. 240.00
+     */
+    vatFils: number;
+    vatRateBps: number;
+    currency: string;
+  };
+  /**
+   * How the money was taken at the venue. Online orders have a Mamo Pay payment instead.
+   */
+  deskPayment?: {
+    method?: ('cash' | 'card_terminal' | 'complimentary' | 'bank_transfer') | null;
+    /**
+     * In AED, e.g. 240.00
+     */
+    amountFils?: number | null;
+    note?: string | null;
+    takenBy?: (string | null) | User;
+  };
+  payment?: (string | null) | Payment;
+  invoice?: (string | null) | Invoice;
+  tickets?: {
+    docs?: (string | Ticket)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  paymentAttempts?: {
+    docs?: (string | Payment)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  refunds?: {
+    docs?: (string | Refund)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Seats are held while the customer pays and released when this runs out.
+   */
+  hold?: {
+    expiresAt?: string | null;
+    /**
+     * { sessionId: qty }
+     */
+    seatsBySession?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  source?: {
+    ipHash?: string | null;
+    userAgent?: string | null;
+    referrer?: string | null;
+  };
+  /**
+   * Every state change and staff action, oldest first. Written by the system.
+   */
+  timeline?:
+    | {
+        at: string;
+        event: string;
+        /**
+         * A staff member, or “system”.
+         */
+        by?: string | null;
+        detail?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * For staff. “Collect AED 40 at the venue”, “Spoke to customer about the move”. Never shown to the customer.
+   */
+  internalNotes?: string | null;
+  /**
+   * { policySlug: version } — which wording the customer agreed to.
+   */
+  consentedPolicyVersions?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Which gateway this went through. A sandbox row can never touch a live order, or the reverse.
+   */
+  mode: 'test' | 'live' | 'mock';
+  confirmedAt?: string | null;
+  cancelledAt?: string | null;
+  expiredAt?: string | null;
+  remindersSentAt?: string | null;
+  /**
+   * Something did not add up. The reason is below; “Mark resolved” on the order clears it.
+   */
+  needsReview?: boolean | null;
+  reviewReason?:
+    | (
+        | 'amount_mismatch'
+        | 'no_order'
+        | 'post_expiry'
+        | 'mode_or_link_mismatch'
+        | 'dispute'
+        | 'voided_after_capture'
+        | 'failed_after_capture'
+        | 'double_capture'
+        | 'paid_cancelled_session'
+        | 'refund_failed'
+        | 'unknown_refund'
+      )
+    | null;
+  /**
+   * The cardholder opened a dispute with their bank. Set by Mamo's dispute webhooks.
+   */
+  disputed?: boolean | null;
+  /**
+   * The last dispute event received, e.g. dispute.received, dispute.won.
+   */
+  disputeStatus?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Everyone who has booked, by email address. Created by the checkout; names come from the booking form.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: string;
+  /**
+   * Stored lowercased; one customer per address.
+   */
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  /**
+   * Ticked by the customer at checkout. Not a staff decision.
+   */
+  marketingOptIn?: boolean | null;
+  /**
+   * Accessibility needs, preferences, anything the next booking should know. Never shown to the customer.
+   */
+  notes?: string | null;
+  /**
+   * Recomputed by the booking system after every confirmed order.
+   */
+  stats?: {
+    ordersCount?: number | null;
+    ticketsCount?: number | null;
+    /**
+     * In AED, e.g. 240.00
+     */
+    lifetimeFils?: number | null;
+  };
+  orders?: {
+    docs?: (string | Order)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  lastOrderAt?: string | null;
+  /**
+   * Each link works once; a newer request replaces the previous one.
+   */
+  lastMagicLinkIssuedAt?: string | null;
+  /**
+   * Bumped by “Sign out everywhere”: every “my bookings” session minted before the bump stops working.
+   */
+  sessionVersion: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Passes customers have bought and how many sessions each has left. Credits are spent at checkout by entering the code.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pass-purchases".
+ */
+export interface PassPurchase {
+  id: string;
+  code: string;
+  /**
+   * Exhausted and Expired are set automatically; Void is yours.
+   */
+  status: 'active' | 'exhausted' | 'expired' | 'void';
+  customer: string | Customer;
+  order: string | Order;
+  pass: string | Pass;
+  sessionsTotal: number;
+  /**
+   * Reserved at checkout, given back if the order expires.
+   */
+  sessionsRemaining: number;
+  /**
+   * Each checkout that spent credits from this pass.
+   */
+  redemptions?:
+    | {
+        forOrder: string | Order;
+        n: number;
+        at: string;
+        /**
+         * The order expired or failed; the credits came back.
+         */
+        restored?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * From the pass's validity at purchase. An admin may extend it.
+   */
+  expiresAt?: string | null;
+  exhaustedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Discount codes customers enter at checkout. One code per order; uses are counted as orders are placed.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-codes".
+ */
+export interface PromoCode {
+  id: string;
+  /**
+   * Letters and numbers; saved in capitals.
+   */
+  code: string;
+  /**
+   * For the team and the analytics view, e.g. “Summer newsletter 10 %”.
+   */
+  label: string;
+  type: 'percent' | 'fixed';
+  /**
+   * Percentage: 1–100. Fixed amount: in fils, so AED 25 is 2500.
+   */
+  value: number;
+  appliesTo: 'all' | 'experiences' | 'sessions';
+  /**
+   * Any session of these experiences.
+   */
+  experiences?: (string | Experience)[] | null;
+  /**
+   * Only these dates.
+   */
+  sessions?: (string | Session)[] | null;
+  /**
+   * Blank: immediately.
+   */
+  startsAt?: string | null;
+  /**
+   * Blank: no end date.
+   */
+  endsAt?: string | null;
+  /**
+   * Blank: unlimited.
+   */
+  maxUses?: number | null;
+  /**
+   * Counted by the checkout; given back when an order expires.
+   */
+  uses: number;
+  /**
+   * In AED. Blank: none.
+   */
+  minSpendFils?: number | null;
+  notes?: string | null;
+  /**
+   * Off: the code is refused at checkout, whatever its dates.
+   */
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Every payment attempt, online and at the desk. Written by the payment system; read-only here.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments".
+ */
+export interface Payment {
+  id: string;
+  order: string | Order;
+  provider: 'mamo' | 'desk';
+  status:
+    | 'created'
+    | 'link_ready'
+    | 'processing'
+    | 'captured'
+    | 'refund_pending'
+    | 'partially_refunded'
+    | 'refunded'
+    | 'failed'
+    | 'expired'
+    | 'voided';
+  /**
+   * In AED, e.g. 240.00
+   */
+  amountFils: number;
+  currency: string;
+  method?: {
+    type?: ('card' | 'wallet' | 'cash' | 'card_terminal' | 'complimentary' | 'bank_transfer') | null;
+    cardLast4?: string | null;
+    /**
+     * As Mamo reports it, e.g. “International card”.
+     */
+    cardOrigin?: string | null;
+  };
+  providerLinkId?: string | null;
+  /**
+   * Mamo's MPB-CHRG-… id. Quote it to Mamo support.
+   */
+  providerPaymentId?: string | null;
+  /**
+   * Admin only: anyone with this URL can pay for the basket.
+   */
+  providerLinkUrl?: string | null;
+  failureCode?: string | null;
+  failureMessage?: string | null;
+  /**
+   * Admin only. The verified object the last snapshot was taken from.
+   */
+  raw?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * What Mamo pays out for this payment, as reported — text, exactly as Mamo formats it.
+   */
+  settlement?: {
+    amount?: string | null;
+    fee?: string | null;
+    vat?: string | null;
+    currency?: string | null;
+    /**
+     * YYYY-MM-DD as Mamo sends it.
+     */
+    date?: string | null;
+  };
+  /**
+   * Which gateway this went through. A sandbox row can never touch a live order, or the reverse.
+   */
+  mode: 'test' | 'live' | 'mock';
+  capturedAt?: string | null;
+  failedAt?: string | null;
+  webhookSeenAt?: string | null;
+  /**
+   * When the payment object was last fetched from Mamo's API.
+   */
+  verifiedAt?: string | null;
+  linkDeactivatedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Tax invoices and credit notes, numbered without gaps. Figures never change after issue; regenerate the PDF from the order if needed.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices".
+ */
+export interface Invoice {
+  id: string;
+  number: string;
+  kind: 'invoice' | 'credit_note';
+  year: number;
+  sequence: number;
+  order: string | Order;
+  /**
+   * The refund this credit note settles.
+   */
+  refund?: (string | null) | Refund;
+  /**
+   * Copied from Settings → Invoices & VAT when the document was issued.
+   */
+  seller?: {
+    legalName?: string | null;
+    /**
+     * Blank: the document is a Receipt, not a Tax Invoice.
+     */
+    trn?: string | null;
+    tradeLicenceNumber?: string | null;
+    vatRateBps?: number | null;
+    addressLines?:
+      | {
+          line: string;
+          id?: string | null;
+        }[]
+      | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+  buyer?: {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+  lines?:
+    | {
+        description: string;
+        qty: number;
+        /**
+         * In AED, e.g. 240.00
+         */
+        unitNetFils: number;
+        /**
+         * In AED, e.g. 240.00
+         */
+        netFils: number;
+        /**
+         * In AED, e.g. 240.00
+         */
+        vatFils: number;
+        /**
+         * In AED, e.g. 240.00
+         */
+        grossFils: number;
+        id?: string | null;
+      }[]
+    | null;
+  totals: {
+    /**
+     * In AED, e.g. 240.00
+     */
+    netFils: number;
+    /**
+     * In AED, e.g. 240.00
+     */
+    vatFils: number;
+    /**
+     * In AED, e.g. 240.00
+     */
+    grossFils: number;
+    /**
+     * In AED, e.g. 240.00
+     */
+    discountFils?: number | null;
+  };
+  currency: string;
+  /**
+   * As printed: “Mamo Pay · card ****1157”, “Paid at venue (cash)”, “Complimentary”.
+   */
+  paymentLabel?: string | null;
+  /**
+   * Figures are frozen from this moment.
+   */
+  issuedAt?: string | null;
+  file?: (string | null) | InvoiceFile;
+  generatedAt?: string | null;
+  emailedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Refund requests and their outcome. Request from an order; an admin approves; Mamo Pay does the rest.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "refunds".
+ */
+export interface Refund {
+  id: string;
+  order: string | Order;
+  payment?: (string | null) | Payment;
+  /**
+   * In AED. At most what Mamo still allows on this payment; at least AED 1.
+   */
+  amountFils: number;
+  reason: 'customer_request' | 'session_cancelled' | 'post_expiry_payment' | 'duplicate' | 'goodwill' | 'other';
+  /**
+   * For the team and, if you choose, quoted in the customer's email.
+   */
+  note?: string | null;
+  /**
+   * On: the refunded seats become available again. Off: keep them reserved (e.g. a goodwill refund where the customer still attends).
+   */
+  releaseSeats?: boolean | null;
+  /**
+   * Moves on its own: Approve on the order, then the refund job.
+   */
+  status: 'requested' | 'approved' | 'processing' | 'succeeded' | 'failed';
+  requestedBy?: (string | null) | User;
+  approvedBy?: (string | null) | User;
+  /**
+   * “desk” for a refund repaid at the venue.
+   */
+  providerRefundId?: string | null;
+  /**
+   * Minted when the request is made; a repeat click reuses this row.
+   */
+  idempotencyKey: string;
+  /**
+   * Set the moment the job moves to Processing, before the request leaves.
+   */
+  providerRequestAt?: string | null;
+  /**
+   * Admin only.
+   */
+  providerResponse?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  creditNote?: (string | null) | Invoice;
+  ticketsVoided?: (string | Ticket)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * One ticket per seat, each with its own QR code. Check in from /admin/check-in or the session's attendee list.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tickets".
+ */
+export interface Ticket {
+  id: string;
+  code: string;
+  /**
+   * Changed by check-in, refunds and cancellations — not by hand.
+   */
+  status: 'valid' | 'checked_in' | 'void' | 'refunded';
+  order: string | Order;
+  session: string | Session;
+  /**
+   * Printed on the ticket. Defaults to the booker's name.
+   */
+  holderName?: string | null;
+  lineIndex: number;
+  /**
+   * n of the seats on that line.
+   */
+  seatNo: number;
+  checkedInAt?: string | null;
+  checkedInBy?: (string | null) | User;
+  checkInDevice?: ('camera' | 'manual' | 'list') | null;
+  /**
+   * Staff overrode a “wrong day” or “already checked in” verdict.
+   */
+  checkInForced?: boolean | null;
+  /**
+   * mp1.<code>.<signature> — what the QR image encodes.
+   */
+  qr?: string | null;
+  /**
+   * Compared in constant time at check-in. Never shown to the front desk.
+   */
+  qrSig?: string | null;
+  /**
+   * The 24-hour reminder email.
+   */
+  reminderSentAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Generated invoice and credit-note PDFs. Stored privately; customers receive them by email or a signed link.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-files".
+ */
+export interface InvoiceFile {
+  id: string;
+  /**
+   * The document this PDF renders.
+   */
+  invoice?: (string | null) | Invoice;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+}
+/**
+ * People waiting for a seat on a full session. They are emailed in order when seats free up; seats are not held for them.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "waitlist".
+ */
+export interface Waitlist {
+  id: string;
+  session: string | Session;
+  name: string;
+  email: string;
+  phone?: string | null;
+  qty: number;
+  status: 'waiting' | 'notified' | 'converted' | 'expired' | 'cancelled';
+  /**
+   * Place in the queue when they joined.
+   */
+  position?: number | null;
+  notifiedAt?: string | null;
+  /**
+   * Admin only: the link in the offer email carries it.
+   */
+  token?: string | null;
+  tokenExpiresAt?: string | null;
+  convertedOrder?: (string | null) | Order;
+  /**
+   * From the public form; blank when added by staff.
+   */
+  meta?: {
+    ipHash?: string | null;
+    userAgent?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Every webhook delivery from Mamo Pay, verified or not. Read-only; the booking system processes them.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-events".
+ */
+export interface PaymentEvent {
+  id: string;
+  provider: string;
+  /**
+   * payment.succeeded, payment.refunded, dispute.received…
+   */
+  eventType?: string | null;
+  /**
+   * The delivery carried our webhook secret.
+   */
+  verified: boolean;
+  needsReview?: boolean | null;
+  providerPaymentId?: string | null;
+  providerLinkId?: string | null;
+  /**
+   * Resolved from the payment's external_id, custom_data or link id.
+   */
+  order?: (string | null) | Order;
+  /**
+   * One row per payment × event × status × refunded amount. A second delivery of the same thing is answered 200 and ignored.
+   */
+  dedupeKey: string;
+  /**
+   * Names only, always recorded — this is how a different auth header name shows up.
+   */
+  headerNames?: string[] | null;
+  headers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  payload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * The first kilobyte of an unverified delivery, for diagnosis.
+   */
+  bodyExcerpt?: string | null;
+  ipHash?: string | null;
+  /**
+   * Blank once processed. A row with an error and no “Processed” time will be retried.
+   */
+  error?: string | null;
+  /**
+   * Which set of webhook secrets matched: test or live.
+   */
+  mode: 'test' | 'live' | 'mock';
+  receivedAt?: string | null;
+  /**
+   * A claim older than 2 minutes with no “Processed” time can be re-claimed by a retry.
+   */
+  processingStartedAt?: string | null;
+  processedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Seats reserved by baskets awaiting payment. Released automatically when the hold runs out.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seat-holds".
+ */
+export interface SeatHold {
+  id: string;
+  order: string | Order;
+  session: string | Session;
+  qty: number;
+  status: 'held' | 'released' | 'consumed';
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * The last invoice and credit-note number issued each year. Maintained by the numbering SQL; read-only.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-counters".
+ */
+export interface InvoiceCounter {
+  id: string;
+  kind: 'invoice' | 'credit_note';
+  year: number;
+  last: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * The wording of each email the site sends. Use {{variables}} from the list on each template; the logo and footer are added automatically.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates".
+ */
+export interface EmailTemplate {
+  id: string;
+  /**
+   * Fixed by the system — one template per email it can send.
+   */
+  key:
+    | 'order_confirmation'
+    | 'payment_failed'
+    | 'ticket_reminder_24h'
+    | 'order_refunded'
+    | 'order_cancelled'
+    | 'order_moved'
+    | 'session_rescheduled'
+    | 'session_cancelled'
+    | 'post_expiry_payment'
+    | 'magic_link'
+    | 'enquiry_received'
+    | 'waitlist_joined'
+    | 'waitlist_seat_available'
+    | 'staff_login_link'
+    | 'admin_new_order'
+    | 'admin_failed_payment'
+    | 'admin_refund_requested'
+    | 'admin_refund'
+    | 'admin_dispute'
+    | 'admin_new_enquiry'
+    | 'admin_waitlist_joined'
+    | 'admin_job_failed'
+    | 'admin_low_seats'
+    | 'admin_settings_changed'
+    | 'admin_webhook_unverified_spike'
+    | 'admin_daily_digest'
+    | 'test';
+  /**
+   * How it appears in this list.
+   */
+  label: string;
+  /**
+   * Variables work here too, e.g. “Your booking {{order.reference}} is confirmed”.
+   */
+  subject: string;
+  /**
+   * The line inbox apps show under the subject. Optional.
+   */
+  preheader?: string | null;
+  /**
+   * Write as you would to one customer. Lines, links and bold are kept; the brand header and footer are added for you.
+   */
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Only meaningful on order emails.
+   */
+  attachInvoice?: boolean | null;
+  /**
+   * Only meaningful on order emails.
+   */
+  attachTickets?: boolean | null;
+  /**
+   * Off: this email is logged as skipped instead of sent. Admin only.
+   */
+  enabled?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Every email the site has sent or tried to send, with its outcome. Resend from here; wording lives under Email templates.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notification-log".
+ */
+export interface NotificationLog {
+  id: string;
+  channel: 'email';
+  to: string;
+  status: 'queued' | 'sent' | 'failed' | 'skipped';
+  templateKey?:
+    | (
+        | 'order_confirmation'
+        | 'payment_failed'
+        | 'ticket_reminder_24h'
+        | 'order_refunded'
+        | 'order_cancelled'
+        | 'order_moved'
+        | 'session_rescheduled'
+        | 'session_cancelled'
+        | 'post_expiry_payment'
+        | 'magic_link'
+        | 'enquiry_received'
+        | 'waitlist_joined'
+        | 'waitlist_seat_available'
+        | 'staff_login_link'
+        | 'admin_new_order'
+        | 'admin_failed_payment'
+        | 'admin_refund_requested'
+        | 'admin_refund'
+        | 'admin_dispute'
+        | 'admin_new_enquiry'
+        | 'admin_waitlist_joined'
+        | 'admin_job_failed'
+        | 'admin_low_seats'
+        | 'admin_settings_changed'
+        | 'admin_webhook_unverified_spike'
+        | 'admin_daily_digest'
+        | 'test'
+      )
+    | null;
+  subject?: string | null;
+  provider?: ('smtp' | 'resend' | 'log') | null;
+  providerMessageId?: string | null;
+  attempts: number;
+  error?: string | null;
+  sentAt?: string | null;
+  order?: (string | null) | Order;
+  session?: (string | null) | Session;
+  ticket?: (string | null) | Ticket;
+  refund?: (string | null) | Refund;
+  enquiry?: (string | null) | Enquiry;
+  /**
+   * Links, tokens and URLs are replaced by “[redacted]” before this is stored.
+   */
+  variables?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  html?: string | null;
+  text?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Messages from the contact and private-events forms. Work them by status; assign to a colleague; reply from your own email.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "enquiries".
+ */
+export interface Enquiry {
+  id: string;
+  status: 'new' | 'in_progress' | 'closed';
+  /**
+   * Active colleagues only. Assigning a new enquiry moves it to In progress.
+   */
+  assignedTo?: (string | null) | User;
+  /**
+   * Set when you press Reply by email; or set it by hand. Moves a new enquiry to In progress.
+   */
+  repliedAt?: string | null;
+  source: 'contact' | 'private-event';
+  topic: 'event' | 'booking' | 'private' | 'collaboration' | 'general';
+  name: string;
+  email: string;
+  phone?: string | null;
+  message: string;
+  /**
+   * The extra questions that form asked (guests, preferred date…), in the order asked.
+   */
+  details?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * For the team. Never sent to the enquirer.
+   */
+  internalNotes?: string | null;
+  meta?: {
+    ipHash?: string | null;
+    referer?: string | null;
+    userAgent?: string | null;
+    /**
+     * The hidden form field was filled in. Stored, not notified.
+     */
+    honeypotTripped?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -2281,6 +3410,8 @@ export interface PayloadKv {
     | null;
 }
 /**
+ * What the server did in the background: emails, payment checks, holds, reminders. A job that failed for good shows its error and a Retry button.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-jobs".
  */
@@ -2332,7 +3463,23 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'noop' | 'schedulePublish';
+        taskSlug:
+          | 'inline'
+          | 'noop'
+          | 'expire-holds'
+          | 'reconcile-payments'
+          | 'send-reminders'
+          | 'complete-orders'
+          | 'reconcile-inventory'
+          | 'send-daily-digest'
+          | 'issue-tickets'
+          | 'issue-invoice'
+          | 'generate-invoice-pdf'
+          | 'send-email'
+          | 'notify-staff'
+          | 'process-refund'
+          | 'waitlist-notify'
+          | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -2363,13 +3510,52 @@ export interface PayloadJob {
           | boolean
           | null;
         parent?: {
-          taskSlug?: ('inline' | 'noop' | 'schedulePublish') | null;
+          taskSlug?:
+            | (
+                | 'inline'
+                | 'noop'
+                | 'expire-holds'
+                | 'reconcile-payments'
+                | 'send-reminders'
+                | 'complete-orders'
+                | 'reconcile-inventory'
+                | 'send-daily-digest'
+                | 'issue-tickets'
+                | 'issue-invoice'
+                | 'generate-invoice-pdf'
+                | 'send-email'
+                | 'notify-staff'
+                | 'process-refund'
+                | 'waitlist-notify'
+                | 'schedulePublish'
+              )
+            | null;
           taskID?: string | null;
         };
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'noop' | 'schedulePublish') | null;
+  workflowSlug?: 'finalize-order' | null;
+  taskSlug?:
+    | (
+        | 'inline'
+        | 'noop'
+        | 'expire-holds'
+        | 'reconcile-payments'
+        | 'send-reminders'
+        | 'complete-orders'
+        | 'reconcile-inventory'
+        | 'send-daily-digest'
+        | 'issue-tickets'
+        | 'issue-invoice'
+        | 'generate-invoice-pdf'
+        | 'send-email'
+        | 'notify-staff'
+        | 'process-refund'
+        | 'waitlist-notify'
+        | 'schedulePublish'
+      )
+    | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -2377,6 +3563,15 @@ export interface PayloadJob {
    * Used for concurrency control. Jobs with the same key are subject to exclusive/supersedes rules.
    */
   concurrencyKey?: string | null;
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2446,6 +3641,70 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'redirects';
         value: string | Redirect;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: string | Customer;
+      } | null)
+    | ({
+        relationTo: 'tickets';
+        value: string | Ticket;
+      } | null)
+    | ({
+        relationTo: 'refunds';
+        value: string | Refund;
+      } | null)
+    | ({
+        relationTo: 'invoices';
+        value: string | Invoice;
+      } | null)
+    | ({
+        relationTo: 'pass-purchases';
+        value: string | PassPurchase;
+      } | null)
+    | ({
+        relationTo: 'promo-codes';
+        value: string | PromoCode;
+      } | null)
+    | ({
+        relationTo: 'waitlist';
+        value: string | Waitlist;
+      } | null)
+    | ({
+        relationTo: 'payments';
+        value: string | Payment;
+      } | null)
+    | ({
+        relationTo: 'payment-events';
+        value: string | PaymentEvent;
+      } | null)
+    | ({
+        relationTo: 'seat-holds';
+        value: string | SeatHold;
+      } | null)
+    | ({
+        relationTo: 'invoice-files';
+        value: string | InvoiceFile;
+      } | null)
+    | ({
+        relationTo: 'invoice-counters';
+        value: string | InvoiceCounter;
+      } | null)
+    | ({
+        relationTo: 'email-templates';
+        value: string | EmailTemplate;
+      } | null)
+    | ({
+        relationTo: 'notification-log';
+        value: string | NotificationLog;
+      } | null)
+    | ({
+        relationTo: 'enquiries';
+        value: string | Enquiry;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -3874,6 +5133,514 @@ export interface RedirectsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  reference?: T;
+  status?: T;
+  channel?: T;
+  basketId?: T;
+  customer?: T;
+  contact?:
+    | T
+    | {
+        firstName?: T;
+        lastName?: T;
+        email?: T;
+        phone?: T;
+        marketingOptIn?: T;
+      };
+  notes?: T;
+  lines?:
+    | T
+    | {
+        kind?: T;
+        session?: T;
+        pass?: T;
+        title?: T;
+        category?: T;
+        startsAt?: T;
+        durationMinutes?: T;
+        venueName?: T;
+        qty?: T;
+        unitFils?: T;
+        lineFils?: T;
+        passCredits?: T;
+        id?: T;
+      };
+  codes?:
+    | T
+    | {
+        code?: T;
+        kind?: T;
+        purchase?: T;
+        seatsCovered?: T;
+        discountFils?: T;
+        id?: T;
+      };
+  promo?:
+    | T
+    | {
+        promoCode?: T;
+        code?: T;
+        discountFils?: T;
+      };
+  passRedemptions?:
+    | T
+    | {
+        passPurchase?: T;
+        n?: T;
+        id?: T;
+      };
+  totals?:
+    | T
+    | {
+        subtotalFils?: T;
+        discountFils?: T;
+        grossFils?: T;
+        netFils?: T;
+        vatFils?: T;
+        vatRateBps?: T;
+        currency?: T;
+      };
+  deskPayment?:
+    | T
+    | {
+        method?: T;
+        amountFils?: T;
+        note?: T;
+        takenBy?: T;
+      };
+  payment?: T;
+  invoice?: T;
+  tickets?: T;
+  paymentAttempts?: T;
+  refunds?: T;
+  hold?:
+    | T
+    | {
+        expiresAt?: T;
+        seatsBySession?: T;
+      };
+  source?:
+    | T
+    | {
+        ipHash?: T;
+        userAgent?: T;
+        referrer?: T;
+      };
+  timeline?:
+    | T
+    | {
+        at?: T;
+        event?: T;
+        by?: T;
+        detail?: T;
+        id?: T;
+      };
+  internalNotes?: T;
+  consentedPolicyVersions?: T;
+  mode?: T;
+  confirmedAt?: T;
+  cancelledAt?: T;
+  expiredAt?: T;
+  remindersSentAt?: T;
+  needsReview?: T;
+  reviewReason?: T;
+  disputed?: T;
+  disputeStatus?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  email?: T;
+  firstName?: T;
+  lastName?: T;
+  phone?: T;
+  marketingOptIn?: T;
+  notes?: T;
+  stats?:
+    | T
+    | {
+        ordersCount?: T;
+        ticketsCount?: T;
+        lifetimeFils?: T;
+      };
+  orders?: T;
+  lastOrderAt?: T;
+  lastMagicLinkIssuedAt?: T;
+  sessionVersion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tickets_select".
+ */
+export interface TicketsSelect<T extends boolean = true> {
+  code?: T;
+  status?: T;
+  order?: T;
+  session?: T;
+  holderName?: T;
+  lineIndex?: T;
+  seatNo?: T;
+  checkedInAt?: T;
+  checkedInBy?: T;
+  checkInDevice?: T;
+  checkInForced?: T;
+  qr?: T;
+  qrSig?: T;
+  reminderSentAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "refunds_select".
+ */
+export interface RefundsSelect<T extends boolean = true> {
+  order?: T;
+  payment?: T;
+  amountFils?: T;
+  reason?: T;
+  note?: T;
+  releaseSeats?: T;
+  status?: T;
+  requestedBy?: T;
+  approvedBy?: T;
+  providerRefundId?: T;
+  idempotencyKey?: T;
+  providerRequestAt?: T;
+  providerResponse?: T;
+  creditNote?: T;
+  ticketsVoided?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices_select".
+ */
+export interface InvoicesSelect<T extends boolean = true> {
+  number?: T;
+  kind?: T;
+  year?: T;
+  sequence?: T;
+  order?: T;
+  refund?: T;
+  seller?:
+    | T
+    | {
+        legalName?: T;
+        trn?: T;
+        tradeLicenceNumber?: T;
+        vatRateBps?: T;
+        addressLines?:
+          | T
+          | {
+              line?: T;
+              id?: T;
+            };
+        email?: T;
+        phone?: T;
+      };
+  buyer?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        phone?: T;
+      };
+  lines?:
+    | T
+    | {
+        description?: T;
+        qty?: T;
+        unitNetFils?: T;
+        netFils?: T;
+        vatFils?: T;
+        grossFils?: T;
+        id?: T;
+      };
+  totals?:
+    | T
+    | {
+        netFils?: T;
+        vatFils?: T;
+        grossFils?: T;
+        discountFils?: T;
+      };
+  currency?: T;
+  paymentLabel?: T;
+  issuedAt?: T;
+  file?: T;
+  generatedAt?: T;
+  emailedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pass-purchases_select".
+ */
+export interface PassPurchasesSelect<T extends boolean = true> {
+  code?: T;
+  status?: T;
+  customer?: T;
+  order?: T;
+  pass?: T;
+  sessionsTotal?: T;
+  sessionsRemaining?: T;
+  redemptions?:
+    | T
+    | {
+        forOrder?: T;
+        n?: T;
+        at?: T;
+        restored?: T;
+        id?: T;
+      };
+  expiresAt?: T;
+  exhaustedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-codes_select".
+ */
+export interface PromoCodesSelect<T extends boolean = true> {
+  code?: T;
+  label?: T;
+  type?: T;
+  value?: T;
+  appliesTo?: T;
+  experiences?: T;
+  sessions?: T;
+  startsAt?: T;
+  endsAt?: T;
+  maxUses?: T;
+  uses?: T;
+  minSpendFils?: T;
+  notes?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "waitlist_select".
+ */
+export interface WaitlistSelect<T extends boolean = true> {
+  session?: T;
+  name?: T;
+  email?: T;
+  phone?: T;
+  qty?: T;
+  status?: T;
+  position?: T;
+  notifiedAt?: T;
+  token?: T;
+  tokenExpiresAt?: T;
+  convertedOrder?: T;
+  meta?:
+    | T
+    | {
+        ipHash?: T;
+        userAgent?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments_select".
+ */
+export interface PaymentsSelect<T extends boolean = true> {
+  order?: T;
+  provider?: T;
+  status?: T;
+  amountFils?: T;
+  currency?: T;
+  method?:
+    | T
+    | {
+        type?: T;
+        cardLast4?: T;
+        cardOrigin?: T;
+      };
+  providerLinkId?: T;
+  providerPaymentId?: T;
+  providerLinkUrl?: T;
+  failureCode?: T;
+  failureMessage?: T;
+  raw?: T;
+  settlement?:
+    | T
+    | {
+        amount?: T;
+        fee?: T;
+        vat?: T;
+        currency?: T;
+        date?: T;
+      };
+  mode?: T;
+  capturedAt?: T;
+  failedAt?: T;
+  webhookSeenAt?: T;
+  verifiedAt?: T;
+  linkDeactivatedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-events_select".
+ */
+export interface PaymentEventsSelect<T extends boolean = true> {
+  provider?: T;
+  eventType?: T;
+  verified?: T;
+  needsReview?: T;
+  providerPaymentId?: T;
+  providerLinkId?: T;
+  order?: T;
+  dedupeKey?: T;
+  headerNames?: T;
+  headers?: T;
+  payload?: T;
+  bodyExcerpt?: T;
+  ipHash?: T;
+  error?: T;
+  mode?: T;
+  receivedAt?: T;
+  processingStartedAt?: T;
+  processedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seat-holds_select".
+ */
+export interface SeatHoldsSelect<T extends boolean = true> {
+  order?: T;
+  session?: T;
+  qty?: T;
+  status?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-files_select".
+ */
+export interface InvoiceFilesSelect<T extends boolean = true> {
+  invoice?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-counters_select".
+ */
+export interface InvoiceCountersSelect<T extends boolean = true> {
+  kind?: T;
+  year?: T;
+  last?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates_select".
+ */
+export interface EmailTemplatesSelect<T extends boolean = true> {
+  key?: T;
+  label?: T;
+  subject?: T;
+  preheader?: T;
+  body?: T;
+  attachInvoice?: T;
+  attachTickets?: T;
+  enabled?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notification-log_select".
+ */
+export interface NotificationLogSelect<T extends boolean = true> {
+  channel?: T;
+  to?: T;
+  status?: T;
+  templateKey?: T;
+  subject?: T;
+  provider?: T;
+  providerMessageId?: T;
+  attempts?: T;
+  error?: T;
+  sentAt?: T;
+  order?: T;
+  session?: T;
+  ticket?: T;
+  refund?: T;
+  enquiry?: T;
+  variables?: T;
+  html?: T;
+  text?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "enquiries_select".
+ */
+export interface EnquiriesSelect<T extends boolean = true> {
+  status?: T;
+  assignedTo?: T;
+  repliedAt?: T;
+  source?: T;
+  topic?: T;
+  name?: T;
+  email?: T;
+  phone?: T;
+  message?: T;
+  details?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  internalNotes?: T;
+  meta?:
+    | T
+    | {
+        ipHash?: T;
+        referer?: T;
+        userAgent?: T;
+        honeypotTripped?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -3910,11 +5677,13 @@ export interface PayloadJobsSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  workflowSlug?: T;
   taskSlug?: T;
   queue?: T;
   waitUntil?: T;
   processing?: T;
   concurrencyKey?: T;
+  meta?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -5315,6 +7084,24 @@ export interface SystemState {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats".
+ */
+export interface PayloadJobsStat {
+  id: string;
+  stats?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
@@ -6235,6 +8022,16 @@ export interface SystemStateSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats_select".
+ */
+export interface PayloadJobsStatsSelect<T extends boolean = true> {
+  stats?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -6249,6 +8046,157 @@ export interface CollectionsWidget {
  */
 export interface TaskNoop {
   input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskExpire-holds".
+ */
+export interface TaskExpireHolds {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskReconcile-payments".
+ */
+export interface TaskReconcilePayments {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSend-reminders".
+ */
+export interface TaskSendReminders {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskComplete-orders".
+ */
+export interface TaskCompleteOrders {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskReconcile-inventory".
+ */
+export interface TaskReconcileInventory {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSend-daily-digest".
+ */
+export interface TaskSendDailyDigest {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskIssue-tickets".
+ */
+export interface TaskIssueTickets {
+  input: {
+    orderId: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskIssue-invoice".
+ */
+export interface TaskIssueInvoice {
+  input: {
+    orderId: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskGenerate-invoice-pdf".
+ */
+export interface TaskGenerateInvoicePdf {
+  input: {
+    invoiceId: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSend-email".
+ */
+export interface TaskSendEmail {
+  input: {
+    logId: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskNotify-staff".
+ */
+export interface TaskNotifyStaff {
+  input: {
+    event:
+      | 'new_order'
+      | 'failed_payment'
+      | 'refund_requested'
+      | 'refund'
+      | 'dispute'
+      | 'new_enquiry'
+      | 'waitlist_joined'
+      | 'job_failed'
+      | 'low_seats'
+      | 'settings_changed'
+      | 'webhook_unverified_spike'
+      | 'daily_digest';
+    vars:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    refs?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskProcess-refund".
+ */
+export interface TaskProcessRefund {
+  input: {
+    refundId: string;
+    paymentId: string;
+    orderId: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskWaitlist-notify".
+ */
+export interface TaskWaitlistNotify {
+  input: {
+    sessionId: string;
+    freedSeats: number;
+  };
   output?: unknown;
 }
 /**
@@ -6299,6 +8247,15 @@ export interface TaskSchedulePublish {
     } | null;
   };
   output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WorkflowFinalize-order".
+ */
+export interface WorkflowFinalizeOrder {
+  input: {
+    orderId: string;
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

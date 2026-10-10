@@ -1,102 +1,127 @@
 "use client";
 
 import Link from "next/link";
-import { BlobButton } from "@/components/ui/BlobButton";
-import { useSearchParams } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
+import { BookingSummaryCard, type StatusCopy } from "@/components/booking/BookingSummaryCard";
+import { displayStatus, parseOrderView, type DisplayStatus, type OrderView } from "@/components/booking/orderView";
 import { Reveal } from "@/components/motion/Reveal";
-import { findBooking, useBookings } from "@/lib/booking";
-import { BOOKING_TERMS, bookingTerms, CONTACT, REFERENCE_CHANNEL_SET } from "@/lib/constants";
+import { BlobButton } from "@/components/ui/BlobButton";
+import { completeBooking, pendingPaymentReference } from "@/lib/cart";
+
+/** SPEC §H.5: poll every 3 s for up to 3 minutes. */
+const POLL_EVERY_MS = 3_000;
+const POLL_FOR_MS = 3 * 60_000;
+
+const LINK_ROW =
+  "group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text";
+const LINK_LINE =
+  "border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta";
 
 /**
- * The confirmation, read back from the reference in the URL.
+ * The confirmation — where Mamo Pay (or the mock gateway) sends the customer
+ * back to: `/payment-success?ref&k` (+ Mamo's own `transactionId&status…`).
  *
- * Client component, and it has to be: the booking lives in this browser's own
- * storage (see lib/booking.ts) and there is no server that could render it.
- * The record is read through `useBookings`, which is a `useSyncExternalStore`
- * over that storage — so the server renders an empty list, the client renders
- * the real one, and React is told about the difference instead of discovering
- * it as a hydration mismatch. No effect, and no cascading render.
+ * THE SERVER HAS ALREADY LOOKED. app/(site)/payment-success reads the order,
+ * checks `k` (the signed, expiring return key) and — when Mamo appended a
+ * payment id — applies that payment before rendering, so most customers
+ * land straight on "Confirmed". This component is what happens when the
+ * payment is still being confirmed: it asks
+ * `GET /api/site/orders/{ref}/status?k=` every 3 seconds for up to 3 minutes,
+ * and when the state moves it re-renders the page on the server
+ * (`router.refresh`), which is where the lines, tickets and invoice are read.
+ * If the status route cannot answer, the refresh itself is the poll.
  *
- * The reference travels in the query string rather than in storage-only state
- * so the page survives a reload and can be linked from an email later without
- * changing anything here.
+ * Three outcomes, worded for what the customer can do about each:
+ * Confirmed (tickets, "emailed to you"), Processing (wait, or come back from
+ * the email), Not paid (back to checkout, where the basket is still held, to
+ * try again on the same order).
  *
- * THE PAGE'S HEADING LIVES HERE NOW, because only this component knows which
- * page it is. app/payment-success printed "Your reference is ready." above
- * whatever this rendered — including, with no `?ref=` or one this browser
- * has never seen, directly above "No booking to show". The heading was
- * claiming a reference that the box under it said did not exist. So each
- * branch carries its own h1, and the route keeps only the eyebrow.
+ * THE BASKET IS CLEARED HERE, AND ONLY HERE. Checkout keeps it while the
+ * customer is away paying, so a declined card comes back to a full basket.
+ * Once THIS order is confirmed, the basket it was made from goes, with the
+ * details typed for it.
  */
-export function Confirmation() {
-  const params = useSearchParams();
-  const reference = params.get("ref");
-  const bookings = useBookings();
-  const read = useStoreRead();
-  const record = reference ? findBooking(bookings, reference) : null;
+export function Confirmation({
+  reference,
+  k,
+  view,
+  keyValid,
+  statusCopy,
+  purchaseConfirmedNote,
+  terms,
+}: {
+  reference: string | null;
+  k: string | null;
+  /** The server's reading of the order, or null when there is no such reference. */
+  view: OrderView | null;
+  /** Whether `k` proved ownership; without it only the state is shown. */
+  keyValid: boolean;
+  statusCopy?: StatusCopy;
+  purchaseConfirmedNote?: string;
+  /** The "what a booking is" sentence (booking-settings). */
+  terms: string;
+}) {
+  const status = view ? displayStatus(view.status) : null;
+  const polling = usePollWhileProcessing(reference, k, view?.status ?? null, status === "processing");
 
-  /*
-    "Not found" only once the store has actually been read. Before that, no
-    record means "not looked yet": lib/booking.ts reads browser storage on its
-    first subscription, which React makes after the first render — so that
-    render always sees an empty list. With the heading in this component the
-    gap was measured on a reload of a real confirmation: "Find your booking."
-    and the "No booking to show" box painted for ~80-100ms before the record
-    replaced them. The empty frame now says what is happening instead.
-  */
-  if (!record && reference && !read) return <LookingUp />;
-  if (!record) return <NotFound reference={reference} />;
+  // Paid for (captured counts — `confirming` is only the tickets being issued):
+  // forget the basket this order was made from.
+  const paid = status === "confirmed" || status === "completed" || view?.status === "confirming";
+  useEffect(() => {
+    if (!reference || !paid) return;
+    const pending = pendingPaymentReference();
+    if (pending === null || pending === reference) completeBooking();
+  }, [reference, paid]);
+
+  if (!reference || !view || !status) return <NotFound reference={reference} />;
 
   return (
     <>
-      {/*
-        True in every state of the backend: a reference exists, and the card
-        under it carries the status — Pending today, so nothing here may say
-        "confirmed" or "held". It said "Booking confirmed" once, over a record
-        nobody had received.
-      */}
-      <PageHeading>Your reference is ready.</PageHeading>
+      <PageHeading>{view.status === "confirming" ? "Payment received." : HEADINGS[status]}</PageHeading>
 
-      <div className="mt-12 md:mt-14">
-        <BookingSummaryCard record={record} />
+      <div className="mt-12 md:mt-14" aria-live="polite">
+        <BookingSummaryCard view={view} statusCopy={statusCopy} purchaseConfirmedNote={purchaseConfirmedNote} />
       </div>
 
-      {/*
-        Said plainly, on the screen that would otherwise be the one place
-        someone assumes they have paid. The brief's own instruction, and the
-        right one: this page must never imply a transaction happened.
+      {status === "processing" ? (
+        <p role="status" className="mt-6 max-w-[42rem] text-body text-text/80">
+          {polling === "gave_up"
+            ? "This is taking longer than usual. There is nothing more to do here: your confirmation and tickets will be emailed to you as soon as they are ready, and you can check this booking at any time with its reference."
+            : view.status === "confirming"
+              ? "Issuing your tickets… this page updates on its own."
+              : "Checking with the payment provider… this page updates on its own."}
+        </p>
+      ) : null}
 
-        ONE SENTENCE, SHARED. This is BOOKING_TERMS in lib/constants.ts, the
-        same words checkout prints under "Confirm booking" and the FAQ gives
-        for "Am I charged?", picked by the two flags in lib/bookingFlags.ts so it
-        changes everywhere at once when a backend is wired. This page's own
-        version was the only one of the four that was right — a request, kept
-        in this browser, confirmed once the studio has the reference — and it
-        is what the shared sentence says, less "send them your reference"
-        while there is nowhere to send it (see <SendReference> below). It no
-        longer says "a place" or "a seat" either, so it stays true of a pass,
-        which holds no seat until it is redeemed against a date.
-      */}
-      <p className="mt-8 max-w-[42rem] text-fine leading-[1.8] text-text/75">
-        {bookingTerms()}
-      </p>
-      <SendReference />
+      {!keyValid ? (
+        <p className="mt-6 max-w-[42rem] text-body text-text/80">
+          To see the details of this booking, open the link in your confirmation email, or look it up with
+          the email address it was made with.
+        </p>
+      ) : null}
+
+      {status === "confirmed" || status === "completed" ? (
+        <p className="mt-8 max-w-[42rem] text-fine leading-[1.8] text-text/75">
+          {terms} A confirmation with your tickets and invoice has been sent to the email address on the
+          booking.
+        </p>
+      ) : null}
 
       <div className="mt-11 flex flex-wrap items-center gap-x-9 gap-y-5">
-        <BlobButton href="/events" className="px-7 py-4">
-          View events
-        </BlobButton>
+        {status === "not_paid" ? (
+          <BlobButton href={`/checkout?ref=${encodeURIComponent(reference)}&payment=failed`} className="px-7 py-4">
+            Try the payment again
+          </BlobButton>
+        ) : (
+          <BlobButton href="/events" className="px-7 py-4">
+            View events
+          </BlobButton>
+        )}
 
-        <Link
-          href={`/booking-status?ref=${encodeURIComponent(record.reference)}`}
-          className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
-        >
-          <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-            Check booking status
-          </span>
+        <Link href={`/booking-status?ref=${encodeURIComponent(reference)}`} className={LINK_ROW}>
+          <span className={LINK_LINE}>Check booking status</span>
           <span
             aria-hidden
             className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
@@ -109,148 +134,101 @@ export function Confirmation() {
   );
 }
 
-/*
-  WHERE "SEND THEM YOUR REFERENCE" GOES — said only when there is somewhere.
+const HEADINGS: Record<DisplayStatus, string> = {
+  confirmed: "You are booked.",
+  processing: "Confirming your payment.",
+  not_paid: "Payment not completed.",
+  completed: "Your booking.",
+  cancelled: "Your booking.",
+  refunded: "Your booking.",
+};
 
-  The request line asks the customer to send their reference to the studio
-  only while REFERENCE_CHANNEL_SET says a channel exists (see the note over
-  BOOKING_TERMS in lib/constants.ts), and this page is where they are holding
-  the reference when they read it, so it names the channel as a link instead
-  of leaving them to go and find one: the studio's email, its phone, or — with
-  neither published but the form wired — the contact page. Today all three
-  are missing, the line ends at "keep the reference you are given", and this
-  renders nothing. Nor does it under the `recorded` or `paid` sentences,
-  which ask the customer to send nothing.
+/**
+ * Polls the status route while the order is processing; refreshes the server
+ * render whenever the state it reports differs from the one on screen.
+ * Returns "polling" while it is still looking, "gave_up" after three minutes.
+ */
+function usePollWhileProcessing(
+  reference: string | null,
+  k: string | null,
+  shown: OrderView["status"] | null,
+  active: boolean,
+): "idle" | "polling" | "gave_up" {
+  const router = useRouter();
+  const [phase, setPhase] = useState<"polling" | "gave_up">("polling");
+  const shownRef = useRef(shown);
+  useEffect(() => {
+    shownRef.current = shown;
+  }, [shown]);
 
-  The links take the contact page's own treatment for an address and a
-  number — a hairline that warms to Terracotta — so they read as links in a
-  sentence without relying on colour alone.
-*/
-const SEND_LINK =
-  "border-b border-line pb-0.5 text-text transition-colors duration-300 ease-soft hover:border-terracotta";
+  useEffect(() => {
+    if (!active || !reference) return;
+    const startedAt = Date.now();
+    let stopped = false;
 
-function SendReference() {
-  if (!REFERENCE_CHANNEL_SET || bookingTerms() !== BOOKING_TERMS.request) return null;
+    const tick = async () => {
+      if (stopped) return;
+      if (Date.now() - startedAt > POLL_FOR_MS) {
+        stopped = true;
+        window.clearInterval(timer);
+        setPhase("gave_up");
+        return;
+      }
+      if (document.visibilityState !== "visible") return;
+      try {
+        const query = k ? `?k=${encodeURIComponent(k)}` : "";
+        const response = await fetch(`/api/site/orders/${encodeURIComponent(reference)}/status${query}`, { cache: "no-store" });
+        if (!response.ok) {
+          // The status route is not answering: the server render is the poll.
+          router.refresh();
+          return;
+        }
+        const next = parseOrderView(await response.json());
+        if (next && next.status !== shownRef.current) router.refresh();
+      } catch {
+        // Offline for a moment; the next tick tries again.
+      }
+    };
 
-  const email = CONTACT.email ? (
-    <a href={`mailto:${CONTACT.email}`} className={SEND_LINK}>
-      {CONTACT.email}
-    </a>
-  ) : null;
-  const phone = CONTACT.phone ? (
-    <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className={SEND_LINK}>
-      {CONTACT.phone}
-    </a>
-  ) : null;
+    const timer = window.setInterval(tick, POLL_EVERY_MS);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [active, reference, k, router]);
 
-  return (
-    <p className="mt-3 max-w-[42rem] text-fine leading-[1.8] text-text/75">
-      {email || phone ? (
-        <>
-          Send it to {email}
-          {email && phone ? " or " : null}
-          {phone}.
-        </>
-      ) : (
-        <>
-          Send it through the{" "}
-          <Link href="/contact" className={SEND_LINK}>
-            contact page
-          </Link>
-          .
-        </>
-      )}
-    </p>
-  );
-}
-
-/*
-  Whether this page has subscribed to the bookings store yet — i.e. whether
-  `useBookings` is returning what storage holds or the empty list it starts
-  from. Flipped by this store's own subscription, which React makes in the
-  same pass as the bookings store's, so the render that follows has both the
-  records and the flag. False on the server and through hydration, so the
-  HTML and the first client render agree.
-
-  Module-level on purpose: once read in this tab, the bookings store stays
-  read, and a second visit should not pass through "looking" again.
-
-  This is the hook lib/booking.ts would carry if it were written like
-  lib/cart.ts (`useCartHydrated`). It is not, and that file is not this
-  one's to change — so the signal is kept here, next to the one place that
-  needs it.
-*/
-let storeRead = false;
-function subscribeStoreRead(onChange: () => void) {
-  if (!storeRead) {
-    storeRead = true;
-    onChange();
-  }
-  return () => {};
-}
-function useStoreRead(): boolean {
-  return useSyncExternalStore(
-    subscribeStoreRead,
-    () => storeRead,
-    () => false,
-  );
-}
-
-/** The frame before the store has been read — the route's own fallback line. */
-function LookingUp() {
-  return (
-    <p role="status" className="mt-12 text-body text-text/75">
-      Looking up your booking&hellip;
-    </p>
-  );
+  return active ? phase : "idle";
 }
 
 /**
- * No reference, or one this browser has never seen.
- *
- * Both cases get the same screen because the visitor can act on both the same
- * way, and distinguishing them would mean telling someone their reference is
- * "wrong" when the real answer is that bookings are stored per browser and
- * they are on a different device.
+ * No reference, or one that matches no booking. One screen for both, and no
+ * guess about which: the way forward is the same — look it up with the
+ * email it was made with.
  */
 function NotFound({ reference }: { reference: string | null }) {
   return (
     <>
-      {/* Neutral, because there is nothing to announce: the box below says
-          why, and the heading's only job is to say what the page is for. */}
       <PageHeading>Find your booking.</PageHeading>
 
       <div className="mt-12 max-w-[38rem] border-l-2 border-terracotta bg-cream/60 p-7 md:p-9">
-        <p className="text-label font-medium uppercase tracking-eyebrow text-text">
-          No booking to show
-        </p>
+        <p className="text-label font-medium uppercase tracking-eyebrow text-text">No booking to show</p>
         <p className="mt-4 text-body text-text/80">
           {reference ? (
             <>
-              Nothing here matches <span className="tabular-nums text-text">{reference}</span>.
-              Preview bookings are held in the browser they were made in, so a reference from
-              another device or a cleared browser will not be found.
+              We could not find a booking with the reference{" "}
+              <span className="tabular-nums text-text">{reference}</span>. Check it against your confirmation
+              email, or look the booking up with the email address it was made with.
             </>
           ) : (
-            <>This page needs a booking reference. Open it from a confirmation, or look a booking up by its reference.</>
+            <>Open the link from your confirmation email, or look up your booking by its reference.</>
           )}
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-4">
-          <Link
-            href="/booking-status"
-            className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
-          >
-            <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-              Check a booking
-            </span>
+          <Link href="/booking-status" className={LINK_ROW}>
+            <span className={LINK_LINE}>Check a booking</span>
           </Link>
-          <Link
-            href="/events"
-            className="group inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
-          >
-            <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-              View events
-            </span>
+          <Link href="/my-bookings" className={LINK_ROW}>
+            <span className={LINK_LINE}>My bookings</span>
           </Link>
         </div>
       </div>
@@ -258,17 +236,11 @@ function NotFound({ reference }: { reference: string | null }) {
   );
 }
 
-/**
- * The route's h1, set exactly as app/payment-success set it before it moved
- * here — the same measure, size and case — so the page reads as it did; only
- * the words now depend on what was found.
- */
+/** The route's h1, set as app/(site)/payment-success always set it; only the words depend on the state. */
 function PageHeading({ children }: { children: React.ReactNode }) {
   return (
     <Reveal>
-      <h1 className="mt-9 max-w-[20ch] text-h1 font-light uppercase tracking-[-0.02em]">
-        {children}
-      </h1>
+      <h1 className="mt-9 max-w-[20ch] text-h1 font-light uppercase tracking-[-0.02em]">{children}</h1>
     </Reveal>
   );
 }

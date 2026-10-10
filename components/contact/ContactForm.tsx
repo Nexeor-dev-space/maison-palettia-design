@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { useEffect, useId, useRef, useState } from "react";
 
 import styles from "@/components/booking/PaintBooking.module.css";
+import { EnquiryOutcome, Honeypot } from "@/components/contact/EnquiryOutcome";
 import { ENQUIRY_TOPICS, sendEnquiry, type EnquiryResult, type EnquiryTopic } from "@/lib/enquiry";
 import { cn } from "@/lib/utils";
 
@@ -54,11 +54,13 @@ const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text
  * vanishes. Errors are set on submit rather than per keystroke, so nobody is
  * told their email is wrong while they are still halfway through typing it.
  *
- * WHAT HAPPENS ON SUBMIT. Nothing is sent, and the form says so in plain
- * words — see lib/enquiry.ts. That is deliberate and it is the same line the
- * booking flow draws: there is no mail service in this project and no address
- * to send to, and a thank-you screen over a form that goes nowhere is the one
- * thing that must never ship.
+ * WHAT HAPPENS ON SUBMIT. The enquiry is posted to the CMS Inbox
+ * (`sendEnquiry`, lib/enquiry.ts → `/api/site/enquiries`), and the form says
+ * what the server answered: the thank-you only once the enquiry is stored,
+ * and a specific sentence for each way it can fail — switched off, too many
+ * from this connection, a field refused, our side down — with everything
+ * typed left in place to send again (<EnquiryOutcome>). A hidden `website`
+ * field is the honeypot.
  */
 export function ContactForm() {
   const ids = useId();
@@ -90,9 +92,16 @@ export function ContactForm() {
   const errorCount = Object.keys(errors).length;
   const [result, setResult] = useState<EnquiryResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const outcomeRef = useRef<HTMLDivElement>(null);
+
+  // Focus follows the answer, so it can be read and acted on at once.
+  useEffect(() => {
+    if (result) outcomeRef.current?.focus();
+  }, [result]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     const data = new FormData(event.currentTarget);
     const get = (key: string) => String(data.get(key) ?? "").trim();
 
@@ -102,6 +111,8 @@ export function ContactForm() {
       phone: get("phone") || undefined,
       topic: get("topic") as EnquiryTopic,
       message: get("message"),
+      source: "contact" as const,
+      website: get("website") || undefined,
     };
 
     const next: Record<string, string> = {};
@@ -113,12 +124,41 @@ export function ContactForm() {
     if (Object.keys(next).length > 0) return;
 
     setSubmitting(true);
-    setResult(await sendEnquiry(enquiry));
+    setResult(null);
+    const outcome = await sendEnquiry(enquiry);
     setSubmitting(false);
+    // A field the browser let through and the server did not: mark it where
+    // it is, as the browser-side checks do, as well as saying so below.
+    if (outcome.status === "invalid" && outcome.field && FIELD_ORDER.some((name) => name === outcome.field)) {
+      setErrors({ [outcome.field]: outcome.message });
+    }
+    setResult(outcome);
+  }
+
+  /*
+    Stored. Replaces the form rather than sitting under it: leaving the
+    filled fields on screen invites the same message being sent twice.
+  */
+  if (result?.status === "ok") {
+    return (
+      <div
+        ref={outcomeRef}
+        tabIndex={-1}
+        role="status"
+        className="border-l-2 border-primary bg-cream/60 p-7 focus:outline-none md:p-8"
+      >
+        <p className="text-label font-medium uppercase tracking-eyebrow text-text">Message received</p>
+        <p className="mt-4 max-w-[36rem] text-lead text-text">Thank you. We have your message.</p>
+        <p className="mt-4 max-w-[36rem] text-body text-text/80">
+          The Maison will reply to the email address you gave us.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate>
+    <form ref={formRef} onSubmit={onSubmit} noValidate className="relative">
+      <Honeypot id={`${ids}-website`} />
       {/*
         One live region for the summary, so a screen reader hears something on
         every unsuccessful press — the per-field messages alone are silent to
@@ -240,39 +280,11 @@ export function ContactForm() {
       </BlobButton>
 
       {/*
-        The honest outcome. `role="status"` so it is announced rather than
-        only seen — the button is above it and a submit that appears to do
-        nothing is the worst version of this.
+        Every answer that is not "stored", said beside the button that sent
+        it — see <EnquiryOutcome> for the five.
       */}
-      {result?.status === "unconfigured" ? (
-        <div role="status" className="mt-10 border-l-2 border-terracotta bg-cream/60 p-7 md:p-8">
-          <p className="text-label font-medium uppercase tracking-eyebrow text-text">
-            This message was not sent
-          </p>
-          <p className="mt-4 max-w-[36rem] text-body text-text/80">
-            The Maison has no inbox connected to this form yet, so nothing you have typed has
-            been delivered anywhere and no one has been notified. Please do not treat this as
-            received.
-          </p>
-          <p className="mt-5 max-w-[36rem] text-body text-text/80">
-            Every upcoming event is listed with its venue and its times, and places can be held
-            from there.
-          </p>
-          <Link
-            href="/events"
-            className="group mt-7 inline-flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text"
-          >
-            <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-              See upcoming events
-            </span>
-            <span
-              aria-hidden
-              className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-            >
-              &#8594;
-            </span>
-          </Link>
-        </div>
+      {result ? (
+        <EnquiryOutcome ref={outcomeRef} result={result} noun="message" className="mt-10" />
       ) : null}
     </form>
   );

@@ -18,6 +18,7 @@ import { endpoints } from "@/cms/endpoints";
 import { seoFields } from "@/cms/fields/seo";
 import { globals } from "@/cms/globals";
 import { jobsConfig } from "@/cms/jobs";
+import { runtimeEmailAdapter } from "@/cms/lib/mailer";
 import { livePreviewUrl, publicUrl, routeFor } from "@/cms/lib/publicUrl";
 import { seedDefaults } from "@/cms/seed/defaults";
 
@@ -119,6 +120,14 @@ export default buildConfig({
       // it answers the live-preview iframe's "Edit" pills by scrolling to the
       // block, or by opening Brand wording at the field.
       providers: ["@/cms/components/settings/MockBanner#MockBanner", "@/cms/components/admin/FocusListener#FocusListener"],
+      // P3 3E (SPEC §H.7, §I): sidebar entries for the custom views ("Front
+      // desk → Check-in"), shown only to the roles that may open them.
+      afterNavLinks: ["@/cms/components/admin/NavLinks#NavLinks"],
+      views: {
+        // P3 3E: the door — camera scan, typed codes, attendee lists. The view
+        // checks sign-in and role itself (Payload skips both for custom views).
+        checkIn: { Component: "@/cms/views/checkIn#CheckInView", path: "/check-in", exact: true },
+      },
     },
     // Live preview (P2 2A, SPEC §G.5): the iframe loads `/preview?path=…` on
     // the public origin, which enables draft mode for staff and redirects;
@@ -146,6 +155,10 @@ export default buildConfig({
   globals,
   endpoints,
   jobs: jobsConfig,
+  // Phase 3C (SPEC §H.8): our own adapter, which reads Settings → Email
+  // sending on every send (SMTP, Resend or log-only) — Payload's own
+  // password-reset mail included — so no email setting needs a redeploy.
+  email: runtimeEmailAdapter,
   editor: lexicalEditor(),
   plugins: [
     // The SEO tab (P2 2A, SPEC §A.4, §I) on the five collections with a page of

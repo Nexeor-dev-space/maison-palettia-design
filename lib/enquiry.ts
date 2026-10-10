@@ -1,22 +1,27 @@
 /**
- * The seam between the contact form and somewhere an enquiry could actually
- * go — and, as with lib/booking.ts, an honest account of the fact that it is
- * not connected to anything.
+ * The seam between the site's two enquiry forms and the CMS Inbox.
  *
- * AUDITED, NOT ASSUMED. The project has no mail service, no API route, no
- * server action and no database; `CONTACT.email` and `CONTACT.phone` in
- * lib/constants.ts are both still `null`, and every entry in `SOCIAL_LINKS`
- * has a `null` href. There is no address to forward a message to even if
- * there were something to forward it with.
+ * Both forms — /contact (<ContactForm>) and /private-events/book
+ * (<PrivateEventEnquiry>) — call `sendEnquiry`, which POSTs to
+ * `/api/site/enquiries`. That route (app/(site)/api/site/enquiries) is a
+ * one-line mount of `handlePublicEnquiry` in cms/endpoints/enquiries.ts,
+ * where the Inbox owns what an enquiry is: zod validation, the honeypot,
+ * 5 per hour per hashed IP, the `site-settings.enquiriesEnabled` switch, and
+ * the create into `enquiries` under `context.viaEnquiryEndpoint` (SPEC §H.11).
  *
- * So the form is built complete and truthful up to the moment a message would
- * leave the browser, and stops there deliberately — the same line the booking
- * flow draws in the same place, for the same reason. A success screen over a
- * form that goes nowhere is indistinguishable from a working one to the person
- * who just typed their question into it, and the studio would never learn that
- * the enquiries had stopped arriving because they would never have started.
+ * TWO AUDIENCES IMPORT THIS FILE, SO IT IMPORTS NOTHING. The forms are client
+ * components; cms/collections/inbox/Enquiries.ts and cms/endpoints/
+ * enquiries.ts read `ENQUIRY_TOPICS` from it inside the Payload config. A
+ * single import of anything server-only here would break the forms' bundle,
+ * and anything client-only would break the config.
  *
- * Wiring it up is one function and one flag.
+ * HONEST OUTCOMES, NOT A SPINNER AND A THANK-YOU. `sendEnquiry` never throws
+ * and never resolves `ok` unless the server said the enquiry is stored. Every
+ * other answer the route can give — switched off in the admin, rate-limited,
+ * a field the server refused, the database unreachable, the network gone —
+ * is its own result, and the forms say which one happened in words a
+ * customer can act on. A success screen over a message that went nowhere is
+ * the one thing these forms must never show.
  */
 
 export interface EnquiryRequest {
@@ -25,28 +30,30 @@ export interface EnquiryRequest {
   /**
    * Optional on the contract, which is not the same as optional on a form.
    * The contact form leaves it blank-able; the private-event enquiry requires
-   * it, because that conversation happens over a call. A transport must not
-   * assume it is present.
+   * it, because that conversation happens over a call.
    */
   phone?: string;
   topic: EnquiryTopic;
   message: string;
   /**
    * Structured answers a particular form collected, in the order it asked
-   * them. Optional, so the contact form is unchanged by its existence.
-   *
-   * A list of label/value pairs rather than named fields, because the two
-   * forms that feed this ask different questions and adding
-   * `approximateGuests?: number` here would put the private-events form's
-   * vocabulary into a contract the contact form also signs. Whatever
-   * eventually delivers an enquiry can print these under the message without
-   * knowing what any of them mean.
-   *
-   * Only answered questions belong here. A form must not pad this with empty
-   * entries — see the private-events enquiry, which filters before sending.
+   * them — printed under the message in the Inbox without the collection
+   * knowing what they mean. Only answered questions belong here; a form must
+   * not pad this with empty entries.
    */
   details?: readonly { label: string; value: string }[];
+  /** Which form sent it — the Inbox's "From" column. */
+  source: EnquirySource;
+  /**
+   * The honeypot: a field humans never see (`website`, visually hidden and
+   * out of the tab order). Anything in it means a script filled the form; the
+   * server stores the row as possible spam and answers exactly as it would
+   * for a person, so the script learns nothing.
+   */
+  website?: string;
 }
+
+export type EnquirySource = "contact" | "private-event";
 
 /**
  * What the enquiry is about.
@@ -54,63 +61,85 @@ export interface EnquiryRequest {
  * Five options, each matching something this site actually does: the
  * programme at /events, the booking flow that runs off it, the private
  * sessions at /private-events, the collaborations the studio takes on, and
- * everything else. No "sales", no "support", no "press" — the studio has no
- * such desks, and a dropdown that implies otherwise is an invented org chart.
+ * everything else. The Inbox's "About" filter is this same list.
  */
 export type EnquiryTopic = "event" | "booking" | "private" | "collaboration" | "general";
 
 export const ENQUIRY_TOPICS: { value: EnquiryTopic; label: string }[] = [
   { value: "event", label: "An event" },
   { value: "booking", label: "A booking" },
-  /*
-    Added when /private-events was built, on the same rule the footer follows:
-    an option is offered once there is something real behind it. The contact
-    form picks this up automatically, which is the intent — someone who lands
-    on /contact wanting to arrange a private session should not have to file it
-    under "Something else".
-  */
   { value: "private", label: "A private event" },
   { value: "collaboration", label: "Working together" },
   { value: "general", label: "Something else" },
 ];
 
 /**
- * Whether an enquiry can be delivered anywhere.
- *
- * A constant rather than a runtime check because there is nothing to check:
- * no transport exists. Read by the form so that the interface changes the
- * moment one is wired, rather than needing a second edit here and there.
- *
- * TODO(client): set true once there is somewhere for a message to go — a mail
- * service, a server action writing to the CMS, or an inbox behind an API
- * route. Whichever it is, the studio's own address still needs to exist:
- * `CONTACT.email` in lib/constants.ts is `null`.
+ * Whether there is somewhere for an enquiry to go. True since Phase 3: every
+ * enquiry is stored in the Inbox. Whether the forms are offered at all is
+ * `site-settings.enquiriesEnabled`, read at request time by the route (and by
+ * the contact section, which hides the form while it is off) — this constant
+ * only tells lib/constants.ts that a channel exists for "send them your
+ * reference" wording.
  */
-export const ENQUIRY_CONFIGURED = false;
+export const ENQUIRY_CONFIGURED = true;
 
 export type EnquiryResult =
-  | { status: "unconfigured" }
-  | { status: "ok" };
+  /** Stored in the Inbox. */
+  | { status: "ok" }
+  /** The owner has switched enquiries off (Settings → Site details). */
+  | { status: "disabled" }
+  /** Five an hour per connection; the customer is told to try later. */
+  | { status: "rate_limited" }
+  /** The server refused a field. `field` names it when it can; `message` is customer-facing. */
+  | { status: "invalid"; field?: string; message: string }
+  /** Database or network trouble: nothing was stored, try again shortly. */
+  | { status: "error" };
+
+const asString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
 /**
- * Send the enquiry.
+ * Send the enquiry to the Inbox.
  *
- * Returns rather than throws, so the form can render a specific, honest
- * explanation instead of a generic failure — and so the caller cannot mistake
- * silence for success. There is no optimistic state and no `catch` that
- * quietly resolves.
- *
- * TODO(client): the real implementation must run server-side — a mail service
- * key is a secret and cannot be shipped to the browser — validate the payload
- * again there rather than trusting this one, and rate-limit by IP. Only then
- * return `ok`.
+ * Returns rather than throws, so the form renders a specific outcome rather
+ * than a generic failure, and so the caller cannot mistake silence for
+ * success. There is no optimistic state: `ok` means the row exists.
  */
 export async function sendEnquiry(request: EnquiryRequest): Promise<EnquiryResult> {
-  void request;
+  let response: Response;
+  try {
+    response = await fetch("/api/site/enquiries", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...request,
+        // Only answered questions travel — see `details` above.
+        details: request.details?.filter((entry) => entry.value.trim() !== ""),
+        phone: request.phone?.trim() || undefined,
+        // The page the form sits on, for the Inbox's "Page" field when the
+        // browser sends no Referer. Path only: no query string, no hash.
+        page: typeof window === "undefined" ? undefined : window.location.pathname,
+      }),
+    });
+  } catch {
+    return { status: "error" };
+  }
 
-  if (!ENQUIRY_CONFIGURED) return { status: "unconfigured" };
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await response.json()) as Record<string, unknown>;
+  } catch {
+    // A proxy error page, or an empty body — judged by the status alone.
+  }
 
-  // Unreachable while the flag above is false. Left as the shape the real
-  // integration returns rather than as a stub that could be mistaken for one.
-  throw new Error("sendEnquiry: enquiries are marked configured but no transport is implemented.");
+  if (response.ok && body.status === "ok") return { status: "ok" };
+  if (response.status === 429) return { status: "rate_limited" };
+  if (body.status === "disabled") return { status: "disabled" };
+  if (body.status === "invalid") {
+    return {
+      status: "invalid",
+      field: asString(body.field),
+      message: asString(body.message) ?? "Please check the form and try again.",
+    };
+  }
+  return { status: "error" };
 }

@@ -1,149 +1,189 @@
 "use client";
 
 import Link from "next/link";
-import { BlobButton } from "@/components/ui/BlobButton";
-import { useSearchParams } from "next/navigation";
 import { useId, useState } from "react";
 
-import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
-import { findBooking, useBookings } from "@/lib/booking";
+import { BookingSummaryCard, type StatusCopy } from "@/components/booking/BookingSummaryCard";
+import { parseOrderView, type OrderView } from "@/components/booking/orderView";
+import { BlobButton } from "@/components/ui/BlobButton";
 
 const FIELD =
-  "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-lead tabular-nums " +
-  "tracking-[0.08em] text-text uppercase placeholder:tracking-[0.08em] placeholder:text-text/40 " +
-  "transition-colors duration-300 ease-soft focus:border-primary focus:outline-none focus:ring-0";
+  "w-full border-0 border-b border-line bg-transparent px-0 py-3 text-lead text-text " +
+  "placeholder:text-text/40 transition-colors duration-300 ease-soft focus:border-primary focus:outline-none focus:ring-0";
+
+const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
+
+type Outcome =
+  | { status: "found"; view: OrderView; k?: string }
+  | { status: "none" }
+  | { status: "rate_limited" }
+  | { status: "error" };
 
 /**
- * What the visitor has actually asked to see.
+ * Look a booking up by its reference AND the email it was made with.
  *
- * The *result* is derived from this and the store, never stored itself — a
- * second copy of a record that already lives in `useBookings` is a copy that
- * can go stale. `submitted` is the reference last asked for, and null before
- * anything has been.
+ * Both, because a reference alone is six characters printed on a screen and
+ * an email — and anyone who has seen it over a shoulder would see a
+ * stranger's name, phone and tickets. The server (`POST
+ * /api/site/orders/lookup`, 10 an hour per connection and email, SPEC
+ * §H.10) answers only when the pair matches, and answers "no booking found"
+ * for every pair that does not, so it cannot be used to discover which
+ * references exist.
+ *
+ * `?ref=` is honoured on arrival, so the confirmation's "Check booking
+ * status" lands with the reference already filled in.
+ *
+ * Nothing is kept in the browser: the result lives in this component's state
+ * and goes when the tab does. For every booking made with an email, there
+ * is /my-bookings and its emailed link.
  */
-
-/**
- * Look a booking up by its reference.
- *
- * Reads the same store the confirmation writes — see lib/booking.ts — rather
- * than a second list of demo bookings of its own. That is the whole reason
- * this works at all: a reference typed in here was minted by a real pass
- * through the checkout on this browser, so the page is exercising the actual
- * journey instead of matching against invented fixtures.
- *
- * `?ref=` is honoured on arrival so the confirmation can link straight here
- * with the booking already resolved, and so the result is linkable.
- */
-export function BookingStatusLookup() {
-  const params = useSearchParams();
-  const fromUrl = params.get("ref") ?? "";
+export function BookingStatusLookup({
+  initialReference,
+  prefix,
+  statusCopy,
+  purchaseConfirmedNote,
+}: {
+  initialReference: string;
+  /** "MP-" — booking-settings.referencePrefix. */
+  prefix: string;
+  statusCopy?: StatusCopy;
+  purchaseConfirmedNote?: string;
+}) {
   const id = useId();
-  const bookings = useBookings();
-  const [query, setQuery] = useState(fromUrl);
-  /*
-    Seeded from the query string so a link with `?ref=` resolves on arrival,
-    and `useState`'s initial value is enough for that — no effect, because
-    `useBookings` is already the thing that turns a server render with no
-    storage into a client render with it.
-  */
-  const [submitted, setSubmitted] = useState<string | null>(fromUrl || null);
+  const [submitting, setSubmitting] = useState(false);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [fieldError, setFieldError] = useState<string | null>(null);
 
-  const record = submitted ? findBooking(bookings, submitted) : null;
-
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const wanted = query.trim();
-    if (!wanted) return;
-    setSubmitted(wanted);
+    if (submitting) return;
+    const data = new FormData(event.currentTarget);
+    const reference = String(data.get("ref") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
+    if (!reference || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFieldError(!reference ? "Please enter your booking reference." : "Please enter the email address the booking was made with.");
+      return;
+    }
+    setFieldError(null);
+    setSubmitting(true);
+    setOutcome(null);
+    try {
+      const response = await fetch("/api/site/orders/lookup", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reference, email }),
+        cache: "no-store",
+      });
+      if (response.status === 429) setOutcome({ status: "rate_limited" });
+      else if (response.status === 404) setOutcome({ status: "none" });
+      else if (!response.ok) setOutcome({ status: "error" });
+      else {
+        const body: unknown = await response.json();
+        const view = parseOrderView(body, reference.toUpperCase());
+        // The lookup answers with a fresh return key: the full confirmation —
+        // tickets and invoice as signed downloads — is one link away.
+        const k = (body as { k?: unknown } | null)?.k;
+        setOutcome(view ? { status: "found", view, k: typeof k === "string" ? k : undefined } : { status: "none" });
+      }
+    } catch {
+      setOutcome({ status: "error" });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <>
-      {/*
-        `method="get"` and an input named `ref`, which is the same parameter
-        this page already reads on arrival.
-
-        That combination is what makes a submit before hydration land
-        somewhere useful. React's handler calls `preventDefault` once it is
-        attached, so the ordinary path never reloads — but a visitor who types
-        a reference and hits Enter in the first moments of the page load
-        submits the real form, and without this it would navigate to a dead
-        `?reference=` URL and show nothing. With it, the reload arrives at
-        `?ref=…` and resolves exactly as a link from the confirmation does.
-      */}
-      <form
-        method="get"
-        action="/booking-status"
-        onSubmit={onSubmit}
-        noValidate
-        className="mt-12 max-w-[26rem] md:mt-14"
-      >
-        <label
-          htmlFor={id}
-          className="block text-label font-medium uppercase tracking-eyebrow text-text/75"
-        >
-          Booking reference
-        </label>
-        <input
-          id={id}
-          name="ref"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="MP-D4K7XY"
-          autoComplete="off"
-          spellCheck={false}
-          aria-describedby={`${id}-hint`}
-          className={FIELD}
-        />
-        <p id={`${id}-hint`} className="mt-3 text-fine leading-[1.7] text-text/75">
-          It is on your confirmation, and looks like MP-D followed by six characters.
+      <form onSubmit={onSubmit} noValidate className="mt-12 grid max-w-[40rem] gap-x-8 gap-y-8 sm:grid-cols-2 md:mt-14">
+        <div>
+          <label htmlFor={`${id}-ref`} className={LABEL}>
+            Booking reference
+          </label>
+          <input
+            id={`${id}-ref`}
+            name="ref"
+            defaultValue={initialReference}
+            placeholder={`${prefix}4K7XY2`}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            aria-describedby={`${id}-hint`}
+            className={`${FIELD} uppercase tabular-nums tracking-[0.08em] placeholder:tracking-[0.08em]`}
+          />
+        </div>
+        <div>
+          <label htmlFor={`${id}-email`} className={LABEL}>
+            Email
+          </label>
+          <input
+            id={`${id}-email`}
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            className={FIELD}
+          />
+        </div>
+        <p id={`${id}-hint`} className="text-fine leading-[1.7] text-text/75 sm:col-span-2">
+          The reference is on your confirmation and looks like {prefix} followed by six characters. Use the
+          email address the booking was made with.
         </p>
 
-        {/* `deep`, AND IT IS THE SAME BUG AS THE EVENT PAGE'S CLOSING ACTION.
-            This form stands on `bg-sage` and the default tone floods Light
-            Sage: measured off the composited pixels, dE 0.0 — the one control
-            on the page turned into the page under the pointer. Deep Lilac
-            deepening to Charcoal is dE 73.3 here. BlobButton.module.css has
-            the figures and the reasoning. */}
-        <BlobButton
-          type="submit"
-          tone="deep"
-          className="mt-9 w-full justify-center px-8 py-4 sm:w-auto"
-        >
-          Check status
+        <div role="alert" className="sm:col-span-2">
+          {fieldError ? (
+            <p className="max-w-[36rem] border-l-2 border-terracotta pl-5 text-body text-text">{fieldError}</p>
+          ) : null}
+        </div>
+
+        {/* `deep`: this form stands on Light Sage, where the default tone would vanish under the pointer. */}
+        <BlobButton type="submit" tone="deep" disabled={submitting} className="w-full justify-center px-8 py-4 sm:w-auto">
+          {submitting ? "Looking…" : "Check status"}
         </BlobButton>
       </form>
 
-      {/*
-        `aria-live` on a wrapper that is always in the tree, rather than on the
-        result itself: a live region announces changes to something already
-        present, and one that appears at the same moment as its content is
-        frequently missed.
-      */}
       <div aria-live="polite" className="mt-12">
-        {record ? <BookingSummaryCard record={record} /> : null}
+        {outcome?.status === "found" ? (
+          <>
+            <BookingSummaryCard view={outcome.view} statusCopy={statusCopy} purchaseConfirmedNote={purchaseConfirmedNote} />
+            {outcome.k ? (
+              <Link
+                href={`/payment-success?ref=${encodeURIComponent(outcome.view.reference)}&k=${encodeURIComponent(outcome.k)}`}
+                className="group mt-8 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
+              >
+                <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
+                  Tickets and invoice
+                </span>
+                <span
+                  aria-hidden
+                  className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+                >
+                  &#8594;
+                </span>
+              </Link>
+            ) : null}
+          </>
+        ) : null}
 
-        {/* A plate, like every other card on the site, rather than a hard left
-            rule on a half-transparent cream. White Rock on Light Sage is
-            1.03:1, so the soft edge is what makes it a card at all — see the
-            note on the utility in globals.css. */}
-        {submitted && !record ? (
+        {outcome && outcome.status !== "found" ? (
           <div className="plate max-w-[38rem] rounded-[1.25rem] bg-cream p-7 md:p-9">
             <p className="text-label font-medium uppercase tracking-eyebrow text-text">
-              No booking found
+              {outcome.status === "none" ? "No booking found" : "We could not look that up"}
             </p>
             <p className="mt-4 text-body text-text/80">
-              Nothing matches <span className="tabular-nums text-text">{submitted}</span>.
-              Preview bookings are held in the browser they were made in, so a reference from
-              another device (or from a browser whose data has been cleared) will not be found
-              here.
+              {outcome.status === "none"
+                ? "No booking matches that reference and email together. Check both against your confirmation email — the email must be the one the booking was made with."
+                : outcome.status === "rate_limited"
+                  ? "Several lookups have been made from this connection in the last hour. Please try again later, or use the link in your confirmation email."
+                  : "Something went wrong on our side. Please try again in a moment."}
             </p>
             <Link
-              href="/events"
+              href="/my-bookings"
               className="group mt-7 inline-flex items-center gap-3 -my-1.5 py-1.5 text-action font-medium uppercase tracking-eyebrow text-text"
             >
               <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-                Browse events
+                Email me a link to my bookings
               </span>
               <span
                 aria-hidden

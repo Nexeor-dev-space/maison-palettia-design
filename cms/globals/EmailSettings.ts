@@ -19,9 +19,10 @@
  * mask when the secret is already saved — presence is `…SetAt` plus "not
  * cleared in this save".
  *
- * Phase 3C wires `EmailActions` (Verify connection · Send test to…) through
- * `admin.components.elements.beforeDocumentControls` and the `afterChange`
- * that drops the cached transport.
+ * 3C's `EmailActions` (Verify connection · Send test to…) is mounted through
+ * `admin.components.elements.beforeDocumentControls` below (the line is
+ * 3A-1's, SPEC §L); 3C also owns the `afterChange` that drops the cached
+ * transport.
  */
 
 import type { EmailFieldValidation, GlobalBeforeValidateHook, GlobalConfig } from "payload";
@@ -94,6 +95,7 @@ export const EmailSettings: GlobalConfig = {
     group: "Settings (admin)",
     description:
       "How messages leave the server. The wording of each message is under Emails → Templates; the text printed on tickets is under Booking & checkout wording.",
+    components: { elements: { beforeDocumentControls: ["@/cms/components/settings/EmailActions#EmailActions"] } },
   },
   access: { read: isAdmin, update: isAdmin },
   hooks: {

@@ -303,6 +303,18 @@ export const Sessions: CollectionConfig = {
             },
           ],
         },
+        {
+          // 3E's attendee list (mark arrived, undo, print, CSV). A `ui` field:
+          // no column; the component hides itself from editors and on unsaved docs.
+          label: "Attendees",
+          fields: [
+            {
+              name: "attendees",
+              type: "ui",
+              admin: { components: { Field: "@/cms/components/sessions/AttendeeList#AttendeeList" } },
+            },
+          ],
+        },
       ],
     },
     slug({

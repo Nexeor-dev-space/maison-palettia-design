@@ -27,9 +27,8 @@
  * The form field labels and validation messages ("First name", "Please check
  * this email address.") stay in code — UI chrome, not editorial content.
  *
- * Phase 3C adds the **Preview ticket PDF** `ui` field (`TicketPreview`) under
- * the Tickets tab; it is not referenced here because `generate:importmap`
- * would fail on a component that does not exist yet.
+ * The Tickets tab carries 3C's **Preview ticket PDF** `ui` field
+ * (`TicketPreview`), which renders a sample from the unsaved heading/instructions.
  */
 
 import type { GlobalBeforeValidateHook, GlobalConfig } from "payload";
@@ -75,8 +74,11 @@ const refuseUntilReady: GlobalBeforeValidateHook = async ({ data, originalDoc, r
     readGlobal<SiteSettingsLike>(req, "site-settings"),
   ]);
 
-  // 1. Customers must be able to receive their tickets.
-  if (email.provider === "log-only" || email.provider === undefined || email.lastVerify?.ok !== true) {
+  // 1. Customers must be able to receive their tickets. `lastVerify.ok` alone
+  // goes stale when the host or key changes after verifying; the mailer's
+  // readiness also compares the verified config hash (lazy: avoids an import cycle).
+  const { emailReadiness } = await import("@/cms/lib/mailer");
+  if (email.provider === "log-only" || email.provider === undefined || !(await emailReadiness(req)).ok) {
     throw refuse("Set up Email first so customers receive their tickets (Settings → Email sending → Verify)");
   }
 
@@ -534,6 +536,13 @@ export const BookingSettings: GlobalConfig = {
               ],
               { description: "Printed on every QR ticket, under the session details." },
             ),
+            // 3C's "Preview ticket PDF" button: renders a sample ticket from the
+            // heading/instructions currently in the form (unsaved edits included).
+            {
+              name: "ticketPreview",
+              type: "ui",
+              admin: { components: { Field: "@/cms/components/settings/TicketPreview#TicketPreview" } },
+            },
           ],
         },
       ],

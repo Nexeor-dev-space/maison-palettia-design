@@ -1,10 +1,15 @@
 import type { CollectionConfig } from "payload";
 
+import { EmailTemplates } from "./EmailTemplates";
+import { NotificationLog } from "./NotificationLog";
+
+export { EMAILS_GROUP, EmailTemplates, TEMPLATE_KEYS } from "./EmailTemplates";
+export { NOTIFICATION_PROVIDERS, NOTIFICATION_STATUSES, NotificationLog } from "./NotificationLog";
+
 /**
- * Group "Emails": email-templates, notification-log (SPEC §D.5).
- *
- * Empty in Phase 1 — the collections land in Phase 3A-0/3C and are appended here by
- * that phase's schema owner (SPEC §L). `payload.config.ts` spreads this
- * array, so adding a collection never touches the config file.
+ * Group "Emails": the templates editors word and the log of what was sent
+ * (SPEC §D.5). Field definitions by 3A-0; the preview and variables panels,
+ * the Resend button and the hooks by 3C. `payload.config.ts`
+ * spreads this array, so adding a collection never touches the config file.
  */
-export const commsCollections: CollectionConfig[] = [];
+export const commsCollections: CollectionConfig[] = [EmailTemplates, NotificationLog];

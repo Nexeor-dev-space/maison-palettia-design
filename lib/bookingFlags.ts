@@ -1,70 +1,53 @@
 /**
  * ==========================================================================
- * THE BOOKING FLAGS — the three switches lib/booking.ts is wired by
+ * THE BOOKING FLAGS — what the site's booking machinery is capable of
  * ==========================================================================
  *
- * A MODULE OF THEIR OWN, AND IT MUST STAY IMPORT-FREE. They were declared in
- * lib/booking.ts, which imports `useSyncExternalStore` for its store with no
- * "use client" boundary — so no server component could read them: importing
- * that module from one fails the build. Three surfaces that print what a
- * booking is are server-rendered (the FAQ answer in lib/constants.ts, the
- * checkout page, /payment-success), and the FAQ had to pin its sentence by
- * hand and be remembered when a flag flipped. Here they are plain constants
- * any module can import, server or client. lib/booking.ts re-exports all
- * three, so `import { PAYMENT_CONFIGURED } from "@/lib/booking"` still works
- * and every note that says the flags are "in lib/booking.ts" still leads
- * here.
+ * A MODULE OF THEIR OWN, AND IT MUST STAY IMPORT-FREE. Server components
+ * (lib/constants.server.ts, the FAQ answer) and client components
+ * (lib/constants.ts, through <Checkout>) both read these, so they are plain
+ * constants any module can import. A server component that imported them
+ * from a "use client" module would get a client reference — a truthy object
+ * where `false` should be.
  *
- * Adding "use client" to lib/booking.ts instead would not have done it: a
- * server component that imports from a client module gets a client reference
- * in place of each export, not its value — a truthy object where `false`
- * should be.
+ * WHAT CHANGED IN PHASE 3, AND WHY THESE ARE NOW TRUE. They used to describe
+ * a site with no backend: a booking was written to the visitor's own browser
+ * (a "preview booking", reference MP-D…), nothing was charged, and the three
+ * sentences in `BOOKING_TERMS` (lib/constants.ts) were chosen by how much of
+ * a backend existed. There is one now — the CMS records every order, Mamo Pay
+ * takes the money (or the mock gateway outside production), and codes are
+ * checked server-side by `quote()` — so the flags state that capability and
+ * the demo store they once guarded is gone.
+ *
+ * THE RUNTIME SWITCH IS NOT HERE. Whether the site is actually taking
+ * bookings today is `booking-settings.bookingsOpen` (SPEC §C.3), read on the
+ * server by lib/booking.ts (`getBookingGate`) — the owner turns it on in the
+ * admin once email, payments and the site address are ready, without a
+ * deploy. While it is off, every booking surface shows the admin's
+ * `closedMessage` and a link to Contact; nothing reaches checkout. These
+ * flags only decide which wording the fallbacks pick when the CMS cannot be
+ * read at all.
  */
 
 /**
- * Whether a payment provider is configured.
- *
- * A constant rather than a runtime check because there is nothing to check:
- * there is no provider SDK, no account and no key. Read by the checkout and
- * the confirmation so that the moment a provider is wired, every surface that
- * currently says "no payment was taken" stops saying it.
- *
- * TODO(client): choose a provider and set this true once its client is
- * initialised. For AED in the UAE the usual candidates are Stripe, Checkout.com,
- * Telr and Network International. Keys belong in environment variables, never
- * in this file and never in the repository.
+ * Bookings are paid through the site (Mamo Pay; the mock gateway outside
+ * production). Selects `BOOKING_TERMS.paid` — "Your booking is confirmed once
+ * your payment has gone through." — wherever the admin's own sentence is not
+ * available.
  */
-export const PAYMENT_CONFIGURED = false;
+export const PAYMENT_CONFIGURED = true;
 
 /**
- * Whether a booking can be recorded anywhere the studio can see.
- *
- * Separate from payment on purpose: a studio might take enquiries by email long
- * before it takes cards. While this is false, `placeBooking` writes to the
- * browser only and the confirmation says as much.
- *
- * TODO(client): set true once there is somewhere for a booking to go — a
- * database, a server action writing to the CMS, or a mail service. The studio's
- * own email address is still `null` in lib/constants.ts.
+ * Bookings are recorded where the studio can see them: the `orders`
+ * collection, with a confirmation email and tickets once paid.
  */
-export const BOOKING_CONFIGURED = false;
+export const BOOKING_CONFIGURED = true;
 
 /**
- * Whether pass and loyalty codes can actually be checked against anything.
- *
- * The client asked for a code box at checkout. There is nothing behind it: no
- * codes exist, no ledger of them exists, and there is no service that could
- * say whether one is genuine. This flag is what keeps that honest — while it
- * is false the field is offered, accepts what is typed, and comes back saying
- * codes are not live yet.
- *
- * IT MUST NOT BE FLIPPED WITHOUT A REAL CHECK BEHIND IT. Setting this true
- * with `redeemPassCode` still stubbed would turn an honest "not yet" into a
- * false "that code is invalid" — accusing customers of mistyping a code that
- * was never going to work.
- *
- * TODO(client): implement `redeemPassCode` against the real ledger, then set
- * this true. The check has to happen server-side for the same reason pricing
- * does — see the note on `placeBooking`.
+ * Pass and promo codes are checked against the real ledger: the checkout's
+ * code box asks `POST /api/site/checkout/quote`, which re-prices the basket
+ * on the server (promo rules, pass credits for that email) and answers with
+ * the new totals or the reason a code was refused. The browser never
+ * subtracts anything itself.
  */
-export const PASS_CODES_CONFIGURED = false;
+export const PASS_CODES_CONFIGURED = true;

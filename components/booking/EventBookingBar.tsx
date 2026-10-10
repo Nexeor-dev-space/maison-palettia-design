@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { useSessionPassed } from "@/components/booking/SessionClock";
+import { SeatsLive, useSeatsLive } from "@/components/cms/SeatsLive";
 import { cn } from "@/lib/utils";
 
 /**
@@ -60,6 +61,31 @@ import { cn } from "@/lib/utils";
  * down, so this file knows nothing but how to lay them out.
  */
 
+/*
+ * LIVE SEATS AND THE BOOKING SWITCH (Phase 3). The page is prerendered and
+ * seats are sold between renders, so the bar mounts <SeatsLive> for its
+ * session (`GET /api/site/availability/{slug}`, no-store) and lets the live
+ * answer override the HTML's:
+ *
+ *   bookings switched off ... the admin's closed message and its Contact
+ *                             link (`closedState`, defaults as seeded);
+ *   sold out / waitlist ..... "Join the waitlist", to the book page, which
+ *                             shows the waitlist form;
+ *   date closed by staff .... the closed shape below.
+ *
+ * Until the live answer arrives — or if it never does — the bar is exactly
+ * the server's.
+ */
+
+/** Booking & checkout wording → closed message, as seeded, for when the page passes none. */
+const CLOSED_DEFAULT = { message: "Online bookings open soon.", ctaLabel: "Enquire", ctaHref: "/contact" } as const;
+
+/** `/events/{slug}/book` → `{slug}`; the bar's only handle on which session it is. */
+function slugFromBookingHref(href: string): string | null {
+  const match = /^\/events\/([^/?#]+)\/book/.exec(href);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 /** How far above the foot of the window the desktop bar floats. */
 const DESKTOP_INSET = "1.25rem";
 
@@ -94,11 +120,23 @@ export interface EventBookingBarProps {
    * view, so it never covers the last section or the footer behind it.
    */
   sentinelId: string;
+  /**
+   * What the bar says while online bookings are switched off
+   * (booking-settings `closedMessage` / `closedCtaLabel` / `closedCtaLink`).
+   * Optional: without it the seeded wording is used.
+   */
+  closedState?: { message: string; ctaLabel: string; ctaHref: string };
 }
 
-export function EventBookingBar({ sentinelId, closed, ...event }: EventBookingBarProps) {
+export function EventBookingBar({ sentinelId, closed: closedAtRender, closedState, ...event }: EventBookingBarProps) {
   const [isRetracted, setIsRetracted] = useState(false);
   const passed = useSessionPassed(event.startsAt);
+  const slug = slugFromBookingHref(event.bookingHref);
+  const live = useSeatsLive(slug ?? "");
+  const offline = live?.bookingsOpen === false;
+  const dateClosed = live?.bookingStatus === "closed";
+  const queue = Boolean(live && !offline && !dateClosed && (live.bookingStatus === "waitlist" || live.available <= 0));
+  const closed = !offline && !queue && (dateClosed || closedAtRender);
   const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -142,7 +180,7 @@ export function EventBookingBar({ sentinelId, closed, ...event }: EventBookingBa
 
   // After every hook, so the hooks run in the same order either way. The bar
   // is `fixed`, so going takes nothing out of the page's flow.
-  if (passed) return null;
+  if (passed) return slug ? <SeatsLive slug={slug} /> : null;
 
   return (
     <div
@@ -176,6 +214,7 @@ export function EventBookingBar({ sentinelId, closed, ...event }: EventBookingBa
       aria-hidden={isRetracted}
       inert={isRetracted}
     >
+      {slug ? <SeatsLive slug={slug} /> : null}
       <div className="mx-auto w-full max-w-site px-0 md:px-gutter">
         <div
           className={cn(
@@ -195,8 +234,14 @@ export function EventBookingBar({ sentinelId, closed, ...event }: EventBookingBa
             className="flex items-center gap-4 px-gutter py-3.5 md:gap-8 md:px-8 md:py-5"
             style={{ paddingBottom: "max(0.875rem, env(safe-area-inset-bottom))" }}
           >
-            <Facts {...event} closed={closed} />
-            <Action title={event.title} bookingHref={event.bookingHref} closed={closed} />
+            {offline ? (
+              <Offline {...(closedState ?? CLOSED_DEFAULT)} />
+            ) : (
+              <>
+                <Facts {...event} closed={closed} queue={queue} />
+                <Action title={event.title} bookingHref={event.bookingHref} closed={closed} queue={queue} />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -224,12 +269,13 @@ function Facts({
   spotsLabel,
   scarce,
   closed,
-}: Omit<EventBookingBarProps, "sentinelId" | "bookingHref">) {
+  queue,
+}: Omit<EventBookingBarProps, "sentinelId" | "bookingHref" | "closedState"> & { queue: boolean }) {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-8">
       {/* --- phone: price, then how many places are left ----------------- */}
       <div className="min-w-0 md:hidden">
-        {closed ? (
+        {closed || queue ? (
           <p className="text-action font-medium uppercase tracking-eyebrow text-cream">
             Fully booked
           </p>
@@ -272,7 +318,7 @@ function Facts({
           {/* A shut date trades its price for the reason it is shut — the
               phone says it in the same place, and "See what else is open"
               on its own does not say why. */}
-          {closed ? (
+          {closed || queue ? (
             <Fact label="Status">Fully booked</Fact>
           ) : (
             <Fact label="Price">{priceLabel}</Fact>
@@ -316,11 +362,35 @@ function Action({
   title,
   bookingHref,
   closed,
+  queue,
 }: {
   title: string;
   bookingHref: string;
   closed: boolean;
+  queue: boolean;
 }) {
+  if (queue) {
+    return (
+      <Link
+        href={bookingHref}
+        aria-label={`Join the waitlist for ${title}`}
+        className={cn(
+          "group inline-flex shrink-0 items-center justify-center gap-2.5 whitespace-nowrap",
+          "min-h-11 rounded-pill border border-cream/45 px-5 text-action font-medium uppercase tracking-eyebrow",
+          "text-cream transition-colors duration-300 ease-soft hover:border-cream md:px-7",
+        )}
+      >
+        Join the waitlist
+        <span
+          aria-hidden
+          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+        >
+          &#8594;
+        </span>
+      </Link>
+    );
+  }
+
   if (closed) {
     return (
       /* `#scheduled` and "what else is open", not "other dates": a session
@@ -363,5 +433,34 @@ function Action({
         &#8594;
       </span>
     </Link>
+  );
+}
+
+/**
+ * Online bookings are switched off: the admin's sentence and the one way
+ * forward, in place of the facts and the Book button. No price and no seat
+ * count — neither is an offer while nothing can be booked online.
+ */
+function Offline({ message, ctaLabel, ctaHref }: { message: string; ctaLabel: string; ctaHref: string }) {
+  return (
+    <>
+      <p className="min-w-0 flex-1 text-body font-medium leading-snug text-cream">{message}</p>
+      <Link
+        href={ctaHref}
+        className={cn(
+          "group inline-flex shrink-0 items-center justify-center gap-2.5 whitespace-nowrap",
+          "min-h-11 rounded-pill border border-cream/45 px-5 text-action font-medium uppercase tracking-eyebrow",
+          "text-cream transition-colors duration-300 ease-soft hover:border-cream md:px-7",
+        )}
+      >
+        {ctaLabel}
+        <span
+          aria-hidden
+          className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+        >
+          &#8594;
+        </span>
+      </Link>
+    </>
   );
 }

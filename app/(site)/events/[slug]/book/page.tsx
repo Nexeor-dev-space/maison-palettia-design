@@ -2,14 +2,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BookingClosed } from "@/components/booking/BookingClosed";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { SessionGate } from "@/components/booking/SessionClock";
 import { Steps } from "@/components/booking/Steps";
+import { WaitlistForm } from "@/components/booking/WaitlistForm";
+import { WaitlistGate } from "@/components/booking/WaitlistGate";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
+import { getBookingGate, getSessionBookingRef } from "@/lib/booking";
 import { getEventDetail } from "@/lib/eventDetail";
 import { buildMetadata } from "@/lib/seo";
 import {
@@ -35,8 +39,20 @@ import type { Workshop } from "@/types";
  * else competes for attention, which is why there is no related-sessions rail
  * and no second photograph.
  *
- * A full session never reaches this page: the route sends it back to the
- * session itself rather than rendering a form that cannot be honoured.
+ * WHAT THIS PAGE SHOWS, decided on the server in this order:
+ *
+ *   bookings closed ...... `booking-settings.bookingsOpen` off: the admin's
+ *                          closed message and its Contact link, no form
+ *                          (<BookingClosed>). Flipping the switch purges the
+ *                          `global:booking-settings` tag this page renders
+ *                          under, so it changes without a deploy.
+ *   date closed .......... the session's own switch is `closed`: no form,
+ *                          no waitlist — the way to the open dates.
+ *   full / waitlist ...... <WaitlistForm>; a visitor holding a waitlist
+ *                          offer (`?w=`) gets the booking form instead
+ *                          (<WaitlistGate>).
+ *   open ................. the booking form, which carries the session's
+ *                          CMS id onto the basket line.
  *
  * A DATE THAT HAS GONE BY GETS A PAGE, NOT A 404 AND NOT A FORM. This route
  * used to check seats only, so a session past its start rendered a working
@@ -60,8 +76,9 @@ import type { Workshop } from "@/types";
  * never imports lib/workshops; see the note on <BookingForm>.
  */
 export async function generateStaticParams() {
+  // Full sessions too: their page is the waitlist.
   const workshops = await getAllWorkshops();
-  return workshops.filter((w) => !isFullyBooked(w)).map(({ slug }) => ({ slug }));
+  return workshops.map(({ slug }) => ({ slug }));
 }
 
 /*
@@ -108,7 +125,12 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
   const workshop = await bookableSession(slug);
 
   if (!workshop) notFound();
-  if (isFullyBooked(workshop)) notFound();
+
+  const [gate, ref] = await Promise.all([getBookingGate(), getSessionBookingRef(workshop.slug)]);
+  // Without the CMS's word on the switch, a full session has nothing to offer.
+  if (!ref && isFullyBooked(workshop)) notFound();
+  const dateClosed = ref?.bookingStatus === "closed";
+  const queue = !dateClosed && (ref?.bookingStatus === "waitlist" || isFullyBooked(workshop));
 
   // Resolved here, so the client form never needs lib/workshops. `isScarce`
   // is the site's one rule for when availability takes the accent; the form
@@ -149,17 +171,44 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
           startsAt={workshop.startsAt}
           passedAtRender={passed}
           open={
-            <>
-              <Steps current={1} />
-
-              <BookingForm
-                workshop={workshop}
-                intro={<Intro />}
-                summary={<SessionSummary workshop={workshop} />}
-                strip={<SessionStrip workshop={workshop} />}
-                scarce={scarce}
+            !gate.open ? (
+              <BookingClosed message={gate.closed.message} ctaLabel={gate.closed.ctaLabel} ctaHref={gate.closed.ctaHref} />
+            ) : dateClosed ? (
+              <BookingClosed
+                heading="This Date Is Closed."
+                message={`${workshop.title} is no longer taking bookings online.`}
+                ctaLabel="See open dates"
+                ctaHref="/events#scheduled"
               />
-            </>
+            ) : (
+              <>
+                <Steps current={1} />
+                {queue ? (
+                  <WaitlistGate
+                    waitlist={<Waitlist workshop={workshop} />}
+                    book={
+                      <BookingForm
+                        workshop={workshop}
+                        sessionId={ref?.id}
+                        intro={<Intro />}
+                        summary={<SessionSummary workshop={workshop} />}
+                        strip={<SessionStrip workshop={workshop} />}
+                        scarce={scarce}
+                      />
+                    }
+                  />
+                ) : (
+                  <BookingForm
+                    workshop={workshop}
+                    sessionId={ref?.id}
+                    intro={<Intro />}
+                    summary={<SessionSummary workshop={workshop} />}
+                    strip={<SessionStrip workshop={workshop} />}
+                    scarce={scarce}
+                  />
+                )}
+              </>
+            )
           }
           passed={<SessionPassed workshop={workshop} />}
         />
@@ -193,6 +242,29 @@ function Intro() {
         before you confirm.
       </p>
     </Reveal>
+  );
+}
+
+/**
+ * A full date: what is being queued for, and the form to join the queue.
+ * The strip is the same one the booking form shows on a phone, so the
+ * visitor can see which date they are asking about at every width.
+ */
+function Waitlist({ workshop }: { workshop: Workshop }) {
+  return (
+    <div className="mt-12 grid grid-cols-12 gap-x-6 md:mt-16 lg:gap-x-10">
+      <div className="col-span-12 lg:col-span-7">
+        <Reveal>
+          <h1 className="text-h1 font-light tracking-[-0.02em]">This Date Is Full.</h1>
+        </Reveal>
+        <div className="mt-8">
+          <SessionStrip workshop={workshop} />
+        </div>
+        <div className="mt-12">
+          <WaitlistForm sessionSlug={workshop.slug} title={workshop.title} />
+        </div>
+      </div>
+    </div>
   );
 }
 

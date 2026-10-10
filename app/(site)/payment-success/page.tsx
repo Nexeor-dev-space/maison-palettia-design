@@ -1,10 +1,20 @@
-import { Suspense } from "react";
+import { headers } from "next/headers";
 
 import { Confirmation } from "@/components/booking/Confirmation";
+import type { OrderView } from "@/components/booking/orderView";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { Container } from "@/components/ui/Container";
+import { clientIp, ipHash, rateLimit } from "@/cms/lib/rateLimit";
+import {
+  applyReturnSnapshot,
+  findOrderByReference,
+  getBookingGate,
+  normaliseReference,
+  orderViewOf,
+  verifyReturnKey,
+} from "@/lib/booking";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -14,19 +24,58 @@ export const metadata = buildMetadata({
   noindex: true,
 });
 
+/*
+  Per request, never cached: this page reads one customer's order and may
+  apply their payment. `Referrer-Policy: no-referrer` comes from
+  next.config.ts (NO_REFERRER_ROUTES), and ExternalAnalytics is not mounted
+  here, so `k` never reaches a third party (SPEC §H.5).
+*/
+export const dynamic = "force-dynamic";
+
+/** The return path's gateway call is a write; ten a minute per connection is far beyond a person. */
+const RETURN_APPLY_LIMIT = { limit: 10, windowMs: 60_000 } as const;
+
+type Search = Record<string, string | string[] | undefined>;
+const one = (value: string | string[] | undefined) => (typeof value === "string" ? value : null);
+
 /**
- * The end of the booking journey.
+ * The end of the booking journey: where Mamo Pay's hosted page (or the mock
+ * one at /dev/mamo-mock) returns the customer — `return_url =
+ * {publicUrl}/payment-success?ref={ref}&k={k}`, with Mamo's own
+ * `createdAt&paymentLinkId&status&transactionId` appended (SPEC §H.3–H.5).
  *
- * The route is `/payment-success` because that is the path the brief names and
- * the one a payment provider would redirect to; the page itself is careful
- * never to claim a payment happened while none can — see <Confirmation> and
- * PAYMENT_CONFIGURED in lib/booking.ts.
- *
- * <Suspense> is required rather than decorative: <Confirmation> reads the
- * reference with `useSearchParams`, and Next will not prerender a page
- * containing that hook unless the boundary is there to fall back to.
+ * In order:
+ *   1. read the order by `ref` (no order → "find your booking");
+ *   2. check `k` — signed, expiring; it alone unlocks the lines, tickets and
+ *      invoice on this page (without it: the state only);
+ *   3. with a valid `k` and Mamo's `transactionId`, apply that payment now
+ *      (`applyReturnSnapshot` → `applyPaymentSnapshot`, idempotent, the same
+ *      path the webhook takes) — so a customer who beats the webhook home
+ *      lands on "Confirmed" rather than on a spinner;
+ *   4. hand the result to <Confirmation>, which polls while the payment is
+ *      still being confirmed.
  */
-export default function PaymentSuccessPage() {
+export default async function PaymentSuccessPage({ searchParams }: { searchParams: Promise<Search> }) {
+  const params = await searchParams;
+  const rawRef = one(params.ref);
+  const reference = rawRef ? normaliseReference(rawRef) : null;
+  const k = one(params.k);
+  const transactionId = one(params.transactionId);
+
+  const gate = await getBookingGate();
+  let order = reference ? await findOrderByReference(reference) : null;
+  const keyValid = Boolean(order && reference && verifyReturnKey(order.reference, k));
+
+  if (order && keyValid && transactionId) {
+    const allowed = rateLimit("payment-return", ipHash(clientIp(await headers())), RETURN_APPLY_LIMIT);
+    if (allowed) {
+      await applyReturnSnapshot(order, transactionId);
+      order = (await findOrderByReference(order.reference)) ?? order;
+    }
+  }
+
+  const view: OrderView | null = order ? await orderViewOf(order, { detail: keyValid }) : null;
+
   return (
     <div className="relative isolate overflow-clip">
       <SectionShapes plan={groundShapes("sage")} />
@@ -36,36 +85,18 @@ export default function PaymentSuccessPage() {
             <span aria-hidden className="h-px w-9 shrink-0 bg-terracotta md:w-12" />
             Your booking
           </p>
-          {/*
-            THE HEADING MOVED INTO <Confirmation>.
-
-            It said "Booking confirmed" and "Your place is held." once — over a
-            card that, while no backend records anything, reads "Pending ·
-            waiting on confirmation from the Maison". Then "Your reference is
-            ready.", which was meant to be true in both states and was not:
-            with no `?ref=`, or one this browser has never seen, it sat
-            directly above "No booking to show", announcing a reference the
-            box beneath it said did not exist.
-
-            Only <Confirmation> knows whether a booking was found, so it draws
-            the h1 for each branch — "Your reference is ready." over a record,
-            "Find your booking." over the empty state — with the same classes
-            this used. The eyebrow stays here because it is true of every
-            branch. The flags would not decide it either: they are readable
-            here now (lib/bookingFlags.ts), but whether there is a booking to
-            show is a fact about this browser's storage, not about the backend.
-          */}
         </Reveal>
 
-        <Suspense
-          fallback={
-            <p role="status" className="mt-12 text-body text-text/75">
-              Looking up your booking&hellip;
-            </p>
-          }
-        >
-          <Confirmation />
-        </Suspense>
+        {/* The h1 is <Confirmation>'s: only it knows which of the outcomes this is. */}
+        <Confirmation
+          reference={order?.reference ?? reference}
+          k={keyValid ? k : null}
+          view={view}
+          keyValid={keyValid}
+          statusCopy={gate.statusCopy}
+          purchaseConfirmedNote={gate.purchaseConfirmedNote}
+          terms={gate.terms}
+        />
       </Container>
     </div>
   );

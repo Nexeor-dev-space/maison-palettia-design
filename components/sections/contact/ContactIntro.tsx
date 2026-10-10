@@ -10,6 +10,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { CONTACT, SOCIAL_LINKS } from "@/lib/constants";
+import { getGlobal } from "@/lib/cms/query";
 import type { ContactDetails, ImageAsset, SocialLink } from "@/types";
 
 
@@ -329,7 +330,16 @@ function Portrait({ image }: { image: ImageAsset | null }) {
  * becoming an unnamed div inside someone else's. A landmark does not have to
  * be a top-level block to be one.
  */
-function Enquiry({ words }: { words: ContactWords }) {
+async function Enquiry({ words }: { words: ContactWords }) {
+  /*
+    THE OWNER'S SWITCH (Settings → Site details → "Accept enquiries", SPEC
+    §C.3). Off hides the form — enquiries already received stay in the Inbox —
+    so nobody types a message into a form the server will refuse. Read
+    through the cached `site-settings` reader, so the switch reaches this
+    prerendered page by tag, without a deploy. Unreadable settings mean the
+    default, which is on: the server still has the final say.
+  */
+  const enquiriesEnabled = (await getGlobal("site-settings", 0))?.enquiriesEnabled !== false;
   const {
     formHeading = "Write to Us",
     formLead = "A few lines is plenty. Tell us what you are after and we will come back to you.",
@@ -393,7 +403,14 @@ function Enquiry({ words }: { words: ContactWords }) {
               which is what makes the form arrive as an object.
             */}
         <div className="rounded-[1.25rem] bg-[color-mix(in_oklab,var(--color-lavender)_55%,var(--color-cream))] px-6 py-8 md:rounded-[1.5rem] md:px-9 md:py-10">
-          <ContactForm />
+          {enquiriesEnabled ? (
+            <ContactForm />
+          ) : (
+            <p role="status" className="max-w-[34rem] text-body text-text">
+              Messages through the site are paused just now, so this form is not taking new
+              enquiries. Please check back soon.
+            </p>
+          )}
         </div>
       </Reveal>
     </section>
