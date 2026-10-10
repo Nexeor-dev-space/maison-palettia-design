@@ -32,7 +32,28 @@ import { CLOSING_SPOTS } from "@/components/sections/home/homeSpots";
  * paper is enough; the shapes carry the colour.
  */
 
-export function ClosingStatement() {
+/*
+  WHAT THE CMS SUPPLIES (the `closingInvitation` block,
+  components/blocks/ClosingInvitation.tsx): the two buttons, and — from
+  Brand wording, never typed into the block — the tagline over the heading
+  and the `closing` heading and sentence, which /about closes on too. Left
+  out, each is lib/brand.ts and the launch buttons.
+*/
+type Action = { label: string; href: string };
+
+export function ClosingStatement({
+  eyebrow = TAGLINE,
+  heading = CLOSING.heading,
+  body = CLOSING.body,
+  primary = { label: "Explore experiences", href: "/events" },
+  secondary = { label: "Plan a private event", href: PRIVATE_EVENT_ENQUIRY_HREF },
+}: {
+  eyebrow?: string | null;
+  heading?: string | null;
+  body?: string | null;
+  primary?: Action | null;
+  secondary?: Action | null;
+} = {}) {
   return (
     <section
       aria-labelledby="closing-heading"
@@ -59,6 +80,7 @@ export function ClosingStatement() {
           <div aria-hidden className="col-span-2 hidden lg:block" />
 
           <div className="col-span-12 text-center lg:col-span-8">
+            {eyebrow ? (
             <Reveal>
               {/* FULL STRENGTH, NOT `/75`. The near-white `surface` is the one
                   light ink that clears 4.5:1 on Deep Lilac — it measures
@@ -66,9 +88,10 @@ export function ClosingStatement() {
                   label to 3.38:1, which is under what a label of that size
                   owes. The design system makes the same call in `inkFor`. */}
               <p className="text-label font-medium uppercase tracking-eyebrow text-surface">
-                {TAGLINE}
+                {eyebrow}
               </p>
             </Reveal>
+            ) : null}
 
             {/*
               `forScript` straightens the curly apostrophe in "Let's": Hapsha
@@ -81,14 +104,16 @@ export function ClosingStatement() {
                 id="closing-heading"
                 className="heading-script mt-7 text-script-section text-surface"
               >
-                {forScript(CLOSING.heading)}
+                {forScript(heading ?? "")}
               </h2>
             </Reveal>
 
             <Reveal delay={0.14}>
-              <p className="mx-auto mt-8 max-w-[44ch] text-lead text-surface">
-                {CLOSING.body}
-              </p>
+              {body ? (
+                <p className="mx-auto mt-8 max-w-[44ch] text-lead text-surface">
+                  {body}
+                </p>
+              ) : null}
             </Reveal>
 
             {/*
@@ -104,9 +129,11 @@ export function ClosingStatement() {
                 {/* `cream` is the tone for a button standing ON Deep Lilac —
                     a lilac one cannot be seen at all, which is the same call
                     the About page's close makes. See <BlobButton>. */}
-                <BlobButton href="/events" tone="cream" className="min-h-[3.25rem] px-8">
-                  Explore experiences
-                </BlobButton>
+                {primary ? (
+                  <BlobButton href={primary.href} tone="cream" className="min-h-[3.25rem] px-8">
+                    {primary.label}
+                  </BlobButton>
+                ) : null}
                 {/*
                   NOT A SECOND PILL. These are the banner's two actions, word
                   for word, so they keep the banner's own treatment: one
@@ -121,9 +148,11 @@ export function ClosingStatement() {
                   link has no ground to lose.
                 */}
                 {/* The sticky note, as in the banner above — see <PeelNote>. */}
-                <PeelNote href={PRIVATE_EVENT_ENQUIRY_HREF} className="min-h-[3.25rem] px-8">
-                  Plan a private event
-                </PeelNote>
+                {secondary ? (
+                  <PeelNote href={secondary.href} className="min-h-[3.25rem] px-8">
+                    {secondary.label}
+                  </PeelNote>
+                ) : null}
               </div>
             </Reveal>
           </div>

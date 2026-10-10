@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { PassCodeField } from "@/components/booking/PassCodeField";
 import { useSessionPassed } from "@/components/booking/SessionClock";
 import type { CartLine } from "@/lib/cart";
 import { cn, formatMoney, formatSessionDay, formatSessionTimeRange } from "@/lib/utils";
@@ -40,6 +39,8 @@ export function CartSummary({
   currency,
   onQuantity,
   onRemove,
+  codes,
+  priced,
 }: {
   lines: CartLine[];
   subtotal: number;
@@ -47,6 +48,15 @@ export function CartSummary({
   currency: string;
   onQuantity: (slug: string, quantity: number) => void;
   onRemove: (slug: string) => void;
+  /** The code box (<PassCodeField>), placed by checkout so it can talk to the quote. */
+  codes?: React.ReactNode;
+  /**
+   * The server's price for this exact basket with the applied codes, in AED,
+   * when there is one (`requestQuote`). Without it the total is the sum of
+   * the lines as they were shown; either way the amount charged is the one
+   * the server computes when Pay is pressed.
+   */
+  priced?: { discount: number; total: number; passCredits: number } | null;
 }) {
   /*
     What the count is counting.
@@ -80,7 +90,7 @@ export function CartSummary({
         ))}
       </ul>
 
-      <PassCodeField />
+      {codes}
 
       <dl className="mt-7 flex flex-col gap-3 border-t border-text/15 pt-6">
         <div className="flex items-baseline justify-between gap-4">
@@ -88,17 +98,32 @@ export function CartSummary({
           <dd className="text-body tabular-nums">{formatMoney(subtotal, currency)}</dd>
         </div>
         {/*
-          No tax line, no fees line, no "calculated at the next step". There is
-          no tax model and no fee model in this project, and a row that exists
-          only to say "—" invites the reader to wonder what will be added later.
-          Subtotal and total are the same number because nothing is added.
+          A discount row only when the server has priced one — never a
+          subtraction made here. Pass credits are named, because "AED 240 off"
+          from a pass reads as a promotion when it is the customer's own
+          prepaid session.
+        */}
+        {priced && priced.discount > 0 ? (
+          <div className="flex items-baseline justify-between gap-4">
+            <dt className="text-fine text-text/80">
+              {priced.passCredits > 0
+                ? `Pass ${priced.passCredits === 1 ? "credit" : "credits"} and codes`
+                : "Code"}
+            </dt>
+            <dd className="text-body tabular-nums">&minus;{formatMoney(priced.discount, currency)}</dd>
+          </div>
+        ) : null}
+        {/*
+          No separate tax or fees row: prices include 5% VAT, which the
+          invoice itemises, and nothing is added at the payment step.
         */}
         <div className="flex items-baseline justify-between gap-4 border-t border-text/15 pt-4">
           <dt className="text-label font-medium uppercase tracking-eyebrow text-text">Total</dt>
           <dd className="text-lead font-medium tabular-nums">
-            {formatMoney(subtotal, currency)}
+            {formatMoney(priced ? priced.total : subtotal, currency)}
           </dd>
         </div>
+        <p className="text-fine text-text/70">Prices include 5% VAT.</p>
       </dl>
 
       <Link

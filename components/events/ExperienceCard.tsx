@@ -4,7 +4,8 @@ import type { ElementType } from "react";
 
 import styles from "@/components/events/ExperienceCard.module.css";
 import { INK } from "@/components/sections/hero/composition";
-import { EXPERIENCE_KIND_LABEL, type CreativeExperience } from "@/lib/experiences";
+import { EXPERIENCE_KIND_LABEL } from "@/lib/experienceLabels";
+import type { CreativeExperience } from "@/lib/experiences";
 import { cn } from "@/lib/utils";
 
 /**
@@ -53,6 +54,7 @@ export function ExperienceCard({
   aspect = "aspect-[3/4]",
   as: Tag = "div",
   className,
+  actionLabel = "View details",
 }: {
   experience: CreativeExperience;
   /** Place in the row. Drives the angle, the paint and the numeral. */
@@ -63,6 +65,8 @@ export function ExperienceCard({
   aspect?: string;
   as?: ElementType;
   className?: string;
+  /** The pill the paint carries in — the homepage block's `cardCta` (SPEC §E.1). */
+  actionLabel?: string;
 }) {
   const paint = WASH[index % WASH.length];
   const tilt = (index % 2 === 0 ? -1 : 1) * (1.1 + (index % 3) * 0.35);
@@ -121,7 +125,7 @@ export function ExperienceCard({
               "bg-cream px-5 py-2.5 text-label font-medium uppercase tracking-eyebrow text-text",
             )}
           >
-            View details
+            {actionLabel}
             <span className="text-[0.9em] leading-none">&#8594;</span>
           </span>
 

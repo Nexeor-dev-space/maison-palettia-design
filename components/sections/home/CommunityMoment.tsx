@@ -32,7 +32,11 @@ import { cn } from "@/lib/utils";
  * is still set in full in <Community> on /about.
  */
 
-export function CommunityMoment() {
+/*
+  The `fullBleedStatement` block (SPEC §E.2, dormant) hands in the held
+  photograph; the words are Brand wording's community passage, as before.
+*/
+export function CommunityMoment({ image = "/images/middle-section-bg.jpg" }: { image?: string } = {}) {
   return (
     <section
       aria-labelledby="community-heading"
@@ -108,7 +112,7 @@ export function CommunityMoment() {
       <div className="relative isolate [clip-path:inset(0)]">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 motion-safe:fixed">
           <Image
-            src="/images/middle-section-bg.jpg"
+            src={image}
             alt=""
             fill
             sizes="100vw"

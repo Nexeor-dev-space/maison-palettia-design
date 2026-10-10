@@ -7,6 +7,8 @@ import { DeckSheet } from "@/components/ui/deck/Deck";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { BrandStoryLead, BrandStoryObject } from "@/components/sections/BrandStory";
 import { OPENING_SPOTS } from "@/components/sections/home/homeSpots";
+import type { BrandStoryPanel, BrandStoryWords } from "@/components/sections/BrandStory";
+import type { ImageAsset } from "@/types";
 
 /**
  * What Maison Palettia is — the first words after the banner.
@@ -45,29 +47,43 @@ import { OPENING_SPOTS } from "@/components/sections/home/homeSpots";
  * The words are `BRAND_STORY_SET`, the deck's own. Nothing here is written for
  * the website.
  */
-export function OpeningStatement() {
+export function OpeningStatement({
+  eyebrow = "What this is",
+  words,
+  panel,
+  panelImage,
+}: {
+  /** The small label over the statement; `null` leaves it out. */
+  eyebrow?: string | null;
+  /** The statement — from Brand wording or the block (components/blocks/OpeningStatement.tsx). */
+  words?: BrandStoryWords;
+  panel?: BrandStoryPanel;
+  panelImage?: ImageAsset | null;
+} = {}) {
   return (
     <DeckSheet labelledBy="opening-statement">
       {/* The section's doodles — see homeSpots.ts. */}
       <SectionShapes plan={OPENING_SPOTS} />
       <Container className="relative">
-        <Reveal>
-          <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-primary">
-            <span aria-hidden className="block w-4 shrink-0">
-              <DoodleMark name="starleaf" color={INK.terracotta} />
-            </span>
-            What this is
-          </p>
-        </Reveal>
+        {eyebrow ? (
+          <Reveal>
+            <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-primary">
+              <span aria-hidden className="block w-4 shrink-0">
+                <DoodleMark name="starleaf" color={INK.terracotta} />
+              </span>
+              {eyebrow}
+            </p>
+          </Reveal>
+        ) : null}
 
         <Reveal delay={0.08}>
-          <BrandStoryLead id="opening-statement" className="mt-8 md:mt-10" />
+          <BrandStoryLead id="opening-statement" className="mt-8 md:mt-10" words={words} />
         </Reveal>
       </Container>
 
       <Container className="mt-12 md:mt-16">
         <Reveal variant="fadeIn">
-          <BrandStoryObject />
+          <BrandStoryObject panel={panel} image={panelImage} />
         </Reveal>
       </Container>
     </DeckSheet>

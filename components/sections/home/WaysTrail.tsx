@@ -30,7 +30,8 @@ export interface TrailItem {
   tint: string;
   /** The same colour undiluted: the cut-out, the trail and the node take it. */
   paint: string;
-  photo: string;
+  /** Null when the group has no photograph — the card opens on its words. */
+  photo: string | null;
 }
 
 /**
@@ -617,15 +618,17 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
       {/* 2:1, not 16:9. At 740px across, a 16:9 picture is 416px tall and the
           box of words under it reads as a caption on a photograph rather than
           as the half of the card that does the work. */}
-      <span className="relative block aspect-[2/1] w-full">
-        <Image
-          src={item.photo}
-          alt=""
-          fill
-          sizes="(min-width: 1024px) 56vw, 92vw"
-          className="object-cover"
-        />
-      </span>
+      {item.photo ? (
+        <span className="relative block aspect-[2/1] w-full">
+          <Image
+            src={item.photo}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 56vw, 92vw"
+            className="object-cover"
+          />
+        </span>
+      ) : null}
 
       <div className="p-4 md:p-5">
         {/*

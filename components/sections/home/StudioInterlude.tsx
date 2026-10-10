@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import type { ImageAsset } from "@/types";
+
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
@@ -59,7 +61,20 @@ import { DoodleMark } from "@/components/ui/DoodleMark";
  * photograph or as its own guests. The alt text below describes what is in
  * the frame and claims nothing about whose hands they are.
  */
-export function StudioInterlude() {
+/*
+  The `imagePair` block (SPEC §E.2, dormant) hands in its two photographs;
+  left out, the two the client supplied for this slot.
+*/
+export function StudioInterlude({
+  first = {
+    src: "/images/i-1.jpg",
+    alt: "Someone in a denim apron painting a small ceramic bowl in bands of orange, blue and yellow, a loaded palette and open paint tubes on the table beside them.",
+  },
+  second = {
+    src: "/images/1-2.jpg",
+    alt: "A pair of hands crocheting a panel of cream cotton with a yellow hook, a wound ball of the same yarn on the table alongside.",
+  },
+}: { first?: ImageAsset; second?: ImageAsset } = {}) {
   return (
     <DeckSheet>
       <SectionShapes plan={INTERLUDE_SHAPES} />
@@ -90,8 +105,8 @@ export function StudioInterlude() {
               style={{ "--paint": "var(--color-terracotta)" } as React.CSSProperties}
             >
               <Image
-                src="/images/i-1.jpg"
-                alt="Someone in a denim apron painting a small ceramic bowl in bands of orange, blue and yellow, a loaded palette and open paint tubes on the table beside them."
+                src={first.src}
+                alt={first.alt}
                 fill
                 /*
                   MUCH LARGER THAN THE BOX, and it has to be. This is a 3:2
@@ -139,8 +154,8 @@ export function StudioInterlude() {
               style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}
             >
               <Image
-                src="/images/1-2.jpg"
-                alt="A pair of hands crocheting a panel of cream cotton with a yellow hook, a wound ball of the same yarn on the table alongside."
+                src={second.src}
+                alt={second.alt}
                 fill
                 sizes="(min-width: 1024px) 58vw, 100vw"
                 className="object-cover transition-transform duration-[1400ms] ease-[var(--ease-editorial)] group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"

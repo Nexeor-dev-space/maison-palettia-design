@@ -7,7 +7,7 @@ import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/c
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { cn } from "@/lib/utils";
-import { formatWorkshopDate, isScarce, spotsLabel } from "@/lib/workshops";
+import { formatWorkshopDate, isScarce, spotsLabel } from "@/lib/workshopHelpers";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { Workshop } from "@/types";
 

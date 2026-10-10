@@ -2,7 +2,7 @@ import {
   getCreativeExperiences,
   type CreativeExperience,
 } from "@/lib/experiences";
-import { getAllWorkshops, getWorkshopBySlug } from "@/lib/workshops";
+import { experienceSlugOf, getAllWorkshops, hasSessionPassed } from "@/lib/workshops";
 import type { ImageAsset, Workshop } from "@/types";
 
 /**
@@ -91,22 +91,50 @@ export async function getEventSlugs(): Promise<string[]> {
  * Resolve one slug, or `null` when nothing answers to it.
  *
  * Async and returning a plain value, like every other content seam in this
- * project, so pointing either half at a CMS is a change to the two functions
- * it already calls rather than to anything here.
+ * project, so pointing either half at a CMS was a change to the two getters
+ * it calls rather than to anything here. A `null` is the route's cue for
+ * `redirectOr404` (lib/cms/redirects.ts): a renamed session or activity
+ * leaves a redirect behind.
+ *
+ * THE JOIN, SINCE THE CMS. Session and activity used to share one slug, and
+ * the match was `item.slug === slug`. A CMS session has its own slug
+ * (`candle-making-2026-10-11-1000`) and points at its activity by relation,
+ * so the activity is found through `experienceSlugOf` — which, for the
+ * in-file sessions, is still their own slug, so nothing about them changed.
+ *
+ * AND A SCHEDULED ACTIVITY'S OWN SLUG STILL ANSWERS. "/events/candle-making"
+ * was the session page; with dated session slugs it would otherwise have
+ * become a walk-in page for something that is booked. It resolves to that
+ * activity's next session that has not started (or, when every date has
+ * gone by, its latest), so old links keep landing on the bookable page.
+ * Only an activity with no session at all reads as an activity on its own.
  */
 export async function getEventDetail(
   slug: string,
 ): Promise<EventDetail | null> {
-  const [workshop, experiences] = await Promise.all([
-    getWorkshopBySlug(slug),
+  const [workshops, experiences] = await Promise.all([
+    getAllWorkshops(),
     getCreativeExperiences(),
   ]);
+
+  const workshop = workshops.find((item) => item.slug === slug);
+  if (workshop) {
+    const parent = experienceSlugOf(workshop);
+    const experience = experiences.find((item) => item.slug === parent);
+    return { kind: "scheduled", slug, workshop, experience };
+  }
+
   const experience = experiences.find((item) => item.slug === slug);
+  if (!experience) return null;
 
-  if (workshop) return { kind: "scheduled", slug, workshop, experience };
-  if (experience) return { kind: "diy", slug, experience };
+  if (experience.kind === "scheduled") {
+    const dates = workshops.filter((item) => experienceSlugOf(item) === slug);
+    const now = Date.now();
+    const next = dates.find((item) => !hasSessionPassed(item, now)) ?? dates.at(-1);
+    if (next) return { kind: "scheduled", slug, workshop: next, experience };
+  }
 
-  return null;
+  return { kind: "diy", slug, experience };
 }
 
 /**

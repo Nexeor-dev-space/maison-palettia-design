@@ -1,6 +1,7 @@
 import { getCreativeExperiences } from "@/lib/experiences";
 import {
   bookingStepHref,
+  experienceSlugOf,
   getAllWorkshops,
   hasSessionPassed,
   isFullyBooked,
@@ -90,10 +91,12 @@ export async function getBookingOptions(): Promise<BookingOption[]> {
     already by `getAllWorkshops`, so the first match is the soonest. "Still to
     come" is `hasSessionPassed`, the site's one rule for it — a session closes
     at its start, so one starting this very millisecond is not offered.
+    "For an activity" is `experienceSlugOf`: CMS sessions carry their own
+    slugs and point at the activity by relation (lib/workshopHelpers.ts).
   */
   const nextFor = (slug: string) =>
     workshops.find(
-      (workshop) => workshop.slug === slug && !hasSessionPassed(workshop, now),
+      (workshop) => experienceSlugOf(workshop) === slug && !hasSessionPassed(workshop, now),
     );
 
   return experiences

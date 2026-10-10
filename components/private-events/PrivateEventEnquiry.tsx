@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { useEffect, useId, useRef, useState } from "react";
 
+import { EnquiryOutcome, Honeypot } from "@/components/contact/EnquiryOutcome";
 import { sendEnquiry, type EnquiryResult } from "@/lib/enquiry";
 import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
 import { PaintChoice } from "@/components/booking/PaintChoice";
@@ -86,15 +87,16 @@ const FIELD_ORDER = ["name", "email", "phone", "date", "guests", "message"] as c
  * either — which is why the guest field has no min, no max and no suggested
  * range, and the location field is free text with no list of venues behind it.
  *
- * WHAT HAPPENS ON SUBMIT. Nothing is sent, and the form says so in plain
- * words — see lib/enquiry.ts. The success branch below is written and wired
- * but unreachable, because `ENQUIRY_CONFIGURED` is false and `sendEnquiry`
- * cannot return `ok` until there is a transport behind it. That is the whole
- * point: the screen a customer would see on success exists in code, so wiring
- * a mail service needs no change here, and it cannot be shown to anyone while
- * there is nowhere for their message to go. It matters more on this page than
- * anywhere else on the site — someone planning a birthday around a reply that
- * is never coming loses more than a reply.
+ * WHAT HAPPENS ON SUBMIT. The enquiry is posted to the CMS Inbox
+ * (`sendEnquiry`, lib/enquiry.ts → `/api/site/enquiries`) with the answered
+ * questions as `details`, and the form says what the server answered. The
+ * thank-you replaces the form only once the enquiry is stored; every other
+ * answer — enquiries switched off in the admin, too many from this
+ * connection, a field refused, our side down — gets its own sentence
+ * (<EnquiryOutcome>) with the form left filled to send again. It matters more
+ * on this page than anywhere else on the site: someone planning a birthday
+ * around a reply must never be told one is coming when it is not. A hidden
+ * `website` field is the honeypot.
  *
  * WHY THE ACTIVITIES ARRIVE AS A PROP. They are the studio's approved list and
  * it is read through `getCreativeExperiences()`, which is async because it is
@@ -208,6 +210,7 @@ export function PrivateEventEnquiry({
       guests: get("guests"),
       location: get("location"),
       message: get("message"),
+      website: get("website"),
     };
 
     const next = validate(values);
@@ -232,39 +235,40 @@ export function PrivateEventEnquiry({
     ].filter((entry) => entry.value !== "" && entry.value !== UNDECIDED);
 
     setSubmitting(true);
+    setResult(null);
     try {
-      setResult(
-        await sendEnquiry({
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
-          topic: "private",
-          message: values.message,
-          details,
-        }),
-      );
+      const outcome = await sendEnquiry({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        topic: "private",
+        message: values.message,
+        details,
+        source: "private-event",
+        website: values.website || undefined,
+      });
+      // A field the server refused is marked where it is, as the browser's own checks are.
+      if (outcome.status === "invalid" && outcome.field && (FIELD_ORDER as readonly string[]).includes(outcome.field)) {
+        setErrors({ [outcome.field]: outcome.message });
+      }
+      setResult(outcome);
     } catch {
       /*
-        `sendEnquiry` cannot throw today — it returns before doing anything.
-        It will be a network call, and an enquiry form that white-screens on a
-        dropped connection loses the message and tells nobody. Reported as the
-        same honest "not sent" outcome, because from where the customer sits
+        `sendEnquiry` returns rather than throws, but an enquiry form that
+        white-screens on something unforeseen loses the message and tells
+        nobody. Reported as "not sent", because from where the customer sits
         that is exactly what happened.
       */
-      setResult({ status: "unconfigured" });
+      setResult({ status: "error" });
     } finally {
       setSubmitting(false);
     }
   }
 
   /*
-    The enquiry landed. Replaces the form rather than sitting under it: the
-    thing has been sent, and leaving nine filled fields on screen invites
-    somebody to send it again.
-
-    UNREACHABLE TODAY. See the note at the head of this component — this is
-    what the customer will see once a transport exists, and it cannot be
-    reached until one does.
+    The enquiry is stored in the Inbox. Replaces the form rather than sitting
+    under it: the thing has been sent, and leaving nine filled fields on
+    screen invites somebody to send it again.
   */
   if (result?.status === "ok") {
     return (
@@ -281,8 +285,8 @@ export function PrivateEventEnquiry({
           Thank you. We have your enquiry.
         </p>
         <p className="mt-5 max-w-[36rem] text-body text-text/80">
-          The Maison will read it and come back to you with what the session could look like. A
-          copy has not been emailed to you, so keep an eye on the inbox you gave us.
+          The Maison will read it and come back to you with what the session could look like, at
+          the email address you gave us.
         </p>
         <Link
           href="/events"
@@ -327,6 +331,7 @@ export function PrivateEventEnquiry({
       ref={formRef}
       onSubmit={onSubmit}
       noValidate
+      className="relative"
       /* One bubbling listener for the typed fields. The choosers are radios
          and report through <PaintChoice>'s `onChoose` instead — a radio fires
          `change`, not `input`, and catching both here would be two code paths
@@ -339,6 +344,7 @@ export function PrivateEventEnquiry({
         setWatched((prev) => ({ ...prev, [el.name]: el.value }));
       }}
     >
+      <Honeypot id={`${ids}-website`} />
       <fieldset className="border-0 p-0">
         <legend className="text-label font-medium uppercase tracking-eyebrow text-text">
           About you
@@ -546,41 +552,9 @@ export function PrivateEventEnquiry({
         {submitting ? "Sending" : "Send enquiry"}
       </BlobButton>
 
-      {/* The honest outcome while there is nowhere for a message to go. */}
-      {result?.status === "unconfigured" ? (
-        <div
-          ref={outcomeRef}
-          tabIndex={-1}
-          role="status"
-          className="mt-10 border-l-2 border-terracotta bg-cream/60 p-7 focus:outline-none md:p-8"
-        >
-          <p className="text-label font-medium uppercase tracking-eyebrow text-text">
-            This enquiry was not sent
-          </p>
-          <p className="mt-4 max-w-[36rem] text-body text-text/80">
-            The Maison has no inbox connected to this form yet, so nothing you have typed has
-            been delivered anywhere and no one has been notified. Please do not plan around a
-            reply.
-          </p>
-          <p className="mt-5 max-w-[36rem] text-body text-text/80">
-            Every public event is listed with its venue and its times, and places can be held
-            from there today.
-          </p>
-          <Link
-            href="/events"
-            className="group mt-7 inline-flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text"
-          >
-            <span className="border-b border-terracotta/50 pb-1.5 transition-colors duration-300 ease-soft group-hover:border-terracotta">
-              See upcoming events
-            </span>
-            <span
-              aria-hidden
-              className="text-terracotta transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
-            >
-              &#8594;
-            </span>
-          </Link>
-        </div>
+      {/* Every answer that is not "stored" — see <EnquiryOutcome>. */}
+      {result ? (
+        <EnquiryOutcome ref={outcomeRef} result={result} noun="enquiry" className="mt-10" />
       ) : null}
     </form>
         </div>

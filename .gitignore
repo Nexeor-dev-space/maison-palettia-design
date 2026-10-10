@@ -51,3 +51,11 @@ next-env.d.ts
 # 100 MiB hard limit, so committing it makes the branch unpushable. Keep it in
 # shared storage (or Git LFS) rather than in history.
 /assets/video-masters/testimonial-bg.mp4
+
+# Payload runtime files. Both live on the host's persistent disk next to the
+# checkout and are backed up with the database — never committed
+# (docs/cms/SPEC.md §A.3). `media/` is the Media collection's upload dir;
+# `private/` holds generated invoice PDFs and anything else that must not be
+# served from public/.
+/media/
+/private/

@@ -33,6 +33,12 @@
  * VISION above "To inspire…" and MISSION above "We curate…"). The redesign
  * brief assigns them as below, and the brief is the more recent instruction,
  * so it wins — but the two documents disagree and one of them should change.
+ *
+ * SINCE PHASE 2 THE ADMIN HOLDS THESE ("Brand wording", the `brand-copy`
+ * global), and `getBrandCopy()` in lib/brand.server.ts reads them in these
+ * same shapes. The constants here are what that getter falls back to, and
+ * what client components still import until they are handed the CMS values
+ * as props. TODO(phase2-cleanup): retire them once nothing imports them.
  */
 
 /** Deck p.1 and the studio's email signature. */

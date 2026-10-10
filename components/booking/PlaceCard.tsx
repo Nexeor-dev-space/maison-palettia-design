@@ -155,7 +155,7 @@ export function PlaceCardStub({
 
       <BrushProgress done={done} className="mt-3" />
 
-      <p className="mt-3 text-fine text-text/75">Preview. You&rsquo;ll confirm on the next step.</p>
+      <p className="mt-3 text-fine text-text/75">Nothing is booked yet. You&rsquo;ll review and pay on the next step.</p>
 
       <Stamp show={submitting} />
     </div>

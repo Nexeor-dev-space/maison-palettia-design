@@ -12,10 +12,10 @@ import { PlacePalette, WELL_CAP, type PlacesChange } from "@/components/booking/
 import { PointerTilt } from "@/components/motion/PointerTilt";
 import { Reveal } from "@/components/motion/Reveal";
 import { BlobButton } from "@/components/ui/BlobButton";
-import { PAYMENT_CONFIGURED } from "@/lib/booking";
 import {
   BOOKING_FIELD_ORDER,
   saveBookingDetails,
+  saveWaitlistToken,
   toCartLine,
   useBookingDetails,
   useCart,
@@ -71,6 +71,11 @@ const SUMMARY = "Some details need a look before you continue. Each one is marke
 
 interface BookingFormProps {
   workshop: Workshop;
+  /**
+   * The session's CMS id, resolved by the page. It travels on the basket
+   * line so checkout can send `{ kind, id, qty }` without a lookup.
+   */
+  sessionId?: string;
   /** The h1 and its lead, drawn on the server. */
   intro: ReactNode;
   /** <SessionSummary>, drawn on the server: the face of the desktop card. */
@@ -112,7 +117,7 @@ interface BookingFormProps {
  * is recomputed each render from that mirror, so there is nothing stored that
  * could drift from what is on screen.
  */
-export function BookingForm({ workshop, intro, summary, strip, scarce }: BookingFormProps) {
+export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce }: BookingFormProps) {
   const router = useRouter();
   const { lines, setLine } = useCart();
   const saved = useBookingDetails();
@@ -317,8 +322,17 @@ export function BookingForm({ workshop, intro, summary, strip, scarce }: Booking
 
     submittingRef.current = true;
     setSubmitting(true);
-    setLine(toCartLine(workshop, clamp(quantity)));
+    setLine(toCartLine(workshop, clamp(quantity), sessionId));
     saveBookingDetails(details);
+    /*
+      A waitlist offer (`/events/{slug}/book?w=…`, the link in the "a seat is
+      free" email) lets checkout take a seat while the session is still
+      marked waitlist. Read off the address at the press rather than through
+      `useSearchParams`, which would need a Suspense boundary around the
+      whole form on a prerendered page for one value used once.
+    */
+    const offer = new URLSearchParams(window.location.search).get("w");
+    if (offer) saveWaitlistToken(workshop.slug, offer);
     // Never awaited and never held back for the card's stamp: the press on
     // the card plays in the same tick, and whatever of it the navigation
     // overtakes was decoration.
@@ -528,17 +542,13 @@ export function BookingForm({ workshop, intro, summary, strip, scarce }: Booking
             {/*
               Said before the button is pressed, not after. Someone about to
               hand over a name and a number is entitled to know nothing is
-              taken here. Keyed off the same flag as checkout, so the sentence
-              goes the moment a provider is wired.
+              taken at this step: payment is the next page's, on Mamo Pay,
+              after everything has been shown once more. `body`, not `fine`:
+              this is the opposite of fine print.
             */}
-            {!PAYMENT_CONFIGURED ? (
-              /* `body`, not `fine`: this tells somebody mid-booking that they
-                 are not being charged yet — the opposite of fine print. */
-              <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text/80">
-                Nothing is charged here. You&rsquo;ll review everything and confirm on the next
-                step.
-              </p>
-            ) : null}
+            <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text/80">
+              Nothing is charged here. You&rsquo;ll review everything and pay on the next step.
+            </p>
           </section>
         </form>
 

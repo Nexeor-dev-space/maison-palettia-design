@@ -19,6 +19,7 @@ import {
   serverClock,
 } from "@/lib/workshops";
 import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
+import { getMallPartners } from "@/lib/partners";
 
 /**
  * ==========================================================================
@@ -108,10 +109,39 @@ import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
  * the sheet above is Light Sage, so the header is not a third pale green
  * meeting a second one.
  */
-export async function TwoWaysToCreate() {
-  const [experiences, sessions] = await Promise.all([
+/*
+  WHAT THE CMS SUPPLIES (the `twoWays` block, components/blocks/TwoWays.tsx):
+  the eyebrow, the heading, the lead and the two roads — each road's eyebrow,
+  title, line, its own facts and its button. Two facts are never typed: the
+  walk-in road's last chip is where the studio is (the current venue) and the
+  booked road's is the next date with a seat, both worked out below, and each
+  road's photograph is the first activity of its kind. Left out, every prop
+  is the launch wording.
+*/
+export interface TwoWaysRoad {
+  ground: "terracotta" | "lilac";
+  eyebrow: string;
+  title: string;
+  line: string;
+  facts: string[];
+  action: { label: string; href: string } | null;
+}
+
+export async function TwoWaysToCreate({
+  eyebrow = "How to take part",
+  heading = "Make It Your Way.",
+  lead = "Drop in and create, or book a seat for a scheduled session.",
+  roads,
+}: {
+  eyebrow?: string | null;
+  heading?: string | null;
+  lead?: string | null;
+  roads?: TwoWaysRoad[];
+} = {}) {
+  const [experiences, sessions, partners] = await Promise.all([
     getCreativeExperiences(),
     getAllWorkshops(),
+    getMallPartners(),
   ]);
 
   const walkIn = experiences.filter((experience) => experience.kind === "diy");
@@ -126,7 +156,8 @@ export async function TwoWaysToCreate() {
     "Times Square Center" on every page of this site, and with no dates set
     the honest answer is that they are coming.
   */
-  const home = "Times Square Center, Dubai";
+  const venue = partners[0];
+  const home = venue ? `${venue.name}, ${venue.locality}` : "Times Square Center, Dubai";
   /*
     THE NEXT DATE THAT HAS NOT BEGUN — asked twice, like every date on the
     site. This printed the first scheduled session whatever its date, so once
@@ -195,23 +226,23 @@ export async function TwoWaysToCreate() {
         {/* The band's doodles — see homeSpots.ts. */}
         <SectionShapes plan={TWO_WAYS_SPOTS} />
         <Container>
-          <Reveal>
-            <Eyebrow>How to take part</Eyebrow>
-          </Reveal>
+          {eyebrow ? (
+            <Reveal>
+              <Eyebrow>{eyebrow}</Eyebrow>
+            </Reveal>
+          ) : null}
 
           <DisplayHeading
             id="two-ways-heading"
             size="section"
             className="mt-6 md:mt-7"
-            lines={["Make It Your Way."]}
+            lines={heading ? [heading] : []}
           />
 
           <Reveal delay={0.12}>
             {/* `script-lede` rather than a margin: the gap under a script
                 heading is a token, because Hapsha's descenders hang into it. */}
-            <p className="script-lede max-w-[54ch] text-lead text-text/80">
-              Drop in and create, or book a seat for a scheduled session.
-            </p>
+            {lead ? <p className="script-lede max-w-[54ch] text-lead text-text/80">{lead}</p> : null}
           </Reveal>
         </Container>
       </div>
@@ -222,6 +253,26 @@ export async function TwoWaysToCreate() {
         {/* The two lines are held to one line each and to about the same
             length, so the two buttons land on the same baseline and the halves
             read as a pair rather than as one longer than the other. */}
+        {roads ? (
+          roads.map((road, i) => {
+            const warm = road.ground === "terracotta";
+            return (
+              <Road
+                key={i}
+                index={i + 1}
+                ground={road.ground}
+                eyebrow={road.eyebrow}
+                title={road.title}
+                dot={warm ? INK.whiteRock : INK.lavender}
+                plate={warm ? walkInPlate : scheduledPlate}
+                line={road.line}
+                facts={[...road.facts, warm ? home : nextDate]}
+                action={road.action ? { ...road.action, tone: warm ? "sage" : "cream" } : null}
+              />
+            );
+          })
+        ) : (
+        <>
         <Road
           index={1}
           ground="terracotta"
@@ -301,6 +352,8 @@ export async function TwoWaysToCreate() {
           facts={["Booked online", "Guided sessions", nextDate]}
           action={{ label: "See the dates", href: "/events#scheduled", tone: "cream" }}
         />
+        </>
+        )}
       </div>
 
       {/*
@@ -498,7 +551,7 @@ function Road({
   line: string;
   /* Words, or (for the date) a <SessionGate> that settles on words. */
   facts: readonly ReactNode[];
-  action: { label: string; href: string; tone: "sage" | "cream" };
+  action: { label: string; href: string; tone: "sage" | "cream" } | null;
 }) {
   const warm = ground === "terracotta";
   const chips = warm ? CHIP_PAINTS_ON_TERRACOTTA : CHIP_PAINTS;
@@ -727,11 +780,13 @@ function Road({
         </ul>
       </Reveal>
 
-      <Reveal delay={0.28}>
-        <BlobButton href={action.href} tone={action.tone} className="mt-7 min-h-[3.25rem] px-7">
-          {action.label}
-        </BlobButton>
-      </Reveal>
+      {action ? (
+        <Reveal delay={0.28}>
+          <BlobButton href={action.href} tone={action.tone} className="mt-7 min-h-[3.25rem] px-7">
+            {action.label}
+          </BlobButton>
+        </Reveal>
+      ) : null}
     </div>
   );
 }

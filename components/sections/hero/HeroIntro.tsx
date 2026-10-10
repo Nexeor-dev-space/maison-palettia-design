@@ -10,7 +10,7 @@ import {
 } from "@/components/sections/hero/composition";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { LogoReveal } from "@/components/sections/hero/LogoReveal";
-import { BRAND_LOGO } from "@/lib/constants";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
 
 /*
@@ -342,6 +342,15 @@ function nextPaint(fn: () => void): () => void {
  */
 export function HeroIntro() {
   const logoRef = useRef<HTMLDivElement>(null);
+  // The header's two logo cuts and their measured ink boxes, from Site
+  // details through the layout (see SiteChrome) — the flight lands on them.
+  // Held in a ref because the intro's effect runs once per mount: a new
+  // value (a live-preview refresh) must not replay the entrance.
+  const { logo: brandLogo } = useSiteChrome();
+  const brandLogoRef = useRef(brandLogo);
+  useLayoutEffect(() => {
+    brandLogoRef.current = brandLogo;
+  }, [brandLogo]);
 
   /* ------------------------------------------------------------------ fit */
   // First, so the intro below measures the doodles in the card's final place.
@@ -641,7 +650,8 @@ export function HeroIntro() {
         letters sit on the PNG's to within a pixel, and the handover is
         invisible.
       */
-      const cut = target.getAttribute("width") === String(BRAND_LOGO.onLight.width) ? BRAND_LOGO.onLight : BRAND_LOGO;
+      const cuts = brandLogoRef.current;
+      const cut = target.getAttribute("width") === String(cuts.onLight.width) ? cuts.onLight : cuts;
       const from = logo.getBoundingClientRect();
       const box = target.getBoundingClientRect();
       if (from.width === 0 || box.width === 0) return;

@@ -1,0 +1,81 @@
+# ==========================================================================
+# maison-palettia.service — the site + admin as one systemd service
+# ==========================================================================
+#
+# Install (once, as root):
+#   cp deploy/maison-palettia.service /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable maison-palettia
+#   # let the deploy user restart it without a password, and nothing else:
+#   echo 'maison ALL=(root) NOPASSWD: /usr/bin/systemctl restart maison-palettia' > /etc/sudoers.d/maison-palettia
+#
+# Layout it assumes (docs/cms-runbook.md, "Server layout"):
+#   /srv/maison-palettia/app/              git checkout · .env · media/ · private/
+#   /srv/maison-palettia/releases/<rel>/   standalone copies made by scripts/deploy.sh
+#   /srv/maison-palettia/releases/current  → the live release
+#
+# The process runs from the release, never from app/.next: `next build`
+# empties that folder while it works, and the live site must not notice.
+# The release's media/, private/ and .env are symlinks back into app/, and
+# cms/lib/paths.ts resolves uploads through them (spike G12).
+#
+# Environment: the three keys come from app/.env, which the standalone
+# server loads itself (through the release's .env symlink). Only what the
+# process manager owns is set here: NODE_ENV, PORT, HOSTNAME (SPEC §C.1).
+# HOSTNAME=127.0.0.1 keeps the app off the public interface — the reverse
+# proxy is the only way in, which is what makes the app's reading of the
+# last X-Forwarded-For hop trustworthy.
+#
+# One process (SPEC §A.5): the in-memory revalidation cache, rate-limit
+# buckets and job runner all assume it. Do not add a second instance
+# without the cacheHandlers / shouldAutoRun changes the SPEC describes.
+# ==========================================================================
+[Unit]
+Description=Maison Palettia (Next.js site + Payload admin)
+Documentation=file:///srv/maison-palettia/app/docs/cms-runbook.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=maison
+Group=maison
+WorkingDirectory=/srv/maison-palettia/releases/current
+ExecStart=/usr/bin/node /srv/maison-palettia/releases/current/server.js
+Environment=NODE_ENV=production
+Environment=PORT=3200
+Environment=HOSTNAME=127.0.0.1
+Environment=NEXT_TELEMETRY_DISABLED=1
+
+# If Payload cannot reach the database at boot the process stays up and
+# answers 500 (DECISIONS.md #7) — deploy.sh's health check catches that.
+# A crash restarts it; five crashes in two minutes stop trying and leave
+# the unit "failed" for the monitor to see.
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=120
+StartLimitBurst=5
+TimeoutStopSec=20
+KillSignal=SIGTERM
+
+# Hardening. The app writes only to uploads, invoice PDFs and its own
+# release (Next's ISR cache under .next/).
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/srv/maison-palettia/app/media /srv/maison-palettia/app/private /srv/maison-palettia/releases
+# The Postgres CA for sslmode=verify-full lives under /etc/ssl and is read-only, which is all it needs.
+
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=maison-palettia
+
+[Install]
+WantedBy=multi-user.target

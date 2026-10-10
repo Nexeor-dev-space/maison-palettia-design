@@ -5,7 +5,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import type { Pass, Workshop } from "@/types";
 
 /**
- * The basket, for a booking journey that has no backend.
+ * The basket — the browser half of the booking journey.
  *
  * A module-level store read through `useSyncExternalStore` rather than a React
  * context, and that is a deliberate choice: a provider would have to be mounted
@@ -22,10 +22,17 @@ import type { Pass, Workshop } from "@/types";
  * THE SNAPSHOT IS THE POINT. Each line stores what the session looked like
  * when it was added rather than a slug to look up later, because checkout is a
  * client tree with no access to the data layer. The price shown at checkout is
- * therefore the price that was shown when the visitor chose — which is the
- * behaviour you want anyway. TODO(client): when a real backend exists it must
- * re-price and re-check availability server-side before taking payment. A
- * client-held snapshot is a convenience, never a source of truth.
+ * therefore the price that was shown when the visitor chose, which is what a
+ * basket should show. It is a convenience, never a source of truth: the
+ * server re-prices every line from the database and re-checks the seats
+ * inside the checkout transaction (`startCheckout`, SPEC §H.3), and the
+ * amount Mamo charges is the server's.
+ *
+ * THE SECOND HALF OF THIS FILE talks to the server: the `basketId` that lets
+ * a double-pressed Pay re-use one order instead of holding the seats twice,
+ * `startCheckout` and `requestQuote` (the fetches behind checkout's Pay
+ * button and code box), and the note of a payment in flight so the
+ * confirmation knows which basket to clear.
  */
 
 const STORAGE_KEY = "maison-palettia:booking";
@@ -62,6 +69,12 @@ interface CartLineBase {
    * a session can never collide and evict each other.
    */
   slug: string;
+  /**
+   * The CMS document id (`sessions` or `passes`) — what `startCheckout` and
+   * `quote` take. Optional: lines added before Phase 3 have none, and
+   * checkout resolves those from the slug (`getCheckoutCatalogue`).
+   */
+  id?: string;
   title: string;
   /** The term printed above the title, e.g. "Painting", or "Loyalty pass". */
   category: string;
@@ -192,11 +205,12 @@ const getSnapshot = () => cart;
 /** The server has no basket. Returning a stable empty cart avoids a mismatch. */
 const getServerSnapshot = () => EMPTY;
 
-/** Turn a session into a basket line. The cap travels with it. */
-export function toCartLine(workshop: Workshop, quantity: number): SessionCartLine {
+/** Turn a session into a basket line. The cap travels with it; so does the CMS id when the page knows it. */
+export function toCartLine(workshop: Workshop, quantity: number, id?: string): SessionCartLine {
   return {
     kind: "session",
     slug: workshop.slug,
+    ...(id ? { id } : {}),
     title: workshop.title,
     category: workshop.category,
     startsAt: workshop.startsAt,
@@ -234,8 +248,8 @@ export function passLineSlug(slug: string): string {
  *
  * NO CAP ON QUANTITY, and deliberately. A session's cap is `seatsAvailable`,
  * which is real data about a real table; there is no equivalent for a pass,
- * and a number invented here would be a limit the studio never set. The real
- * one belongs server-side with the re-pricing — see the note on `placeBooking`.
+ * and a number invented here would be a limit the studio never set. Any real
+ * limit is the server's, applied when it re-prices the basket.
  */
 export function toPassCartLine(pass: Pass, quantity: number): PassCartLine | null {
   if (!pass.price) return null;
@@ -288,7 +302,11 @@ export function useCart() {
     write({ lines: read().lines.filter((l) => l.slug !== slug) });
   }, []);
 
-  const clear = useCallback(() => write(EMPTY), []);
+  const clear = useCallback(() => {
+    write(EMPTY);
+    // A new basket is a new booking: the next Pay must not re-use this order.
+    forgetBasketId();
+  }, []);
 
   const subtotal = value.lines.reduce((sum, l) => sum + l.priceAmount * l.quantity, 0);
   const places = value.lines.reduce((sum, l) => sum + l.quantity, 0);
@@ -378,11 +396,12 @@ export function saveBookingDetails(next: BookingDetails) {
 }
 
 /**
- * Forget the details once the booking they were given for has been placed.
+ * Forget the details once the booking they were given for has been paid.
  *
- * They are kept only to carry a booking in progress between its two steps.
- * Once it is placed, nothing reads them — the confirmation reads the stored
- * record, not these — and leaving them in the tab would hand the next
+ * They are kept only to carry a booking in progress between its steps — and
+ * across the trip to the payment page and back, because a declined card
+ * returns to checkout with the form still filled. Once the order is
+ * confirmed, nothing reads them, and leaving them in the tab would hand the next
  * booking's form someone else's name, email and phone. This site is used on
  * shared studio tablets and on phones passed across a mall counter, so "the
  * next booking in this tab" is quite often the next person.
@@ -432,4 +451,305 @@ export function validateBookingDetails(input: BookingDetails): Record<string, st
   }
 
   return errors;
+}
+
+/* ==========================================================================
+   Talking to the server — the basketId, checkout, quotes
+   ========================================================================== */
+
+const BASKET_ID_KEY = "maison-palettia:basket-id";
+const WAITLIST_KEY = "maison-palettia:waitlist-token";
+const PENDING_KEY = "maison-palettia:pending-payment";
+
+function storageGet(key: string): string | null {
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storageSet(key: string, value: string | null) {
+  try {
+    if (value === null) window.sessionStorage.removeItem(key);
+    else window.sessionStorage.setItem(key, value);
+  } catch {
+    // Storage unavailable: the in-flight checkout still works; only the
+    // re-use of its order across a reload is lost.
+  }
+}
+
+/** RFC 4122 v4 — `crypto.randomUUID` where it exists (every secure context), bytes otherwise. */
+function uuid(): string {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+/** What the basket holds, as one comparable string: kind, slug and quantity of every line. */
+export function basketFingerprint(lines: readonly CartLine[]): string {
+  return lines
+    .map((line) => `${line.kind}:${line.slug}:${line.quantity}`)
+    .sort()
+    .join("|");
+}
+
+/**
+ * The basket's id for `startCheckout` (SPEC §H.3 "Basket reuse").
+ *
+ * The server re-uses an open order with the same basketId and email instead
+ * of creating a second one — so a double-pressed Pay, a back button from the
+ * payment page, or a retry after a declined card all land on ONE order
+ * holding the seats once, rather than each press holding them again until
+ * the hold expires (self-inflicted sell-outs).
+ *
+ * Bound to what the basket holds. Changing a quantity or a line after a
+ * payment attempt mints a new id, because the old order was priced and held
+ * for different seats and must not be paid for as though it were this one;
+ * its hold simply lapses.
+ */
+export function basketIdFor(lines: readonly CartLine[]): string {
+  const fingerprint = basketFingerprint(lines);
+  const raw = storageGet(BASKET_ID_KEY);
+  if (raw) {
+    try {
+      const stored = JSON.parse(raw) as { id?: unknown; fingerprint?: unknown };
+      if (typeof stored.id === "string" && stored.fingerprint === fingerprint) return stored.id;
+    } catch {
+      // Unreadable: mint a fresh one below.
+    }
+  }
+  const id = uuid();
+  storageSet(BASKET_ID_KEY, JSON.stringify({ id, fingerprint }));
+  return id;
+}
+
+function forgetBasketId() {
+  storageSet(BASKET_ID_KEY, null);
+}
+
+/**
+ * The waitlist offer token (`/events/{slug}/book?w=…`, SPEC §H.11). Carried
+ * from the booking step to checkout so `startCheckout` may take a seat on a
+ * session that is still marked waitlist. Kept with the session it was issued
+ * for: it means nothing for any other line.
+ */
+export function saveWaitlistToken(sessionSlug: string, token: string | null) {
+  storageSet(WAITLIST_KEY, token ? JSON.stringify({ slug: sessionSlug, token }) : null);
+}
+
+export function readWaitlistToken(lines: readonly CartLine[]): string | undefined {
+  const raw = storageGet(WAITLIST_KEY);
+  if (!raw) return undefined;
+  try {
+    const stored = JSON.parse(raw) as { slug?: unknown; token?: unknown };
+    if (typeof stored.token !== "string" || !/^[A-Za-z0-9_-]{8,64}$/.test(stored.token)) return undefined;
+    return lines.some((line) => line.kind === "session" && line.slug === stored.slug) ? stored.token : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The order a payment is in flight for. Written just before the browser
+ * leaves for the payment page, read by the confirmation: when that order is
+ * confirmed, the basket it was made from is cleared — and only then, so a
+ * declined card comes back to a basket that is still full.
+ */
+export function notePendingPayment(reference: string) {
+  storageSet(PENDING_KEY, reference);
+}
+
+export function pendingPaymentReference(): string | null {
+  return storageGet(PENDING_KEY);
+}
+
+/**
+ * The booking is paid: forget everything this tab kept for it — the basket,
+ * the details (the next booking on a shared tablet is often the next person),
+ * the basketId, the waitlist token and the in-flight note.
+ */
+export function completeBooking() {
+  write(EMPTY);
+  details = null;
+  detailsHydrated = true;
+  storageSet(DETAILS_KEY, null);
+  detailsListeners.forEach((listener) => listener());
+  forgetBasketId();
+  storageSet(WAITLIST_KEY, null);
+  storageSet(PENDING_KEY, null);
+}
+
+/* -------------------------------------------------------------------------- */
+
+/** One line as `startCheckout` and `quote` take it (`QuoteLineInput`, SPEC §O). */
+export interface CheckoutLineInput {
+  kind: "session" | "pass";
+  id: string;
+  qty: number;
+}
+
+/**
+ * The body of `POST /api/site/checkout/start` — `StartCheckoutInput` minus
+ * what only the server may say (`channel`, `source`, `desk`), plus the
+ * booking step's optional note.
+ */
+export interface StartCheckoutBody {
+  basketId: string;
+  details: { firstName: string; lastName: string; email: string; phone: string; marketingOptIn?: boolean };
+  /** "Anything we should know" — `orders.notes`. */
+  notes?: string;
+  lines: CheckoutLineInput[];
+  codes: string[];
+  consents: Array<{ policy: string; version: number }>;
+  waitlistToken?: string;
+}
+
+export type StartCheckoutOutcome =
+  /** Go and pay: `location.assign(paymentUrl)`. */
+  | { status: "redirect"; reference: string; paymentUrl: string; holdExpiresAt: string }
+  /** Nothing to pay (pass credits or a 100 % code): straight to the confirmation. */
+  | { status: "paid"; reference: string; k: string }
+  /** A session has fewer seats than asked for; `available` is the live count when the server gave it. */
+  | { status: "sold_out"; available?: number; sessionId?: string }
+  /** Bookings were switched off between the page loading and the press. */
+  | { status: "closed" }
+  /** No payment provider is set up (production without a key). */
+  | { status: "gateway_disabled" }
+  | { status: "rate_limited" }
+  | { status: "invalid"; message?: string }
+  /** The order exists and the seats are held, but the payment page could not be made. Pressing again retries. */
+  | { status: "payment_link_failed" }
+  | { status: "error" };
+
+type Json = Record<string, unknown>;
+
+async function postJson(url: string, body: unknown): Promise<{ response: Response; json: Json } | null> {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    let json: Json = {};
+    try {
+      json = (await response.json()) as Json;
+    } catch {
+      // Not JSON (a proxy page): judged by the status alone.
+    }
+    return { response, json };
+  } catch {
+    return null;
+  }
+}
+
+const text = (value: unknown) => (typeof value === "string" && value ? value : undefined);
+
+/**
+ * Press Pay. Returns rather than throws, so checkout can say exactly what
+ * happened. The response shapes are `StartCheckoutResult` (SPEC §O) on 200,
+ * and `{ reason }` on the refusals SPEC §H.3 lists: 409 sold out, 503
+ * bookings closed / gateway disabled, 502 payment link failed.
+ */
+export async function startCheckout(body: StartCheckoutBody): Promise<StartCheckoutOutcome> {
+  const result = await postJson("/api/site/checkout/start", body);
+  if (!result) return { status: "error" };
+  const { response, json } = result;
+  const reference = text(json.reference);
+
+  if (response.ok && reference) {
+    if (json.paid === true && text(json.k)) return { status: "paid", reference, k: text(json.k)! };
+    const paymentUrl = text(json.paymentUrl);
+    // Only ever an http(s) URL — a body is not trusted to choose a scheme.
+    if (paymentUrl && /^https?:\/\//.test(paymentUrl)) {
+      return { status: "redirect", reference, paymentUrl, holdExpiresAt: text(json.holdExpiresAt) ?? "" };
+    }
+    if (paymentUrl?.startsWith("/")) {
+      return { status: "redirect", reference, paymentUrl, holdExpiresAt: text(json.holdExpiresAt) ?? "" };
+    }
+    return { status: "error" };
+  }
+
+  const reason = text(json.reason);
+  if (response.status === 409 || reason === "sold_out") {
+    return {
+      status: "sold_out",
+      available: typeof json.available === "number" ? json.available : undefined,
+      sessionId: text(json.sessionId),
+    };
+  }
+  if (reason === "bookings_closed") return { status: "closed" };
+  // `not_ready`: a part of the booking machinery is not deployed yet — to the customer, the same as no gateway.
+  if (reason === "gateway_disabled" || reason === "not_ready") return { status: "gateway_disabled" };
+  if (response.status === 429) return { status: "rate_limited" };
+  // 422 `amount_below_minimum`: under Mamo's AED 2 floor — the server's message says so.
+  if (response.status === 400 || response.status === 422) return { status: "invalid", message: text(json.message) };
+  if (response.status === 502) return { status: "payment_link_failed" };
+  return { status: "error" };
+}
+
+export type RejectedCodeReason = "invalid" | "expired" | "exhausted" | "min_spend" | "not_applicable" | "one_promo_only";
+
+/** What checkout shows of a server quote: totals in fils, and which codes did not apply and why. */
+export interface QuoteView {
+  totals: { subtotalFils: number; discountFils: number; grossFils: number; vatFils: number };
+  rejectedCodes: Array<{ code: string; reason: RejectedCodeReason }>;
+  /** The promo that applied, if any. */
+  promo?: { code: string; discountFils: number };
+  /** Session credits taken from a pass held by this email. */
+  passCredits: number;
+}
+
+export type QuoteOutcome =
+  | { status: "ok"; quote: QuoteView }
+  | { status: "unavailable" }
+  | { status: "rate_limited" }
+  | { status: "error" };
+
+const REASONS: ReadonlySet<string> = new Set(["invalid", "expired", "exhausted", "min_spend", "not_applicable", "one_promo_only"]);
+
+/**
+ * Ask the server what this basket costs with these codes (`POST
+ * /api/site/checkout/quote` → `Quote`, SPEC §O). Nothing is reserved; the
+ * same pricing runs again, atomically, when Pay is pressed. A route that is
+ * not there yet answers `unavailable`, and the code box says codes cannot be
+ * checked right now rather than calling a good code wrong.
+ */
+export async function requestQuote(body: { lines: CheckoutLineInput[]; codes: string[]; email?: string }): Promise<QuoteOutcome> {
+  const result = await postJson("/api/site/checkout/quote", body);
+  if (!result) return { status: "error" };
+  const { response, json } = result;
+  if (response.status === 429) return { status: "rate_limited" };
+  if (response.status === 404 || response.status === 501 || response.status === 503) return { status: "unavailable" };
+  if (!response.ok) return { status: "error" };
+
+  const totals = (json.totals ?? {}) as Json;
+  const fils = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? Math.round(value) : 0);
+  if (typeof totals.grossFils !== "number") return { status: "error" };
+
+  const rejected = Array.isArray(json.rejectedCodes) ? (json.rejectedCodes as Json[]) : [];
+  const promo = (json.promo ?? null) as Json | null;
+  // Pass credits per line (`lines[].passCredits`) — the quote route does not
+  // return pass-purchase ids, so an anonymous quote cannot probe who holds a pass.
+  const pricedLines = Array.isArray(json.lines) ? (json.lines as Json[]) : [];
+  return {
+    status: "ok",
+    quote: {
+      totals: {
+        subtotalFils: fils(totals.subtotalFils),
+        discountFils: fils(totals.discountFils),
+        grossFils: fils(totals.grossFils),
+        vatFils: fils(totals.vatFils),
+      },
+      rejectedCodes: rejected
+        .filter((entry) => typeof entry.code === "string" && REASONS.has(String(entry.reason)))
+        .map((entry) => ({ code: String(entry.code), reason: entry.reason as RejectedCodeReason })),
+      promo: promo && typeof promo.code === "string" ? { code: promo.code, discountFils: fils(promo.discountFils) } : undefined,
+      passCredits: pricedLines.reduce((sum, entry) => sum + fils(entry.passCredits), 0),
+    },
+  };
 }

@@ -114,15 +114,16 @@ function summarise(workshops: Workshop[], renderedAt: number): LocationSummary[]
  * after it when its own begins; once none is left the line is simply not
  * there, rather than a date that has gone by or a promise of one to come.
  */
-function nextDateLine(upcoming: readonly Workshop[]): ReactNode {
+function nextDateLine(upcoming: readonly Workshop[], template: string): ReactNode {
   return upcoming.reduceRight<ReactNode>((later, session) => {
     const { weekday } = sessionDateParts(session.startsAt);
+    const label = template.replace("{weekday}", weekday).replace("{date}", formatSessionDate(session.startsAt));
     return (
       <SessionGate
         startsAt={session.startsAt}
         open={
           <span className="mt-4 block text-label font-medium uppercase tracking-eyebrow text-text/75">
-            Next {weekday} {formatSessionDate(session.startsAt)}
+            {label}
           </span>
         }
         passed={later}
@@ -131,7 +132,28 @@ function nextDateLine(upcoming: readonly Workshop[]): ReactNode {
   }, null);
 }
 
-export function WhereWeSetUp({ workshops, renderedAt }: WhereWeSetUpProps) {
+/*
+  THE WORDS ARE THE `whereWeSetUp` BLOCK'S (SPEC §E.1, components/blocks/
+  WhereWeSetUp.tsx) when /events is drawn from the CMS: the eyebrow, the
+  heading, the line under it (Brand wording's "find us" line by default), the
+  next-date label — `{weekday}` and `{date}` are filled per venue — and the
+  button. Left out, each is the wording this section shipped with.
+*/
+export function WhereWeSetUp({
+  workshops,
+  renderedAt,
+  eyebrow = "Find us",
+  heading = "Your Next Creative Stop.",
+  lead = "Find Maison Palettia in the places you already love to visit \u2014 and come make something while you\u2019re there.",
+  nextLabelTemplate = "Next {weekday} {date}",
+  cta = { label: "Find the studio", href: "/locations" },
+}: WhereWeSetUpProps & {
+  eyebrow?: string | null;
+  heading?: string | null;
+  lead?: string | null;
+  nextLabelTemplate?: string;
+  cta?: { label: string; href: string } | null;
+}) {
   const locations = summarise(workshops, renderedAt);
   if (locations.length === 0) return null;
 
@@ -165,29 +187,30 @@ export function WhereWeSetUp({ workshops, renderedAt }: WhereWeSetUpProps) {
           a counted heading and "The studio travels…" were the wording that
           rewrite retired.
         */}
+        {eyebrow ? (
         <Reveal>
           {/* `ground="lilac"` takes the near-white ink and the Light Sage
               rule; `justify-center` is all that centring an eyebrow needs. */}
           <Eyebrow ground="lilac" className="justify-center">
-            Find us
+            {eyebrow}
           </Eyebrow>
         </Reveal>
+        ) : null}
 
         <Reveal delay={0.06}>
           <h2
             id="locations-heading"
             className="heading-script mx-auto mt-6 max-w-[16ch] text-balance pb-[0.3em] text-script-section text-surface"
           >
-            Your Next Creative Stop.
+            {heading}
           </h2>
         </Reveal>
 
-        <Reveal delay={0.12}>
-          <p className="mx-auto mt-2 max-w-[40ch] text-lead text-surface">
-            Find Maison Palettia in the places you already love to visit — and come
-            make something while you&rsquo;re there.
-          </p>
-        </Reveal>
+        {lead ? (
+          <Reveal delay={0.12}>
+            <p className="mx-auto mt-2 max-w-[40ch] text-lead text-surface">{lead}</p>
+          </Reveal>
+        ) : null}
 
         {/*
           The destinations themselves, as White Rock plates on the field.
@@ -217,7 +240,7 @@ export function WhereWeSetUp({ workshops, renderedAt }: WhereWeSetUpProps) {
                       {/* The next date only. The count of events that sat above
                           it is gone with the client's no-counts rule — see the
                           note at the head of this file. */}
-                      {nextDateLine(location.upcoming)}
+                      {nextDateLine(location.upcoming, nextLabelTemplate)}
                     </span>
                   </div>
                 </Reveal>
@@ -226,15 +249,17 @@ export function WhereWeSetUp({ workshops, renderedAt }: WhereWeSetUpProps) {
           })}
         </ul>
 
+        {cta ? (
         <Reveal delay={0.2}>
           {/* `cream` is the tone for a button standing ON Deep Lilac — a lilac
               one cannot be seen at all. See <BlobButton>. */}
           <div className="mt-11 flex justify-center md:mt-12">
-            <BlobButton href="/locations" tone="cream" className="min-h-[3.25rem] px-8">
-              Find the studio
+            <BlobButton href={cta.href} tone="cream" className="min-h-[3.25rem] px-8">
+              {cta.label}
             </BlobButton>
           </div>
         </Reveal>
+        ) : null}
       </Container>
     </section>
   );

@@ -14,7 +14,7 @@ import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { BasketLink } from "@/components/layout/BasketLink";
 import { linkPaint } from "@/components/layout/PaintStroke";
-import { DARK_HERO_ROUTES, LIGHT_HERO_ROUTES, MAIN_NAV } from "@/lib/constants";
+import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 import type { CreativeExperience } from "@/lib/experiences";
@@ -155,6 +155,8 @@ export function HeaderBar({
   workshops: Workshop[];
 }) {
   const pathname = usePathname();
+  // Menus and Site details (the hero routes), from the layout — see SiteChrome.
+  const { mainNav, heroRoutes } = useSiteChrome();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   /*
     Whether a panel is down under the bar — either of them.
@@ -283,8 +285,8 @@ export function HeaderBar({
   // same white the bar itself would otherwise be fading out of.
   // A light hero — the homepage's Light Sage banner — earns the transparent
   // bar too, but not the light ink: see LIGHT_HERO_ROUTES.
-  const isOverDarkHero = DARK_HERO_ROUTES.includes(pathname);
-  const isOverHero = isOverDarkHero || LIGHT_HERO_ROUTES.includes(pathname);
+  const isOverDarkHero = heroRoutes.dark.includes(pathname);
+  const isOverHero = isOverDarkHero || heroRoutes.light.includes(pathname);
   const overlayOpen = isMenuOpen || isSearchOpen;
 
   /*
@@ -352,9 +354,9 @@ export function HeaderBar({
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
   // One source, split by role for the desktop bar only — the mobile menu and
-  // the footer still read MAIN_NAV whole and in order.
-  const primaryNav = MAIN_NAV.filter((item) => !item.secondary && !item.utility);
-  const utilityNav = MAIN_NAV.filter((item) => !item.secondary && item.utility);
+  // the footer still read the Menus list whole and in order.
+  const primaryNav = mainNav.filter((item) => !item.secondary && !item.utility);
+  const utilityNav = mainNav.filter((item) => !item.secondary && item.utility);
 
   return (
     <>

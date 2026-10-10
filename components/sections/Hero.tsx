@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Fragment } from "react";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { DOODLE_PLAN, DRAW_ORDER, type DoodlePlan } from "@/components/sections/hero/composition";
@@ -6,6 +7,7 @@ import { resolveIcon } from "@/components/sections/hero/doodles";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { HeroIntro } from "@/components/sections/hero/HeroIntro";
 import { cn } from "@/lib/utils";
+import type { ImageAsset } from "@/types";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
@@ -164,8 +166,78 @@ const HERO_IMAGE = {
  * themselves as a bouquet on Light Sage, then the doodles fly home behind the
  * card as the photograph blooms open and the words rise.
  */
-export function Hero() {
+/*
+  WHAT THE CMS SUPPLIES (the `hero` block, components/blocks/Hero.tsx).
+
+  Every prop defaults to the wording and the files this banner shipped with,
+  so `<Hero />` is still the launch banner; the block passes what an editor
+  stored, `null` meaning "leave it out". The choreography — the intro, the
+  doodles, the opening card, every class below — stays here and takes no
+  data at all: an editor can change what the banner says and shows, not how
+  it moves.
+*/
+export type HeroAction = { label: string; href: string };
+
+export interface HeroProps {
+  /** The script headline, one entry per line. */
+  lines?: readonly string[];
+  /** Which line takes the accent ink. */
+  accentLine?: number;
+  sub?: string | null;
+  lead?: string | null;
+  primary?: HeroAction | null;
+  secondary?: HeroAction | null;
+  /** The wide photograph; its `position` is the desktop crop. */
+  image?: ImageAsset | null;
+  /** The phone's own photograph. */
+  imageMobile?: ImageAsset | null;
+  scrollCue?: { label: string; target: string } | null;
+}
+
+const DEFAULT_LINES = ["A Palette of", "Creativity", "for Everyone."] as const;
+
+/*
+  A CENTRED FOCAL POINT IS PAYLOAD'S "NOT SET". Every upload carries one
+  (50% 50% until an editor drags it), so a centred point cannot be told
+  apart from no choice at all. The wide file keeps the phone-width crop it
+  was tuned to — see `position` on HERO_IMAGE — unless the editor has
+  actually moved the point, in which case their choice is the crop at
+  every width.
+*/
+function cropOf(asset: ImageAsset, fallback: string): string {
+  return asset.position && asset.position !== "50% 50%" ? asset.position : fallback;
+}
+
+export function Hero({
+  lines = DEFAULT_LINES,
+  accentLine = 1,
+  sub = "There\u2019s no wrong shade of creativity.",
+  lead = "Pick your palette, get your hands busy and make something that\u2019s completely yours.",
+  primary = { label: "Explore experiences", href: "/events" },
+  secondary = { label: "Plan a private event", href: "/private-events" },
+  image,
+  imageMobile,
+  scrollCue = { label: "Scroll down", target: "#experience-discovery" },
+}: HeroProps = {}) {
   const delay = (ms: number): Vars => ({ "--reveal-delay": `${ms}ms` });
+
+  const desktop =
+    image === undefined
+      ? HERO_IMAGE
+      : image
+        ? {
+            src: image.src,
+            alt: image.alt,
+            position: { desktop: image.position ?? "50% 50%", mobile: cropOf(image, HERO_IMAGE.position.mobile) },
+            lift: HERO_IMAGE.lift,
+          }
+        : null;
+  const mobile =
+    imageMobile === undefined
+      ? HERO_IMAGE.mobile
+      : imageMobile
+        ? { src: imageMobile.src, alt: imageMobile.alt, position: imageMobile.position ?? "50% 50%", lift: HERO_IMAGE.mobile.lift }
+        : null;
 
   return (
     <section
@@ -221,9 +293,10 @@ export function Hero() {
                 beat later than a preload would start it, on the connection
                 that can afford the beat.
               */}
+              {mobile ? (
               <Image
-                src={HERO_IMAGE.mobile.src}
-                alt={HERO_IMAGE.mobile.alt}
+                src={mobile.src}
+                alt={mobile.alt}
                 fill
                 priority
                 /*
@@ -239,16 +312,18 @@ export function Hero() {
                 sizes="70vh"
                 style={
                   {
-                    "--pos-m": HERO_IMAGE.mobile.position,
-                    "--lift": HERO_IMAGE.mobile.lift,
+                    "--pos-m": mobile.position,
+                    "--lift": mobile.lift,
                   } as Vars
                 }
                 className={cn(styles.cardImage, styles.cardImageMobile)}
               />
+              ) : null}
 
+              {desktop ? (
               <Image
-                src={HERO_IMAGE.src}
-                alt={HERO_IMAGE.alt}
+                src={desktop.src}
+                alt={desktop.alt}
                 fill
                 loading="lazy"
                 fetchPriority="high"
@@ -278,13 +353,14 @@ export function Hero() {
                 sizes="(max-width: 1023px) 190vh, 110vw"
                 style={
                   {
-                    "--pos-d": HERO_IMAGE.position.desktop,
-                    "--pos-m": HERO_IMAGE.position.mobile,
-                    "--lift": HERO_IMAGE.lift,
+                    "--pos-d": desktop.position.desktop,
+                    "--pos-m": desktop.position.mobile,
+                    "--lift": desktop.lift,
                   } as Vars
                 }
                 className={cn(styles.cardImage, styles.cardImageDesktop)}
               />
+              ) : null}
             </div>
             <div aria-hidden className={styles.scrim} />
           </div>
@@ -297,15 +373,17 @@ export function Hero() {
                   as "A Palette of Creativity for Everyone." The small words
                   stay lower case, which is what their own mock-up does and
                   what title case means. */}
-              <span className={styles.line} style={delay(0)}>
-                <span className={styles.lineInner}>A Palette of</span>
-              </span>{" "}
-              <span className={styles.line} style={delay(90)}>
-                <span className={cn(styles.lineInner, styles.accent)}>Creativity</span>
-              </span>{" "}
-              <span className={styles.line} style={delay(180)}>
-                <span className={styles.lineInner}>for Everyone.</span>
-              </span>
+              {/* One span per line, 90ms apart — the stagger the three
+                  hand-set lines always had. Lines are joined by a space so
+                  the heading reads as one sentence to a screen reader. */}
+              {lines.map((line, i) => (
+                <Fragment key={i}>
+                  {i > 0 ? " " : null}
+                  <span className={styles.line} style={delay(i * 90)}>
+                    <span className={cn(styles.lineInner, i === accentLine && styles.accent)}>{line}</span>
+                  </span>
+                </Fragment>
+              ))}
             </h1>
 
             {/*
@@ -322,6 +400,7 @@ export function Hero() {
               globals.css. It stays on the FIRST of the two, because that is
               the one now sitting under the script.
             */}
+            {sub ? (
             <p
               className={cn(
                 styles.reveal,
@@ -340,9 +419,11 @@ export function Hero() {
               )}
               style={delay(240)}
             >
-              There&rsquo;s no wrong shade of creativity.
+              {sub}
             </p>
+            ) : null}
 
+            {lead ? (
             <p
               className={cn(
                 styles.reveal,
@@ -359,9 +440,9 @@ export function Hero() {
               )}
               style={delay(320)}
             >
-              Pick your palette, get your hands busy and make something that&rsquo;s
-              completely yours.
+              {lead}
             </p>
+            ) : null}
 
             <div data-hero-actions className={styles.actions}>
               {/* The banner stands on the photograph, not on Light Sage, so it
@@ -369,8 +450,9 @@ export function Hero() {
                   on a bad measurement: the probe sampled the ground here while
                   <HeroIntro> was still covering the banner, and read the
                   intro's own sage backdrop instead of the picture. */}
+              {primary ? (
               <BlobButton
-                href="/events"
+                href={primary.href}
                 tone="sage"
                 /*
                   52px ON A PHONE, 60 FROM `md`. The pair stacks below `md` —
@@ -380,8 +462,9 @@ export function Hero() {
                 */
                 className="min-h-[3.25rem] px-9 shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)] md:min-h-[3.75rem]"
               >
-                Explore experiences
+                {primary.label}
               </BlobButton>
+              ) : null}
               {/*
                 A STICKY NOTE, at the client's ask (2026-10-07): translucent
                 handmade paper stuck over the label, the primary's own size,
@@ -390,16 +473,19 @@ export function Hero() {
                 every word shows, the flap standing hinged at the far end.
                 See <PeelNote>.
               */}
-              <PeelNote href="/private-events" className="min-h-[3.25rem] min-w-[20.125rem] px-9 md:min-h-[3.75rem]">
-                Plan a private event
+              {secondary ? (
+              <PeelNote href={secondary.href} className="min-h-[3.25rem] min-w-[20.125rem] px-9 md:min-h-[3.75rem]">
+                {secondary.label}
               </PeelNote>
+              ) : null}
             </div>
           </div>
 
           {/* ---- the way down, until the page moves ---- */}
+          {scrollCue ? (
           <div data-hero-cue className={styles.cue}>
             <a
-              href="#experience-discovery"
+              href={scrollCue.target}
               aria-label="Scroll down to Creative experiences"
               className={cn(
                 styles.reveal,
@@ -407,7 +493,7 @@ export function Hero() {
               )}
               style={delay(380)}
             >
-              Scroll down
+              {scrollCue.label}
               {/* Two of the three drops are this span's own pseudo-elements;
                   the third is the child, because there are only two to a box.
                   See `.cueLine` in Hero.module.css. */}
@@ -416,6 +502,7 @@ export function Hero() {
               </span>
             </a>
           </div>
+          ) : null}
         </div>
       </div>
     </section>

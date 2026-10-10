@@ -1,0 +1,2136 @@
+/*
+  ==========================================================================
+  Admin theme — Maison Palettia on top of Payload (SPEC §I "Branding", 4B)
+  ==========================================================================
+
+  Imported ONLY by app/(payload)/layout.tsx, so nothing here can reach the
+  site, and nothing from the site's Tailwind graph reaches the admin
+  (docs/cms/research/00-spike.md, G6).
+
+  HOW THE OVERRIDES WIN. Payload ships every rule inside `@layer
+  payload-default`; this file is unlayered, so each rule here beats the
+  stock one whatever its specificity. Everything goes through Payload's own
+  custom properties (`--theme-*`, `--style-radius-*`, `--font-body`) where a
+  property exists, so the light and dark themes, the toasts, the pickers and
+  the drawers all pick the palette up without a selector each. Selectors are
+  used only where Payload has no variable: primary buttons, the nav, the
+  login card, the dashboard cards.
+
+  THE PALETTE (brand guidelines):
+    Deep Lilac   #9059a4  the accent — primary buttons, active nav, focus
+    Light Sage   #d1e7be  success tints (published, sent, checked in)
+    White Rock   #efe2ca  the warm neutral the greys are tinted towards
+    Terracotta   #d97757  warnings, sparingly
+    Charcoal     #2d3748  text and dark grounds
+  Montserrat is the interface face (the same variable file the site loads
+  from public/fonts); Hapsha Sophia Script appears exactly twice — the
+  dashboard greeting and the login — as the brand allows.
+
+  Section map:
+    1. Fonts and tokens (light, then dark)
+    2. Chrome: nav, header, dashboard, lists, documents, login
+    3. The admin components this phase ships (prefix `mp-`)
+    4. Phase 1–3 field components (SecretField, VerifyButton, MoneyField)
+*/
+
+/* ── 1. Fonts ────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat-Variable-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hapsha Sophia Script";
+  src: url("/fonts/HapshaSophiaScript_01.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── 1. Tokens — light (the default, payload.config.ts `theme: "light"`) ─── */
+
+:root {
+  --font-body: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-script: "Hapsha Sophia Script", "Snell Roundhand", "Brush Script MT", cursive;
+
+  /* Softer corners than Payload's 3/4/8. */
+  --style-radius-s: 6px;
+  --style-radius-m: 10px;
+  --style-radius-l: 16px;
+
+  /* Brand constants, for the few rules that need the literal colour. */
+  --mp-lilac: #9059a4;
+  --mp-lilac-deep: #7a4a8c;
+  --mp-lilac-ink: #5c3669;
+  --mp-lilac-soft: #efe6f3;
+  --mp-lilac-mist: #f7f2f9;
+  --mp-sage: #d1e7be;
+  --mp-sage-ink: #3f6b3a;
+  --mp-cream: #efe2ca;
+  --mp-terracotta: #d97757;
+  --mp-charcoal: #2d3748;
+  /*
+    Muted ink for small print (eyebrows, palette group labels, sub-lines).
+    Payload's --theme-elevation-450 (#7f7971) is 4.1:1 on the cream — below
+    AA for 11px text (axe, 4B review); this is ≥ 5:1 on cream, white and the
+    lilac tints the palette's selected row uses.
+  */
+  --mp-ink-muted: #66605a;
+
+  /* Neutrals tinted towards White Rock: warm, never clinical. */
+  --color-base-0: #ffffff;
+  --color-base-50: #f9f6f0;
+  --color-base-100: #f1ece3;
+  --color-base-150: #e7e0d4;
+  --color-base-200: #dbd3c6;
+  --color-base-250: #cdc5b8;
+  --color-base-300: #bbb3a7;
+  --color-base-350: #a7a095;
+  --color-base-400: #928b82;
+  --color-base-450: #7f7971;
+  --color-base-500: #6f6a63;
+  --color-base-550: #605c57;
+  --color-base-600: #524f4c;
+  --color-base-650: #454443;
+  --color-base-700: #3a3d43;
+  --color-base-750: #333a46;
+  --color-base-800: #2d3748;
+  --color-base-850: #26303f;
+  --color-base-900: #1f2733;
+  --color-base-950: #171d27;
+  --color-base-1000: #0f141b;
+
+  /* Success: sage, deepened until it reads as ink. */
+  --color-success-50: #f3f8ee;
+  --color-success-100: #e6f0dc;
+  --color-success-150: #d1e7be;
+  --color-success-200: #bcd9a7;
+  --color-success-250: #a5c98e;
+  --color-success-300: #8fb878;
+  --color-success-350: #79a663;
+  --color-success-400: #659350;
+  --color-success-450: #558343;
+  --color-success-500: #4b7a3c;
+  --color-success-550: #436d36;
+  --color-success-600: #3b6030;
+  --color-success-650: #34542b;
+  --color-success-700: #2d4826;
+  --color-success-750: #263d21;
+  --color-success-800: #1f321b;
+  --color-success-850: #192816;
+  --color-success-900: #131e11;
+  --color-success-950: #0d140c;
+
+  /* Warning: terracotta, kept for the few things that need attention. */
+  --color-warning-50: #fcf4f0;
+  --color-warning-100: #f9e6dd;
+  --color-warning-150: #f4d2c2;
+  --color-warning-200: #efbca6;
+  --color-warning-250: #e9a68a;
+  --color-warning-300: #e38f6f;
+  --color-warning-350: #dd7d5d;
+  --color-warning-400: #d97757;
+  --color-warning-450: #c8674a;
+  --color-warning-500: #b65a3f;
+  --color-warning-550: #a35037;
+  --color-warning-600: #8f4630;
+  --color-warning-650: #7b3d2a;
+  --color-warning-700: #683424;
+  --color-warning-750: #562b1e;
+  --color-warning-800: #452319;
+  --color-warning-850: #361b14;
+  --color-warning-900: #28140f;
+  --color-warning-950: #1b0d0a;
+
+  /* Error: a quieter red that still contrasts with terracotta. */
+  --color-error-50: #fbf1f1;
+  --color-error-100: #f8e0e0;
+  --color-error-150: #f1c6c6;
+  --color-error-200: #e9a9a9;
+  --color-error-250: #e08c8c;
+  --color-error-300: #d67070;
+  --color-error-350: #cb5656;
+  --color-error-400: #bf4242;
+  --color-error-500: #b03636;
+  --color-error-550: #9d2f2f;
+  --color-error-600: #8a2a2a;
+  --color-error-650: #772525;
+  --color-error-700: #652020;
+  --color-error-750: #541b1b;
+  --color-error-800: #441717;
+  --color-error-850: #351212;
+  --color-error-900: #270d0d;
+  --color-error-950: #1a0808;
+
+  /* "blue" is Payload's informational scale; lilac is our information colour. */
+  --color-blue-50: #f7f2f9;
+  --color-blue-100: #efe6f3;
+  --color-blue-150: #e3d3ea;
+  --color-blue-200: #d5bfe0;
+  --color-blue-250: #c6a9d4;
+  --color-blue-300: #b693c7;
+  --color-blue-350: #a67db9;
+  --color-blue-400: #9869ad;
+  --color-blue-450: #9059a4;
+  --color-blue-500: #824f95;
+  --color-blue-550: #744685;
+  --color-blue-600: #663d75;
+  --color-blue-650: #583565;
+  --color-blue-700: #4a2c55;
+  --color-blue-750: #3c2445;
+  --color-blue-800: #2f1c36;
+  --color-blue-850: #221427;
+  --color-blue-900: #160d1a;
+  --color-blue-950: #0d0810;
+
+  --theme-bg: #fcfaf6;
+  --theme-input-bg: #ffffff;
+  --theme-border-color: var(--theme-elevation-150);
+  --mp-nav-bg: #f6f1e8;
+  --mp-card-bg: #ffffff;
+  --mp-shadow: 0 1px 2px rgba(45, 55, 72, 0.04), 0 6px 18px -8px rgba(45, 55, 72, 0.12);
+  --mp-shadow-lg: 0 24px 60px -20px rgba(45, 55, 72, 0.35), 0 2px 6px rgba(45, 55, 72, 0.08);
+  --accessibility-outline: 2px solid var(--mp-lilac);
+}
+
+/* ── 1. Tokens — dark ───────────────────────────────────────────────────── */
+
+html[data-theme="dark"] {
+  --mp-lilac: #b07fc3;
+  --mp-lilac-deep: #c396d3;
+  --mp-lilac-ink: #e3cfeb;
+  --mp-lilac-soft: #352840;
+  --mp-lilac-mist: #2a2233;
+  --mp-sage-ink: #a9d08f;
+  --mp-charcoal: #e9edf2;
+  --mp-ink-muted: #a5aebb;
+
+  --theme-elevation-0: #171c25;
+  --theme-elevation-50: #1d232e;
+  --theme-elevation-100: #242c39;
+  --theme-elevation-150: #2c3644;
+  --theme-elevation-200: #364151;
+  --theme-elevation-250: #414d5e;
+  --theme-elevation-300: #4e5a6b;
+  --theme-elevation-350: #5d697a;
+  --theme-elevation-400: #6e7a8a;
+  --theme-elevation-450: #808b9a;
+  --theme-elevation-500: #939dab;
+  --theme-elevation-550: #a5aebb;
+  --theme-elevation-600: #b7bfca;
+  --theme-elevation-650: #c7cdd6;
+  --theme-elevation-700: #d5dae2;
+  --theme-elevation-750: #e1e5eb;
+  --theme-elevation-800: #ebeef2;
+  --theme-elevation-850: #f2f4f7;
+  --theme-elevation-900: #f8f9fb;
+  --theme-elevation-950: #fcfcfd;
+  --theme-elevation-1000: #ffffff;
+
+  --theme-bg: #11151c;
+  --theme-input-bg: #1d232e;
+  --theme-text: #ebeef2;
+  --theme-border-color: var(--theme-elevation-150);
+  --mp-nav-bg: #151a22;
+  --mp-card-bg: #1b212b;
+  --mp-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 22px -10px rgba(0, 0, 0, 0.6);
+  --mp-shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.3);
+
+  /* The tinted scales flip: light tints become dark grounds. */
+  --theme-success-50: #152018;
+  --theme-success-100: #1b2b1e;
+  --theme-success-150: #243a27;
+  --theme-success-500: #8fc47a;
+  --theme-success-750: #c9e4ba;
+  --theme-warning-50: #2a1a14;
+  --theme-warning-100: #3a2219;
+  --theme-warning-150: #4d2c20;
+  --theme-warning-500: #e8906f;
+  --theme-warning-750: #f4d2c2;
+  --theme-error-50: #2a1515;
+  --theme-error-100: #3d1c1c;
+  --theme-error-150: #522626;
+  --theme-error-500: #e07070;
+  --theme-error-750: #f1c6c6;
+}
+
+/* ── 2. Chrome ─────────────────────────────────────────────────────────── */
+
+body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--mp-lilac-soft);
+  color: var(--mp-lilac-ink);
+}
+
+h1, h2, h3, h4, h5, h6,
+.card__title,
+.list-header__title,
+.doc-header__title,
+.render-title {
+  font-family: var(--font-body);
+  letter-spacing: -0.012em;
+}
+
+a {
+  color: inherit;
+}
+
+/* Primary buttons wear the lilac; every other style keeps Payload's charcoal. */
+.btn--style-primary {
+  --bg-color: var(--mp-lilac);
+  --hover-bg: var(--mp-lilac-deep);
+  --color: #ffffff;
+  --hover-color: #ffffff;
+  --btn-font-weight: 600;
+
+  &.btn--disabled {
+    --bg-color: var(--theme-elevation-150);
+    --color: var(--theme-elevation-500);
+  }
+}
+
+.btn--style-secondary {
+  --btn-border: 1px solid var(--theme-elevation-200);
+  --hover-btn-border: 1px solid var(--mp-lilac);
+  --hover-color: var(--mp-lilac-ink);
+  --btn-font-weight: 500;
+}
+
+.btn--style-pill {
+  --bg-color: var(--theme-elevation-100);
+  --hover-bg: var(--mp-lilac-soft);
+  --hover-color: var(--mp-lilac-ink);
+}
+
+.btn {
+  border-radius: var(--style-radius-s);
+  font-weight: var(--btn-font-weight);
+}
+
+.btn--size-large { border-radius: var(--style-radius-m); }
+
+/* Inputs: white on cream, a lilac ring on focus. */
+.field-type input:not([type="checkbox"]):not([type="radio"]),
+.field-type textarea,
+.rs__control,
+.date-time-picker__input-wrapper,
+.search-filter__input {
+  border-color: var(--theme-elevation-150) !important;
+  border-radius: var(--style-radius-s) !important;
+  background: var(--theme-input-bg);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.field-type input:not([type="checkbox"]):not([type="radio"]):focus,
+.field-type textarea:focus,
+.rs__control--is-focused,
+.search-filter__input:focus {
+  border-color: var(--mp-lilac) !important;
+  box-shadow: 0 0 0 3px var(--mp-lilac-soft) !important;
+  outline: none;
+}
+
+label.field-label:not(.unstyled) {
+  font-weight: 600;
+  color: var(--theme-elevation-700);
+  font-size: 12.5px;
+}
+
+.field-description {
+  color: var(--theme-elevation-500);
+  line-height: 1.5;
+}
+
+/* Checkboxes and toggles light up lilac when on. */
+.checkbox-input--checked .checkbox-input__input,
+.checkbox-input__input:has(input:checked) {
+  background: var(--mp-lilac);
+  border-color: var(--mp-lilac);
+}
+
+.checkbox-input__input {
+  border-radius: 5px;
+}
+
+.radio-input--is-selected .radio-input__styled-radio,
+.radio-input__styled-radio:has(input:checked) {
+  border-color: var(--mp-lilac);
+  background: var(--mp-lilac);
+}
+
+/*
+  Tabs: a lilac underline marks the open tab. Payload dims the closed tabs
+  with `opacity: .5`, which turned the charcoal into a cool grey at 2.7:1
+  on the cream (axe, 4B review) — a solid warm ink instead.
+*/
+.tabs-field__tab-button {
+  font-weight: 500;
+  border-radius: var(--style-radius-s) var(--style-radius-s) 0 0;
+  opacity: 1;
+  color: var(--theme-elevation-600);
+
+  &:hover { color: var(--mp-lilac-ink); }
+
+  &--active {
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--mp-lilac);
+    color: var(--mp-lilac-ink);
+  }
+}
+
+/* "Add Paragraph" / "Add block": Payload greys them to elevation-400 (3.2:1); readable ink instead. */
+.array-field__add-row.btn { --btn-color: var(--theme-elevation-700); }
+.blocks-field__drawer-toggler .btn { color: var(--theme-elevation-700); }
+
+/*
+  A required asterisk on a field nobody can edit is noise — the order page
+  was full of red stars on system-written values (4B review). Payload marks
+  the wrapper of a read-only field with `read-only`.
+*/
+.field-type.read-only .field-label .required,
+.field-type.read-only > .field-label .required {
+  display: none;
+}
+
+/*
+  An array field with no rows and nothing to add (read-only — the order's
+  "Codes entered" / "Pass credits used" when none were used) is only a
+  heading over empty space: hide it. A field that can still add a row
+  keeps its button, so it never matches. (Hiding with `admin.condition`
+  would loosen the columns' NOT NULL — a schema change for a cosmetic one.)
+*/
+.array-field:not(:has(.array-field__draggable-rows)):not(:has(.array-field__add-row)):has(.array-field__header-actions li:empty) {
+  display: none;
+}
+
+/* A relationship table with nothing in it: one quiet line, not a big "No Results." heading. */
+.relationship-table .no-results {
+  h3 { display: none; }
+  p { margin: 4px 0 0; color: var(--theme-elevation-600); font-size: 13px; }
+}
+
+/* Pills (statuses, versions, selections). */
+.pill {
+  border-radius: 999px;
+  font-weight: 500;
+  --pill-padding-inline-start: 9px;
+  --pill-padding-inline-end: 9px;
+
+  &--style-success {
+    background: var(--theme-success-150);
+    color: var(--theme-success-750);
+  }
+
+  &--style-warning {
+    background: var(--theme-warning-150);
+    color: var(--theme-warning-750);
+  }
+
+  &--style-error {
+    background: var(--theme-error-150);
+    color: var(--theme-error-750);
+  }
+}
+
+/* Popups and drawers: softer, lifted. */
+.popup__content {
+  border-radius: var(--style-radius-m);
+  box-shadow: var(--mp-shadow-lg);
+  border: 1px solid var(--theme-elevation-100);
+}
+
+.popup-button-list__button {
+  border-radius: var(--style-radius-s);
+}
+
+.drawer__content,
+.doc-drawer__content {
+  background: var(--theme-bg);
+}
+
+.toast-content,
+[data-sonner-toast] {
+  border-radius: var(--style-radius-m) !important;
+  font-family: var(--font-body);
+}
+
+/* ── 2a. Navigation ────────────────────────────────────────────────────── */
+
+.nav {
+  background: var(--mp-nav-bg);
+  border-right: 1px solid var(--theme-elevation-100);
+}
+
+.nav__scroll {
+  --nav-padding-inline-start: 14px;
+  --nav-padding-inline-end: 14px;
+  scrollbar-width: thin;
+}
+
+.nav__wrap {
+  gap: 2px;
+}
+
+/*
+  Group order is the DOM order (4B review: reordering with CSS `order`
+  made keyboard focus jump around — System first in the DOM, last on
+  screen). payload.config.ts sorts the collections by group
+  (cms/collections/navOrder.ts) and the custom views sit in
+  `beforeNavLinks`, so what is read, tabbed and shown is one order:
+  search, Front desk, Reports, Content, Bookings, Inbox, Emails, Settings,
+  Settings (admin), System.
+*/
+.nav-group { margin-bottom: 14px; }
+
+.nav-group__toggle {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mp-ink-muted);
+  padding: 4px 10px;
+  margin-bottom: 2px;
+  align-items: center;
+
+  svg { margin-top: 0; }
+}
+
+.nav-group__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.nav__link {
+  position: relative;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--theme-elevation-700);
+  padding: 6px 10px 6px 36px;
+  border-radius: 8px;
+  transition: background-color 120ms ease, color 120ms ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    background: currentColor;
+    opacity: 0.7;
+    -webkit-mask: var(--mp-icon, var(--mp-icon-dot)) center / contain no-repeat;
+    mask: var(--mp-icon, var(--mp-icon-dot)) center / contain no-repeat;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--theme-elevation-100) 70%, transparent);
+    color: var(--theme-elevation-900);
+  }
+
+  &:has(.nav__link-indicator) {
+    background: var(--mp-lilac-soft);
+    color: var(--mp-lilac-ink);
+    font-weight: 600;
+
+    &::before { opacity: 1; }
+  }
+}
+
+/* Payload's thin bar on the left of the active link is replaced by the tint above. */
+.nav__link-indicator { display: none; }
+
+.nav__controls {
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-elevation-100);
+  gap: 8px;
+}
+
+.nav__log-out,
+.settings-menu-button .btn {
+  border-radius: 8px;
+}
+
+/*
+  Icons per sidebar entry, keyed by the ids Payload gives each link
+  (`nav-<collection>`, `nav-global-<global>`; the custom views set their own).
+  Line icons at 24-unit stroke 2, shown through a mask so they take the
+  link's own colour in both themes. Anything without an icon gets the dot.
+*/
+@function mp-icon($body) {
+  @return url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'>#{$body}</svg>");
+}
+
+:root {
+  --mp-icon-dot: #{mp-icon("<circle cx='12' cy='12' r='3.5'/>")};
+}
+
+$mp-icons: (
+  "nav-pages": "<path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z'/><path d='M14 3v6h6'/><path d='M8 13h8M8 17h5'/>",
+  "nav-experiences": "<path d='M12 3l2.6 5.4 5.9.8-4.3 4.1 1.1 5.8L12 16.3 6.7 19.1l1.1-5.8L3.5 9.2l5.9-.8z'/>",
+  "nav-sessions": "<rect x='3' y='5' width='18' height='16' rx='2'/><path d='M3 10h18M8 3v4M16 3v4'/>",
+  "nav-media": "<rect x='3' y='4' width='18' height='16' rx='2'/><circle cx='9' cy='10' r='1.8'/><path d='M21 16l-5-5-8 9'/>",
+  "nav-venues": "<path d='M12 21s7-6.1 7-11a7 7 0 0 0-14 0c0 4.9 7 11 7 11z'/><circle cx='12' cy='10' r='2.5'/>",
+  "nav-programmes": "<path d='M4 6h16M4 12h10M4 18h7'/><circle cx='18' cy='16' r='3'/>",
+  "nav-policies": "<path d='M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'/><path d='M9.5 12l1.8 1.8 3.4-3.6'/>",
+  "nav-faqs": "<circle cx='12' cy='12' r='9'/><path d='M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7'/><path d='M12 17h.01'/>",
+  "nav-passes": "<rect x='3' y='6' width='18' height='12' rx='2'/><path d='M3 11h18M7 15h4'/>",
+  "nav-testimonials": "<path d='M4 5h16v10H9l-5 4z'/><path d='M8 9h8M8 12h5'/>",
+  "nav-vibes": "<path d='M4 14c3-6 6-6 8 0s5 6 8 0'/><path d='M4 8c3-4 6-4 8 0s5 4 8 0'/>",
+  "nav-redirects": "<path d='M4 7h11a4 4 0 0 1 0 8H9'/><path d='M12 12l-3 3 3 3'/>",
+  "nav-session-inventory": "<path d='M4 20h16M6 20V9M10 20V5M14 20v-8M18 20V7'/>",
+  "nav-orders": "<path d='M6 4h12l1 16H5z'/><path d='M9 8a3 3 0 0 0 6 0'/>",
+  "nav-customers": "<circle cx='9' cy='8' r='3.5'/><path d='M2.5 20a6.5 6.5 0 0 1 13 0'/><circle cx='17' cy='9' r='2.5'/><path d='M16 15.5a5 5 0 0 1 5.5 4.5'/>",
+  "nav-tickets": "<path d='M4 8a2 2 0 0 0 0 4v4h16v-4a2 2 0 0 1 0-4V4H4z'/><path d='M12 4v12' stroke-dasharray='2 2'/>",
+  "nav-refunds": "<path d='M3 10h12a4 4 0 0 1 0 8H9'/><path d='M7 6l-4 4 4 4'/>",
+  "nav-invoices": "<path d='M6 3h12v18l-3-2-3 2-3-2-3 2z'/><path d='M9 8h6M9 12h6'/>",
+  "nav-pass-purchases": "<rect x='3' y='5' width='18' height='14' rx='2'/><path d='M3 10h18'/><circle cx='16' cy='15' r='1.5'/>",
+  "nav-promo-codes": "<path d='M20 13l-7 7-10-10V3h7z'/><circle cx='7.5' cy='7.5' r='1.5'/>",
+  "nav-waitlist": "<circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/>",
+  "nav-payments": "<rect x='3' y='6' width='18' height='12' rx='2'/><path d='M3 10h18'/><path d='M7 15h3'/>",
+  "nav-payment-events": "<path d='M3 12h4l2-6 4 12 2-6h6'/>",
+  "nav-seat-holds": "<path d='M5 11V7a7 7 0 0 1 14 0v4'/><rect x='4' y='11' width='16' height='10' rx='2'/>",
+  "nav-invoice-files": "<path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z'/><path d='M14 3v6h6M12 12v6M9 15l3 3 3-3'/>",
+  "nav-invoice-counters": "<path d='M4 7h16M4 12h16M4 17h10'/>",
+  "nav-enquiries": "<path d='M4 6h16v12H4z'/><path d='M4 7l8 6 8-6'/>",
+  "nav-email-templates": "<path d='M4 6h16v12H4z'/><path d='M4 7l8 6 8-6'/><path d='M14 15h4' stroke-width='1.4'/>",
+  "nav-notification-log": "<path d='M21 4L11 14'/><path d='M21 4l-7 17-3-7-7-3z'/>",
+  "nav-users": "<circle cx='12' cy='8' r='3.5'/><path d='M5 20a7 7 0 0 1 14 0'/>",
+  "nav-settings-audit": "<path d='M12 8v4l3 2'/><circle cx='12' cy='12' r='9'/><path d='M3.5 9l1.5-3'/>",
+  "nav-payload-jobs": "<circle cx='12' cy='12' r='3'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/>",
+  "nav-global-site-settings": "<path d='M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z'/>",
+  "nav-global-navigation": "<path d='M4 6h16M4 12h16M4 18h16'/>",
+  "nav-global-brand-copy": "<path d='M5 19c3-1 4-4 5-8M8 19c6 0 9-5 11-14'/><path d='M14 8h5'/>",
+  "nav-global-booking-settings": "<path d='M9 11l2 2 4-4'/><rect x='3' y='5' width='18' height='16' rx='2'/><path d='M8 3v4M16 3v4'/>",
+  "nav-global-template-copy": "<path d='M4 5h16M4 10h10M4 15h12M4 20h8'/>",
+  "nav-global-seo-defaults": "<circle cx='11' cy='11' r='6'/><path d='M20 20l-4.5-4.5'/>",
+  "nav-global-payment-settings": "<rect x='3' y='6' width='18' height='12' rx='2'/><path d='M3 10h18'/><circle cx='17' cy='14.5' r='1.5'/>",
+  "nav-global-email-settings": "<path d='M4 6h16v12H4z'/><path d='M4 7l8 6 8-6'/><circle cx='18' cy='17' r='3' fill='white'/><path d='M18 15.5v3' stroke-width='1.5'/>",
+  "nav-global-invoice-settings": "<path d='M6 3h12v18l-3-2-3 2-3-2-3 2z'/><path d='M9 8h6M9 12h4'/>",
+  "nav-global-notification-settings": "<path d='M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z'/><path d='M10 21h4'/>",
+  "nav-global-analytics-settings": "<path d='M4 19V5M4 19h16'/><path d='M8 15l3-4 3 2 5-6'/>",
+  "nav-check-in": "<path d='M4 12l5 5L20 6'/>",
+  "nav-analytics": "<path d='M4 19V5M4 19h16'/><path d='M8 15l3-4 3 2 5-6'/>",
+);
+
+@each $id, $body in $mp-icons {
+  ##{$id} {
+    --mp-icon: #{mp-icon($body)};
+  }
+}
+
+/* ── 2b. Header ────────────────────────────────────────────────────────── */
+
+.app-header {
+  border-bottom: 1px solid var(--theme-elevation-100);
+  background: color-mix(in srgb, var(--theme-bg) 86%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.app-header__bg { display: none; }
+
+.step-nav {
+  font-size: 13px;
+
+  a, span { color: var(--theme-elevation-600); }
+  .step-nav__last, > span:last-child { color: var(--theme-elevation-900); }
+}
+
+.hamburger { border-radius: 8px; }
+
+/* ── 2c. Dashboard ─────────────────────────────────────────────────────── */
+
+.dashboard {
+  padding-top: 0;
+}
+
+/* Payload's grouped collection cards, kept as the "everything" index below our dashboard, made compact. */
+.modular-dashboard {
+  margin-top: calc(var(--base) * 1.5);
+  padding-top: calc(var(--base) * 1.25);
+  border-top: 1px solid var(--theme-elevation-100);
+
+  &::before {
+    content: "Everything in the admin";
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mp-ink-muted);
+    margin-bottom: calc(var(--base) * 0.6);
+  }
+}
+
+.collections {
+  --cols: 6;
+  --gap: calc(var(--base) * 0.6);
+
+  &__wrap { gap: calc(var(--base) * 0.9); }
+  &__group { gap: calc(var(--base) * 0.35); }
+
+  &__label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--theme-elevation-600);
+    letter-spacing: 0;
+  }
+
+  &__card-list { gap: 8px; }
+
+  @media (max-width: 1280px) { --cols: 4; }
+  @media (max-width: 900px) { --cols: 3; }
+  @media (max-width: 600px) { --cols: 2; }
+}
+
+.card {
+  background: var(--mp-card-bg);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  min-height: 0;
+  padding: 11px 12px;
+  gap: 8px;
+  align-items: center;
+
+  &__title {
+    font-size: 12.5px;
+    line-height: 16px;
+  }
+
+  &--has-onclick:hover {
+    border-color: var(--mp-lilac);
+    box-shadow: var(--mp-shadow);
+    background: var(--mp-card-bg);
+  }
+
+  &__actions .btn__icon {
+    border-color: var(--theme-elevation-150);
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* ── 2d. Lists ─────────────────────────────────────────────────────────── */
+
+.collection-list__wrap > *:not(:last-child) { margin-bottom: calc(var(--base) * 0.75); }
+
+.list-header__title {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.table {
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  background: var(--mp-card-bg);
+
+  table { border-collapse: separate; border-spacing: 0; }
+
+  thead th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--theme-elevation-500);
+    border-bottom: 1px solid var(--theme-elevation-100);
+    background: var(--theme-elevation-50);
+    padding-block: 10px;
+  }
+
+  th, td { padding: 10px 12px; min-width: 120px; }
+
+  tbody tr {
+    &:nth-child(odd) { background: transparent; }
+    &:not(:last-child) td { border-bottom: 1px solid var(--theme-elevation-100); }
+    &:hover td { background: var(--theme-elevation-50); }
+  }
+
+  td a { font-weight: 500; }
+}
+
+.collection-list__sub-header { padding-top: calc(var(--base) * 0.4); }
+
+.search-filter__input {
+  background: var(--theme-input-bg);
+  border-radius: 999px !important;
+  padding-inline-start: 36px;
+}
+
+.list-controls__toggle-columns, .list-controls__toggle-where, .list-controls__toggle-sort, .list-controls__toggle-group-by {
+  border-radius: 999px;
+}
+
+.collection-list__list-selection {
+  border-top: 1px solid var(--theme-elevation-100);
+  background: color-mix(in srgb, var(--theme-bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+/*
+  Staff are added with "Invite staff" (they set their own password from
+  the emailed link). Payload's "Create New" — a form with a password typed
+  by the owner — was a second, worse way to do the same thing beside it
+  (4B review). Access still allows it (SPEC §J), so the developer fallback
+  remains; only the button goes.
+*/
+.collection-list--users .list-create-new-doc__create-new-button,
+.collection-list--users .list-header__title-actions > .btn {
+  display: none;
+}
+
+/* ── 2e. Documents ─────────────────────────────────────────────────────── */
+
+.doc-controls {
+  background: color-mix(in srgb, var(--theme-bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  &__divider { background: var(--theme-elevation-100); }
+
+  /* Phase 3's Mamo Pay panel is taller than the bar: on that page let the bar grow rather than overlap the form. */
+  &:has(.mp-payment-actions) &__wrapper { height: auto; min-height: var(--doc-controls-height); }
+  &:has(.mp-payment-actions) &__controls-wrapper { flex-wrap: wrap; align-items: center; row-gap: 8px; padding-block: 6px; }
+}
+
+/* The session's Sold / Held / Left chips (SessionQuickStats). */
+.mp-session-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  align-items: center;
+  margin-inline-end: calc(var(--base) / 2);
+}
+
+/*
+  On a phone the bar grows instead of clipping (4B review at 390 px: the
+  chips overlapped, "Publish changes" read "Publis", the meta row ran
+  550 px wide). The meta row wraps, the seat chips take a row of their
+  own above the buttons, and the buttons keep their natural width.
+*/
+@media (max-width: 600px) {
+  .doc-controls__wrapper,
+  .doc-controls__content { height: auto; min-height: var(--doc-controls-height); }
+  .doc-controls__content { padding-block: 6px; }
+  .doc-controls__meta { flex-wrap: wrap; row-gap: 2px; max-width: 100%; }
+  .doc-controls__controls-wrapper { flex-wrap: wrap; height: auto; overflow: visible; row-gap: 8px; padding-block: 6px; }
+  .doc-controls__controls { flex-wrap: wrap; height: auto; row-gap: 8px; }
+  .mp-session-stats { flex: 1 0 100%; order: -1; margin-inline-end: 0; }
+  .doc-controls .form-submit,
+  .doc-controls .form-submit .btn { flex-shrink: 0; white-space: nowrap; }
+}
+
+.mp-payment-actions { margin-bottom: 0 !important; }
+
+.doc-header__title { font-size: 26px; font-weight: 600; }
+
+.collapsible__toggle-wrap,
+.collapsible-field__collapsible,
+.blocks-field__row,
+.array-field__row,
+.group-field__wrap {
+  border-radius: var(--style-radius-m);
+}
+
+.document-fields__sidebar-fields > .field-type {
+  background: var(--mp-card-bg);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  padding: 12px 14px;
+}
+
+.document-fields__sidebar-fields > .field-type + .field-type { margin-top: 10px; }
+
+/* ── 2f. Login and the other minimal screens ───────────────────────────── */
+
+.template-minimal {
+  background:
+    radial-gradient(900px 480px at 15% -10%, var(--mp-lilac-mist), transparent 60%),
+    radial-gradient(700px 420px at 95% 110%, color-mix(in srgb, var(--mp-sage) 45%, transparent), transparent 60%),
+    var(--theme-bg);
+}
+
+.template-minimal__wrap {
+  max-width: 420px;
+  width: 100%;
+}
+
+.login__brand {
+  margin-bottom: calc(var(--base) * 1.2);
+}
+
+.login__form,
+.forgot-password__form,
+.reset-password__wrap form,
+.create-first-user__form,
+.create-first-user form {
+  background: var(--mp-card-bg);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-l);
+  padding: 28px 28px 24px;
+  box-shadow: var(--mp-shadow);
+}
+
+.login__form .form-submit .btn,
+.create-first-user .form-submit .btn {
+  width: 100%;
+  margin: 12px 0 0;
+  border-radius: 999px;
+}
+
+.login a:not(.btn),
+.forgot-password a {
+  color: var(--mp-lilac-ink);
+  font-weight: 500;
+}
+
+/* ── 3. The 4B components (`mp-` prefix) ───────────────────────────────── */
+
+.mp-script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.mp-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mp-ink-muted);
+  margin: 0;
+}
+
+.mp-card {
+  background: var(--mp-card-bg);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-l);
+  box-shadow: var(--mp-shadow);
+  padding: 18px 20px;
+  min-width: 0;
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  &__link {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--mp-lilac-ink);
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.mp-empty {
+  display: grid;
+  gap: 6px;
+  padding: 18px 4px;
+  color: var(--theme-elevation-600);
+  text-align: center;
+
+  strong { color: var(--theme-elevation-800); font-weight: 600; }
+  p { margin: 0; line-height: 1.5; }
+}
+
+/* Status chip — one look for every status in the admin. */
+.mp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  background: var(--theme-elevation-100);
+  color: var(--theme-elevation-700);
+
+  &::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.8;
+  }
+
+  &--ok { background: var(--theme-success-100); color: var(--theme-success-700); }
+  &--lilac { background: var(--mp-lilac-soft); color: var(--mp-lilac-ink); }
+  &--warn { background: var(--theme-warning-100); color: var(--theme-warning-700); }
+  &--bad { background: var(--theme-error-100); color: var(--theme-error-700); }
+  &--muted { color: var(--theme-elevation-500); }
+  &--plain::before { display: none; }
+}
+
+html[data-theme="dark"] .mp-chip {
+  &--ok { color: var(--theme-success-750); }
+  &--warn { color: var(--theme-warning-750); }
+  &--bad { color: var(--theme-error-750); }
+}
+
+/* ── 3a. Dashboard ─────────────────────────────────────────────────────── */
+
+.mp-dash {
+  display: grid;
+  gap: calc(var(--base) * 1.1);
+  padding-top: calc(var(--base) * 0.6);
+
+  &__hero {
+    display: grid;
+    gap: 14px;
+  }
+
+  &__greeting {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 14px;
+
+    .mp-script {
+      font-size: 46px;
+      line-height: 1;
+      color: var(--mp-lilac);
+      font-weight: 400;
+    }
+  }
+
+  &__sub {
+    margin: 0;
+    font-size: 14px;
+    color: var(--theme-elevation-600);
+    max-width: 70ch;
+    line-height: 1.5;
+  }
+
+  &__quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+
+    @media (max-width: 1100px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+
+    @media (max-width: 1000px) { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  &__col {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+  }
+}
+
+.mp-quick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  background: var(--mp-card-bg);
+  border: 1px solid var(--theme-elevation-150);
+  color: var(--theme-elevation-800);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+
+  svg { width: 16px; height: 16px; color: var(--mp-lilac); flex-shrink: 0; }
+
+  &:hover {
+    border-color: var(--mp-lilac);
+    box-shadow: var(--mp-shadow);
+    transform: translateY(-1px);
+  }
+
+  &--primary {
+    background: var(--mp-lilac);
+    border-color: var(--mp-lilac);
+    color: #fff;
+
+    svg { color: #fff; }
+    &:hover { background: var(--mp-lilac-deep); border-color: var(--mp-lilac-deep); }
+  }
+}
+
+.mp-kpi {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  overflow: hidden;
+
+  &__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--theme-elevation-600);
+  }
+
+  &__value {
+    /* Shrinks with the tile so "12,680.00 AED" never crosses the card's edge on a phone. */
+    font-size: clamp(20px, 6.2vw, 28px);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    min-width: 0;
+    overflow-wrap: anywhere;
+
+    small { font-size: 14px; font-weight: 500; color: var(--theme-elevation-500); margin-left: 4px; white-space: nowrap; }
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: var(--theme-elevation-500);
+  }
+
+  &--attention {
+    border-color: var(--theme-warning-200);
+    background: var(--theme-warning-50);
+  }
+
+  &--muted .mp-kpi__value { color: var(--theme-elevation-400); }
+
+  &[href]:hover { border-color: var(--mp-lilac); }
+}
+
+/* Today's sessions */
+.mp-sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--theme-elevation-100);
+    border-radius: var(--style-radius-m);
+    text-decoration: none;
+    color: inherit;
+
+    &:hover { border-color: var(--mp-lilac); background: var(--mp-lilac-mist); }
+
+    @media (max-width: 520px) { grid-template-columns: 50px minmax(0, 1fr); }
+  }
+
+  &__time {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+  }
+
+  &__date {
+    font-size: 11px;
+    color: var(--theme-elevation-500);
+    font-weight: 500;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: 13.5px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &__meta {
+    font-size: 12px;
+    color: var(--theme-elevation-500);
+    margin-top: 2px;
+  }
+
+  &__seats {
+    display: grid;
+    gap: 4px;
+    min-width: 120px;
+    justify-items: end;
+    font-size: 12px;
+    color: var(--theme-elevation-600);
+
+    strong { color: var(--theme-elevation-800); }
+
+    @media (max-width: 520px) { grid-column: 2; justify-items: start; }
+  }
+
+  &__bar {
+    width: 120px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--theme-elevation-100);
+    overflow: hidden;
+
+    span { display: block; height: 100%; background: var(--mp-lilac); border-radius: 3px; }
+  }
+
+  &__cta {
+    grid-column: 3;
+  }
+}
+
+/* Compact row lists (orders, enquiries, drafts). */
+.mp-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+
+  li { border-top: 1px solid var(--theme-elevation-100); }
+  li:first-child { border-top: 0; }
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    align-items: center;
+    padding: 9px 2px;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 6px;
+
+    &:hover .mp-rows__primary { color: var(--mp-lilac-ink); }
+  }
+
+  &__primary {
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    min-width: 0;
+
+    span.mono { font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; color: var(--theme-elevation-600); }
+  }
+
+  &__secondary {
+    font-size: 12px;
+    color: var(--theme-elevation-500);
+    grid-column: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__aside {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    text-align: right;
+    font-size: 12px;
+    color: var(--theme-elevation-600);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+
+    strong { display: block; color: var(--theme-elevation-800); font-size: 13px; }
+  }
+}
+
+/* ── 3b. Warnings strip ────────────────────────────────────────────────── */
+
+.mp-warn {
+  display: grid;
+  gap: 8px;
+  margin-top: calc(var(--base) * 0.6);
+
+  &__alert {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-radius: var(--style-radius-m);
+    border: 1px solid var(--theme-error-150);
+    background: var(--theme-error-50);
+    color: var(--theme-error-750);
+    font-size: 13px;
+    line-height: 1.5;
+
+    svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+    strong { font-weight: 600; }
+
+    a {
+      margin-left: auto;
+      white-space: nowrap;
+      font-weight: 600;
+      color: inherit;
+    }
+  }
+
+  &__list {
+    display: grid;
+    gap: 0;
+    padding: 6px 0 0;
+
+    &-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 0 8px;
+      font-weight: 600;
+      font-size: 13.5px;
+
+      small { font-weight: 500; color: var(--theme-elevation-500); font-size: 12px; }
+
+      /* Phone: title, hint and badges stack instead of squeezing into three columns. */
+      @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+
+        .mp-warn__badges { margin-left: 0 !important; margin-top: 4px; }
+      }
+    }
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 2px;
+    border-top: 1px solid var(--theme-elevation-100);
+    font-size: 13px;
+    line-height: 1.45;
+
+    &-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--theme-warning-400);
+      justify-self: center;
+    }
+
+    &--info &-dot { background: var(--mp-lilac); }
+
+    &-cta {
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--mp-lilac-ink);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 4px 10px;
+      border: 1px solid var(--theme-elevation-150);
+      border-radius: 999px;
+
+      &:hover { border-color: var(--mp-lilac); background: var(--mp-lilac-mist); }
+    }
+
+    @media (max-width: 600px) {
+      grid-template-columns: 22px minmax(0, 1fr);
+      &-cta { grid-column: 2; justify-self: start; }
+    }
+  }
+
+  &__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+}
+
+/* ── 3c. Command palette ───────────────────────────────────────────────── */
+
+.mp-cmdk-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 4px 0 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 10px;
+  background: var(--mp-card-bg);
+  color: var(--theme-elevation-500);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-align: left;
+
+  svg { width: 15px; height: 15px; flex-shrink: 0; }
+  span { flex: 1; }
+  kbd {
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--theme-elevation-100);
+    color: var(--theme-elevation-600);
+  }
+
+  &:hover { border-color: var(--mp-lilac); color: var(--theme-elevation-700); }
+}
+
+.mp-cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10vh 16px 16px;
+  background: rgba(20, 16, 24, 0.42);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  &__panel {
+    width: min(680px, 100%);
+    max-height: min(72vh, 640px);
+    display: flex;
+    flex-direction: column;
+    background: var(--mp-card-bg);
+    border: 1px solid var(--theme-elevation-100);
+    border-radius: var(--style-radius-l);
+    box-shadow: var(--mp-shadow-lg);
+    overflow: hidden;
+    animation: mp-pop 120ms ease-out;
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--theme-elevation-100);
+
+    svg { width: 18px; height: 18px; color: var(--theme-elevation-400); flex-shrink: 0; }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: none;
+      background: transparent;
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 0;
+      color: var(--theme-text);
+
+      &::placeholder { color: var(--theme-elevation-400); }
+    }
+
+    .mp-chip { cursor: pointer; }
+  }
+
+  &__list {
+    overflow-y: auto;
+    padding: 8px;
+    outline: none;
+  }
+
+  &__group {
+    padding: 10px 10px 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mp-ink-muted);
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--theme-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    svg { width: 17px; height: 17px; color: var(--theme-elevation-500); justify-self: center; }
+
+    &[aria-selected="true"] {
+      background: var(--mp-lilac-soft);
+      color: var(--mp-lilac-ink);
+
+      svg { color: var(--mp-lilac); }
+      .mp-cmdk__hint { color: var(--mp-lilac-ink); }
+      .mp-cmdk__label small { color: var(--mp-ink-muted); }
+    }
+  }
+
+  &__label {
+    font-weight: 600;
+    font-size: 13.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    small { display: block; font-weight: 400; font-size: 12px; color: var(--mp-ink-muted); white-space: normal; }
+    /* Deep lilac ink: the brand lilac on the lilac selection tint was 4.2:1. */
+    mark { background: transparent; color: var(--mp-lilac-ink); font-weight: 700; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--mp-lilac) 45%, transparent); text-underline-offset: 2px; }
+  }
+
+  &__hint {
+    font-size: 11.5px;
+    color: var(--theme-elevation-500);
+    white-space: nowrap;
+  }
+
+  &__empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--theme-elevation-500);
+    font-size: 13px;
+
+    strong { display: block; color: var(--theme-elevation-700); margin-bottom: 4px; }
+  }
+
+  &__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 8px 14px;
+    border-top: 1px solid var(--theme-elevation-100);
+    font-size: 11px;
+    color: var(--theme-elevation-500);
+
+    kbd {
+      font: inherit;
+      font-weight: 600;
+      padding: 0 5px;
+      border-radius: 4px;
+      background: var(--theme-elevation-100);
+      color: var(--theme-elevation-600);
+      margin-right: 4px;
+    }
+  }
+}
+
+@media (max-width: 520px) {
+  .mp-cmdk { padding: 8px; }
+  .mp-cmdk__item { grid-template-columns: 24px minmax(0, 1fr); }
+  .mp-cmdk__hint { display: none; }
+}
+
+@keyframes mp-pop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── 3d. Dialogs and action menus ──────────────────────────────────────── */
+
+.mp-dialog {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 150;
+
+  &__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 16, 24, 0.45);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    border: 0;
+    padding: 0;
+    cursor: default;
+  }
+
+  &__card {
+    position: relative;
+    width: min(560px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    display: grid;
+    gap: 16px;
+    padding: 22px 24px;
+    background: var(--mp-card-bg);
+    border: 1px solid var(--theme-elevation-100);
+    border-radius: var(--style-radius-l);
+    box-shadow: var(--mp-shadow-lg);
+    animation: mp-pop 120ms ease-out;
+
+    &--wide { width: min(760px, 100%); }
+  }
+
+  &__head {
+    display: grid;
+    gap: 4px;
+
+    h2 { margin: 0; font-size: 18px; font-weight: 600; }
+    p { margin: 0; color: var(--theme-elevation-600); font-size: 13px; line-height: 1.5; }
+  }
+
+  &__body { display: grid; gap: 14px; }
+
+  &__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+
+    .btn { margin: 0; }
+    .mp-dialog__status { margin-right: auto; }
+  }
+
+  &__status {
+    font-size: 12.5px;
+    line-height: 1.4;
+
+    &--error { color: var(--theme-error-500); }
+    &--ok { color: var(--theme-success-600); }
+  }
+
+  &__danger {
+    padding: 10px 12px;
+    border-radius: var(--style-radius-s);
+    background: var(--theme-error-50);
+    border: 1px solid var(--theme-error-150);
+    color: var(--theme-error-750);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  &__note {
+    padding: 10px 12px;
+    border-radius: var(--style-radius-s);
+    background: var(--theme-elevation-50);
+    border: 1px solid var(--theme-elevation-100);
+    color: var(--theme-elevation-700);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+}
+
+/* Form primitives inside the dialogs — same look as Payload's fields. */
+.mp-field {
+  display: grid;
+  gap: 5px;
+
+  label, &__label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--theme-elevation-700);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 13px;
+    padding: 9px 11px;
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-s);
+    background: var(--theme-input-bg);
+    color: var(--theme-text);
+    min-height: 38px;
+
+    &:focus { outline: none; border-color: var(--mp-lilac); box-shadow: 0 0 0 3px var(--mp-lilac-soft); }
+    &:disabled { opacity: 0.6; }
+  }
+
+  textarea { min-height: 76px; resize: vertical; }
+
+  &__hint { font-size: 12px; color: var(--theme-elevation-500); line-height: 1.45; }
+
+  &--row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  &--check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    font-weight: 500;
+
+    input { margin-top: 3px; accent-color: var(--mp-lilac); width: 16px; height: 16px; }
+    span small { display: block; font-weight: 400; color: var(--theme-elevation-500); }
+  }
+}
+
+.mp-choice {
+  display: grid;
+  gap: 6px;
+
+  label {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 9px 12px;
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-s);
+    cursor: pointer;
+    font-size: 13px;
+
+    &:has(input:checked) { border-color: var(--mp-lilac); background: var(--mp-lilac-mist); }
+    input { accent-color: var(--mp-lilac); margin-top: 2px; }
+    small { display: block; color: var(--theme-elevation-500); font-size: 12px; margin-top: 2px; }
+  }
+}
+
+.mp-amount {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+
+  &__cur {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid var(--theme-elevation-150);
+    border-right: 0;
+    border-radius: var(--style-radius-s) 0 0 var(--style-radius-s);
+    background: var(--theme-elevation-50);
+    color: var(--theme-elevation-600);
+    font-size: 12.5px;
+  }
+
+  input { border-radius: 0 var(--style-radius-s) var(--style-radius-s) 0 !important; }
+}
+
+/* The "Actions" button in the document bar and its menu. */
+.mp-actions__popup .popup__scroll-container { max-height: min(70vh, 480px); }
+.mp-actions__popup .popup-button-list__button { font-size: 13px; padding: 7px 10px; border-radius: 6px; }
+.mp-actions__popup .mp-actions__danger { color: var(--theme-error-500); }
+.mp-actions__popup .mp-actions__sep { border-top: 1px solid var(--theme-elevation-100); margin: 4px 0; }
+
+.mp-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-end: 6px;
+
+  .popup-button-list__button { font-size: 13px; padding: 7px 10px; border-radius: 6px; }
+  .mp-actions__danger { color: var(--theme-error-500); }
+  .mp-actions__sep { border-top: 1px solid var(--theme-elevation-100); margin: 4px 0; }
+}
+
+.mp-actions__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--theme-elevation-200);
+  background: var(--mp-card-bg);
+  color: var(--theme-elevation-800);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+
+  svg { width: 14px; height: 14px; }
+  .mp-actions__chev { transform: rotate(90deg); opacity: 0.7; }
+  &:hover { border-color: var(--mp-lilac); color: var(--mp-lilac-ink); }
+  &--primary { background: var(--mp-lilac); border-color: var(--mp-lilac); color: #fff; &:hover { background: var(--mp-lilac-deep); color: #fff; } }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+/* ── 3e. List toolbars and teaching empty states ───────────────────────── */
+
+.mp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: calc(var(--base) * 0.5);
+
+  &__spacer { flex: 1; }
+  &__note { flex: 1 1 100%; margin: 2px 0 0; color: var(--theme-elevation-600); font-size: 12.5px; }
+  .mp-chip { cursor: pointer; text-decoration: none; }
+  a.mp-chip[aria-current="page"] { box-shadow: 0 0 0 2px var(--mp-lilac); }
+}
+
+.mp-intro {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 22px 24px;
+  margin-bottom: var(--base);
+  background: var(--mp-card-bg);
+  border: 1px dashed var(--theme-elevation-200);
+  border-radius: var(--style-radius-l);
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--mp-lilac-soft);
+    color: var(--mp-lilac);
+    display: grid;
+    place-items: center;
+
+    svg { width: 22px; height: 22px; }
+  }
+
+  h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  p { margin: 0; color: var(--theme-elevation-600); line-height: 1.55; font-size: 13px; max-width: 70ch; }
+
+  &__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+  @media (max-width: 520px) { grid-template-columns: minmax(0, 1fr); &__icon { display: none; } }
+}
+
+/* ── 3f. Order page: history, lines, technical details (4B review) ─────── */
+
+.mp-timeline {
+  margin-block: calc(var(--base) * 0.5);
+
+  &__head {
+    display: grid;
+    gap: 2px;
+    margin-bottom: 10px;
+
+    small { color: var(--theme-elevation-600); font-size: 12px; }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0 0;
+    border: 1px solid var(--theme-elevation-100);
+    border-radius: var(--style-radius-m);
+    background: var(--mp-card-bg);
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: baseline;
+    padding: 9px 14px 9px 8px;
+    font-size: 13px;
+    line-height: 1.45;
+
+    & + & { border-top: 1px solid var(--theme-elevation-100); }
+
+    @media (max-width: 600px) {
+      grid-template-columns: 22px minmax(0, 1fr);
+      .mp-timeline__meta { grid-column: 2; }
+    }
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    justify-self: center;
+    align-self: center;
+    background: var(--theme-elevation-300);
+  }
+
+  &__item--ok &__dot { background: var(--theme-success-400); }
+  &__item--lilac &__dot { background: var(--mp-lilac); }
+  &__item--warn &__dot { background: var(--theme-warning-400); }
+
+  &__text { color: var(--theme-elevation-800); }
+
+  &__meta {
+    font-size: 12px;
+    color: var(--mp-ink-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__empty { margin: 0; color: var(--theme-elevation-600); font-size: 13px; }
+}
+
+.mp-lines {
+  display: grid;
+  gap: 8px;
+  margin-block: calc(var(--base) * 0.5);
+
+  &__scroll { overflow-x: auto; }
+
+  &__table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--theme-elevation-100);
+    border-radius: var(--style-radius-m);
+    background: var(--mp-card-bg);
+    font-size: 13px;
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--mp-ink-muted);
+      background: var(--theme-elevation-50);
+      border-bottom: 1px solid var(--theme-elevation-100);
+      padding: 9px 12px;
+    }
+
+    td {
+      padding: 10px 12px;
+      vertical-align: top;
+      color: var(--theme-elevation-800);
+
+      a { font-weight: 600; color: var(--mp-lilac-ink); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      small { display: block; color: var(--mp-ink-muted); font-size: 12px; margin-top: 2px; }
+    }
+
+    tbody tr + tr td { border-top: 1px solid var(--theme-elevation-100); }
+
+    .mp-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  }
+
+  &__note { color: var(--theme-elevation-600); font-size: 12px; }
+}
+
+/* A read-only { key: value } field as a short list (KeyValueField). */
+.mp-kv {
+  display: grid;
+  gap: 6px;
+  margin-block: calc(var(--base) * 0.4);
+
+  &__label { font-weight: 600; font-size: 12.5px; color: var(--theme-elevation-700); }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+    font-size: 13px;
+
+    li { display: flex; gap: 12px; justify-content: space-between; max-width: 520px; }
+    li span:first-child { text-transform: capitalize; }
+    li span:last-child { color: var(--theme-elevation-600); font-variant-numeric: tabular-nums; }
+  }
+
+  &__empty { margin: 0; color: var(--theme-elevation-600); font-size: 13px; }
+}
+
+/* A photo's "Used on" list (MediaUsage). */
+.mp-usage {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12.5px;
+  line-height: 1.4;
+
+  a { color: var(--mp-lilac-ink); font-weight: 600; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  &__note { color: var(--theme-elevation-600); font-size: 12px; }
+}
+
+/* ── 3g. The red-warnings bar on every admin page (WarningsBar) ──────────── */
+
+.mp-warnbar {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px var(--gutter-h, 24px);
+  background: var(--theme-error-50);
+  border-bottom: 1px solid var(--theme-error-150);
+  color: var(--theme-error-750);
+  font-size: 12.5px;
+  line-height: 1.45;
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--theme-error-500);
+    flex-shrink: 0;
+  }
+
+  &__text { flex: 1 1 320px; min-width: 0; }
+
+  &__cta {
+    font-weight: 600;
+    color: inherit;
+    white-space: nowrap;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+/* "· required" after a dialog field's label. */
+.mp-field__required { font-weight: 500; color: var(--theme-warning-700); }
+
+/* Repeat weekly: the "only the first 26 will be created" hint. */
+.mp-field__hint--warn { color: var(--theme-warning-700); font-weight: 600; }
+
+/* ── 4. Phase 1–3 field components ─────────────────────────────────────── */
+
+/* encryptedText → SecretField */
+.mp-secret-field {
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--base) / 2);
+    min-height: var(--base);
+  }
+
+  &__value {
+    font-family: var(--font-mono);
+    font-size: var(--base-body-size);
+    letter-spacing: 0.08em;
+    padding: calc(var(--base) / 4) calc(var(--base) / 2);
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-s);
+    background: var(--theme-elevation-50);
+    color: var(--theme-elevation-800);
+  }
+
+  &__meta,
+  &__hint {
+    color: var(--theme-elevation-500);
+    font-size: var(--base-body-size);
+  }
+
+  &__error {
+    display: block;
+    color: var(--theme-error-500);
+    font-size: var(--base-body-size);
+    margin-top: calc(var(--base) / 4);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--base) / 2);
+    margin-top: calc(var(--base) / 4);
+  }
+
+  .btn {
+    margin: 0;
+  }
+}
+
+/* VerifyButton */
+.mp-verify {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--base) / 2);
+
+  &__result {
+    font-size: var(--base-body-size);
+
+    &--ok {
+      color: var(--theme-success-500);
+    }
+
+    &--error {
+      color: var(--theme-error-500);
+    }
+  }
+}
+
+/* money() → MoneyField (`.mp-amount` above is the dialogs' own amount input) */
+.mp-money {
+  &__row {
+    display: flex;
+    align-items: stretch;
+  }
+
+  &__currency {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 calc(var(--base) / 2);
+    border: 1px solid var(--theme-elevation-150);
+    border-right: 0;
+    border-radius: var(--style-radius-s) 0 0 var(--style-radius-s);
+    background: var(--theme-elevation-50);
+    color: var(--theme-elevation-600);
+    font-size: var(--base-body-size);
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: var(--base-body-size);
+    padding: calc(var(--base) / 2.5) calc(var(--base) / 2);
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: 0 var(--style-radius-s) var(--style-radius-s) 0;
+    background: var(--theme-input-bg);
+    color: var(--theme-elevation-800);
+
+    &:focus {
+      outline: none;
+      border-color: var(--mp-lilac);
+    }
+
+    &[aria-invalid="true"] {
+      border-color: var(--theme-error-500);
+    }
+  }
+
+  &__cell {
+    font-variant-numeric: tabular-nums;
+  }
+}

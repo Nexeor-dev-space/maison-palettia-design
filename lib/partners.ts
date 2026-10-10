@@ -1,3 +1,7 @@
+import { PAST_DESTINATIONS } from "@/lib/brand";
+import { TAGS } from "@/lib/cms/cache";
+import { toPartner } from "@/lib/cms/mappers";
+import { contentReader, findDocs } from "@/lib/cms/query";
 import type { MallPartner } from "@/types";
 
 /**
@@ -5,8 +9,9 @@ import type { MallPartner } from "@/types";
  * meet a CMS.
  *
  * Everything reads these through {@link getMallPartners}, so replacing the
- * array below with a query is a change to one function body — the same
- * arrangement lib/workshops.ts, lib/disciplines.ts and lib/passes.ts use.
+ * array below with a query was a change to one function body — the same
+ * arrangement lib/workshops.ts and lib/passes.ts use. Since Phase 2 the
+ * query is the `venues` collection (server only: Local API).
  *
  * ONE ENTRY IS THE POINT, NOT A GAP. The client has confirmed exactly one
  * partnership, so exactly one is listed. <MallPartners> is built to read
@@ -65,6 +70,8 @@ export interface PartnerRecord extends MallPartner {
   eventDescriptor?: string;
 }
 
+/* Fallback only — the `venues` collection (seeded from this array by 2B) is
+   the source. Read only when the CMS cannot answer at all. */
 const MALL_PARTNERS: PartnerRecord[] = [
   {
     slug: "times-square-center",
@@ -101,17 +108,39 @@ const MALL_PARTNERS: PartnerRecord[] = [
 ];
 
 /**
+ * The `venues` collection, by partnership status, in editorial order.
+ *
+ * `status` is the line the site never crosses: only `current` venues are
+ * offered as somewhere to go ("Find us"); `past` ones are a track record and
+ * are never presented as a destination (SPEC §D.2, inventory §4.3).
+ */
+const readVenues = contentReader("venues", [TAGS.venues], async (draft, status: "current" | "upcoming" | "past") => {
+  const docs = await findDocs("venues", draft, { drafts: false, sort: "order", where: { status: { equals: status } } });
+  return docs.map(toPartner);
+});
+
+/**
  * The partner destinations, in the order they should be read.
  *
- * Async on purpose, for the reason `getUpcomingWorkshops` is: the array
- * resolves immediately but the signature is already the one a CMS fetch needs.
- *
- * Order is editorial rather than alphabetical — the studio decides which
- * destination leads — so a query replacing this body should preserve whatever
- * order it is given.
- *
- * TODO(client): replace the body with the CMS query.
+ * The `venues` collection's CURRENT partners, through `cached` under the
+ * venues tag (SPEC §G.1). Order is editorial rather than alphabetical — the
+ * studio decides which destination leads — and the collection's `order`
+ * field is that decision.
  */
 export async function getMallPartners(): Promise<PartnerRecord[]> {
-  return MALL_PARTNERS;
+  const fromCms = await readVenues("current");
+  // The in-file list only when the CMS could not be read (null); an empty
+  // answer means "no current partner".
+  return fromCms ? [...fromCms] : MALL_PARTNERS;
+}
+
+/**
+ * Where the studio HAS worked — names only, for a "where we've been" line.
+ * Never a list of places to go: see `readVenues`. Nothing renders it yet;
+ * it replaces `PAST_DESTINATIONS` in lib/brand.ts for whatever does.
+ */
+export async function getPastDestinations(): Promise<string[]> {
+  const fromCms = await readVenues("past");
+  // In-file names only when the CMS could not be read (null).
+  return fromCms ? fromCms.map((venue) => venue.name) : [...PAST_DESTINATIONS];
 }
