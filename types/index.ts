@@ -72,9 +72,10 @@ export interface NavGroup {
 }
 
 /**
- * A social profile. `href` stays null until the client supplies real accounts.
- * No icon field: lucide-react v1 removed brand marks, so official Instagram /
- * Facebook glyphs need to be added as dedicated SVG assets during polish.
+ * A social profile. `href` is null for a platform without a URL yet, and a
+ * row with no href is never printed. No icon field: the glyph is looked up
+ * by label in components/ui/SocialGlyph.tsx (lucide-react v1 has no brand
+ * marks).
  */
 export interface SocialLink {
   label: string;
