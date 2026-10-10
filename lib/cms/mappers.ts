@@ -1,4 +1,17 @@
 import { resolveLink, type LinkValue } from "@/cms/fields/link";
+import {
+  DEFAULT_AUTHOR_NAME,
+  headingsOf,
+  JOURNAL_PLACEHOLDER,
+  journalCategoryHref,
+  journalPostHref,
+  openingLines,
+  readingMinutes,
+  type JournalCategory,
+  type JournalCategoryRef,
+  type JournalPost,
+  type JournalPostCard,
+} from "@/lib/cms/journalShared";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { PartnerRecord } from "@/lib/partners";
 import type { Policy, PolicyBlock } from "@/lib/policies";
@@ -10,6 +23,8 @@ import type {
   Media,
   Pass as CmsPass,
   Policy as CmsPolicy,
+  Post as CmsPost,
+  PostCategory as CmsPostCategory,
   Programme as CmsProgramme,
   Session as CmsSession,
   Testimonial as CmsTestimonial,
@@ -370,6 +385,69 @@ export function toTestimonial(doc: CmsTestimonial): Testimonial {
 /** `vibes` → `Vibe` (lib/vibes.ts). The slug is the CMS's; the union type is the taxonomy the code knows. */
 export function toVibe(doc: CmsVibe): Vibe {
   return { slug: doc.slug as VibeSlug, label: doc.label, blurb: doc.blurb };
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* The Journal                                                                */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+/** `post-categories` → the chip a card or a post carries. */
+export function toJournalCategoryRef(doc: CmsPostCategory): JournalCategoryRef {
+  return { slug: doc.slug, name: doc.name, colour: doc.colour, href: journalCategoryHref(doc.slug) };
+}
+
+/** `post-categories` → the filter row's entry, with its published-post count. */
+export function toJournalCategory(doc: CmsPostCategory, postCount: number): JournalCategory {
+  return { ...toJournalCategoryRef(doc), ...(doc.description ? { description: doc.description } : {}), postCount };
+}
+
+/**
+ * `posts` → a card. `size` picks the cover rendition: `card` (640) for the
+ * grid, `plate` (1200) for the featured slot. Posts saved before their
+ * first publish have no date; they only reach the site in draft mode, where
+ * `updatedAt` stands in.
+ */
+export function toJournalPostCard(doc: CmsPost, size: MediaSize = "card"): JournalPostCard {
+  const category = populated(doc.category);
+  const photo = imageOf(doc.author?.photo, "thumb");
+  const role = doc.author?.role?.trim();
+  return {
+    id: doc.id,
+    slug: doc.slug,
+    href: journalPostHref(doc.slug),
+    title: doc.title,
+    excerpt: doc.excerpt?.trim() || doc.autoExcerpt?.trim() || (doc.body ? openingLines(doc.body, 200) : ""),
+    coverImage: imageOf(doc.coverImage, size) ?? JOURNAL_PLACEHOLDER,
+    ...(category ? { category: toJournalCategoryRef(category) } : {}),
+    tags: (doc.tags ?? []).map((tag) => tag.trim()).filter(Boolean),
+    author: {
+      name: doc.author?.name?.trim() || DEFAULT_AUTHOR_NAME,
+      ...(role ? { role } : {}),
+      ...(photo ? { photo } : {}),
+    },
+    publishedAt: studioIso(doc.publishedAt || doc.updatedAt),
+    readingTime: typeof doc.readingTime === "number" && doc.readingTime > 0 ? doc.readingTime : doc.body ? readingMinutes(doc.body) : 1,
+    featured: doc.featured === true,
+  };
+}
+
+/** `posts` → the reading page. SEO falls back to the title and excerpt, the share image to the cover. */
+export function toJournalPost(doc: CmsPost): JournalPost {
+  const card = toJournalPostCard(doc, "plate");
+  const shareImage = imageOf(doc.meta?.image, "og") ?? imageOf(doc.coverImage, "og");
+  return {
+    ...card,
+    body: doc.body,
+    headings: headingsOf(doc.body),
+    updatedAt: doc.updatedAt,
+    heroImage: imageOf(doc.coverImage, "hero") ?? card.coverImage,
+    seo: {
+      title: doc.meta?.title?.trim() || doc.title,
+      description: doc.meta?.description?.trim() || card.excerpt,
+      ...(shareImage ? { image: shareImage } : {}),
+      noindex: doc.meta?.noindex === true,
+    },
+  };
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */

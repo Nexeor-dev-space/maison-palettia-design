@@ -31,6 +31,8 @@ export interface Config {
     passes: Pass;
     testimonials: Testimonial;
     vibes: Vibe;
+    posts: Post;
+    'post-categories': PostCategory;
     redirects: Redirect;
     orders: Order;
     customers: Customer;
@@ -88,6 +90,8 @@ export interface Config {
     passes: PassesSelect<false> | PassesSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     vibes: VibesSelect<false> | VibesSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
+    'post-categories': PostCategoriesSelect<false> | PostCategoriesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
@@ -396,6 +400,7 @@ export interface Page {
         | UpcomingSessionsBlock
         | TestimonialsBlock
         | CollaborateTeaserBlock
+        | LatestJournalBlock
       )[]
     | null;
   meta?: {
@@ -1829,6 +1834,81 @@ export interface CollaborateTeaserBlock {
   blockType: 'collaborateTeaser';
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LatestJournalBlock".
+ */
+export interface LatestJournalBlock {
+  /**
+   * The small line above the heading. Up to 24 characters.
+   */
+  eyebrow?: string | null;
+  /**
+   * Up to two lines, 18 characters each. Leave empty for “Latest from the Journal.”
+   */
+  headingLines: {
+    text: string;
+    id?: string | null;
+  }[];
+  /**
+   * One or two sentences under the heading.
+   */
+  lead?: string | null;
+  limit?: number | null;
+  /**
+   * Leave empty for the newest stories from every category.
+   */
+  category?: (string | null) | PostCategory;
+  /**
+   * Leave empty for “Read the Journal”.
+   */
+  cta: {
+    label?: string | null;
+    link: {
+      type: 'internal' | 'external';
+      url?: string | null;
+      /**
+       * Scrolls to a section, e.g. scheduled → /events#scheduled
+       */
+      anchor?: string | null;
+      newTab?: boolean | null;
+    };
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'latestJournal';
+}
+/**
+ * The sections of the Journal. Each post belongs to one; the colour is its label on the cards.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "post-categories".
+ */
+export interface PostCategory {
+  id: string;
+  /**
+   * Short — it is a label on a card, e.g. Studio news.
+   */
+  name: string;
+  /**
+   * From the brand palette.
+   */
+  colour: 'lilac' | 'sage' | 'terracotta' | 'cream' | 'lavender';
+  /**
+   * One sentence shown at the top of this category's page.
+   */
+  description?: string | null;
+  /**
+   * The address: /journal/category/{slug}. Leave empty to make it from the name.
+   */
+  slug: string;
+  /**
+   * Position in the Journal's filter row: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Dated, bookable sessions of the Create Together experiences. Seats sold and held are counted by the booking system.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2235,6 +2315,103 @@ export interface Pass {
    * Position in lists: lower numbers come first.
    */
   order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Stories for the Journal page. The newest featured post is shown large at the top; the rest are cards, newest first.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: string;
+  /**
+   * The headline, up to 90 characters. Shorter reads better on the cards.
+   */
+  title: string;
+  /**
+   * One or two sentences for the card and for search results. Leave empty to use the opening lines of the post.
+   */
+  excerpt?: string | null;
+  autoExcerpt?: string | null;
+  /**
+   * Shown on the card and across the top of the post. Landscape works best, at least 1600 px wide. Click the photo in Media to set its focal point.
+   */
+  coverImage: string | Media;
+  /**
+   * Use Heading 2 for sections. Add photographs with the + button or by typing /upload; each can have a caption.
+   */
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Up to three posts suggested at the end. Leave empty to suggest the newest posts in the same category.
+   */
+  relatedPosts?: (string | Post)[] | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * The address: /journal/{slug}. Leave empty to make it from the title.
+   */
+  slug: string;
+  /**
+   * Printed on the post. Filled in when you first publish; change it to backdate a story.
+   */
+  publishedAt?: string | null;
+  /**
+   * One category; it becomes the coloured label on the card and a filter on the Journal page.
+   */
+  category?: (string | null) | PostCategory;
+  /**
+   * If several are ticked, the newest one is shown.
+   */
+  featured?: boolean | null;
+  /**
+   * Short words, e.g. candles, kids, behind the scenes. Press Enter after each.
+   */
+  tags?: string[] | null;
+  author?: {
+    /**
+     * Leave as Maison Palettia for a studio post.
+     */
+    name?: string | null;
+    /**
+     * e.g. Founder, Workshop host.
+     */
+    role?: string | null;
+    /**
+     * A small round portrait beside the name.
+     */
+    photo?: (string | null) | Media;
+  };
+  /**
+   * Worked out from the length of the post when you save.
+   */
+  readingTime?: number | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -3679,6 +3856,14 @@ export interface PayloadLockedDocument {
         value: string | Vibe;
       } | null)
     | ({
+        relationTo: 'posts';
+        value: string | Post;
+      } | null)
+    | ({
+        relationTo: 'post-categories';
+        value: string | PostCategory;
+      } | null)
+    | ({
         relationTo: 'redirects';
         value: string | Redirect;
       } | null)
@@ -3950,6 +4135,7 @@ export interface PagesSelect<T extends boolean = true> {
         upcomingSessions?: T | UpcomingSessionsBlockSelect<T>;
         testimonials?: T | TestimonialsBlockSelect<T>;
         collaborateTeaser?: T | CollaborateTeaserBlockSelect<T>;
+        latestJournal?: T | LatestJournalBlockSelect<T>;
       };
   meta?:
     | T
@@ -4810,6 +4996,37 @@ export interface CollaborateTeaserBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LatestJournalBlock_select".
+ */
+export interface LatestJournalBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingLines?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  lead?: T;
+  limit?: T;
+  category?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+              anchor?: T;
+              newTab?: T;
+            };
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "experiences_select".
  */
 export interface ExperiencesSelect<T extends boolean = true> {
@@ -5121,6 +5338,55 @@ export interface VibesSelect<T extends boolean = true> {
   label?: T;
   slug?: T;
   blurb?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  excerpt?: T;
+  autoExcerpt?: T;
+  coverImage?: T;
+  body?: T;
+  relatedPosts?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noindex?: T;
+      };
+  slug?: T;
+  publishedAt?: T;
+  category?: T;
+  featured?: T;
+  tags?: T;
+  author?:
+    | T
+    | {
+        name?: T;
+        role?: T;
+        photo?: T;
+      };
+  readingTime?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "post-categories_select".
+ */
+export interface PostCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  colour?: T;
+  description?: T;
+  slug?: T;
   order?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -8343,6 +8609,10 @@ export interface TaskSchedulePublish {
       | ({
           relationTo: 'testimonials';
           value: string | Testimonial;
+        } | null)
+      | ({
+          relationTo: 'posts';
+          value: string | Post;
         } | null);
     global?: string | null;
     user?: {

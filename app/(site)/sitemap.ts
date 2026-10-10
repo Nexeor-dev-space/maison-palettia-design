@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { getLandingPageSlugs } from "@/components/blocks/data";
 import { FIXED_PAGE_SLUGS } from "@/cms/collections/content/Pages";
+import { listCategories, listPostSlugs } from "@/lib/cms/journal";
 import { getSite } from "@/lib/constants.server";
 import { getEventSlugs } from "@/lib/eventDetail";
 import { PASSES_CONFIGURED } from "@/lib/passes";
@@ -33,6 +34,7 @@ import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
  *       steps in a booking, not destinations
  *   /loyalty    while PASSES_CONFIGURED is false — the page's own noindex is
  *               tied to the same flag, so the two lift together
+ *   /journal/{slug} whose SEO tab ticks "noindex" (the post page prints it)
  *
  * NO changeFrequency OR priority — Google ignores both outright. A landing
  * page carries `lastModified`, its real `updatedAt`; nothing else does yet,
@@ -57,15 +59,18 @@ const STATIC_PATHS = [
   "/contact",
   "/faq",
   "/policies",
+  "/journal",
 ] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [site, eventSlugs, audiences, policies, landing] = await Promise.all([
+  const [site, eventSlugs, audiences, policies, landing, posts, categories] = await Promise.all([
     getSite(),
     getEventSlugs(),
     getPrivateEventAudiences(),
     getPolicies(),
     getLandingPageSlugs(FIXED_PAGE_SLUGS),
+    listPostSlugs(),
+    listCategories(),
   ]);
 
   const paths: string[] = [
@@ -74,10 +79,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...eventSlugs.map((slug) => `/events/${slug}`),
     ...audiences.map((audience) => `/private-events/${audience.slug}`),
     ...policies.map((policy) => `/policies/${policy.slug}`),
+    // A category page exists once a story is filed under it (the listing hides empty chips).
+    ...categories.filter((category) => category.postCount > 0).map((category) => category.href),
   ];
 
   return [
     ...paths.map((path) => ({ url: `${site.url}${path}` })),
     ...landing.map((page) => ({ url: `${site.url}/${page.slug}`, lastModified: page.updatedAt })),
+    // Every published, indexable story, with its real last change (SPEC §G.2: the Journal's getters, purged on publish).
+    ...posts.filter((post) => !post.noindex).map((post) => ({ url: `${site.url}/journal/${post.slug}`, lastModified: post.updatedAt })),
   ];
 }

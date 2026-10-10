@@ -21,6 +21,7 @@ import { ExperienceCarouselAdapter } from "./ExperienceCarousel";
 import { FaqListAdapter } from "./FaqList";
 import { GalleryCollectionsAdapter } from "./GalleryCollections";
 import { HeroAdapter } from "./Hero";
+import { LatestJournalAdapter } from "./LatestJournal";
 import { LocationsHeroAdapter } from "./LocationsHero";
 import { OpeningStatementAdapter } from "./OpeningStatement";
 import { PageHeaderAdapter } from "./PageHeader";
@@ -85,4 +86,5 @@ export const ADAPTERS: Registry = {
   upcomingSessions: UpcomingSessionsAdapter,
   testimonials: TestimonialsAdapter,
   collaborateTeaser: CollaborateTeaserAdapter,
+  latestJournal: LatestJournalAdapter,
 };
