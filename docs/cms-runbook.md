@@ -509,3 +509,15 @@ from `scripts/deploy.sh` and `Dockerfile.runtime` above. What makes it work:
 `scripts/preflight-db.mjs` is not run by Coolify; the database gate (dedicated
 non-superuser role, TLS or a private network) is still owed before real
 customer data lands — see "Database gate".
+
+### Photos missing on the server ("image" requests return 400)
+
+The media library is rows in Postgres plus files in `/app/media`. If the
+files are missing (a new server, an empty or lost volume, or a seed that ran
+on another machine), every `/api/media/file/…` is a 404 and `/_next/image`
+answers 400. `npm run start:prod` runs `cms/scripts/restore-media.ts` before
+the server starts: any seeded photo whose file is missing is re-imported from
+its original in `public/` into the same library entry (same name, sizes
+regenerated). Photos uploaded through the admin have no copy in git; the start
+log lists them as "missing with no source" so they can be re-uploaded. Run it
+by hand with `npm run restore:media`.

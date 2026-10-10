@@ -7,7 +7,7 @@
     "dev": "next dev -p 3200",
     "build": "next build && bash scripts/prune-standalone.sh",
     "start": "next start",
-    "start:prod": "payload migrate && bash scripts/start-standalone.sh",
+    "start:prod": "payload migrate && payload run cms/scripts/restore-media.ts && bash scripts/start-standalone.sh",
     "lint": "eslint",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
@@ -19,7 +19,8 @@
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
-    "ci": "bash scripts/ci.sh"
+    "ci": "bash scripts/ci.sh",
+    "restore:media": "payload run cms/scripts/restore-media.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.90.2",
