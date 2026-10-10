@@ -4,6 +4,7 @@ import path from "node:path";
 
 import config from "@payload-config";
 import { getPayload } from "payload";
+import sharp from "sharp";
 
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { storedFilename } from "@/cms/seed/media";
@@ -53,10 +54,39 @@ const MIME: Record<string, string> = {
 /** stored filename → path under public/, for every seeded photo. */
 const SOURCES = new Map(MEDIA.map((seed) => [storedFilename(seed.path), seed.path]));
 
-type MediaRow = { id: number | string; filename?: string | null };
+const PARKED = "__restoring-";
+
+type MediaRow = {
+  id: number | string;
+  filename?: string | null;
+  sizes?: Record<string, { filename?: string | null } | null> | null;
+};
+
+/**
+ * The real name of a row this script parked and never got back to (the
+ * process was killed mid-update — on the first server run, resizing the
+ * 26–30 MP originals took the container down). The generated sizes keep the
+ * original stem (`workshop-journey-96x96.webp`), so strip the `-WxH.ext`
+ * suffix and match it against the seeded names to recover the extension.
+ */
+function originalNameOf(row: MediaRow): string | undefined {
+  for (const size of Object.values(row.sizes ?? {})) {
+    const stem = size?.filename?.replace(/-\d+x\d+\.[a-z0-9]+$/i, "");
+    if (!stem) continue;
+    for (const name of SOURCES.keys()) {
+      if (name.slice(0, name.length - path.extname(name).length) === stem) return name;
+    }
+  }
+  return undefined;
+}
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  // One image at a time, no pixel cache: this runs beside nothing else at
+  // boot, but on a small container the default (one thread per core plus a
+  // 50 MB cache) resizing a 30 MP original was enough to get it killed.
+  sharp.concurrency(1);
+  sharp.cache(false);
   const payload = await getPayload({ config });
 
   await fsp.mkdir(MEDIA_DIR, { recursive: true });
@@ -73,7 +103,19 @@ async function main() {
   const unrecoverable: string[] = [];
 
   for (const row of rows) {
-    const filename = row.filename;
+    let filename = row.filename;
+    if (filename?.startsWith(PARKED)) {
+      // Left parked by an interrupted run: give the row its name back first.
+      const original = originalNameOf(row);
+      if (!original) {
+        unrecoverable.push(filename);
+        continue;
+      }
+      if (!dryRun) {
+        await payload.db.updateOne({ collection: "media", id: row.id, data: { filename: original }, returning: false });
+      }
+      filename = original;
+    }
     if (!filename) continue;
     if (fs.existsSync(path.join(MEDIA_DIR, filename))) {
       present++;
@@ -104,16 +146,22 @@ async function main() {
       data: { filename: `__restoring-${row.id}${path.extname(filename)}` },
       returning: false,
     });
-    await payload.update({
-      collection: "media",
-      id: row.id,
-      data: {} as never,
-      file: { data: buffer, mimetype, name: filename, size: buffer.length },
-      depth: 0,
-      overrideAccess: true,
-      context: { ...SEED_CONTEXT },
-    });
-    restored++;
+    try {
+      await payload.update({
+        collection: "media",
+        id: row.id,
+        data: {} as never,
+        file: { data: buffer, mimetype, name: filename, size: buffer.length },
+        depth: 0,
+        overrideAccess: true,
+        context: { ...SEED_CONTEXT },
+      });
+      restored++;
+    } catch (err) {
+      // Never leave a row parked: put its name back and carry on.
+      await payload.db.updateOne({ collection: "media", id: row.id, data: { filename }, returning: false });
+      unrecoverable.push(`${filename} (${err instanceof Error ? err.message : String(err)})`);
+    }
   }
 
   const verb = dryRun ? "would restore" : "restored";
