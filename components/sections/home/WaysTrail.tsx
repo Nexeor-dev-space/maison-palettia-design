@@ -1,10 +1,11 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 
+import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { ModeMark } from "@/components/ui/ModeMark";
 import { PaintStroke } from "@/components/layout/PaintStroke";
@@ -114,7 +115,10 @@ function TrailRow({
   last: boolean;
 }) {
   const row = useRef<HTMLLIElement>(null);
-  const reduced = useReducedMotion();
+  /* False while hydrating, so the first client render draws the server's
+     moving trail and not a finished one — the mismatch React used to log
+     under reduced motion. See components/motion/useHydratedReducedMotion.ts. */
+  const reduced = useHydratedReducedMotion();
 
   /* Even cards sit LEFT, odd ones RIGHT — so every link crosses the measure. */
   const leftSide = index % 2 === 0;
@@ -356,7 +360,7 @@ function TrailRow({
              carries a mark from each end rather than two of the same. */
           nextPaint={next.paint}
           nextMark={next.trailMark}
-          reduced={!!reduced}
+          reduced={reduced}
         />
       ) : null}
 

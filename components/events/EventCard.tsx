@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SessionGate } from "@/components/booking/SessionClock";
 import { ModeMark } from "@/components/ui/ModeMark";
 
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
@@ -9,6 +10,7 @@ import {
   formatDuration,
   formatPrice,
   formatSessionDate,
+  hasSessionPassed,
   isFullyBooked,
   isScarce,
   sessionDateParts,
@@ -43,9 +45,15 @@ import type { Workshop } from "@/types";
  *
  * So the chip says only what `seatsAvailable` already knows:
  *
+ *   date gone by ....... "Date passed"     — charcoal, a statement of fact
  *   fully booked ....... "Fully booked"    — charcoal, a statement of fact
  *   nearly gone ........ "3 spots left"    — Deep Lilac, the one accent
  *   comfortably open ... nothing at all
+ *
+ * The first row is decided twice: by the server when the HTML is rendered,
+ * and again by <SessionGate> against the visitor's clock, because this card
+ * sits on a prerendered page and a date can lapse between the render and the
+ * visit. The same gate turns "Book" into "View" at the foot.
  *
  * The third case matters most. A chip on every tile is a chip that means
  * nothing; scarcity only reads as scarcity when most tiles are quiet. That is
@@ -79,6 +87,8 @@ export function EventCard({
   );
   const closed = isFullyBooked(workshop);
   const scarce = isScarce(workshop);
+  // The server's verdict, for the HTML; <SessionGate> below re-asks it.
+  const passed = hasSessionPassed(workshop);
 
   /*
     Printed only when it is not the title said twice. Several activities are
@@ -99,7 +109,8 @@ export function EventCard({
         "motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-within:-translate-y-1",
         // A sold-out date stays in the grid and stays readable — it is still
         // information — but it stops competing with the ones that can be had.
-        closed && "opacity-75",
+        // So does a date gone by, as far as the server could tell.
+        (closed || passed) && "opacity-75",
         className,
       )}
     >
@@ -118,20 +129,16 @@ export function EventCard({
           a picture. White Rock on Charcoal is 12.33:1; the near-white on Deep
           Lilac is 4.90:1, which is what `--color-on-primary` exists for.
         */}
-        {closed || scarce ? (
-          <p
-            className={cn(
-              "absolute left-3 top-3 rounded-sm px-3 py-1.5 text-label font-medium uppercase tracking-eyebrow",
-              closed ? "bg-text text-on-dark" : "bg-primary text-on-primary",
-              // A few pixels more than the tile, so the two read as separate
-              // layers rather than as one flat picture.
-              "transition-transform duration-[var(--duration-hover)] ease-editorial",
-              "motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5",
-            )}
-          >
-            {spotsLabel(workshop)}
-          </p>
-        ) : null}
+        <SessionGate
+          startsAt={workshop.startsAt}
+          passedAtRender={passed}
+          open={
+            closed || scarce ? (
+              <Chip dark={closed}>{spotsLabel(workshop)}</Chip>
+            ) : null
+          }
+          passed={<Chip dark>Date passed</Chip>}
+        />
       </div>
 
       <div className="mt-6 flex flex-1 flex-col">
@@ -205,7 +212,12 @@ export function EventCard({
             aria-hidden
             className="inline-flex shrink-0 items-baseline gap-2 text-action font-medium uppercase tracking-eyebrow text-text"
           >
-            {closed ? "View" : "Book"}
+            <SessionGate
+              startsAt={workshop.startsAt}
+              passedAtRender={passed}
+              open={closed ? "View" : "Book"}
+              passed="View"
+            />
             <span className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">
               &#8594;
             </span>
@@ -225,5 +237,23 @@ export function EventCard({
         </span>
       </div>
     </article>
+  );
+}
+
+/** The status chip on the photograph. */
+function Chip({ dark = false, children }: { dark?: boolean; children: React.ReactNode }) {
+  return (
+    <p
+      className={cn(
+        "absolute left-3 top-3 rounded-sm px-3 py-1.5 text-label font-medium uppercase tracking-eyebrow",
+        dark ? "bg-text text-on-dark" : "bg-primary text-on-primary",
+        // A few pixels more than the tile, so the two read as separate
+        // layers rather than as one flat picture.
+        "transition-transform duration-[var(--duration-hover)] ease-editorial",
+        "motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5",
+      )}
+    >
+      {children}
+    </p>
   );
 }

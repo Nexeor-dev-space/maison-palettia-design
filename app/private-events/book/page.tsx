@@ -12,10 +12,14 @@ import { PRIVATE_EVENT_IMAGES, PRIVATE_EVENT_STEPS } from "@/lib/privateEvents";
 import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
+/* The same two sentences of the client's p37 band the page's own intro
+   prints (see the note there), so the search snippet and the page speak in
+   one voice. It was "Tell Maison Palettia about your gathering and we will
+   come back to you…", the wording that rewrite replaced. */
 export const metadata = buildMetadata({
   title: "Plan a private event",
   description:
-    "Tell Maison Palettia about your gathering and we will come back to you with what the creative session could look like.",
+    "Tell us when, who’s coming and what you’d like to make. We’ll help turn the idea into an experience made for your group.",
   path: "/private-events/book",
 });
 
@@ -111,10 +115,21 @@ export default async function PrivateEventBookingPage() {
                 <h1 className="mt-8 heading-script text-script-section">
                   Plan Your Private Experience.
                 </h1>
+                {/*
+                  THE CLIENT'S WORDS FOR THIS INVITATION, from the p37 band on
+                  /private-events that sends people here — its second and
+                  third sentences, exactly. The opening "Have something in
+                  mind?" is left on that band: whoever reads this has just
+                  answered it by clicking through. This was "Tell us who is
+                  coming and what you would like them to make…", the voice
+                  that rewrite replaced. Its reassurance — an estimate is
+                  enough, nothing is fixed — is not lost: the fieldset opens
+                  on "Answer what you know" and the stub closes on "Nothing
+                  here is fixed once you send it."
+                */}
                 <p className="mt-8 max-w-[34rem] text-body text-text/80">
-                  Tell us who is coming and what you would like them to make. The more you can
-                  say the more useful our reply will be, but an estimate is enough to start
-                  with, and nothing you send here is fixed.
+                  Tell us when, who’s coming and what you’d like to make. We’ll help turn the
+                  idea into an experience made for your group.
                 </p>
               </Reveal>
             }

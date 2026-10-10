@@ -69,9 +69,17 @@ export default function CheckoutPage() {
           exactly one primary control and this must not argue with it, so there
           is nothing here that books, pays or confirms — only the two questions
           someone actually has at this moment, and where each is answered.
+
+          NO NOTE ANY MORE, ON PURPOSE. It read "Your place is held when you
+          reserve it. Nothing is charged through this site yet." — the first
+          half false (nothing holds a place while lib/booking.ts has no
+          backend; the record is a Pending request in this browser) and the
+          pair contradicting the line under the button. What a booking is now
+          has one sentence, BOOKING_TERMS in lib/constants.ts, and <Checkout>
+          prints it beside "Confirm booking", where it is read before the
+          press. Repeating it here would be the page saying it twice.
         */}
         <PageUtilityBar
-          note="Your place is held when you reserve it. Nothing is charged through this site yet."
           links={[
             { label: "Check a booking", href: "/booking-status" },
             { label: "Questions", href: "/faq" },

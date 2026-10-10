@@ -217,7 +217,11 @@ export function isUpcoming(detail: EventDetail): boolean {
   return eventFlag(detail) !== null;
 }
 
-/** The photograph, where one exists. Two activities have none. */
+/**
+ * The photograph, where one exists. All seven activities have one today; the
+ * field stays optional in the types, so callers (the page hero and
+ * app/events/[slug]/opengraph-image.tsx) still handle its absence.
+ */
 export function eventImage(detail: EventDetail) {
   return detail.kind === "scheduled"
     ? detail.workshop.image

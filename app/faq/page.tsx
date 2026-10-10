@@ -217,9 +217,16 @@ export default function FaqPage() {
                 Full strength, no alpha. `--color-surface` on Deep Lilac is
                 4.90:1 and that is the whole of the headroom — the same rule
                 <EnquiryCta> keeps on /private-events.
+
+                OURS, IN THE CLIENT'S VOICE, AND WAITING ON THEIR CHECK. It
+                was "If something is unclear, ask before you book." — the
+                second half of the event-page sentence the client replaced
+                (PDF p21), so it was the retired wording surviving here. Their
+                document has no line for this band, so this is the shortest
+                one that still sends the reader to the button below.
               */}
               <p className="mx-auto mt-9 max-w-[44rem] text-balance text-lead text-surface">
-                If something is unclear, ask before you book.
+                Just ask us. We&rsquo;re always happy to help you get creating.
               </p>
             </Reveal>
 

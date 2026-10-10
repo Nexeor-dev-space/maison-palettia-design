@@ -4,15 +4,13 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
-import { Heart, Images, Mail, Sparkles, type LucideIcon } from "lucide-react";
-
-import { AboutIcon } from "@/components/layout/bottomNavIcons";
+import { ABOUT_DOORS } from "@/components/layout/AboutMenu";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types";
 
 /**
  * ==========================================================================
- * THE ABOUT SHEET — the desktop's About panel, on cards rather than in a list
+ * THE ABOUT SHEET — the desktop's About panel, as the same four lines of text
  * ==========================================================================
  *
  * IT WAS "MORE" AND IT IS THE SAME DRAWER. What changed is what it holds and
@@ -25,15 +23,21 @@ import type { NavItem } from "@/types";
  * MAIN_NAV, which is now exactly the four doors <AboutMenu> opens and in the
  * same order: About the Maison, Locations, Gallery, Contact. They are "who
  * this is and how to reach it", where the bar's own slots are the programme a
- * visitor is moving through. Nothing here also appears in the bar — see the
- * note on `mobileSurface` in lib/constants.ts.
+ * visitor is moving through. Contact is the one entry that is in both: the
+ * bar's fourth slot is Contact too, on purpose, and only the slot carries the
+ * "you are here" mark — see the note over `CONTACT_HREF` in <BottomNav>, and
+ * `mobileSurface` in lib/constants.ts for the rest.
  *
- * NOT A LIST OF LINKS, at the client's ask. Each entry is a card on its own
- * paint, with its own blob radius and its own ink, so the sheet reads as a
- * few objects set down rather than as a menu that opened. The colours are
- * the site's own rotation on a cream ground — lilac, terracotta, lavender —
- * which is the same sequence PAINTS_ON_CREAM hands out everywhere else, and
- * it simply wraps round for the fourth card.
+ * JUST THE TEXT, at the client's later ask. This sheet was four painted
+ * cards — a hand-drawn blot on each, a Lucide glyph and the name, in the
+ * site's lilac / terracotta / lavender / sage rotation — because an earlier
+ * note asked for "not a list of links". The client's note on the desktop
+ * About panel has since been "just the text is fine", and the sheet is that
+ * panel on a phone, so it follows: each entry is now the page's name over
+ * the same line <AboutMenu> gives it (`ABOUT_DOORS`, shared, so the two
+ * cannot drift), on the same quiet near-white door the desktop uses. Going
+ * back to the cards is a client decision, not a tidy-up: the paints, blots
+ * and glyphs they used are gone from this file rather than left unused.
  *
  * NOT FULL SCREEN, also at the client's ask. It is the height of its own
  * contents and it sits on the bar, so the bar it came out of is still
@@ -181,11 +185,16 @@ export function AboutSheet({
             }
           >
             <div className="rounded-[1.75rem] bg-cream px-4 pb-7 pt-4 shadow-[0_-10px_30px_-14px_rgba(45,55,72,0.45)]">
+              {/*
+                TEXT ONLY, THE HEADING TOO. The client asked for the About
+                menu to be words and nothing else; the desktop panel already
+                is, and the rows below are, but this heading kept the bottom
+                bar's 16px About glyph beside its word — the one drawing left
+                in the sheet. The slot that opened it still carries that
+                glyph, so nothing is lost in finding the way back.
+              */}
               <div className="flex items-center justify-between gap-4 px-1 pb-3">
-                <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
-                  <span aria-hidden className="block w-4 text-primary">
-                    <AboutIcon size={16} />
-                  </span>
+                <p className="text-label font-medium uppercase tracking-eyebrow text-text">
                   About
                 </p>
                 <button
@@ -202,58 +211,55 @@ export function AboutSheet({
               </div>
 
               {/*
-                FOUR BLOTS IN A TWO-BY-TWO, not four bars in a column. Stacked
-                full width, the blob radii could only ever resolve into
-                ellipses — a 330x60 box has no room to be anything else, and
-                the client's note was that they looked wrong. At roughly 4:3
-                a thrown shape has somewhere to go, so each card carries a
-                hand-drawn blot behind it: four different outlines, none of
-                them symmetrical, drawn at the proportion they are used at so
-                nothing is stretched into shape.
+                FOUR ROWS OF TEXT, one column on a phone and two from `sm`.
+
+                It was a two-by-two of painted blots, each a 4:3 card with a
+                22px icon over the name and no line under it — 173x130 at 390
+                and 362x272 at 768, so the sheet was mostly paint. The rows
+                are the desktop door's anatomy instead: the name, its line,
+                an arrow — the sheet's own heading still says About, so the
+                first row takes the door's full name. Measured at 390: each
+                row is 358x70, well over the 44px a finger needs, and the
+                whole row is the link.
+
+                `bg-surface` on the cream sheet is the desktop's quiet door on
+                the desktop's cream card, and Light Sage on press and hover is
+                the same rule <MenuRailRow> keeps: the one field that is
+                unmistakably not the panel. The line is Charcoal at 80% —
+                the desktop door's value too, since both made the same move
+                for the same measured reason: 70% is 4.58:1 on the near-white
+                but about 4.2:1 on Light Sage, so the line dropped under the
+                4.5 a 14px line owes the moment a finger was on it. 80%
+                measures 6.09:1 at rest and 5.38:1 on the sage, at 390.
               */}
-              <ul className="grid grid-cols-2 gap-3">
-                {items.map((item, i) => {
-                  const paint = PAINTS[i % PAINTS.length];
-                  const Icon = ICONS[item.href] ?? Sparkles;
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2.5">
+                {items.map((item) => {
+                  /* The desktop door's name and line where there is one —
+                     "About the Maison", not a second "About" under the
+                     sheet's own "About" heading — and the nav label where
+                     there is not, so a page added to MAIN_NAV still shows. */
+                  const door = ABOUT_DOORS.find((d) => d.href === item.href);
                   return (
                     <li key={item.href}>
                       <Link
                         href={item.href}
                         onClick={onClose}
                         className={cn(
-                          /*
-                            `isolate` IS LOAD-BEARING. The blot below is
-                            `-z-10`, and without a stacking context here that
-                            -10 escapes to the nearest ancestor that has one —
-                            which is the sheet — and the paint lands BEHIND the
-                            cream panel instead of behind the label. Measured:
-                            four cards with icons and words and no colour at
-                            all. Same trap <BottomNav>'s own note describes.
-                          */
-                          "group/card relative isolate flex aspect-[4/3] flex-col items-center justify-center gap-2 px-3 text-center",
-                          "transition-transform duration-300 ease-editorial motion-reduce:transition-none",
-                          "active:scale-[0.97] motion-safe:hover:scale-[1.02]",
-                          paint.ink,
+                          "group flex items-center gap-4 rounded-[0.9rem] bg-surface px-5 py-3 text-text",
+                          "transition-colors duration-300 ease-soft hover:bg-sage active:bg-sage",
                         )}
                       >
-                        {/* The blot. `preserveAspectRatio="none"` only ever
-                            has to make up the few per cent between the card's
-                            real box and the 160x120 it was drawn in. */}
-                        <svg
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-h4 font-medium">{door?.name ?? item.label}</span>
+                          {door ? (
+                            <span className="mt-0.5 block text-fine text-text/80">{door.sub}</span>
+                          ) : null}
+                        </span>
+                        <span
                           aria-hidden
-                          viewBox="0 0 160 120"
-                          preserveAspectRatio="none"
-                          className="absolute inset-0 -z-10 size-full"
+                          className="shrink-0 text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
                         >
-                          <path d={BLOTS[i % BLOTS.length]} className={paint.fill} />
-                        </svg>
-
-                        <Icon aria-hidden size={22} strokeWidth={1.8} className="shrink-0" />
-                        {/* 19px semibold: on terracotta, Charcoal is 3.84:1,
-                            which is what large text owes. The other three
-                            clear 4.5 at any size — see PAINTS. */}
-                        <span className="text-[1.1875rem] font-semibold leading-tight">
-                          {item.label}
+                          &#8594;
                         </span>
                       </Link>
                     </li>
@@ -267,47 +273,3 @@ export function AboutSheet({
     </AnimatePresence>
   );
 }
-
-/*
-  THE SITE'S OWN ROTATION ON CREAM — lilac, terracotta, lavender — with Light
-  Sage joining it for the fourth card. The inks are measured, not picked:
-
-    Deep Lilac + on-primary ....... 4.90:1   over 4.5 at any size
-    Warm Terracotta + Charcoal .... 3.84:1   over 3.0, which is what the
-                                             19px semibold label owes as
-                                             large text. White Rock there
-                                             would have been 2.44.
-    Soft Lavender + Charcoal ...... 6.49:1
-    Light Sage + Charcoal ......... 9.07:1
-*/
-const PAINTS = [
-  { fill: "fill-primary", ink: "text-on-primary" },
-  { fill: "fill-terracotta", ink: "text-text" },
-  { fill: "fill-lavender", ink: "text-text" },
-  { fill: "fill-sage", ink: "text-text" },
-] as const;
-
-/*
-  FOUR BLOTS, DRAWN AT 160x120 — the proportion the cards actually are, so the
-  shape is never stretched into existence. Each is one closed path with its
-  lumps in different places and no mirror symmetry anywhere; they are paint
-  thrown down, not rounded rectangles.
-*/
-const BLOTS = [
-  "M9 52 C 6 30 22 12 46 9 C 72 6 104 4 128 11 C 150 17 156 38 153 60 C 150 84 140 112 114 116 C 86 120 50 115 28 106 C 10 99 12 72 9 52 Z",
-  "M12 44 C 14 22 34 8 58 10 C 84 12 110 6 132 14 C 154 22 155 46 150 67 C 145 90 148 113 120 117 C 92 121 56 114 32 104 C 12 96 10 64 12 44 Z",
-  "M8 62 C 5 38 26 16 50 12 C 78 7 108 11 130 8 C 152 5 157 32 152 55 C 147 79 144 108 118 115 C 90 122 54 118 30 108 C 10 100 11 82 8 62 Z",
-  "M14 48 C 10 26 30 9 54 11 C 80 13 112 9 134 18 C 155 27 153 50 148 70 C 143 92 136 114 110 117 C 84 120 48 112 27 101 C 9 92 17 69 14 48 Z",
-] as const;
-
-/*
-  A small modern mark per destination. Lucide, not the drawn set: these are
-  cards with room, where a 22px machine-cut glyph sits cleanly on paint — the
-  drawn hand is for the bar, where the icon IS the item.
-*/
-const ICONS: Record<string, LucideIcon> = {
-  "/private-events": Sparkles,
-  "/gallery": Images,
-  "/about": Heart,
-  "/contact": Mail,
-};

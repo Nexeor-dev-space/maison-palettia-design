@@ -1,4 +1,4 @@
-import type { Transition, Variants } from "framer-motion";
+import type { Transition, Variant, Variants } from "framer-motion";
 
 /**
  * Shared motion language: slow, smooth, editorial. Everything animates with
@@ -230,6 +230,35 @@ export const variants = {
 } as const;
 
 export type VariantName = keyof typeof variants;
+
+/**
+ * The same variants, landing in no time at all — for reduced motion.
+ *
+ * WHY THIS AND NOT `initial={false}` ALONE. <Reveal> and <Stagger> used to
+ * honour reduced motion by starting the element at `visible`, which only
+ * works on an element's FIRST frame. Under hydration that first frame has to
+ * match the server's hidden one (see useHydratedReducedMotion), so the
+ * preference arrives a render later as a change to `animate` on an element
+ * already mounted — and a variant's own `transition` outranks any the
+ * component passes, so it would play the full rise or fade. Each state here
+ * keeps its values and swaps its transition for an instant one, which also
+ * drops <Stagger>'s `staggerChildren`: the group lands complete, together.
+ */
+const INSTANT: Transition = { duration: 0 };
+
+export function instantVariants(source: Variants): Variants {
+  const still: Variants = {};
+  for (const [name, state] of Object.entries(source)) {
+    still[name] =
+      typeof state === "function"
+        ? ((...args: Parameters<typeof state>) => {
+            const target = state(...args);
+            return typeof target === "string" ? target : { ...target, transition: INSTANT };
+          })
+        : ({ ...state, transition: INSTANT } satisfies Variant);
+  }
+  return still;
+}
 
 /** Viewport defaults: animate once, slightly before the element is centred. */
 export const VIEWPORT = { once: true, margin: "0px 0px -12% 0px" } as const;

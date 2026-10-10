@@ -37,7 +37,7 @@ export const metadata = buildMetadata({
  * provenance and alt text are already settled — the same rule the old wall
  * kept, and the reason there is no stock photography here:
  *
- *   WHAT YOU CAN MAKE  lib/experiences.ts — the client's own seven activities,
+ *   WHAT YOU CAN MAKE  lib/experiences.ts — the client's own activities,
  *                      one square photograph each, each captioned with its own
  *                      name and whether it runs any time or on a date. The
  *                      pottery frame the client asked to keep off the site
@@ -87,7 +87,13 @@ export default async function GalleryPage() {
       id: "make",
       folio: "Collection 01",
       heading: "What you can make",
-      lede: "Seven ways to spend an afternoon, and the thing you carry out at the end of it.",
+      /* NO COUNT, at the client's ask. It said "Seven ways…", which was the
+         number of activities on the day it was written — the same kind of
+         figure the client had taken off the homepage ("it can change in the
+         future"), and they have since said the rule holds site-wide. The
+         collection is built from the live list, so the words must not
+         promise a size. */
+      lede: "Plenty of ways to spend an afternoon, and the thing you carry out at the end of it.",
       ground: "surface",
       items: makeItems,
     },

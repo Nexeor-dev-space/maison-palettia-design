@@ -4,28 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { PassCodeField } from "@/components/booking/PassCodeField";
+import { useSessionPassed } from "@/components/booking/SessionClock";
 import type { CartLine } from "@/lib/cart";
 import { cn, formatMoney, formatSessionDay, formatSessionTimeRange } from "@/lib/utils";
 
 const TERM = "text-label font-medium uppercase tracking-eyebrow text-text/75";
-
-/**
- * Wall-clock time, read once when this module loads.
- *
- * At module scope rather than in a render body, and not in an effect either.
- * `Date.now()` during render is impure — the same props would answer
- * differently on a re-render — and setting state from an effect to work around
- * that buys a cascading render for a value that never usefully changes. A
- * constant taken at page load is exactly as precise as this needs to be: it
- * decides whether a held date is already behind us, which does not turn over
- * while someone fills in a checkout.
- *
- * Only ever read on the client. The panel renders after the basket has been
- * pulled out of browser storage (see `useCartHydrated`), which never happens
- * on the server, so there is no rendered output for the two clocks to disagree
- * about.
- */
-const LOADED_AT = Date.now();
 
 /**
  * The basket, as a booking summary.
@@ -166,20 +149,29 @@ function CartEntry({
   /* Only a session has a cap — see `setQuantity` in lib/cart.ts. */
   const atCap = line.kind === "session" && line.quantity >= line.seatsAvailable;
   /*
-    A date that has already gone by. Only reachable from a basket left open
-    across the event itself, or from placeholder sessions outliving their
-    invented dates in development — see the note on `getUpcomingWorkshops`.
+    A date that has already gone by — a basket left open across the event
+    itself, a line held from a page that was stale when it was read, or a
+    placeholder session outliving its invented date (lib/workshops.ts).
 
-    Said, not enforced. Blocking the button here would make the demo
-    unusable the moment the placeholder dates pass, and the check that must
-    actually stop a booking is the server-side one that does not exist yet
-    (see `placeBooking`). A warning the visitor can act on is the honest
-    amount of certainty a browser has.
+    SAID HERE, ENFORCED BY CHECKOUT. This used to be a warning only, on the
+    grounds that blocking would make the demo unusable once the placeholder
+    dates passed. That was the wrong way round: a reference minted for a
+    session that has already run is a booking nobody can honour, and the
+    demo being unusable past its invented dates is the truth about those
+    dates. <Checkout> now refuses to confirm while any line has passed; this
+    line is the reason it gives, next to the line it is about.
 
-    A pass has no date to have passed, so the question is only asked of a
-    session.
+    `useSessionPassed`, not a clock read at module load: it is the visitor's
+    clock, asked on every render through an external store, and it fires at
+    the start time on a checkout left open — see components/booking/
+    SessionClock.tsx. The panel only renders after the basket has been read
+    from browser storage, so there is no server render for it to disagree
+    with.
+
+    A pass has no date to have passed. The hook is still called — hooks run
+    unconditionally — with no date, which never counts as passed.
   */
-  const hasPassed = line.kind === "session" && new Date(line.startsAt).getTime() < LOADED_AT;
+  const hasPassed = useSessionPassed(line.kind === "session" ? line.startsAt : "");
 
   return (
     <li className="border-t border-text/15 pt-6 first:border-0 first:pt-0">
@@ -263,8 +255,7 @@ function CartEntry({
           role="status"
           className="mt-5 border-l-2 border-terracotta pl-4 text-fine leading-[1.7] text-text"
         >
-          This date has already passed. Remove it and choose another, or the studio will be in
-          touch to rebook you.
+          This date has already passed, so it can no longer be booked. Remove it to continue.
         </p>
       ) : null}
 

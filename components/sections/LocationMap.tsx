@@ -227,8 +227,8 @@ export function LocationMap({ partners, className, caption = true, aspect }: Loc
  * It was a `<figcaption>` inside <LocationMap>, which is the right place for
  * it on `/locations` — the map is the page and this is its label. An event
  * page wants it somewhere else: beside the section's heading, where a visitor
- * reads the destination's name at the same moment as "Where the Maison sets
- * up", rather than several hundred pixels below a map that is itself below
+ * reads the destination's name at the same moment as "Your Next Creative
+ * Stop.", rather than several hundred pixels below a map that is itself below
  * the heading.
  *
  * Two callers, one object. <LocationMap caption={false}> turns the built-in
@@ -245,9 +245,44 @@ export function PartnerPlate({
   className,
   tone = "cream",
   headingLevel = "h3",
+  line,
+  stackAt,
 }: {
   partner: MallPartner;
   className?: string;
+  /**
+   * WHERE THE CALLER'S COLUMN NARROWS, THE PLATE STACKS AGAIN.
+   *
+   * The plate is stacked on a phone and puts "View location" beside the
+   * words from `sm`, which keys off the VIEWPORT, not off the column the
+   * plate is in. /locations is full width until `lg` and then drops the
+   * plate into a 5-of-12 column, 391px wide at 1024, where a 200px button
+   * beside the words left the line 97px — one word to a line, "experiences,"
+   * wider than its own box, and the plate 1,080px tall. Still only 200px of
+   * line at 1280 and 265 at 1440.
+   *
+   * `"lg"` keeps the side-by-side between `sm` and `lg` and stacks from `lg`
+   * up, with the button at its own width rather than stretched across the
+   * column. Omitted, nothing changes.
+   *
+   * A PROP AND NOT A `className`, for the reason `tone` gives below: a
+   * `lg:flex-col` handed in is fighting `sm:flex-row` on stylesheet order,
+   * and the button's `sm:mt-6` is still there to undo. (/events/[slug] does
+   * exactly that today, with `lg:flex-col … 2xl:flex-row` in its className;
+   * it could pass this instead for the `lg` half.) This scopes the row
+   * classes themselves to `sm:max-lg:`, so nothing has to be overridden.
+   */
+  stackAt?: "lg";
+  /**
+   * THE SENTENCE UNDER THE NAME, when the caller's page has its own.
+   *
+   * The client wrote the destination two lines: one for the event pages
+   * (p19) and one for /private-events (p35). They used to be one shared
+   * string, and the second request overwrote the first on every event page.
+   * Omitted, the plate prints `descriptor`; the event page passes the
+   * partner's `eventDescriptor` here. See lib/partners.ts.
+   */
+  line?: string;
   /**
    * THE LEVEL THE DESTINATION'S NAME TAKES, because the plate cannot know it
    * and the two pages that draw it do not agree:
@@ -294,7 +329,13 @@ export function PartnerPlate({
       className={cn(
         "plate relative flex flex-col gap-5 rounded-[1.25rem] px-6 pb-7 pt-6",
         tone === "sage" ? "bg-sage" : "bg-cream",
-        "sm:flex-row sm:items-start sm:justify-between sm:gap-10 md:px-7 md:pb-8 md:pt-7",
+        "md:px-7 md:pb-8 md:pt-7",
+        /* Beside each other from `sm` — or, with `stackAt="lg"`, only
+           between `sm` and `lg`, then stacked again with the button at its
+           own width (`lg:items-start`). See `stackAt`. */
+        stackAt === "lg"
+          ? "sm:max-lg:flex-row sm:max-lg:items-start sm:max-lg:justify-between sm:max-lg:gap-10 lg:items-start"
+          : "sm:flex-row sm:items-start sm:justify-between sm:gap-10",
         className,
       )}
     >
@@ -326,7 +367,7 @@ export function PartnerPlate({
           {partner.locality}
         </p>
         <p className="mt-4 max-w-[34rem] text-lead text-text/90">
-          {partner.descriptor}
+          {line ?? partner.descriptor}
         </p>
       </div>
 
@@ -339,7 +380,10 @@ export function PartnerPlate({
         <PeelNote
           href={partner.locationHref}
           external
-          className="shrink-0 min-h-[3rem] px-6 sm:mt-6"
+          /* `mt-6` only while it stands beside the words, to sit level with
+             the name rather than the dab; stacked, the plate's gap is the
+             space above it. */
+          className={cn("shrink-0 min-h-[3rem] px-6", stackAt === "lg" ? "sm:max-lg:mt-6" : "sm:mt-6")}
         >
           View location
           <span className="sr-only"> (opens in a new tab)</span>

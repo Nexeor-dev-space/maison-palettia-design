@@ -56,6 +56,14 @@ const LOW_SEAT_THRESHOLD = 4;
      then the second session reads as fully booked, which is a placeholder seat
      count rather than a statement about crochet.
 
+     THE INVENTED DATES WILL LAPSE, AND THE SITE NOW SAYS SO WHEN THEY DO.
+     Candle Making's is 11 October 2026 and Crocheting's 24 October. Past its
+     start a session is no longer bookable anywhere — `hasSessionPassed` on the
+     server, <SessionGate> against the visitor's clock — so once both have gone
+     by there is nothing on the site that can be booked at all. That is the
+     honest state for a schedule nobody has supplied; it is not a bug to "fix"
+     by moving these dates forward. New dates come from the client.
+
      TODO(client): the programme has eight approved activities. The other six
      are DIY and are listed in lib/experiences.ts; none of them belongs here
      unless the studio starts selling a fixed date for it — see `kind` on
@@ -118,7 +126,8 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
  * TODO(client): replace the body with the CMS query. It should filter to
  * sessions in the future and sort server-side — the deliberate absence of a
  * date filter here keeps the placeholders visible in development long after
- * their invented dates have passed.
+ * their invented dates have passed. A listed session whose date HAS passed is
+ * still never offered for booking: see `hasSessionPassed` and <SessionGate>.
  */
 export async function getUpcomingWorkshops(limit = 3): Promise<Workshop[]> {
   return [...PLACEHOLDER_WORKSHOPS]
@@ -147,6 +156,67 @@ export function workshopHref(workshop: Workshop): string {
  */
 export function isFullyBooked(workshop: Workshop): boolean {
   return workshop.status === "fully-booked" || workshop.seatsAvailable <= 0;
+}
+
+/**
+ * The server's clock, for a render that takes more than one date verdict.
+ *
+ * `hasSessionPassed` reads it for you when `now` is left out, and that is
+ * right for a single verdict. A page that takes several — every card on
+ * /events and the "Next" line beneath them, or the homepage's chain of dates
+ * — takes this ONCE and passes it to each, so no two sessions are judged at
+ * different instants and the number can be handed to a client component as
+ * the verdict its HTML must hydrate against.
+ *
+ * A named function rather than `Date.now()` written in the component because
+ * React's purity rule (react-hooks/purity) forbids a component reading the
+ * clock while it renders, and rightly so for anything that re-renders. A
+ * server component rendered once per request or revalidation is the
+ * deliberate exception on this site, and this is where that exception lives,
+ * documented, rather than as a suppression at each call site. Nothing that
+ * runs in the browser should call it: a client component asks
+ * components/booking/SessionClock.tsx instead, which knows how to hydrate.
+ */
+export function serverClock(): number {
+  return Date.now();
+}
+
+/**
+ * Whether the session has already begun — and with it, whether booking for it
+ * has closed. A session closes at its START, not its end: there is no joining
+ * a two-hour pour half an hour in.
+ *
+ * ==========================================================================
+ * THIS IS THE SERVER'S ANSWER, AND IT GOES STALE. READ THIS BEFORE USING IT.
+ * ==========================================================================
+ *
+ * Every page that calls this is prerendered, so `now` is the moment the page
+ * was built or last revalidated — not the moment someone is looking at it. It
+ * decides what the HTML says, which is right most of the time and is all a
+ * visitor without JavaScript gets. It is never the last word: anything that
+ * offers a booking also goes through <SessionGate> or `useSessionPassed`
+ * (components/booking/SessionClock.tsx), which ask the same question against
+ * the visitor's own clock, and checkout refuses a lapsed line outright.
+ *
+ * `now` is a parameter so a caller can pin it — one `serverClock()` for a whole
+ * render keeps every verdict on a page in agreement — and so the rule can be
+ * checked against a fixed instant. A date that will not parse never counts as
+ * passed; the client hook makes the same call.
+ */
+export function hasSessionPassed(
+  workshop: Pick<Workshop, "startsAt">,
+  now: number = Date.now(),
+): boolean {
+  return Date.parse(workshop.startsAt) <= now;
+}
+
+/**
+ * Open to a new booking right now, as far as the server can tell: seats left
+ * and the date still ahead. See the warning on `hasSessionPassed` — this is
+ * the HTML's verdict, and the browser re-checks the date half of it.
+ */
+export function isBookable(workshop: Workshop, now: number = Date.now()): boolean {
+  return !isFullyBooked(workshop) && !hasSessionPassed(workshop, now);
 }
 
 /**
@@ -351,7 +421,8 @@ export function bookSessionHref(workshop: Workshop): string {
  * TODO(client): becomes the CMS's collection query. Filter to future dates
  * server-side at that point — the deliberate absence of a date filter here is
  * what keeps the placeholders visible in development long after their invented
- * dates have passed.
+ * dates have passed. Visible is not bookable: a listed session past its start
+ * shows as passed and offers nothing — see `hasSessionPassed`.
  */
 export async function getAllWorkshops(): Promise<Workshop[]> {
   return [...PLACEHOLDER_WORKSHOPS].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -370,11 +441,17 @@ export async function getWorkshopBySlug(slug: string): Promise<Workshop | null> 
 
 /**
  * A few other dates to offer from a session's own page — never itself, and
- * never a session that cannot be booked.
+ * never a session that cannot be booked: not a full one, and not one whose
+ * date has already gone by.
+ *
+ * The date half is the server's verdict (see `hasSessionPassed`), so on a
+ * prerendered page it is as fresh as the last revalidation. The card each
+ * one is drawn as re-checks its own date in the browser.
  */
 export async function getRelatedWorkshops(slug: string, limit = 2): Promise<Workshop[]> {
   const all = await getAllWorkshops();
-  return all.filter((w) => w.slug !== slug && !isFullyBooked(w)).slice(0, limit);
+  const now = Date.now();
+  return all.filter((w) => w.slug !== slug && isBookable(w, now)).slice(0, limit);
 }
 
 /** The booking step for one session. */

@@ -17,7 +17,7 @@ import { getCreativeExperiences } from "@/lib/experiences";
 import { getMallPartners } from "@/lib/partners";
 import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import { getAllWorkshops } from "@/lib/workshops";
+import { getAllWorkshops, serverClock } from "@/lib/workshops";
 
 export const metadata = buildMetadata({
   title: "Experiences",
@@ -25,6 +25,16 @@ export const metadata = buildMetadata({
     "Every Maison Palettia creative experience: Create Anytime activities you can enjoy at your own pace, and guided Create Together sessions you book online for a set date.",
   path: "/events",
 });
+
+/*
+  Re-rendered at most every ten minutes, for the reason set out on the event
+  page (app/events/[slug]/page.tsx): every card here, and the "Next" date in
+  <WhereWeSetUp>, takes the server's verdict on whether its date has passed,
+  and a static page would otherwise keep the build's answer for as long as
+  the deployment lives. <SessionGate> in each is what actually closes a date
+  in the browser; this keeps the HTML close to true.
+*/
+export const revalidate = 600;
 
 /**
  * /events — every experience, in the two groups the business runs on.
@@ -106,6 +116,17 @@ export default async function EventsPage() {
   ]);
   const walkIn = experiences.filter((e) => e.kind === "diy");
   const sessions = workshops.filter((w) => w.kind !== "diy");
+  /*
+    ONE CLOCK FOR THE WHOLE RENDER. Every date verdict on this page — each
+    card's "Date passed" in the HTML and the "Next" line in <WhereWeSetUp> —
+    is taken against this one instant, so no two of them can disagree about
+    the same session. It is handed to the client components below as a
+    number rather than re-read there: a clock read inside a client component
+    gives the build's answer on the server and today's in the browser, and
+    React refuses to hydrate the difference. The browser then re-asks against
+    its own clock — see `hasSessionPassed` and `serverClock` in lib/workshops.
+  */
+  const renderedAt = serverClock();
   const home = partners.length === 1 ? partners[0] : undefined;
   const [diyStep, scheduledStep] = WORKSHOP_JOURNEY;
 
@@ -148,17 +169,21 @@ export default async function EventsPage() {
         <Container className="relative pb-[3rem] pt-[3.5rem] md:pb-[3.5rem] md:pt-[4.5rem] lg:pt-[5.5rem]">
           {/* No measure on this block. <DisplayHeading> already decides where
               the line turns — `lines` is the break — and a `max-w` on top of
-              it only re-wraps the lines it was given, which is how "Choose
-              what" came out as two. */}
+              it only re-wraps the lines it was given, which is how the old
+              heading's first line once came out as two. */}
           <div>
             <Reveal>
               <Eyebrow>Experiences</Eyebrow>
             </Reveal>
+            {/* The client's heading for exactly this choice — drop in or
+                book — from the homepage section that introduces the same two
+                doors (PDF p04). It replaced "Choose What You Make.", which
+                was ours. */}
             <DisplayHeading
               as="h1"
               id="experiences-title"
               className="mt-7 md:mt-9"
-              lines={["Choose What", "You Make."]}
+              lines={["Make It", "Your Way."]}
             />
           </div>
 
@@ -203,19 +228,39 @@ export default async function EventsPage() {
       >
         <SectionShapes plan={WALK_IN_SHAPES} />
         <Container>
+          {/*
+            THE LEAD IS THE CLIENT'S LINE FOR THIS DOOR (PDF p05), word for
+            word — the same one the homepage's <TwoWaysToCreate> prints over
+            its Create Anytime half. It was "No booking needed. Choose an
+            experience on the day and create at your own pace.", ours, and it
+            all but repeated the door note a screen above it (p26's "Drop in,
+            choose an experience and create at your own pace."). "Just drop
+            in." still carries the no-booking fact.
+          */}
           <GroupHead
             id="create-anytime-heading"
             mode="diy"
             title="Create Anytime"
-            lead="No booking needed. Choose an experience on the day and create at your own pace."
+            lead="Pick a project. Pick your colours. Just drop in."
           >
+            {/*
+              The destination, in the client's own event-page line (p19) — the
+              same one the location card on every activity page prints. It was
+              "Where the Maison sets up for each run of dates.", the second
+              half of the descriptor the client's rewrite retired. Read from
+              lib/partners.ts rather than typed here, so the two cannot drift.
+
+              The link says "View location", the plate's own label, because the
+              line now opens "Find us at…", and a link reading "Find us" after
+              it would say the same thing twice.
+            */}
             {home ? (
               <p className="text-body text-text">
                 {home.name}, {home.locality}
                 <span className="block text-fine text-text/85">
-                  Where the Maison sets up for each run of dates.{" "}
+                  {home.eventDescriptor ?? home.descriptor}{" "}
                   <Link href="/locations" className="underline decoration-primary underline-offset-4">
-                    Find us
+                    View location
                   </Link>
                 </span>
               </p>
@@ -240,11 +285,19 @@ export default async function EventsPage() {
       >
         <SectionShapes plan={SCHEDULED_SHAPES} />
         <Container>
+          {/*
+            The client's p05 line for this door, exactly, as on the homepage.
+            It was "Guided workshops on a set date and time, booked online.
+            Everything is provided." — and "Everything is provided" opens the
+            very sentence the client retired on the event pages (p21). The
+            booking facts are not lost: every card below carries its date and
+            time and opens the session's own page, which is where it is booked.
+          */}
           <GroupHead
             id="scheduled-heading"
             mode="scheduled"
             title="Create Together"
-            lead="Guided workshops on a set date and time, booked online. Everything is provided."
+            lead="A little more planned. Same creative energy."
           />
           {sessions.length === 0 ? (
             <Reveal className="mt-12 border-t border-line pt-10">
@@ -257,7 +310,7 @@ export default async function EventsPage() {
             </Reveal>
           ) : (
             <div className="mt-10 md:mt-12">
-              <EventsBrowser workshops={sessions} />
+              <EventsBrowser workshops={sessions} renderedAt={renderedAt} />
             </div>
           )}
         </Container>
@@ -278,7 +331,7 @@ export default async function EventsPage() {
         It sits outside the White Rock section deliberately: a full-bleed
         field cannot be one from inside that section's <Container>.
       */}
-      <WhereWeSetUp workshops={sessions} />
+      <WhereWeSetUp workshops={sessions} renderedAt={renderedAt} />
     </>
   );
 }

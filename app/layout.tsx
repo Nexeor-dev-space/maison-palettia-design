@@ -8,7 +8,7 @@ import { BlobGooFilter } from "@/components/ui/BlobButton";
 import { Header } from "@/components/layout/Header";
 import { RouteProgress } from "@/components/layout/RouteProgress";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { WhatsAppWidget } from "@/components/layout/WhatsAppWidget";
+import { ContactWidget } from "@/components/layout/ContactWidget";
 import { CursorLayer } from "@/components/motion/CursorLayer";
 import { PointerField } from "@/components/motion/PointerField";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
@@ -115,8 +115,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Footer />
         </FooterReveal>
 
-        {/* Last in the body so it sits above the page without a stacking
-            context of its own; renders nothing until it has a number. */}
         {/* The paint dab, over pictures only — it mounts nothing on a phone
             or under reduced motion. See components/motion/CursorLayer.tsx. */}
         <CursorLayer />
@@ -125,7 +123,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             banner's doodles do. Renders nothing; see PointerField.tsx. */}
         <PointerField />
 
-        <WhatsAppWidget />
+        {/* The floating Contact link, from `lg` up. Late in the body so it
+            sits above the page without a stacking context of its own; it
+            renders nothing on /contact itself. */}
+        <ContactWidget />
         {/* Below `lg` only — see <BottomNav>. Mounted after the footer so it
             paints over the page's own foot, and before <CursorLayer>'s
             siblings so nothing of it is caught by the brush. */}

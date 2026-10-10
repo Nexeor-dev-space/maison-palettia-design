@@ -21,9 +21,16 @@ import { cn } from "@/lib/utils";
  * the shape of a search tool from 2014 and the first thing on the page after
  * the heading.
  *
- * So the groups collapse into one control each, and the row moves to the
- * right of the count rather than sitting on its own line. The page then opens
- * on the programme with its controls beside it, instead of on its controls.
+ * So the groups collapse into one control each, on the right of the row
+ * rather than on a line of their own. The page then opens on the programme
+ * with its controls beside it, instead of on its controls.
+ *
+ * NO COUNT ON SHOW, AT THE CLIENT'S ASK. The left of the row said "2 events
+ * scheduled", and each option in the menus carried its tally. The client's
+ * rule from the homepage (PDF p05: don't print a number that "can change in
+ * the future") applies site-wide, so neither is drawn. Both survive for a
+ * screen reader only, because there they are the feedback rather than the
+ * copy — see the live region below.
  *
  * WHY NOT A NATIVE `<select>`, since that is what this is. Because the menu a
  * native select opens is drawn by the operating system, in the operating
@@ -37,7 +44,8 @@ interface EventFiltersProps {
   facets: EventFacets;
   filters: EventFilters;
   onChange: (next: EventFilters) => void;
-  /** How many sessions the current selection leaves, for the live region. */
+  /** How many sessions the current selection leaves, for the live region
+      — announced, never shown. */
   resultCount: number;
   totalCount: number;
 }
@@ -69,21 +77,43 @@ export function EventFilterBar({
     only thing a rule on this site is for (see globals.css).
   */
   return (
-    <div className="flex flex-col gap-y-6 border-b border-line py-6 md:flex-row md:items-center md:justify-between md:gap-x-8 md:py-7">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        {/*
-          The count is the bar's feedback. It is a live region because the only
-          other signal that a filter did anything is the list below the fold on
-          a phone — a visitor using a screen reader would otherwise choose a
-          date and be told nothing at all.
-        */}
-        <p aria-live="polite" className="text-label font-medium uppercase tracking-eyebrow text-text/75">
-          {resultCount === totalCount
-            ? `${totalCount} ${totalCount === 1 ? "event" : "events"} scheduled`
-            : `${resultCount} of ${totalCount} ${totalCount === 1 ? "event" : "events"}`}
-        </p>
+    <div className="relative flex flex-col gap-y-6 border-b border-line py-6 md:flex-row md:items-center md:justify-between md:gap-x-8 md:py-7">
+      {/*
+        The count is the bar's feedback for a screen reader, and only for one.
+        It is a live region because the only other signal that a filter did
+        anything is the list below the fold on a phone — a visitor using a
+        screen reader would otherwise choose a date and be told nothing at all.
 
-        {active > 0 ? (
+        `sr-only` since the client's no-counts rule (see the note above). It
+        is absolutely positioned, so it is out of the flex flow and adds no
+        gap; that is also why the bar is `relative`.
+      */}
+      <p aria-live="polite" className="sr-only">
+        {resultCount === totalCount
+          ? `${totalCount} ${totalCount === 1 ? "event" : "events"} scheduled`
+          : `${resultCount} of ${totalCount} ${totalCount === 1 ? "event" : "events"}`}
+      </p>
+
+      {/*
+        Only while a filter is on. An empty wrapper here would be a zero-
+        height flex item, and on a phone the column's `gap-y-6` would still
+        put 24px of nothing above the controls.
+
+        `order-last` BELOW `md`, BECAUSE APPEARING MUST NOT MOVE ANYTHING.
+        On a phone the bar is a column, and with this first in it, choosing a
+        date put a new 24px row (and its 24px gap) above the controls and
+        pushed the Date button down 47px under the thumb that had just pressed
+        it — measured at 360; clearing it pulled it back. When the count line
+        held that top row the controls never moved, and the count is gone. So
+        below `md` the row arrives under the controls instead, where the only
+        thing it moves is the list it is about to change anyway. From `md` the
+        bar is a row and `md:order-none` puts it back on the left, where
+        `md:ml-auto` on the controls already keeps them still. The DOM order
+        is the desktop one, so the tab order matches the row a keyboard user
+        is most likely to be looking at.
+      */}
+      {active > 0 ? (
+        <div className="order-last flex flex-wrap items-center gap-x-6 gap-y-2 md:order-none">
           <button
             type="button"
             onClick={() => onChange({ month: null, category: null, venue: null })}
@@ -96,15 +126,18 @@ export function EventFilterBar({
               &times;
             </span>
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {/*
-        Right of the count, and the whole width of a phone. Two of these sit
-        side by side from `sm`; below that a 3.5rem control at half width is
-        narrower than the date it has to hold.
+        The right of the row, and the whole width of a phone. `md:ml-auto`
+        holds it there whether or not "Clear filter" is beside it, so pressing
+        a filter does not make the controls jump; below `md` the same job is
+        done by "Clear filter" taking `order-last` (see above). Two of these
+        sit side by side from `sm`; below that a 3.5rem control at half width
+        is narrower than the date it has to hold.
       */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:justify-end">
         {groups.map((group) => (
           <FilterSelect
             key={group.key}
@@ -326,13 +359,12 @@ function FilterSelect({ label, options, selected, onSelect }: FilterSelectProps)
                 )}
               >
                 {row.label}
+                {/* The option's tally, for a screen reader only — the client's
+                    no-counts rule; see the note at the head of this file. */}
                 {row.count !== null ? (
-                  <>
-                    <span aria-hidden className="tabular-nums text-text/45">
-                      {row.count}
-                    </span>
-                    <span className="sr-only">, {row.count} events</span>
-                  </>
+                  <span className="sr-only">
+                    , {row.count} {row.count === 1 ? "event" : "events"}
+                  </span>
                 ) : null}
               </li>
             );

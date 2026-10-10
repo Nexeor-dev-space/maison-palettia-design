@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 
+import { useSessionPassed } from "@/components/booking/SessionClock";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
@@ -11,6 +14,7 @@ import {
   formatPrice,
   formatSessionDate,
   formatVenueLine,
+  hasSessionPassed,
   isFullyBooked,
   isScarce,
   sessionDateParts,
@@ -61,6 +65,30 @@ import type { Workshop } from "@/types";
  * ONE LINK PER SESSION, stretched over the card by its `::after`. The arrow at
  * the end is a span for that reason: a second anchor to the same page would
  * put every session in the tab order twice.
+ *
+ * A DATE GONE BY STILL LISTS, AND STOPS SELLING. lib/workshops.ts keeps every
+ * session in the listing on purpose (see `getAllWorkshops`), so a lapsed date
+ * is still a card here — but its availability line stops counting seats and
+ * says "Date passed", and its photograph dims as a full one's does. The card's
+ * only action was already "View event", never "Book", so nothing else changes.
+ *
+ * DECIDED TWICE, LIKE EVERY DATE ON THE SITE. app/events/page.tsx takes one
+ * `Date.now()` for its whole render and hands it down as `renderedAt`, so the
+ * HTML already reads "Date passed" for a date the server saw go by — which is
+ * all a visitor without JavaScript gets, and what the first paint shows once
+ * the route has revalidated past the date. `useSessionPassed` then asks the
+ * same question against the visitor's own clock, so a date that lapses
+ * between the render and the visit closes straight after hydration, and a
+ * server that said "passed" is never reopened. The verdict arrives as a
+ * number from the server and is never a `Date.now()` read here: this renders
+ * inside <EventsBrowser>, a client component, and a clock read while
+ * rendering would give the build's answer on the server and today's in the
+ * browser — React would rightly refuse to hydrate the difference.
+ *
+ * "use client" because of that hook. It changes nothing about where this
+ * runs — its only importer, <EventsBrowser>, already made it a client
+ * component, lib/workshops and all — it only says so where the next person to
+ * import it will see it.
  */
 
 /*
@@ -79,11 +107,42 @@ const CARD_MARKS: readonly { name: DoodleName; ink: string; paint: string }[] = 
   { name: "bow", ink: INK.lavender, paint: "var(--color-lavender)" },
 ];
 
-export function EventCard({ workshop, index }: { workshop: Workshop; index: number }) {
+export function EventCard({
+  workshop,
+  index,
+  renderedAt,
+}: {
+  workshop: Workshop;
+  index: number;
+  /** The page's one `Date.now()`, taken on the server — see the note above. */
+  renderedAt: number;
+}) {
   const { weekday, day } = sessionDateParts(workshop.startsAt);
   const { start, end } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
   const closed = isFullyBooked(workshop);
+  const passed = useSessionPassed(workshop.startsAt, hasSessionPassed(workshop, renderedAt));
   const mark = CARD_MARKS[index % CARD_MARKS.length];
+  /*
+    A shut date stays in the grid and stays readable — it is still
+    information — but stops competing with the ones that can be had.
+
+    ON THE PHOTOGRAPH, NOT ON THE CARD. This was `opacity-75` on the
+    <Reveal>, and it never showed: Reveal animates its own element's opacity
+    to 1 and the inline style wins over the class — a full session measured
+    0.99 on /events.
+
+    AND NOT ON THE WORDS EITHER. It moved onto both halves inside, which
+    nothing animates, and so for the first time it applied — to text that
+    had been measured at full ink. At 75% the 14px venue, duration and price
+    lines (Charcoal at 75% already) fell to 2.97:1 on Light Sage, the 13px
+    weekday to 2.71:1 and "View event" to 2.64:1, and the card is still a
+    live link, so the inactive-control exemption does not cover it: with
+    the clock past both dates, axe counted 13 violations on /events, not 9.
+    The availability line already says "Fully booked" or "Date passed" in
+    full ink; the picture fading is the quiet half of that, and the words
+    stay at the contrast they were set at.
+  */
+  const dim = (closed || passed) && "opacity-75";
 
   return (
     <Reveal
@@ -95,12 +154,11 @@ export function EventCard({ workshop, index }: { workshop: Workshop; index: numb
       className={cn(
         "group press-in plate relative flex h-full flex-col rounded-[1.25rem] bg-sage p-3 md:p-4",
         "transition-shadow duration-[var(--duration-hover)] ease-soft",
-        closed && "opacity-75",
       )}
     >
       {/* ---- the photograph, inset in the plate ------------------------- */}
       <div
-        className="relative"
+        className={cn("relative", dim)}
         data-paint
         style={{ "--paint": mark.paint } as React.CSSProperties}
       >
@@ -188,10 +246,16 @@ export function EventCard({ workshop, index }: { workshop: Workshop; index: numb
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
             <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
-              {isScarce(workshop) ? (
-                <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-pill bg-terracotta" />
-              ) : null}
-              {spotsLabel(workshop)}
+              {passed ? (
+                "Date passed"
+              ) : (
+                <>
+                  {isScarce(workshop) ? (
+                    <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-pill bg-terracotta" />
+                  ) : null}
+                  {spotsLabel(workshop)}
+                </>
+              )}
             </p>
 
             {/*

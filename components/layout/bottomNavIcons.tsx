@@ -59,60 +59,33 @@ const svg = (size: number, className?: string) => ({
 });
 
 /**
- * The WhatsApp glyph — the one mark in this set that is NOT ours to redraw.
+ * A letter with its flap knocked out — the way to /contact.
  *
- * Every other icon here is a filled silhouette cut for this bar. This one is
- * WhatsApp's own outline, carried verbatim from <WhatsAppWidget> so the two
- * surfaces show the identical mark. A hand-cut version would be a different
- * logo, and a brand doodle in its place would stop being recognisable, which
- * is the one thing a third-party action has to be.
+ * IT REPLACED THE WHATSAPP MARK, at the client's ask: both WhatsApp surfaces
+ * came off the site and the contact page took their place. That mark was the
+ * one icon in this set that was not ours — somebody else's logo, with its own
+ * disc and its own literal fills. This one is back in the house build, so it
+ * flips cream-on-lilac and lilac-on-cream with its slot like the other four.
  *
- * It keeps the set's build — one path, `currentColor`, knocked-out subpaths —
- * so it inherits the ink flip every other icon on the bar gets.
+ * AN ENVELOPE, NOT A SPEECH BUBBLE. /contact is an enquiry form and an email
+ * address, not a live chat, and a bubble with three dots in it promises a
+ * conversation that answers back in the moment. A letter promises what the
+ * page does: you write, and the Maison writes back.
+ *
+ * THE FLAP IS A SUBPATH — a round-capped V cut out of the body, its apex
+ * at the middle of the face — so it is knocked out and takes whatever is
+ * behind the icon, the same as the house's door and the pin's eye. It is 1.8
+ * wide in the 24 box, about 1.6px at the bar's 21: narrower than the
+ * calendar's cross, and checked at 3x on both grounds before it was kept.
+ *
+ * <ContactWidget> draws this same glyph at 28px, so the floating button on a
+ * desktop and the slot on a phone are one mark, as the two WhatsApp surfaces
+ * were before them.
  */
-/*
-  THE REAL MARK, NOT THE HOUSE STYLE.
-
-  Every other icon in this bar is one of ours: a single knocked-out path that
-  takes the bar's ink through `currentColor`, so it flips cream-on-lilac and
-  lilac-on-cream with the slot it sits in. This one was drawn to match them,
-  and the client's note is that it should not — WhatsApp is somebody else's
-  brand and a white outline of it on a purple bar reads as "a chat icon"
-  rather than as WhatsApp.
-
-  So it is the authentic lockup: the #25D366 disc with the glyph knocked out
-  of it in white. Both fills are literal and neither answers `currentColor`,
-  which is the point — a third party's mark does not take our ink. It is the
-  one icon in the set that is exempt, and it is exempt because it is theirs.
-*/
-export function WhatsAppIcon({ size = 21, className }: IconProps) {
+export function ContactIcon({ size = 21, className }: IconProps) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      className={className}
-      aria-hidden="true"
-      focusable="false"
-    >
-      {/*
-        LIGHT SAGE, NOT WHATSAPP'S #25D366, at the client's ask. That green is
-        the one colour in the bar from outside the palette, and on a Deep
-        Lilac sheet it read as a sticker somebody had pasted on. The brand's
-        own sage is the ground every other raised thing in this bar takes —
-        the Book badge is the same colour — so the two now look like one bar.
-
-        The glyph inside stays Charcoal rather than white: on Light Sage the
-        near-white is 1.1:1 and would leave an empty disc, where Charcoal is
-        9.07:1.
-      */}
-      <circle cx="12" cy="12" r="11.4" fill="var(--color-sage)" />
-      {/* The glyph was drawn to fill a 24 box; inside the disc it is held to
-          76% of that and re-centred, which is the proportion WhatsApp's own
-          icon uses between the mark and its ground. */}
-      <g transform="translate(12 12) scale(0.76) translate(-12 -12)">
-        <path fill="var(--color-text)" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24a8.24 8.24 0 0 1 8.24 8.25c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.17 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.16-.48-.28Z" />
-      </g>
+    <svg {...svg(size, className)}>
+      <path d="M4.8 4.8h14.4a2.4 2.4 0 0 1 2.4 2.4v9.6a2.4 2.4 0 0 1-2.4 2.4H4.8a2.4 2.4 0 0 1-2.4-2.4V7.2a2.4 2.4 0 0 1 2.4-2.4Zm.93 2.47L12 11.8l6.27-4.53a.9.9 0 0 1 1.06 1.46L12 14.02 4.67 8.73a.9.9 0 0 1 1.06-1.46Z" />
     </svg>
   );
 }

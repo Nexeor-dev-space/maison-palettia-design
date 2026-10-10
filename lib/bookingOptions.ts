@@ -1,5 +1,11 @@
 import { getCreativeExperiences } from "@/lib/experiences";
-import { bookingStepHref, getAllWorkshops, isFullyBooked, workshopHref } from "@/lib/workshops";
+import {
+  bookingStepHref,
+  getAllWorkshops,
+  hasSessionPassed,
+  isFullyBooked,
+  workshopHref,
+} from "@/lib/workshops";
 import type { ImageAsset } from "@/types";
 
 /**
@@ -60,6 +66,16 @@ export interface BookingOption {
   action: string;
   /** Whether a seat is open right now. Drives the label, never a claim. */
   bookable: boolean;
+  /**
+   * When the session `href` leads into begins, if it leads into one.
+   *
+   * Everything above is decided when the layout renders, and on a prerendered
+   * page that is build time — so <BookingSheet> asks this again against the
+   * visitor's clock (`useSessionPassed`) and, once it has begun, sends the
+   * card to the activity's own page with "See dates", as if there were no
+   * session at all. Absent when there is none to re-check.
+   */
+  startsAt?: string;
 }
 
 export async function getBookingOptions(): Promise<BookingOption[]> {
@@ -71,11 +87,13 @@ export async function getBookingOptions(): Promise<BookingOption[]> {
   const now = Date.now();
   /*
     The next session for an activity, if it has one still to come. Sorted
-    already by `getAllWorkshops`, so the first match is the soonest.
+    already by `getAllWorkshops`, so the first match is the soonest. "Still to
+    come" is `hasSessionPassed`, the site's one rule for it — a session closes
+    at its start, so one starting this very millisecond is not offered.
   */
   const nextFor = (slug: string) =>
     workshops.find(
-      (workshop) => workshop.slug === slug && Date.parse(workshop.startsAt) >= now,
+      (workshop) => workshop.slug === slug && !hasSessionPassed(workshop, now),
     );
 
   return experiences
@@ -96,6 +114,7 @@ export async function getBookingOptions(): Promise<BookingOption[]> {
           : `/events/${experience.slug}`,
         action: bookable ? "Choose session" : "See dates",
         bookable,
+        startsAt: next?.startsAt,
       } satisfies BookingOption;
     });
 }

@@ -49,8 +49,9 @@ interface PrivateEventsMenuProps {
  * item and nothing else moves.
  *
  * Behaviour — the grace period, the frame the open waits for, Escape, the
- * inert closed panel — is `useMenuDisclosure`, shared with the Experiences
- * menu so the two cannot drift there either.
+ * inert closed panel, a click or a tap that opens rather than toggles, one
+ * panel open at a time — is `useMenuDisclosure`, shared with the Experiences
+ * and About menus so the three cannot drift there either.
  */
 export function PrivateEventsMenu({
   label,
@@ -61,7 +62,7 @@ export function PrivateEventsMenu({
   onOpenChange,
 }: PrivateEventsMenuProps) {
   const menuId = useId();
-  const { isOpen, mounted, shown, trigger, openNow, closeSoon, closeNow, regionProps } =
+  const { isOpen, mounted, shown, regionProps, triggerProps, cardProps } =
     useMenuDisclosure(onOpenChange);
 
   const items = PRIVATE_EVENT_AUDIENCES.filter((audience) => audience.inPrivateEventsMenu);
@@ -72,17 +73,16 @@ export function PrivateEventsMenu({
   return (
     <div {...regionProps} className="static flex h-full items-center">
       <button
-        ref={trigger}
+        {...triggerProps}
         type="button"
         aria-expanded={isOpen}
         aria-controls={menuId}
-        onClick={() => (isOpen ? closeNow() : openNow())}
         className={cn(linkClassName, "cursor-none items-center")}
       >
         <NavLabel isActive={isActive || isOpen} paint={paint}>{label}</NavLabel>
       </button>
 
-      <MenuCard id={menuId} open={isOpen} shown={shown} onMouseEnter={openNow} onMouseLeave={closeSoon}>
+      <MenuCard id={menuId} open={isOpen} shown={shown} {...cardProps}>
         {mounted ? (
           <div className="grid grid-cols-12 gap-2.5 md:gap-3">
             {/*
@@ -115,9 +115,21 @@ export function PrivateEventsMenu({
               The rail holds neither.
             */}
             <div className="col-span-12 flex flex-col gap-5 py-2.5 lg:col-span-4 lg:max-h-[min(38rem,calc(100vh-8.5rem))] lg:overflow-y-auto lg:overscroll-contain">
+              {/*
+                THE PAGE'S OWN WORDS FOR THE SAME FOUR, at the client's ask
+                that older copy follow their rewrite. This rail is the "who it
+                is for" section in miniature — the same programmes under the
+                same idea — so it takes that section's copy (p31): the heading
+                as the title, minus the full stop, which no rail title in
+                either menu carries; and the last two sentences of its intro
+                as the note, word for word. It was "Groups of every kind" over
+                "Tell us what you are planning and we will help you create
+                it." — the heading the client replaced, and the voice their
+                p37 rewrite replaced.
+              */}
               <MenuRailGroup
-                title="Groups of every kind"
-                note="Tell us what you are planning and we will help you create it."
+                title="Made for Your Kind of Crowd"
+                note="Don’t see yours? That’s probably a conversation worth having."
               >
                 {items.map((audience) => (
                   <MenuRailRow
@@ -183,11 +195,15 @@ export function PrivateEventsMenu({
             */}
             <div className="col-span-12 grid gap-2.5 md:gap-3 lg:col-span-4 lg:grid-rows-2">
               <MenuDoor href={href} title="All private events" sub="Every programme, in one place." mark="bow" />
+              {/* The sub is the opening question of the client's p37 line,
+                  the one over the same door at the foot of /private-events.
+                  It was "Tell us what you are planning.", the wording that
+                  rewrite replaced. */}
               <MenuDoor
                 href={PRIVATE_EVENT_ENQUIRY_HREF}
                 title="Plan a private event"
                 mark="splash"
-                sub="Tell us what you are planning."
+                sub="Have something in mind?"
                 tone="accent"
               />
             </div>
