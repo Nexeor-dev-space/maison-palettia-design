@@ -509,3 +509,14 @@ from `scripts/deploy.sh` and `Dockerfile.runtime` above. What makes it work:
 `scripts/preflight-db.mjs` is not run by Coolify; the database gate (dedicated
 non-superuser role, TLS or a private network) is still owed before real
 customer data lands — see "Database gate".
+
+### Build memory on Coolify
+
+`next build` does **not** type-check (`typescript.ignoreBuildErrors` in
+`next.config.ts`): the project-wide check needs more than the server's
+768 MB Node heap and killed the first Coolify builds. Types are enforced on
+every pull request by `.github/workflows/ci.yml` (`npm run typecheck` + lint)
+and by `scripts/ci.sh`. A clean build with `NODE_OPTIONS=--max-old-space-size=768`
+passes; note that Turbopack's compiler is native code outside that cap and
+peaked at ~3 GB RSS on a clean build, so the server needs that much free
+memory while a deploy is building.

@@ -36,6 +36,17 @@ const nextConfig: NextConfig = {
    * G12). Harmless if the deployment ever moves to Vercel.
    */
   output: "standalone",
+  /**
+   * Type checking is NOT part of the production build. `next build`'s
+   * "Running TypeScript" step checks the whole project (tests, e2e, scripts,
+   * the Payload types) in one process and needs well over 768 MB; on the
+   * Coolify server (NODE_OPTIONS=--max-old-space-size=768) it died with
+   * "JavaScript heap out of memory" before a single page was built. The
+   * check still gates every change — `npm run typecheck` in
+   * .github/workflows/ci.yml on each pull request and in scripts/ci.sh — so
+   * the server only compiles what has already been checked.
+   */
+  typescript: { ignoreBuildErrors: true },
   poweredByHeader: false,
 
   /**

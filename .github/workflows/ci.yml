@@ -1,0 +1,28 @@
+# Checks every pull request and every push to main.
+#
+# The production build on Coolify skips type checking to stay inside the
+# server's memory cap (see `typescript.ignoreBuildErrors` in next.config.ts),
+# so this is where types are enforced. Neither step needs the database:
+# payload-types.ts is committed.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint
+        run: npx eslint .

@@ -9,6 +9,7 @@
     "start": "next start",
     "start:prod": "payload migrate && bash scripts/start-standalone.sh",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
     "payload": "payload",
