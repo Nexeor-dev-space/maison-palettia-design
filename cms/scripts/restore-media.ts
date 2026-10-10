@@ -103,7 +103,7 @@ async function main() {
   const unrecoverable: string[] = [];
 
   for (const row of rows) {
-    let filename = row.filename;
+    const filename = row.filename;
     if (filename?.startsWith(PARKED)) {
       // Left parked by an interrupted run: give the row its name back first.
       const original = originalNameOf(row);
@@ -114,7 +114,12 @@ async function main() {
       if (!dryRun) {
         await payload.db.updateOne({ collection: "media", id: row.id, data: { filename: original }, returning: false });
       }
-      filename = original;
+      // A row is only left parked when the process died while restoring it,
+      // so retrying it straight away would likely kill this start too — a
+      // restart loop that never serves the site. Skip it this time; the next
+      // start (or `npm run restore:media`) tries it again.
+      unrecoverable.push(`${original} (skipped this start: the previous attempt was interrupted)`);
+      continue;
     }
     if (!filename) continue;
     if (fs.existsSync(path.join(MEDIA_DIR, filename))) {
