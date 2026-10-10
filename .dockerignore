@@ -1,34 +1,29 @@
 # ==========================================================================
-# .dockerignore — a WHITELIST for the runtime-only Dockerfile
+# .dockerignore — for SOURCE builds (Coolify / Nixpacks)
 # ==========================================================================
 #
-# The image is built from what the host's `next build` produced (see
-# Dockerfile), so the context is exactly three folders and nothing else:
-# no source, no node_modules (the standalone folder carries its own traced
-# copy), no photographic masters, no .git. That keeps the context small —
-# it used to be the whole 158 MB working tree — and keeps secrets out of it.
+# Coolify builds this repo with Nixpacks: the generated Dockerfile copies the
+# whole checkout (including its own `.nixpacks/` plan) into the image and runs
+# `npm ci` + `npm run build` there. So this file only keeps out what must
+# never be in a source build: installed or built output from a laptop,
+# secrets, and runtime state that lives on persistent volumes.
 #
-# Order matters: `*` excludes everything, the `!` lines bring the three
-# folders back, and the lines after them take out what the standalone
-# tracer copies in but an image must never contain.
+# The runtime-only image (build on the host, package the result) has its own
+# whitelist in Dockerfile.runtime.dockerignore — BuildKit uses it
+# automatically for `docker build -f Dockerfile.runtime`. Do NOT copy that
+# whitelist here: it strips `.nixpacks/` and the source, which is exactly the
+# "nixpkgs-….nix: not found" failure of the first Coolify deploy.
 
-*
-!.next/standalone
-!.next/static
-!public
-
-# The tracer copies the whole checkout into .next/standalone. These would
-# bake a secret (.env), a stale snapshot of uploads and invoices (media/,
-# private/ — the live ones are volumes), or dead weight into the image.
-.next/standalone/.env*
-.next/standalone/media
-.next/standalone/private
-.next/standalone/assets
-.next/standalone/docs
-.next/standalone/tests
-.next/standalone/.git
-.next/standalone/.claude
-.next/standalone/*.tsbuildinfo
-.next/standalone/.next/cache
-
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+media
+private
+test-results
+playwright-report
+coverage
+*.tsbuildinfo
 **/.DS_Store

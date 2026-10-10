@@ -161,7 +161,7 @@ case "$RESTART" in
   *) die "unknown --restart mode '$RESTART'" ;;
 esac
 # Release directories serve the systemd and cmd modes. Compose runs from an
-# image (Dockerfile) and keeps its history as image tags instead.
+# image (Dockerfile.runtime) and keeps its history as image tags instead.
 USES_RELEASES=1
 [ "$RESTART" = compose ] && USES_RELEASES=0
 

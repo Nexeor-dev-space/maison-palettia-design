@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
    * sharp's dynamic `fs` reads up to the project root and copies the whole
    * checkout into `.next/standalone` — including `.env`, a snapshot of
    * `media/` and `private/` (invoice PDFs with customers' names, addresses
-   * and TRNs). deploy.sh and .dockerignore already leave those out of the
+   * and TRNs). deploy.sh and Dockerfile.runtime.dockerignore already leave those out of the
    * release, but the copy itself stayed behind on the server, out of reach
    * of the retention job. None of these is ever loaded through the trace:
    * the server reads `.env`, `media/` and `private/` from its cwd (the

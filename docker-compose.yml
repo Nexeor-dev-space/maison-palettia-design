@@ -5,7 +5,7 @@
 # The alternative to deploy/maison-palettia.service; pick one. Same rules:
 # the HOST builds (`scripts/deploy.sh --restart compose` runs preflight →
 # npm ci → migrate → next build, then `docker compose build` + `up -d` with
-# the image tagged by release), the image only runs it (see Dockerfile).
+# the image tagged by release), the image only runs it (see Dockerfile.runtime).
 #
 # Postgres is NOT in this file. The database is the shared Nexeor Postgres
 # 16 (`maison_palettia_prod`), reached either
@@ -34,7 +34,7 @@ services:
     image: maison-palettia:${MP_IMAGE_TAG:-latest}
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.runtime
     restart: unless-stopped
     env_file: .env
     environment:

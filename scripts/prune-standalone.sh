@@ -18,7 +18,7 @@
 # Nothing removed here is ever loaded from the standalone copy: the server
 # runs with cwd = the release (deploy.sh links `media/` and `private/`
 # there and reads `.env` from the app directory), and the rest is source,
-# tests and docs. deploy.sh and .dockerignore already left these out of
+# tests and docs. deploy.sh and Dockerfile.runtime.dockerignore already left these out of
 # the release and the image; this deletes the stale second copy that
 # otherwise stays on the build host, out of reach of the retention job.
 # ==========================================================================
