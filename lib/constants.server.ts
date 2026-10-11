@@ -180,6 +180,7 @@ const PLATFORM_LABEL: Record<string, string> = {
   instagram: "Instagram",
   facebook: "Facebook",
   tiktok: "TikTok",
+  pinterest: "Pinterest",
   youtube: "YouTube",
   x: "X",
   linkedin: "LinkedIn",

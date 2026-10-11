@@ -6,7 +6,9 @@ import * as migration_20261010_013411_phase3_review_fixes from './20261010_01341
 import * as migration_20261010_022457_analytics from './20261010_022457_analytics';
 import * as migration_20261010_155053_journal from './20261010_155053_journal';
 import * as migration_20261010_160113_journal_block from './20261010_160113_journal_block';
+import * as migration_20261010_160701_add_pinterest_platform from './20261010_160701_add_pinterest_platform';
 import * as migration_20261010_164841_journal_auto_excerpt from './20261010_164841_journal_auto_excerpt';
+import * as migration_20261011_033242_drift_check from './20261011_033242_drift_check';
 
 export const migrations = [
   {
@@ -50,8 +52,18 @@ export const migrations = [
     name: '20261010_160113_journal_block',
   },
   {
+    up: migration_20261010_160701_add_pinterest_platform.up,
+    down: migration_20261010_160701_add_pinterest_platform.down,
+    name: '20261010_160701_add_pinterest_platform',
+  },
+  {
     up: migration_20261010_164841_journal_auto_excerpt.up,
     down: migration_20261010_164841_journal_auto_excerpt.down,
-    name: '20261010_164841_journal_auto_excerpt'
+    name: '20261010_164841_journal_auto_excerpt',
+  },
+  {
+    up: migration_20261011_033242_drift_check.up,
+    down: migration_20261011_033242_drift_check.down,
+    name: '20261011_033242_drift_check'
   },
 ];

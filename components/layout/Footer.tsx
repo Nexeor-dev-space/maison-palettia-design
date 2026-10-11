@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 import { BackToTop } from "@/components/layout/BackToTop";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import { SocialGlyph } from "@/components/ui/SocialGlyph";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { forScript } from "@/components/ui/SectionHeader";
 import { PaintStroke, linkPaint } from "@/components/layout/PaintStroke";
@@ -108,10 +109,11 @@ const LINK =
  *
  *   Contact ....... the address lines are always shown; email and phone only
  *                   once they are set in CONTACT. Both are null today.
- *   Social ........ only profiles with a real URL. Every href in SOCIAL_LINKS
- *                   is null, so there is no "Follow" heading at all — the
- *                   previous footer printed "Instagram" and "Facebook" as
- *                   plain text under "Follow", which reads as two broken links.
+ *   Social ........ only profiles with a real URL (Site details → Social
+ *                   profiles; SOCIAL_LINKS is the fallback). With none set
+ *                   there is no "Follow" heading at all — the previous footer
+ *                   printed "Instagram" and "Facebook" as plain text under
+ *                   "Follow", which reads as two broken links.
  *   Legal ......... LEGAL_NAV, which is empty until the policy pages exist,
  *                   so no link in the footer answers 404.
  *   Newsletter .... not rendered: NEWSLETTER has no endpoint, and a form that
@@ -716,12 +718,33 @@ export async function Footer() {
 
           {socials.length > 0 ? (
             <div className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
-              <FooterHeading>Follow</FooterHeading>
-              <ul className="mt-4 space-y-2.5">
+              {/* Terracotta splash: this row alternates bow / splash / bow
+                  across its other three headings, so the fourth takes the
+                  splash and the alternation holds. */}
+              <FooterHeading mark="splash" markColor="#D97757">
+                Follow
+              </FooterHeading>
+              {/*
+                MARKS ONLY, at the client's ask — no names. One round target
+                per network, the same row the Contact page draws: 44px, which
+                is the size WCAG 2.5.8 asks of a control outside running
+                text, a hairline ring in the footer's ink, and the glyph from
+                the shared set in components/ui/SocialGlyph.tsx. The name is
+                on `aria-label`, so a screen reader still hears "Instagram"
+                and a sighted reader sees the mark alone. Centred under the
+                centred heading on a phone, left under it from `sm`.
+              */}
+              <ul className="mt-4 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
                 {socials.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} target="_blank" rel="noopener noreferrer" className={LINK}>
-                      {link.label}
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${link.label} (opens in a new tab)`}
+                      className="flex size-11 items-center justify-center rounded-full border border-text/25 text-text transition-colors duration-300 ease-soft hover:border-primary hover:bg-primary/10 hover:text-primary"
+                    >
+                      <SocialGlyph name={link.label} />
                     </a>
                   </li>
                 ))}

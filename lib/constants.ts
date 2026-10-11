@@ -447,10 +447,17 @@ export const NEWSLETTER: {
   cta: "Subscribe",
 };
 
-/** TODO(client): awaiting live social profile URLs. */
+/**
+ * The studio's profiles, as the client supplied them on 2026-10-10. The CMS
+ * copy (Site details → Social profiles) is what the site reads; this list is
+ * the fallback when the CMS cannot answer, and the seed's starting rows.
+ */
 export const SOCIAL_LINKS: SocialLink[] = [
-  { label: "Instagram", href: null },
-  { label: "Facebook", href: null },
+  { label: "Instagram", href: "https://www.instagram.com/maison.palettia/" },
+  { label: "Facebook", href: "https://www.facebook.com/profile.php?id=61594873157618" },
+  { label: "TikTok", href: "https://www.tiktok.com/@maison.palettia" },
+  { label: "Pinterest", href: "https://www.pinterest.com/1fz0ruautd3l2gr85mxiksyx4z7ejo/" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/maison-palettia/" },
 ];
 
 /**

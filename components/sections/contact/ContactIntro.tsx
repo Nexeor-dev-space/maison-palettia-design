@@ -5,6 +5,7 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
+import { SocialGlyph } from "@/components/ui/SocialGlyph";
 import { Stagger } from "@/components/motion/Stagger";
 import { Container } from "@/components/ui/Container";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
@@ -525,12 +526,11 @@ function Details({ words }: { words: ContactWords }) {
             block used to set "Instagram" and "Facebook" as two stacked text
             links, which is the least of the space it has.
 
-            IT STILL RENDERS NOTHING TODAY, and that is the project's own rule
-            rather than an oversight: every `href` in SOCIAL_LINKS is `null`
-            (lib/constants.ts), and this site does not ship a link that goes
-            nowhere — the same reason LEGAL_NAV and the newsletter are
-            absent. Put the two URLs on that constant and the row below
-            appears with no other change.
+            ONLY PROFILES WITH A URL, which is the project's own rule: this
+            site does not ship a link that goes nowhere. The rows come from
+            Site details → Social profiles (SOCIAL_LINKS in lib/constants.ts
+            is the fallback), and the glyphs are the shared set in
+            components/ui/SocialGlyph.tsx, the same ones the footer draws.
 
             The label is on `aria-label`, not beside the glyph: an icon with
             its own name written next to it is the thing this was.
@@ -559,47 +559,6 @@ function Details({ words }: { words: ContactWords }) {
         </dl>
       </Reveal>
     </aside>
-  );
-}
-
-/**
- * The mark for one network, or a plain dot for one this does not know.
- *
- * Drawn here rather than pulled from an icon package: two glyphs is not a
- * dependency, and a package would arrive with a hundred more and its own
- * licence notice. `currentColor` throughout, so the anchor above decides the
- * ink and the hover needs no second rule.
- */
-function SocialGlyph({ name }: { name: string }) {
-  const key = name.trim().toLowerCase();
-
-  if (key === "instagram") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden focusable="false" className="size-5">
-        <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-        <circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" strokeWidth="1.7" />
-        <circle cx="17.1" cy="6.9" r="1.25" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (key === "facebook") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden focusable="false" className="size-5">
-        <path
-          d="M13.9 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5H17V3.6a22 22 0 0 0-2.4-.12c-2.4 0-4 1.45-4 4.12V9.9H8v3.1h2.6V21z"
-          fill="currentColor"
-        />
-      </svg>
-    );
-  }
-
-  /* An unknown network still gets a target the same size as the others, so a
-     third entry added to SOCIAL_LINKS never breaks the row's rhythm. */
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden focusable="false" className="size-5">
-      <circle cx="12" cy="12" r="4.6" fill="currentColor" />
-    </svg>
   );
 }
 

@@ -30,8 +30,14 @@ export const SITE_SETTINGS = {
     // email and phone are null today (lib/constants.ts:414-415); the WhatsApp
     // number's "971500000000" fallback is a fake and is NOT carried (01 §1 defect #2).
   },
-  // lib/constants.ts:480-481 — both profiles exist but have no address yet, so nothing is printed.
-  socials: [{ platform: "instagram" }, { platform: "facebook" }],
+  // lib/constants.ts SOCIAL_LINKS — the five profiles the client supplied on 2026-10-10.
+  socials: [
+    { platform: "instagram", url: "https://www.instagram.com/maison.palettia/" },
+    { platform: "facebook", url: "https://www.facebook.com/profile.php?id=61594873157618" },
+    { platform: "tiktok", url: "https://www.tiktok.com/@maison.palettia" },
+    { platform: "pinterest", url: "https://www.pinterest.com/1fz0ruautd3l2gr85mxiksyx4z7ejo/" },
+    { platform: "linkedin", url: "https://www.linkedin.com/company/maison-palettia/" },
+  ],
   newsletter: {
     enabled: false, // lib/constants.ts:471 actionUrl null — no provider, nothing rendered
     fieldName: "email", // lib/constants.ts:472
