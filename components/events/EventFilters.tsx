@@ -3,7 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { activeFilterCount, type EventFacets, type EventFilters, type Facet } from "@/lib/eventFilters";
+import { activeFilterCount, NO_FILTERS, type EventFacets, type EventFilters, type Facet } from "@/lib/eventFilters";
 import { cn } from "@/lib/utils";
 
 /**
@@ -75,10 +75,18 @@ export function EventFilterBar({
     moment one was used. The month and the day the grid holds are still
     counted as an active filter and still cleared by "Clear filters"; the
     browser puts the grid back on its opening month when that happens.
+
+    DATE, EVENT, VIBE, LOCATION. "Type" (the free-text strand) is gone from
+    this row: every scheduled session is filed under one strand, so it never
+    drew, and the question it stood in for is answered by Event. Vibe reads
+    the experiences' tags and draws itself only once two of them are in use
+    — the same rule "Find your vibe" follows, for the same reason: a mood
+    nobody has tagged is not a choice.
   */
   const groups = [
     { key: "month" as const, label: "Date", options: facets.months },
-    { key: "category" as const, label: "Type", options: facets.categories },
+    { key: "event" as const, label: "Event", options: facets.events },
+    { key: "vibe" as const, label: "Vibe", options: facets.vibes },
     { key: "venue" as const, label: "Location", options: facets.venues },
   ].filter((group) => group.options.length > 1 && !(view === "calendar" && group.key === "month"));
 
@@ -132,7 +140,7 @@ export function EventFilterBar({
         <div className="order-last flex flex-wrap items-center gap-x-6 gap-y-2 md:order-none">
           <button
             type="button"
-            onClick={() => onChange({ month: null, category: null, venue: null })}
+            onClick={() => onChange(NO_FILTERS)}
             className="group inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text"
           >
             <span className="border-b border-terracotta/50 pb-1 transition-colors duration-300 ease-soft group-hover:border-terracotta">

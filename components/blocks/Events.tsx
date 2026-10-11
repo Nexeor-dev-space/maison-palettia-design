@@ -4,6 +4,7 @@ import { WhereWeSetUp } from "@/components/events/WhereWeSetUp";
 import { EventsBody, type EventsDoor } from "@/components/sections/events/EventsBody";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { getMallPartners } from "@/lib/partners";
+import { getVibes } from "@/lib/vibes.server";
 import { getAllWorkshops, serverClock } from "@/lib/workshops";
 
 import { cta, stored, text } from "./helpers";
@@ -24,12 +25,13 @@ import type { AdapterProps, BlockContext } from "./types";
 
 /** The programme, read once per render for both blocks. */
 async function programme() {
-  const [experiences, workshops, partners] = await Promise.all([
+  const [experiences, workshops, partners, vibes] = await Promise.all([
     getCreativeExperiences(),
     getAllWorkshops(),
     getMallPartners(),
+    getVibes(),
   ]);
-  return { experiences, sessions: workshops.filter((w) => w.kind !== "diy"), partners };
+  return { experiences, sessions: workshops.filter((w) => w.kind !== "diy"), partners, vibes };
 }
 
 /** A door's note: the first or second Brand wording journey step, or the block's own. */
@@ -41,7 +43,7 @@ function doorNote(source: "journey0" | "journey1" | "custom", own: string | null
 
 /** `eventsBrowser` (+ the `pageHeader` before it) → <EventsBody> + <EventsBrowser>. */
 export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<"eventsBrowser">) {
-  const [{ experiences, sessions, partners }, renderedAt] = await Promise.all([programme(), renderClock()]);
+  const [{ experiences, sessions, partners, vibes }, renderedAt] = await Promise.all([programme(), renderClock()]);
   const words = headerWords(header, ctx);
   const b = stored(block);
 
@@ -58,6 +60,7 @@ export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<
       experiences={experiences}
       sessions={sessions}
       partners={partners}
+      vibes={vibes}
       renderedAt={renderedAt}
       eyebrow={words.eyebrow}
       lines={words.lines}

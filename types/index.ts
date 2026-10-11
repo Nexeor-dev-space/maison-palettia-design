@@ -205,6 +205,14 @@ export interface Workshop {
    * sessions with none, and every surface renders them as it always has.
    */
   workshopType?: { slug: string; name: string; level?: string };
+  /**
+   * The experience this date is a sitting of — "Candle Making", "Crocheting".
+   * The Events page's Event filter narrows on its slug, and the Vibe filter
+   * reaches the experience's vibe tags through it (lib/eventFilters.ts).
+   * Optional for the same reason `workshopType` is: a session the CMS could
+   * not resolve an experience for still renders everywhere it always has.
+   */
+  experience?: { slug: string; name: string };
   price: Price;
   seatsTotal: number;
   seatsAvailable: number;
