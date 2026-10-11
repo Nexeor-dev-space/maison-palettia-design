@@ -20,7 +20,7 @@ const STUDIO_TIME_ZONE = "Asia/Dubai";
 /**
  * Which dimensions the listing filters on. `null` means "not narrowed".
  *
- * DATE, EVENT, VIBE — and the mall, which keeps its place. The listing used
+ * DATE, EVENT, THEME, VIBE — and the mall, which keeps its place. The listing used
  * to narrow by `category`, the free-text strand every session carries; with
  * every scheduled session filed under "Craft" the control never drew, and
  * what a visitor actually asks of the dated programme is "which event" and
@@ -37,6 +37,12 @@ export interface EventFilters {
   /** A {@link Workshop.experience} slug — the event the date is a sitting of. */
   event: string | null;
   /**
+   * A {@link Workshop.workshopType} slug — the theme or level the sitting
+   * runs in (the Cheesecake Collection, Crochet — Beginners): the client's
+   * Oct 2026 formats, lib/workshopTypes.ts. "Theme" on the bar.
+   */
+  type: string | null;
+  /**
    * A vibe slug (lib/vibes.ts). A session has no vibes of its own: it takes
    * its experience's, through the {@link VibeIndex} the caller builds.
    */
@@ -45,7 +51,7 @@ export interface EventFilters {
   venue: string | null;
 }
 
-export const NO_FILTERS: EventFilters = { month: null, event: null, vibe: null, venue: null };
+export const NO_FILTERS: EventFilters = { month: null, event: null, type: null, vibe: null, venue: null };
 
 /**
  * Experience slug → the vibe slugs it is tagged with.
@@ -71,6 +77,14 @@ export interface FilterContext {
   vibeIndex?: VibeIndex;
   /** The taxonomy in display order; a tag with no entry here is not offered. */
   vibes?: readonly VibeOption[];
+  /**
+   * The workshop types in the studio's order, for the Theme options. The
+   * options themselves are tallied from the sessions (a type with no date
+   * cannot narrow anything); this only orders them, so the candle themes
+   * and the crochet ladder read as the studio set them rather than by
+   * whichever date comes first. Without it, first-seen order.
+   */
+  typeOrder?: readonly { slug: string }[];
 }
 
 export function buildVibeIndex(experiences: readonly { slug: string; vibes?: readonly string[] }[]): VibeIndex {
@@ -95,6 +109,8 @@ export interface Facet {
 export interface EventFacets {
   months: Facet[];
   events: Facet[];
+  /** The themes and levels — the workshop types the sessions run in. */
+  types: Facet[];
   vibes: Facet[];
   venues: Facet[];
 }
@@ -210,9 +226,17 @@ export function buildFacets(workshops: Workshop[], context: FilterContext = {}):
     .filter((vibe) => vibeCounts.has(vibe.slug))
     .map((vibe) => ({ value: vibe.slug, label: vibe.label, count: vibeCounts.get(vibe.slug) ?? 0 }));
 
+  const types = tally(workshops, (w) => (w.workshopType ? { value: w.workshopType.slug, label: w.workshopType.name } : null));
+  if (context.typeOrder) {
+    const rank = new Map(context.typeOrder.map((type, i) => [type.slug, i]));
+    const at = (facet: Facet) => rank.get(facet.value) ?? Number.MAX_SAFE_INTEGER;
+    types.sort((a, b) => at(a) - at(b));
+  }
+
   return {
     months: dates,
     events: tally(workshops, (w) => (w.experience ? { value: w.experience.slug, label: w.experience.name } : null)),
+    types,
     vibes,
     venues: tally(workshops, (w) =>
       w.venue ? { value: w.venue.name, label: w.venue.name, sub: w.venue.locality } : null,
@@ -225,6 +249,7 @@ export function applyFilters(workshops: Workshop[], filters: EventFilters, conte
   return workshops.filter((workshop) => {
     if (filters.month && !dayKey(workshop.startsAt).startsWith(filters.month)) return false;
     if (filters.event && workshop.experience?.slug !== filters.event) return false;
+    if (filters.type && workshop.workshopType?.slug !== filters.type) return false;
     if (filters.vibe && !vibesOf(workshop, context.vibeIndex).includes(filters.vibe)) return false;
     if (filters.venue && workshop.venue?.name !== filters.venue) return false;
     return true;

@@ -16,6 +16,7 @@ import type { CreativeExperience } from "@/lib/experiences";
 import type { PartnerRecord } from "@/lib/partners";
 import { cn } from "@/lib/utils";
 import type { Vibe } from "@/lib/vibes";
+import type { WorkshopType } from "@/lib/workshopTypes";
 import type { Workshop } from "@/types";
 
 
@@ -133,6 +134,7 @@ export interface EventsWords {
 export function EventsBody({
   experiences,
   sessions,
+  types = [],
   partners,
   vibes,
   renderedAt,
@@ -143,15 +145,20 @@ export function EventsBody({
   viewLocationLabel = "View location",
   emptyTitle = "The next dates are being set.",
   emptyBody = "Create Anytime experiences are available in the meantime.",
+  perPersonLabel,
 }: EventsWords & {
   experiences: CreativeExperience[];
   /** The dated sessions only. */
   sessions: Workshop[];
+  /** The formats the scheduled experiences run in (lib/workshopTypes.ts); none before the Oct 2026 update. */
+  types?: readonly WorkshopType[];
   partners: PartnerRecord[];
   /** The vibe taxonomy, for the browser's Vibe filter; the experiences carry the tags. */
   vibes?: readonly Vibe[];
   /** The page's one clock — see ONE CLOCK FOR THE WHOLE RENDER on the page. */
   renderedAt: number;
+  /** The Page labels' "per person", for the price line on a format card. */
+  perPersonLabel?: string;
 }) {
   const walkIn = experiences.filter((e) => e.kind === "diy");
   const home = partners.length === 1 ? partners[0] : undefined;
@@ -334,7 +341,30 @@ export function EventsBody({
             title={scheduledDoor?.title ?? "Create Together"}
             lead={groupLeads.scheduled}
           />
-          {sessions.length === 0 ? (
+
+          {/*
+            ==================================================================
+            ONE SECTION, FILTERED — FORMATS ARE WHAT THE FILTERS RETURN
+            ==================================================================
+
+            The client's booking brief (Oct 2026) reads the same way for both
+            experiences: a customer "should be able to select their preferred
+            candle theme" and "browse the different crochet workshop types",
+            and only THEN "view and choose from the available dates and time
+            slots for that workshop". And this half is one section, narrowed
+            by date, by event and by vibe — not a format picker with a dated
+            wall under it.
+
+            So <EventsBrowser> keeps its bar and its calendar, and with the
+            formats handed to it, what the filters return is the formats: each
+            experience's themes or levels as the cards its own page draws,
+            with the next date that passes the filter, and the recommended
+            path where the studio set one. A date is chosen on the format's
+            page, where every sitting prints its price, duration, spaces and
+            booking state. A new monthly theme or a repriced level is a CMS
+            row and arrives here with nothing redrawn.
+          */}
+          {sessions.length === 0 && types.length === 0 ? (
             <Reveal className="mt-12 border-t border-line pt-10">
               <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">
                 {emptyTitle}
@@ -343,7 +373,16 @@ export function EventsBody({
             </Reveal>
           ) : (
             <div className="mt-10 md:mt-12">
-              <EventsBrowser workshops={sessions} experiences={experiences} vibes={vibes} renderedAt={renderedAt} />
+              <EventsBrowser
+                workshops={sessions}
+                experiences={experiences}
+                types={types}
+                vibes={vibes}
+                renderedAt={renderedAt}
+                perPersonLabel={perPersonLabel}
+                emptyTitle={emptyTitle}
+                emptyBody={emptyBody}
+              />
             </div>
           )}
         </Container>
