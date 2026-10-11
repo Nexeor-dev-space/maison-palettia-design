@@ -36,6 +36,7 @@ function quickActions(data: DashboardData): Quick[] {
     { label: "Desk booking", href: "/admin/collections/orders?desk=1", icon: "bag", roles: ["admin", "front-desk"], primary: data.role === "front-desk" },
     { label: "Check-in", href: "/admin/check-in", icon: "check", roles: ["admin", "front-desk"] },
     { label: "Edit homepage", href: data.homePageId ? `/admin/collections/pages/${data.homePageId}` : "/admin/collections/pages", icon: "home", roles: ["admin", "editor"] },
+    { label: "Write a journal post", href: "/admin/collections/posts/create", icon: "pen", roles: ["admin", "editor"] },
     { label: "Swap a photo", href: "/admin/collections/media", icon: "image", roles: ["admin", "editor"] },
     { label: "Refund an order", href: "/admin/collections/orders?where[status][in]=confirmed,completed", icon: "refund", roles: ["admin", "front-desk"] },
     { label: "Resend tickets", href: "/admin/collections/orders?where[status][equals]=confirmed", icon: "send", roles: ["admin", "front-desk"] },

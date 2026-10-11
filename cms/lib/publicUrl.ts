@@ -158,6 +158,10 @@ export function routeFor(collectionSlug: string, doc: { slug?: string } | null |
       return `/private-events/${slug}`;
     case "policies":
       return `/policies/${slug}`;
+    case "posts":
+      return `/journal/${slug}`;
+    case "post-categories":
+      return `/journal/category/${slug}`;
     default:
       return "/";
   }

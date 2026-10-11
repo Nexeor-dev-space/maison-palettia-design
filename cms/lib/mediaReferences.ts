@@ -35,7 +35,8 @@ import { hasGlobal } from "./publicUrl";
 export type MediaReference = { collection: string; id: string; where: string; href?: string };
 
 type FieldRef = { path: string; label: string };
-type CollectionRefs = { slug: string; titleField: string; label: string; fields: FieldRef[]; walkBlocks?: boolean };
+/** `richText`: Lexical fields whose upload nodes (inline photographs) are walked as JSON. */
+type CollectionRefs = { slug: string; titleField: string; label: string; fields: FieldRef[]; walkBlocks?: boolean; richText?: FieldRef[] };
 type GlobalRefs = { slug: string; label: string; fields: FieldRef[] };
 
 const SEO_IMAGE: FieldRef = { path: "meta.image", label: "Search & sharing image" };
@@ -74,6 +75,17 @@ const COLLECTION_REFS: CollectionRefs[] = [
   },
   { slug: "passes", titleField: "name", label: "pass", fields: [{ path: "image", label: "Image" }] },
   { slug: "policies", titleField: "title", label: "policy", fields: [SEO_IMAGE] },
+  {
+    slug: "posts",
+    titleField: "title",
+    label: "journal post",
+    fields: [
+      { path: "coverImage", label: "Cover photograph" },
+      { path: "author.photo", label: "Author photo" },
+      SEO_IMAGE,
+    ],
+    richText: [{ path: "body", label: "Photograph in the post" }],
+  },
 ];
 
 const GLOBAL_REFS: GlobalRefs[] = [
@@ -205,6 +217,15 @@ function walkBlocks(value: unknown, mediaId: string, trail: string[], out: strin
   }
 }
 
+/** True when a Lexical value has an upload node pointing at the media id, at any depth. */
+function lexicalUsesMedia(value: unknown, mediaId: string): boolean {
+  if (Array.isArray(value)) return value.some((item) => lexicalUsesMedia(item, mediaId));
+  if (value === null || typeof value !== "object") return false;
+  const node = value as Record<string, unknown>;
+  if (node.type === "upload" && node.relationTo === "media" && refersTo(node.value, mediaId)) return true;
+  return Object.entries(node).some(([key, child]) => key !== "value" && typeof child === "object" && lexicalUsesMedia(child, mediaId));
+}
+
 export async function findMediaReferences(req: PayloadRequest, mediaId: string): Promise<MediaReference[]> {
   const { payload } = req;
   const id = String(mediaId);
@@ -233,6 +254,21 @@ export async function findMediaReferences(req: PayloadRequest, mediaId: string):
           .then((result) =>
             (result.docs as unknown as Record<string, unknown>[]).map((doc) => ({ collection: collection.slug, id: String(doc.id), where: `${titleOf(doc)} → ${field.label}`, href: hrefOf(doc) })),
           ),
+      );
+    }
+
+    if (collection.richText?.length) {
+      const richText = collection.richText;
+      lookups.push(
+        payload.find({ collection: slug, depth: 0, limit: 500, pagination: false, draft: true, overrideAccess: true, req }).then((result) => {
+          const found: MediaReference[] = [];
+          for (const doc of result.docs as unknown as Record<string, unknown>[]) {
+            for (const field of richText) {
+              if (lexicalUsesMedia(getByPath(doc, field.path), id)) found.push({ collection: collection.slug, id: String(doc.id), where: `${titleOf(doc)} → ${field.label}`, href: hrefOf(doc) });
+            }
+          }
+          return found;
+        }),
       );
     }
 

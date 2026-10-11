@@ -16,6 +16,7 @@ import { FullBleedStatementBlock } from "./FullBleedStatement";
 import { GalleryCollectionsBlock } from "./GalleryCollections";
 import { HeroBlock } from "./Hero";
 import { ImagePairBlock } from "./ImagePair";
+import { LatestJournalBlock } from "./LatestJournal";
 import { LocationsHeroBlock } from "./LocationsHero";
 import { MissionVisionBlock } from "./MissionVision";
 import { OpeningStatementBlock } from "./OpeningStatement";
@@ -108,6 +109,7 @@ export const dormantBlocks: Block[] = [
   UpcomingSessionsBlock,
   TestimonialsBlock,
   CollaborateTeaserBlock,
+  LatestJournalBlock,
 ];
 
 export const blocks: Block[] = [...launchBlocks, ...dormantBlocks];

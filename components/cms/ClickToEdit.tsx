@@ -35,6 +35,8 @@ type Target = {
   rect: { top: number; left: number; width: number; height: number };
   path: string;
   doc: string | null;
+  /** The collection the document belongs to; `pages` unless the section says otherwise (a journal story says `posts`). */
+  collection: string;
   type: string | null;
   global: string | null;
   globalPath: string | null;
@@ -57,6 +59,7 @@ function targetOf(node: EventTarget | null): Target | null {
     rect: boxOf(section),
     path: section.dataset.cmsPath ?? "",
     doc: section.dataset.cmsDoc ?? null,
+    collection: section.dataset.cmsCollection ?? "pages",
     type: section.dataset.cmsType ?? null,
     global: section.dataset.cmsGlobal ?? null,
     globalPath: section.dataset.cmsGlobalPath ?? null,
@@ -116,7 +119,7 @@ export function ClickToEdit() {
     const href = message.global
       ? `/admin/globals/${message.global}#${fieldId(message.path)}`
       : target?.doc
-        ? `/admin/collections/pages/${target.doc}#${fieldId(message.path)}`
+        ? `/admin/collections/${target.collection}/${target.doc}#${fieldId(message.path)}`
         : null;
     if (href) window.open(href, "_blank", "noopener");
   };
