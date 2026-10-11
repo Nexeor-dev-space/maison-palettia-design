@@ -335,7 +335,7 @@ function Tile({
         <span className={styles.caption}>
           <span className="text-[0.95rem] font-semibold leading-tight">{item.title}</span>
           {item.meta ? (
-            <span className="text-[0.7rem] font-medium uppercase tracking-eyebrow text-on-dark/80">
+            <span className="text-label font-medium uppercase tracking-eyebrow text-on-dark/80">
               {item.meta}
             </span>
           ) : null}

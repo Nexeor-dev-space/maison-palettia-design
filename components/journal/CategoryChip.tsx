@@ -36,7 +36,7 @@ export function CategoryChip({
     "inline-flex items-center whitespace-nowrap rounded-pill font-semibold uppercase tracking-eyebrow",
     size === "md"
       ? "px-4 py-2 text-label"
-      : "px-3 py-1.5 text-[0.7rem] leading-[1.3]",
+      : "px-3 py-1.5 text-label leading-[1.3]",
     href
       ? "press-in transition-[filter] duration-300 ease-soft hover:brightness-95 focus-visible:brightness-95"
       : null,
