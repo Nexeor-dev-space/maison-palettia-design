@@ -31,6 +31,8 @@ export const NAVIGATION = {
     { label: "Locations", link: { type: "internal", url: "/locations" }, menu: "none", mobileSurface: "sheet", secondary: true, utility: false },
     // lib/constants.ts:198
     { label: "Gallery", link: { type: "internal", url: "/gallery" }, menu: "none", mobileSurface: "sheet", secondary: true, utility: false },
+    // The Journal under About, at the client's ask (Oct 2026)
+    { label: "Journal", link: { type: "internal", url: "/journal" }, menu: "none", mobileSurface: "sheet", secondary: true, utility: false },
     // lib/constants.ts:199
     { label: "Contact", link: { type: "internal", url: "/contact" }, menu: "none", mobileSurface: "sheet", secondary: true, utility: false },
   ],
@@ -75,6 +77,7 @@ export const NAVIGATION = {
       { name: "About the Maison", sub: "Why we do it.", link: { type: "internal", url: "/about" } }, // components/layout/AboutMenu.tsx:62-65
       { name: "Locations", sub: "Where to find us.", link: { type: "internal", url: "/locations" } }, // components/layout/AboutMenu.tsx:69-71
       { name: "Gallery", sub: "What gets made.", link: { type: "internal", url: "/gallery" } }, // components/layout/AboutMenu.tsx:75-79
+      { name: "Journal", sub: "Notes & stories.", link: { type: "internal", url: "/journal" } }, // components/layout/AboutMenu.tsx
       { name: "Contact", sub: "Write to us.", link: { type: "internal", url: "/contact" } }, // components/layout/AboutMenu.tsx:83-85
     ],
   },
@@ -96,6 +99,7 @@ export const NAVIGATION = {
         items: [
           { label: "About", link: { type: "internal", url: "/about" } }, // lib/constants.ts:295
           { label: "Locations", link: { type: "internal", url: "/locations" } }, // lib/constants.ts:296
+          { label: "Journal", link: { type: "internal", url: "/journal" } },
         ],
       },
       {

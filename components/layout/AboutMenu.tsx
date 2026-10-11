@@ -79,6 +79,15 @@ export const ABOUT_DOORS: readonly AboutDoor[] = [
     sub: "What gets made.",
   },
   {
+    slug: "journal",
+    href: "/journal",
+    name: "Journal",
+    /* Shorter than the Journal's masthead ("Notes from the Table.") so it
+       holds one line beside its neighbours at 1440 — "Where to find us." is
+       the column's longest line and this is one character under it. */
+    sub: "Notes & stories.",
+  },
+  {
     slug: "contact",
     href: "/contact",
     name: "Contact",
@@ -183,8 +192,13 @@ export function AboutMenu({
         {mounted ? (
           /*
             ==================================================================
-            FOUR COLUMNS, ONE PER PAGE — at the client's ask
+            ONE COLUMN PER PAGE — at the client's ask
             ==================================================================
+
+            FIVE SINCE THE JOURNAL JOINED (Oct 2026, at the client's ask): the
+            same strip, one door wider. At 1440 five doors are about 268px
+            each, which still holds every name and line on one line; under
+            `xl` the two-column rule below takes over as before.
 
             It was briefly a rail and a preview, borrowed from the other two
             panels. That arrangement earns its keep where a rail is long and
@@ -209,7 +223,7 @@ export function AboutMenu({
             takes the height of the tallest in its row, so a line that wraps
             on one does not leave the others short.
           */
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:gap-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:gap-3 xl:grid-cols-5">
             {ABOUT_DOORS.map((door) => (
               <MenuDoor
                 key={door.slug}

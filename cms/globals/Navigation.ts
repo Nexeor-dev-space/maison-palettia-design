@@ -327,7 +327,7 @@ export const Navigation: GlobalConfig = {
               [
                 rows(
                   "doors",
-                  "Four links",
+                  "Links",
                   [
                     copy("name", "Name", { max: 20, required: true }),
                     copy("sub", "Line under the name", { max: 24 }),
@@ -339,7 +339,7 @@ export const Navigation: GlobalConfig = {
                       { description: "The cut-out shape drawn beside the link." },
                     ),
                   ],
-                  { maxRows: 4 },
+                  { maxRows: 5 },
                 ),
               ],
             ),
