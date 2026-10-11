@@ -12,6 +12,7 @@ import { Sessions } from "./Sessions";
 import { Testimonials } from "./Testimonials";
 import { Venues } from "./Venues";
 import { Vibes } from "./Vibes";
+import { WorkshopTypes } from "./WorkshopTypes";
 
 export { Experiences, EXPERIENCE_KINDS } from "./Experiences";
 export { Faqs } from "./Faqs";
@@ -25,6 +26,7 @@ export { BOOKING_STATUSES, Sessions } from "./Sessions";
 export { Testimonials } from "./Testimonials";
 export { VENUE_STATUSES, Venues } from "./Venues";
 export { Vibes } from "./Vibes";
+export { WorkshopTypes } from "./WorkshopTypes";
 export { CONTENT_REVALIDATION, revalidationHooks, type RevalidatedCollection } from "./revalidation";
 export { readSeatCounts, type SeatCounts } from "./sessionInventory.hooks";
 
@@ -39,6 +41,7 @@ export { readSeatCounts, type SeatCounts } from "./sessionInventory.hooks";
 export const contentCollections: CollectionConfig[] = [
   Pages,
   Experiences,
+  WorkshopTypes,
   Sessions,
   SessionInventory,
   Venues,

@@ -1,7 +1,7 @@
 import { findDocs, contentReader } from "@/lib/cms/query";
 import { TAGS } from "@/lib/cms/cache";
 import { toWorkshop } from "@/lib/cms/mappers";
-import { isBookable } from "@/lib/workshopHelpers";
+import { hasSessionPassed, isBookable } from "@/lib/workshopHelpers";
 import type { Workshop } from "@/types";
 
 /**
@@ -182,5 +182,21 @@ export async function getWorkshopBySlug(slug: string): Promise<Workshop | null> 
 export async function getRelatedWorkshops(slug: string, limit = 2): Promise<Workshop[]> {
   const all = await getAllWorkshops();
   const now = Date.now();
-  return all.filter((w) => w.slug !== slug && isBookable(w, now)).slice(0, limit);
+  const self = all.find((w) => w.slug === slug);
+  const open = all.filter((w) => w.slug !== slug && isBookable(w, now));
+  /*
+    Other dates of the SAME FORMAT first, when the session has one: a
+    customer on "Crochet — Beginners, Monday 11:00" is choosing between
+    Mondays and Wednesdays of Beginners, not between crochet and candles.
+    Chronological within each half, which is the order `all` already has.
+  */
+  const typeSlug = self?.workshopType?.slug;
+  if (!typeSlug) return open.slice(0, limit);
+  return [...open.filter((w) => w.workshopType?.slug === typeSlug), ...open.filter((w) => w.workshopType?.slug !== typeSlug)].slice(0, limit);
+}
+
+/** The upcoming dates of one workshop type, soonest first. Past dates are left out. */
+export async function getWorkshopsOfType(typeSlug: string, now: number = Date.now()): Promise<Workshop[]> {
+  const all = await getAllWorkshops();
+  return all.filter((w) => w.workshopType?.slug === typeSlug && !hasSessionPassed(w, now));
 }

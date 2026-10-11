@@ -5,6 +5,10 @@ import { SectionShapes } from "@/components/motion/SectionShapes";
 import { BlobButton } from "@/components/ui/BlobButton";
 
 import { EventBookingBar } from "@/components/booking/EventBookingBar";
+import { ChoiceBody, TypeBody } from "@/components/events/WorkshopTypePages";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { eventJsonLd } from "@/lib/jsonLd";
+import { getJsonLdSite } from "@/lib/jsonLd.server";
 import { eventCopy, eventUtilityBar, loadTemplateCopy } from "@/components/blocks/templateCopy";
 import { SessionGate } from "@/components/booking/SessionClock";
 import { EventCard } from "@/components/events/EventCard";
@@ -31,6 +35,7 @@ import {
   type EventDetail,
   eventGallery,} from "@/lib/eventDetail";
 import { getMallPartners } from "@/lib/partners";
+import { getWorkshopTypes, typesOfExperience } from "@/lib/workshopTypes";
 import { redirectOr404 } from "@/lib/cms/redirects";
 import { getMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
@@ -45,6 +50,7 @@ import {
   workshopHref,
   isFullyBooked,
   isScarce,
+  serverClock,
   sessionDateParts,
   sessionTimeRange,
   spotsLabel,
@@ -179,14 +185,51 @@ export default async function EventPage({
   ]);
 
   /*
+    ====================================================================
+    AN EXPERIENCE SPLIT INTO FORMATS, AND ONE FORMAT'S DATES
+    ====================================================================
+
+    The client's Oct 2026 update (lib/workshopTypes.ts): a customer picks
+    the format — a candle theme, a crochet level — then a date within it.
+    Those two pages share this route and its chrome (the paper, the
+    utility bar) but none of the session machinery below, so they return
+    here. The location is the studio's one current centre, as on a walk-in
+    page; a format has no venue of its own, its dates do.
+  */
+  if (detail.kind === "choice" || detail.kind === "type") {
+    const [partners, types] = await Promise.all([getMallPartners(), getWorkshopTypes()]);
+    const home = partners.length === 1 ? partners[0] : undefined;
+    return (
+      <div className="relative isolate overflow-x-clip bg-sage">
+        <SectionShapes plan={groundShapes("sage")} />
+        <Container className="relative pb-0 pt-[2.5rem] md:pt-[3.5rem] lg:pt-[4.5rem]">
+          {detail.kind === "choice" ? (
+            <ChoiceBody detail={detail} partner={home} />
+          ) : (
+            <TypeBody
+              detail={detail}
+              siblings={detail.experience ? typesOfExperience(types, detail.experience.slug) : [detail.type]}
+              partner={home}
+              renderedAt={serverClock()}
+            />
+          )}
+          <div className="h-16 md:h-20" aria-hidden />
+          <PageUtilityBar note={utilityBar.note} links={utilityBar.links} />
+        </Container>
+      </div>
+    );
+  }
+
+  /*
     "Other sessions" means other than the one this page shows — which, when
     the address is the activity's bare slug (/events/candle-making), is the
     dated session it resolved to, not the slug in the URL.
   */
   const shownSlug = detail.kind === "scheduled" ? detail.workshop.slug : slug;
-  const [related, partners] = await Promise.all([
+  const [related, partners, site] = await Promise.all([
     getRelatedWorkshops(shownSlug),
     getMallPartners(),
+    getJsonLdSite(),
   ]);
 
   /*
@@ -240,6 +283,23 @@ export default async function EventPage({
   const bookable =
     detail.kind === "scheduled" && !isFullyBooked(detail.workshop) && !passed;
 
+  /*
+    A dated session as a schema.org Event (lib/jsonLd.ts): the date, the
+    venue, the price and whether seats remain — the facts the page prints,
+    as structured data. A walk-in activity has no date and no price, so it
+    is not an Event and prints none; its page is still a page.
+  */
+  const jsonLd =
+    detail.kind === "scheduled"
+      ? eventJsonLd({
+          site,
+          workshop: detail.workshop,
+          description: eventIntro(detail) ?? eventAbout(detail)[0] ?? null,
+          partner,
+          passed,
+        })
+      : null;
+
   return (
     /*
       ==================================================================
@@ -275,6 +335,7 @@ export default async function EventPage({
       x-axis only, so nothing interferes with the page scrolling normally.
     */
     <div className="relative isolate overflow-x-clip bg-sage">
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
       <SectionShapes plan={groundShapes("sage")} />
       {/* `pb-0`: <PageUtilityBar> is the last thing in this container and it
           is a Deep Lilac field of its own now, with its own vertical padding.

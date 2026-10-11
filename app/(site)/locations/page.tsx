@@ -1,4 +1,9 @@
 import { FixedPage, pageMetadata } from "@/components/blocks/CmsPage";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { getLocalBusinessJsonLd } from "@/lib/jsonLd.server";
+
+const DESCRIPTION =
+  "Find Maison Palettia in the places you already love to visit — and come make something while you’re there.";
 
 /*
   The description is the client's own sentence, the one the page opens on
@@ -10,8 +15,7 @@ import { FixedPage, pageMetadata } from "@/components/blocks/CmsPage";
 export function generateMetadata() {
   return pageMetadata("locations", {
     title: "Locations",
-    description:
-      "Find Maison Palettia in the places you already love to visit — and come make something while you’re there.",
+    description: DESCRIPTION,
     path: "/locations",
   });
 }
@@ -24,6 +28,13 @@ export function generateMetadata() {
  * components/sections/locations/LocationsBody.tsx, where the notes on its
  * shape (and on what the client asked to have removed) now live.
  */
-export default function LocationsPage() {
-  return <FixedPage slug="locations" />;
+export default async function LocationsPage() {
+  /* The business and its current venue as structured data (lib/jsonLd.ts). */
+  const jsonLd = await getLocalBusinessJsonLd(DESCRIPTION);
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <FixedPage slug="locations" />
+    </>
+  );
 }

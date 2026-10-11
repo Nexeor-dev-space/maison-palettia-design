@@ -2,6 +2,7 @@ import { resolveLink, type LinkValue } from "@/cms/fields/link";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { PartnerRecord } from "@/lib/partners";
 import type { Policy, PolicyBlock } from "@/lib/policies";
+import type { WorkshopType } from "@/lib/workshopTypes";
 import { INK_MARK, type PrivateEventAudience } from "@/lib/privateEvents";
 import type { Vibe, VibeSlug } from "@/lib/vibes";
 import type {
@@ -15,6 +16,7 @@ import type {
   Testimonial as CmsTestimonial,
   Venue as CmsVenue,
   Vibe as CmsVibe,
+  WorkshopType as CmsWorkshopType,
 } from "@/payload-types";
 import type { FaqItem, ImageAsset, NavItem, Pass, Testimonial, Workshop, WorkshopStatus } from "@/types";
 
@@ -232,26 +234,55 @@ function workshopStatus(doc: CmsSession, seatsAvailable: number): WorkshopStatus
 export function toWorkshop(doc: CmsSession): SessionWorkshop {
   const experience = populated(doc.experience);
   const venue = populated(doc.venue);
+  const type = populated(doc.workshopType);
+  const workshopType = type ? { slug: type.slug, name: type.name, ...(type.level ? { level: type.level } : {}) } : undefined;
   // `seatsAvailable` is virtual, filled from the inventory row by the
   // collection's afterRead (2A-1). Before that exists, every seat is free.
   const seatsAvailable = typeof doc.seatsAvailable === "number" ? doc.seatsAvailable : doc.seatsTotal;
   const gallery = imagesOf(doc.gallery);
   return {
     slug: doc.slug,
-    title: doc.title || experience?.name || doc.slug,
+    title: doc.title || type?.name || experience?.name || doc.slug,
     category: doc.category,
     kind: "scheduled",
     startsAt: studioIso(doc.startsAt, doc.startsAt_tz),
     durationMinutes: doc.durationMinutes,
     ...(venue ? { venue: { name: venue.name, locality: venue.locality } } : {}),
+    ...(workshopType ? { workshopType } : {}),
     price: priceOf(doc.priceFils) ?? { amount: 0, currency: CURRENCY },
     seatsTotal: doc.seatsTotal,
     seatsAvailable,
     status: workshopStatus(doc, seatsAvailable),
-    excerpt: doc.excerpt || experience?.description || "",
-    image: imageOf(doc.image) ?? imageOf(experience?.image) ?? PLACEHOLDER_IMAGE,
+    excerpt: doc.excerpt || type?.description || experience?.description || "",
+    // The photograph: the date's own, else its type's, else the experience's.
+    image: imageOf(doc.image) ?? imageOf(type?.image) ?? imageOf(experience?.image) ?? PLACEHOLDER_IMAGE,
     ...(gallery.length ? { gallery } : {}),
     ...(experience?.slug ? { experienceSlug: experience.slug } : {}),
+  };
+}
+
+/**
+ * `workshop-types` → `WorkshopType` (lib/workshopTypes.ts). The experience
+ * and the "recommended after" type are carried by slug; depth 1 populates
+ * both one level, which is all a slug needs.
+ */
+export function toWorkshopType(doc: CmsWorkshopType): WorkshopType {
+  const experience = populated(doc.experience);
+  const after = populated(doc.progression?.recommendedAfter);
+  const about = paragraphsOf(doc.about);
+  const image = imageOf(doc.image);
+  return {
+    slug: doc.slug,
+    name: doc.name,
+    experienceSlug: experience?.slug ?? "",
+    ...(doc.level ? { level: doc.level } : {}),
+    ...(doc.description ? { description: doc.description } : {}),
+    ...(about.length ? { about } : {}),
+    ...(image ? { image } : {}),
+    ...(doc.status ? { status: doc.status } : {}),
+    ...(after?.slug ? { recommendedAfterSlug: after.slug } : {}),
+    ...(doc.progression?.note ? { progressionNote: doc.progression.note } : {}),
+    order: doc.order,
   };
 }
 
@@ -259,6 +290,9 @@ export function toWorkshop(doc: CmsSession): SessionWorkshop {
 export function toPartner(doc: CmsVenue): PartnerRecord {
   const logo = imageOf(doc.logo, "card");
   const image = imageOf(doc.image);
+  const address = (doc.address ?? []).map((row) => row.line).filter(Boolean);
+  const { lat, lng } = doc.coordinates ?? {};
+  const coordinates = typeof lat === "number" && typeof lng === "number" ? { lat, lng } : undefined;
   return {
     slug: doc.slug,
     name: doc.name,
@@ -269,6 +303,8 @@ export function toPartner(doc: CmsVenue): PartnerRecord {
     ...(doc.mapQuery ? { mapQuery: doc.mapQuery } : {}),
     ...(logo ? { logo } : {}),
     ...(image ? { image } : {}),
+    ...(address.length ? { address } : {}),
+    ...(coordinates ? { coordinates } : {}),
   };
 }
 

@@ -27,10 +27,28 @@ export interface ExperienceSeed {
   order: number;
 }
 
+export interface WorkshopTypeSeed {
+  /** Experience slug. */
+  experience: string;
+  name: string;
+  slug: string;
+  level?: string;
+  description?: string;
+  about?: string[];
+  image?: PublicPath;
+  status?: string;
+  /** `recommendedAfter` is a workshop-type slug, resolved to an id after every type exists. */
+  progression?: { recommendedAfter?: string; note?: string };
+  order: number;
+}
+
 export interface SessionSeed {
   /** Experience slug. */
   experience: string;
-  title: string;
+  /** Workshop-type slug, when the date runs in a format (cms/seed/strings/workshopTypes.ts). */
+  workshopType?: string;
+  /** Leave empty to take the type's (or the experience's) name, as the admin does. */
+  title?: string;
   category: string;
   /** ISO 8601 with the studio's +04:00 offset, as lib/workshops.ts wrote it. */
   startsAt: string;

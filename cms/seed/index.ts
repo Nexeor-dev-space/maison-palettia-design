@@ -24,7 +24,8 @@ import { Tally } from "./upsert";
  *
  * WHAT IT DOES, in order — each step needs the ids of the one before:
  *   1. media        the 72 public/ files the code references (cms/seed/media.ts)
- *   2. content      vibes, venues, experiences, sessions + inventory rows,
+ *   2. content      vibes, venues, experiences, workshop types, sessions +
+ *                   inventory rows,
  *                   programmes, policies, FAQs, passes (cms/seed/content.ts)
  *   3. globals      site details, menus, brand wording, booking wording, page
  *                   labels, SEO defaults (cms/seed/globals.ts)
@@ -79,6 +80,7 @@ const COUNTED: CollectionSlug[] = [
   "vibes",
   "venues",
   "experiences",
+  "workshop-types",
   "sessions",
   "session-inventory",
   "programmes",

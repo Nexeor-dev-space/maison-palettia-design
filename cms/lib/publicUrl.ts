@@ -151,6 +151,7 @@ export function routeFor(collectionSlug: string, doc: { slug?: string } | null |
     case "pages":
       return slug === "home" ? "/" : `/${slug}`;
     case "experiences":
+    case "workshop-types":
     case "sessions":
       return `/events/${slug}`;
     case "programmes":

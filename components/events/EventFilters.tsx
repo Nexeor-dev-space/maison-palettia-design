@@ -40,6 +40,9 @@ import { cn } from "@/lib/utils";
  * the keyboard behaviour a select has (arrows to move, Enter to choose, Escape
  * to close, Home and End to jump), so nothing is lost by drawing it here.
  */
+/** The two ways the listing can be read — see <EventsBrowser>. */
+export type ListingView = "list" | "calendar";
+
 interface EventFiltersProps {
   facets: EventFacets;
   filters: EventFilters;
@@ -48,6 +51,10 @@ interface EventFiltersProps {
       — announced, never shown. */
   resultCount: number;
   totalCount: number;
+  /** Which reading the visitor has chosen; the toggle is drawn only when
+      a handler is given. */
+  view?: ListingView;
+  onViewChange?: (view: ListingView) => void;
 }
 
 export function EventFilterBar({
@@ -56,17 +63,26 @@ export function EventFilterBar({
   onChange,
   resultCount,
   totalCount,
+  view = "list",
+  onViewChange,
 }: EventFiltersProps) {
   const active = activeFilterCount(filters);
 
-  // Only the groups that can actually narrow something.
+  /*
+    Only the groups that can actually narrow something — and never the Date
+    select while the calendar is open, because the calendar IS the date
+    control then: two controls writing the same filter would disagree the
+    moment one was used. The month and the day the grid holds are still
+    counted as an active filter and still cleared by "Clear filters"; the
+    browser puts the grid back on its opening month when that happens.
+  */
   const groups = [
     { key: "month" as const, label: "Date", options: facets.months },
     { key: "category" as const, label: "Type", options: facets.categories },
     { key: "venue" as const, label: "Location", options: facets.venues },
-  ].filter((group) => group.options.length > 1);
+  ].filter((group) => group.options.length > 1 && !(view === "calendar" && group.key === "month"));
 
-  if (groups.length === 0) return null;
+  if (groups.length === 0 && !onViewChange) return null;
 
   /*
     `border-b`, not `border-y` — the rule above this bar is gone at the
@@ -138,6 +154,7 @@ export function EventFilterBar({
         is narrower than the date it has to hold.
       */}
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:justify-end">
+        {onViewChange ? <ViewToggle view={view} onChange={onViewChange} /> : null}
         {groups.map((group) => (
           <FilterSelect
             key={group.key}
@@ -148,6 +165,44 @@ export function EventFilterBar({
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * List or calendar — the same programme, two readings.
+ *
+ * A pair of pressed-state buttons rather than a select: there are two
+ * options and both are always visible, which is what a segmented control
+ * is for. Drawn to the filter buttons' height and radius so the row reads
+ * as one piece of furniture; the chosen half takes Charcoal Slate, the
+ * same deepening a chosen filter takes, so "which one is on" is read the
+ * same way across the row.
+ */
+function ViewToggle({ view, onChange }: { view: ListingView; onChange: (view: ListingView) => void }) {
+  const options: { value: ListingView; label: string }[] = [
+    { value: "list", label: "List" },
+    { value: "calendar", label: "Calendar" },
+  ];
+  return (
+    <div role="group" aria-label="View as" className="inline-flex min-h-[3.5rem] w-full rounded-pill border border-primary p-1 sm:w-auto">
+      {options.map((option) => {
+        const on = option.value === view;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={on}
+            onClick={() => onChange(option.value)}
+            className={cn(
+              "press-in flex-1 rounded-pill px-5 text-action font-medium uppercase tracking-eyebrow transition-colors duration-300 ease-soft sm:flex-none",
+              on ? "bg-text text-surface" : "text-text hover:bg-primary hover:text-on-primary",
+            )}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -152,9 +152,18 @@ cards, real money). Start in Test.
 
 The launch content is today's site. Before opening bookings:
 
+- **Content → Workshop types** — the formats a booked experience runs in: your
+  monthly candle themes (The Cheesecake Collection, Sculptural Forms) and the
+  crochet levels (Beginners, Beginner Basics, Returning Learners, Beginner
+  Project) are already there. Write each one's description when the concept
+  is final. A new monthly theme is **Add a workshop type**; retiring one is
+  unpublishing it. Each type has its own page of dates at `/events/{type}`,
+  and the experience page lets customers choose a type first.
 - **Content → Sessions** — your real dates, prices and number of seats. The
-  two sessions that came with the site are drafts (not visible) — edit them or
-  add new ones with **Add a session**, then **Publish**. For a weekly class,
+  November timetable from your update is loaded (three weeks from 16
+  November, six seats a sitting), each date pointing at its workshop type.
+  **The prices and durations on those dates are placeholders** — open each
+  type's dates, set the real figures, then **Publish**. For a weekly class,
   open one session, use **Repeat weekly…** from its actions menu, and publish
   the copies you want.
 - **Content → Passes** — publish the passes you sell, or leave them as drafts
