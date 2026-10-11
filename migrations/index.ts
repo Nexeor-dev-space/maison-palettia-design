@@ -9,6 +9,7 @@ import * as migration_20261010_160113_journal_block from './20261010_160113_jour
 import * as migration_20261010_160701_add_pinterest_platform from './20261010_160701_add_pinterest_platform';
 import * as migration_20261010_164841_journal_auto_excerpt from './20261010_164841_journal_auto_excerpt';
 import * as migration_20261011_052017_add_workshop_types from './20261011_052017_add_workshop_types';
+import * as migration_20261011_132002_add_session_vibes from './20261011_132002_add_session_vibes';
 
 export const migrations = [
   {
@@ -64,6 +65,11 @@ export const migrations = [
   {
     up: migration_20261011_052017_add_workshop_types.up,
     down: migration_20261011_052017_add_workshop_types.down,
-    name: '20261011_052017_add_workshop_types'
+    name: '20261011_052017_add_workshop_types',
+  },
+  {
+    up: migration_20261011_132002_add_session_vibes.up,
+    down: migration_20261011_132002_add_session_vibes.down,
+    name: '20261011_132002_add_session_vibes'
   },
 ];

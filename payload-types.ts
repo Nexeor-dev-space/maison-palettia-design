@@ -2130,6 +2130,10 @@ export interface Session {
    */
   seatsHeld?: number | null;
   /**
+   * The mood of this date. Leave empty to take the experience's vibes. The Events page's Vibe filter reads these.
+   */
+  vibes?: (string | Vibe)[] | null;
+  /**
    * Stamped when the 24-hour reminder emails go out.
    */
   reminderSentAt?: string | null;
@@ -5236,6 +5240,7 @@ export interface SessionsSelect<T extends boolean = true> {
   isFullyBooked?: T;
   seatsSold?: T;
   seatsHeld?: T;
+  vibes?: T;
   reminderSentAt?: T;
   cancelledAt?: T;
   cancelReason?: T;

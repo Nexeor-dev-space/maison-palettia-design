@@ -37,8 +37,9 @@ export interface EventFilters {
   /** A {@link Workshop.experience} slug — the event the date is a sitting of. */
   event: string | null;
   /**
-   * A vibe slug (lib/vibes.ts). A session has no vibes of its own: it takes
-   * its experience's, through the {@link VibeIndex} the caller builds.
+   * A vibe slug (lib/vibes.ts). A session's own tags where the date has
+   * them, else its experience's through the {@link VibeIndex} the caller
+   * builds — see {@link vibesOf}.
    */
   vibe: string | null;
   /** A {@link Venue.name} value, verbatim. */
@@ -77,8 +78,14 @@ export function buildVibeIndex(experiences: readonly { slug: string; vibes?: rea
   return new Map(experiences.map((experience) => [experience.slug, experience.vibes ?? []]));
 }
 
-/** The vibe slugs behind a session, through its experience; none without one. */
-function vibesOf(workshop: Workshop, index: VibeIndex | undefined): readonly string[] {
+/**
+ * The vibe slugs behind a session: its own, when the studio tagged the date
+ * itself, else its experience's through the index. A date tagged in the CMS
+ * REPLACES the experience's mood rather than adding to it — that is what
+ * tagging one date differently is for.
+ */
+export function vibesOf(workshop: Workshop, index: VibeIndex | undefined): readonly string[] {
+  if (workshop.vibes?.length) return workshop.vibes;
   const slug = workshop.experience?.slug;
   return slug && index ? (index.get(slug) ?? []) : [];
 }

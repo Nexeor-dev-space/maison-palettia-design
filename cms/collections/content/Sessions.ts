@@ -39,6 +39,12 @@ import { CONTENT_GROUP, contentDrafts, draftedContentAccess, gallery, image, par
  * (./sessionInventory.hooks.ts, which also owns the row's lifecycle, the
  * capacity floor and the Reschedule guard).
  *
+ * VIBES PER DATE. An experience is tagged with its moods (vibes); a session
+ * may carry its own, for a date that runs differently from the rest — a
+ * quiet evening sitting of an otherwise lively format. Empty means "the
+ * experience's", which is what the Events page's Vibe filter falls back to
+ * (lib/eventFilters.ts).
+ *
  * The other hooks §D.2 lists: the `{experience}-{yyyy-mm-dd}-{HHmm}` slug and
  * default title (cms/hooks/sessionSlug.ts), the publish gate on the
  * photographs, admin-only renames of a live address with a redirect from
@@ -392,6 +398,17 @@ export const Sessions: CollectionConfig = {
       virtual: true,
       access: { read: isStaffField, create: neverField, update: neverField },
       admin: { position: "sidebar", readOnly: true, description: "In baskets right now, awaiting payment." },
+    },
+    {
+      name: "vibes",
+      type: "relationship",
+      relationTo: "vibes",
+      hasMany: true,
+      label: "Vibes",
+      admin: {
+        position: "sidebar",
+        description: "The mood of this date. Leave empty to take the experience's vibes. The Events page's Vibe filter reads these.",
+      },
     },
     systemDate("reminderSentAt", "Reminder sent", "Stamped when the 24-hour reminder emails go out."),
     systemDate("cancelledAt", "Cancelled", "Set by “Cancel session & refund all”."),
