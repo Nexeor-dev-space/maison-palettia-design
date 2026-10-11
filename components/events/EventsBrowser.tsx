@@ -82,9 +82,9 @@ import type { Workshop } from "@/types";
  * cards its own page draws, with the next date that passes the filters
  * and the recommended path where the studio set one — rather than one
  * card per sitting. The filters are unchanged and still narrow sessions:
- * a format is shown when its experience passes Event and Vibe, when it is
- * the Theme chosen (or none is), and, once a date or a location is chosen,
- * when one of its sittings passes too. The
+ * a format is shown when its experience passes Event, when it is the
+ * Theme chosen (or none is), and, once a date, a vibe or a location is
+ * chosen, when one of its sittings passes too. The
  * calendar's dots are still the sittings, so a day on the grid narrows to
  * the formats running that day.
  *
@@ -137,8 +137,8 @@ export function EventsBrowser({
   const visible = useMemo(() => applyFilters(workshops, filters, context), [workshops, filters, context]);
   const months = useMemo(() => groupByMonth(visible), [visible]);
   const groups = useMemo(
-    () => (types.length ? formatGroups(experiences, types, visible, filters, context, renderedAt) : []),
-    [experiences, types, visible, filters, context, renderedAt],
+    () => (types.length ? formatGroups(experiences, types, visible, filters, renderedAt) : []),
+    [experiences, types, visible, filters, renderedAt],
   );
   const formatted = types.length > 0;
   /* What "nothing matched" means: no format left, or no sitting left. */
@@ -326,11 +326,13 @@ interface FormatGroupData {
 /**
  * Which formats the filters leave, by experience, in the studio's order.
  *
- * EVENT AND VIBE are the experience's: a format is its experience's
- * format, so it passes when the experience does. THEME is the format
- * itself: the one chosen stays and its siblings go (the path strip still
- * draws the whole ladder, so the order is not lost). DATE AND LOCATION are
- * the sitting's: with either set, a format stays only while one of its dates
+ * EVENT is the experience's: a format is its experience's format, so it
+ * passes when the experience does. THEME is the format itself: the one
+ * chosen stays and its siblings go (the path strip still draws the whole
+ * ladder, so the order is not lost). VIBE, DATE AND LOCATION are the
+ * sitting's — a date can carry its own vibes, over its experience's
+ * (`vibesOf` in lib/eventFilters.ts) — so with any of them set a format
+ * stays only while one of its sittings passes: with either set, a format stays only while one of its dates
  * passes — a theme with no sitting in the chosen month is not on in that
  * month. With neither set, a format with no dates yet still shows, saying
  * so, because a theme the studio has announced is a choice even before
@@ -347,16 +349,14 @@ function formatGroups(
   types: readonly WorkshopType[],
   visible: readonly Workshop[],
   filters: EventFilters,
-  context: FilterContext,
   renderedAt: number,
 ): FormatGroupData[] {
-  const dated = Boolean(filters.month || filters.venue);
+  const dated = Boolean(filters.month || filters.venue || filters.vibe);
   const ahead = visible.filter((w) => Date.parse(w.startsAt) > renderedAt).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
   return experiences
     .filter((experience) => experience.kind === "scheduled")
     .filter((experience) => !filters.event || experience.slug === filters.event)
-    .filter((experience) => !filters.vibe || (context.vibeIndex?.get(experience.slug) ?? []).includes(filters.vibe))
     .map((experience) => {
       const all = types.filter((type) => type.experienceSlug === experience.slug);
       const formats = all

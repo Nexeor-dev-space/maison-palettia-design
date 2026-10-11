@@ -212,6 +212,31 @@ describe("vibe facet", () => {
     expect(applyFilters(programme, { ...NO_FILTERS, vibe: "mindful-chill" })).toEqual([]);
   });
 
+  it("prefers a date's own tags over its experience's, and falls back when it has none", () => {
+    const context = { vibeIndex: tagged, vibes: VIBE_LIST };
+    const dated = [
+      // Tagged on the date itself: the experience's "mindful-chill" no longer applies to it.
+      { ...programme[0], vibes: ["messy-expressive"] },
+      // Untagged: takes Candle Making's tags.
+      programme[1],
+      // An empty list is "not tagged", not "no vibes".
+      { ...programme[2], vibes: [] },
+      // Its own tags, with no experience to fall back to.
+      { ...programme[3], vibes: ["quick-crafts"] },
+    ];
+    const { vibes } = buildFacets(dated, context);
+    expect(vibes).toEqual([
+      { value: "messy-expressive", label: "Messy & Expressive", count: 1 },
+      { value: "mindful-chill", label: "Mindful & Chill", count: 2 },
+      { value: "quick-crafts", label: "Quick 30-Min Crafts", count: 2 },
+    ]);
+    expect(applyFilters(dated, { ...NO_FILTERS, vibe: "messy-expressive" }, context).map((w) => w.slug)).toEqual(["candle-1"]);
+    expect(applyFilters(dated, { ...NO_FILTERS, vibe: "mindful-chill" }, context).map((w) => w.slug)).toEqual(["candle-2", "crochet-1"]);
+    expect(applyFilters(dated, { ...NO_FILTERS, vibe: "quick-crafts" }, context).map((w) => w.slug)).toEqual(["candle-2", "orphan"]);
+    // A date's own tags work with no index at all.
+    expect(applyFilters(dated, { ...NO_FILTERS, vibe: "quick-crafts" }).map((w) => w.slug)).toEqual(["orphan"]);
+  });
+
   it("counts the new dimensions towards the reset control", () => {
     expect(activeFilterCount(NO_FILTERS)).toBe(0);
     expect(activeFilterCount({ ...NO_FILTERS, event: "crocheting", vibe: "mindful-chill" })).toBe(2);
