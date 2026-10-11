@@ -219,6 +219,8 @@ export const MAIN_NAV: NavItem[] = [
   { label: "About", href: "/about", menu: "about", mobileSurface: "sheet" },
   { label: "Locations", href: "/locations", secondary: true, mobileSurface: "sheet" },
   { label: "Gallery", href: "/gallery", secondary: true, mobileSurface: "sheet" },
+  /* The Journal, under About on both the desktop panel and the phone sheet, at the client's ask (Oct 2026). */
+  { label: "Journal", href: "/journal", secondary: true, mobileSurface: "sheet" },
   { label: "Contact", href: "/contact", secondary: true, mobileSurface: "sheet" },
 ];
 
@@ -317,6 +319,7 @@ export const FOOTER_NAV: NavGroup[] = [
     items: [
       { label: "About", href: "/about" },
       { label: "Locations", href: "/locations" },
+      { label: "Journal", href: "/journal" },
     ],
   },
   {
