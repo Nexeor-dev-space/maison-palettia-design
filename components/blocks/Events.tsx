@@ -1,11 +1,13 @@
 import { cache } from "react";
 
 import { WhereWeSetUp } from "@/components/events/WhereWeSetUp";
+import { eventCopy, loadTemplateCopy } from "@/components/blocks/templateCopy";
 import { EventsBody, type EventsDoor } from "@/components/sections/events/EventsBody";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { getMallPartners } from "@/lib/partners";
 import { getVibes } from "@/lib/vibes.server";
 import { getAllWorkshops, serverClock } from "@/lib/workshops";
+import { getWorkshopTypes } from "@/lib/workshopTypes";
 
 import { cta, stored, text } from "./helpers";
 import { headerWords } from "./PageHeader";
@@ -25,13 +27,14 @@ import type { AdapterProps, BlockContext } from "./types";
 
 /** The programme, read once per render for both blocks. */
 async function programme() {
-  const [experiences, workshops, partners, vibes] = await Promise.all([
+  const [experiences, workshops, types, partners, vibes] = await Promise.all([
     getCreativeExperiences(),
     getAllWorkshops(),
+    getWorkshopTypes(),
     getMallPartners(),
     getVibes(),
   ]);
-  return { experiences, sessions: workshops.filter((w) => w.kind !== "diy"), partners, vibes };
+  return { experiences, sessions: workshops.filter((w) => w.kind !== "diy"), types, partners, vibes };
 }
 
 /** A door's note: the first or second Brand wording journey step, or the block's own. */
@@ -43,7 +46,8 @@ function doorNote(source: "journey0" | "journey1" | "custom", own: string | null
 
 /** `eventsBrowser` (+ the `pageHeader` before it) → <EventsBody> + <EventsBrowser>. */
 export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<"eventsBrowser">) {
-  const [{ experiences, sessions, partners, vibes }, renderedAt] = await Promise.all([programme(), renderClock()]);
+  /* The Page labels, for the "per person" a format card prints — loaded here as the event template does. */
+  const [{ experiences, sessions, types, partners, vibes }, renderedAt] = await Promise.all([programme(), renderClock(), loadTemplateCopy()]);
   const words = headerWords(header, ctx);
   const b = stored(block);
 
@@ -59,9 +63,11 @@ export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<
     <EventsBody
       experiences={experiences}
       sessions={sessions}
+      types={types}
       partners={partners}
       vibes={vibes}
       renderedAt={renderedAt}
+      perPersonLabel={eventCopy().perPersonLabel}
       eyebrow={words.eyebrow}
       lines={words.lines}
       doors={doors}

@@ -1,0 +1,134 @@
+/*
+  THE TICKET — a card cut like one, for the two things a visitor books.
+
+  Two cards wear it, at the client's ask:
+
+    <SessionTicket> ... one dated sitting on a format's page: the day, the
+                        time and the price on the body; the seats and the
+                        Book button on the stub.
+    <TypeCard> ........ one format (a candle theme, a crochet level) in the
+                        listing and on the experience's page: the name and
+                        the line on the body; the next date and the price
+                        on the stub.
+
+  Both are a card with a stub on the end, the two parted by a perforation
+  and a notch cut from each edge where it would be torn.
+
+  THE GROUND IS A VARIABLE. A session ticket is White Rock on the format
+  page's Light Sage; a format ticket sits in the Create Together half of
+  /events, which is itself White Rock, where a cream card has no edge at
+  all — so that one takes the near-white `surface` (`.theme`). The notches
+  cut the same either way.
+
+  THE NOTCHES ARE REAL HOLES, NOT PAINTED DISCS. A disc painted in the
+  ground's colour would only match on one ground; the type page is Light
+  Sage, but this card sits on White Rock in live preview and on whatever
+  the section is tomorrow. A mask cuts the shape out of the card instead,
+  so whatever is behind shows through — the brand cut-outs drifting under
+  the section included. Two radial masks, each "everything but one circle",
+  intersected: both holes at once.
+
+  TWO ORIENTATIONS, ONE TICKET. From `md` the stub is on the right and the
+  notches sit on the top and bottom edges at the perforation. Below it the
+  ticket stands on end: the stub is at the foot, the notches on the left
+  and right. The stub takes a fixed measure either way (`--stub`), which is
+  what lets the mask know where the perforation is without reading layout.
+
+  The dashed perforation is the stub's own border, inset by the notch so
+  it begins where the hole ends rather than running into it.
+*/
+.ticket {
+  --stub: 4.75rem;
+  --notch: 0.85rem;
+  --edge: 0.5px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ticket-ground, var(--color-cream));
+  color: var(--color-text);
+  border-radius: var(--radius-lg);
+  -webkit-mask-image:
+    radial-gradient(circle at 0 calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+    radial-gradient(circle at 100% calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+  mask-image:
+    radial-gradient(circle at 0 calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+    radial-gradient(circle at 100% calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  transition: transform 420ms var(--ease-editorial);
+}
+
+/* The format ticket: near-white, and a shorter stub measure for three lines. */
+.theme {
+  --ticket-ground: var(--color-surface);
+  --stub: 6.75rem;
+}
+
+/* A touch of lift on reach — the same pitch the format cards press to. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .ticket:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* The body: the date, the time, the price. */
+.body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The stub: seats and the door. A fixed measure — see the mask above. */
+.stub {
+  position: relative;
+  flex: 0 0 var(--stub);
+  min-height: var(--stub);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* The perforation, inset by the notch at both ends. */
+.stub::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  left: calc(var(--notch) + 0.35rem);
+  right: calc(var(--notch) + 0.35rem);
+  top: 0;
+  border-top: 1.5px dashed var(--color-line);
+}
+
+@media (min-width: 48rem) {
+  .ticket {
+    --stub: 15rem;
+    flex-direction: row;
+    -webkit-mask-image:
+      radial-gradient(circle at calc(100% - var(--stub)) 0, transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+      radial-gradient(circle at calc(100% - var(--stub)) 100%, transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+    mask-image:
+      radial-gradient(circle at calc(100% - var(--stub)) 0, transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+      radial-gradient(circle at calc(100% - var(--stub)) 100%, transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+  }
+
+  /* Wide enough for "17 November 2026" on one line at the body size. */
+  .theme {
+    --stub: 15rem;
+  }
+
+  .stub {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  .stub::before {
+    left: 0;
+    right: auto;
+    top: calc(var(--notch) + 0.35rem);
+    bottom: calc(var(--notch) + 0.35rem);
+    border-top: 0;
+    border-left: 1.5px dashed var(--color-line);
+  }
+}
