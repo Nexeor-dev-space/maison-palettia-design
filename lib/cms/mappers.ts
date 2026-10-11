@@ -255,6 +255,7 @@ export function toWorkshop(doc: CmsSession): SessionWorkshop {
   // collection's afterRead (2A-1). Before that exists, every seat is free.
   const seatsAvailable = typeof doc.seatsAvailable === "number" ? doc.seatsAvailable : doc.seatsTotal;
   const gallery = imagesOf(doc.gallery);
+  const vibes = (doc.vibes ?? []).map((vibe) => populated(vibe)?.slug).filter((slug): slug is string => Boolean(slug));
   return {
     slug: doc.slug,
     title: doc.title || type?.name || experience?.name || doc.slug,
@@ -265,6 +266,7 @@ export function toWorkshop(doc: CmsSession): SessionWorkshop {
     ...(venue ? { venue: { name: venue.name, locality: venue.locality } } : {}),
     ...(workshopType ? { workshopType } : {}),
     ...(experience?.slug ? { experience: { slug: experience.slug, name: experience.name } } : {}),
+    ...(vibes.length ? { vibes } : {}),
     price: priceOf(doc.priceFils) ?? { amount: 0, currency: CURRENCY },
     seatsTotal: doc.seatsTotal,
     seatsAvailable,

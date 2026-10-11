@@ -213,6 +213,13 @@ export interface Workshop {
    * not resolve an experience for still renders everywhere it always has.
    */
   experience?: { slug: string; name: string };
+  /**
+   * This date's own vibe tags (lib/vibes.ts), as slugs — set per session in
+   * the CMS for a date that runs differently from its experience. Absent or
+   * empty means the experience's tags apply; the Events page's Vibe filter
+   * makes that fall-back (lib/eventFilters.ts).
+   */
+  vibes?: readonly string[];
   price: Price;
   seatsTotal: number;
   seatsAvailable: number;
