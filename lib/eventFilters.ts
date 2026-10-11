@@ -6,9 +6,10 @@ import type { Workshop } from "@/types";
  * Pure functions over whatever `getAllWorkshops()` returns — this module holds
  * no data of its own and adds no second source, the same contract
  * `lib/search.ts` already follows. Everything the controls offer is derived
- * from the catalogue at render time, so a date, a strand or a mall that the
- * studio has not scheduled simply never appears as an option. Nothing here
- * invents a value.
+ * from the catalogue at render time, so a date, an event, a vibe or a mall
+ * that the studio has not scheduled simply never appears as an option.
+ * Nothing here invents a value — the vibes come from the experiences' own
+ * tags, through a {@link VibeIndex} the caller builds.
  *
  * The studio runs on Gulf Standard Time; a session's month is read in that
  * zone so a late-evening date cannot fall into the previous month for a
@@ -16,7 +17,16 @@ import type { Workshop } from "@/types";
  */
 const STUDIO_TIME_ZONE = "Asia/Dubai";
 
-/** Which dimensions the listing filters on. `null` means "not narrowed". */
+/**
+ * Which dimensions the listing filters on. `null` means "not narrowed".
+ *
+ * DATE, EVENT, VIBE — and the mall, which keeps its place. The listing used
+ * to narrow by `category`, the free-text strand every session carries; with
+ * every scheduled session filed under "Craft" the control never drew, and
+ * what a visitor actually asks of the dated programme is "which event" and
+ * "what mood". So the strand gave way to the experience itself (`event`),
+ * and the experience's vibe tags (lib/vibes.ts) became a second way in.
+ */
 export interface EventFilters {
   /**
    * A date key. Either a month, "2026-10", or a single day, "2026-10-03" —
@@ -24,13 +34,54 @@ export interface EventFilters {
    * comparison serves both.
    */
   month: string | null;
-  /** A {@link Workshop.category} value, verbatim. */
-  category: string | null;
+  /** A {@link Workshop.experience} slug — the event the date is a sitting of. */
+  event: string | null;
+  /**
+   * A vibe slug (lib/vibes.ts). A session has no vibes of its own: it takes
+   * its experience's, through the {@link VibeIndex} the caller builds.
+   */
+  vibe: string | null;
   /** A {@link Venue.name} value, verbatim. */
   venue: string | null;
 }
 
-export const NO_FILTERS: EventFilters = { month: null, category: null, venue: null };
+export const NO_FILTERS: EventFilters = { month: null, event: null, vibe: null, venue: null };
+
+/**
+ * Experience slug → the vibe slugs it is tagged with.
+ *
+ * The join the Vibe filter needs, built once by the caller from the
+ * experiences the page already holds — the session list stays a list of
+ * sessions and carries no copy of the tags.
+ */
+export type VibeIndex = ReadonlyMap<string, readonly string[]>;
+
+/** The vibe list as the filter needs it: the slug, and the label to print for it. */
+export interface VibeOption {
+  slug: string;
+  label: string;
+}
+
+/**
+ * What the Event and Vibe dimensions read beyond the session list. Both
+ * optional: without them those two controls simply offer nothing, which is
+ * also what they offer while the studio has tagged nothing.
+ */
+export interface FilterContext {
+  vibeIndex?: VibeIndex;
+  /** The taxonomy in display order; a tag with no entry here is not offered. */
+  vibes?: readonly VibeOption[];
+}
+
+export function buildVibeIndex(experiences: readonly { slug: string; vibes?: readonly string[] }[]): VibeIndex {
+  return new Map(experiences.map((experience) => [experience.slug, experience.vibes ?? []]));
+}
+
+/** The vibe slugs behind a session, through its experience; none without one. */
+function vibesOf(workshop: Workshop, index: VibeIndex | undefined): readonly string[] {
+  const slug = workshop.experience?.slug;
+  return slug && index ? (index.get(slug) ?? []) : [];
+}
 
 /** One option in a filter group, with the number of sessions behind it. */
 export interface Facet {
@@ -43,7 +94,8 @@ export interface Facet {
 
 export interface EventFacets {
   months: Facet[];
-  categories: Facet[];
+  events: Facet[];
+  vibes: Facet[];
   venues: Facet[];
 }
 
@@ -118,7 +170,7 @@ function tally(
  * decides not to draw a control offering a single choice, because a filter
  * that cannot narrow anything is furniture.
  */
-export function buildFacets(workshops: Workshop[]): EventFacets {
+export function buildFacets(workshops: Workshop[], context: FilterContext = {}): EventFacets {
   const months = tally(workshops, (w) => ({
     value: monthKey(w.startsAt),
     label: monthLabel(w.startsAt),
@@ -140,9 +192,28 @@ export function buildFacets(workshops: Workshop[]): EventFacets {
       ? months
       : tally(workshops, (w) => ({ value: dayKey(w.startsAt), label: dayLabel(w.startsAt) }));
 
+  /*
+    A session can carry several vibes, so this is not a `tally`: each session
+    counts once under every vibe its experience is tagged with. The options
+    come out in the taxonomy's order rather than first-seen — the CMS sets
+    that order and "Find your vibe" already shows it that way — and a tag
+    the taxonomy does not know is not offered, because there is no honest
+    label to print for it.
+  */
+  const vibeCounts = new Map<string, number>();
+  for (const workshop of workshops) {
+    for (const slug of vibesOf(workshop, context.vibeIndex)) {
+      vibeCounts.set(slug, (vibeCounts.get(slug) ?? 0) + 1);
+    }
+  }
+  const vibes = (context.vibes ?? [])
+    .filter((vibe) => vibeCounts.has(vibe.slug))
+    .map((vibe) => ({ value: vibe.slug, label: vibe.label, count: vibeCounts.get(vibe.slug) ?? 0 }));
+
   return {
     months: dates,
-    categories: tally(workshops, (w) => ({ value: w.category, label: w.category })),
+    events: tally(workshops, (w) => (w.experience ? { value: w.experience.slug, label: w.experience.name } : null)),
+    vibes,
     venues: tally(workshops, (w) =>
       w.venue ? { value: w.venue.name, label: w.venue.name, sub: w.venue.locality } : null,
     ),
@@ -150,10 +221,11 @@ export function buildFacets(workshops: Workshop[]): EventFacets {
 }
 
 /** The catalogue, narrowed. Unset dimensions do not narrow anything. */
-export function applyFilters(workshops: Workshop[], filters: EventFilters): Workshop[] {
+export function applyFilters(workshops: Workshop[], filters: EventFilters, context: FilterContext = {}): Workshop[] {
   return workshops.filter((workshop) => {
     if (filters.month && !dayKey(workshop.startsAt).startsWith(filters.month)) return false;
-    if (filters.category && workshop.category !== filters.category) return false;
+    if (filters.event && workshop.experience?.slug !== filters.event) return false;
+    if (filters.vibe && !vibesOf(workshop, context.vibeIndex).includes(filters.vibe)) return false;
     if (filters.venue && workshop.venue?.name !== filters.venue) return false;
     return true;
   });

@@ -10,13 +10,17 @@ import { EventCard } from "@/components/workshops/EventCard";
 import {
   applyFilters,
   buildFacets,
+  buildVibeIndex,
   defaultCalendarMonth,
   groupByMonth,
   monthKeyLabel,
   monthKeys,
   NO_FILTERS,
   type EventFilters,
+  type FilterContext,
 } from "@/lib/eventFilters";
+import type { CreativeExperience } from "@/lib/experiences";
+import { VIBES, type Vibe } from "@/lib/vibes";
 import type { Workshop } from "@/types";
 
 /**
@@ -31,9 +35,17 @@ import type { Workshop } from "@/types";
  *
  * Facets are memoised against the catalogue rather than the filters: the
  * options a visitor is offered describe the whole programme, so the count a
- * screen reader hears on "Painting" (it is no longer drawn — see
+ * screen reader hears on "Crocheting" (it is no longer drawn — see
  * <EventFilterBar>) does not drop to zero the moment they pick a different
  * mall. Only the list below reacts.
+ *
+ * THE VIBE FILTER READS THE EXPERIENCES. A session carries no vibes of its
+ * own; its experience does, as the tags the studio sets in the CMS
+ * (lib/vibes.ts). The page already holds the experiences for the walk-in
+ * half, so they come in here too and are folded into a {@link FilterContext}
+ * once — the Event filter needs nothing beyond the sessions themselves.
+ * `vibes` is the taxonomy in the CMS's order, for the labels; it defaults to
+ * the in-file list the way every other vibe surface does.
  *
  * `renderedAt` is the page's one `Date.now()`, passed straight through to each
  * <EventCard> so the HTML can already say "Date passed" where the server saw
@@ -52,32 +64,39 @@ import type { Workshop } from "@/types";
  * below are `applyFilters` over exactly that — the same function, the same
  * key, the same result the select would give. Opening the calendar replaces
  * whatever date the select held with the grid's month; closing it clears the
- * date and the select comes back. Type and Location keep working in both
- * views and narrow the grid's dots as well as the cards.
+ * date and the select comes back. Event, Vibe and Location keep working in
+ * both views and narrow the grid's dots as well as the cards.
  */
 export function EventsBrowser({
   workshops,
+  experiences = [],
+  vibes = VIBES,
   renderedAt,
 }: {
   workshops: Workshop[];
+  /** The experiences the sessions belong to, for their vibe tags. */
+  experiences?: readonly Pick<CreativeExperience, "slug" | "vibes">[];
+  /** The vibe taxonomy, in display order. */
+  vibes?: readonly Vibe[];
   renderedAt: number;
 }) {
   const [filters, setFilters] = useState<EventFilters>(NO_FILTERS);
   const [view, setView] = useState<ListingView>("list");
 
-  const facets = useMemo(() => buildFacets(workshops), [workshops]);
-  const visible = useMemo(() => applyFilters(workshops, filters), [workshops, filters]);
+  const context = useMemo<FilterContext>(() => ({ vibeIndex: buildVibeIndex(experiences), vibes }), [experiences, vibes]);
+  const facets = useMemo(() => buildFacets(workshops, context), [workshops, context]);
+  const visible = useMemo(() => applyFilters(workshops, filters, context), [workshops, filters, context]);
   const months = useMemo(() => groupByMonth(visible), [visible]);
 
   /*
-    The calendar's own inputs. The grid is narrowed by Type and Location but
-    never by the date — a grid that hid the dots for every day but the one
+    The calendar's own inputs. The grid is narrowed by Event, Vibe and
+    Location but never by the date — a grid that hid the dots for every day but the one
     chosen would be a grid with nothing to choose from.
   */
   const range = useMemo(() => monthKeys(workshops), [workshops]);
   const opening = useMemo(() => defaultCalendarMonth(workshops, renderedAt), [workshops, renderedAt]);
   const [calendarMonth, setCalendarMonth] = useState<string | null>(opening);
-  const undated = useMemo(() => applyFilters(workshops, { ...filters, month: null }), [workshops, filters]);
+  const undated = useMemo(() => applyFilters(workshops, { ...filters, month: null }, context), [workshops, filters, context]);
 
   /* A day key is a month key with a day on the end; the grid's month is the
      first seven characters of whichever the filter holds. */
@@ -162,7 +181,7 @@ export function EventsBrowser({
           <NothingThisMonth
             label={selectedDay ? "that day" : monthKeyLabel(shownMonth)}
             onReset={() => setFilters({ ...NO_FILTERS, month: shownMonth })}
-            narrowed={Boolean(filters.category || filters.venue || selectedDay)}
+            narrowed={Boolean(filters.event || filters.vibe || filters.venue || selectedDay)}
           />
         ) : (
           <NoMatches onReset={() => setFilters(NO_FILTERS)} />

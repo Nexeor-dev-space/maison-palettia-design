@@ -15,6 +15,7 @@ import { WORKSHOP_JOURNEY } from "@/lib/brand";
 import type { CreativeExperience } from "@/lib/experiences";
 import type { PartnerRecord } from "@/lib/partners";
 import { cn } from "@/lib/utils";
+import type { Vibe } from "@/lib/vibes";
 import type { Workshop } from "@/types";
 
 
@@ -133,6 +134,7 @@ export function EventsBody({
   experiences,
   sessions,
   partners,
+  vibes,
   renderedAt,
   eyebrow = "Experiences",
   lines = ["Make It", "Your Way."],
@@ -146,6 +148,8 @@ export function EventsBody({
   /** The dated sessions only. */
   sessions: Workshop[];
   partners: PartnerRecord[];
+  /** The vibe taxonomy, for the browser's Vibe filter; the experiences carry the tags. */
+  vibes?: readonly Vibe[];
   /** The page's one clock — see ONE CLOCK FOR THE WHOLE RENDER on the page. */
   renderedAt: number;
 }) {
@@ -339,7 +343,7 @@ export function EventsBody({
             </Reveal>
           ) : (
             <div className="mt-10 md:mt-12">
-              <EventsBrowser workshops={sessions} renderedAt={renderedAt} />
+              <EventsBrowser workshops={sessions} experiences={experiences} vibes={vibes} renderedAt={renderedAt} />
             </div>
           )}
         </Container>

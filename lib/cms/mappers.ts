@@ -264,6 +264,7 @@ export function toWorkshop(doc: CmsSession): SessionWorkshop {
     durationMinutes: doc.durationMinutes,
     ...(venue ? { venue: { name: venue.name, locality: venue.locality } } : {}),
     ...(workshopType ? { workshopType } : {}),
+    ...(experience?.slug ? { experience: { slug: experience.slug, name: experience.name } } : {}),
     price: priceOf(doc.priceFils) ?? { amount: 0, currency: CURRENCY },
     seatsTotal: doc.seatsTotal,
     seatsAvailable,
