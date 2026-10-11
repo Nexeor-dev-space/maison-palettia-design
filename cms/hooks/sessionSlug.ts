@@ -96,6 +96,29 @@ async function slugTaken(req: PayloadRequest, slug: string, selfId: unknown): Pr
 const duplicateError = (req: PayloadRequest, path: string, message: string) =>
   new ValidationError({ collection: "sessions", errors: [{ path, message }] }, req.t);
 
+/**
+ * beforeValidate: a session's workshop type must be one of its experience's.
+ * The admin narrows the picker to them (`filterOptions`), but the Local and
+ * REST APIs do not, and changing the experience after the type was chosen
+ * leaves the old type in place — either way the slug, the choice page and
+ * the revalidation would all follow the wrong experience.
+ */
+export const typeMatchesExperience: CollectionBeforeValidateHook = async ({ data, originalDoc, req }) => {
+  if (!data) return data;
+  const merged = { ...((originalDoc ?? {}) as Record<string, unknown>), ...(data as Record<string, unknown>) };
+  const typeId = idOf(merged.workshopType);
+  const experienceId = idOf(merged.experience);
+  if (!typeId || !experienceId) return data;
+  const type = (await req.payload
+    .findByID({ collection: "workshop-types", id: typeId, depth: 0, overrideAccess: true, disableErrors: true, req })
+    .catch(() => null)) as { experience?: unknown } | null;
+  const owner = idOf(type?.experience);
+  if (owner && owner !== experienceId) {
+    throw duplicateError(req, "workshopType", "This workshop type belongs to a different experience. Pick one of this experience's types, or clear it.");
+  }
+  return data;
+};
+
 export const sessionSlug: CollectionBeforeValidateHook = async ({ data, originalDoc, req }) => {
   if (!data) return data;
   const incoming = data as Record<string, unknown>;

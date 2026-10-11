@@ -159,10 +159,18 @@ export async function seedContent(
   }
 
   /* ── workshop types (cms/seed/strings/workshopTypes.ts) ──────────────── */
-  // Two passes: every type must exist before "recommended after" can point at one.
+  // One pass, in the array's order: a "recommended after" target must be
+  // listed before the type that names it, so its id is already known. (A
+  // second linking pass would be skipped outright by `missing-only`, which
+  // leaves existing rows alone.)
   for (const type of WORKSHOP_TYPES) {
     const experience = ids.experiences.get(type.experience);
     if (experience === undefined) throw new Error(`seed: workshop type ${type.name} names an unknown experience ${type.experience}`);
+    const after = type.progression?.recommendedAfter;
+    const recommendedAfter = after ? ids.workshopTypes.get(after) : undefined;
+    if (after && recommendedAfter === undefined) {
+      throw new Error(`seed: workshop type ${type.name} is recommended after ${after}, which must be listed before it`);
+    }
     const id = await upsertDoc(
       payload,
       tally,
@@ -177,26 +185,12 @@ export async function seedContent(
         about: (type.about ?? []).map((paragraph) => ({ paragraph })),
         image: type.image ? mediaId(media, type.image) : undefined,
         status: type.status,
-        progression: { note: type.progression?.note },
+        progression: { recommendedAfter, note: type.progression?.note },
         order: type.order,
       },
       upsert,
     );
     ids.workshopTypes.set(type.slug, id);
-  }
-  for (const type of WORKSHOP_TYPES) {
-    const after = type.progression?.recommendedAfter;
-    if (!after) continue;
-    const target = ids.workshopTypes.get(after);
-    if (target === undefined) throw new Error(`seed: workshop type ${type.name} is recommended after an unknown type ${after}`);
-    await upsertDoc(
-      payload,
-      tally,
-      "workshop-types",
-      "slug",
-      { slug: type.slug, progression: { recommendedAfter: target, note: type.progression?.note } },
-      upsert,
-    );
   }
 
   /* ── sessions (lib/workshops.ts + the Nov 2026 timetable) + inventory rows ── */

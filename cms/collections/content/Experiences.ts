@@ -44,15 +44,21 @@ export const EXPERIENCE_KINDS = [
  */
 const refuseDeleteWithSessions: CollectionBeforeDeleteHook = async ({ id, req }) => {
   if (req.context?.system === true) return;
-  const { totalDocs } = await req.payload.count({ collection: "sessions", where: { experience: { equals: id } }, overrideAccess: true, req });
-  if (totalDocs > 0) {
+  const [sessions, types] = await Promise.all([
+    req.payload.count({ collection: "sessions", where: { experience: { equals: id } }, overrideAccess: true, req }),
+    req.payload.count({ collection: "workshop-types", where: { experience: { equals: id } }, overrideAccess: true, req }),
+  ]);
+  const refuse = (count: number, noun: string) => {
     throw new APIError(
-      `${totalDocs} ${totalDocs === 1 ? "session belongs" : "sessions belong"} to this experience. Delete or move ${totalDocs === 1 ? "it" : "them"} first, or unpublish the experience instead.`,
+      `${count} ${noun}${count === 1 ? " belongs" : "s belong"} to this experience. Delete or move ${count === 1 ? "it" : "them"} first, or unpublish the experience instead.`,
       409,
       undefined,
       true,
     );
-  }
+  };
+  if (sessions.totalDocs > 0) refuse(sessions.totalDocs, "session");
+  // Its formats would be left without an experience (the relation is required).
+  if (types.totalDocs > 0) refuse(types.totalDocs, "workshop type");
 };
 
 const revalidate = revalidationHooks("experiences");

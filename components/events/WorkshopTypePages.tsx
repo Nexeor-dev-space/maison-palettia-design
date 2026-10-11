@@ -371,18 +371,15 @@ function TypeCard({ type, dates }: { type: WorkshopType; dates: Workshop[] }) {
 
 export function TypeBody({
   detail,
-  siblings,
   partner,
   renderedAt,
 }: {
   detail: TypeEvent;
-  /** Every format of the same experience, in order — the progression strip. */
-  siblings: readonly WorkshopType[];
   partner?: PartnerRecord;
   /** The page's one clock, for the server's verdict on each date. */
   renderedAt: number;
 }) {
-  const { type, experience, sessions } = detail;
+  const { type, experience, siblings, sessions } = detail;
   const trail = experience ? [{ label: experience.name, href: `/events/${experience.slug}` }] : [];
 
   return (

@@ -97,36 +97,44 @@ export function EventCalendar({
         </div>
       </div>
 
-      <div role="grid" aria-labelledby={headingId} className="mt-5 md:mt-6">
-        <div role="row" className="grid grid-cols-7 gap-1 md:gap-1.5">
-          {WEEKDAYS.map((day) => (
-            <div
-              key={day}
-              role="columnheader"
-              className="pb-2 text-center text-label font-medium uppercase tracking-eyebrow text-text/60"
-            >
-              {/* The full weekday for a screen reader; three letters for the eye. */}
-              <span aria-hidden>{day}</span>
-              <span className="sr-only">{FULL_WEEKDAY[day]}</span>
-            </div>
-          ))}
-        </div>
-
-        {grid.weeks.map((week, w) => (
-          <div key={w} role="row" className="grid grid-cols-7 gap-1 md:gap-1.5">
-            {week.map((cell) => (
-              <DayCell
-                key={cell.key}
-                cell={cell}
-                selected={cell.key === selectedDay}
-                isToday={cell.key === today}
-                passed={cell.key < today}
-                onSelect={() => onSelectDay(selectedDay === cell.key ? null : cell.key)}
-              />
+      {/*
+        A REAL TABLE, NOT AN ARIA GRID. `role="grid"` promises arrow-key
+        movement between cells, which this does not implement — each day
+        with sessions is an ordinary button in the tab order. A `<table>`
+        gives a screen reader the row and column of every cell (the weekday
+        and the week) without that promise, and needs no `display: contents`
+        wrapper, which some browsers drop from the accessibility tree.
+      */}
+      <table aria-labelledby={headingId} className="mt-5 w-full table-fixed border-separate border-spacing-1 md:mt-6 md:border-spacing-1.5">
+        <thead>
+          <tr>
+            {WEEKDAYS.map((day) => (
+              <th key={day} scope="col" className="pb-2 text-center text-label font-medium uppercase tracking-eyebrow text-text/60">
+                {/* The full weekday for a screen reader; three letters for the eye. */}
+                <span aria-hidden>{day}</span>
+                <span className="sr-only">{FULL_WEEKDAY[day]}</span>
+              </th>
             ))}
-          </div>
-        ))}
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {grid.weeks.map((week, w) => (
+            <tr key={w}>
+              {week.map((cell) => (
+                <td key={cell.key} className="p-0 align-top">
+                  <DayCell
+                    cell={cell}
+                    selected={cell.key === selectedDay}
+                    isToday={cell.key === today}
+                    passed={cell.key < today}
+                    onSelect={() => onSelectDay(selectedDay === cell.key ? null : cell.key)}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -172,13 +180,13 @@ function DayCell({
     : undefined;
 
   const shell = cn(
-    "relative flex min-h-[3rem] flex-col rounded-md p-1.5 text-left md:min-h-[5.25rem] md:p-2",
+    "relative flex min-h-[3rem] w-full flex-col rounded-md p-1.5 text-left md:min-h-[5.25rem] md:p-2",
     !cell.inMonth && "invisible",
   );
 
   if (!has) {
     return (
-      <div role="gridcell" aria-disabled className={shell}>
+      <div className={shell}>
         <span className={cn("text-label font-medium tabular-nums", passed ? "text-text/35" : "text-text/55", isToday && "text-primary")}>
           {cell.day}
         </span>
@@ -187,54 +195,52 @@ function DayCell({
   }
 
   return (
-    <div role="gridcell" className="contents">
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-pressed={selected}
-        aria-label={label}
-        className={cn(
-          shell,
-          "press-in transition-colors duration-300 ease-soft",
-          /*
-            Chosen: Charcoal Slate, the same deepening a chosen filter takes
-            (see <FilterSelect>). At rest: White Rock, the plate's own ground
-            lifted one step, so a day with something on reads as an object
-            on the grid before it is read as a number.
-          */
-          selected ? "bg-text text-surface" : "bg-cream text-text hover:bg-lavender-soft",
-          passed && !selected && "text-text/60",
-        )}
-      >
-        <span className="flex items-center justify-between gap-1">
-          <span className={cn("text-label font-medium tabular-nums", isToday && !selected && "text-primary")}>{cell.day}</span>
-          <span aria-hidden className="flex items-center gap-0.5">
-            {cell.workshops.slice(0, MAX_DOTS).map((w) => (
-              <span
-                key={w.slug}
-                className={cn("block size-1.5 rounded-pill", selected ? "bg-surface" : "bg-primary")}
-              />
-            ))}
-            {count > MAX_DOTS ? <span className="text-[0.625rem] leading-none">+{count - MAX_DOTS}</span> : null}
-          </span>
-        </span>
-
-        {/* The titles, from `md` — a phone cell has room for the numeral and the dots only. */}
-        <span aria-hidden className="mt-1 hidden min-w-0 flex-col gap-0.5 md:flex">
-          {cell.workshops.slice(0, MAX_TITLES).map((w) => (
-            <span key={w.slug} className="truncate text-[0.6875rem] font-medium leading-[1.3]">
-              <span className={cn("tabular-nums", selected ? "text-surface/70" : "text-text/60")}>{formatWorkshopTime(w.startsAt)}</span>{" "}
-              {w.title}
-            </span>
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      aria-label={label}
+      className={cn(
+        shell,
+        "press-in transition-colors duration-300 ease-soft",
+        /*
+          Chosen: Charcoal Slate, the same deepening a chosen filter takes
+          (see <FilterSelect>). At rest: White Rock, the plate's own ground
+          lifted one step, so a day with something on reads as an object
+          on the grid before it is read as a number.
+        */
+        selected ? "bg-text text-surface" : "bg-cream text-text hover:bg-lavender-soft",
+        passed && !selected && "text-text/60",
+      )}
+    >
+      <span className="flex items-center justify-between gap-1">
+        <span className={cn("text-label font-medium tabular-nums", isToday && !selected && "text-primary")}>{cell.day}</span>
+        <span aria-hidden className="flex items-center gap-0.5">
+          {cell.workshops.slice(0, MAX_DOTS).map((w) => (
+            <span
+              key={w.slug}
+              className={cn("block size-1.5 rounded-pill", selected ? "bg-surface" : "bg-primary")}
+            />
           ))}
-          {count > MAX_TITLES ? (
-            <span className={cn("text-[0.6875rem] leading-[1.3]", selected ? "text-surface/70" : "text-text/60")}>
-              +{count - MAX_TITLES} more
-            </span>
-          ) : null}
+          {count > MAX_DOTS ? <span className="text-[0.625rem] leading-none">+{count - MAX_DOTS}</span> : null}
         </span>
-      </button>
-    </div>
+      </span>
+
+      {/* The titles, from `md` — a phone cell has room for the numeral and the dots only. */}
+      <span aria-hidden className="mt-1 hidden min-w-0 flex-col gap-0.5 md:flex">
+        {cell.workshops.slice(0, MAX_TITLES).map((w) => (
+          <span key={w.slug} className="truncate text-[0.6875rem] font-medium leading-[1.3]">
+            <span className={cn("tabular-nums", selected ? "text-surface/70" : "text-text/60")}>{formatWorkshopTime(w.startsAt)}</span>{" "}
+            {w.title}
+          </span>
+        ))}
+        {count > MAX_TITLES ? (
+          <span className={cn("text-[0.6875rem] leading-[1.3]", selected ? "text-surface/70" : "text-text/60")}>
+            +{count - MAX_TITLES} more
+          </span>
+        ) : null}
+      </span>
+    </button>
   );
 }
 

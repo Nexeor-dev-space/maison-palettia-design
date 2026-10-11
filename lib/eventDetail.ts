@@ -82,6 +82,8 @@ export interface TypeEvent {
   type: WorkshopType;
   /** The experience the type belongs to, when it is published. */
   experience?: CreativeExperience;
+  /** Every format of the same experience in order, this one included — the progression strip. */
+  siblings: WorkshopType[];
   /** The type's sessions that have not started, soonest first. */
   sessions: Workshop[];
 }
@@ -170,7 +172,8 @@ export async function getEventDetail(
   if (type) {
     const experience = experiences.find((item) => item.slug === type.experienceSlug);
     const sessions = workshops.filter((item) => item.workshopType?.slug === slug && !hasSessionPassed(item, now));
-    return { kind: "type", slug, type, experience, sessions };
+    const siblings = typesOfExperience(types, type.experienceSlug);
+    return { kind: "type", slug, type, experience, siblings: siblings.length ? siblings : [type], sessions };
   }
 
   const experience = experiences.find((item) => item.slug === slug);

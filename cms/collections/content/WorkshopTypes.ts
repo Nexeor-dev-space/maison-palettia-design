@@ -1,4 +1,4 @@
-import { APIError, type CollectionBeforeDeleteHook, type CollectionConfig, type Where } from "payload";
+import { APIError, ValidationError, type CollectionBeforeDeleteHook, type CollectionBeforeValidateHook, type CollectionConfig, type Where } from "payload";
 
 import { slug } from "@/cms/fields";
 import { guardSlugChange } from "@/cms/hooks/formatSlug";
@@ -65,6 +65,30 @@ const refuseDeleteWithSessions: CollectionBeforeDeleteHook = async ({ id, req })
   }
 };
 
+/**
+ * beforeValidate: the type's address must not be an experience's or a
+ * session's. All three share /events/{slug}, and lib/eventDetail.ts answers
+ * a session first, then a type, then an experience — so a type named
+ * "candle-making" would silently take over the experience's own page.
+ * Runs after the slug field has derived its value from the name.
+ */
+const refuseSharedSlug: CollectionBeforeValidateHook = async ({ data, originalDoc, req }) => {
+  const slug = (data as { slug?: unknown } | undefined)?.slug ?? (originalDoc as { slug?: unknown } | undefined)?.slug;
+  if (typeof slug !== "string" || !slug) return data;
+  const [experiences, sessions] = await Promise.all([
+    req.payload.count({ collection: "experiences", where: { slug: { equals: slug } }, overrideAccess: true, req }),
+    req.payload.count({ collection: "sessions", where: { slug: { equals: slug } }, overrideAccess: true, req }),
+  ]);
+  if (experiences.totalDocs > 0 || sessions.totalDocs > 0) {
+    const owner = experiences.totalDocs > 0 ? "an experience" : "a session";
+    throw new ValidationError(
+      { collection: "workshop-types", errors: [{ path: "slug", message: `“${slug}” is already the address of ${owner}. Give the type its own, e.g. “${slug}-theme”.` }] },
+      req.t,
+    );
+  }
+  return data;
+};
+
 const revalidate = revalidationHooks("workshop-types");
 
 export const WorkshopTypes: CollectionConfig = {
@@ -98,7 +122,7 @@ export const WorkshopTypes: CollectionConfig = {
   versions: contentDrafts,
   access: draftedContentAccess,
   hooks: {
-    beforeValidate: [imageryPublishGate([{ field: "image", noun: "The photograph" }])],
+    beforeValidate: [refuseSharedSlug, imageryPublishGate([{ field: "image", noun: "The photograph" }])],
     beforeChange: [guardSlugChange({ noun: "workshop type" }), slugRedirectHooks.beforeChange, ...revalidate.beforeChange],
     afterChange: [slugRedirectHooks.afterChange, ...revalidate.afterChange],
     beforeDelete: [refuseDeleteWithSessions],

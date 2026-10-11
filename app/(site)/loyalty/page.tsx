@@ -49,9 +49,8 @@ export default async function LoyaltyPage() {
     page is out of the index AND prints no structured data: the invented
     prices must not reach a crawler by either route.
   */
-  const jsonLd = PASSES_CONFIGURED
-    ? passesJsonLd({ site: await getJsonLdSite(), passes: await getPasses(), path: "/loyalty" })
-    : null;
+  const [site, passes] = PASSES_CONFIGURED ? await Promise.all([getJsonLdSite(), getPasses()]) : [null, []];
+  const jsonLd = site ? passesJsonLd({ site, passes, path: "/loyalty" }) : null;
   return (
     <>
       {jsonLd ? <JsonLd data={jsonLd} /> : null}

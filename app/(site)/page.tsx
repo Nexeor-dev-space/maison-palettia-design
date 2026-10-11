@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { FixedPage, pageMetadata } from "@/components/blocks/CmsPage";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getSite } from "@/lib/constants.server";
 import { getLocalBusinessJsonLd } from "@/lib/jsonLd.server";
 import { getHomeMetadata } from "@/lib/seo";
 
@@ -203,8 +202,7 @@ import { getHomeMetadata } from "@/lib/seo";
 export default async function HomePage() {
   /* The Maison as a LocalBusiness (lib/jsonLd.ts), described by its tagline —
      the line the brand card and the default metadata already use. */
-  const site = await getSite();
-  const jsonLd = await getLocalBusinessJsonLd(site.tagline);
+  const jsonLd = await getLocalBusinessJsonLd();
   return (
     <>
       <JsonLd data={jsonLd} />

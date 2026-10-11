@@ -35,7 +35,6 @@ import {
   type EventDetail,
   eventGallery,} from "@/lib/eventDetail";
 import { getMallPartners } from "@/lib/partners";
-import { getWorkshopTypes, typesOfExperience } from "@/lib/workshopTypes";
 import { redirectOr404 } from "@/lib/cms/redirects";
 import { getMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
@@ -197,7 +196,7 @@ export default async function EventPage({
     page; a format has no venue of its own, its dates do.
   */
   if (detail.kind === "choice" || detail.kind === "type") {
-    const [partners, types] = await Promise.all([getMallPartners(), getWorkshopTypes()]);
+    const partners = await getMallPartners();
     const home = partners.length === 1 ? partners[0] : undefined;
     return (
       <div className="relative isolate overflow-x-clip bg-sage">
@@ -206,12 +205,7 @@ export default async function EventPage({
           {detail.kind === "choice" ? (
             <ChoiceBody detail={detail} partner={home} />
           ) : (
-            <TypeBody
-              detail={detail}
-              siblings={detail.experience ? typesOfExperience(types, detail.experience.slug) : [detail.type]}
-              partner={home}
-              renderedAt={serverClock()}
-            />
+            <TypeBody detail={detail} partner={home} renderedAt={serverClock()} />
           )}
           <div className="h-16 md:h-20" aria-hidden />
           <PageUtilityBar note={utilityBar.note} links={utilityBar.links} />

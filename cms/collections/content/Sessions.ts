@@ -4,7 +4,7 @@ import { isEditorField, isStaffField, neverField } from "@/cms/access/roles";
 import { money, priceVirtual, slug } from "@/cms/fields";
 import { guardSlugChange } from "@/cms/hooks/formatSlug";
 import { imageryPublishGate } from "@/cms/hooks/publishGate";
-import { sessionSlug } from "@/cms/hooks/sessionSlug";
+import { sessionSlug, typeMatchesExperience } from "@/cms/hooks/sessionSlug";
 import { slugRedirectHooks } from "@/cms/hooks/slugRedirect";
 
 import { revalidationHooks } from "./revalidation";
@@ -121,6 +121,7 @@ export const Sessions: CollectionConfig = {
   access: draftedContentAccess,
   hooks: {
     beforeValidate: [
+      typeMatchesExperience,
       sessionSlug,
       capacityFloor,
       imageryPublishGate([

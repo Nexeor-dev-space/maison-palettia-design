@@ -81,13 +81,16 @@ export const CONTENT_REVALIDATION = {
       return ["/", "/events", ...both(doc, prev).flatMap(eventPaths), ...(experience ? [`/events/${experience}`] : []), ...types.map((slug) => `/events/${slug}`)];
     },
   },
-  // A type's own page, and the experience page that lists its types. Sessions
-  // print the type's name, so they are cached under this tag as well.
+  // A type's own page, the experience page that lists its types, and the
+  // homepage (its carousel prints session titles). Sessions take their
+  // title, excerpt and photograph from the type, so the sessions reader is
+  // cached under this tag as well (lib/workshops.ts) and every session page
+  // that read it is marked stale by the tag.
   "workshop-types": {
     tags: [TAGS.workshopTypes],
     paths: (doc, prev) => {
       const experience = experienceSlugOf(doc) ?? experienceSlugOf(prev);
-      return ["/events", ...both(doc, prev).flatMap(eventPaths), ...(experience ? [`/events/${experience}`] : [])];
+      return ["/", "/events", ...both(doc, prev).flatMap(eventPaths), ...(experience ? [`/events/${experience}`] : [])];
     },
   },
   venues: {

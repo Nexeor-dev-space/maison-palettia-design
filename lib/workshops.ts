@@ -1,7 +1,7 @@
 import { findDocs, contentReader } from "@/lib/cms/query";
 import { TAGS } from "@/lib/cms/cache";
 import { toWorkshop } from "@/lib/cms/mappers";
-import { hasSessionPassed, isBookable } from "@/lib/workshopHelpers";
+import { isBookable } from "@/lib/workshopHelpers";
 import type { Workshop } from "@/types";
 
 /**
@@ -133,7 +133,9 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
  * `hasSessionPassed`). If the schedule grows long enough for that to
  * matter, a date floor belongs in this `where`.
  */
-const readSessions = contentReader("sessions", [TAGS.sessions, TAGS.experiences, TAGS.venues], async (draft) => {
+// The workshop-types tag too: a session's title, excerpt and photograph fall
+// back to its type's, so a type edit must purge this entry as well.
+const readSessions = contentReader("sessions", [TAGS.sessions, TAGS.experiences, TAGS.venues, TAGS.workshopTypes], async (draft) => {
   const docs = await findDocs("sessions", draft, {
     drafts: true,
     sort: "startsAt",
@@ -193,10 +195,4 @@ export async function getRelatedWorkshops(slug: string, limit = 2): Promise<Work
   const typeSlug = self?.workshopType?.slug;
   if (!typeSlug) return open.slice(0, limit);
   return [...open.filter((w) => w.workshopType?.slug === typeSlug), ...open.filter((w) => w.workshopType?.slug !== typeSlug)].slice(0, limit);
-}
-
-/** The upcoming dates of one workshop type, soonest first. Past dates are left out. */
-export async function getWorkshopsOfType(typeSlug: string, now: number = Date.now()): Promise<Workshop[]> {
-  const all = await getAllWorkshops();
-  return all.filter((w) => w.workshopType?.slug === typeSlug && !hasSessionPassed(w, now));
 }
