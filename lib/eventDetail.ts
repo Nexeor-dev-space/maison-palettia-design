@@ -3,6 +3,7 @@ import {
   type CreativeExperience,
 } from "@/lib/experiences";
 import { experienceSlugOf, getAllWorkshops, hasSessionPassed } from "@/lib/workshops";
+import { getWorkshopTypes, typesOfExperience, type WorkshopType } from "@/lib/workshopTypes";
 import type { ImageAsset, Workshop } from "@/types";
 
 /**
@@ -69,7 +70,39 @@ export interface WalkInEvent {
   experience: CreativeExperience;
 }
 
-export type EventDetail = ScheduledEvent | WalkInEvent;
+/**
+ * One format of a scheduled experience — a candle theme, a crochet level —
+ * with its dates ahead. The client's Oct 2026 update (lib/workshopTypes.ts):
+ * a customer picks the format, then a date within it, and this is the page
+ * that lists those dates.
+ */
+export interface TypeEvent {
+  kind: "type";
+  slug: string;
+  type: WorkshopType;
+  /** The experience the type belongs to, when it is published. */
+  experience?: CreativeExperience;
+  /** Every format of the same experience in order, this one included — the progression strip. */
+  siblings: WorkshopType[];
+  /** The type's sessions that have not started, soonest first. */
+  sessions: Workshop[];
+}
+
+/**
+ * A scheduled experience that is split into formats: its page is the
+ * choice between them rather than one date. `sessions` are every date
+ * ahead across all its formats, for the "next date" line on each card.
+ */
+export interface ChoiceEvent {
+  kind: "choice";
+  slug: string;
+  experience: CreativeExperience;
+  /** The experience's published formats, in the studio's order. */
+  types: WorkshopType[];
+  sessions: Workshop[];
+}
+
+export type EventDetail = ScheduledEvent | WalkInEvent | TypeEvent | ChoiceEvent;
 
 /**
  * Every slug that should have a page, scheduled first.
@@ -78,11 +111,13 @@ export type EventDetail = ScheduledEvent | WalkInEvent;
  * prerendered alongside the two sessions.
  */
 export async function getEventSlugs(): Promise<string[]> {
-  const [workshops, experiences] = await Promise.all([
+  const [workshops, experiences, types] = await Promise.all([
     getAllWorkshops(),
     getCreativeExperiences(),
+    getWorkshopTypes(),
   ]);
   const seen = new Set(workshops.map((w) => w.slug));
+  for (const type of types) seen.add(type.slug);
   for (const experience of experiences) seen.add(experience.slug);
   return [...seen];
 }
@@ -111,10 +146,12 @@ export async function getEventSlugs(): Promise<string[]> {
  */
 export async function getEventDetail(
   slug: string,
+  now: number = Date.now(),
 ): Promise<EventDetail | null> {
-  const [workshops, experiences] = await Promise.all([
+  const [workshops, experiences, types] = await Promise.all([
     getAllWorkshops(),
     getCreativeExperiences(),
+    getWorkshopTypes(),
   ]);
 
   const workshop = workshops.find((item) => item.slug === slug);
@@ -124,12 +161,39 @@ export async function getEventDetail(
     return { kind: "scheduled", slug, workshop, experience };
   }
 
+  /*
+    A WORKSHOP TYPE'S SLUG answers with the type's own page: its dates
+    ahead, soonest first. A session is matched first (above) because a
+    session's generated slug begins with its type's slug, so the two can
+    never be confused: the type is the bare slug, the session carries a
+    date behind it.
+  */
+  const type = types.find((item) => item.slug === slug);
+  if (type) {
+    const experience = experiences.find((item) => item.slug === type.experienceSlug);
+    const sessions = workshops.filter((item) => item.workshopType?.slug === slug && !hasSessionPassed(item, now));
+    const siblings = typesOfExperience(types, type.experienceSlug);
+    return { kind: "type", slug, type, experience, siblings: siblings.length ? siblings : [type], sessions };
+  }
+
   const experience = experiences.find((item) => item.slug === slug);
   if (!experience) return null;
 
   if (experience.kind === "scheduled") {
     const dates = workshops.filter((item) => experienceSlugOf(item) === slug);
-    const now = Date.now();
+
+    /*
+      AN EXPERIENCE SPLIT INTO FORMATS IS A CHOICE, NOT A DATE. With types
+      published for it, "/events/candle-making" asks which theme, and the
+      page lists them; a date is chosen on the type's page. Without any,
+      the address resolves to the next date as it always has.
+    */
+    const formats = typesOfExperience(types, slug);
+    if (formats.length > 0) {
+      const sessions = dates.filter((item) => !hasSessionPassed(item, now));
+      return { kind: "choice", slug, experience, types: formats, sessions };
+    }
+
     const next = dates.find((item) => !hasSessionPassed(item, now)) ?? dates.at(-1);
     if (next) return { kind: "scheduled", slug, workshop: next, experience };
   }
@@ -145,9 +209,14 @@ export async function getEventDetail(
  * accessor here means the page never branches just to read a heading.
  */
 export function eventTitle(detail: EventDetail): string {
-  return detail.kind === "scheduled"
-    ? detail.workshop.title
-    : detail.experience.name;
+  switch (detail.kind) {
+    case "scheduled":
+      return detail.workshop.title;
+    case "type":
+      return detail.type.name;
+    default:
+      return detail.experience.name;
+  }
 }
 
 /**
@@ -159,9 +228,14 @@ export function eventTitle(detail: EventDetail): string {
  * left blank rather than filled in.
  */
 export function eventIntro(detail: EventDetail): string | null {
-  return detail.kind === "scheduled"
-    ? detail.workshop.excerpt
-    : (detail.experience.description ?? null);
+  switch (detail.kind) {
+    case "scheduled":
+      return detail.workshop.excerpt;
+    case "type":
+      return detail.type.description ?? detail.experience?.description ?? null;
+    default:
+      return detail.experience.description ?? null;
+  }
 }
 
 /**
@@ -179,6 +253,9 @@ export function eventIntro(detail: EventDetail): string | null {
  * show no "About" until somebody writes one.
  */
 export function eventAbout(detail: EventDetail): readonly string[] {
+  // A type's own long copy first; the experience's stands in until it is written.
+  if (detail.kind === "type" && detail.type.about && detail.type.about.length > 0) return detail.type.about;
+
   const written = detail.experience?.about;
   if (written && written.length > 0) return written;
 
@@ -231,7 +308,9 @@ export function eventGallery(detail: EventDetail): readonly ImageAsset[] {
  * anything: a flagged activity is not walk-in-today either.
  */
 export function eventFlag(detail: EventDetail): string | null {
-  return detail.kind === "diy" ? (detail.experience.status ?? null) : null;
+  if (detail.kind === "diy") return detail.experience.status ?? null;
+  if (detail.kind === "type") return detail.type.status ?? null;
+  return null;
 }
 
 /**
@@ -242,7 +321,7 @@ export function eventFlag(detail: EventDetail): string | null {
  * activity is not something to send someone to the mall for today.
  */
 export function isUpcoming(detail: EventDetail): boolean {
-  return eventFlag(detail) !== null;
+  return detail.kind === "diy" && eventFlag(detail) !== null;
 }
 
 /**
@@ -251,7 +330,12 @@ export function isUpcoming(detail: EventDetail): boolean {
  * app/events/[slug]/opengraph-image.tsx) still handle its absence.
  */
 export function eventImage(detail: EventDetail) {
-  return detail.kind === "scheduled"
-    ? detail.workshop.image
-    : detail.experience.image;
+  switch (detail.kind) {
+    case "scheduled":
+      return detail.workshop.image;
+    case "type":
+      return detail.type.image ?? detail.experience?.image;
+    default:
+      return detail.experience.image;
+  }
 }

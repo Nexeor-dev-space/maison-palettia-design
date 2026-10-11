@@ -198,6 +198,13 @@ export interface Workshop {
   durationMinutes: number;
   /** Which mall this date runs at. Optional — see {@link Venue}. */
   venue?: Venue;
+  /**
+   * The format this date runs in — a candle theme, a crochet level — when
+   * the experience is split into formats (the client's Oct 2026 update;
+   * lib/workshopTypes.ts). Optional: an experience with no formats has
+   * sessions with none, and every surface renders them as it always has.
+   */
+  workshopType?: { slug: string; name: string; level?: string };
   price: Price;
   seatsTotal: number;
   seatsAvailable: number;

@@ -8,6 +8,7 @@ import * as migration_20261010_155053_journal from './20261010_155053_journal';
 import * as migration_20261010_160113_journal_block from './20261010_160113_journal_block';
 import * as migration_20261010_160701_add_pinterest_platform from './20261010_160701_add_pinterest_platform';
 import * as migration_20261010_164841_journal_auto_excerpt from './20261010_164841_journal_auto_excerpt';
+import * as migration_20261011_052017_add_workshop_types from './20261011_052017_add_workshop_types';
 
 export const migrations = [
   {
@@ -59,5 +60,10 @@ export const migrations = [
     up: migration_20261010_164841_journal_auto_excerpt.up,
     down: migration_20261010_164841_journal_auto_excerpt.down,
     name: '20261010_164841_journal_auto_excerpt',
+  },
+  {
+    up: migration_20261011_052017_add_workshop_types.up,
+    down: migration_20261011_052017_add_workshop_types.down,
+    name: '20261011_052017_add_workshop_types'
   },
 ];

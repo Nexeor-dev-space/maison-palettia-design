@@ -1,6 +1,6 @@
 import type { Block, Field, Payload } from "payload";
 
-import { sessionSlug } from "./content";
+import { sessionSlug, sessionSlugBase } from "./content";
 import { PAGES } from "./pages";
 import { BOOKING_SETTINGS, BOOKING_TERMS_PAID, BOOKING_TERMS_TODAY } from "./strings/booking";
 import { BRAND_COPY } from "./strings/brand";
@@ -15,6 +15,7 @@ import { BRAND_SHARED, SEO_DEFAULTS, SITE_SETTINGS } from "./strings/site";
 import { TEMPLATE_COPY } from "./strings/templates";
 import { CURRENT_VENUES } from "./strings/venues";
 import { VIBES } from "./strings/vibes";
+import { WORKSHOP_TYPES } from "./strings/workshopTypes";
 
 /**
  * ==========================================================================
@@ -153,7 +154,8 @@ export function checkSeed(payload: Payload): { problems: Problem[]; pagesWithPro
     ["vibes", VIBES as unknown as Row[]],
     ["venues", CURRENT_VENUES as unknown as Row[]],
     ["experiences", EXPERIENCES.map((e) => ({ ...e, about: e.about.map((paragraph) => ({ paragraph })), image: undefined, gallery: undefined }))],
-    ["sessions", SESSIONS.map((s) => ({ ...s, slug: sessionSlug(s.experience, s.startsAt), experience: undefined, venue: undefined, image: undefined, status: undefined }))],
+    ["workshop-types", WORKSHOP_TYPES.map((t) => ({ ...t, about: (t.about ?? []).map((paragraph) => ({ paragraph })), progression: { note: t.progression?.note }, experience: undefined, image: undefined }))],
+    ["sessions", SESSIONS.map((s) => ({ ...s, slug: sessionSlug(sessionSlugBase(s), s.startsAt), experience: undefined, workshopType: undefined, venue: undefined, image: undefined, status: undefined }))],
     ["programmes", PROGRAMMES.map((p) => ({ ...p, image: undefined }))],
     ["policies", POLICIES as unknown as Row[]],
     ["faqs", FAQS.map((f) => ({ ...f, answer: undefined }))],

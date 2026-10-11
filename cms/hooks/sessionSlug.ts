@@ -7,9 +7,10 @@ import { findLiveRow, isLive, latestIsLive } from "./formatSlug";
  * sessionSlug — `{experience}-{yyyy-mm-dd}-{HHmm}`, and the default title
  * ==========================================================================
  *
- * A session's address is derived, not written: the experience's slug plus
- * the start in studio time, e.g. `candle-making-2026-10-11-1000` (SPEC §D.2,
- * §F.4). The minutes make collisions impossible between two sittings of the
+ * A session's address is derived, not written: the experience's slug — or
+ * its workshop type's, when it runs in one — plus the start in studio time,
+ * e.g. `candle-making-2026-10-11-1000` or `cheesecake-collection-2026-11-17-1100`
+ * (SPEC §D.2, §F.4). The minutes make collisions impossible between two sittings of the
  * same experience on one day, so the only clash left is a true duplicate —
  * "A session for this experience already exists on this date and time".
  *
@@ -95,6 +96,29 @@ async function slugTaken(req: PayloadRequest, slug: string, selfId: unknown): Pr
 const duplicateError = (req: PayloadRequest, path: string, message: string) =>
   new ValidationError({ collection: "sessions", errors: [{ path, message }] }, req.t);
 
+/**
+ * beforeValidate: a session's workshop type must be one of its experience's.
+ * The admin narrows the picker to them (`filterOptions`), but the Local and
+ * REST APIs do not, and changing the experience after the type was chosen
+ * leaves the old type in place — either way the slug, the choice page and
+ * the revalidation would all follow the wrong experience.
+ */
+export const typeMatchesExperience: CollectionBeforeValidateHook = async ({ data, originalDoc, req }) => {
+  if (!data) return data;
+  const merged = { ...((originalDoc ?? {}) as Record<string, unknown>), ...(data as Record<string, unknown>) };
+  const typeId = idOf(merged.workshopType);
+  const experienceId = idOf(merged.experience);
+  if (!typeId || !experienceId) return data;
+  const type = (await req.payload
+    .findByID({ collection: "workshop-types", id: typeId, depth: 0, overrideAccess: true, disableErrors: true, req })
+    .catch(() => null)) as { experience?: unknown } | null;
+  const owner = idOf(type?.experience);
+  if (owner && owner !== experienceId) {
+    throw duplicateError(req, "workshopType", "This workshop type belongs to a different experience. Pick one of this experience's types, or clear it.");
+  }
+  return data;
+};
+
 export const sessionSlug: CollectionBeforeValidateHook = async ({ data, originalDoc, req }) => {
   if (!data) return data;
   const incoming = data as Record<string, unknown>;
@@ -116,10 +140,25 @@ export const sessionSlug: CollectionBeforeValidateHook = async ({ data, original
     .catch(() => null)) as { slug?: unknown; name?: unknown } | null;
   if (!experience) return data;
 
-  // Title: the experience's name until somebody writes one (§D.2 "title default experience name").
-  if (needsTitle && text(experience.name)) incoming.title = String(experience.name).slice(0, 40);
+  /*
+    The workshop type, when the session runs in one (the client's Oct 2026
+    formats: a candle theme, a crochet level). It supplies the default title
+    and the slug's base, so two formats of one experience on the same
+    afternoon — "Cheesecake Candle" and "Sculptural Candle" at 11:00 — get
+    distinct addresses instead of a duplicate-slug refusal.
+  */
+  const typeId = idOf(merged.workshopType);
+  const workshopType = typeId
+    ? ((await req.payload
+        .findByID({ collection: "workshop-types", id: typeId, depth: 0, overrideAccess: true, disableErrors: true, req })
+        .catch(() => null)) as { slug?: unknown; name?: unknown } | null)
+    : null;
 
-  const experienceSlug = text(experience.slug);
+  // Title: the type's name, else the experience's, until somebody writes one (§D.2 "title default experience name").
+  const defaultTitle = text(workshopType?.name) ?? text(experience.name);
+  if (needsTitle && defaultTitle) incoming.title = defaultTitle.slice(0, 40);
+
+  const experienceSlug = text(workshopType?.slug) ?? text(experience.slug);
   const startsAt = merged.startsAt;
   if (!experienceSlug || (typeof startsAt !== "string" && !(startsAt instanceof Date))) return data;
 

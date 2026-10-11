@@ -49,10 +49,16 @@ const categorySlugOf = (doc: Doc | undefined): string | undefined => {
 
 const eventPaths = (slug: string) => [`/events/${slug}`, `/events/${slug}/book`, `/events/${slug}/opengraph-image`];
 
-/** The experience a session belongs to, when the hook received it populated. */
+/** The experience a session (or a workshop type) belongs to, when the hook received it populated. */
 const experienceSlugOf = (doc: Doc | undefined): string | undefined => {
   const experience = doc?.experience;
   return experience && typeof experience === "object" ? slugOf(experience as Doc) : undefined;
+};
+
+/** The workshop type a session belongs to, when the hook received it populated. */
+const workshopTypeSlugOf = (doc: Doc | undefined): string | undefined => {
+  const type = doc?.workshopType;
+  return type && typeof type === "object" ? slugOf(type as Doc) : undefined;
 };
 
 type Mapping = { tags: string[]; paths: PathsFor; layout?: boolean };
@@ -68,6 +74,20 @@ export const CONTENT_REVALIDATION = {
   },
   sessions: {
     tags: [TAGS.sessions],
+    paths: (doc, prev) => {
+      const experience = experienceSlugOf(doc) ?? experienceSlugOf(prev);
+      // The type's page lists this date; the previous type's too, when a session was moved between types.
+      const types = [workshopTypeSlugOf(doc), workshopTypeSlugOf(prev)].filter((slug): slug is string => Boolean(slug));
+      return ["/", "/events", ...both(doc, prev).flatMap(eventPaths), ...(experience ? [`/events/${experience}`] : []), ...types.map((slug) => `/events/${slug}`)];
+    },
+  },
+  // A type's own page, the experience page that lists its types, and the
+  // homepage (its carousel prints session titles). Sessions take their
+  // title, excerpt and photograph from the type, so the sessions reader is
+  // cached under this tag as well (lib/workshops.ts) and every session page
+  // that read it is marked stale by the tag.
+  "workshop-types": {
+    tags: [TAGS.workshopTypes],
     paths: (doc, prev) => {
       const experience = experienceSlugOf(doc) ?? experienceSlugOf(prev);
       return ["/", "/events", ...both(doc, prev).flatMap(eventPaths), ...(experience ? [`/events/${experience}`] : [])];

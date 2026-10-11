@@ -1,10 +1,14 @@
 import { FixedPage, pageMetadata } from "@/components/blocks/CmsPage";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { getLocalBusinessJsonLd } from "@/lib/jsonLd.server";
+
+const DESCRIPTION =
+  "Ask the Maison about an event, a booking or working together, or find an upcoming event and keep a place.";
 
 export function generateMetadata() {
   return pageMetadata("contact", {
     title: "Contact",
-    description:
-      "Ask the Maison about an event, a booking or working together, or find an upcoming event and keep a place.",
+    description: DESCRIPTION,
     path: "/contact",
   });
 }
@@ -17,6 +21,14 @@ export function generateMetadata() {
  * where the notes on the page's composition now live) and the Deep Lilac
  * close (components/sections/ClosingCta.tsx).
  */
-export default function ContactPage() {
-  return <FixedPage slug="contact" />;
+export default async function ContactPage() {
+  /* The business as structured data (lib/jsonLd.ts): who, where, how to
+     reach — the page a search engine reads for exactly that. */
+  const jsonLd = await getLocalBusinessJsonLd(DESCRIPTION);
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <FixedPage slug="contact" />
+    </>
+  );
 }

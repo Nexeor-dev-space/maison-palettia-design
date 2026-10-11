@@ -20,6 +20,7 @@ import { unstable_cache } from "next/cache";
  */
 export const TAGS = {
   experiences: "collection:experiences",
+  workshopTypes: "collection:workshop-types",
   sessions: "collection:sessions",
   venues: "collection:venues",
   programmes: "collection:programmes",

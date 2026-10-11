@@ -201,3 +201,112 @@ export function groupByMonth(workshops: Workshop[]): MonthGroup[] {
 
   return months;
 }
+
+/* ==========================================================================
+   The calendar — the same catalogue, laid out as a month.
+
+   A second way of reading the programme, not a second source: every cell is
+   filled by `dayKey`, the same Dubai-zone key the date filter compares on, so
+   a day picked on the grid narrows the list exactly as choosing that date in
+   the select would. The builder is pure and takes no clock; "today" is the
+   caller's one `renderedAt`, for the same reason <EventsBrowser> never reads
+   Date.now() itself.
+   ========================================================================== */
+
+/** One cell of the month grid. */
+export interface CalendarDay {
+  /** "2026-10-03" — the filter value for this day. */
+  key: string;
+  /** The day of the month, for the numeral. */
+  day: number;
+  /** False on the leading and trailing cells that pad the first and last week. */
+  inMonth: boolean;
+  /** The sessions on this day, soonest first. */
+  workshops: Workshop[];
+}
+
+/** A month as a grid: six rows at most, seven cells each, Monday first. */
+export interface CalendarMonth {
+  key: string;
+  label: string;
+  weeks: CalendarDay[][];
+}
+
+/** The weekday headings, Monday first — the UAE's working week. */
+export const WEEKDAYS: readonly string[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Every month the programme touches, chronological, as "2026-10" keys. */
+export function monthKeys(workshops: Workshop[]): string[] {
+  return [...new Set(workshops.map((w) => monthKey(w.startsAt)))].sort();
+}
+
+/** "2026-10" plus or minus some months: "2026-11", "2025-12". */
+export function shiftMonthKey(key: string, delta: number): string {
+  const [y, m] = key.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1 + delta, 1));
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}`;
+}
+
+/** "October 2026" for a month key — the same label `monthLabel` prints for a session. */
+export function monthKeyLabel(key: string): string {
+  const [y, m] = key.split("-").map(Number);
+  return monthLabelFormatter.format(new Date(Date.UTC(y, m - 1, 15, 12)));
+}
+
+/**
+ * The month a visitor should open the calendar on: the first month with a
+ * session that has not started yet, else the last month in the programme
+ * (a schedule that has all gone by opens on its last page rather than on
+ * an empty month after it).
+ */
+export function defaultCalendarMonth(workshops: Workshop[], now: number): string | null {
+  const upcoming = workshops.find((w) => Date.parse(w.startsAt) > now);
+  if (upcoming) return monthKey(upcoming.startsAt);
+  const last = workshops.at(-1);
+  return last ? monthKey(last.startsAt) : null;
+}
+
+/**
+ * The grid for one month.
+ *
+ * A civil date's weekday does not depend on a time zone, so the cells are
+ * laid out from the calendar arithmetic alone (`Date.UTC` on the year, month
+ * and day); only the sessions are placed by the zone-aware `dayKey`, which
+ * is what keeps a 23:30 session on the Dubai date the studio printed.
+ */
+export function buildCalendar(workshops: Workshop[], key: string): CalendarMonth {
+  const [y, m] = key.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const daysBefore = new Date(Date.UTC(y, m - 1, 1)).getUTCDay() || 7; // Sunday → 7
+  const lead = daysBefore - 1;
+
+  const byDay = new Map<string, Workshop[]>();
+  for (const workshop of workshops) {
+    const k = dayKey(workshop.startsAt);
+    const list = byDay.get(k);
+    if (list) list.push(workshop);
+    else byDay.set(k, [workshop]);
+  }
+  for (const list of byDay.values()) list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+  const cell = (offset: number): CalendarDay => {
+    const date = new Date(Date.UTC(y, m - 1, 1 + offset));
+    const k = `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+    return {
+      key: k,
+      day: date.getUTCDate(),
+      inMonth: offset >= 0 && offset < daysInMonth,
+      workshops: byDay.get(k) ?? [],
+    };
+  };
+
+  const total = Math.ceil((lead + daysInMonth) / 7) * 7;
+  const weeks: CalendarDay[][] = [];
+  for (let i = 0; i < total; i += 7) {
+    weeks.push(Array.from({ length: 7 }, (_, j) => cell(i + j - lead)));
+  }
+
+  return { key, label: monthKeyLabel(key), weeks };
+}

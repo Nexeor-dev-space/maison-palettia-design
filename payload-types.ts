@@ -23,6 +23,7 @@ export interface Config {
     media: Media;
     pages: Page;
     experiences: Experience;
+    'workshop-types': WorkshopType;
     sessions: Session;
     venues: Venue;
     programmes: Programme;
@@ -82,6 +83,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     experiences: ExperiencesSelect<false> | ExperiencesSelect<true>;
+    'workshop-types': WorkshopTypesSelect<false> | WorkshopTypesSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
     venues: VenuesSelect<false> | VenuesSelect<true>;
     programmes: ProgrammesSelect<false> | ProgrammesSelect<true>;
@@ -1909,6 +1911,84 @@ export interface PostCategory {
   createdAt: string;
 }
 /**
+ * The formats a Create Together experience runs in — a candle theme, a crochet level. Sessions are the dates of a type.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workshop-types".
+ */
+export interface WorkshopType {
+  id: string;
+  /**
+   * The Create Together experience this is a format of.
+   */
+  experience: string | Experience;
+  /**
+   * e.g. “The Cheesecake Collection”, “Crochet — Beginners”. It is the title of every session of this type unless a session overrides it.
+   */
+  name: string;
+  /**
+   * Optional, e.g. “Beginner”, “Returning”. Printed as a chip; leave empty for a theme.
+   */
+  level?: string | null;
+  /**
+   * Under the name on the experience page and at the top of the type's own page. Leave empty until the concept is final.
+   */
+  description?: string | null;
+  /**
+   * One row per paragraph. What customers make and how the format runs — price, duration and dates live on the sessions.
+   */
+  about?:
+    | {
+        paragraph: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional. Falls back to the experience's main photograph on cards and the page.
+   */
+  image?: (string | null) | Media;
+  /**
+   * For formats customers move through in order. Leave both empty for a theme.
+   */
+  progression?: {
+    /**
+     * The type customers are best coming from, e.g. Beginner Basics after Beginners.
+     */
+    recommendedAfter?: (string | null) | WorkshopType;
+    /**
+     * Printed beside the name, e.g. “Start here” or “Once you have the basic stitches”.
+     */
+    note?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * The address: /events/{slug}. Keep it distinct from the experience's own slug.
+   */
+  slug: string;
+  /**
+   * Shown verbatim, e.g. “New this month”. Leave blank when nothing needs saying.
+   */
+  status?: string | null;
+  /**
+   * Position on the experience page and in the progression: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * Dated, bookable sessions of the Create Together experiences. Seats sold and held are counted by the booking system.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1921,7 +2001,11 @@ export interface Session {
    */
   experience: string | Experience;
   /**
-   * Leave empty to use the experience's name.
+   * The format this date runs in — a candle theme, a crochet level (Workshop types). Optional for an experience with none. The session takes the type's name and photograph unless overridden below, and its address becomes type-date-time.
+   */
+  workshopType?: (string | null) | WorkshopType;
+  /**
+   * Leave empty to use the workshop type's name, or the experience's.
    */
   title?: string | null;
   /**
@@ -3824,6 +3908,10 @@ export interface PayloadLockedDocument {
         value: string | Experience;
       } | null)
     | ({
+        relationTo: 'workshop-types';
+        value: string | WorkshopType;
+      } | null)
+    | ({
         relationTo: 'sessions';
         value: string | Session;
       } | null)
@@ -5061,10 +5149,48 @@ export interface ExperiencesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workshop-types_select".
+ */
+export interface WorkshopTypesSelect<T extends boolean = true> {
+  experience?: T;
+  name?: T;
+  level?: T;
+  description?: T;
+  about?:
+    | T
+    | {
+        paragraph?: T;
+        id?: T;
+      };
+  image?: T;
+  progression?:
+    | T
+    | {
+        recommendedAfter?: T;
+        note?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noindex?: T;
+      };
+  slug?: T;
+  status?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sessions_select".
  */
 export interface SessionsSelect<T extends boolean = true> {
   experience?: T;
+  workshopType?: T;
   title?: T;
   category?: T;
   startsAt?: T;
@@ -8585,6 +8711,10 @@ export interface TaskSchedulePublish {
       | ({
           relationTo: 'experiences';
           value: string | Experience;
+        } | null)
+      | ({
+          relationTo: 'workshop-types';
+          value: string | WorkshopType;
         } | null)
       | ({
           relationTo: 'sessions';

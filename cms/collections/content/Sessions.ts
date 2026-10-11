@@ -1,10 +1,10 @@
-import type { CollectionConfig, FieldHook, NumberFieldSingleValidation, SelectField } from "payload";
+import type { CollectionConfig, FieldHook, NumberFieldSingleValidation, SelectField, Where } from "payload";
 
 import { isEditorField, isStaffField, neverField } from "@/cms/access/roles";
 import { money, priceVirtual, slug } from "@/cms/fields";
 import { guardSlugChange } from "@/cms/hooks/formatSlug";
 import { imageryPublishGate } from "@/cms/hooks/publishGate";
-import { sessionSlug } from "@/cms/hooks/sessionSlug";
+import { sessionSlug, typeMatchesExperience } from "@/cms/hooks/sessionSlug";
 import { slugRedirectHooks } from "@/cms/hooks/slugRedirect";
 
 import { revalidationHooks } from "./revalidation";
@@ -92,7 +92,7 @@ export const Sessions: CollectionConfig = {
   admin: {
     group: CONTENT_GROUP,
     useAsTitle: "title",
-    defaultColumns: ["title", "startsAt", "venue", "seatsSold", "seatsAvailable", "bookingStatus", "_status"],
+    defaultColumns: ["title", "workshopType", "startsAt", "venue", "seatsSold", "seatsAvailable", "bookingStatus", "_status"],
     description: "Dated, bookable sessions of the Create Together experiences. Seats sold and held are counted by the booking system.",
     listSearchableFields: ["title", "category", "slug"],
     preview: previewFor("sessions"),
@@ -121,6 +121,7 @@ export const Sessions: CollectionConfig = {
   access: draftedContentAccess,
   hooks: {
     beforeValidate: [
+      typeMatchesExperience,
       sessionSlug,
       capacityFloor,
       imageryPublishGate([
@@ -151,6 +152,22 @@ export const Sessions: CollectionConfig = {
               admin: { description: "A Create Together experience. The session inherits its name, photograph and About unless overridden below." },
             },
             {
+              name: "workshopType",
+              type: "relationship",
+              relationTo: "workshop-types",
+              label: "Workshop type",
+              // Only this experience's types — the list empties until an experience is picked.
+              filterOptions: ({ siblingData }): Where => {
+                const experience = (siblingData as { experience?: string | { id?: string } } | undefined)?.experience;
+                const id = typeof experience === "string" ? experience : experience?.id;
+                return id ? { experience: { equals: id } } : { id: { equals: "00000000-0000-0000-0000-000000000000" } };
+              },
+              admin: {
+                description:
+                  "The format this date runs in — a candle theme, a crochet level (Workshop types). Optional for an experience with none. The session takes the type's name and photograph unless overridden below, and its address becomes type-date-time.",
+              },
+            },
+            {
               type: "row",
               fields: [
                 {
@@ -158,7 +175,7 @@ export const Sessions: CollectionConfig = {
                   type: "text",
                   label: "Title",
                   maxLength: 40,
-                  admin: { width: "60%", description: "Leave empty to use the experience's name." },
+                  admin: { width: "60%", description: "Leave empty to use the workshop type's name, or the experience's." },
                 },
                 {
                   name: "category",

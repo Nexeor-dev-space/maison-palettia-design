@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { FixedPage, pageMetadata } from "@/components/blocks/CmsPage";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { getLocalBusinessJsonLd } from "@/lib/jsonLd.server";
 import { getHomeMetadata } from "@/lib/seo";
 
 /**
@@ -197,8 +199,16 @@ import { getHomeMetadata } from "@/lib/seo";
   The component and its stylesheet stay in the tree, as above.
 
 */
-export default function HomePage() {
-  return <FixedPage slug="home" />;
+export default async function HomePage() {
+  /* The Maison as a LocalBusiness (lib/jsonLd.ts), described by its tagline —
+     the line the brand card and the default metadata already use. */
+  const jsonLd = await getLocalBusinessJsonLd();
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <FixedPage slug="home" />
+    </>
+  );
 }
 
 /*

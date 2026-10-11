@@ -2,14 +2,18 @@
 
 import { useMemo, useState } from "react";
 
-import { EventFilterBar } from "@/components/events/EventFilters";
+import { EventCalendar } from "@/components/events/EventCalendar";
+import { EventFilterBar, type ListingView } from "@/components/events/EventFilters";
 import { Reveal } from "@/components/motion/Reveal";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { EventCard } from "@/components/workshops/EventCard";
 import {
   applyFilters,
   buildFacets,
+  defaultCalendarMonth,
   groupByMonth,
+  monthKeyLabel,
+  monthKeys,
   NO_FILTERS,
   type EventFilters,
 } from "@/lib/eventFilters";
@@ -35,7 +39,21 @@ import type { Workshop } from "@/types";
  * <EventCard> so the HTML can already say "Date passed" where the server saw
  * a date go by. It is not read here, and must not be re-taken here: this is a
  * client component, and a clock read while rendering would differ between
- * the server and the browser.
+ * the server and the browser. (The calendar takes it for the same reason:
+ * which month to open on, and which day is today.)
+ *
+ * ==========================================================================
+ * TWO READINGS OF ONE LIST — see <EventCalendar>
+ * ==========================================================================
+ *
+ * The calendar is not a second listing with its own state; it is the Date
+ * control drawn as a month. While it is open the `month` filter holds the
+ * month on the grid, or the day the visitor pressed on it, and the cards
+ * below are `applyFilters` over exactly that — the same function, the same
+ * key, the same result the select would give. Opening the calendar replaces
+ * whatever date the select held with the grid's month; closing it clears the
+ * date and the select comes back. Type and Location keep working in both
+ * views and narrow the grid's dots as well as the cards.
  */
 export function EventsBrowser({
   workshops,
@@ -45,25 +63,110 @@ export function EventsBrowser({
   renderedAt: number;
 }) {
   const [filters, setFilters] = useState<EventFilters>(NO_FILTERS);
+  const [view, setView] = useState<ListingView>("list");
 
   const facets = useMemo(() => buildFacets(workshops), [workshops]);
   const visible = useMemo(() => applyFilters(workshops, filters), [workshops, filters]);
   const months = useMemo(() => groupByMonth(visible), [visible]);
+
+  /*
+    The calendar's own inputs. The grid is narrowed by Type and Location but
+    never by the date — a grid that hid the dots for every day but the one
+    chosen would be a grid with nothing to choose from.
+  */
+  const range = useMemo(() => monthKeys(workshops), [workshops]);
+  const opening = useMemo(() => defaultCalendarMonth(workshops, renderedAt), [workshops, renderedAt]);
+  const [calendarMonth, setCalendarMonth] = useState<string | null>(opening);
+  const undated = useMemo(() => applyFilters(workshops, { ...filters, month: null }), [workshops, filters]);
+
+  /* A day key is a month key with a day on the end; the grid's month is the
+     first seven characters of whichever the filter holds. */
+  const shownMonth = view === "calendar" && filters.month ? filters.month.slice(0, 7) : calendarMonth;
+  const selectedDay = view === "calendar" && filters.month && filters.month.length > 7 ? filters.month : null;
+
+  const changeView = (next: ListingView) => {
+    setView(next);
+    if (next === "calendar") {
+      const month = calendarMonth ?? opening;
+      setFilters((current) => ({ ...current, month }));
+    } else {
+      setFilters((current) => ({ ...current, month: null }));
+    }
+  };
+
+  const changeMonth = (key: string) => {
+    setCalendarMonth(key);
+    setFilters((current) => ({ ...current, month: key }));
+  };
+
+  const selectDay = (key: string | null) => {
+    setFilters((current) => ({ ...current, month: key ?? shownMonth }));
+  };
+
+  /*
+    "Clear filters" from the bar clears the date too; while the calendar is
+    open that must put the grid back on its month rather than leave the
+    cards unnarrowed under a grid that still shows one. The bar hands back
+    `month: null` in that case and this puts the month back.
+  */
+  const changeFilters = (next: EventFilters) => {
+    if (view === "calendar" && next.month === null) {
+      setFilters({ ...next, month: shownMonth ?? null });
+    } else {
+      setFilters(next);
+    }
+  };
+
+  const calendarOpen = view === "calendar" && shownMonth !== null;
+
+  /*
+    What the bar is told. The grid's month is structure, not a choice — a
+    visitor who opened the calendar has not filtered anything yet — so the
+    bar sees no date until a day is pressed, and "Clear filter" appears for
+    that day alone. Every change the bar hands back then carries `month:
+    null`, which `changeFilters` turns back into the month on the grid.
+  */
+  const barFilters = calendarOpen && !selectedDay ? { ...filters, month: null } : filters;
 
   return (
     <>
       <div className="mt-10 md:mt-12">
         <EventFilterBar
           facets={facets}
-          filters={filters}
-          onChange={setFilters}
+          filters={barFilters}
+          onChange={changeFilters}
           resultCount={visible.length}
           totalCount={workshops.length}
+          view={view}
+          onViewChange={changeView}
         />
       </div>
 
+      {calendarOpen && shownMonth ? (
+        <div className="mt-8 md:mt-10">
+          <EventCalendar
+            workshops={undated}
+            month={shownMonth}
+            onMonthChange={changeMonth}
+            selectedDay={selectedDay}
+            onSelectDay={selectDay}
+            canGoBack={range.length > 0 && shownMonth > range[0]}
+            canGoForward={range.length > 0 && shownMonth < range[range.length - 1]}
+            renderedAt={renderedAt}
+          />
+        </div>
+      ) : null}
+
       {visible.length === 0 ? (
-        <NoMatches onReset={() => setFilters(NO_FILTERS)} />
+        calendarOpen && shownMonth ? (
+          <NothingThisMonth
+            label={selectedDay ? "that day" : monthKeyLabel(shownMonth)}
+            onReset={() => setFilters({ ...NO_FILTERS, month: shownMonth })}
+            narrowed={Boolean(filters.category || filters.venue || selectedDay)}
+          />
+        ) : (
+          <NoMatches onReset={() => setFilters(NO_FILTERS)} />
+        )
       ) : (
         <div className="mt-10 md:mt-12">
           {months.map(({ label, id, events }) => (
@@ -116,6 +219,37 @@ export function EventsBrowser({
         from here — the summary it draws is unchanged.
       */}
     </>
+  );
+}
+
+/**
+ * The calendar's empty state: a month, or a chosen day, with nothing on.
+ *
+ * Quieter than <NoMatches> on purpose — an empty month on a calendar is not
+ * a failed search, it is a page of the diary, and the arrows above it are
+ * the way on. The reset is offered only when a filter or a chosen day is
+ * doing the narrowing, because then there IS something to clear.
+ */
+function NothingThisMonth({
+  label,
+  narrowed,
+  onReset,
+}: {
+  label: string;
+  narrowed: boolean;
+  onReset: () => void;
+}) {
+  return (
+    <div className="mt-10 md:mt-12">
+      <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">No events in {label}.</p>
+      {narrowed ? (
+        <PeelNote type="button" onClick={onReset} className="mt-7 min-h-[3.25rem] px-7">
+          Show the whole month
+        </PeelNote>
+      ) : (
+        <p className="mt-4 max-w-[32rem] text-body text-text/75">Use the arrows above to move to a month with dates.</p>
+      )}
+    </div>
   );
 }
 

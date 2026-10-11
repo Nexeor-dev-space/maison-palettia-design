@@ -89,7 +89,7 @@ const ssl =
       : undefined;
 
 /** The collections with a route of their own: SEO tab and live preview (SPEC §A.4; `posts` = the Journal). */
-const SEO_COLLECTIONS = ["pages", "experiences", "sessions", "programmes", "policies", "posts"] as const;
+const SEO_COLLECTIONS = ["pages", "experiences", "workshop-types", "sessions", "programmes", "policies", "posts"] as const;
 
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || "",

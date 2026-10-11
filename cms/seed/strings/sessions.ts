@@ -1,5 +1,7 @@
 import type { SessionSeed } from "../types";
 
+import { SCHEDULE } from "./schedule";
+
 /**
  * The two dated sessions, copied by value from lib/workshops.ts. Both are
  * placeholders from the design phase (invented date, price and seats; the
@@ -9,7 +11,9 @@ import type { SessionSeed } from "../types";
  * no tickets stand behind them (the inventory row starts at 0 sold, 0 held).
  */
 
+/** The two design-phase placeholders, then the client's Nov 2026 timetable (./schedule.ts). */
 export const SESSIONS: SessionSeed[] = [
+  ...SCHEDULE,
   {
     experience: "candle-making", // lib/workshops.ts:74
     title: "Candle Making", // lib/workshops.ts:75

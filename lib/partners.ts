@@ -68,6 +68,14 @@ import type { MallPartner } from "@/types";
 export interface PartnerRecord extends MallPartner {
   /** The line under the plate on /events and /events/[slug] (PDF p19). */
   eventDescriptor?: string;
+  /**
+   * The centre's street lines (floor, unit, road), as entered on the venue.
+   * Read by the structured data (lib/jsonLd.ts) and nothing else yet; the
+   * plates still print the name and the locality.
+   */
+  address?: string[];
+  /** A pinned position, only when the studio has entered one — see `mapQuery`. */
+  coordinates?: { lat: number; lng: number };
 }
 
 /* Fallback only — the `venues` collection (seeded from this array by 2B) is

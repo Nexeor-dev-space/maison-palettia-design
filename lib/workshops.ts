@@ -133,7 +133,9 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
  * `hasSessionPassed`). If the schedule grows long enough for that to
  * matter, a date floor belongs in this `where`.
  */
-const readSessions = contentReader("sessions", [TAGS.sessions, TAGS.experiences, TAGS.venues], async (draft) => {
+// The workshop-types tag too: a session's title, excerpt and photograph fall
+// back to its type's, so a type edit must purge this entry as well.
+const readSessions = contentReader("sessions", [TAGS.sessions, TAGS.experiences, TAGS.venues, TAGS.workshopTypes], async (draft) => {
   const docs = await findDocs("sessions", draft, {
     drafts: true,
     sort: "startsAt",
@@ -182,5 +184,15 @@ export async function getWorkshopBySlug(slug: string): Promise<Workshop | null> 
 export async function getRelatedWorkshops(slug: string, limit = 2): Promise<Workshop[]> {
   const all = await getAllWorkshops();
   const now = Date.now();
-  return all.filter((w) => w.slug !== slug && isBookable(w, now)).slice(0, limit);
+  const self = all.find((w) => w.slug === slug);
+  const open = all.filter((w) => w.slug !== slug && isBookable(w, now));
+  /*
+    Other dates of the SAME FORMAT first, when the session has one: a
+    customer on "Crochet — Beginners, Monday 11:00" is choosing between
+    Mondays and Wednesdays of Beginners, not between crochet and candles.
+    Chronological within each half, which is the order `all` already has.
+  */
+  const typeSlug = self?.workshopType?.slug;
+  if (!typeSlug) return open.slice(0, limit);
+  return [...open.filter((w) => w.workshopType?.slug === typeSlug), ...open.filter((w) => w.workshopType?.slug !== typeSlug)].slice(0, limit);
 }

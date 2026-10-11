@@ -6,9 +6,11 @@ import { FAQS } from "./strings/faqs";
 import { PASSES } from "./strings/passes";
 import { POLICIES } from "./strings/policies";
 import { PROGRAMMES } from "./strings/programmes";
+import { SCHEDULE_NOTE } from "./strings/schedule";
 import { SESSIONS } from "./strings/sessions";
 import { CURRENT_VENUES, PAST_DESTINATIONS } from "./strings/venues";
 import { VIBES } from "./strings/vibes";
+import { WORKSHOP_TYPES } from "./strings/workshopTypes";
 import { lexicalParagraphs, SEED_CONTEXT, upsertDoc, type Tally } from "./upsert";
 
 /**
@@ -39,6 +41,7 @@ export interface ContentOptions {
 export interface ContentIds {
   venues: Map<string, number | string>;
   experiences: Map<string, number | string>;
+  workshopTypes: Map<string, number | string>;
   programmes: Map<string, number | string>;
   sessions: Map<string, number | string>;
 }
@@ -58,11 +61,13 @@ const POTTERY_LEFTOVER = "Any strand: paint, shape or craft";
 const POTTERY_FIX = "Any strand: paint, craft or create";
 
 /**
- * `{experience}-{yyyy-mm-dd}-{HHmm}` in studio time — the session slug rule
- * (SPEC §D.2). Computed here so the seed's lookup key is the same slug the
- * `sessionSlug` hook would generate.
+ * `{experience}-{yyyy-mm-dd}-{HHmm}` in studio time — or `{type}-…` for a
+ * session in a workshop type — the session slug rule (SPEC §D.2,
+ * cms/hooks/sessionSlug.ts). Computed here so the seed's lookup key is the
+ * same slug the hook would generate. `base` is the type's slug when the
+ * seed row names one, else the experience's.
  */
-export function sessionSlug(experienceSlug: string, startsAt: string): string {
+export function sessionSlug(base: string, startsAt: string): string {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Dubai",
     year: "numeric",
@@ -73,8 +78,11 @@ export function sessionSlug(experienceSlug: string, startsAt: string): string {
     hourCycle: "h23",
   }).formatToParts(new Date(startsAt));
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
-  return `${experienceSlug}-${part("year")}-${part("month")}-${part("day")}-${part("hour")}${part("minute")}`;
+  return `${base}-${part("year")}-${part("month")}-${part("day")}-${part("hour")}${part("minute")}`;
 }
+
+/** The slug base a seed row's session takes: its workshop type's, else its experience's. */
+export const sessionSlugBase = (row: { experience: string; workshopType?: string }): string => row.workshopType ?? row.experience;
 
 export async function seedContent(
   payload: Payload,
@@ -84,7 +92,7 @@ export async function seedContent(
   log: (line: string) => void,
 ): Promise<ContentIds> {
   const upsert = { missingOnly: options.missingOnly };
-  const ids: ContentIds = { venues: new Map(), experiences: new Map(), programmes: new Map(), sessions: new Map() };
+  const ids: ContentIds = { venues: new Map(), experiences: new Map(), workshopTypes: new Map(), programmes: new Map(), sessions: new Map() };
 
   /* ── vibes (lib/vibes.ts) ─────────────────────────────────────────────── */
   for (const vibe of VIBES) {
@@ -150,11 +158,48 @@ export async function seedContent(
     ids.experiences.set(experience.slug, id);
   }
 
-  /* ── sessions (lib/workshops.ts) + their inventory rows ───────────────── */
+  /* ── workshop types (cms/seed/strings/workshopTypes.ts) ──────────────── */
+  // One pass, in the array's order: a "recommended after" target must be
+  // listed before the type that names it, so its id is already known. (A
+  // second linking pass would be skipped outright by `missing-only`, which
+  // leaves existing rows alone.)
+  for (const type of WORKSHOP_TYPES) {
+    const experience = ids.experiences.get(type.experience);
+    if (experience === undefined) throw new Error(`seed: workshop type ${type.name} names an unknown experience ${type.experience}`);
+    const after = type.progression?.recommendedAfter;
+    const recommendedAfter = after ? ids.workshopTypes.get(after) : undefined;
+    if (after && recommendedAfter === undefined) {
+      throw new Error(`seed: workshop type ${type.name} is recommended after ${after}, which must be listed before it`);
+    }
+    const id = await upsertDoc(
+      payload,
+      tally,
+      "workshop-types",
+      "slug",
+      {
+        experience,
+        name: type.name,
+        slug: type.slug,
+        level: type.level,
+        description: type.description,
+        about: (type.about ?? []).map((paragraph) => ({ paragraph })),
+        image: type.image ? mediaId(media, type.image) : undefined,
+        status: type.status,
+        progression: { recommendedAfter, note: type.progression?.note },
+        order: type.order,
+      },
+      upsert,
+    );
+    ids.workshopTypes.set(type.slug, id);
+  }
+
+  /* ── sessions (lib/workshops.ts + the Nov 2026 timetable) + inventory rows ── */
   for (const session of SESSIONS) {
     const experience = ids.experiences.get(session.experience);
-    if (experience === undefined) throw new Error(`seed: session ${session.title} names an unknown experience ${session.experience}`);
-    const slug = sessionSlug(session.experience, session.startsAt);
+    if (experience === undefined) throw new Error(`seed: session ${session.title ?? session.startsAt} names an unknown experience ${session.experience}`);
+    const workshopType = session.workshopType ? ids.workshopTypes.get(session.workshopType) : undefined;
+    if (session.workshopType && workshopType === undefined) throw new Error(`seed: session ${session.startsAt} names an unknown workshop type ${session.workshopType}`);
+    const slug = sessionSlug(sessionSlugBase(session), session.startsAt);
     const id = await upsertDoc(
       payload,
       tally,
@@ -162,6 +207,7 @@ export async function seedContent(
       "slug",
       {
         experience,
+        workshopType,
         slug,
         title: session.title,
         category: session.category,
@@ -176,7 +222,7 @@ export async function seedContent(
         // The session's photograph is its activity's (the same file and alt
         // in lib/workshops.ts and lib/experiences.ts), so the override stays
         // empty and the page falls back to the experience's image.
-        internalNotes: PLACEHOLDER_NOTE,
+        internalNotes: session.workshopType ? SCHEDULE_NOTE : PLACEHOLDER_NOTE,
       },
       { ...upsert, draft: options.placeholdersAsDrafts },
     );

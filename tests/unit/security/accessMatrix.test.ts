@@ -33,6 +33,8 @@ const C: Record<string, { create: string; read: string; update: string; delete: 
   // content (drafted collections: visitors get published rows only)
   pages: { create: "YY--", read: "YYWW", update: "YY--", delete: "Y---" },
   experiences: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
+  // The formats of a scheduled experience (Oct 2026): content, drafted, the same as experiences.
+  "workshop-types": { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   sessions: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   programmes: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   policies: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },

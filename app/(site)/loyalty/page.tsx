@@ -1,5 +1,8 @@
 import { FixedPage, pageMetadata } from "@/components/blocks/CmsPage";
-import { PASSES_CONFIGURED } from "@/lib/passes";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { passesJsonLd } from "@/lib/jsonLd";
+import { getJsonLdSite } from "@/lib/jsonLd.server";
+import { getPasses, PASSES_CONFIGURED } from "@/lib/passes";
 
 /*
   ======================================================================
@@ -39,6 +42,19 @@ export function generateMetadata() {
  * how it works — components/sections/loyalty/LoyaltySections.tsx, where the
  * reasoning for its commercial shape now lives.
  */
-export default function LoyaltyPage() {
-  return <FixedPage slug="loyalty" />;
+export default async function LoyaltyPage() {
+  /*
+    The priced passes as schema.org Products (lib/jsonLd.ts) — but only once
+    the catalogue is the studio's own. While `PASSES_CONFIGURED` is false the
+    page is out of the index AND prints no structured data: the invented
+    prices must not reach a crawler by either route.
+  */
+  const [site, passes] = PASSES_CONFIGURED ? await Promise.all([getJsonLdSite(), getPasses()]) : [null, []];
+  const jsonLd = site ? passesJsonLd({ site, passes, path: "/loyalty" }) : null;
+  return (
+    <>
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
+      <FixedPage slug="loyalty" />
+    </>
+  );
 }
