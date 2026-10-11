@@ -40,6 +40,7 @@ import { AttendeeList as AttendeeList_3efe3d265b8e433eab843bd4270703d5 } from '@
 import { SessionQuickStats as SessionQuickStats_37e7860475f41bdb7e61070bc3193bf5 } from '@/cms/components/sessions/SessionQuickStats'
 import { SessionActions as SessionActions_daceeadb49e4d7bcaae9a145860dfb71 } from '@/cms/components/sessions/SessionActions'
 import { CoordinatesField as CoordinatesField_6bb499ba3d8904d6234ff27f2a554c14 } from '@/cms/components/fields/CoordinatesField'
+import { FixedToolbarFeatureClient as FixedToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { StatusCell as StatusCell_ce0266ef5289822476ec2c206bf2abe4 } from '@/cms/components/admin/StatusCell'
 import { PlainLabel as PlainLabel_1073dadf2fe6282274b7c5a435b48bcf } from '@/cms/components/fields/PlainLabel'
 import { OrderLines as OrderLines_ce2bf5b804fc39e2c98cf4264577dc49 } from '@/cms/components/orders/OrderLines'
@@ -121,6 +122,7 @@ export const importMap = {
   "@/cms/components/sessions/SessionQuickStats#SessionQuickStats": SessionQuickStats_37e7860475f41bdb7e61070bc3193bf5,
   "@/cms/components/sessions/SessionActions#SessionActions": SessionActions_daceeadb49e4d7bcaae9a145860dfb71,
   "@/cms/components/fields/CoordinatesField#CoordinatesField": CoordinatesField_6bb499ba3d8904d6234ff27f2a554c14,
+  "@payloadcms/richtext-lexical/client#FixedToolbarFeatureClient": FixedToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/cms/components/admin/StatusCell#StatusCell": StatusCell_ce0266ef5289822476ec2c206bf2abe4,
   "@/cms/components/fields/PlainLabel#PlainLabel": PlainLabel_1073dadf2fe6282274b7c5a435b48bcf,
   "@/cms/components/orders/OrderLines#OrderLines": OrderLines_ce2bf5b804fc39e2c98cf4264577dc49,

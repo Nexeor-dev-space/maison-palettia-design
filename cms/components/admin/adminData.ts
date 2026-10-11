@@ -338,10 +338,11 @@ export async function loadDashboard(payload: Payload, user: TypedUser | null | u
   if (content) {
     drafts = await safe(payload, "drafts", [] as DashDraft[], async () => {
       const out: DashDraft[] = [];
-      const kinds: Array<{ slug: "sessions" | "pages" | "experiences"; label: string; title: (d: Record<string, unknown>) => string }> = [
+      const kinds: Array<{ slug: "sessions" | "pages" | "experiences" | "posts"; label: string; title: (d: Record<string, unknown>) => string }> = [
         { slug: "sessions", label: "Session", title: (d) => sessionTitleOf(d as unknown as Session) || String(d.slug ?? "") },
         { slug: "pages", label: "Page", title: (d) => String(d.title ?? d.slug ?? "") },
         { slug: "experiences", label: "Experience", title: (d) => String(d.name ?? d.slug ?? "") },
+        { slug: "posts", label: "Journal post", title: (d) => String(d.title ?? d.slug ?? "") },
       ];
       for (const kind of kinds) {
         const res = await payload.find({
@@ -437,7 +438,7 @@ export async function loadDashboard(payload: Payload, user: TypedUser | null | u
   } else if (staff) {
     kpis.push({ key: "sessions", label: "Sessions in the next 7 days", value: String(upcomingCount), hint: `${todaySessions.length} today`, href: "/admin/collections/sessions" });
   } else {
-    kpis.push({ key: "drafts", label: "Drafts in progress", value: String(drafts.filter((d) => !d.scheduled).length), hint: "Unpublished pages, sessions and experiences", href: "/admin/collections/sessions?where[_status][equals]=draft" });
+    kpis.push({ key: "drafts", label: "Drafts in progress", value: String(drafts.filter((d) => !d.scheduled).length), hint: "Unpublished pages, sessions, experiences and journal posts", href: "/admin/collections/sessions?where[_status][equals]=draft" });
   }
 
   const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: DUBAI_TZ, hour: "numeric", hour12: false }).format(now));

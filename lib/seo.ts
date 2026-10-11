@@ -105,6 +105,9 @@ export const DEFAULT_SHARE_IMAGE = {
 const ROUTES_WITH_OWN_SHARE_IMAGE: readonly RegExp[] = [
   /^\/events\/[^/]+$/,
   /^\/private-events\/(?!book$)[^/]+$/,
+  // A journal story's card is drawn from its cover (app/(site)/journal/[slug]/opengraph-image.tsx);
+  // the listing, the category pages and the feed are not stories.
+  /^\/journal\/(?!category\/)(?!rss\.xml$)[^/?]+$/,
 ];
 
 /** Everything the builders below read about the site. */

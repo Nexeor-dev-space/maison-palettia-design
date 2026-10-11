@@ -38,6 +38,15 @@ const both = (doc: Doc, prev: Doc | undefined) => [slugOf(doc), slugOf(prev)].fi
 
 const pagePath = (slug: string) => (slug === "home" ? "/" : `/${slug}`);
 
+/** A journal post's own routes: the reading page and its share card. */
+const journalPaths = (slug: string) => [`/journal/${slug}`, `/journal/${slug}/opengraph-image`];
+
+/** The category a post belongs to, when the hook received it populated. */
+const categorySlugOf = (doc: Doc | undefined): string | undefined => {
+  const category = doc?.category;
+  return category && typeof category === "object" ? slugOf(category as Doc) : undefined;
+};
+
 const eventPaths = (slug: string) => [`/events/${slug}`, `/events/${slug}/book`, `/events/${slug}/opengraph-image`];
 
 /** The experience a session belongs to, when the hook received it populated. */
@@ -81,6 +90,22 @@ export const CONTENT_REVALIDATION = {
   passes: { tags: [TAGS.passes], paths: () => ["/loyalty", "/checkout"] },
   testimonials: { tags: [TAGS.testimonials], paths: () => ["/", "/events"] },
   vibes: { tags: [TAGS.vibes], paths: () => ["/events", "/"] },
+  // The Journal. Posts are cached under both tags (cards print the
+  // category's name and colour), so a category rename refreshes every
+  // card and post page that shows it; the home page is listed because a
+  // "latest from the Journal" strip may sit on it, and the feed because it
+  // is a static route (hourly) that would otherwise lag a publish.
+  posts: {
+    tags: [TAGS.posts],
+    paths: (doc, prev) => {
+      const categories = [categorySlugOf(doc), categorySlugOf(prev)].filter((slug): slug is string => Boolean(slug));
+      return ["/", "/journal", "/journal/rss.xml", ...both(doc, prev).flatMap(journalPaths), ...categories.map((slug) => `/journal/category/${slug}`)];
+    },
+  },
+  "post-categories": {
+    tags: [TAGS.postCategories, TAGS.posts],
+    paths: (doc, prev) => ["/journal", ...both(doc, prev).map((slug) => `/journal/category/${slug}`)],
+  },
   redirects: {
     tags: [TAGS.redirects],
     // The address a redirect leaves from: it was a cached 404 (or a cached redirect to somewhere else).

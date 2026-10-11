@@ -30,6 +30,8 @@ export const TAGS = {
   vibes: "collection:vibes",
   testimonials: "collection:testimonials",
   redirects: "collection:redirects",
+  posts: "collection:posts",
+  postCategories: "collection:post-categories",
   site: "global:site-settings",
   nav: "global:navigation",
   brand: "global:brand-copy",
