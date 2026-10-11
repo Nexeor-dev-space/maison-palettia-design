@@ -1046,15 +1046,18 @@ export async function Footer() {
         <div className="mt-9 flex flex-col items-center gap-5 pt-0 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-10">
 
           <div className="flex flex-col items-center gap-x-7 gap-y-2 sm:flex-row sm:items-center">
-            {/* The brand's P mark — the favicon — as a quiet sign-off beside
-                the copyright, the one place it appears in the page itself. */}
+            {/* The brand's P mark — the same transparent Deep Lilac cut as
+                the favicon, no tile behind it — as a quiet sign-off beside
+                the copyright, the one place it appears in the page itself.
+                A touch larger than the tiled mark was, because a bare glyph
+                carries less weight than a filled square. */}
             <p className="flex items-center gap-2.5">
               <Image
-                src="/brand/p-mark.svg"
+                src="/brand/p-mark-ink.svg"
                 alt=""
-                width={20}
-                height={20}
-                className="size-5 shrink-0 rounded-[5px]"
+                width={24}
+                height={24}
+                className="size-6 shrink-0"
               />
               <span>
                 &copy; {year} {site.legalName}
