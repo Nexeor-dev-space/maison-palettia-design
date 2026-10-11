@@ -47,7 +47,6 @@ export interface ContentIds {
 }
 
 /** SPEC §F.4 — exactly this note, so staff can find every placeholder with one search. */
-const PLACEHOLDER_NOTE = "Placeholder dates from the design phase — confirm before publishing";
 
 /** lib/workshops.ts status → sessions.bookingStatus. There is no "fully booked" status: a full session is closed. */
 const BOOKING_STATUS: Record<string, "open" | "waitlist" | "closed"> = {
@@ -193,7 +192,7 @@ export async function seedContent(
     ids.workshopTypes.set(type.slug, id);
   }
 
-  /* ── sessions (lib/workshops.ts + the Nov 2026 timetable) + inventory rows ── */
+  /* ── sessions (the Nov 2026 timetable, cms/seed/strings/schedule.ts) + inventory rows ── */
   for (const session of SESSIONS) {
     const experience = ids.experiences.get(session.experience);
     if (experience === undefined) throw new Error(`seed: session ${session.title ?? session.startsAt} names an unknown experience ${session.experience}`);
@@ -222,7 +221,7 @@ export async function seedContent(
         // The session's photograph is its activity's (the same file and alt
         // in lib/workshops.ts and lib/experiences.ts), so the override stays
         // empty and the page falls back to the experience's image.
-        internalNotes: session.workshopType ? SCHEDULE_NOTE : PLACEHOLDER_NOTE,
+        internalNotes: SCHEDULE_NOTE,
       },
       { ...upsert, draft: options.placeholdersAsDrafts },
     );

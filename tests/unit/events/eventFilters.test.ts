@@ -144,6 +144,45 @@ describe("event facet", () => {
   });
 });
 
+/* ==========================================================================
+   Theme — the workshop type a sitting runs in (the Oct 2026 formats).
+   ========================================================================== */
+
+const cheesecake = { slug: "cheesecake-collection", name: "The Cheesecake Collection" };
+const beginners = { slug: "crochet-beginners", name: "Crochet — Beginners", level: "Beginner" };
+
+const formatted = [
+  { ...session("candle-1", "2026-11-17T11:00:00+04:00"), experience: candle, workshopType: cheesecake },
+  { ...session("candle-2", "2026-11-17T18:30:00+04:00"), experience: candle, workshopType: cheesecake },
+  { ...session("crochet-1", "2026-11-16T11:00:00+04:00"), experience: crochet, workshopType: beginners },
+  // A date added before its type: listed, never narrowed to by Theme.
+  { ...session("loose", "2026-11-20T11:00:00+04:00"), experience: crochet },
+];
+
+describe("theme facet", () => {
+  it("offers each workshop type once, named, with its session count, first seen first", () => {
+    expect(buildFacets(formatted).types).toEqual([
+      { value: "cheesecake-collection", label: "The Cheesecake Collection", count: 2 },
+      { value: "crochet-beginners", label: "Crochet — Beginners", count: 1 },
+    ]);
+  });
+
+  it("orders the options as the studio ordered the types when told the order", () => {
+    const { types } = buildFacets(formatted, { typeOrder: [beginners, cheesecake] });
+    expect(types.map((t) => t.value)).toEqual(["crochet-beginners", "cheesecake-collection"]);
+  });
+
+  it("narrows to one type's dates, and to nothing for a type with none", () => {
+    expect(applyFilters(formatted, { ...NO_FILTERS, type: "cheesecake-collection" }).map((w) => w.slug)).toEqual(["candle-1", "candle-2"]);
+    expect(applyFilters(formatted, { ...NO_FILTERS, type: "crochet-beginners", event: "crocheting" }).map((w) => w.slug)).toEqual(["crochet-1"]);
+    expect(applyFilters(formatted, { ...NO_FILTERS, type: "sculptural-forms" })).toEqual([]);
+  });
+
+  it("is not offered while no session carries a type", () => {
+    expect(buildFacets(programme).types).toEqual([]);
+  });
+});
+
 describe("vibe facet", () => {
   it("offers nothing while no experience is tagged, or without the taxonomy", () => {
     expect(buildFacets(programme).vibes).toEqual([]);

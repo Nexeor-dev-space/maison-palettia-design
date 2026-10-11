@@ -1,35 +1,17 @@
 import Link from "next/link";
 
-import { SessionGate } from "@/components/booking/SessionClock";
 import { eventCopy } from "@/components/blocks/templateCopy";
 import { Reveal } from "@/components/motion/Reveal";
-import { INK } from "@/components/sections/hero/composition";
 import { PartnerPlate } from "@/components/sections/LocationMap";
-import { BlobButton } from "@/components/ui/BlobButton";
-import { DoodleMark } from "@/components/ui/DoodleMark";
-import { ModeMark } from "@/components/ui/ModeMark";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
+import { SessionTicket } from "@/components/events/SessionTicket";
+import { LevelChip, Progression, TERM, TypeCard } from "@/components/events/WorkshopTypeCards";
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import type { ChoiceEvent, TypeEvent } from "@/lib/eventDetail";
 import { eventAbout, eventImage, eventIntro } from "@/lib/eventDetail";
 import type { PartnerRecord } from "@/lib/partners";
 import { cn } from "@/lib/utils";
-import {
-  bookingStepHref,
-  durationToIso,
-  formatDuration,
-  formatPrice,
-  formatSessionDate,
-  isFullyBooked,
-  isScarce,
-  sessionDateParts,
-  sessionTimeRange,
-  spotsLabel,
-  workshopHref,
-} from "@/lib/workshopHelpers";
-import type { WorkshopType } from "@/lib/workshopTypes";
-import type { Workshop } from "@/types";
 
 /**
  * ==========================================================================
@@ -57,11 +39,9 @@ import type { Workshop } from "@/types";
  * client's rule against printing a number that can change (PDF p05).
  */
 
-/** The small-caps label every field on the event pages uses. */
-const TERM = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
 
 /* ────────────────────────────────────────────────────────────────────────── */
-/* Shared pieces                                                              */
+/* Shared pieces (the card and the path strip are in WorkshopTypeCards.tsx)   */
 /* ────────────────────────────────────────────────────────────────────────── */
 
 function Breadcrumb({ trail, current }: { trail: { label: string; href?: string }[]; current: string }) {
@@ -167,67 +147,6 @@ function Header({
   );
 }
 
-/** "Beginner" · "New this month" — a small chip beside a name. */
-function LevelChip({ children, tone = "cream" }: { children: string; tone?: "cream" | "lilac" }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-pill px-3 py-1 text-label font-medium uppercase tracking-eyebrow",
-        tone === "lilac" ? "bg-primary text-on-primary" : "bg-cream text-text",
-      )}
-    >
-      {children}
-    </span>
-  );
-}
-
-/**
- * The recommended path through an experience's formats, drawn only when
- * the studio has set one (a note or a "recommended after" on any type).
- * Themes have none and get no strip; the crochet ladder gets its order.
- */
-function Progression({ types, currentSlug }: { types: readonly WorkshopType[]; currentSlug?: string }) {
-  const hasPath = types.some((type) => type.recommendedAfterSlug || type.progressionNote);
-  if (!hasPath || types.length < 2) return null;
-
-  return (
-    <Reveal>
-      <section aria-labelledby="progression" className="mt-14 md:mt-16">
-        <h2 id="progression" className={TERM}>
-          Recommended path
-        </h2>
-        <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {types.map((type, i) => {
-            const here = type.slug === currentSlug;
-            return (
-              <li key={type.slug} className="flex">
-                <Link
-                  href={`/events/${type.slug}`}
-                  aria-current={here ? "page" : undefined}
-                  className={cn(
-                    "press-in flex w-full items-start gap-4 rounded-[1.25rem] px-5 py-5 transition-colors duration-300 ease-soft",
-                    here ? "bg-text text-surface" : "bg-cream text-text hover:bg-lavender-soft",
-                  )}
-                >
-                  <span className={cn("text-folio font-light leading-none tabular-nums", here ? "text-surface/60" : "text-primary")}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-h4 font-medium leading-tight">{type.name}</span>
-                    {type.progressionNote ? (
-                      <span className={cn("mt-1.5 block text-fine", here ? "text-surface/75" : "text-text/75")}>{type.progressionNote}</span>
-                    ) : null}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ol>
-      </section>
-    </Reveal>
-  );
-}
-
 /** The long copy, when there is any. */
 function About({ paragraphs }: { paragraphs: readonly string[] }) {
   if (paragraphs.length === 0) return null;
@@ -291,7 +210,7 @@ export function ChoiceBody({ detail, partner }: { detail: ChoiceEvent; partner?:
         <ul className="mt-6 grid gap-5 md:grid-cols-2 lg:gap-6">
           {types.map((type, i) => (
             <Reveal as="li" key={type.slug} delay={i * 0.06} className="flex">
-              <TypeCard type={type} dates={sessions.filter((session) => session.workshopType?.slug === type.slug)} />
+              <TypeCard type={type} dates={sessions.filter((session) => session.workshopType?.slug === type.slug)} perPersonLabel={eventCopy().perPersonLabel} />
             </Reveal>
           ))}
         </ul>
@@ -301,67 +220,6 @@ export function ChoiceBody({ detail, partner }: { detail: ChoiceEvent; partner?:
       <About paragraphs={eventAbout(detail)} />
       <Where partner={partner} />
     </>
-  );
-}
-
-/**
- * One format: name, level, the studio's line, and the next date it runs.
- * The whole card is the link to the format's page; the Book button lives
- * there, beside the dates, because a format is not a date.
- */
-function TypeCard({ type, dates }: { type: WorkshopType; dates: Workshop[] }) {
-  const next = dates[0];
-  const from = dates.length ? Math.min(...dates.map((d) => d.price.amount)) : null;
-  const currency = dates[0]?.price.currency ?? "AED";
-
-  return (
-    <Link
-      href={`/events/${type.slug}`}
-      className="group press-in relative flex w-full flex-col justify-between overflow-hidden rounded-[1.25rem] bg-cream px-7 py-7 text-text md:rounded-[1.5rem] md:px-8 md:py-8"
-    >
-      <span aria-hidden className="pointer-events-none absolute -right-4 -top-5 w-[4.5rem] rotate-[-10deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-1 md:w-[5.5rem]">
-        <DoodleMark name="starburst" color={INK.lavender} treatment="stamp" delay={240} />
-      </span>
-
-      <span className="relative">
-        <span className="flex flex-wrap items-center gap-2">
-          <ModeMark mode="scheduled" />
-          {type.level ? <LevelChip>{type.level}</LevelChip> : null}
-          {type.status ? <LevelChip tone="lilac">{type.status}</LevelChip> : null}
-        </span>
-        <span className="heading-script mt-3 block pb-[0.2em] text-script-panel">
-          <ScriptTitle>{type.name}</ScriptTitle>
-        </span>
-        {type.description ? <span className="mt-2 block max-w-[30rem] text-body text-text/85">{type.description}</span> : null}
-        {type.progressionNote ? <span className="mt-2 block text-fine text-text/75">{type.progressionNote}</span> : null}
-      </span>
-
-      <span className="relative mt-7 flex items-end justify-between gap-6 border-t border-line pt-5">
-        <span>
-          <span className={TERM}>Next date</span>
-          {next ? (
-            <span className="mt-2 block text-body font-medium">
-              {formatSessionDate(next.startsAt)}
-              <span aria-hidden className="px-2 text-text/60">
-                &middot;
-              </span>
-              {sessionTimeRange(next.startsAt, next.durationMinutes).start}
-              {from !== null ? (
-                <span className="mt-1 block text-fine font-normal text-text/75">
-                  {dates.length > 1 && dates.some((d) => d.price.amount !== from) ? "From " : ""}
-                  {formatPrice({ amount: from, currency })} {eventCopy().perPersonLabel}
-                </span>
-              ) : null}
-            </span>
-          ) : (
-            <span className="mt-2 block text-body text-text/75">Dates are being set.</span>
-          )}
-        </span>
-        <span aria-hidden className="shrink-0 text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">
-          &#8594;
-        </span>
-      </span>
-    </Link>
   );
 }
 
@@ -412,10 +270,16 @@ export function TypeBody({
             ) : null}
           </Reveal>
         ) : (
-          <ol className="mt-6 border-t border-line">
+          /*
+            TICKETS, NOT ROWS — see <SessionTicket>. The run used to be a
+            bordered table; each date is a cream ticket now, with its seats
+            and its Book on a stub, so the list reads as the things it is
+            selling.
+          */
+          <ol className="mt-6 grid gap-4 md:mt-8 md:gap-5">
             {sessions.map((session, i) => (
-              <Reveal as="li" key={session.slug} delay={Math.min(i, 6) * 0.04} className="border-b border-line">
-                <DateRow session={session} renderedAt={renderedAt} />
+              <Reveal as="li" key={session.slug} delay={Math.min(i, 6) * 0.04}>
+                <SessionTicket session={session} renderedAt={renderedAt} priceTerm={eventCopy().priceTerm} perPersonLabel={eventCopy().perPersonLabel} />
               </Reveal>
             ))}
           </ol>
@@ -426,89 +290,5 @@ export function TypeBody({
       <About paragraphs={eventAbout(detail)} />
       <Where partner={partner} />
     </>
-  );
-}
-
-/**
- * One date: when, how long, where, how much, what is left, and the door.
- *
- *   open .......... "Book" into the booking step
- *   waitlist ...... "Join the waitlist" to the session page, which holds the form
- *   full .......... the state, in words, and a link to the date's page
- *   passed ........ never listed: the resolver drops them before render,
- *                   and <SessionGate> closes a row that lapses on screen
- */
-function DateRow({ session, renderedAt }: { session: Workshop; renderedAt: number }) {
-  const { weekday, day, month } = sessionDateParts(session.startsAt);
-  const { start, end } = sessionTimeRange(session.startsAt, session.durationMinutes);
-  const full = isFullyBooked(session);
-  const waitlist = session.status === "waitlist" || full;
-  const scarce = isScarce(session);
-  const passed = Date.parse(session.startsAt) <= renderedAt;
-
-  return (
-    <div className="grid grid-cols-12 items-center gap-x-4 gap-y-4 py-5 md:gap-x-6 md:py-6">
-      {/* The date, set stepped: the numeral largest, the day and month under it. */}
-      <Link href={workshopHref(session)} className="col-span-6 flex items-baseline gap-3 md:col-span-3">
-        <time dateTime={session.startsAt} className="text-folio font-light leading-none tabular-nums text-text">
-          {day}
-        </time>
-        <span className="text-body font-medium leading-tight text-text">
-          {month}
-          <span className="block text-fine font-normal text-text/75">{weekday}</span>
-        </span>
-      </Link>
-
-      <div className="col-span-6 md:col-span-3">
-        <span className={TERM}>Time</span>
-        <p className="mt-1 text-body font-medium tabular-nums text-text">
-          {start} <span aria-hidden className="text-text/50">–</span> <span className="sr-only">to</span> {end}
-        </p>
-        <p className="text-fine text-text/75">
-          <time dateTime={durationToIso(session.durationMinutes)}>{formatDuration(session.durationMinutes)}</time>
-          {session.venue ? <span> · {session.venue.name}</span> : null}
-        </p>
-      </div>
-
-      <div className="col-span-6 md:col-span-2">
-        <span className={TERM}>{eventCopy().priceTerm}</span>
-        <p className="mt-1 text-body font-medium text-text">
-          {formatPrice(session.price)}
-          <span className="block text-fine font-normal text-text/75">{eventCopy().perPersonLabel}</span>
-        </p>
-      </div>
-
-      <div className="col-span-6 flex flex-col items-end gap-3 md:col-span-4 md:flex-row md:items-center md:justify-end md:gap-5">
-        <p className="flex items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-text">
-          <SessionGate
-            startsAt={session.startsAt}
-            passedAtRender={passed}
-            open={
-              <>
-                {scarce ? <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-primary" /> : null}
-                {spotsLabel(session)}
-              </>
-            }
-            passed="Date passed"
-          />
-        </p>
-        <SessionGate
-          startsAt={session.startsAt}
-          passedAtRender={passed}
-          open={
-            waitlist ? (
-              <PeelNote href={workshopHref(session)} className="min-h-[2.75rem] px-5">
-                {full && session.status !== "waitlist" ? "View date" : "Join the waitlist"}
-              </PeelNote>
-            ) : (
-              <BlobButton href={bookingStepHref(session)} className="px-6 py-3.5">
-                Book
-              </BlobButton>
-            )
-          }
-          passed={null}
-        />
-      </div>
-    </div>
   );
 }

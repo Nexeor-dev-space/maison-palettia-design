@@ -76,9 +76,12 @@ export function EventFilterBar({
     counted as an active filter and still cleared by "Clear filters"; the
     browser puts the grid back on its opening month when that happens.
 
-    DATE, EVENT, VIBE, LOCATION. "Type" (the free-text strand) is gone from
-    this row: every scheduled session is filed under one strand, so it never
-    drew, and the question it stood in for is answered by Event. Vibe reads
+    DATE, EVENT, THEME, VIBE, LOCATION. "Type" (the free-text strand) is gone
+    from this row: every scheduled session is filed under one strand, so it
+    never drew, and the question it stood in for is answered by Event. THEME
+    is the client's Oct 2026 formats — a candle theme, a crochet level — read
+    off the sessions' workshop types, which is the choice the brief has a
+    customer make first. Vibe reads
     the experiences' tags and draws itself only once two of them are in use
     — the same rule "Find your vibe" follows, for the same reason: a mood
     nobody has tagged is not a choice.
@@ -86,6 +89,7 @@ export function EventFilterBar({
   const groups = [
     { key: "month" as const, label: "Date", options: facets.months },
     { key: "event" as const, label: "Event", options: facets.events },
+    { key: "type" as const, label: "Theme", options: facets.types },
     { key: "vibe" as const, label: "Vibe", options: facets.vibes },
     { key: "venue" as const, label: "Location", options: facets.venues },
   ].filter((group) => group.options.length > 1 && !(view === "calendar" && group.key === "month"));

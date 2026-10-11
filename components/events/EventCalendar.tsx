@@ -222,20 +222,20 @@ function DayCell({
               className={cn("block size-1.5 rounded-pill", selected ? "bg-surface" : "bg-primary")}
             />
           ))}
-          {count > MAX_DOTS ? <span className="text-[0.625rem] leading-none">+{count - MAX_DOTS}</span> : null}
+          {count > MAX_DOTS ? <span className="text-label leading-none">+{count - MAX_DOTS}</span> : null}
         </span>
       </span>
 
       {/* The titles, from `md` — a phone cell has room for the numeral and the dots only. */}
       <span aria-hidden className="mt-1 hidden min-w-0 flex-col gap-0.5 md:flex">
         {cell.workshops.slice(0, MAX_TITLES).map((w) => (
-          <span key={w.slug} className="truncate text-[0.6875rem] font-medium leading-[1.3]">
+          <span key={w.slug} className="truncate text-label font-medium leading-[1.3]">
             <span className={cn("tabular-nums", selected ? "text-surface/70" : "text-text/60")}>{formatWorkshopTime(w.startsAt)}</span>{" "}
             {w.title}
           </span>
         ))}
         {count > MAX_TITLES ? (
-          <span className={cn("text-[0.6875rem] leading-[1.3]", selected ? "text-surface/70" : "text-text/60")}>
+          <span className={cn("text-label leading-[1.3]", selected ? "text-surface/70" : "text-text/60")}>
             +{count - MAX_TITLES} more
           </span>
         ) : null}

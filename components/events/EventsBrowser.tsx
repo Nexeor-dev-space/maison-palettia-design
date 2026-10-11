@@ -2,10 +2,14 @@
 
 import { useMemo, useState } from "react";
 
+import Link from "next/link";
+
 import { EventCalendar } from "@/components/events/EventCalendar";
 import { EventFilterBar, type ListingView } from "@/components/events/EventFilters";
+import { Progression, TypeCard } from "@/components/events/WorkshopTypeCards";
 import { Reveal } from "@/components/motion/Reveal";
 import { PeelNote } from "@/components/ui/PeelNote";
+import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { EventCard } from "@/components/workshops/EventCard";
 import {
   applyFilters,
@@ -21,6 +25,7 @@ import {
 } from "@/lib/eventFilters";
 import type { CreativeExperience } from "@/lib/experiences";
 import { VIBES, type Vibe } from "@/lib/vibes";
+import type { WorkshopType } from "@/lib/workshopTypes";
 import type { Workshop } from "@/types";
 
 /**
@@ -66,27 +71,78 @@ import type { Workshop } from "@/types";
  * whatever date the select held with the grid's month; closing it clears the
  * date and the select comes back. Event, Vibe and Location keep working in
  * both views and narrow the grid's dots as well as the cards.
+ *
+ * ==========================================================================
+ * WHAT THE FILTERS RETURN: FORMATS, WHEN THE PROGRAMME HAS THEM
+ * ==========================================================================
+ *
+ * The client's Oct 2026 brief has a customer choose a candle theme or a
+ * crochet level first and a date second. With `types` handed in, the
+ * results under the bar are those formats — each experience's, as the
+ * cards its own page draws, with the next date that passes the filters
+ * and the recommended path where the studio set one — rather than one
+ * card per sitting. The filters are unchanged and still narrow sessions:
+ * a format is shown when its experience passes Event, when it is the
+ * Theme chosen (or none is), and, once a date, a vibe or a location is
+ * chosen, when one of its sittings passes too. The
+ * calendar's dots are still the sittings, so a day on the grid narrows to
+ * the formats running that day.
+ *
+ * Without `types` (the programme before the update, or a CMS that holds
+ * none) the results are the month-by-month cards they always were.
  */
 export function EventsBrowser({
   workshops,
   experiences = [],
+  types = [],
   vibes = VIBES,
   renderedAt,
+  perPersonLabel,
+  emptyTitle = "The next dates are being set.",
+  emptyBody = null,
 }: {
   workshops: Workshop[];
-  /** The experiences the sessions belong to, for their vibe tags. */
-  experiences?: readonly Pick<CreativeExperience, "slug" | "vibes">[];
+  /** The experiences the sessions belong to, for their vibe tags and, with `types`, their heads. */
+  experiences?: readonly Pick<CreativeExperience, "slug" | "name" | "kind" | "description" | "vibes">[];
+  /** The formats the scheduled experiences run in; the results are these when given. */
+  types?: readonly WorkshopType[];
   /** The vibe taxonomy, in display order. */
   vibes?: readonly Vibe[];
   renderedAt: number;
+  /** The Page labels' "per person", for a format card's price line. */
+  perPersonLabel?: string;
+  /** With formats but no dates at all: the words under the cards. */
+  emptyTitle?: string | null;
+  emptyBody?: string | null;
 }) {
   const [filters, setFilters] = useState<EventFilters>(NO_FILTERS);
   const [view, setView] = useState<ListingView>("list");
 
-  const context = useMemo<FilterContext>(() => ({ vibeIndex: buildVibeIndex(experiences), vibes }), [experiences, vibes]);
+  /*
+    The Theme options in the studio's order: experience by experience, then
+    each one's own `order`. The types arrive sorted by `order` alone, which
+    is a number per experience (the first candle theme and the first crochet
+    level are both 1), so sorted flat they interleave; grouped under their
+    experiences they read as the candle themes, then the crochet ladder.
+  */
+  const typeOrder = useMemo(
+    () => experiences.flatMap((experience) => types.filter((type) => type.experienceSlug === experience.slug)),
+    [experiences, types],
+  );
+  const context = useMemo<FilterContext>(
+    () => ({ vibeIndex: buildVibeIndex(experiences), vibes, typeOrder }),
+    [experiences, vibes, typeOrder],
+  );
   const facets = useMemo(() => buildFacets(workshops, context), [workshops, context]);
   const visible = useMemo(() => applyFilters(workshops, filters, context), [workshops, filters, context]);
   const months = useMemo(() => groupByMonth(visible), [visible]);
+  const groups = useMemo(
+    () => (types.length ? formatGroups(experiences, types, visible, filters, renderedAt) : []),
+    [experiences, types, visible, filters, renderedAt],
+  );
+  const formatted = types.length > 0;
+  /* What "nothing matched" means: no format left, or no sitting left. */
+  const nothing = formatted ? groups.length === 0 : visible.length === 0;
 
   /*
     The calendar's own inputs. The grid is narrowed by Event, Vibe and
@@ -176,16 +232,28 @@ export function EventsBrowser({
         </div>
       ) : null}
 
-      {visible.length === 0 ? (
+      {nothing ? (
         calendarOpen && shownMonth ? (
           <NothingThisMonth
             label={selectedDay ? "that day" : monthKeyLabel(shownMonth)}
             onReset={() => setFilters({ ...NO_FILTERS, month: shownMonth })}
-            narrowed={Boolean(filters.event || filters.vibe || filters.venue || selectedDay)}
+            narrowed={Boolean(filters.event || filters.type || filters.vibe || filters.venue || selectedDay)}
           />
         ) : (
           <NoMatches onReset={() => setFilters(NO_FILTERS)} />
         )
+      ) : formatted ? (
+        <div className="mt-10 md:mt-12">
+          {groups.map((group, i) => (
+            <FormatGroup key={group.experience.slug} group={group} first={i === 0} renderedAt={renderedAt} perPersonLabel={perPersonLabel} />
+          ))}
+          {workshops.length === 0 ? (
+            <Reveal className="mt-12 border-t border-line pt-10">
+              <p className="max-w-[30rem] text-h3 font-light tracking-[-0.015em]">{emptyTitle}</p>
+              {emptyBody ? <p className="mt-4 max-w-[32rem] text-body text-text/85">{emptyBody}</p> : null}
+            </Reveal>
+          ) : null}
+        </div>
       ) : (
         <div className="mt-10 md:mt-12">
           {months.map(({ label, id, events }) => (
@@ -238,6 +306,132 @@ export function EventsBrowser({
         from here — the summary it draws is unchanged.
       */}
     </>
+  );
+}
+
+/* ==========================================================================
+   The formatted results — one group per experience
+   ========================================================================== */
+
+/** One experience's formats that pass the filters, each with its dates that pass. */
+interface FormatGroupData {
+  experience: Pick<CreativeExperience, "slug" | "name" | "description">;
+  formats: { type: WorkshopType; dates: Workshop[] }[];
+  /** Every format of the experience, for the path strip's full order. */
+  all: WorkshopType[];
+  /** The experience's sittings ahead that belong to no format (a date added before its type). */
+  loose: Workshop[];
+}
+
+/**
+ * Which formats the filters leave, by experience, in the studio's order.
+ *
+ * EVENT is the experience's: a format is its experience's format, so it
+ * passes when the experience does. THEME is the format itself: the one
+ * chosen stays and its siblings go (the path strip still draws the whole
+ * ladder, so the order is not lost). VIBE, DATE AND LOCATION are the
+ * sitting's — a date can carry its own vibes, over its experience's
+ * (`vibesOf` in lib/eventFilters.ts) — so with any of them set a format
+ * stays only while one of its sittings passes: with either set, a format stays only while one of its dates
+ * passes — a theme with no sitting in the chosen month is not on in that
+ * month. With neither set, a format with no dates yet still shows, saying
+ * so, because a theme the studio has announced is a choice even before
+ * its first date is published.
+ *
+ * `dates` are the format's passing sittings ahead of `renderedAt`, soonest
+ * first — what the card's "Next date" and "From" read. Passed sittings are
+ * dropped from both the cards and the loose list: a format is a thing to
+ * choose, and a date that has gone by is not a choice. (The month-by-month
+ * cards keep theirs as "Date passed" because there a date IS the card.)
+ */
+function formatGroups(
+  experiences: readonly Pick<CreativeExperience, "slug" | "name" | "kind" | "description" | "vibes">[],
+  types: readonly WorkshopType[],
+  visible: readonly Workshop[],
+  filters: EventFilters,
+  renderedAt: number,
+): FormatGroupData[] {
+  const dated = Boolean(filters.month || filters.venue || filters.vibe);
+  const ahead = visible.filter((w) => Date.parse(w.startsAt) > renderedAt).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+  return experiences
+    .filter((experience) => experience.kind === "scheduled")
+    .filter((experience) => !filters.event || experience.slug === filters.event)
+    .map((experience) => {
+      const all = types.filter((type) => type.experienceSlug === experience.slug);
+      const formats = all
+        .filter((type) => !filters.type || type.slug === filters.type)
+        .map((type) => ({ type, dates: ahead.filter((w) => w.workshopType?.slug === type.slug) }))
+        .filter(({ dates }) => !dated || dates.length > 0);
+      const loose = filters.type ? [] : ahead.filter((w) => w.experience?.slug === experience.slug && !w.workshopType);
+      return { experience, formats, all, loose };
+    })
+    .filter((group) => group.formats.length > 0 || group.loose.length > 0);
+}
+
+/**
+ * One experience in the results: its name and line, the way to its own
+ * page, its formats as cards, and the path strip where there is one.
+ */
+function FormatGroup({
+  group,
+  first,
+  renderedAt,
+  perPersonLabel,
+}: {
+  group: FormatGroupData;
+  first: boolean;
+  renderedAt: number;
+  perPersonLabel?: string;
+}) {
+  const { experience, formats, all, loose } = group;
+  const headingId = `formats-${experience.slug}`;
+
+  return (
+    <section aria-labelledby={headingId} className={first ? "" : "mt-14 border-t border-line pt-10 md:mt-16 md:pt-12"}>
+      <Reveal>
+        <div className="grid grid-cols-12 items-end gap-x-6 gap-y-4 lg:gap-x-10">
+          <div className="col-span-12 md:col-span-8">
+            <h3 id={headingId} className="heading-script pb-[0.2em] text-script-compact text-text">
+              <ScriptTitle>{experience.name}</ScriptTitle>
+            </h3>
+            {experience.description ? <p className="mt-3 max-w-[34rem] text-body text-text/85">{experience.description}</p> : null}
+          </div>
+          <div className="col-span-12 md:col-span-4 md:pb-1 md:text-right">
+            <Link
+              href={`/events/${experience.slug}`}
+              className="inline-flex items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-text underline decoration-primary underline-offset-4"
+            >
+              About {experience.name}
+              <span aria-hidden>&#8594;</span>
+            </Link>
+          </div>
+        </div>
+      </Reveal>
+
+      {formats.length > 0 ? (
+        <ul className="mt-7 grid gap-5 md:mt-8 md:grid-cols-2 lg:gap-6">
+          {formats.map(({ type, dates }, i) => (
+            <Reveal as="li" key={type.slug} delay={Math.min(i, 6) * 0.05} className="flex">
+              <TypeCard type={type} dates={dates} perPersonLabel={perPersonLabel} />
+            </Reveal>
+          ))}
+        </ul>
+      ) : null}
+
+      {/* Sittings with no format — the cards they always had, so a date is never lost from the page. */}
+      {loose.length > 0 ? (
+        <ol className="mt-7 grid gap-6 md:mt-8 md:grid-cols-2 lg:gap-8">
+          {loose.map((workshop, position) => (
+            <li key={workshop.slug} className="h-full">
+              <EventCard workshop={workshop} index={position} renderedAt={renderedAt} />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
+      <Progression types={all} id={`${headingId}-path`} heading="h4" className="mt-10 md:mt-12" />
+    </section>
   );
 }
 
