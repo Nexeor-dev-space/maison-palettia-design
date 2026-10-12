@@ -58,9 +58,18 @@
   transition: transform 420ms var(--ease-editorial);
 }
 
-/* The format ticket: near-white, and a shorter stub measure for three lines. */
+/* The format ticket: Light Sage, and a shorter stub measure for three lines.
+
+   THE GROUND IS THE BRAND'S SAGE, at the client's ask (#D1E7BE). It was
+   `--color-surface`, which is that sage at 30% over white — a near-white the
+   ticket shared with the page it sat on, so the card read as a cut-out rather
+   than as a piece of card laid down. At full strength the ticket separates
+   from the Cream ground behind it and the perforation reads as a tear.
+
+   Named, not the literal: #D1E7BE IS `--color-sage`. Charcoal on it measures
+   9.07:1, so every line on the card clears AA comfortably. */
 .theme {
-  --ticket-ground: var(--color-surface);
+  --ticket-ground: var(--color-sage);
   --stub: 6.75rem;
 }
 

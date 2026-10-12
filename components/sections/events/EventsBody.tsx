@@ -68,30 +68,27 @@ import type { Workshop } from "@/types";
   terracotta. A mark in the ground's own colour is not a quiet mark, it is an
   invisible one.
 */
-const SAGE = "#D1E7BE";
-
 /** The masthead: the largest shapes on the page, because it has the most air. */
 const TITLE_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
-/**
- * Walk-in. The tallest section on the page at nearly 2000px, so it carries
- * four and spreads them down its whole length rather than clustering at the
- * head where they would all be gone after one screen.
- */
-const WALK_IN_SHAPES: readonly ShapePlan[] = [
-  { name: "coral", color: INK.lavender, width: "14%", top: "4%", right: "-2%", rotate: 14, drift: -22, opacity: 0.2 },
-  { name: "starburst", color: INK.terracotta, width: "12%", top: "38%", left: "-4%", rotate: -6, drift: 20, opacity: 0.16, desktopOnly: true },
-  { name: "bean", color: INK.lilac, width: "9%", top: "64%", right: "4%", rotate: 22, drift: 28, opacity: 0.14, desktopOnly: true },
-  { name: "zigzag", color: INK.terracotta, width: "11%", bottom: "3%", left: "8%", rotate: -10, drift: -16, opacity: 0.18, desktopOnly: true },
-];
+/*
+  ON THE SHARED TABLE NOW, like the masthead above and the other forty-odd
+  grounds on the site.
 
-/** Scheduled, on White Rock — so sage joins the set and the warmth stays. */
-const SCHEDULED_SHAPES: readonly ShapePlan[] = [
-  { name: "cutout", color: SAGE, width: "20%", top: "2%", left: "-5%", rotate: -8, drift: 24, opacity: 0.55 },
-  { name: "starleaf", color: INK.lilac, width: "10%", top: "34%", right: "-2%", rotate: 12, drift: -20, opacity: 0.16, desktopOnly: true },
-  { name: "bow", color: INK.terracotta, width: "12%", bottom: "8%", right: "6%", rotate: -14, drift: 22, opacity: 0.16, desktopOnly: true },
-  { name: "splash", color: SAGE, width: "16%", bottom: "-4%", left: "10%", rotate: 18, drift: -26, opacity: 0.6, desktopOnly: true },
-];
+  These two were written by hand before `groundShapes()` existed and never
+  moved onto it, so they kept the widths and opacities the table was created
+  to retire: 20% and 16% cut-outs at 0.55 and 0.6, placed at `left: -5%` and
+  `top: 2%`. Measured on this page at 1440 that 20% mark came out 319px and
+  lay across the "Create Together" heading, its standfirst and the event
+  count — the last of the text-overlapping doodles the client asked to be
+  rid of, and the reason the fix to the table alone did not move them.
+
+  The walk-in section keeps its own constant because it sits on Light Sage
+  and the scheduled one on White Rock — the ground decides the inks (see
+  GROUND_INKS) — but both now read from the table.
+*/
+const WALK_IN_SHAPES: readonly ShapePlan[] = groundShapes("sage");
+const SCHEDULED_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 
 /*
   ==========================================================================

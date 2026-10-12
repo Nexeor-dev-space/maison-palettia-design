@@ -79,8 +79,27 @@ export function TypeCard({
   return (
     <Link href={`/events/${type.slug}`} className={cn(styles.ticket, styles.theme, "group press-in w-full overflow-hidden")}>
       <span className={cn(styles.body, "relative flex flex-col px-7 py-7 md:px-8 md:py-8")}>
-        <span aria-hidden className="pointer-events-none absolute -right-4 -top-5 w-[4.5rem] rotate-[-10deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-1 md:w-[5.5rem]">
-          <DoodleMark name="starburst" color={INK.lavender} treatment="stamp" delay={240} />
+        {/*
+          TWO TINY MARKS, IN THE PADDING, NOT OVER THE WORDS.
+
+          A 5.5rem lavender starburst hung off this corner at -right-4 -top-5
+          and crossed both the chips row and the perforation — the overlap the
+          client asked to be rid of. These are 1.25rem and 1rem and they sit
+          inside the card's own `py-7` / `px-7` band, which no line of text
+          reaches, so the card keeps its hand-drawn note and every word stays
+          clear of it.
+
+          TWO INKS, BECAUSE THE INK PICKS THE DRAWING. In this sheet the
+          COLOUR chooses the glyph and the shape word only picks loose or
+          slab, so terracotta and lilac are two different marks however they
+          are named — asking for two `dot`s in one colour would print the same
+          cut-out twice.
+        */}
+        <span aria-hidden className="pointer-events-none absolute right-4 top-2.5 w-5 rotate-[-12deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:-translate-y-0.5">
+          <DoodleMark name="dot" color={INK.terracotta} treatment="stamp" delay={240} />
+        </span>
+        <span aria-hidden className="pointer-events-none absolute bottom-2 left-3 w-4 rotate-[14deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-0.5">
+          <DoodleMark name="bean" color={INK.lilac} treatment="stamp" delay={320} />
         </span>
 
         <span className="relative flex flex-wrap items-center gap-2">
@@ -114,16 +133,47 @@ export function TypeCard({
             <span className="mt-1.5 block text-body text-text/75">Dates are being set.</span>
           )}
         </span>
+        {/*
+          THE WAY IN, ON A BLOB — the client's "doodle shaped bg" in Deep
+          Lilac. An asymmetric `border-radius` (four different corners on each
+          axis) draws a hand-pulled pebble rather than a circle, which is the
+          shape language the rest of the sheet uses; a second rotation keeps
+          it off the grid. No new asset, and it scales with the type.
+
+          Near-white on Deep Lilac measures 4.90:1 — AA for the glyph at this
+          size, and it is decorative besides: the whole ticket is the link and
+          this is `aria-hidden`.
+        */}
         <span
           aria-hidden
-          className="shrink-0 self-end text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1 md:mt-4"
+          className={cn(
+            "grid size-11 shrink-0 self-end place-items-center rounded-[58%_42%_55%_45%/50%_58%_42%_50%]",
+            "bg-primary text-on-primary rotate-[-6deg] md:mt-4",
+            "transition-transform duration-500 ease-editorial",
+            "motion-safe:group-hover:translate-x-1 motion-safe:group-hover:rotate-[2deg]",
+          )}
         >
-          &#8594;
+          <span className="text-lead leading-none">&#8594;</span>
         </span>
       </span>
     </Link>
   );
 }
+
+/*
+  The four grounds a path step cycles through.
+
+  NONE OF THEM IS CREAM, and that is the whole constraint. Cream is what this
+  strip sits ON, so a cream step is not a quiet card — it is no card at all:
+  the second stop simply disappeared into the page and the route lost a leg.
+  Every ground here separates from Cream while staying inside the palette —
+  Light Sage, the soft lavender, a terracotta wash, and the near-white the
+  rest of the site uses for raised surfaces.
+
+  Charcoal clears AA on all four by a wide margin; Light Sage, the darkest,
+  measures 9.07:1.
+*/
+const PATH_GROUND = ["bg-sage", "bg-lavender-soft", "bg-terracotta/25", "bg-surface"] as const;
 
 /**
  * The recommended path through an experience's formats, drawn only when
@@ -159,23 +209,63 @@ export function Progression({
         <Heading id={id} className={TERM}>
           Recommended path
         </Heading>
-        <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/*
+          A PATH, DRAWN AS ONE — the client's note that this section "is
+          really a step by step path".
+
+          It was four cards of the same Cream in a plain grid: a list of
+          formats that happened to be numbered, with nothing saying one
+          follows another. Three things make it a route instead.
+
+          A LINE BETWEEN THEM. Dashed, in the same ink and the same language
+          as the ticket's perforation, so the strip belongs to the cards above
+          it. It runs ACROSS the gap on `lg`, where the four sit in a row, and
+          DOWN the gap below that, where they stack — and it is never drawn
+          before the first step, which nothing leads into. `aria-hidden`: the
+          order is already carried by the <ol> and by the printed numeral.
+
+          A GROUND PER STEP, cycling the palette's four light grounds so the
+          eye can tell one stop from the next. All four take Charcoal at well
+          over AA (Light Sage, the darkest of them, measures 9.07:1).
+
+          THE NUMERAL ON ITS OWN DISC, which is what makes a step read as a
+          stop on a route rather than as a figure beside a title.
+        */}
+        <ol className="mt-6 grid gap-x-7 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
           {types.map((type, i) => {
             const here = type.slug === currentSlug;
+            const ground = PATH_GROUND[i % PATH_GROUND.length];
             return (
-              <li key={type.slug} className="flex">
+              <li key={type.slug} className="relative flex">
+                {i > 0 ? (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "pointer-events-none absolute border-dashed border-text/30",
+                      /* stacked: down through the row gap, above the card */
+                      "-top-6 left-9 h-6 border-l-2",
+                      /* in a row: across the column gap, at the disc's height */
+                      "lg:left-auto lg:top-9 lg:h-0 lg:w-7 lg:-translate-x-7 lg:border-l-0 lg:border-t-2",
+                    )}
+                  />
+                ) : null}
                 <Link
                   href={`/events/${type.slug}`}
                   aria-current={here ? "page" : undefined}
                   className={cn(
                     "press-in flex w-full items-start gap-4 rounded-[1.25rem] px-5 py-5 transition-colors duration-300 ease-soft",
-                    here ? "bg-text text-surface" : "bg-cream text-text hover:bg-lavender-soft",
+                    here ? "bg-text text-surface" : cn(ground, "text-text hover:bg-lavender-soft"),
                   )}
                 >
-                  <span className={cn("text-folio font-light leading-none tabular-nums", here ? "text-surface/60" : "text-primary")}>
+                  <span
+                    className={cn(
+                      "grid size-11 shrink-0 place-items-center rounded-pill text-h4 font-medium leading-none tabular-nums",
+                      here ? "bg-surface/20 text-surface" : "bg-primary text-on-primary",
+                    )}
+                  >
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="min-w-0">
+                  <span className="min-w-0 pt-1.5">
                     <span className="block text-h4 font-medium leading-tight">{type.name}</span>
                     {type.progressionNote ? (
                       <span className={cn("mt-1.5 block text-fine", here ? "text-surface/75" : "text-text/75")}>{type.progressionNote}</span>

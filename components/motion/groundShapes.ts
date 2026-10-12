@@ -35,19 +35,78 @@ import type { ShapePlan } from "@/components/motion/SectionShapes";
   strength over a photograph, which is where they are.
 */
 
-/** The six anchors, in the order a plan fills them. All in the margins. */
+/*
+  ==========================================================================
+  THE SIX ANCHORS — in the BANDS, because this layout has no margins
+  ==========================================================================
+
+  THE OLD TABLE SAID "all in the margins" AND TWO OF THEM WERE NOT: the fifth
+  sat at `left: 31%` and the sixth at `right: 28%`, which is the middle of
+  the measure on any screen. Measured on /events at 1440 the plan put a 319px
+  mark across the "Create Together" heading (26% of it), across its
+  standfirst (39%), and over the "32 of 45 events" count ENTIRELY — eleven
+  text elements on one page with a doodle showing through them. That is the
+  overlap the client asked to be rid of.
+
+  AND THERE ARE NO MARGINS TO MOVE THEM INTO. <Container> carries no
+  max-width by deliberate decision, so content runs the full measure less the
+  gutter: horizontally there is no empty column anywhere on the page. The
+  room a section actually has is VERTICAL — the padding band above its first
+  line and below its last — so that is where these now sit, hard against the
+  top and bottom edges of the section box.
+
+  SMALL ENOUGH TO LIVE THERE, which is the other half of it. The widest was
+  10% of the section — 140px and upward — and a mark that size cannot sit in
+  a padding band without leaning into the text either side of it. Capped at
+  5% they read as the "tiny doodles" the brand sheet is full of, and they
+  decorate the gaps rather than the words.
+*/
 const GROUND_ANCHORS: readonly Partial<Record<"top" | "bottom" | "left" | "right", string>>[] = [
-  { left: "3%", top: "14%" },
-  { right: "4.5%", top: "9%" },
-  { left: "9%", bottom: "10%" },
-  { right: "7%", bottom: "15%" },
-  { left: "31%", top: "5%" },
-  { right: "28%", bottom: "6%" },
+  /*
+    PIXELS DOWN THE PAGE, PERCENTAGES ACROSS IT.
+
+    A percentage top is a share of the SECTION's height, so `top: 1.5%` is
+    9px in a short section and 30px in a tall one — and in the tall one that
+    put a mark on the first heading. The band a section actually reserves is
+    a fixed thing (its top padding), so these are fixed too, and a mark lands
+    in the same strip of air whatever the section turns out to be.
+
+    NOT THE CENTRE, for the last two. They sat at 47% and 45%, which is dead
+    centre of the measure, and a centred heading is the one thing guaranteed
+    to be there: they took "Create" on /private-events at 25% and "Follow"
+    on /about at 17%.
+  */
+  { right: "2.5%", top: "16px" },
+  { right: "11%", top: "10px" },
+  { left: "3%", bottom: "12px" },
+  { right: "2%", bottom: "10px" },
+  { left: "14%", bottom: "8px" },
+  { right: "17%", bottom: "8px" },
 ];
 
-/** Six sizes, one per anchor — every section carries the full range. Held at
-    30-40%, at the client's ask for marks a little stronger than they were. */
-const GROUND_WIDTHS = ["8%", "4.5%", "10%", "5.5%", "6.5%", "3.5%"] as const;
+/*
+  WHY FOUR OF THE SIX ARE IN THE FOOT, and the other two are on the right.
+
+  Every collision left after the sizes came down was a heading at the TOP
+  LEFT of its section — "Create Anytime" and "Create Together" on /events,
+  "Write to Us" on /contact. That is not bad luck: a section opens with its
+  heading, headings here are left-aligned, and the top-left corner is the one
+  place a section is guaranteed to have ink. The top band is only free on the
+  RIGHT, and the bottom band is free across its whole width, because a
+  section ends in padding.
+*/
+
+/** Six sizes, one per anchor. Capped at 3.5% AND at a pixel ceiling, so a
+    wide display does not grow a mark back into the text the way the old
+    8-10% did: 3.5% of a 2560px page would be 90px again. */
+const GROUND_WIDTHS = [
+  "min(3.5%, 52px)",
+  "min(2.4%, 34px)",
+  "min(3.8%, 56px)",
+  "min(2.8%, 40px)",
+  "min(3.2%, 46px)",
+  "min(2%, 30px)",
+] as const;
 const GROUND_OPACITY = [0.36, 0.3, 0.38, 0.32, 0.3, 0.4] as const;
 const GROUND_DRIFT = [22, -18, 20, -16, 18, -20] as const;
 const GROUND_FLOAT = [13, 15, 11, 14, 16, 12] as const;

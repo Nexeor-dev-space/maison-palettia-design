@@ -74,9 +74,15 @@ export function EventCalendar({
   const headingId = `calendar-${month}`;
 
   return (
-    <div className="plate rounded-lg bg-surface p-4 md:p-6">
-      <div className="flex items-center justify-between gap-4">
-        <h3 id={headingId} className="text-h4 font-medium text-text">
+    <div className="plate overflow-hidden rounded-lg bg-surface">
+      {/*
+        A HEADER BAND, so the month is a title and not a line of text resting
+        on the grid. Light Sage under it separates the controls from the days
+        the way the reference boards do, and it is the same sage the format
+        tickets now wear, so the two objects on this page belong together.
+      */}
+      <div className="flex items-center justify-between gap-4 bg-sage px-4 py-4 md:px-6 md:py-5">
+        <h3 id={headingId} className="text-h3 font-light text-text">
           {grid.label}
         </h3>
         <div className="flex items-center gap-2">
@@ -105,11 +111,11 @@ export function EventCalendar({
         and the week) without that promise, and needs no `display: contents`
         wrapper, which some browsers drop from the accessibility tree.
       */}
-      <table aria-labelledby={headingId} className="mt-5 w-full table-fixed border-separate border-spacing-1 md:mt-6 md:border-spacing-1.5">
+      <table aria-labelledby={headingId} className="w-full table-fixed border-separate border-spacing-1 p-3 md:border-spacing-1.5 md:p-4">
         <thead>
           <tr>
             {WEEKDAYS.map((day) => (
-              <th key={day} scope="col" className="pb-2 text-center text-label font-medium uppercase tracking-eyebrow text-text/60">
+              <th key={day} scope="col" className="pb-2.5 text-center text-label font-medium uppercase tracking-eyebrow text-text/60">
                 {/* The full weekday for a screen reader; three letters for the eye. */}
                 <span aria-hidden>{day}</span>
                 <span className="sr-only">{FULL_WEEKDAY[day]}</span>
@@ -149,6 +155,35 @@ const FULL_WEEKDAY: Record<string, string> = {
   Sun: "Sunday",
 };
 
+/*
+  ==========================================================================
+  A GROUND PER FORMAT — what turns a column of truncated text into a board
+  ==========================================================================
+
+  Every session printed in a cell was the same grey line, so a month of
+  "Crochet — Beginners" and "The Cheesecake Collection" read as one wall of
+  words and the only way to tell two dates apart was to read them. The
+  reference boards the client sent all do the same thing instead: each kind
+  of thing gets a colour, and the shape of the month becomes legible before
+  a single word is.
+
+  The key is the FORMAT, not the session, so every Tuesday of one course is
+  the same colour all the way down the month. Hashed rather than assigned,
+  because the formats come from the CMS and this file must not hold a list
+  of them — a new format gets a colour without anyone editing this.
+
+  All four take Charcoal well past AA, and the chips carry their time and
+  title as text, so the colour is never the only thing saying what a day
+  holds.
+*/
+const CHIP_GROUND = ["bg-lavender-soft", "bg-sage", "bg-terracotta/25", "bg-cream"] as const;
+
+function chipGround(key: string): string {
+  let h = 0;
+  for (let i = 0; i < key.length; i += 1) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return CHIP_GROUND[h % CHIP_GROUND.length];
+}
+
 const MAX_DOTS = 3;
 const MAX_TITLES = 2;
 
@@ -180,17 +215,33 @@ function DayCell({
     : undefined;
 
   const shell = cn(
-    "relative flex min-h-[3rem] w-full flex-col rounded-md p-1.5 text-left md:min-h-[5.25rem] md:p-2",
+    "relative flex min-h-[3.25rem] w-full flex-col rounded-[0.75rem] p-1.5 text-left md:min-h-[6.5rem] md:p-2",
     !cell.inMonth && "invisible",
   );
 
+  /* The numeral. Today wears a filled Deep Lilac disc rather than coloured
+     type — the one mark on the board that has to be findable at a glance,
+     and the reference boards all give it a disc. */
+  const numeral = (
+    <span
+      className={cn(
+        "grid size-6 shrink-0 place-items-center rounded-pill text-label font-medium tabular-nums",
+        isToday && !selected && "bg-primary text-on-primary",
+        isToday && selected && "bg-surface text-text",
+        !isToday && (selected ? "text-surface" : passed ? "text-text/40" : "text-text/70"),
+      )}
+    >
+      {cell.day}
+    </span>
+  );
+
   if (!has) {
+    /* A day with nothing on is still part of the month, so it keeps a faint
+       ground: without one the grid was numerals floating in space and the
+       weeks did not read as rows. Not a button and not in the tab order —
+       there is nothing to press. */
     return (
-      <div className={shell}>
-        <span className={cn("text-label font-medium tabular-nums", passed ? "text-text/35" : "text-text/55", isToday && "text-primary")}>
-          {cell.day}
-        </span>
-      </div>
+      <div className={cn(shell, cell.inMonth && "bg-cream/40")}>{numeral}</div>
     );
   }
 
@@ -209,33 +260,47 @@ function DayCell({
           lifted one step, so a day with something on reads as an object
           on the grid before it is read as a number.
         */
-        selected ? "bg-text text-surface" : "bg-cream text-text hover:bg-lavender-soft",
-        passed && !selected && "text-text/60",
+        selected ? "bg-text" : "bg-cream/80 hover:bg-lavender-soft",
+        /* A ring, not a fill, for a day that has gone by: it keeps its
+           sessions and its colour but stops competing with the ones ahead. */
+        passed && !selected && "opacity-60",
       )}
     >
       <span className="flex items-center justify-between gap-1">
-        <span className={cn("text-label font-medium tabular-nums", isToday && !selected && "text-primary")}>{cell.day}</span>
-        <span aria-hidden className="flex items-center gap-0.5">
+        {numeral}
+        {/* The dots are the PHONE's reading of the same thing the chips say
+            below, so they stand down once the chips are drawn. */}
+        <span aria-hidden className="flex items-center gap-0.5 md:hidden">
           {cell.workshops.slice(0, MAX_DOTS).map((w) => (
-            <span
-              key={w.slug}
-              className={cn("block size-1.5 rounded-pill", selected ? "bg-surface" : "bg-primary")}
-            />
+            <span key={w.slug} className={cn("block size-1.5 rounded-pill", selected ? "bg-surface" : "bg-primary")} />
           ))}
-          {count > MAX_DOTS ? <span className="text-label leading-none">+{count - MAX_DOTS}</span> : null}
+          {count > MAX_DOTS ? (
+            <span className={cn("text-label leading-none", selected ? "text-surface" : "text-text/70")}>+{count - MAX_DOTS}</span>
+          ) : null}
         </span>
       </span>
 
-      {/* The titles, from `md` — a phone cell has room for the numeral and the dots only. */}
-      <span aria-hidden className="mt-1 hidden min-w-0 flex-col gap-0.5 md:flex">
+      {/*
+        THE SESSIONS AS CHIPS, from `md`. Each one is its format's colour
+        (see CHIP_GROUND) with the time set in tabular figures ahead of the
+        name, so a column of Tuesdays lines up and the eye can run down it.
+        A phone keeps the dots above: there is no room for a chip, and the
+        card list under the grid is the phone's real reading of the day.
+      */}
+      <span aria-hidden className="mt-1.5 hidden min-w-0 flex-col gap-1 md:flex">
         {cell.workshops.slice(0, MAX_TITLES).map((w) => (
-          <span key={w.slug} className="truncate text-label font-medium leading-[1.3]">
-            <span className={cn("tabular-nums", selected ? "text-surface/70" : "text-text/60")}>{formatWorkshopTime(w.startsAt)}</span>{" "}
-            {w.title}
+          <span
+            key={w.slug}
+            className={cn(
+              "truncate rounded-[0.4rem] px-1.5 py-1 text-label font-medium leading-[1.25] text-text",
+              chipGround(w.workshopType?.slug ?? w.title),
+            )}
+          >
+            <span className="tabular-nums text-text/70">{formatWorkshopTime(w.startsAt)}</span> {w.title}
           </span>
         ))}
         {count > MAX_TITLES ? (
-          <span className={cn("text-label leading-[1.3]", selected ? "text-surface/70" : "text-text/60")}>
+          <span className={cn("px-1.5 text-label leading-[1.25]", selected ? "text-surface/75" : "text-text/60")}>
             +{count - MAX_TITLES} more
           </span>
         ) : null}
