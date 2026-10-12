@@ -747,8 +747,14 @@
   transform-origin: 50% 50%;
 }
 
-/* No transition here on purpose: a drift that eased would trail the scroll. */
+/* No transition here on purpose: a drift that eased would trail the scroll.
+
+   Its own layer, because it changes every frame of the photograph's opening:
+   without one each cut-out was repainted per frame, which measured as the
+   largest single cost of the opening on a phone (slow frames 32 → 18 at a
+   mid-range phone's speed with this alone). */
 .drift {
+  will-change: transform, opacity;
   transform: translate3d(
       calc(var(--dirx, 0) * var(--p) * 4rem),
       calc(var(--diry, 0) * var(--p) * 3rem),
