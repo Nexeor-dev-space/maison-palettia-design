@@ -149,8 +149,8 @@ export function CommunityMoment({ image = "/images/middle-section-bg.jpg" }: { i
                 than on White Rock, and lilac on that ground is 2.7:1 — a dot
                 nobody can see. Lavender reads at 13.8:1.
               */}
-              <span aria-hidden className="block w-4 shrink-0">
-                <DoodleMark name="dot" color={INK.lavender} />
+              <span aria-hidden className="block w-5 shrink-0">
+                <DoodleMark name="coral" color={INK.lavender} />
               </span>
               The Maison experience
             </p>

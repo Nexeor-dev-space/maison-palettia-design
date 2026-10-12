@@ -59,10 +59,15 @@ export function SessionTicket({
   const passed = Date.parse(session.startsAt) <= renderedAt;
 
   return (
-    <article className={styles.ticket} aria-label={`${weekday} ${day} ${month}, ${start}`}>
-      <div className={cn(styles.body, "grid grid-cols-12 items-center gap-x-4 gap-y-5 px-6 py-6 md:gap-x-6 md:px-8 md:py-7")}>
+    <article className={cn(styles.ticket, styles.session, "h-full w-full")} aria-label={`${weekday} ${day} ${month}, ${start}`}>
+      {/*
+        A TICKET'S PROPORTIONS, two to a row (see `.session` in
+        Ticket.module.css): the date across the top, then the time and the
+        price side by side under it — not three columns strung along a strip.
+      */}
+      <div className={cn(styles.body, "grid grid-cols-2 content-center gap-x-6 gap-y-5 px-6 py-6 md:px-7 md:py-7")}>
         {/* The date, set stepped: the numeral largest, the day and month under it. */}
-        <Link href={workshopHref(session)} className="col-span-12 flex items-baseline gap-3 sm:col-span-4">
+        <Link href={workshopHref(session)} className="col-span-2 flex items-baseline gap-3">
           <time dateTime={session.startsAt} className="text-folio font-light leading-none tabular-nums text-text">
             {day}
           </time>
@@ -72,7 +77,7 @@ export function SessionTicket({
           </span>
         </Link>
 
-        <div className="col-span-7 sm:col-span-5">
+        <div className="min-w-0">
           <span className={TERM}>Time</span>
           <p className="mt-1 text-body font-medium tabular-nums text-text">
             {start} <span aria-hidden className="text-text/50">–</span> <span className="sr-only">to</span> {end}
@@ -83,7 +88,7 @@ export function SessionTicket({
           </p>
         </div>
 
-        <div className="col-span-5 sm:col-span-3">
+        <div className="min-w-0">
           <span className={TERM}>{priceTerm}</span>
           <p className="mt-1 text-body font-medium text-text">
             {formatPrice(session.price)}
@@ -93,7 +98,7 @@ export function SessionTicket({
       </div>
 
       {/* The stub: what is left, and the door. */}
-      <div className={cn(styles.stub, "px-6 py-4 md:gap-3 md:px-7 md:py-6")}>
+      <div className={cn(styles.stub, "px-6 py-4 xl:gap-3 xl:px-6 xl:py-6")}>
         <p className="flex items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-text">
           <SessionGate
             startsAt={session.startsAt}
@@ -116,7 +121,7 @@ export function SessionTicket({
                 {full && session.status !== "waitlist" ? "View date" : "Join the waitlist"}
               </PeelNote>
             ) : (
-              <BlobButton href={bookingStepHref(session)} className="px-6 py-3.5 md:w-full md:justify-center">
+              <BlobButton href={bookingStepHref(session)} className="px-6 py-3.5 xl:w-full xl:justify-center">
                 Book
               </BlobButton>
             )

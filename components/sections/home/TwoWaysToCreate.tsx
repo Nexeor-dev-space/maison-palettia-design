@@ -654,8 +654,8 @@ function Road({
             two of these before a word is read, and the label says which one
             this is. Together they are four words. */}
         <p className="mt-7 flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
-          <span aria-hidden className="block w-4 shrink-0">
-            <DoodleMark name="dot" color={dot} />
+          <span aria-hidden className="block w-5 shrink-0">
+            <DoodleMark name="coral" color={dot} />
           </span>
           {/* FULL STRENGTH, NOT `opacity-60`. `aria-hidden` takes the numeral
               out of what is announced, not out of what is seen — it is still

@@ -141,7 +141,7 @@ interface NavItem {
   the centre tab is semibold, the others medium.
 */
 const TAB_LABEL =
-  "block text-[0.6875rem] leading-none tracking-[0.04em] text-on-primary max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em]";
+  "block text-[0.75rem] leading-none tracking-[0.02em] text-on-primary max-[374px]:text-[0.6875rem] max-[374px]:tracking-[-0.03em]";
 
 const ICONS: Record<string, NavIcon> = {
   "/events": ExperiencesIcon,

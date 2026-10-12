@@ -2,11 +2,10 @@
 
 import { useMemo, useState } from "react";
 
-import Link from "next/link";
 
 import { EventCalendar } from "@/components/events/EventCalendar";
 import { EventFilterBar, type ListingView } from "@/components/events/EventFilters";
-import { Progression, TypeCard } from "@/components/events/WorkshopTypeCards";
+import { Progression, TICKET_GROUNDS, TypeCard } from "@/components/events/WorkshopTypeCards";
 import { Reveal } from "@/components/motion/Reveal";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
@@ -15,8 +14,10 @@ import {
   applyFilters,
   buildFacets,
   buildVibeIndex,
+  dayKey,
   defaultCalendarMonth,
   groupByMonth,
+  monthKey,
   monthKeyLabel,
   monthKeys,
   NO_FILTERS,
@@ -152,6 +153,13 @@ export function EventsBrowser({
   const range = useMemo(() => monthKeys(workshops), [workshops]);
   const opening = useMemo(() => defaultCalendarMonth(workshops, renderedAt), [workshops, renderedAt]);
   const [calendarMonth, setCalendarMonth] = useState<string | null>(opening);
+  /*
+    Whether the date in the filter is the VISITOR'S — picked on the Date
+    select, or carried over from the list — rather than just the month the
+    grid happens to be showing. Only a chosen date is shown on the select and
+    as a chip; the grid's own month is structure, not a filter.
+  */
+  const [dateChosen, setDateChosen] = useState(false);
   const undated = useMemo(() => applyFilters(workshops, { ...filters, month: null }, context), [workshops, filters, context]);
 
   /* A day key is a month key with a day on the end; the grid's month is the
@@ -159,13 +167,28 @@ export function EventsBrowser({
   const shownMonth = view === "calendar" && filters.month ? filters.month.slice(0, 7) : calendarMonth;
   const selectedDay = view === "calendar" && filters.month && filters.month.length > 7 ? filters.month : null;
 
+  /*
+    THE DATE CARRIES ACROSS THE SWITCH, BOTH WAYS. The Date select is drawn
+    in both readings now, so a month picked in the list opens the calendar
+    on that month (still chosen), and a month or a day picked in the
+    calendar stays as the list's filter. Only the grid's own month — which
+    nobody chose — is dropped on the way back to the list.
+  */
   const changeView = (next: ListingView) => {
     setView(next);
     if (next === "calendar") {
-      const month = calendarMonth ?? opening;
-      setFilters((current) => ({ ...current, month }));
+      if (filters.month) {
+        setCalendarMonth(filters.month.slice(0, 7));
+        setDateChosen(true);
+      } else {
+        const month = calendarMonth ?? opening;
+        setFilters((current) => ({ ...current, month }));
+        setDateChosen(false);
+      }
     } else {
-      setFilters((current) => ({ ...current, month: null }));
+      const keep = dateChosen || selectedDay !== null;
+      setFilters((current) => ({ ...current, month: keep ? current.month : null }));
+      setDateChosen(false);
     }
   };
 
@@ -185,8 +208,18 @@ export function EventsBrowser({
     `month: null` in that case and this puts the month back.
   */
   const changeFilters = (next: EventFilters) => {
-    if (view === "calendar" && next.month === null) {
+    if (view !== "calendar") {
+      setFilters(next);
+    } else if (next.month === null) {
+      // "All" on the Date select, or its chip lifted: the grid stays where it is.
       setFilters({ ...next, month: shownMonth ?? null });
+      setDateChosen(false);
+    } else if (next.month !== barFilters.month) {
+      // A month (or, for a one-month programme, a day) picked on the Date
+      // select: the grid goes there, and the choice shows on the select.
+      setCalendarMonth(next.month.slice(0, 7));
+      setFilters(next);
+      setDateChosen(true);
     } else {
       setFilters(next);
     }
@@ -195,13 +228,25 @@ export function EventsBrowser({
   const calendarOpen = view === "calendar" && shownMonth !== null;
 
   /*
+    Where the calendar's "Today" goes: this month when the programme has
+    dates in it, else the month it opened on — the first with a date still
+    ahead — and then the button says "Next dates" instead.
+  */
+  const thisMonth = useMemo(() => dayKey(new Date(renderedAt).toISOString()).slice(0, 7), [renderedAt]);
+  const homeMonth = range.includes(thisMonth) ? thisMonth : opening;
+  const narrowed = Boolean(filters.event || filters.type || filters.vibe || filters.venue);
+  /* Whether the month on the grid holds anything at all under the filters — the agenda says so when not. */
+  const monthHasDates = Boolean(shownMonth && undated.some((w) => monthKey(w.startsAt) === shownMonth));
+
+  /*
     What the bar is told. The grid's month is structure, not a choice — a
     visitor who opened the calendar has not filtered anything yet — so the
-    bar sees no date until a day is pressed, and "Clear filter" appears for
-    that day alone. Every change the bar hands back then carries `month:
-    null`, which `changeFilters` turns back into the month on the grid.
+    bar sees no date (the Date select reads "All") until one is chosen: a
+    month on the select, or a day on the grid. Every change the bar hands
+    back then carries `month: null`, which `changeFilters` turns back into
+    the month on the grid.
   */
-  const barFilters = calendarOpen && !selectedDay ? { ...filters, month: null } : filters;
+  const barFilters = calendarOpen && !selectedDay && !dateChosen ? { ...filters, month: null } : filters;
 
   return (
     <>
@@ -228,13 +273,20 @@ export function EventsBrowser({
             canGoBack={range.length > 0 && shownMonth > range[0]}
             canGoForward={range.length > 0 && shownMonth < range[range.length - 1]}
             renderedAt={renderedAt}
+            formats={typeOrder}
+            homeMonth={homeMonth}
+            narrowed={narrowed}
+            onReset={() => setFilters({ ...NO_FILTERS, month: shownMonth })}
           />
         </div>
       ) : null}
 
       {nothing ? (
         calendarOpen && shownMonth ? (
-          <NothingThisMonth
+          /* An empty month is said once, in the calendar's own agenda, with
+             its own way to clear the filters; this line is for a month that
+             has dates but none left below them (all gone by, say). */
+          !monthHasDates ? null : <NothingThisMonth
             label={selectedDay ? "that day" : monthKeyLabel(shownMonth)}
             onReset={() => setFilters({ ...NO_FILTERS, month: shownMonth })}
             narrowed={Boolean(filters.event || filters.type || filters.vibe || filters.venue || selectedDay)}
@@ -245,7 +297,14 @@ export function EventsBrowser({
       ) : formatted ? (
         <div className="mt-10 md:mt-12">
           {groups.map((group, i) => (
-            <FormatGroup key={group.experience.slug} group={group} first={i === 0} renderedAt={renderedAt} perPersonLabel={perPersonLabel} />
+            <FormatGroup
+              key={group.experience.slug}
+              group={group}
+              first={i === 0}
+              ground={TICKET_GROUNDS[i % TICKET_GROUNDS.length]}
+              renderedAt={renderedAt}
+              perPersonLabel={perPersonLabel}
+            />
           ))}
           {workshops.length === 0 ? (
             <Reveal className="mt-12 border-t border-line pt-10">
@@ -376,11 +435,14 @@ function formatGroups(
 function FormatGroup({
   group,
   first,
+  ground,
   renderedAt,
   perPersonLabel,
 }: {
   group: FormatGroupData;
   first: boolean;
+  /** This section's ticket colour — the next section takes the next one. */
+  ground: (typeof TICKET_GROUNDS)[number];
   renderedAt: number;
   perPersonLabel?: string;
 }) {
@@ -398,13 +460,15 @@ function FormatGroup({
             {experience.description ? <p className="mt-3 max-w-[34rem] text-body text-text/85">{experience.description}</p> : null}
           </div>
           <div className="col-span-12 md:col-span-4 md:pb-1 md:text-right">
-            <Link
-              href={`/events/${experience.slug}`}
-              className="inline-flex items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-text underline decoration-primary underline-offset-4"
-            >
+            {/*
+              THE PEEL-OFF SECONDARY BUTTON, at the client's ask — the site's
+              own second-rank action (see <PeelNote>), where this was an
+              underlined line of capitals that read as a footnote rather than
+              as the way into the experience's page.
+            */}
+            <PeelNote href={`/events/${experience.slug}`} className="min-h-[3rem] px-6">
               About {experience.name}
-              <span aria-hidden>&#8594;</span>
-            </Link>
+            </PeelNote>
           </div>
         </div>
       </Reveal>
@@ -413,7 +477,7 @@ function FormatGroup({
         <ul className="mt-7 grid gap-5 md:mt-8 md:grid-cols-2 lg:gap-6">
           {formats.map(({ type, dates }, i) => (
             <Reveal as="li" key={type.slug} delay={Math.min(i, 6) * 0.05} className="flex">
-              <TypeCard type={type} dates={dates} perPersonLabel={perPersonLabel} />
+              <TypeCard type={type} dates={dates} perPersonLabel={perPersonLabel} ground={ground} />
             </Reveal>
           ))}
         </ul>

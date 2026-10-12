@@ -1,0 +1,196 @@
+/*
+  ==========================================================================
+  The events calendar — see EventCalendar.tsx
+  ==========================================================================
+
+  What a utility class cannot say on its own lives here: the five format
+  tones, the paper the days are printed on, and the session tile. Everything
+  is mixed from the six brand tokens; nothing here is a new colour.
+*/
+
+/*
+  THE FORMAT TONES. Each format (a candle theme, a crochet level) takes one,
+  by its place in the studio's own order, so every sitting of one course is
+  the same colour all month and the shape of the month reads before a word
+  does. Two values per tone:
+
+    --tone        the strong mark: the phone's dot, the legend swatch and
+                  an agenda card's hover hairline. Never under text.
+    --tone-wash   the tile's ground. Light enough that Charcoal Slate on it
+                  clears AA comfortably — the lightest is ~11:1, the darkest
+                  (the sage) ~9:1 — so the colour is never what has to be read.
+
+  Six, because six formats is what the programme runs — two candle themes
+  and four crochet levels. A seventh wraps round to the first, and the tile
+  still carries its name, so a repeat costs only the at-a-glance reading,
+  never the information.
+*/
+.tone {
+  --tone: var(--color-brand-lilac);
+  --tone-wash: color-mix(in oklab, var(--color-brand-lilac) 15%, white);
+}
+
+.tone[data-tone="terracotta"] {
+  --tone: var(--color-brand-terracotta);
+  --tone-wash: color-mix(in oklab, var(--color-brand-terracotta) 18%, white);
+}
+
+.tone[data-tone="sage"] {
+  /* Light Sage is too pale to be a mark on its own; its edge is the sage
+     taken a third of the way to Charcoal, which is still unmistakably it. */
+  --tone: color-mix(in oklab, var(--color-brand-sage) 62%, var(--color-brand-charcoal));
+  --tone-wash: color-mix(in oklab, var(--color-brand-sage) 70%, white);
+}
+
+.tone[data-tone="lavender"] {
+  /* Cooler and stronger than the lilac's wash, which it otherwise sits too
+     close to: Soft Lavender is the bluer of the two purples, so it is let be
+     blue. */
+  --tone: color-mix(in oklab, var(--color-brand-lavender) 70%, var(--color-brand-lilac));
+  --tone-wash: color-mix(in oklab, var(--color-brand-lavender) 46%, white);
+}
+
+.tone[data-tone="rose"] {
+  /* The sixth: Warm Terracotta and Deep Lilac mixed half and half, a dusty
+     rose that is neither — so a sixth format is not a repeat of the first. */
+  --tone: color-mix(in oklab, var(--color-brand-terracotta) 50%, var(--color-brand-lilac));
+  --tone-wash: color-mix(in oklab, color-mix(in oklab, var(--color-brand-terracotta) 50%, var(--color-brand-lilac)) 16%, white);
+}
+
+.tone[data-tone="slate"] {
+  --tone: var(--color-brand-charcoal);
+  --tone-wash: color-mix(in oklab, var(--color-brand-cream) 55%, white);
+}
+
+/* ------------------------------------------------------------------------ */
+/* The plate                                                                */
+/* ------------------------------------------------------------------------ */
+
+/*
+  WARM PAPER ON A COOL GROUND. The plate is the page's near-white sage; the
+  days with something on are White Rock lifted toward white, so they sit on
+  the board as cards before they are read as numbers. A day with nothing on
+  keeps a faint wash of the same paper — enough that the weeks still read as
+  rows, not so much that an empty day competes with a full one.
+*/
+.board {
+  --paper: color-mix(in oklab, var(--color-brand-cream) 30%, white);
+  --paper-quiet: color-mix(in oklab, var(--color-brand-cream) 34%, transparent);
+}
+
+.day {
+  background: var(--paper);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-brand-charcoal) 7%, transparent);
+  transition:
+    box-shadow var(--duration-fast) var(--ease-soft),
+    background-color var(--duration-fast) var(--ease-soft);
+}
+
+/* Hover is a lilac hairline and nothing else — no drop shadow, at the
+   client's ask: the lift read as a dark smudge under every card. */
+.day:hover {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-brand-lilac) 55%, transparent);
+}
+
+.quiet {
+  background: var(--paper-quiet);
+}
+
+/*
+  CHOSEN. A Deep Lilac ring two pixels deep and a lilac wash, plus the filled
+  numeral the component draws — the ring and the fill are the shape of
+  "chosen", so it does not rest on the colour alone (and `aria-pressed` says
+  it to a screen reader).
+*/
+.day[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--color-brand-lilac) 9%, white);
+  box-shadow: 0 0 0 2px var(--color-brand-lilac);
+}
+
+/* Below `lg` a cell is too small for a ring to read as more than a border,
+   so a chosen day is filled instead — the same Deep Lilac, the numeral in
+   the light ink the component sets on it. */
+@media (width < 64rem) {
+  .day[aria-pressed="true"] {
+    background: var(--color-brand-lilac);
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* The session tile                                                         */
+/* ------------------------------------------------------------------------ */
+
+/*
+  Time over title, the title allowed three lines before it gives way to an
+  ellipsis — enough for every title the programme runs at the narrowest
+  board that draws tiles — the old chips were one line and cut "Crochet — Returning
+  Learners" to "Crochet — Retu…", which is the complaint this redesign
+  answers. The full title is always one tap away in the day's agenda, and in
+  the day's accessible name.
+*/
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  border-radius: 0.5rem;
+  /* The wash alone carries the format — the coloured edge on the left has
+     gone at the client's ask. */
+  background: var(--tone-wash);
+  padding: 0.375rem 0.5rem 0.4375rem;
+}
+
+.tileTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+/* The phone's reading of a tile: one dot in the format's mark. */
+.dot {
+  display: block;
+  height: 0.375rem;
+  width: 0.375rem;
+  border-radius: 999px;
+  background: var(--tone);
+}
+
+/* On a chosen day the phone cell is filled lilac, so its dots go to the
+   light ink: a lilac dot on a lilac fill is not there at all. */
+@media (width < 64rem) {
+  .day[aria-pressed="true"] .dot {
+    background: var(--color-on-primary);
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* The agenda                                                               */
+/* ------------------------------------------------------------------------ */
+
+.agendaItem {
+  background: var(--tone-wash);
+  transition: box-shadow var(--duration-fast) var(--ease-soft);
+}
+
+/* As on the board: a hairline in the format's own colour, no shadow. */
+.agendaItem:hover,
+.agendaItem:focus-within {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--tone) 60%, transparent);
+}
+
+/* The agenda scrolls inside the plate only where it stands beside the board;
+   everywhere else it is part of the page and scrolls with it. */
+.agendaScroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-brand-charcoal) 25%, transparent) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day,
+  .agendaItem {
+    transition: none;
+  }
+}

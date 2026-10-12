@@ -204,8 +204,8 @@ export function SeasonalExperiences() {
             <div className="col-span-12 lg:col-span-5">
               <Reveal>
                 <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-terracotta">
-                  <span aria-hidden className="block w-4 shrink-0">
-                    <DoodleMark name="dot" color={INK.terracotta} depth={4} />
+                  <span aria-hidden className="block w-5 shrink-0">
+                    <DoodleMark name="coral" color={INK.terracotta} depth={4} />
                   </span>
                   Limited time
                 </p>

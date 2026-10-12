@@ -376,8 +376,14 @@
   --text-action: 0.875rem;
   --text-action--line-height: 1.2;
 
-  /* Genuine fine print: helper text, field errors, legal, metadata. */
-  --text-fine: 0.875rem;
+  /* Genuine fine print: helper text, field errors, legal, metadata.
+
+     15px, raised from 14 at the client's ask — "very tiny texts, not readable
+     for everyone". This is the step every note under a title, every line of
+     metadata and every helper sentence is set in (over a hundred places), and
+     it is usually set at reduced strength as well, so it was the hardest text
+     on the site to read. Raising the token moves all of them at once. */
+  --text-fine: 0.9375rem;
   --text-fine--line-height: 1.6;
 
   /* Running text. The one number this whole exercise is about: 16px on a

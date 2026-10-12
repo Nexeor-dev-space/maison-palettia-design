@@ -379,7 +379,7 @@ export function Hero({
               {lines.map((line, i) => (
                 <Fragment key={i}>
                   {i > 0 ? " " : null}
-                  <span className={styles.line} style={delay(i * 90)}>
+                  <span data-ink className={styles.line} style={delay(i * 90)}>
                     <span className={cn(styles.lineInner, i === accentLine && styles.accent)}>{line}</span>
                   </span>
                 </Fragment>
@@ -402,6 +402,7 @@ export function Hero({
             */}
             {sub ? (
             <p
+              data-ink
               className={cn(
                 styles.reveal,
                 styles.sub,
@@ -425,6 +426,7 @@ export function Hero({
 
             {lead ? (
             <p
+              data-ink
               className={cn(
                 styles.reveal,
                 styles.sub,
