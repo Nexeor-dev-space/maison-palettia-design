@@ -58,10 +58,44 @@
   transition: transform 420ms var(--ease-editorial);
 }
 
-/* The format ticket: near-white, and a shorter stub measure for three lines. */
+/* The format ticket: Light Sage, and a shorter stub measure for three lines.
+
+   THE GROUND IS THE BRAND'S SAGE, at the client's ask (#D1E7BE). It was
+   `--color-surface`, which is that sage at 30% over white — a near-white the
+   ticket shared with the page it sat on, so the card read as a cut-out rather
+   than as a piece of card laid down. At full strength the ticket separates
+   from the Cream ground behind it and the perforation reads as a tear.
+
+   Named, not the literal: #D1E7BE IS `--color-sage`. Charcoal on it measures
+   9.07:1, so every line on the card clears AA comfortably. */
 .theme {
-  --ticket-ground: var(--color-surface);
+  --ticket-ground: var(--color-sage);
   --stub: 6.75rem;
+}
+
+/*
+  ONE COLOUR PER SECTION, A NEW ONE FOR THE NEXT. Every format ticket used to
+  be Light Sage, so Candle Making and Crocheting read as one run of identical
+  cards — and the programme is only going to grow. Now each experience's
+  tickets share one ground and the next experience takes the next: Light
+  Sage, Soft Lavender, Warm Terracotta, Deep Lilac, then round again. The
+  caller (<EventsBrowser>) picks by the section's place in the listing.
+
+  ALL FOUR ARE LIGHT ENOUGH FOR THE CHARCOAL ON THEM. Sage is the brand's
+  own #D1E7BE (9.07:1); the other three are their colour mixed toward White
+  Rock or white until Charcoal clears AA by a wide margin (the darkest, the
+  terracotta, ~7:1). None is Cream, which is the page behind them.
+*/
+.theme[data-ground="lavender"] {
+  --ticket-ground: var(--color-lavender-soft);
+}
+
+.theme[data-ground="terracotta"] {
+  --ticket-ground: color-mix(in oklab, var(--color-brand-terracotta) 38%, var(--color-brand-cream));
+}
+
+.theme[data-ground="lilac"] {
+  --ticket-ground: color-mix(in oklab, var(--color-brand-lilac) 26%, white);
 }
 
 /* A touch of lift on reach — the same pitch the format cards press to. */
@@ -124,6 +158,81 @@
   }
 
   .stub::before {
+    left: 0;
+    right: auto;
+    top: calc(var(--notch) + 0.35rem);
+    bottom: calc(var(--notch) + 0.35rem);
+    border-top: 0;
+    border-left: 1.5px dashed var(--color-line);
+  }
+}
+
+/*
+  ==========================================================================
+  THE DATED TICKET, TWO TO A ROW — <SessionTicket> on a format's page
+  ==========================================================================
+
+  At the client's ask the dates sit two to a row now: a full-width ticket
+  read as a long strip, not a ticket. Half the width changes which way up it
+  wants to be. From `md` to `xl` a half-width ticket is too narrow for a stub
+  on its end, so it stands upright — the stub torn off its FOOT, the notches
+  on its sides — the way a ticket in the hand reads. From `xl` there is room
+  again and the stub goes back to the end, at a slimmer measure than the
+  full-width ticket's, because it only has to hold "6 spots available" and
+  the Book button stacked.
+
+  The base (phone) rules above are already the upright ticket, so `.session`
+  only has to undo the `md` switch until `xl` and then make its own.
+*/
+@media (min-width: 48rem) {
+  .session {
+    --stub: 4.75rem;
+    flex-direction: column;
+    -webkit-mask-image:
+      radial-gradient(circle at 0 calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+      radial-gradient(circle at 100% calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+    mask-image:
+      radial-gradient(circle at 0 calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+      radial-gradient(circle at 100% calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+  }
+
+  .session .stub {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--stub);
+  }
+
+  .session .stub::before {
+    left: calc(var(--notch) + 0.35rem);
+    right: calc(var(--notch) + 0.35rem);
+    top: 0;
+    bottom: auto;
+    border-left: 0;
+    border-top: 1.5px dashed var(--color-line);
+  }
+}
+
+@media (min-width: 80rem) {
+  .session {
+    --stub: 12rem;
+    flex-direction: row;
+    -webkit-mask-image:
+      radial-gradient(circle at calc(100% - var(--stub)) 0, transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+      radial-gradient(circle at calc(100% - var(--stub)) 100%, transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+    mask-image:
+      radial-gradient(circle at calc(100% - var(--stub)) 0, transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
+      radial-gradient(circle at calc(100% - var(--stub)) 100%, transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
+  }
+
+  .session .stub {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  .session .stub::before {
     left: 0;
     right: auto;
     top: calc(var(--notch) + 0.35rem);

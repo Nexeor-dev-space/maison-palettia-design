@@ -1,7 +1,50 @@
+import { useId } from "react";
+
 import styles from "@/components/sections/hero/Hero.module.css";
-import { LOGO_BOX, LOGO_DOTS, LOGO_GLYPHS } from "@/components/sections/hero/logoArt";
+import { LOGO_BOX, LOGO_DOTS, LOGO_GLYPHS, PEN_MOVES } from "@/components/sections/hero/logoArt";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
+
+/*
+  THE PEN'S PACE. A hand does not write every letter in the same time: it
+  spends longer on the M than on an i. So the writing is paced by length —
+  every stroke gets the share of the ink time that its length is of the
+  whole — with a short hold at each pen lift and a dab's worth for each dot
+  on an i. These are the fixed costs, in milliseconds; they are tighter than
+  the original opening's (28 / 30 / 60), because the whole name now has to
+  be written in under a second rather than in two and a half.
+*/
+const LIFT_MS = 14;
+const DAB_MS = 24;
+const MIN_STROKE_MS = 10;
+const LEAD_MS = 40;
+
+/**
+ * When every pen stroke starts and how long it takes, for the letters to be
+ * written in `writeMs` from the first frame — and when each letter is done,
+ * which is when its whole outline joins the mask (see `.penCover`).
+ */
+function schedule(writeMs: number) {
+  const strokes = PEN_MOVES.filter((m) => !m.dab);
+  const totalLength = strokes.reduce((sum, m) => sum + m.length, 0);
+  const lifts = PEN_MOVES.filter((m, i) => i > 0 && m.glyph !== PEN_MOVES[i - 1].glyph).length;
+  const dabs = PEN_MOVES.length - strokes.length;
+  const inkMs = Math.max(200, writeMs - LEAD_MS - lifts * LIFT_MS - dabs * DAB_MS);
+  const perUnit = inkMs / totalLength;
+
+  const timed: { start: number; duration: number }[] = [];
+  const glyphEnd = new Map<number, number>();
+  let clock = LEAD_MS;
+  for (let i = 0; i < PEN_MOVES.length; i++) {
+    const move = PEN_MOVES[i];
+    if (i > 0 && move.glyph !== PEN_MOVES[i - 1].glyph) clock += LIFT_MS;
+    const duration = move.dab ? DAB_MS : Math.max(MIN_STROKE_MS, move.length * perUnit);
+    timed.push({ start: clock, duration });
+    clock += duration;
+    glyphEnd.set(move.glyph, clock);
+  }
+  return { timed, glyphEnd, lettersDone: clock };
+}
 
 /**
  * Where the dots come from: the middle of the palette, inside the bowl of the P.
@@ -45,37 +88,49 @@ const DOT_ORDER: readonly number[] = LOGO_DOTS.map((dot, i) => ({ i, cx: dot.cx,
   }, []);
 
 /**
- * The mark, and the six paint wells that fill its "P".
+ * The mark, written letter by letter, then the six paint wells that fill its "P".
  *
  * ==========================================================================
- * TWO BEATS, AND THE ORDER OF THEM IS THE CLIENT'S
+ * THE PEN IS BACK, AT THE CLIENT'S ASK
  * ==========================================================================
  *
- * The lettering fades up first (frame 1 of the storyboard: "the background is
- * clean, and the Maison Palettia logo fades in at the centre"), and then the
- * dots arrive one at a time — each thrown out from the middle of the palette
- * rather than appearing where it lands. Only once they are all in does the
- * ring of icons burst out from behind the mark.
+ * The opening used to write the mark stroke by stroke, and that was replaced
+ * by a fade because it took two and a half seconds on its own. The client has
+ * asked for the writing back. It returns as it was — the same pen paths, the
+ * same masking, the same artwork — only quicker: the whole name in `writeMs`
+ * (under a second), so the entrance grows by about two thirds of a second
+ * rather than by the two and a half it used to cost.
  *
- * The dots were part of the original opening and were lost when the writing
- * was replaced by a fade; the client has asked for them back, and for the
- * doodles to follow them rather than run alongside. So the mark is two groups
- * now — `logoInk` for the glyphs, which the container fades, and the wells,
- * which animate themselves on their own delays.
+ * WHAT IS ON SCREEN IS STILL THE FILE. The lettering is the outline from the
+ * client's Illustrator artwork, painted exactly as the file paints it (see
+ * ./logoArt.ts) — never redrawn, retyped or set in a font. The writing is a
+ * MASK over it: for every letter, the path a pen would take (`PEN_MOVES`) is
+ * stroked in white inside the mask and drawn along its length, so the real
+ * outline is uncovered in writing order, M-a-i-s-o-n then P-a-l-e-t-t-i-a.
+ * When a letter's last stroke finishes, its whole outline joins the mask
+ * (`.penCover`), so no hairline the pen's centre line missed is left out.
  *
- * WHAT IS NOT BACK. The pen. The letters are not written stroke by stroke any
- * more; that was two and a half seconds on its own and the entrance is under
- * two. Only the dots return.
+ * EVERY PEN IS CLIPPED TO ITS OWN LETTER. In a script face the letters
+ * interleave — the M's box runs into the P's bowl — and a pen as wide as the
+ * M's stroke would uncover a hook of the P while "Maison" was still being
+ * written. Clipping each letter's pens to that letter's outline makes it
+ * impossible: a pen can only ever reveal the glyph it belongs to.
  *
- * WHAT IS ON SCREEN IS STILL THE FILE. The lettering and the wells are the
- * outlines from the client's Illustrator artwork, painted exactly as the file
- * paints them (see ./logoArt.ts) — never redrawn, retyped or approximated.
+ * IT RUNS ON THE `play` STATE, FROM THE FIRST FRAME. The script in <head>
+ * (./intro.ts) sets `play` before the first paint, so the writing starts with
+ * the page rather than waiting for React; <HeroIntro> starts its own clock
+ * only after that paint, and the dots follow the writing on that clock. The
+ * writing therefore always finishes before the dots begin, however long the
+ * page takes to hydrate. Nothing here re-renders during it: the schedule is
+ * pure, and the animation is CSS on stable markup.
  *
- * `PEN_MOVES` in ./logoArt.ts still has no consumer. It is left in place: it
- * is a derivation of the client's own artwork that took real work to trace,
- * and putting the writing back is an import and a mask rather than a re-trace.
+ * Then the dots, as before: thrown out one at a time from the middle of the
+ * palette, top well first — see DOT_ORIGIN and DOT_ORDER.
  */
-export function LogoReveal({ dotStepMs }: { dotStepMs: number }) {
+export function LogoReveal({ writeMs, dotStepMs }: { writeMs: number; dotStepMs: number }) {
+  const maskId = useId();
+  const { timed, glyphEnd, lettersDone } = schedule(writeMs);
+
   return (
     <svg
       className={styles.logoArt}
@@ -85,9 +140,59 @@ export function LogoReveal({ dotStepMs }: { dotStepMs: number }) {
       aria-hidden
       focusable="false"
     >
+      <defs>
+        {/* One clip per letter — see "every pen is clipped to its own letter" above. */}
+        {LOGO_GLYPHS.map((glyph, i) => (
+          <clipPath key={`clip-${i}`} id={`${maskId}-g${i}`} clipPathUnits="userSpaceOnUse">
+            <path d={glyph.d} fillRule={glyph.evenodd ? "evenodd" : "nonzero"} />
+          </clipPath>
+        ))}
+
+        <mask
+          id={maskId}
+          maskUnits="userSpaceOnUse"
+          maskContentUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width={LOGO_BOX.width}
+          height={LOGO_BOX.height}
+        >
+          {LOGO_GLYPHS.map((glyph, gi) => (
+            <g key={`pens-${gi}`} clipPath={`url(#${maskId}-g${gi})`}>
+              {PEN_MOVES.map((move, i) =>
+                move.glyph !== gi ? null : (
+                  <path
+                    key={i}
+                    d={move.d}
+                    className={styles.pen}
+                    strokeWidth={move.width}
+                    style={
+                      {
+                        "--len": (move.length + 1).toFixed(2),
+                        "--delay": `${Math.round(timed[i].start)}ms`,
+                        "--dur": `${Math.round(timed[i].duration)}ms`,
+                      } as Vars
+                    }
+                  />
+                ),
+              )}
+            </g>
+          ))}
+          {LOGO_GLYPHS.map((glyph, i) => (
+            <path
+              key={glyph.name + i}
+              d={glyph.d}
+              fillRule={glyph.evenodd ? "evenodd" : "nonzero"}
+              className={styles.penCover}
+              style={{ "--delay": `${Math.round(glyphEnd.get(i) ?? lettersDone)}ms` } as Vars}
+            />
+          ))}
+        </mask>
+      </defs>
+
       {/* The lettering: fill and 0.5-unit stroke in the one colour, as the
-          file has it. `.introLogo` fades this up; nothing here animates. */}
-      <g className={styles.logoInk}>
+          file has it — uncovered by the mask above, never altered. */}
+      <g mask={`url(#${maskId})`} className={styles.logoInk}>
         {LOGO_GLYPHS.map((glyph, i) => (
           <path key={glyph.name + i} d={glyph.d} fillRule={glyph.evenodd ? "evenodd" : "nonzero"} />
         ))}

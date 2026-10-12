@@ -14,6 +14,15 @@ export const transitions = {
   base: { duration: 0.6, ease: EASE_EDITORIAL },
   slow: { duration: 0.9, ease: EASE_EDITORIAL },
   reveal: { duration: 1.2, ease: EASE_EDITORIAL },
+  /*
+    THE SCROLL REVEAL'S PACE — the client asked for the lusion.co register:
+    unhurried, travelling far enough to be seen, and still easing in at the
+    end rather than snapping into place. EASE_EDITORIAL is quintic and spends
+    almost all of its travel in the first half, which is right for a hover
+    and wrong for a second-long rise; this curve keeps moving visibly to the
+    end. <AutoReveal> uses the same curve, so the two read as one system.
+  */
+  rise: { duration: 1.0, ease: [0.22, 0.8, 0.28, 1] },
 } satisfies Record<string, Transition>;
 
 /**
@@ -47,13 +56,19 @@ type Delay = number | undefined;
   Writing `delay` unconditionally is what breaks it.
   ========================================================================== */
 
-/** Rises gently into place. The default for text and content blocks. */
+/**
+ * Rises into place. The default for text and content blocks — and so the
+ * reveal most of the site uses. 44px and a whisper of scale on the `rise`
+ * pace, at the client's ask for scroll reveals in the lusion.co register; it
+ * was 24px over 0.6s, which on most screens read as a fade with a twitch.
+ */
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 44, scale: 0.985 },
   visible: (delay: Delay = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { ...transitions.base, ...(delay ? { delay } : {}) },
+    scale: 1,
+    transition: { ...transitions.rise, ...(delay ? { delay } : {}) },
   }),
 };
 

@@ -18,6 +18,12 @@
  * restore when reload is pressed, from the page being left, so it has to be
  * off already by then — and hands it back when the homepage unmounts.
  *
+ * EVERY OTHER PAGE gets `data-loader="write"` instead (unless the reader has
+ * asked for reduced motion): the same opening, played by <SiteLoader> from
+ * the layout, on any refresh or first load of any page. A separate attribute
+ * rather than `data-intro`, because every `data-intro` rule belongs to the
+ * homepage's hero and its collage.
+ *
  * In <head>, from the root layout, rather than inside the hero: there it runs
  * before the body is parsed, and the layout is never rendered again on the
  * client, so React never creates the script in the browser — which it warns
@@ -28,4 +34,4 @@
  * client module reaches a server component as a client reference, not as its
  * value.
  */
-export const INTRO_SCRIPT = `(function(){if(location.pathname!=="/")return;var d=document.documentElement;try{if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){d.setAttribute("data-intro","done");return}if("scrollRestoration" in history)history.scrollRestoration="manual";d.setAttribute("data-intro","play")}catch(e){d.setAttribute("data-intro","skip")}})();`;
+export const INTRO_SCRIPT = `(function(){var d=document.documentElement;if(location.pathname!=="/"){try{if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)d.setAttribute("data-loader","write")}catch(e){}return}try{if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){d.setAttribute("data-intro","done");return}if("scrollRestoration" in history)history.scrollRestoration="manual";d.setAttribute("data-intro","play")}catch(e){d.setAttribute("data-intro","skip")}})();`;

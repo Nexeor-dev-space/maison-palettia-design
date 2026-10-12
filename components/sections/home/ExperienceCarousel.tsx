@@ -243,7 +243,7 @@ export function ExperienceCarousel({
               "disabled:cursor-default disabled:opacity-30 disabled:hover:bg-primary",
             )}
           >
-            <span className="text-lg leading-none">{direction === -1 ? "←" : "→"}</span>
+            <span className="text-body leading-none">{direction === -1 ? "←" : "→"}</span>
           </button>
         ))}
       </div>

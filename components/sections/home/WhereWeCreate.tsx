@@ -356,8 +356,8 @@ export async function WhereWeCreate({
               <Reveal delay={0.1}>
                 <div className="plate mt-5 rounded-[1.25rem] bg-sage px-6 py-6 md:px-7">
                   <h3 className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text">
-                    <span aria-hidden className="block w-4 shrink-0">
-                      <DoodleMark name="dot" color={INK.lilac} />
+                    <span aria-hidden className="block w-5 shrink-0">
+                      <DoodleMark name="coral" color={INK.lilac} />
                     </span>
                     {findUsNowLabel}
                   </h3>

@@ -1,0 +1,102 @@
+/*
+  ==========================================================================
+  The music button — see SoundToggle.tsx
+  ==========================================================================
+
+  A wave that flows while the music plays and lies down flat when it is
+  paused: the state is the drawing, the way the reference site's sound button
+  works, so there is no play/pause glyph to learn.
+
+  DRESSED LIKE THE SEARCH FIELD BESIDE IT. The same light ground, the same
+  1.5px Deep Lilac hairline, the same 44px height and a hand-cut corner set
+  rather than a perfect circle — so the two read as one group of utilities
+  on the bar, not as a stock icon dropped next to a designed field.
+*/
+.toggle {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  height: 2.75rem;
+  width: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 54% 46% 52% 48% / 48% 54% 46% 52%;
+  background: color-mix(in oklab, var(--color-surface) 70%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--color-primary) 55%, transparent);
+  color: var(--color-primary);
+  transition:
+    background-color var(--duration-fast) var(--ease-soft),
+    box-shadow var(--duration-fast) var(--ease-soft);
+}
+
+.toggle:hover,
+.toggle:focus-visible {
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1.5px var(--color-primary);
+}
+
+/* The wave fades out at both ends rather than stopping square — a line drawn
+   by hand, not a clipped strip. */
+.wave {
+  display: block;
+  height: 1.25rem;
+  width: 1.75rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+}
+
+/*
+  THE HEIGHT IS THE STATE. Paused, the wave is squashed almost flat — a
+  line with the faintest ripple left in it, so it still reads as the same
+  object. Playing, it stands up to full height. The change is eased, so
+  pressing the button visibly lifts the line into a wave and lays it down
+  again.
+*/
+.amp {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transform: scaleY(0.08);
+  transition: transform 520ms var(--ease-editorial);
+}
+
+.toggle[aria-pressed="true"] .amp {
+  transform: scaleY(1);
+}
+
+/* The flow: one period of the wave slid along, forever, while it plays. */
+.flow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  /* The squash flattens the wave, not the pen: without this the paused line
+     was scaled to a tenth of its thickness and all but vanished. */
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: music-flow 1.15s linear infinite;
+  animation-play-state: paused;
+}
+
+.toggle[aria-pressed="true"] .flow {
+  animation-play-state: running;
+}
+
+@keyframes music-flow {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-16px);
+  }
+}
+
+/* Less motion: the wave still stands up and lies down, so the state is still
+   drawn — it just does not flow. */
+@media (prefers-reduced-motion: reduce) {
+  .flow {
+    animation: none;
+  }
+  .amp {
+    transition-duration: 1ms;
+  }
+}

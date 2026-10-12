@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { NAV_SIZE, NAV_UTILITY_SIZE, NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
+import { SoundToggle } from "@/components/layout/SoundToggle";
 import { AboutMenu } from "@/components/layout/AboutMenu";
 import { PrivateEventsMenu } from "@/components/layout/PrivateEventsMenu";
 import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
@@ -747,6 +748,13 @@ export function HeaderBar({
             away from it.
           */}
           <BasketLink />
+
+          {/*
+            The background music's switch, beside Search and dressed like
+            it — a wave that flows while the music plays and lies flat while
+            it is paused. See <SoundToggle> and lib/backgroundMusic.ts.
+          */}
+          <SoundToggle />
 
           {/* Search leads the utilities: it is the fastest route to a date on
               the whole site, and the only control here that does something

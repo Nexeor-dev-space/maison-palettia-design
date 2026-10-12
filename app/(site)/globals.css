@@ -376,8 +376,14 @@
   --text-action: 0.875rem;
   --text-action--line-height: 1.2;
 
-  /* Genuine fine print: helper text, field errors, legal, metadata. */
-  --text-fine: 0.875rem;
+  /* Genuine fine print: helper text, field errors, legal, metadata.
+
+     15px, raised from 14 at the client's ask — "very tiny texts, not readable
+     for everyone". This is the step every note under a title, every line of
+     metadata and every helper sentence is set in (over a hundred places), and
+     it is usually set at reduced strength as well, so it was the hardest text
+     on the site to read. Raising the token moves all of them at once. */
+  --text-fine: 0.9375rem;
   --text-fine--line-height: 1.6;
 
   /* Running text. The one number this whole exercise is about: 16px on a
@@ -385,6 +391,20 @@
   --text-body: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
   --text-body--line-height: 1.75;
   --text-body--font-weight: 450;
+
+  /* The desktop bar's QUIETER destinations — search, about, contact — held a
+     step under the four primary ones, which wear `--text-body`.
+
+     It is `--text-body`'s own clamp FLOOR, fixed. The de-emphasis the client
+     asked for is a difference that should only appear where there is room for
+     a hierarchy: below ~860px the two are the same 17px and the bar reads as
+     one row of equals, and from there up `body` grows to 19px while this
+     stays put. A second clamp would have been a second scale to keep in step.
+
+     A token rather than the literal it was, so the bar and anything else that
+     wants that rung agree by name. See NAV_UTILITY_SIZE in <NavLabel>. */
+  --text-nav-utility: 1.0625rem;
+  --text-nav-utility--line-height: 1.75;
 
   /* Section intros and standfirsts — the paragraph that carries a section. */
   --text-lead: clamp(1.25rem, 1.12rem + 0.55vw, 1.4375rem);

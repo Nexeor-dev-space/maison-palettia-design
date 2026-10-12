@@ -59,11 +59,28 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   version of it: the wells are stepped at 62ms rather than the 200 the old
   opening used, which would have cost a second on its own.
 */
-const DOTS_AT = 180; // the mark is up; the wells start filling
+/*
+  AND THE MARK IS WRITTEN AGAIN, letter by letter, at the client's ask — see
+  <LogoReveal>. The pen runs from the first frame on the `play` state and
+  takes WRITE_MS; everything after it moves back by the same amount, so the
+  dots still follow a finished mark and the icons still follow the dots.
+
+  WRITE_MS IS KEPT SHORT ON PURPOSE. The original writing took 2.5 seconds
+  and was cut for it; 900ms is quick enough to read as a confident hand and
+  still lets every letter be seen arriving. The whole entrance now composes
+  by about 2.55s, against 1.88 with the fade — the cost of the writing, and
+  no more. The dots start a hair before the last letter's outline settles,
+  so there is no dead beat between the two.
+*/
+const WRITE_MS = 900; // the pen writes "Maison Palettia", first stroke to last
+const DOTS_AT = WRITE_MS - 40;
+
+/** Fired on the frame whenever its foot is refitted — see `refit` below. */
+const REFIT_EVENT = "hero-refit"; // the mark is written; the wells start filling
 const DOT_STEP = 62; // one well after another — see `.pDot` in Hero.module.css
-const BURST_AT = 560; // frame 2: the icons leave the logo
-const LIFT_AT = 1160; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 720; // frame 6: ... and the page is composed by 1880ms
+const BURST_AT = DOTS_AT + 380; // frame 2: the icons leave the logo
+const LIFT_AT = BURST_AT + 600; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 720; // frame 6: ... and the page is composed by ~2560ms
 
 /*
   One icon after another on the way out, and again on the way back.
@@ -361,7 +378,18 @@ export function HeroIntro() {
     const cue = hero?.querySelector<HTMLElement>("[data-hero-cue]");
     if (!frame || !copy || !cue) return;
 
-    const refit = () => fitFoot(frame, copy, cue);
+    /*
+      Every refit is announced on the frame, because the scroll effect below
+      measures the words' landing and each line's ink timing AGAINST the foot.
+      Without this, a refit the resize listener does not see — the observer
+      below, a late font — left both measured against the old foot: the words
+      landed in the wrong place and their ink switched over the wrong ground,
+      which on some phones was the flicker the client heard about.
+    */
+    const refit = () => {
+      fitFoot(frame, copy, cue);
+      frame.dispatchEvent(new Event(REFIT_EVENT));
+    };
     refit();
     // The tagline's height changes when the script face arrives.
     let cancelled = false;
@@ -798,7 +826,47 @@ export function HeroIntro() {
       */
       const lowest = frame.offsetHeight - navBand() - footPad() - copy.offsetHeight;
       const landing = Math.min(frame.offsetHeight * COPY_LANDING - copy.offsetHeight / 2, lowest);
-      frame.style.setProperty("--copy-shift", `${Math.round(landing - copy.offsetTop)}px`);
+      const shift = landing - copy.offsetTop;
+      frame.style.setProperty("--copy-shift", `${Math.round(shift)}px`);
+
+      /*
+        EACH LINE TURNS LIGHT AS THE PHOTOGRAPH PASSES BEHIND IT — the fix for
+        the glitch reported on phones.
+
+        The words' ink used to cross from Charcoal to White Rock on one pace
+        for the whole block, done by 30% of the opening. On a desktop the
+        block is short and the picture is over all of it by then. On a phone
+        the block is about 400px tall and the picture's foot is still climbing
+        through it: the lower lines turned White Rock while they were still
+        on the Light Sage below the picture, all but vanished, and came back
+        as the picture reached them — a flicker every visitor scrolled through.
+
+        So each line gets its own window: the progress at which the picture's
+        foot reaches its top, and the progress at which it clears its bottom.
+        The foot sits `--wb * (1 - p)` above the frame's bottom and the line
+        rises by `p * shift`, so the foot meets a line's edge at
+          p = (edge − frameHeight + wb) / (wb − shift).
+        Layout positions (offsetTop) rather than rects, so the answer does not
+        depend on how far the page has scrolled when this runs.
+      */
+      const wb = parseFloat(frame.style.getPropertyValue("--wb")) || 0;
+      const sweep = wb - shift;
+      for (const el of copy.querySelectorAll<HTMLElement>("[data-ink]")) {
+        if (!(sweep > 0)) {
+          el.style.removeProperty("--ink-at");
+          el.style.removeProperty("--ink-rate");
+          continue;
+        }
+        let top = el.offsetTop;
+        for (let node = el.offsetParent as HTMLElement | null; node && node !== copy; node = node.offsetParent as HTMLElement | null) {
+          top += node.offsetTop;
+        }
+        const at = (edge: number) => Math.min(1, Math.max(0, (copy.offsetTop + edge - frame.offsetHeight + wb) / sweep));
+        const from = at(top);
+        const to = at(top + el.offsetHeight);
+        el.style.setProperty("--ink-at", from.toFixed(4));
+        el.style.setProperty("--ink-rate", (1 / Math.max(0.04, to - from)).toFixed(3));
+      }
     };
 
     /*
@@ -862,10 +930,13 @@ export function HeroIntro() {
     });
     const stopScroll = onScrollFrame(onScroll);
     window.addEventListener("resize", onResize);
+    // The foot was refitted (see REFIT_EVENT): measure against the new one.
+    frame.addEventListener(REFIT_EVENT, onResize);
     return () => {
       cancelled = true;
       stopScroll();
       window.removeEventListener("resize", onResize);
+      frame.removeEventListener(REFIT_EVENT, onResize);
       actions.inert = false;
       cue.inert = false;
     };
@@ -912,7 +983,7 @@ export function HeroIntro() {
         file, so the two meet exactly.
       */}
       <div ref={logoRef} aria-hidden className={styles.introLogo}>
-        <LogoReveal dotStepMs={DOT_STEP} />
+        <LogoReveal writeMs={WRITE_MS} dotStepMs={DOT_STEP} />
       </div>
     </>
   );

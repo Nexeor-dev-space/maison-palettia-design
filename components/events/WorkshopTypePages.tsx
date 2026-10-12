@@ -3,6 +3,8 @@ import Link from "next/link";
 import { eventCopy } from "@/components/blocks/templateCopy";
 import { Reveal } from "@/components/motion/Reveal";
 import { PartnerPlate } from "@/components/sections/LocationMap";
+import { INK } from "@/components/sections/hero/composition";
+import { DoodleMark } from "@/components/ui/DoodleMark";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { SessionTicket } from "@/components/events/SessionTicket";
@@ -105,7 +107,7 @@ function Header({
           </figure>
         ) : null}
 
-        <div className={cn("col-span-12", image ? "lg:col-span-5" : "lg:col-span-8")}>
+        <div className={cn("col-span-12", image ? "lg:col-span-5 lg:flex lg:flex-col lg:self-stretch" : "lg:col-span-8")}>
           <Reveal>
             <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text/75">
               <span aria-hidden className="h-px w-6 shrink-0 bg-terracotta" />
@@ -141,45 +143,78 @@ function Header({
           ) : null}
 
           {children}
+
+          {/*
+            THE FOOT OF THE COLUMN, AND THREE OF THE BRAND'S CUT-OUTS IN IT —
+            the client's ask. Beside a 3:2 photograph the words end about half
+            way down, and the rest of the column was empty sage next to a full
+            picture. The column now stretches to the photograph's height and
+            this sits at its foot (`mt-auto`), IN THE FLOW rather than laid
+            over it, so on a page with more words it simply moves down and can
+            never cover a line. Desktop only: below `lg` the photograph and the
+            words stack, and there is no gap to fill.
+          */}
+          {image ? (
+            <div aria-hidden className="pointer-events-none relative mt-10 hidden h-36 w-full max-w-[22rem] self-end lg:mt-auto lg:block">
+              <span className="absolute bottom-6 right-[46%] block w-20 rotate-[-14deg]">
+                <DoodleMark name="coral" color={INK.lavender} treatment="stamp" delay={120} />
+              </span>
+              <span className="absolute right-[18%] top-0 block w-16 rotate-[10deg]">
+                <DoodleMark name="splash" color={INK.terracotta} treatment="stamp" delay={260} />
+              </span>
+              <span className="absolute bottom-0 right-0 block w-14 rotate-[-6deg]">
+                <DoodleMark name="starburst" color={INK.lilac} treatment="stamp" delay={400} />
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
   );
 }
 
-/** The long copy, when there is any. */
-function About({ paragraphs }: { paragraphs: readonly string[] }) {
-  if (paragraphs.length === 0) return null;
+/**
+ * The long copy and where it happens, SIDE BY SIDE, at the client's ask.
+ *
+ * They used to stack: About as a single column of text with the right half of
+ * the page empty beside it, then a rule, then the location heading and its
+ * plate at full width. Two short things each leaving half the page blank. Now
+ * they share one row from `lg` — About on the left, the location on the right
+ * — each under its own heading in the page's script, so the two columns read
+ * as a pair. Below `lg` they stack in the same order. Either can be missing:
+ * with no long copy the location takes the row on its own.
+ */
+function AboutAndWhere({ paragraphs, partner }: { paragraphs: readonly string[]; partner?: PartnerRecord }) {
+  const about = paragraphs.length > 0;
+  if (!about && !partner) return null;
   return (
-    <Reveal>
-      <section aria-labelledby="about" className="mt-16 max-w-[40rem] md:mt-20">
-        <h2 id="about" className={TERM}>
-          About
-        </h2>
-        <div className="mt-5 space-y-5 text-body text-text/85">
-          {paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
-      </section>
-    </Reveal>
-  );
-}
-
-/** Where it happens — the studio's one current centre, as the session page prints it. */
-function Where({ partner }: { partner?: PartnerRecord }) {
-  if (!partner) return null;
-  return (
-    <section aria-labelledby="event-location" className="mt-20 md:mt-28">
-      <div className="border-t border-line pt-10 md:pt-14">
+    <div className={cn("mt-16 grid gap-14 border-t border-line pt-10 md:mt-20 md:pt-14", about && partner && "lg:grid-cols-2 lg:gap-16")}>
+      {about ? (
         <Reveal>
-          <h2 id="event-location" className="heading-script pb-[0.3em] text-script-compact text-text">
-            <ScriptTitle>{eventCopy().locationHeadingScheduled}</ScriptTitle>
-          </h2>
+          <section aria-labelledby="about">
+            <h2 id="about" className="heading-script pb-[0.3em] text-script-compact text-text">
+              <ScriptTitle>About</ScriptTitle>
+            </h2>
+            <div className="mt-6 max-w-[40rem] space-y-5 text-body text-text/85 md:mt-8">
+              {paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+          </section>
         </Reveal>
-        <PartnerPlate partner={partner} className="mt-8 md:mt-10" line={partner.eventDescriptor ?? partner.descriptor} />
-      </div>
-    </section>
+      ) : null}
+
+      {partner ? (
+        <section aria-labelledby="event-location">
+          <Reveal>
+            <h2 id="event-location" className="heading-script pb-[0.3em] text-script-compact text-text">
+              <ScriptTitle>{eventCopy().locationHeadingScheduled}</ScriptTitle>
+            </h2>
+          </Reveal>
+          <PartnerPlate partner={partner} className="mt-6 md:mt-8" line={partner.eventDescriptor ?? partner.descriptor} />
+        </section>
+      ) : null}
+    </div>
   );
 }
 
@@ -217,8 +252,7 @@ export function ChoiceBody({ detail, partner }: { detail: ChoiceEvent; partner?:
       </section>
 
       <Progression types={types} />
-      <About paragraphs={eventAbout(detail)} />
-      <Where partner={partner} />
+      <AboutAndWhere paragraphs={eventAbout(detail)} partner={partner} />
     </>
   );
 }
@@ -276,9 +310,9 @@ export function TypeBody({
             and its Book on a stub, so the list reads as the things it is
             selling.
           */
-          <ol className="mt-6 grid gap-4 md:mt-8 md:gap-5">
+          <ol className="mt-6 grid gap-4 md:mt-8 md:grid-cols-2 md:gap-5 xl:gap-6">
             {sessions.map((session, i) => (
-              <Reveal as="li" key={session.slug} delay={Math.min(i, 6) * 0.04}>
+              <Reveal as="li" key={session.slug} delay={Math.min(i, 6) * 0.04} className="flex">
                 <SessionTicket session={session} renderedAt={renderedAt} priceTerm={eventCopy().priceTerm} perPersonLabel={eventCopy().perPersonLabel} />
               </Reveal>
             ))}
@@ -287,8 +321,7 @@ export function TypeBody({
       </section>
 
       <Progression types={siblings} currentSlug={type.slug} />
-      <About paragraphs={eventAbout(detail)} />
-      <Where partner={partner} />
+      <AboutAndWhere paragraphs={eventAbout(detail)} partner={partner} />
     </>
   );
 }

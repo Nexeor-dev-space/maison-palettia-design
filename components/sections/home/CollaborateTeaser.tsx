@@ -163,8 +163,8 @@ export function CollaborateTeaser() {
                   colour moves to the mark beside it, which is decorative and
                   `aria-hidden` and owes no ratio.
                 */}
-                <span aria-hidden className="block w-4 shrink-0">
-                  <DoodleMark name="dot" color={INK.lilac} />
+                <span aria-hidden className="block w-5 shrink-0">
+                  <DoodleMark name="coral" color={INK.lilac} />
                 </span>
                 Collaborative approach
               </p>

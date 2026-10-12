@@ -764,8 +764,8 @@ export function Apart({
                 label is not asked to be lilac on lavender.
               */}
               <p className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text">
-                <span aria-hidden className="block w-4 shrink-0">
-                  <DoodleMark name="dot" color={INK.lilac} />
+                <span aria-hidden className="block w-5 shrink-0">
+                  <DoodleMark name="coral" color={INK.lilac} />
                 </span>
                 {eyebrow}
               </p>

@@ -302,6 +302,13 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       },
     ],
     kind: "diy",
+    // The client's own wording, carried through rather than paraphrased —
+    // the same flag glass painting carries, and it reaches every surface
+    // that reads `status`: this activity's row and preview in the
+    // Experiences menu, its plate on /private-events, its card on /events
+    // and in the gallery, its label in the enquiry select, and its own page,
+    // where `isUpcoming` is what stops the action area offering anything.
+    status: "Coming soon",
     image: {
       src: "/images/experiences/MANDALA_PAINTING.jpg",
       alt:
@@ -445,5 +452,36 @@ export async function getCreativeExperiences(): Promise<CreativeExperience[]> {
   const fromCms = await readExperiences();
   // The in-file list only when the CMS could not be read (null); an empty
   // answer means "nothing published".
-  return [...(fromCms ?? EXPERIENCES)];
+  return (fromCms ?? EXPERIENCES).map(holdStatusInCode);
+}
+
+/*
+  ==========================================================================
+  STATUS FLAGS THE CODE HOLDS, WHATEVER THE CMS SAYS
+  ==========================================================================
+
+  Mandala painting is "Coming soon", like glass painting — and at the
+  client's ask that is set here rather than in the CMS. The CMS entry for it
+  carries no status, and when the CMS can be read its answer replaces the
+  in-file list above wholesale, so the flag on the in-file entry never
+  reached the site. This lays it back over the CMS answer.
+
+  The wording is the in-file entry's own `status`, so there is one place to
+  change it. Because everything reads experiences through this function, it
+  reaches every surface that reads `status`: the row and preview in the
+  Experiences menu, the card on /events and in the gallery, the plate on
+  /private-events, the label in the enquiry select, and the activity's own
+  page, where it shows the status and stops the action area offering a
+  booking.
+
+  When mandala painting opens, take its slug out of this list AND the
+  `status` off its in-file entry; a status typed into the CMS will not
+  lift it while the slug is here.
+*/
+const STATUS_HELD_IN_CODE: readonly string[] = ["mandala-painting"];
+
+function holdStatusInCode(experience: CreativeExperience): CreativeExperience {
+  if (!STATUS_HELD_IN_CODE.includes(experience.slug)) return experience;
+  const status = EXPERIENCES.find((entry) => entry.slug === experience.slug)?.status;
+  return status ? { ...experience, status } : experience;
 }

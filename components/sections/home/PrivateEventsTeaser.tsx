@@ -53,7 +53,7 @@ export function PrivateEventsTeaser() {
               {PRIVATE_EVENT_AUDIENCES.map((audience, i) => (
                 <li key={audience.slug} className="border-t border-surface/40 py-5">
                   <Reveal delay={i * 0.06}>
-                    <h3 className="text-[1.3rem] font-light leading-tight tracking-[-0.01em] text-surface md:text-[1.5rem]">
+                    <h3 className="text-h3 font-light text-surface">
                       {audience.name}
                     </h3>
                     <p className="mt-1.5 text-fine leading-[1.6] text-surface">{audience.description}</p>

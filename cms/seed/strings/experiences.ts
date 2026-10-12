@@ -78,6 +78,7 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "images/experience/mandala-2.jpg", // lib/experiences.ts:282
       "images/experience/mandala-3.jpg", // lib/experiences.ts:287
     ],
+    status: "Coming soon", // lib/experiences.ts:311
     privateEventEligible: true,
     order: 4,
   },

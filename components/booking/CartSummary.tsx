@@ -221,7 +221,7 @@ function CartEntry({
             The loudest thing in the entry, and an <h3> under the panel's <h2>
             so the summary reads as a real outline rather than as styled text.
           */}
-          <h3 className="mt-2 text-lead font-medium leading-[1.25] tracking-[-0.01em] text-text">
+          <h3 className="mt-2 text-lead font-medium leading-[1.25] text-text">
             <Link
               href={line.kind === "session" ? `/events/${line.slug}` : "/loyalty"}
               className="border-b border-transparent pb-0.5 transition-colors duration-300 ease-soft hover:border-text/40"

@@ -1,0 +1,176 @@
+/*
+  ==========================================================================
+  The loader on every page but the homepage — see SiteLoader.tsx
+  ==========================================================================
+
+  Driven entirely by `data-loader` on <html>, which the <head> script writes
+  before the first paint (./sections/hero/intro.ts) and <SiteLoader> moves on:
+
+    write ... the Light Sage ground, the mark being written letter by letter
+    dots .... the six paint wells fill the "P"
+    burst ... the ring of cut-outs leaves the mark
+    fly ..... the mark flies to the header's logo, the cut-outs scatter, the
+              ground fades and the page is there underneath
+
+  With no attribute the loader is not drawn at all, which is every client-side
+  navigation, the homepage (which has its own intro) and reduced motion.
+*/
+.loader {
+  display: none;
+}
+
+:global(html[data-loader]) .loader {
+  position: fixed;
+  inset: 0;
+  /* Over the header, the bottom navigation and the floating Contact link;
+     under the brush and its paint (199/200), which stay the cursor. */
+  z-index: 190;
+  display: block;
+  overflow: hidden;
+}
+
+/*
+  THE FAILSAFE. If the script that moves the states on never runs, the loader
+  must not hold the page: after six seconds of `write` it takes itself away.
+  Any state change removes this rule, so on a working page it never fires.
+*/
+:global(html[data-loader="write"]) .loader {
+  animation: loaderFailsafe 1ms linear 6s forwards;
+}
+
+@keyframes loaderFailsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* The ground: the homepage intro's own Light Sage. */
+.ground {
+  position: absolute;
+  inset: 0;
+  background: var(--color-sage);
+}
+
+/* The mark, at the size and place the homepage intro draws it. */
+.mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(56vw, 30rem, 62svh);
+  transform: translate(-50%, -50%);
+}
+
+@media (min-width: 640px) {
+  .mark {
+    width: min(52vw, 30rem, 62svh);
+  }
+}
+
+/* ---- the ring of cut-outs ------------------------------------------------ */
+
+/*
+  THE HOMEPAGE'S OWN RING, at the client's ask — "the doodle animation should
+  look like the previous one". These are the nine cut-outs <HeroIntro> bursts
+  out of the mark (DOODLE_PLAN's `ring` entries), each at its own place around
+  it (`flower`, in widths of the mark), in its own size, colour and angle; the
+  same wait behind the logo at a third of their size, the same 400ms burst on
+  the same spring, 12ms apart. Only the end differs: on the homepage they fly
+  into the collage, and here there is no collage, so they drift outward as the
+  mark lifts and fade with the ground.
+
+  `--unit` is the mark's width (the same expression as `.mark`), and `--ring`
+  the share of it the ring may use — measured by <SiteLoader> so the widest
+  cut-out still fits a narrow phone, exactly as the homepage measures it.
+*/
+.loader {
+  --unit: min(56vw, 30rem, 62svh);
+  --ring: 1;
+}
+
+@media (min-width: 640px) {
+  .loader {
+    --unit: min(52vw, 30rem, 62svh);
+  }
+}
+
+.piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--fw) * var(--unit));
+  opacity: 0;
+  /* Waiting behind the mark, small — the homepage's `play` state. */
+  transform: translate(-50%, -50%) scale(0.34) rotate(var(--fr, 0deg));
+}
+
+:global(html[data-loader="burst"]) .piece {
+  opacity: 1;
+  transform: translate(
+      calc(-50% + var(--fx) * var(--unit) * var(--ring)),
+      calc(-50% + var(--fy) * var(--unit) * var(--ring))
+    )
+    rotate(var(--fr, 0deg));
+  transition:
+    transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--burst-delay, 0ms),
+    opacity 140ms ease var(--burst-delay, 0ms);
+}
+
+/* "The icons gently drift outward and scatter" — and, with no page to land
+   in, fade as they go. */
+:global(html[data-loader="fly"]) .piece {
+  opacity: 0;
+  transform: translate(
+      calc(-50% + var(--fx) * var(--unit) * var(--ring) * 1.55),
+      calc(-50% + var(--fy) * var(--unit) * var(--ring) * 1.55)
+    )
+    rotate(var(--fr, 0deg));
+  transition:
+    transform 480ms cubic-bezier(0.76, 0, 0.24, 1) var(--settle-delay, 0ms),
+    opacity 360ms ease calc(var(--settle-delay, 0ms) + 120ms);
+}
+
+/* ---- the way out --------------------------------------------------------- */
+
+/*
+  The mark flies to the header's logo — measured, so it lands on the letters
+  of the image in the bar — and fades as it arrives; the ground fades a beat
+  behind it, so the page comes up under the flying mark rather than after it.
+  The same flight the homepage intro makes (`logoFly` in Hero.module.css).
+*/
+:global(html[data-loader="fly"]) .mark {
+  animation:
+    siteLogoFly 520ms cubic-bezier(0.65, 0, 0.35, 1) forwards,
+    siteLogoOut 180ms ease 420ms forwards;
+}
+
+:global(html[data-loader="fly"]) .ground {
+  opacity: 0;
+  transition: opacity 520ms cubic-bezier(0.4, 0, 0.2, 1) 160ms;
+}
+
+/* Nothing on the way out may catch a click meant for the page. */
+:global(html[data-loader="fly"]) .loader {
+  pointer-events: none;
+}
+
+@keyframes siteLogoFly {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px))) scale(var(--logo-s, 1));
+  }
+}
+
+@keyframes siteLogoOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader {
+    display: none !important;
+  }
+}

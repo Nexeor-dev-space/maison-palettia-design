@@ -63,24 +63,56 @@ export function LevelChip({ children, tone = "cream" }: { children: string; tone
  * visitor's filters — so the first is the next date and the price is read
  * off what can still be booked.
  */
+/** The grounds a section's tickets take, in the order sections take them — see Ticket.module.css. */
+export const TICKET_GROUNDS = ["sage", "lavender", "terracotta", "lilac"] as const;
+export type TicketGround = (typeof TICKET_GROUNDS)[number];
+
 export function TypeCard({
   type,
   dates,
   perPersonLabel = "per person",
+  ground = "sage",
 }: {
   type: WorkshopType;
   dates: Workshop[];
   perPersonLabel?: string;
+  /** The section's ticket colour; every ticket in one section shares it. */
+  ground?: TicketGround;
 }) {
   const next = dates[0];
   const from = dates.length ? Math.min(...dates.map((d) => d.price.amount)) : null;
   const currency = dates[0]?.price.currency ?? "AED";
 
   return (
-    <Link href={`/events/${type.slug}`} className={cn(styles.ticket, styles.theme, "group press-in w-full overflow-hidden")}>
+    <Link
+      href={`/events/${type.slug}`}
+      data-ground={ground}
+      className={cn(styles.ticket, styles.theme, "group press-in w-full overflow-hidden")}
+    >
       <span className={cn(styles.body, "relative flex flex-col px-7 py-7 md:px-8 md:py-8")}>
-        <span aria-hidden className="pointer-events-none absolute -right-4 -top-5 w-[4.5rem] rotate-[-10deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-1 md:w-[5.5rem]">
-          <DoodleMark name="starburst" color={INK.lavender} treatment="stamp" delay={240} />
+        {/*
+          TWO TINY MARKS, IN THE PADDING, NOT OVER THE WORDS.
+
+          A 5.5rem lavender starburst hung off this corner at -right-4 -top-5
+          and crossed both the chips row and the perforation — the overlap the
+          client asked to be rid of. These are 1.25rem and 1rem and they sit
+          inside the card's own `py-7` / `px-7` band, which no line of text
+          reaches, so the card keeps its hand-drawn note and every word stays
+          clear of it.
+
+          TWO INKS, BECAUSE THE INK PICKS THE DRAWING. In this sheet the
+          COLOUR chooses the glyph and the shape word only picks loose or
+          slab, so terracotta and lilac are two different marks however they
+          are named — asking for two `dot`s in one colour would print the same
+          cut-out twice.
+        */}
+        {/* A real cut-out, not a plain dot — the client's ask: every mark on
+            these cards should be one of the brand's own shapes. */}
+        <span aria-hidden className="pointer-events-none absolute right-3 top-2 w-8 rotate-[-12deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:-translate-y-0.5">
+          <DoodleMark name="splash" color={INK.terracotta} treatment="stamp" delay={240} />
+        </span>
+        <span aria-hidden className="pointer-events-none absolute bottom-2 left-3 w-4 rotate-[14deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-0.5">
+          <DoodleMark name="bean" color={INK.lilac} treatment="stamp" delay={320} />
         </span>
 
         <span className="relative flex flex-wrap items-center gap-2">
@@ -114,16 +146,76 @@ export function TypeCard({
             <span className="mt-1.5 block text-body text-text/75">Dates are being set.</span>
           )}
         </span>
+        {/*
+          THE WAY IN, ON A BLOB — the client's "doodle shaped bg" in Deep
+          Lilac. An asymmetric `border-radius` (four different corners on each
+          axis) draws a hand-pulled pebble rather than a circle, which is the
+          shape language the rest of the sheet uses; a second rotation keeps
+          it off the grid. No new asset, and it scales with the type.
+
+          Near-white on Deep Lilac measures 4.90:1 — AA for the glyph at this
+          size, and it is decorative besides: the whole ticket is the link and
+          this is `aria-hidden`.
+        */}
         <span
           aria-hidden
-          className="shrink-0 self-end text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1 md:mt-4"
+          className={cn(
+            "grid size-11 shrink-0 self-end place-items-center rounded-[58%_42%_55%_45%/50%_58%_42%_50%]",
+            "bg-primary text-on-primary rotate-[-6deg] md:mt-4",
+            "transition-transform duration-500 ease-editorial",
+            "motion-safe:group-hover:translate-x-1 motion-safe:group-hover:rotate-[2deg]",
+          )}
         >
-          &#8594;
+          <span className="text-lead leading-none">&#8594;</span>
         </span>
       </span>
     </Link>
   );
 }
+
+/*
+  The four grounds a path step cycles through.
+
+  NONE OF THEM IS CREAM, and that is the whole constraint. Cream is what this
+  strip sits ON, so a cream step is not a quiet card — it is no card at all:
+  the second stop simply disappeared into the page and the route lost a leg.
+  Every ground here separates from Cream while staying inside the palette —
+  Light Sage, the soft lavender, a terracotta wash, and the near-white the
+  rest of the site uses for raised surfaces.
+
+  Charcoal clears AA on all four by a wide margin; Light Sage, the darkest,
+  measures 9.07:1.
+*/
+/*
+  BRAND TINTS, SOLID, at the client's ask — "use our theme brand colours for
+  these cards". Two of the four were not: Light Sage vanished on the format
+  page's own Light Sage ground, and `bg-terracotta/25` is translucent, so on
+  that ground it came out olive. Each is now a brand colour mixed into White
+  Rock (or the site's raised near-white), opaque, so it reads the same on the
+  sage format page and the White Rock listing. Charcoal clears all four by a
+  wide margin; the darkest, the terracotta, is about 7:1.
+*/
+const PATH_GROUND = [
+  "bg-[color-mix(in_oklab,var(--color-brand-lilac)_24%,var(--color-brand-cream))]",
+  "bg-[color-mix(in_oklab,var(--color-brand-terracotta)_30%,var(--color-brand-cream))]",
+  "bg-lavender-soft",
+  "bg-surface",
+] as const;
+
+/*
+  The connector between two steps: one S-curve, drawn at the gap's own size
+  so nothing scales and the dashes stay even. Across is 40 × 28 (the column
+  gap by a card's middle); down is 28 × 32 (the stacked row gap).
+*/
+const PATH_ACROSS = "M1 14 C 11 2, 29 26, 39 14";
+const PATH_DOWN = "M14 1 C 2 9, 26 23, 14 31";
+const PATH_STROKE = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.75,
+  strokeLinecap: "round",
+  strokeDasharray: "3 4",
+} as const;
 
 /**
  * The recommended path through an experience's formats, drawn only when
@@ -159,34 +251,171 @@ export function Progression({
         <Heading id={id} className={TERM}>
           Recommended path
         </Heading>
-        <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {types.map((type, i) => {
-            const here = type.slug === currentSlug;
-            return (
-              <li key={type.slug} className="flex">
-                <Link
-                  href={`/events/${type.slug}`}
-                  aria-current={here ? "page" : undefined}
-                  className={cn(
-                    "press-in flex w-full items-start gap-4 rounded-[1.25rem] px-5 py-5 transition-colors duration-300 ease-soft",
-                    here ? "bg-text text-surface" : "bg-cream text-text hover:bg-lavender-soft",
-                  )}
-                >
-                  <span className={cn("text-folio font-light leading-none tabular-nums", here ? "text-surface/60" : "text-primary")}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-h4 font-medium leading-tight">{type.name}</span>
-                    {type.progressionNote ? (
-                      <span className={cn("mt-1.5 block text-fine", here ? "text-surface/75" : "text-text/75")}>{type.progressionNote}</span>
-                    ) : null}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ol>
+        {/*
+          A PATH, DRAWN AS ONE — the client's note that this section "is
+          really a step by step path".
+
+          It was four cards of the same Cream in a plain grid: a list of
+          formats that happened to be numbered, with nothing saying one
+          follows another. Three things make it a route instead.
+
+          A LINE BETWEEN THEM, CURVED AND CENTRED. Dashed, in the same ink
+          and the same language as the ticket's perforation, so the strip
+          belongs to the cards above it — and drawn as a little S rather
+          than a ruled dash, the way a hand would join two stops on a map,
+          at the client's ask. It sits in the MIDDLE of the gap, half way
+          down the cards, rather than level with the numerals at the top.
+
+          ACROSS the gap where two steps share a row, DOWN the gap on a phone
+          where they stack, and nowhere a row wraps: on the two-up tablet
+          grid the third step starts a new row under the first, and a line
+          from the second to it would have to cross the card between.
+          Never before the first step, which nothing leads into.
+          `aria-hidden`: the order is carried by the <ol> and the numerals.
+
+          A GROUND PER STEP, cycling the palette's four light grounds so the
+          eye can tell one stop from the next. All four take Charcoal at well
+          over AA (see PATH_GROUND).
+
+          THE NUMERAL ON ITS OWN DISC, which is what makes a step read as a
+          stop on a route rather than as a figure beside a title.
+        */}
+        <StepPath
+          className="mt-6"
+          steps={types.map((type) => ({
+            key: type.slug,
+            title: type.name,
+            note: type.progressionNote,
+            href: `/events/${type.slug}`,
+            here: type.slug === currentSlug,
+          }))}
+        />
       </section>
     </Reveal>
+  );
+}
+
+/** One stop on a {@link StepPath}. */
+export interface PathStep {
+  key: string;
+  title: string;
+  note?: string | null;
+  /** A step that goes somewhere is a link; one that only explains is not. */
+  href?: string;
+  /** The page the visitor is on — drawn filled, and `aria-current`. */
+  here?: boolean;
+}
+
+/**
+ * Numbered steps joined by a curved dashed line — the recommended path's
+ * strip, shared so anything that is "do this, then this" on the site draws
+ * the same way (the walk-in "How it works" on /events is the other one).
+ *
+ * FOUR OR MORE STEPS go two-up from `sm` and four across from `lg`; THREE
+ * stack until `lg` and then sit three across, because a two-up grid of three
+ * leaves one card alone on its row with a line that has nowhere to go.
+ * Connectors are drawn only between steps that share a row (across) or a
+ * column (down), never across a wrap.
+ *
+ * `grounds` are the step colours in order; the default suits a White Rock
+ * page. On a Light Sage section pass ones that are not sage, or the first
+ * card is not there.
+ */
+export function StepPath({
+  steps,
+  grounds = PATH_GROUND,
+  className,
+}: {
+  steps: readonly PathStep[];
+  grounds?: readonly string[];
+  className?: string;
+}) {
+  const twoUp = steps.length >= 4;
+  const across = twoUp ? 4 : 3;
+  return (
+    <ol
+      className={cn(
+        "grid gap-x-10 gap-y-8",
+        twoUp ? "sm:grid-cols-2 sm:gap-y-6 lg:grid-cols-4" : "lg:grid-cols-3 lg:gap-y-6",
+        className,
+      )}
+    >
+      {steps.map((step, i) => {
+        const ground = grounds[i % grounds.length];
+        const body = (
+          <>
+            <span
+              className={cn(
+                "grid size-11 shrink-0 place-items-center rounded-pill text-h4 font-medium leading-none tabular-nums",
+                "transition-transform duration-300 ease-soft motion-safe:group-hover/step:scale-[1.08]",
+                step.here ? "bg-on-primary text-primary" : "bg-primary text-on-primary",
+              )}
+            >
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span className="min-w-0 pt-1.5">
+              <span className="block text-h4 font-medium leading-tight">{step.title}</span>
+              {step.note ? (
+                <span className={cn("mt-1.5 block text-fine", step.here ? "text-on-primary" : "text-text/75")}>{step.note}</span>
+              ) : null}
+            </span>
+          </>
+        );
+        /*
+          ONE HOVER FOR EVERY STEP, link or not — the client wants the "How it
+          works" steps to answer the pointer exactly as the recommended path's
+          do. The card lifts a little and its ground deepens a shade; the
+          numeral disc grows a touch. No shadow (the client's rule for cards on
+          this page). The lift is off for a reader who asked for less motion.
+        */
+        const card = cn(
+          "group/step flex w-full items-start gap-4 rounded-[1.25rem] px-5 py-5",
+          "transition-[transform,filter] duration-300 ease-soft",
+          "hover:brightness-[0.96] motion-safe:hover:-translate-y-1",
+          /* The step you are on: Deep Lilac, the brand's own colour for "this
+             one", with the near-white `on-primary` ink (4.90:1). It was
+             Charcoal Slate, which read as a dark block rather than a brand. */
+          step.here ? "bg-primary text-on-primary" : cn(ground, "text-text", step.href && "press-in"),
+        );
+        return (
+          <li key={step.key} className="relative flex">
+            {i > 0 ? (
+              <>
+                {/* Stacked: down through the 2rem row gap, centred on the card. */}
+                <svg
+                  aria-hidden
+                  viewBox="0 0 28 32"
+                  className={cn(
+                    "pointer-events-none absolute bottom-full left-1/2 h-8 w-7 -translate-x-1/2 text-text/55",
+                    twoUp ? "sm:hidden" : "lg:hidden",
+                  )}
+                >
+                  <path d={PATH_DOWN} {...PATH_STROKE} />
+                </svg>
+                {/* In a row: across the 2.5rem column gap, half way down the card. */}
+                <svg
+                  aria-hidden
+                  viewBox="0 0 40 28"
+                  className={cn(
+                    "pointer-events-none absolute right-full top-1/2 hidden h-7 w-10 -translate-y-1/2 text-text/55",
+                    twoUp && i % 2 === 1 && "sm:block",
+                    i % across === 0 ? "lg:hidden" : "lg:block",
+                  )}
+                >
+                  <path d={PATH_ACROSS} {...PATH_STROKE} />
+                </svg>
+              </>
+            ) : null}
+            {step.href ? (
+              <Link href={step.href} aria-current={step.here ? "page" : undefined} className={card}>
+                {body}
+              </Link>
+            ) : (
+              <div className={card}>{body}</div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }

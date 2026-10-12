@@ -18,6 +18,8 @@ import { SiteChromeProvider, type SiteChromeData } from "@/components/layout/Sit
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ContactWidget } from "@/components/layout/ContactWidget";
 import { CursorLayer } from "@/components/motion/CursorLayer";
+import { AutoReveal } from "@/components/motion/AutoReveal";
+import { SiteLoader } from "@/components/motion/SiteLoader";
 import { PointerField } from "@/components/motion/PointerField";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
@@ -120,7 +122,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {/* The gooey filter the primary action's blobs are drawn through, reachable
               by id from anywhere in the document — see <BlobButton>. */}
           <BlobGooFilter />
-          <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-sm text-on-primary">
+          <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-action text-on-primary">
             Skip to content
           </a>
           <Header />
@@ -165,6 +167,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {/* The paint dab, over pictures only — it mounts nothing on a phone
               or under reduced motion. See components/motion/CursorLayer.tsx. */}
           <CursorLayer />
+          {/* The loading animation on a load or refresh of any page but the
+              homepage, which has its own. Draws nothing on a client-side
+              navigation. See components/motion/SiteLoader.tsx. */}
+          <SiteLoader />
+          {/* Scroll reveals for whatever a section did not wrap in a <Reveal>
+              itself. Renders nothing; see components/motion/AutoReveal.tsx. */}
+          <AutoReveal />
           {/* Publishes the pointer's position as --mx/--my on <html> so every
               <DoodleMark> on the page can drift against it, the way the
               banner's doodles do. Renders nothing; see PointerField.tsx. */}

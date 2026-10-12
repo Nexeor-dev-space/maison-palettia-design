@@ -1,3 +1,4 @@
+import { ArrowDown } from "lucide-react";
 import Link from "next/link";
 
 import { EventsBrowser } from "@/components/events/EventsBrowser";
@@ -68,30 +69,27 @@ import type { Workshop } from "@/types";
   terracotta. A mark in the ground's own colour is not a quiet mark, it is an
   invisible one.
 */
-const SAGE = "#D1E7BE";
-
 /** The masthead: the largest shapes on the page, because it has the most air. */
 const TITLE_SHAPES: readonly ShapePlan[] = groundShapes("sage");
 
-/**
- * Walk-in. The tallest section on the page at nearly 2000px, so it carries
- * four and spreads them down its whole length rather than clustering at the
- * head where they would all be gone after one screen.
- */
-const WALK_IN_SHAPES: readonly ShapePlan[] = [
-  { name: "coral", color: INK.lavender, width: "14%", top: "4%", right: "-2%", rotate: 14, drift: -22, opacity: 0.2 },
-  { name: "starburst", color: INK.terracotta, width: "12%", top: "38%", left: "-4%", rotate: -6, drift: 20, opacity: 0.16, desktopOnly: true },
-  { name: "bean", color: INK.lilac, width: "9%", top: "64%", right: "4%", rotate: 22, drift: 28, opacity: 0.14, desktopOnly: true },
-  { name: "zigzag", color: INK.terracotta, width: "11%", bottom: "3%", left: "8%", rotate: -10, drift: -16, opacity: 0.18, desktopOnly: true },
-];
+/*
+  ON THE SHARED TABLE NOW, like the masthead above and the other forty-odd
+  grounds on the site.
 
-/** Scheduled, on White Rock — so sage joins the set and the warmth stays. */
-const SCHEDULED_SHAPES: readonly ShapePlan[] = [
-  { name: "cutout", color: SAGE, width: "20%", top: "2%", left: "-5%", rotate: -8, drift: 24, opacity: 0.55 },
-  { name: "starleaf", color: INK.lilac, width: "10%", top: "34%", right: "-2%", rotate: 12, drift: -20, opacity: 0.16, desktopOnly: true },
-  { name: "bow", color: INK.terracotta, width: "12%", bottom: "8%", right: "6%", rotate: -14, drift: 22, opacity: 0.16, desktopOnly: true },
-  { name: "splash", color: SAGE, width: "16%", bottom: "-4%", left: "10%", rotate: 18, drift: -26, opacity: 0.6, desktopOnly: true },
-];
+  These two were written by hand before `groundShapes()` existed and never
+  moved onto it, so they kept the widths and opacities the table was created
+  to retire: 20% and 16% cut-outs at 0.55 and 0.6, placed at `left: -5%` and
+  `top: 2%`. Measured on this page at 1440 that 20% mark came out 319px and
+  lay across the "Create Together" heading, its standfirst and the event
+  count — the last of the text-overlapping doodles the client asked to be
+  rid of, and the reason the fix to the table alone did not move them.
+
+  The walk-in section keeps its own constant because it sits on Light Sage
+  and the scheduled one on White Rock — the ground decides the inks (see
+  GROUND_INKS) — but both now read from the table.
+*/
+const WALK_IN_SHAPES: readonly ShapePlan[] = groundShapes("sage");
+const SCHEDULED_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 
 /*
   ==========================================================================
@@ -233,8 +231,6 @@ export function EventsBody({
                   note={diyDoor.note}
                   modeLabel={diyDoor.modeLabel}
                   tone="cream"
-                  mark="starleaf"
-                  markColor={INK.terracotta}
                 />
               ) : null}
               {scheduledDoor ? (
@@ -245,8 +241,6 @@ export function EventsBody({
                   note={scheduledDoor.note}
                   modeLabel={scheduledDoor.modeLabel}
                   tone="lilac"
-                  mark="starburst"
-                  markColor={INK.lavender}
                 />
               ) : null}
             </ul>
@@ -310,12 +304,10 @@ export function EventsBody({
           </GroupHead>
         </Container>
 
-        {/* OUTSIDE THE CONTAINER ON PURPOSE. The vibe chips and the card track
-            both live in <WalkInDiscovery>, and the track is the home page's —
-            it holds the left rail and runs off the right of the screen, which
-            it cannot do from inside a measure. The component keeps the chips
-            in a <Container> of their own. The filtering is client state and
-            the cards still link to their own pages, never to a checkout. */}
+        {/* <WalkInDiscovery> brings its own <Container>: the how-it-works
+            steps, the vibe chips and the activity cards (a grid now, not the
+            home page's track). The filtering is client state and the cards
+            link to their own pages, never to a checkout. */}
         <WalkInDiscovery experiences={walkIn} />
       </section>
 
@@ -413,8 +405,6 @@ function Door({
   note,
   modeLabel,
   tone,
-  mark,
-  markColor,
 }: {
   href: string;
   mode: "diy" | "scheduled";
@@ -423,8 +413,6 @@ function Door({
   /** "No booking" / "Booked online" — the mode's own label. */
   modeLabel: string | null;
   tone: "cream" | "lilac";
-  mark: DoodleName;
-  markColor: string;
 }) {
   /*
     White Rock takes Charcoal Slate; Deep Lilac takes the near-white
@@ -435,6 +423,9 @@ function Door({
     tone === "lilac"
       ? "bg-primary text-surface"
       : "bg-cream text-text";
+  /* The corner's one cut-out: the colour that stands out on this field. */
+  const corner: { name: DoodleName; color: string } =
+    tone === "lilac" ? { name: "coral", color: INK.terracotta } : { name: "splash", color: INK.lilac };
 
   return (
     /*
@@ -452,21 +443,19 @@ function Door({
         )}
       >
         {/*
-          The cut-out, breaking the field's TOP-right corner.
-
-          It was at the foot and half again this size, where two things went
-          wrong: at 12.5rem the shape ran so far past the corner that only a
-          lobe of it stayed on the field — a coloured blob rather than a mark
-          anyone could name — and it sat directly under the arrow, so the one
-          moving element on the door was drawn on top of the one decorative
-          one. Smaller, and at the other end of the field, it reads as the
-          cut-out it is and the arrow has clear ground.
+          ONE CUT-OUT IN THE TOP-RIGHT CORNER, at the client's ask — the
+          purple one on the White Rock door, the orange one on the Deep Lilac
+          door, each the colour that stands out on its field. It sits wholly
+          inside the card (never clipped by the edge), turned a little off
+          square, and drifts on hover with the rest of the door. Large enough
+          to hold the right side of the card; small enough that it never
+          reaches the words or the arrow below it.
         */}
         <span
           aria-hidden
-          className="pointer-events-none absolute -right-4 -top-5 w-[6.5rem] rotate-[-10deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-1 motion-safe:group-hover:rotate-[-3deg] md:-right-5 md:-top-6 md:w-[8rem]"
+          className="pointer-events-none absolute right-5 top-5 block w-16 rotate-[-10deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:rotate-[-3deg] md:right-7 md:top-7 md:w-24 xl:right-9 xl:top-8 xl:w-32"
         >
-          <DoodleMark name={mark} color={markColor} treatment="stamp" delay={260} />
+          <DoodleMark name={corner.name} color={corner.color} treatment="stamp" delay={260} />
         </span>
 
         <span className="relative">
@@ -481,12 +470,35 @@ function Door({
         </span>
 
         <span className="relative mt-6 flex items-end justify-between gap-6">
-          <span className="max-w-[26ch] text-body">{note}</span>
+          {/* Wider than it was (26ch): the cluster now fills the right half,
+              so the words no longer have to be kept short to leave it room. */}
+          <span className="max-w-[36ch] text-body">{note}</span>
+          {/*
+            THE WAY DOWN, ON A PEBBLE — the same hand-cut lilac blob the
+            format tickets carry their arrow on (see <TypeCard>), turned to
+            point down the page, at the client's ask. It was a bare "↓" in
+            the field's ink, which at body size was the smallest thing on a
+            very large card.
+
+            The pebble takes the opposite of its field, so it always reads as
+            an object ON the card: Deep Lilac with the near-white arrow on the
+            White Rock door (4.90:1), and the near-white `surface` with a Deep
+            Lilac arrow on the Deep Lilac door (4.90:1 the other way round).
+            Decorative either way — the whole door is the link.
+          */}
           <span
             aria-hidden
-            className="shrink-0 text-lead leading-none transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-y-1"
+            className={cn(
+              "grid size-11 shrink-0 place-items-center rounded-[58%_42%_55%_45%/50%_58%_42%_50%] rotate-[-6deg]",
+              tone === "lilac" ? "bg-surface text-primary" : "bg-primary text-on-primary",
+              "transition-transform duration-500 ease-editorial",
+              "motion-safe:group-hover:translate-y-1 motion-safe:group-hover:rotate-[2deg]",
+            )}
           >
-            &#8595;
+            {/* An icon rather than the "↓" character: Montserrat draws that
+                glyph at about half the weight and size of its "→", so on the
+                pebble it read as a speck. */}
+            <ArrowDown strokeWidth={2.25} className="h-5 w-5" />
           </span>
         </span>
       </a>

@@ -148,6 +148,81 @@
 
 /*
   ==========================================================================
+  THE PEN — the mark written letter by letter, then the wells
+  ==========================================================================
+
+  Back at the client's ask. Each `.pen` is one stroke of the path a pen
+  would take through a letter, stroked in white inside the mask in
+  <LogoReveal>, so drawing it along its length uncovers the real outline
+  under it. A dash as long as the stroke, offset by its whole length, is the
+  stroke not yet drawn; animating the offset to 0 draws it.
+
+  ON `play`, FROM THE FIRST FRAME. The <head> script sets `play` before the
+  first paint, so this starts with the page; <HeroIntro> moves the state on
+  to `dots` only after the writing has finished on its own clock (WRITE_MS).
+  When the state moves on, this rule stops matching and the plain rules take
+  over at exactly the finished values — every stroke drawn, every cover in —
+  so nothing jumps at the handover. Any other state (the short in-site
+  entrance, `done`, reduced motion) simply shows the finished mark.
+
+  `linear` for the pen itself: a hand writing at speed does not ease into
+  and out of every stroke, and the strokes are already paced by length.
+*/
+.pen {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: 0;
+}
+
+/* Once a letter is written, its whole outline joins the mask. */
+.penCover {
+  fill: #fff;
+  opacity: 1;
+}
+
+:global(html[data-intro="play"]) .pen,
+:global(html[data-loader="write"]) .pen {
+  animation: penDraw var(--dur, 100ms) linear var(--delay, 0ms) both;
+}
+
+/* `data-loader` is the same opening on every other page — <SiteLoader>. */
+:global(html[data-intro="play"]) .penCover,
+:global(html[data-loader="write"]) .penCover {
+  animation: coverIn 120ms ease var(--delay, 0ms) both;
+}
+
+@keyframes penDraw {
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes coverIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Less motion: the finished mark, at once. (The <head> script already skips
+   the intro for this reader; this is the belt to that braces.) */
+@media (prefers-reduced-motion: reduce) {
+  .pen,
+  .penCover {
+    animation: none !important;
+  }
+}
+
+/*
+  ==========================================================================
   THE SIX PAINT WELLS IN THE "P" — the beat between the mark and the icons
   ==========================================================================
 
@@ -171,7 +246,8 @@
 
 /* Before they are thrown: collapsed at the middle of the palette. */
 :global(html:not([data-intro])) .pDot,
-:global(html[data-intro="play"]) .pDot {
+:global(html[data-intro="play"]) .pDot,
+:global(html[data-loader="write"]) .pDot {
   transform: translate(var(--dx, 0), var(--dy, 0)) scale(0);
   opacity: 0;
 }
@@ -200,7 +276,8 @@
   <HeroIntro> owns the step and when this phase ends; the two move together,
   and the phase has to outlast the last dot's LAST FRAME, not its start.
 */
-:global(html[data-intro="dots"]) .pDot {
+:global(html[data-intro="dots"]) .pDot,
+:global(html[data-loader="dots"]) .pDot {
   animation: dotIn 240ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
 }
 
@@ -1008,6 +1085,26 @@
   a first letter can hang 0.15em to the left — and the rise starts far enough
   down to begin wholly outside it.
 */
+/*
+  EVERY LINE CARRIES ITS OWN INK — see the note in <HeroIntro>'s measure().
+  `--ink-at` is when the photograph's foot reaches the line and `--ink-rate`
+  how fast it then crosses it; both are measured. Unmeasured (no script, or
+  before the first measure) they fall back to the block's old pace, so a
+  desktop, where the picture is over the whole block early, reads as before.
+*/
+.copy [data-ink] {
+  --ink: clamp(0, calc((var(--p) - var(--ink-at, 0.05)) * var(--ink-rate, 4)), 1);
+}
+
+.line {
+  color: color-mix(in oklab, var(--color-cream) calc(var(--ink) * 100%), var(--color-text));
+  text-shadow: 0 1px 28px rgb(35 31 32 / calc(var(--ink) * 0.4));
+}
+
+.copy p[data-ink] {
+  text-shadow: 0 1px 28px rgb(35 31 32 / calc(var(--ink) * 0.4));
+}
+
 .line {
   display: inline-block;
   clip-path: inset(-0.34em -0.3em -0.12em -0.3em);
