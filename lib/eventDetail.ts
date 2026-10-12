@@ -303,9 +303,10 @@ export function eventGallery(detail: EventDetail): readonly ImageAsset[] {
 /**
  * The studio's own flag, shown verbatim, or null.
  *
- * Only `CreativeExperience` carries one and only glass painting sets it
- * ("Coming soon"). It is the whole reason the action area can refuse to offer
- * anything: a flagged activity is not walk-in-today either.
+ * Only `CreativeExperience` carries one, and two set it today — glass
+ * painting and mandala painting, both "Coming soon". It is the whole reason
+ * the action area can refuse to offer anything: a flagged activity is not
+ * walk-in-today either.
  */
 export function eventFlag(detail: EventDetail): string | null {
   if (detail.kind === "diy") return detail.experience.status ?? null;

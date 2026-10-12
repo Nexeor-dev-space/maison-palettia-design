@@ -3,15 +3,16 @@
 import { useEffect, useRef } from "react";
 
 import styles from "@/components/motion/CursorLayer.module.css";
+import { createPainter } from "@/components/motion/painter";
+import { DROP } from "@/lib/brushPaint";
 
 /**
  * ==========================================================================
  * The brush — the cursor for the whole site
  * ==========================================================================
  *
- * A paintbrush that follows the pointer, catching up with it rather than
- * sticking to it, leaning into the direction it is dragged, and pressing in
- * when the mouse goes down. Over a photograph its bristles take that picture's
+ * A paintbrush that sits exactly on the pointer, leaning into the direction
+ * it is moved, and pressing in when the mouse goes down. Over a photograph its bristles take that picture's
  * own colour; everywhere else it carries Deep Lilac.
  *
  * IT WAS A ROUND DAB OF COLOUR, and the client read that as a colour-dropper —
@@ -48,10 +49,40 @@ import styles from "@/components/motion/CursorLayer.module.css";
  * while this is running, so a failure here cannot leave the page with no
  * cursor at all.
  *
- * COST. One `pointermove` listener, one rAF loop that runs only while the
- * brush is still closing a gap, and no React state after mount: position,
- * lean and colour are written straight onto the node as custom properties.
- * Nothing re-renders while the mouse moves.
+ * COST. One `pointermove` listener that writes the position and nothing
+ * else, one rAF that does the colour and the lean once a frame, and no React
+ * state after mount: everything is written straight onto the node as custom
+ * properties. Nothing re-renders while the mouse moves.
+ *
+ * ==========================================================================
+ * NO CATCH-UP, AND THAT IS A FIX
+ * ==========================================================================
+ *
+ * The brush used to ease toward the pointer, closing a fifth of the gap each
+ * frame. It looked like a brush being drawn across the page, and it cost the
+ * one thing a cursor cannot cost: the bristles were never quite where a click
+ * would land. The client felt it as the brush delaying every move, every
+ * selection and every click. So the position is written in the move handler
+ * itself, straight onto the pointer, and the lean now comes from how fast the
+ * hand is moving rather than from how far behind the brush has fallen.
+ *
+ * ==========================================================================
+ * AND IT PAINTS
+ * ==========================================================================
+ *
+ * A click leaves three drops of paint where the bristles touch, in a brand
+ * colour chosen by where they land, and they dry away a moment later. For as
+ * long as they are wet the bristles carry that same colour — the brush shows
+ * the paint it just laid down — and then go back to the ground under them.
+ * The drawing is in painter.ts, onto the one canvas rendered below. Moving
+ * the brush paints nothing — an earlier version drew a line behind every
+ * move, and that was noise.
+ *
+ * WHERE IT DOES NOT PAINT follows the brush exactly. Over a text field or an
+ * iframe the brush has stood down, so there is no tip to paint with and a
+ * click there is the field's own. Only the main button paints — a right click
+ * is asking for a menu. And a reader who has asked for reduced motion keeps
+ * the brush (see below) but gets no drops: a drop is nothing but motion.
  */
 
 /**
@@ -63,15 +94,16 @@ import styles from "@/components/motion/CursorLayer.module.css";
 const NATIVE =
   'input:not([type="button"],[type="submit"],[type="reset"],[type="checkbox"],[type="radio"],[type="range"],[type="color"],[type="file"],[type="image"]), textarea, [contenteditable=""], [contenteditable="true"], iframe';
 
-/** How far the brush closes the gap to the pointer each frame. */
-const EASE = 0.22;
-
-/** Degrees of lean per pixel of horizontal lag, and the cap on it. */
+/** Degrees of lean per pixel the pointer moved sideways in one event, and the cap on it. */
 const TILT_PER_PX = 0.55;
 const TILT_MAX = 12;
 
+/** How much of the lean is kept each frame once the hand stops — it rights itself in about a fifth of a second. */
+const TILT_RETURN = 0.8;
+
 export function CursorLayer() {
   const dotRef = useRef<HTMLDivElement>(null);
+  const paintRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const dot = dotRef.current;
@@ -88,57 +120,58 @@ export function CursorLayer() {
       many of them, the whole feature simply did not exist.
 
       What they give up instead is the MOTION, which is what they asked about:
-      the brush lands exactly on the pointer with no easing and no lean, so
-      nothing on screen is animating. The shape, the colour and the hotspot are
-      identical.
+      no lean and no drops of paint, so nothing on screen is animating. The
+      shape, the colour and the hotspot are identical.
     */
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const root = document.documentElement;
     root.dataset.paintCursor = "on";
 
+    const painter = !calm && paintRef.current ? createPainter(paintRef.current) : null;
+
     let pointerX = 0;
     let pointerY = 0;
-    let x = 0;
-    let y = 0;
     let active = false;
     let frame = 0;
     let tilt = 0;
+    /** The element under the pointer that the colour has not caught up with yet. */
+    let pending: Element | null = null;
 
-    const draw = () => {
+    /** The bristle tip on the pointer — written in the event itself, never a frame late. */
+    const place = () => {
+      dot.style.setProperty("--x", `${pointerX}px`);
+      dot.style.setProperty("--y", `${pointerY}px`);
+    };
+
+    /*
+      ONCE A FRAME: THE COLOUR, THEN THE LEAN.
+
+      The colour is measured here rather than in the move handler because it
+      is the expensive part — `elementsFromPoint` and a computed style per
+      layer — and a move handler that does that holds up the position write
+      behind it. Here it runs at most once a frame, for wherever the pointer
+      has got to.
+
+      THE LEAN. A brush that never changes angle reads as a sticker; one that
+      leans into the direction of travel reads as being moved. The move
+      handler pushes the lean; this lets it right itself once the hand stops.
+    */
+    const settle = () => {
       frame = 0;
-      const dx = pointerX - x;
-      x += dx * (calm ? 1 : EASE);
-      y += (pointerY - y) * (calm ? 1 : EASE);
-      /*
-        THE LEAN. A brush that never changes angle reads as a sticker; one
-        that leans into the direction of travel reads as being dragged. The
-        target is the horizontal gap the dab is still closing, capped at
-        TILT_MAX so a fast flick across the page cannot spin it, and eased at
-        a third of the position's rate so the angle settles after the tip
-        does rather than with it.
-      */
-      const want = calm ? 0 : Math.max(-TILT_MAX, Math.min(TILT_MAX, dx * TILT_PER_PX));
-      tilt += calm ? want - tilt : (want - tilt) * 0.12;
-      dot.style.setProperty("--x", `${x.toFixed(1)}px`);
-      dot.style.setProperty("--y", `${y.toFixed(1)}px`);
-      dot.style.setProperty("--tilt", tilt.toFixed(2));
-      // Keep going only while there is still a gap worth closing; a still
-      // pointer costs nothing.
-      if (
-        active &&
-        (Math.abs(pointerX - x) > 0.4 ||
-          Math.abs(pointerY - y) > 0.4 ||
-          // The lean settles after the tip, so a frame is still owed while it
-          // is unwinding — without this the brush freezes mid-lean.
-          Math.abs(tilt) > 0.2)
-      ) {
-        frame = requestAnimationFrame(draw);
+      if (pending) {
+        const target = pending;
+        pending = null;
+        follow(target);
       }
+      tilt *= TILT_RETURN;
+      if (Math.abs(tilt) < 0.2) tilt = 0;
+      dot.style.setProperty("--tilt", tilt.toFixed(2));
+      if (active && tilt) frame = requestAnimationFrame(settle);
     };
 
     const tick = () => {
-      if (!frame) frame = requestAnimationFrame(draw);
+      if (!frame) frame = requestAnimationFrame(settle);
     };
 
     /**
@@ -293,10 +326,7 @@ export function CursorLayer() {
       Light Sage and the near-white sit above it and take the Charcoal
       outline; Deep Lilac and Charcoal sit below and take the near-white one.
     */
-    const dip = (value: string) => {
-      if (value === loaded) return;
-      loaded = value;
-      dot.style.setProperty("--paint", value);
+    const haloFor = (value: string) => {
       const L = luminance(resolve(value));
       /*
         CHARCOAL WHEN THE READING FAILS, and that direction is deliberate.
@@ -306,18 +336,49 @@ export function CursorLayer() {
         ground is nothing at all, which is the failure this whole branch
         exists to prevent.
       */
-      dot.style.setProperty(
-        "--halo",
-        L !== null && L <= 0.42 ? "var(--color-surface)" : "var(--color-text)",
-      );
+      return L !== null && L <= 0.42 ? "var(--color-surface)" : "var(--color-text)";
+    };
+
+    /** The halo for the ground, kept so it can come back when the paint dries. */
+    let groundHalo = "var(--color-text)";
+    /** While the drops are wet the bristles show their colour, not the ground's. */
+    let inkTimer = 0;
+
+    const dip = (value: string) => {
+      if (value === loaded) return;
+      loaded = value;
+      dot.style.setProperty("--paint", value);
+      // The painter keeps off whatever colour the brush is standing on.
+      painter?.ground(value);
+      groundHalo = haloFor(value);
+      if (!inkTimer) dot.style.setProperty("--halo", groundHalo);
+    };
+
+    /*
+      THE BRUSH SHOWS THE PAINT IT JUST LAID. On a touch the bristles take the
+      drops' own colour — exactly, not the shade-off the ground colour gets —
+      with a halo set against it, and hold it for as long as the drops are on
+      the page. Then they go back to whatever the brush is standing on.
+    */
+    const ink = (colour: string) => {
+      window.clearTimeout(inkTimer);
+      dot.style.setProperty("--ink", colour);
+      dot.style.setProperty("--halo", haloFor(colour));
+      dot.dataset.inked = "";
+      inkTimer = window.setTimeout(dry, DROP.life);
+    };
+
+    const dry = () => {
+      inkTimer = 0;
+      delete dot.dataset.inked;
+      dot.style.setProperty("--halo", groundHalo);
     };
 
     const enter = (target: Element | null) => {
       active = true;
       // The brush appears where the pointer already is rather than flying in
       // from wherever it was last seen.
-      x = pointerX;
-      y = pointerY;
+      place();
       // Upright on arrival: the lean describes travel, and a brush that
       // appears already tilted has not travelled anywhere yet.
       tilt = 0;
@@ -331,6 +392,7 @@ export function CursorLayer() {
 
     const leave = () => {
       active = false;
+      pending = null;
       lastTarget = null;
       dot.style.setProperty("--in", "0");
       dot.dataset.state = "off";
@@ -344,6 +406,7 @@ export function CursorLayer() {
     };
 
     const onMove = (event: PointerEvent) => {
+      const moved = event.clientX - pointerX;
       pointerX = event.clientX;
       pointerY = event.clientY;
       const target = event.target as Element | null;
@@ -356,12 +419,18 @@ export function CursorLayer() {
         enter(target);
         return;
       }
-      follow(target);
+      place();
+      if (!calm) {
+        const want = Math.max(-TILT_MAX, Math.min(TILT_MAX, moved * TILT_PER_PX));
+        tilt += (want - tilt) * 0.35;
+      }
+      if (target !== lastTarget) pending = target;
       tick();
     };
 
     // The page can move under a still pointer; re-ask what is there.
     const onScroll = () => {
+      painter?.scroll();
       const target = document.elementFromPoint(pointerX, pointerY);
       if (!allowed(target)) {
         if (active) leave();
@@ -374,22 +443,36 @@ export function CursorLayer() {
       follow(target);
     };
 
-    const press = () => dot.style.setProperty("--press", "0.78");
+    const press = (event: PointerEvent) => {
+      dot.style.setProperty("--press", "0.78");
+      if (!active || event.button !== 0 || event.pointerType === "touch") return;
+      // The hotspot is the bristle tip, so the drops land where it touched.
+      if (painter) ink(painter.drop(event.clientX, event.clientY));
+    };
+    /*
+      `pointercancel` too: a press that turns into the browser's own drag of a
+      link or a picture never sends a `pointerup`, and without this the brush
+      stayed pressed in until the next click.
+    */
     const release = () => dot.style.setProperty("--press", "1");
 
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", press, { passive: true });
     window.addEventListener("pointerup", release, { passive: true });
+    window.addEventListener("pointercancel", release, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("blur", leave);
     document.addEventListener("pointerleave", leave);
 
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(inkTimer);
+      painter?.destroy();
       probe.remove();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", press);
       window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("blur", leave);
       document.removeEventListener("pointerleave", leave);
@@ -398,96 +481,101 @@ export function CursorLayer() {
   }, []);
 
   return (
-    <div ref={dotRef} aria-hidden data-state="off" className={styles.brush}>
-      {/*
-        A paintbrush, drawn tip-first at the glyph's origin so the point that
-        touches the picture is the point the pointer is at.
-
-        EVERY STROKE IS DRAWN TWICE — once wider in the page's near-white, then
-        in its own colour on top. That halo is what the old dab's ring was for:
-        Deep Lilac on a dark photograph and Charcoal on a pale one both vanish
-        without it, and a halo costs nothing where a filter would cost a
-        repaint on a moving element.
-
-        Brand colours only: the bristles take the surface's own `--paint`, the
-        ferrule is White Rock and the handle Charcoal Slate.
-      */}
-      <svg viewBox="0 0 40 40" className={styles.glyph} focusable="false">
+    <>
+      {/* What the brush leaves behind: under it, over everything else. See
+          painter.ts. */}
+      <canvas ref={paintRef} aria-hidden className={styles.paint} />
+      <div ref={dotRef} aria-hidden data-state="off" className={styles.brush}>
         {/*
-          THE SPUR IS THE HOTSPOT, AND THE TRANSLATE IS WHAT GUARANTEES IT. The
-          brush is drawn along the diagonal from a handle at the top right down
-          to the bristles at the bottom left, and the point that touches the
-          page is the spur on the head's lower-left edge — as drawn, (7.43,
-          26.91). The box is positioned so its bottom-left corner sits under
-          the pointer and the lean pivots there, so the whole glyph is shifted
-          by that difference and the spur lands at 0,40: exactly where the
-          pointer is, and exactly what the lean turns about. So a link is
-          touched with the bristles, which is the only part of a brush that
-          would touch anything.
+          A paintbrush, drawn tip-first at the glyph's origin so the point that
+          touches the picture is the point the pointer is at.
 
-          THE GEOMETRY IS GENERATED, NOT HAND-TWEAKED. Every point is laid out
-          along one axis at 45 degrees — the head's half-width at the ferrule,
-          at its belly and at its foot, the depth of the nick, the ferrule's
-          length, the handle's taper. Nudging a number in here by eye is how
-          this drifted into a blade once already.
+          EVERY STROKE IS DRAWN TWICE — once wider in the page's near-white, then
+          in its own colour on top. That halo is what the old dab's ring was for:
+          Deep Lilac on a dark photograph and Charcoal on a pale one both vanish
+          without it, and a halo costs nothing where a filter would cost a
+          repaint on a moving element.
+
+          Brand colours only: the bristles take the surface's own `--paint`, the
+          ferrule is White Rock and the handle Charcoal Slate.
         */}
-        <g transform="translate(-7.43 13.09)">
+        <svg viewBox="0 0 40 40" className={styles.glyph} focusable="false">
           {/*
-            EVERY STROKE IS DRAWN TWICE — once wider in `--halo`, then in its
-            own colour on top.
+            THE SPUR IS THE HOTSPOT, AND THE TRANSLATE IS WHAT GUARANTEES IT. The
+            brush is drawn along the diagonal from a handle at the top right down
+            to the bristles at the bottom left, and the point that touches the
+            page is the spur on the head's lower-left edge — as drawn, (7.43,
+            26.91). The box is positioned so its bottom-left corner sits under
+            the pointer and the lean pivots there, so the whole glyph is shifted
+            by that difference and the spur lands at 0,40: exactly where the
+            pointer is, and exactly what the lean turns about. So a link is
+            touched with the bristles, which is the only part of a brush that
+            would touch anything.
 
-            `--halo` IS NOT FIXED, and it cannot be. The bristles now carry the
-            colour of whatever is under the pointer, which means on a Light
-            Sage section they are Light Sage, on White Rock they are White
-            Rock — the same colour as the ground they are standing on. A
-            near-white outline around a near-white brush on a near-white
-            section is no outline at all. The component measures the colour it
-            has just picked up and sets the halo to Charcoal against a light
-            one and to the page's near-white against a dark one, so the
-            silhouette holds whatever the brush is loaded with.
+            THE GEOMETRY IS GENERATED, NOT HAND-TWEAKED. Every point is laid out
+            along one axis at 45 degrees — the head's half-width at the ferrule,
+            at its belly and at its foot, the depth of the nick, the ferrule's
+            length, the handle's taper. Nudging a number in here by eye is how
+            this drifted into a blade once already.
           */}
-          <g
-            fill="none"
-            stroke="var(--halo, var(--color-surface))"
-            strokeWidth={2.6}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            opacity={0.92}
-          >
-            <path d="M22.91 19.91 C21.78 23.03 20.30 25.78 18.25 27.98 C15.91 30.45 13.01 31.51 10.75 30.52 C9.48 29.96 9.90 28.97 11.81 27.48 C9.20 27.69 7.36 27.55 7.78 26.14 C8.84 23.66 13.58 19.63 16.83 18.36 C18.53 17.65 19.38 17.23 20.09 17.09 Z" />
-            <path d="M21.15 18.85 L24.61 15.39" />
-            <path d="M26.70 15.78 L39.64 0.57 C40.20 -0.13 40.13 -0.20 39.43 0.36 L24.22 13.30 Z" />
+          <g transform="translate(-7.43 13.09)">
+            {/*
+              EVERY STROKE IS DRAWN TWICE — once wider in `--halo`, then in its
+              own colour on top.
+
+              `--halo` IS NOT FIXED, and it cannot be. The bristles now carry the
+              colour of whatever is under the pointer, which means on a Light
+              Sage section they are Light Sage, on White Rock they are White
+              Rock — the same colour as the ground they are standing on. A
+              near-white outline around a near-white brush on a near-white
+              section is no outline at all. The component measures the colour it
+              has just picked up and sets the halo to Charcoal against a light
+              one and to the page's near-white against a dark one, so the
+              silhouette holds whatever the brush is loaded with.
+            */}
+            <g
+              fill="none"
+              stroke="var(--halo, var(--color-surface))"
+              strokeWidth={2.6}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              opacity={0.92}
+            >
+              <path d="M22.91 19.91 C21.78 23.03 20.30 25.78 18.25 27.98 C15.91 30.45 13.01 31.51 10.75 30.52 C9.48 29.96 9.90 28.97 11.81 27.48 C9.20 27.69 7.36 27.55 7.78 26.14 C8.84 23.66 13.58 19.63 16.83 18.36 C18.53 17.65 19.38 17.23 20.09 17.09 Z" />
+              <path d="M21.15 18.85 L24.61 15.39" />
+              <path d="M26.70 15.78 L39.64 0.57 C40.20 -0.13 40.13 -0.20 39.43 0.36 L24.22 13.30 Z" />
+            </g>
+
+            {/*
+              The handle, tapering to a point — Warm Terracotta, which is what a
+              brush handle is (wood) and also the one colour in the palette that
+              holds against White Rock, Light Sage, Deep Lilac and Charcoal
+              alike. It was Charcoal Slate, and on the dark grounds that left
+              only its own halo showing.
+            */}
+            <path d="M26.70 15.78 L39.64 0.57 C40.20 -0.13 40.13 -0.20 39.43 0.36 L24.22 13.30 Z" fill="var(--color-terracotta)" />
+
+            {/* The head: narrow at the ferrule, bellied, and cut by a nick at
+                the foot so it ends in two lobes rather than one blunt round —
+                which is the difference between bristles and a blade. */}
+            <path d="M22.91 19.91 C21.78 23.03 20.30 25.78 18.25 27.98 C15.91 30.45 13.01 31.51 10.75 30.52 C9.48 29.96 9.90 28.97 11.81 27.48 C9.20 27.69 7.36 27.55 7.78 26.14 C8.84 23.66 13.58 19.63 16.83 18.36 C18.53 17.65 19.38 17.23 20.09 17.09 Z" className={styles.bristles} />
+
+            {/*
+              The ferrule last, over the joint, so neither the head nor the
+              handle shows a seam where it meets the band — and Charcoal, not
+              White Rock. White Rock was invisible on cream and near-white, which
+              is most of this site: the band disappeared and the brush came apart
+              into a blob and a separate stick.
+            */}
+            <path
+              d="M21.15 18.85 L24.61 15.39"
+              stroke="var(--color-text)"
+              strokeWidth={5.0}
+              strokeLinecap="butt"
+            />
           </g>
-
-          {/*
-            The handle, tapering to a point — Warm Terracotta, which is what a
-            brush handle is (wood) and also the one colour in the palette that
-            holds against White Rock, Light Sage, Deep Lilac and Charcoal
-            alike. It was Charcoal Slate, and on the dark grounds that left
-            only its own halo showing.
-          */}
-          <path d="M26.70 15.78 L39.64 0.57 C40.20 -0.13 40.13 -0.20 39.43 0.36 L24.22 13.30 Z" fill="var(--color-terracotta)" />
-
-          {/* The head: narrow at the ferrule, bellied, and cut by a nick at
-              the foot so it ends in two lobes rather than one blunt round —
-              which is the difference between bristles and a blade. */}
-          <path d="M22.91 19.91 C21.78 23.03 20.30 25.78 18.25 27.98 C15.91 30.45 13.01 31.51 10.75 30.52 C9.48 29.96 9.90 28.97 11.81 27.48 C9.20 27.69 7.36 27.55 7.78 26.14 C8.84 23.66 13.58 19.63 16.83 18.36 C18.53 17.65 19.38 17.23 20.09 17.09 Z" className={styles.bristles} />
-
-          {/*
-            The ferrule last, over the joint, so neither the head nor the
-            handle shows a seam where it meets the band — and Charcoal, not
-            White Rock. White Rock was invisible on cream and near-white, which
-            is most of this site: the band disappeared and the brush came apart
-            into a blob and a separate stick.
-          */}
-          <path
-            d="M21.15 18.85 L24.61 15.39"
-            stroke="var(--color-text)"
-            strokeWidth={5.0}
-            strokeLinecap="butt"
-          />
-        </g>
-      </svg>
-    </div>
+        </svg>
+      </div>
+    </>
   );
 }

@@ -30,8 +30,13 @@
   */
   z-index: 200;
   display: block;
-  height: var(--brush, 2.75rem);
-  width: var(--brush, 2.75rem);
+  /*
+    2.25rem, down from 2.75rem at the client's ask. At the larger size the
+    brush covered enough of a small link or a line of text that aiming at one
+    felt slow; the tip is the same point either way.
+  */
+  height: var(--brush, 2.25rem);
+  width: var(--brush, 2.25rem);
   pointer-events: none;
   opacity: 0;
   /*
@@ -99,6 +104,18 @@
   opacity: 1;
 }
 
+/*
+  A TOUCH LOADS THE BRUSH WITH THE PAINT IT LAID. For as long as the drops
+  are wet the bristles are their exact colour — no shade toward the halo, the
+  drops are on screen beside them and must match — and the change is quick,
+  because it is the answer to a click. Going back to the ground keeps the
+  slower fade above.
+*/
+.brush[data-inked] .bristles {
+  fill: var(--ink);
+  transition-duration: 90ms;
+}
+
 /* No brush where a pointer cannot hover — the component does not mount there
    either, and this is the belt to that braces. */
 @media (pointer: coarse) {
@@ -126,3 +143,41 @@
 
 /* The bristles are whatever the pointer is standing on; `--halo` is set
    against it by the component so the silhouette survives the match. */
+
+/*
+  THE PAINT — see painter.ts.
+
+  One canvas over the whole viewport, directly under the brush: 199 against
+  the brush's 200, so the bristles are always on top of the paint they leave,
+  and the paint is over everything else the site draws — a drop on a button
+  inside the header has to land on the button, not behind the bar.
+
+  It never takes the pointer. Every click, hover and selection goes through
+  it to the page exactly as before; it is only ever looked at.
+*/
+.paint {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  display: block;
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
+  /* A touch of the ground through the paint, so a drop on a word reads as a
+     wash over it rather than a patch across it. */
+  opacity: 0.9;
+  contain: strict;
+}
+
+/* No paint where there is no brush — and none on paper. */
+@media (pointer: coarse) {
+  .paint {
+    display: none;
+  }
+}
+
+@media print {
+  .paint {
+    display: none;
+  }
+}
