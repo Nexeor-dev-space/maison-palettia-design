@@ -105,7 +105,7 @@ export function ConsentBanner({
       aria-label="Cookie choice"
       className="fixed inset-x-4 bottom-[calc(var(--bottom-nav-h,0px)+1rem)] z-[45] mx-auto max-w-md rounded-lg border border-line bg-surface-alt p-5 text-text shadow-[var(--shadow-veil)] sm:left-6 sm:right-auto sm:mx-0"
     >
-      <p className="text-sm leading-relaxed">
+      <p className="text-fine">
         {consent.bannerText}{" "}
         <Link href={consent.policyHref} className="underline underline-offset-2 hover:text-primary">
           Privacy policy
@@ -115,14 +115,14 @@ export function ConsentBanner({
         <button
           type="button"
           onClick={() => storeConsent("granted")}
-          className="flex-1 rounded-pill bg-primary px-4 py-2 text-sm font-medium text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="flex-1 rounded-pill bg-primary px-4 py-2 text-action font-medium text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {consent.acceptLabel}
         </button>
         <button
           type="button"
           onClick={() => storeConsent("denied")}
-          className="flex-1 rounded-pill border border-text/30 px-4 py-2 text-sm font-medium text-text transition-colors hover:border-text focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="flex-1 rounded-pill border border-text/30 px-4 py-2 text-action font-medium text-text transition-colors hover:border-text focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {consent.declineLabel}
         </button>

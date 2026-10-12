@@ -120,7 +120,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {/* The gooey filter the primary action's blobs are drawn through, reachable
               by id from anywhere in the document — see <BlobButton>. */}
           <BlobGooFilter />
-          <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-sm text-on-primary">
+          <a href="#main" className="skip-link rounded-pill bg-primary px-4 py-2 text-action text-on-primary">
             Skip to content
           </a>
           <Header />

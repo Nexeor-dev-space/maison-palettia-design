@@ -77,7 +77,7 @@ import { cn } from "@/lib/utils";
  * `aria-current` all still draw it, so nothing becomes harder to find.
  */
 export const NAV_SIZE = "text-body";
-export const NAV_UTILITY_SIZE = "text-[1.0625rem]";
+export const NAV_UTILITY_SIZE = "text-nav-utility";
 
 export function NavLabel({
   children,

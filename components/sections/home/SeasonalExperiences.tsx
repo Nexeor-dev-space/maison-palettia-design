@@ -214,14 +214,14 @@ export function SeasonalExperiences() {
               <Reveal delay={0.06}>
                 <h2
                   id="seasonal-heading"
-                  className="heading-script mt-5 text-[clamp(2.25rem,1.3rem+3.6vw,3.5rem)] leading-[1.1] text-text"
+                  className="heading-script mt-5 text-script-section text-text"
                 >
                   {forScript("A different season, every season.")}
                 </h2>
               </Reveal>
 
               <Reveal delay={0.12}>
-                <p className="mt-6 max-w-[38ch] text-[1.0625rem] leading-[1.75] text-text/85">
+                <p className="mt-6 max-w-[38ch] text-body text-text/85">
                   {SEASONAL_INTRO}
                 </p>
               </Reveal>
@@ -357,10 +357,10 @@ export function SeasonalExperiences() {
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <span>
-                        <span className="heading-script block text-[clamp(1.75rem,1.1rem+2.2vw,2.75rem)] leading-[1.1] text-text">
+                        <span className="heading-script block text-script-panel text-text">
                           {forScript(season.occasion)}
                         </span>
-                        <span className="mt-2 block max-w-[32ch] text-[1.0625rem] leading-[1.65] text-text/85">
+                        <span className="mt-2 block max-w-[32ch] text-body text-text/85">
                           {season.experience}
                         </span>
                       </span>

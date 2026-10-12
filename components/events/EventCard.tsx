@@ -154,7 +154,7 @@ export function EventCard({
           Scheduled session
         </p>
 
-        <h3 className="mt-3 text-h3 font-light tracking-[-0.015em]">
+        <h3 className="mt-3 text-h3 font-light">
           <Link
             href={workshopHref(workshop)}
             className="after:absolute after:inset-0"
@@ -189,7 +189,7 @@ export function EventCard({
         </p>
 
         {workshop.venue ? (
-          <p className="mt-1.5 text-fine leading-[1.7] text-text/75">
+          <p className="mt-1.5 text-fine text-text/75">
             {workshop.venue.name}, {workshop.venue.locality}
           </p>
         ) : null}

@@ -194,6 +194,15 @@ export function NameLine({ name }: { name: string }) {
   return (
     <p
       dir="auto"
+      /*
+        A FIXED SIZE, DELIBERATELY, against the site's fluid scale.
+
+        Both branches are one truncated line centred in the same 2.75rem box,
+        and the line-heights are what centre them. `text-script-panel` is the
+        token this would otherwise take, but it is a clamp that grows to
+        2.5rem — inside a 2.75rem box that leaves no room for the script's
+        descenders on a wide screen. A fixed box takes a fixed size.
+      */
       className={cn(
         "h-[2.75rem] truncate text-text",
         latin

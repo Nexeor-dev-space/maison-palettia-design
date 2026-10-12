@@ -76,7 +76,7 @@ export function EventCalendar({
   return (
     <div className="plate rounded-lg bg-surface p-4 md:p-6">
       <div className="flex items-center justify-between gap-4">
-        <h3 id={headingId} className="text-h4 font-medium tracking-[-0.01em] text-text">
+        <h3 id={headingId} className="text-h4 font-medium text-text">
           {grid.label}
         </h3>
         <div className="flex items-center gap-2">

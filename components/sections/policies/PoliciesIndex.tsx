@@ -79,7 +79,7 @@ export function PoliciesIndex({ policies }: { policies: readonly Policy[] }) {
                   >
                     <div className="flex items-start justify-between gap-6">
                       <div className="min-w-0">
-                        <h2 className="text-h4 font-semibold tracking-[-0.01em] text-text">
+                        <h2 className="text-h4 font-semibold text-text">
                           {policy.title}
                         </h2>
                         <p className="mt-2 max-w-[42ch] text-body text-text/85">

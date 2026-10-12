@@ -461,8 +461,14 @@ function SearchExperience({
                 THE FLOOR IS 16px AND THAT IS NOT A TASTE SETTING: iOS Safari
                 zooms the whole page when a focused input computes under 16px,
                 and `--text-body` starts at exactly 1rem. Anything smaller fixes
-                the overflow by making every phone jump on focus instead. */
-            className="w-full truncate bg-transparent text-body font-light text-text placeholder:text-text/75 outline-none lg:text-lg"
+                the overflow by making every phone jump on focus instead.
+
+                AND NO `lg:` STEP. A `lg:text-lg` outlived that fix and quietly
+                re-made the same mistake at the other end: `--text-body` has
+                already reached 19px by 1024px, so an 18px override SHRANK the
+                field on exactly the screens with room to spare. One token now
+                carries it at every width. */
+            className="w-full truncate bg-transparent text-body font-light text-text placeholder:text-text/75 outline-none"
           />
         </div>
       </form>

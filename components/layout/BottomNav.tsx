@@ -124,6 +124,25 @@ interface NavItem {
   a lookup for whatever `mobileSurface: "bar"` happens to name, and flipping
   that flag back should not also need an icon re-wired.
 */
+/*
+  THE TAB LABEL'S OWN RUNG, and the one place the site sets type below
+  `--text-label`.
+
+  11px is under the 13px floor the rest of the site holds to, and that is a
+  decision this file argues out at length rather than an oversight: five tabs
+  share a phone's width, "Private events" already sets to 70px here, and at
+  the label token it wraps to two lines on every handset listed above. The
+  narrow step to 10px below 375px, and dropping the tracking with it, is the
+  same trade at the one width where even 11px overflows.
+
+  It is a constant because it was written out three times — two bar labels
+  and the raised centre tab — and three copies of a figure this deliberate
+  are three chances for them to drift apart. Weight stays at the call site:
+  the centre tab is semibold, the others medium.
+*/
+const TAB_LABEL =
+  "block text-[0.6875rem] leading-none tracking-[0.04em] text-on-primary max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em]";
+
 const ICONS: Record<string, NavIcon> = {
   "/events": ExperiencesIcon,
   "/private-events": PrivateEventsIcon,
@@ -461,7 +480,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
                 </motion.span>
               </span>
               <span className="relative block">
-                <span className="block text-[0.6875rem] font-medium leading-none tracking-[0.04em] max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em] text-on-primary">
+                <span className={cn(TAB_LABEL, "font-medium")}>
                   About
                 </span>
                 <span
@@ -653,7 +672,7 @@ function Item({
         </span>
 
         <span className="relative block">
-          <span className="block text-[0.6875rem] font-medium leading-none tracking-[0.04em] max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em] text-on-primary">
+          <span className={cn(TAB_LABEL, "font-medium")}>
             {item.label}
           </span>
           {/* The brush, drawn only under the word it belongs to. White Rock
@@ -785,7 +804,7 @@ function BookBadge({
           <BookIcon size={23} className="block" />
         </motion.span>
 
-        <span className="mt-1 block text-[0.6875rem] font-semibold leading-none tracking-[0.04em] max-[374px]:text-[0.625rem] max-[374px]:tracking-[0em] text-on-primary">
+        <span className={cn(TAB_LABEL, "mt-1 font-semibold")}>
           Book
         </span>
       </button>

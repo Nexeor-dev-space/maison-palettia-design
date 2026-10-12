@@ -345,7 +345,7 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
         <p className="text-label font-medium uppercase tracking-eyebrow text-text/75">
           {workshop.category}
         </p>
-        <h2 className="mt-2 text-lead font-medium leading-snug tracking-[-0.01em]">
+        <h2 className="mt-2 text-lead font-medium leading-snug">
           {workshop.title}
         </h2>
 

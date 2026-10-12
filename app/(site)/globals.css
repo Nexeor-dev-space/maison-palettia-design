@@ -386,6 +386,20 @@
   --text-body--line-height: 1.75;
   --text-body--font-weight: 450;
 
+  /* The desktop bar's QUIETER destinations — search, about, contact — held a
+     step under the four primary ones, which wear `--text-body`.
+
+     It is `--text-body`'s own clamp FLOOR, fixed. The de-emphasis the client
+     asked for is a difference that should only appear where there is room for
+     a hierarchy: below ~860px the two are the same 17px and the bar reads as
+     one row of equals, and from there up `body` grows to 19px while this
+     stays put. A second clamp would have been a second scale to keep in step.
+
+     A token rather than the literal it was, so the bar and anything else that
+     wants that rung agree by name. See NAV_UTILITY_SIZE in <NavLabel>. */
+  --text-nav-utility: 1.0625rem;
+  --text-nav-utility--line-height: 1.75;
+
   /* Section intros and standfirsts — the paragraph that carries a section. */
   --text-lead: clamp(1.25rem, 1.12rem + 0.55vw, 1.4375rem);
   --text-lead--line-height: 1.6;

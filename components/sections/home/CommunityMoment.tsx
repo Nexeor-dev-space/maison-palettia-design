@@ -162,7 +162,7 @@ export function CommunityMoment({ image = "/images/middle-section-bg.jpg" }: { i
             */}
             <h2
               id="community-heading"
-              className="heading-script mx-auto mt-5 max-w-[15ch] text-[clamp(2rem,1.25rem+2.9vw,3.5rem)] leading-[1.14] text-cream"
+              className="heading-script mx-auto mt-5 max-w-[15ch] text-script-section text-cream"
             >
               {COMMUNITY.heading}
             </h2>

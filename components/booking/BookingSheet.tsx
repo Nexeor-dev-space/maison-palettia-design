@@ -247,7 +247,7 @@ export function BookingSheet({
                   <div className="min-w-0">
                     <h2
                       id={titleId}
-                      className="heading-script pb-[0.12em] text-[1.6rem] leading-[1.2] text-text"
+                      className="heading-script pb-[0.12em] text-script-panel text-text"
                     >
                       What would you like to create?
                     </h2>
@@ -392,7 +392,7 @@ function OptionCard({
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-[1.0625rem] font-semibold leading-snug text-text">
+        <span className="block text-h4 font-semibold text-text">
           {option.name}
         </span>
         {option.description ? (

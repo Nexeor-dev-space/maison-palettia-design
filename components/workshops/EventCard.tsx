@@ -201,7 +201,7 @@ export function EventCard({
           </p>
         </div>
 
-        <h3 className="mt-4 text-h3 font-light tracking-[-0.025em]">
+        <h3 className="mt-4 text-h3 font-light">
           <Link
             href={workshopHref(workshop)}
             aria-label={`${workshop.title}, ${formatSessionDate(workshop.startsAt)}${workshop.venue ? ` at ${formatVenueLine(workshop.venue)}` : ""}`}
@@ -215,7 +215,7 @@ export function EventCard({
         </h3>
 
         {workshop.venue ? (
-          <p className="mt-2.5 text-fine leading-[1.6] text-text/75">
+          <p className="mt-2.5 text-fine text-text/75">
             {workshop.venue.name}
             <span aria-hidden className="px-2 text-text/35">
               &middot;
