@@ -396,8 +396,22 @@ export function CursorLayer() {
       Light Sage and the near-white sit above it and take the Charcoal
       outline; Deep Lilac and Charcoal sit below and take the near-white one.
     */
-    const haloFor = (value: string) => {
+    /*
+      Measured once per distinct colour. `resolve` writes a style and reads it
+      back (a forced recalculation) and `luminance` reads pixels back from a
+      canvas (a CPU round-trip); the site has a handful of grounds and a
+      visitor crosses the same few thousands of times, so the answer is kept.
+    */
+    const lightness = new Map<string, number | null>();
+    const measure = (value: string): number | null => {
+      if (lightness.has(value)) return lightness.get(value) ?? null;
       const L = luminance(resolve(value));
+      lightness.set(value, L);
+      return L;
+    };
+
+    const haloFor = (value: string) => {
+      const L = measure(value);
       /*
         CHARCOAL WHEN THE READING FAILS, and that direction is deliberate.
         Most of this site is printed on light grounds, and the two mistakes
@@ -498,9 +512,20 @@ export function CursorLayer() {
       tick();
     };
 
-    // The page can move under a still pointer; re-ask what is there.
-    const onScroll = () => {
-      painter?.scroll();
+    /*
+      The page can move under a still pointer; re-ask what is there — but not
+      every frame. Lenis scrolls on every frame, and this used to run
+      `elementFromPoint` and, as each new element slid under the brush,
+      `elementsFromPoint` plus a `getComputedStyle` per element in the stack in
+      the same frame as the scroll itself: forced style recalculation at the
+      moment the frame budget is tightest (issue #70). The brush's colour may
+      trail a scroll by a tenth of a second; it may not cost the scroll frames.
+      The painter's own scroll hook stays per-frame so wet drops keep tracking
+      the page.
+    */
+    let scrollTimer = 0;
+    const refresh = () => {
+      scrollTimer = 0;
       const target = document.elementFromPoint(pointerX, pointerY);
       if (!allowed(target)) {
         if (active) leave();
@@ -511,6 +536,10 @@ export function CursorLayer() {
         return;
       }
       follow(target);
+    };
+    const onScroll = () => {
+      painter?.scroll();
+      if (!scrollTimer) scrollTimer = window.setTimeout(refresh, 120);
     };
 
     const press = (event: PointerEvent) => {
@@ -537,6 +566,7 @@ export function CursorLayer() {
     return () => {
       cancelAnimationFrame(frame);
       window.clearTimeout(inkTimer);
+      window.clearTimeout(scrollTimer);
       painter?.destroy();
       probe.remove();
       window.removeEventListener("pointermove", onMove);

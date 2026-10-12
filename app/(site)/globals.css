@@ -981,6 +981,14 @@
     }
   }
 
+  /* A phone repaints this full-screen layer for no visible gain at 2% opacity,
+     and it is the first thing a mid-range GPU drops frames on (issue #70). */
+  @media (pointer: coarse) {
+    body::after {
+      display: none;
+    }
+  }
+
   /* Someone who has asked the operating system for more contrast has asked
      for exactly the thing this layer spends. */
   @media (prefers-contrast: more) {
@@ -1140,7 +1148,6 @@
   scale: calc(var(--deco-mark, 1) * (1 + var(--lift, 0.16) * var(--near)));
   transform-origin: 50% 50%;
   transition: scale 420ms var(--ease-soft);
-  will-change: scale;
 }
 
 @media (prefers-reduced-motion: reduce) {
