@@ -85,7 +85,10 @@
     The flight's scale is measured against this box, so a larger mark still
     lands exactly on the header's.
   */
-  width: min(56vw, 30rem, 62svh);
+  /* 64vw on a phone, up from 56: the mark is the subject of the opening
+     and at 56 it was a small word in a tall field. The ring is fitted to
+     whatever width this gives, so a larger mark never pushes it off screen. */
+  width: min(64vw, 30rem, 62svh);
   height: auto;
   /*
     FRAME 1: "The background is clean, and the Maison Palettia logo fades in

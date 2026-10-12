@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSiteChrome } from "@/components/layout/SiteChrome";
 import styles from "@/components/motion/SiteLoader.module.css";
 import { LogoReveal } from "@/components/sections/hero/LogoReveal";
-import { DOODLE_PLAN, RING_ORDER } from "@/components/sections/hero/composition";
+import { DOODLE_PLAN, RING_ORDER, portraitStretch } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 
@@ -185,6 +185,7 @@ export function SiteLoader() {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       let ring = 1;
+      let fitY = Infinity;
       loader.querySelectorAll<HTMLElement>("[data-piece]").forEach((el) => {
         const plan = RING.find((p) => p.id === el.dataset.piece);
         if (!plan || el.offsetWidth === 0) return;
@@ -197,8 +198,12 @@ export function SiteLoader() {
         const reachY = Math.abs(plan.flower.y) * unit;
         if (reachX > 0) ring = Math.min(ring, (vw / 2 - halfW - RING_MARGIN) / reachX);
         if (reachY > 0) ring = Math.min(ring, (vh / 2 - halfH - RING_MARGIN) / reachY);
+        if (reachY > 0) fitY = Math.min(fitY, (vh / 2 - halfH - RING_MARGIN) / reachY);
       });
-      loader.style.setProperty("--ring", Math.max(0.6, ring).toFixed(3));
+      ring = Math.max(0.6, ring);
+      loader.style.setProperty("--ring", ring.toFixed(3));
+      // Taller than wide: reach further up and down — see portraitStretch().
+      loader.style.setProperty("--ring-y", portraitStretch(ring, fitY, vw, vh).toFixed(3));
     };
 
     const cancelPaint = nextPaint(() => {

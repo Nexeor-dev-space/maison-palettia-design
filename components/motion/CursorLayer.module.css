@@ -169,12 +169,9 @@
   contain: strict;
 }
 
-/* No paint where there is no brush — and none on paper. */
-@media (pointer: coarse) {
-  .paint {
-    display: none;
-  }
-}
+/* None on paper. */
+/* On a touch screen the canvas stays: a tap paints (see `touchPaint` in
+   CursorLayer.tsx). Only the brush stands down there. */
 
 @media print {
   .paint {

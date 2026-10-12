@@ -57,7 +57,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(56vw, 30rem, 62svh);
+  width: min(64vw, 30rem, 62svh);
   transform: translate(-50%, -50%);
 }
 
@@ -84,7 +84,7 @@
   cut-out still fits a narrow phone, exactly as the homepage measures it.
 */
 .loader {
-  --unit: min(56vw, 30rem, 62svh);
+  --unit: min(64vw, 30rem, 62svh);
   --ring: 1;
 }
 
@@ -108,7 +108,7 @@
   opacity: 1;
   transform: translate(
       calc(-50% + var(--fx) * var(--unit) * var(--ring)),
-      calc(-50% + var(--fy) * var(--unit) * var(--ring))
+      calc(-50% + var(--fy) * var(--unit) * var(--ring-y, var(--ring)))
     )
     rotate(var(--fr, 0deg));
   transition:
@@ -122,7 +122,7 @@
   opacity: 0;
   transform: translate(
       calc(-50% + var(--fx) * var(--unit) * var(--ring) * 1.55),
-      calc(-50% + var(--fy) * var(--unit) * var(--ring) * 1.55)
+      calc(-50% + var(--fy) * var(--unit) * var(--ring-y, var(--ring)) * 1.55)
     )
     rotate(var(--fr, 0deg));
   transition:
