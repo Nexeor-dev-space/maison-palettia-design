@@ -470,3 +470,24 @@ export const DRAW_ORDER: readonly string[] = DOODLE_PLAN.map((plan) => plan.id);
 export const RING_ORDER: readonly string[] = DOODLE_PLAN.filter((plan) => plan.ring).map(
   (plan) => plan.id,
 );
+
+/**
+ * How far the intro's ring reaches UP AND DOWN, given how far it reaches
+ * across (`ring`) and the most it can reach vertically and stay on screen
+ * (`fitY`).
+ *
+ * ON A PHONE STANDING UP THE RING IS STRETCHED TALL. The ring is laid out in
+ * widths of the mark, and on a landscape desktop that puts it round the mark
+ * with room to breathe; a portrait phone has the same ring at a fraction of
+ * the screen's height, bunched against the letters with empty field above and
+ * below — which is what the client saw as "not arranged like the desktop".
+ * So the vertical reach grows with how tall the screen is for its width,
+ * until it fills about as much of the height as the desktop composition does,
+ * and never past what keeps every cut-out on screen. On a landscape screen
+ * this returns `ring` unchanged.
+ */
+export function portraitStretch(ring: number, fitY: number, vw: number, vh: number): number {
+  const tall = vh / vw;
+  if (tall <= 1.1) return ring;
+  return Math.max(ring, Math.min(fitY, ring * Math.min(1.9, tall * 0.85)));
+}

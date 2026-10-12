@@ -1729,9 +1729,9 @@ html[data-intro="burst"] body:has([data-hero-intro]) > header {
   opacity: 0;
   visibility: hidden;
   /* A fail-safe, not a timing: if the script never runs, the bar still
-     arrives. The intro replaces this long before it would fire — it is done
-     at 1.5s now, so this came down from 4.5s with it. */
-  animation: intro-failsafe 0.01s 2.5s forwards;
+     arrives. The intro replaces this long before it would fire — 3.6s, past
+     the ~2.6s entrance now that the mark is written again. */
+  animation: intro-failsafe 0.01s 3.6s forwards;
 }
 
 /*
@@ -1748,12 +1748,13 @@ html[data-intro="dots"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="burst"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   visibility: hidden;
-  animation: intro-failsafe 0.01s 2.5s forwards;
+  animation: intro-failsafe 0.01s 3.6s forwards;
 }
 
 /*
-  AND THE FLOATING CONTACT ACTION (<ContactWidget>), for the same reason the
-  header and the footer go.
+  AND THE FLOATING CONTACT ACTION (<ContactWidget>) AND THE PHONE'S BOTTOM
+  NAVIGATION (<BottomNav>), for the same reason the header and the footer go:
+  on a phone the purple bar stood across the foot of the intro's clean field.
 
   The intro is a logo and a ring of cut-outs on a clean Light Sage field, and
   a contact button parked in the corner of it is the one piece of site furniture
@@ -1767,18 +1768,25 @@ html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   `body:has([data-hero-intro])`, so every other page shows it immediately.
 */
 html:not([data-intro]) body:has([data-hero-intro]) [data-contact-fab],
+html:not([data-intro]) body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="play"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="play"] body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="dots"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="dots"] body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="burst"] body:has([data-hero-intro]) [data-contact-fab],
-html[data-intro="settle"] body:has([data-hero-intro]) [data-contact-fab] {
+html[data-intro="burst"] body:has([data-hero-intro]) [data-bottom-nav],
+html[data-intro="settle"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="settle"] body:has([data-hero-intro]) [data-bottom-nav] {
   opacity: 0;
   visibility: hidden;
-  animation: intro-failsafe 0.01s 2.5s forwards;
+  animation: intro-failsafe 0.01s 3.6s forwards;
 }
 
 /* It arrives with the bar, once the mark has landed. */
 html[data-intro="done"] body:has([data-hero-intro]) [data-contact-fab],
-html[data-intro="skip"] body:has([data-hero-intro]) [data-contact-fab] {
+html[data-intro="done"] body:has([data-hero-intro]) [data-bottom-nav],
+html[data-intro="skip"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="skip"] body:has([data-hero-intro]) [data-bottom-nav] {
   opacity: 1;
   visibility: visible;
   transition:

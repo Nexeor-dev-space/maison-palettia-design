@@ -85,7 +85,10 @@
     The flight's scale is measured against this box, so a larger mark still
     lands exactly on the header's.
   */
-  width: min(56vw, 30rem, 62svh);
+  /* 64vw on a phone, up from 56: the mark is the subject of the opening
+     and at 56 it was a small word in a tall field. The ring is fitted to
+     whatever width this gives, so a larger mark never pushes it off screen. */
+  width: min(64vw, 30rem, 62svh);
   height: auto;
   /*
     FRAME 1: "The background is clean, and the Maison Palettia logo fades in
@@ -744,8 +747,14 @@
   transform-origin: 50% 50%;
 }
 
-/* No transition here on purpose: a drift that eased would trail the scroll. */
+/* No transition here on purpose: a drift that eased would trail the scroll.
+
+   Its own layer, because it changes every frame of the photograph's opening:
+   without one each cut-out was repainted per frame, which measured as the
+   largest single cost of the opening on a phone (slow frames 32 → 18 at a
+   mid-range phone's speed with this alone). */
 .drift {
+  will-change: transform, opacity;
   transform: translate3d(
       calc(var(--dirx, 0) * var(--p) * 4rem),
       calc(var(--diry, 0) * var(--p) * 3rem),

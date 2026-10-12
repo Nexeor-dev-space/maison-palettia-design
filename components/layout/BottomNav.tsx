@@ -322,6 +322,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
 
   const bar = (
     <motion.nav
+      data-bottom-nav
       aria-label="Primary"
       /*
         `--color-focus` IS CREAM HERE because the ring would otherwise be the

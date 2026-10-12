@@ -101,6 +101,75 @@ const TILT_MAX = 12;
 /** How much of the lean is kept each frame once the hand stops — it rights itself in about a fifth of a second. */
 const TILT_RETURN = 0.8;
 
+/*
+  ==========================================================================
+  ON A TOUCH SCREEN: NO BRUSH, BUT THE PAINT
+  ==========================================================================
+
+  A phone has no pointer to draw a brush at, so the cursor itself never
+  mounts there — but the paint can still answer the finger, at the client's
+  ask. A TAP leaves the same three drops a click does, where the finger
+  landed, in the colour that place on the page takes. A tap only: a touch
+  that moves (a scroll, a swipe through a carousel) or is held (a long-press
+  menu) paints nothing, and the browser's own `pointercancel` — sent when a
+  touch turns into a scroll — ends it too. Text fields keep the keyboard to
+  themselves, as they do on desktop. Off for a reader who asked for less
+  motion.
+
+  The ground the painter keeps off is read from the elements under the tap,
+  the same rule the brush uses: the first painted background there.
+*/
+const TAP_SLOP = 10;
+const TAP_MS = 450;
+
+function touchPaint(canvas: HTMLCanvasElement | null): (() => void) | undefined {
+  if (!canvas || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const painter = createPainter(canvas);
+  if (!painter) return;
+  const CLEAR = /^(transparent$|rgba?\([^)]*,\s*0(\.0+)?\s*\)$)/;
+
+  let down: { id: number; x: number; y: number; t: number } | null = null;
+  const onDown = (event: PointerEvent) => {
+    if (event.pointerType === "mouse" || !event.isPrimary) return;
+    const target = event.target as Element | null;
+    if (typeof target?.closest === "function" && target.closest(NATIVE)) return;
+    down = { id: event.pointerId, x: event.clientX, y: event.clientY, t: performance.now() };
+  };
+  const onUp = (event: PointerEvent) => {
+    const start = down;
+    down = null;
+    if (!start || event.pointerId !== start.id) return;
+    if (performance.now() - start.t > TAP_MS) return;
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > TAP_SLOP) return;
+    for (const node of document.elementsFromPoint(event.clientX, event.clientY)) {
+      if (node === canvas) continue;
+      const style = getComputedStyle(node);
+      if (style.visibility === "hidden" || Number(style.opacity) < 0.05) continue;
+      if (style.backgroundColor && !CLEAR.test(style.backgroundColor)) {
+        painter.ground(style.backgroundColor);
+        break;
+      }
+    }
+    painter.drop(event.clientX, event.clientY);
+  };
+  const onCancel = () => {
+    down = null;
+  };
+  const onScroll = () => painter.scroll();
+
+  window.addEventListener("pointerdown", onDown, { passive: true });
+  window.addEventListener("pointerup", onUp, { passive: true });
+  window.addEventListener("pointercancel", onCancel, { passive: true });
+  window.addEventListener("scroll", onScroll, { passive: true });
+  return () => {
+    window.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+    window.removeEventListener("scroll", onScroll);
+    painter.destroy();
+  };
+}
+
 export function CursorLayer() {
   const dotRef = useRef<HTMLDivElement>(null);
   const paintRef = useRef<HTMLCanvasElement>(null);
@@ -108,8 +177,9 @@ export function CursorLayer() {
   useEffect(() => {
     const dot = dotRef.current;
     if (!dot) return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-    if (!window.matchMedia("(hover: hover)").matches) return;
+    if (!window.matchMedia("(pointer: fine)").matches || !window.matchMedia("(hover: hover)").matches) {
+      return touchPaint(paintRef.current);
+    }
 
     /*
       REDUCED MOTION NO LONGER MEANS NO BRUSH, and that was the bug behind

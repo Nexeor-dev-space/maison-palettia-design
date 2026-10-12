@@ -205,27 +205,48 @@ export function HeaderBar({
     and a bar that flips on a single pixel flickers through every one of them.
     Six pixels is under the threshold of a deliberate scroll and over the noise.
   */
+  /*
+    ONLY WHEN SOMETHING CHANGES, AND AT MOST ONCE A FRAME. This used to call
+    all three setters on every scroll event. React bails out of a state set to
+    its current value only some of the time — the rest it schedules a render
+    to find out — and measured on a phone during the homepage banner's opening
+    that was a commit per scroll event (81 in one swipe), each re-rendering
+    the whole header: the busiest work on the main thread, and the reason the
+    photograph's opening stuttered on mid-range phones. The answers are kept
+    here and a setter is only called when one actually flips.
+  */
   useEffect(() => {
     let lastY = window.scrollY;
+    let frame = 0;
+    let scrolled: boolean | null = null;
+    let detached: boolean | null = null;
+    let rising: boolean | null = null;
 
-    const onScroll = () => {
+    const read = () => {
+      frame = 0;
       const y = window.scrollY;
-      setIsScrolled(y > 8);
-      setIsDetached(y > DETACH_AFTER);
+      const nextScrolled = y > 8;
+      if (nextScrolled !== scrolled) setIsScrolled((scrolled = nextScrolled));
+      const nextDetached = y > DETACH_AFTER;
+      if (nextDetached !== detached) setIsDetached((detached = nextDetached));
 
       const delta = y - lastY;
       if (Math.abs(delta) > DIRECTION_DEADBAND) {
-        setIsRising(delta < 0);
+        const nextRising = delta < 0;
+        if (nextRising !== rising) setIsRising((rising = nextRising));
         lastY = y;
       }
     };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
 
     // Deferred so the restored-scroll sync does not run inside the effect body.
-    const initial = requestAnimationFrame(onScroll);
+    frame = requestAnimationFrame(read);
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      cancelAnimationFrame(initial);
+      cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
     };
   }, []);

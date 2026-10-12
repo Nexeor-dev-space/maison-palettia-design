@@ -2,12 +2,7 @@
 
 import { useLayoutEffect, useRef } from "react";
 
-import {
-  DOODLE_PLAN,
-  DRAW_ORDER,
-  RING_ORDER,
-  type DoodlePlan,
-} from "@/components/sections/hero/composition";
+import { portraitStretch, DOODLE_PLAN, DRAW_ORDER, RING_ORDER, type DoodlePlan } from "@/components/sections/hero/composition";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { LogoReveal } from "@/components/sections/hero/LogoReveal";
 import { useSiteChrome } from "@/components/layout/SiteChrome";
@@ -75,6 +70,9 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
 const WRITE_MS = 900; // the pen writes "Maison Palettia", first stroke to last
 const DOTS_AT = WRITE_MS - 40;
 
+/** On a touch screen, how much of the gap to the scroll the opening closes each frame. */
+const FOLLOW = 0.24;
+
 /** Fired on the frame whenever its foot is refitted — see `refit` below. */
 const REFIT_EVENT = "hero-refit"; // the mark is written; the wells start filling
 const DOT_STEP = 62; // one well after another — see `.pDot` in Hero.module.css
@@ -135,7 +133,6 @@ const CUE_UNTIL = 0.12;
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
-
 /*
   Clear air kept between the supporting line and the scroll cue under the
   resting card.
@@ -190,8 +187,7 @@ const CUE_CLEARANCE_RATIO = 0.7;
  */
 function navBand(): number {
   const probe = document.createElement("div");
-  probe.style.cssText =
-    "position:absolute;left:-9999px;top:0;width:0;visibility:hidden;height:var(--bottom-nav-h,0px)";
+  probe.style.cssText = "position:absolute;left:-9999px;top:0;width:0;visibility:hidden;height:var(--bottom-nav-h,0px)";
   document.body.append(probe);
   const h = probe.offsetHeight;
   probe.remove();
@@ -599,6 +595,7 @@ export function HeroIntro() {
     */
     const RING_MARGIN = 8;
     let ring = 1;
+    let fitY = Infinity;
     for (const { plan, box } of measured) {
       if (!plan.ring) continue;
       const w = plan.flower.width * unit;
@@ -610,8 +607,10 @@ export function HeroIntro() {
       const reachY = Math.abs(plan.flower.y) * unit;
       if (reachX > 0) ring = Math.min(ring, (vw / 2 - halfW - RING_MARGIN) / reachX);
       if (reachY > 0) ring = Math.min(ring, (vh / 2 - halfH - RING_MARGIN) / reachY);
+      if (reachY > 0) fitY = Math.min(fitY, (vh / 2 - halfH - RING_MARGIN) / reachY);
     }
     ring = Math.max(0.6, ring);
+    const ringY = portraitStretch(ring, fitY, vw, vh);
 
     for (const { el, plan, box } of measured) {
       if (!inRing(el)) {
@@ -635,7 +634,7 @@ export function HeroIntro() {
       el.dataset.ring = "";
       const i = ringOrder(el);
       const x = vw / 2 + plan.flower.x * unit * ring;
-      const y = vh / 2 + plan.flower.y * unit * ring;
+      const y = vh / 2 + plan.flower.y * unit * ringY;
       const cx = box.left + box.width / 2;
       const cy = box.top + box.height / 2;
       el.style.setProperty("--fx", `${x - cx}px`);
@@ -858,7 +857,11 @@ export function HeroIntro() {
           continue;
         }
         let top = el.offsetTop;
-        for (let node = el.offsetParent as HTMLElement | null; node && node !== copy; node = node.offsetParent as HTMLElement | null) {
+        for (
+          let node = el.offsetParent as HTMLElement | null;
+          node && node !== copy;
+          node = node.offsetParent as HTMLElement | null
+        ) {
           top += node.offsetTop;
         }
         const at = (edge: number) => Math.min(1, Math.max(0, (copy.offsetTop + edge - frame.offsetHeight + wb) / sweep));
@@ -896,12 +899,43 @@ export function HeroIntro() {
       to Lenis where Lenis is running, and to the window's own event where it
       is not. See the note there.
     */
+    /*
+      ON A TOUCH SCREEN THE OPENING FOLLOWS THE FINGER, IT DOES NOT COPY IT.
+
+      A phone's scroll is native (Lenis leaves touch alone), and it reports
+      positions unevenly — a burst of events, a gap, a jump at the start of a
+      fling — so writing the raw position straight through moved the
+      photograph's window by up to 8% of its travel in a single frame and
+      then not at all for the next: the stutter the client saw on phones.
+      There, `--p` now eases toward the scroll's answer every frame (a
+      quarter of the remaining distance), which turns uneven steps into one
+      continuous movement and settles within a few frames of the finger
+      stopping. A pointer device keeps the direct write: Lenis already eases
+      the wheel, and easing twice would make the banner trail the page.
+    */
+    const touch = window.matchMedia("(pointer: coarse)").matches;
+    let shown = -1;
+    let target = 0;
+    let follow = 0;
+    const apply = (p: number) => {
+      shown = p;
+      frame.style.setProperty("--p", p.toFixed(4));
+    };
+    const step = () => {
+      follow = 0;
+      const next = shown + (target - shown) * FOLLOW;
+      apply(Math.abs(target - next) < 0.0008 ? target : next);
+      if (shown !== target) follow = requestAnimationFrame(step);
+    };
+
     const write = () => {
       const t = Math.min(1, Math.max(0, (window.scrollY - start) / (end - start)));
       // Smoothstep: the opening gathers pace and then settles, rather than
       // tracking the scrollbar mechanically.
       const p = t * t * (3 - 2 * t);
-      frame.style.setProperty("--p", p.toFixed(4));
+      target = p;
+      if (!touch || shown < 0) apply(p);
+      else if (!follow) follow = requestAnimationFrame(step);
 
       const nextActions = p >= ACTIONS_FROM;
       if (nextActions !== actionsLive) {
@@ -934,6 +968,7 @@ export function HeroIntro() {
     frame.addEventListener(REFIT_EVENT, onResize);
     return () => {
       cancelled = true;
+      cancelAnimationFrame(follow);
       stopScroll();
       window.removeEventListener("resize", onResize);
       frame.removeEventListener(REFIT_EVENT, onResize);
