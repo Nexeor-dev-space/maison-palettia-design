@@ -1,3 +1,5 @@
+import { createReadStream } from "node:fs";
+import { Readable } from "node:stream";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 
@@ -10,7 +12,8 @@ import {
   revalidateOnMediaChange,
   revalidateOnMediaDelete,
 } from "@/cms/hooks/mediaGuards";
-import { MEDIA_DIR } from "@/cms/lib/paths";
+import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { seededMediaSource } from "@/cms/lib/seededMedia";
 
 /**
  * ==========================================================================
@@ -109,15 +112,51 @@ type FileHandler = NonNullable<UploadConfig["handlers"]>[number];
 
 const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Parameters<FileHandler>[1]): Promise<Response | undefined> => {
   const root = path.resolve(MEDIA_DIR);
-  const file = path.resolve(root, params.filename ?? "");
+  const filename = params.filename ?? "";
+  const file = path.resolve(root, filename);
   if (!file.startsWith(root + path.sep)) return undefined; // Payload refuses it with its own 400
   try {
     await stat(file);
     return undefined;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") return undefined;
-    return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
   }
+
+  const source = seededMediaSource(filename);
+  if (!source) return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+
+  const publicRoot = path.resolve(PROJECT_ROOT, "public");
+  const publicFile = path.resolve(publicRoot, source);
+  if (!publicFile.startsWith(publicRoot + path.sep)) return undefined;
+  try {
+    await stat(publicFile);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+    }
+    throw error;
+  }
+
+  const mimeTypes: Record<string, string> = {
+    ".gif": "image/gif",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".mp4": "video/mp4",
+    ".otf": "font/otf",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".ttf": "font/ttf",
+    ".webp": "image/webp",
+  };
+  const contentType = mimeTypes[path.extname(publicFile).toLowerCase()];
+  if (!contentType) return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+
+  return new Response(Readable.toWeb(createReadStream(publicFile)), {
+    headers: {
+      "Cache-Control": "public, max-age=60",
+      "Content-Type": contentType,
+    },
+  });
 };
 
 export const Media: CollectionConfig = {

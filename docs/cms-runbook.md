@@ -524,3 +524,7 @@ one at a time, without re-uploading through Payload. If the restore command
 exits unsuccessfully, startup continues and logs a warning. Photos uploaded
 through the admin have no copy in git; the command logs them as "missing with
 no source" so they can be re-uploaded.
+When a seeded file is missing from `/app/media`, its Payload file URL also
+falls back to the matching committed source in `public/`, including URLs for
+generated renditions. This keeps seeded images available even if automatic
+restoration is interrupted.
