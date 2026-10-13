@@ -1,5 +1,4 @@
 import { createReadStream } from "node:fs";
-import { Readable } from "node:stream";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 
@@ -98,15 +97,12 @@ export const MEDIA_TAG_LABELS: Record<(typeof MEDIA_TAGS)[number], string> = {
 export const MEDIA_TAG_OPTIONS = MEDIA_TAGS.map((value) => ({ value, label: MEDIA_TAG_LABELS[value] }));
 
 /**
- * A file that is not on disk answers 404, not 500.
+ * Missing seeded files fall back to their committed public/ source.
  *
- * Replacing a photograph in the admin writes a new file and removes the old
- * one, so a cached page, a shared link or an email that still points at
- * `/api/media/file/<old name>` asks for a file that is gone — and Payload's
- * own handler answers that with a 500 "Something went wrong." This runs
- * first: the same containment check Payload makes (the name may not climb
- * out of the media folder), then a `stat`. A file that exists falls through
- * to Payload's handler, which streams it with its usual headers.
+ * If a file is missing, this checks the requested path stays inside the media
+ * folder, then serves its seeded source when available. Missing unseeded
+ * uploads answer 404 rather than Payload's 500; existing files fall through
+ * to Payload's normal handler.
  */
 type FileHandler = NonNullable<UploadConfig["handlers"]>[number];
 
@@ -151,7 +147,24 @@ const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Pa
   const contentType = mimeTypes[path.extname(publicFile).toLowerCase()];
   if (!contentType) return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
 
-  return new Response(Readable.toWeb(createReadStream(publicFile)), {
+  const fileStream = createReadStream(publicFile);
+  const iterator = fileStream[Symbol.asyncIterator]();
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const chunk = await iterator.next();
+        if (chunk.done) controller.close();
+        else controller.enqueue(new Uint8Array(chunk.value));
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+    cancel() {
+      fileStream.destroy();
+    },
+  });
+
+  return new Response(body, {
     headers: {
       "Cache-Control": "public, max-age=60",
       "Content-Type": contentType,
