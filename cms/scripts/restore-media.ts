@@ -18,8 +18,12 @@ import { SEED_CONTEXT } from "@/cms/seed/upsert";
  *
  *   npx payload run cms/scripts/restore-media.ts [--dry-run]
  *
- * Runs on every production start (package.json `start:prod`, after
- * migrations). WHY: the media library is two halves — rows in Postgres and
+ * Run explicitly when media files are missing:
+ *   npm run restore:media
+ *
+ * This is intentionally not part of production startup: rebuilding image
+ * sizes can exceed a small container's memory limit and prevent the site
+ * from starting. WHY: the media library is two halves — rows in Postgres and
  * files in `media/` beside the code. The seed ran on a developer machine
  * against the shared database, so the rows reached the server and the files
  * did not: every `/api/media/file/…` was a 404 and `/_next/image` answered

@@ -486,6 +486,8 @@ from `scripts/deploy.sh` and `Dockerfile.runtime` above. What makes it work:
   starts with `npm run start:prod` = `payload migrate` then
   `scripts/start-standalone.sh` (links `.next/static` and `public/` into the
   standalone folder, binds `0.0.0.0`, listens on `PORT`, default 3000).
+  Media restoration is deliberately separate from startup so image resizing
+  cannot exhaust the container's memory and prevent the site from coming up.
 
 ### Coolify settings
 
@@ -515,9 +517,11 @@ customer data lands — see "Database gate".
 The media library is rows in Postgres plus files in `/app/media`. If the
 files are missing (a new server, an empty or lost volume, or a seed that ran
 on another machine), every `/api/media/file/…` is a 404 and `/_next/image`
-answers 400. `npm run start:prod` runs `cms/scripts/restore-media.ts` before
-the server starts: any seeded photo whose file is missing is re-imported from
-its original in `public/` into the same library entry (same name, sizes
-regenerated). Photos uploaded through the admin have no copy in git; the start
-log lists them as "missing with no source" so they can be re-uploaded. Run it
-by hand with `npm run restore:media`.
+answers 400. First confirm that `/app/media` is backed by persistent storage.
+Once the app is healthy, run `npm run restore:media` in the running container:
+any seeded photo whose file is missing is re-imported from its original in
+`public/` into the same library entry (same name, sizes regenerated). This
+operation decodes and resizes images and can use substantial memory, so it is
+not run automatically during startup. Photos uploaded through the admin have
+no copy in git; the command logs them as "missing with no source" so they can
+be re-uploaded.
