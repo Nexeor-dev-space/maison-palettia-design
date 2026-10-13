@@ -519,9 +519,8 @@ files are missing (a new server, an empty or lost volume, or a seed that ran
 on another machine), every `/api/media/file/…` is a 404 and `/_next/image`
 answers 400. First confirm that `/app/media` is backed by persistent storage.
 `npm run start:prod` attempts to restore missing seeded files from `public/`
-into the same library entries (same names, sizes regenerated) after migrations.
-If the restore command exits unsuccessfully, startup continues and logs a
-warning. To restore immediately, run `npm run restore:media` in the running
-container and check its `restore-media:` summary. Photos uploaded through the
-admin have no copy in git; the command logs them as "missing with no source"
-so they can be re-uploaded.
+after migrations. It copies each original and regenerates missing renditions
+one at a time, without re-uploading through Payload. If the restore command
+exits unsuccessfully, startup continues and logs a warning. Photos uploaded
+through the admin have no copy in git; the command logs them as "missing with
+no source" so they can be re-uploaded.

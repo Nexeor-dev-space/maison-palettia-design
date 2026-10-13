@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -9,7 +10,6 @@ import sharp from "sharp";
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
-import { SEED_CONTEXT } from "@/cms/seed/upsert";
 
 /**
  * ==========================================================================
@@ -21,7 +21,7 @@ import { SEED_CONTEXT } from "@/cms/seed/upsert";
  * Runs after migrations during production startup, and can also be run
  * explicitly with `npm run restore:media`. The start command is best-effort:
  * the standalone server still starts if image processing is killed by a
- * container memory limit. WHY: the media library is split between rows in
+ * container memory limit. The media library is split between rows in
  * Postgres and files in `media/` beside the code. The seed ran on a developer
  * machine against the shared database, so the rows reached the server and
  * the files did not: every `/api/media/file/…` was a 404 and `/_next/image`
@@ -29,10 +29,10 @@ import { SEED_CONTEXT } from "@/cms/seed/upsert";
  * starts on an empty `media/` (a new server, a lost volume).
  *
  * WHAT IT CAN RESTORE: every photo the seed imported, because its original
- * is in git under `public/` (cms/seed/strings/media.ts names it). It
- * re-uploads that original into the SAME document (`payload.update` with a
- * file), so Payload rewrites the file and regenerates every size — ids,
- * alt text, focal points and every page that references it stay as they are.
+ * is in git under `public/` (cms/seed/strings/media.ts names it). It copies
+ * each missing original and generates missing renditions one at a time,
+ * avoiding a Payload re-upload that would process all sizes at once.
+ * Document ids, metadata and references stay unchanged.
  *
  * WHAT IT CANNOT: a photo the owner uploaded through the admin exists only on
  * the server's disk. Those are listed as "missing, no source" so the gap is
@@ -44,15 +44,6 @@ import { SEED_CONTEXT } from "@/cms/seed/upsert";
 
 const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
 
-const MIME: Record<string, string> = {
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-  ".webp": "image/webp",
-  ".svg": "image/svg+xml",
-  ".mp4": "video/mp4",
-};
-
 /** stored filename → path under public/, for every seeded photo. */
 const SOURCES = new Map(MEDIA.map((seed) => [storedFilename(seed.path), seed.path]));
 
@@ -61,7 +52,7 @@ const PARKED = "__restoring-";
 type MediaRow = {
   id: number | string;
   filename?: string | null;
-  sizes?: Record<string, { filename?: string | null } | null> | null;
+  sizes?: Record<string, { filename?: string | null; width?: number | null; height?: number | null } | null> | null;
 };
 
 /**
@@ -84,9 +75,7 @@ function originalNameOf(row: MediaRow): string | undefined {
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
-  // One image at a time, no pixel cache: this runs beside nothing else at
-  // boot, but on a small container the default (one thread per core plus a
-  // 50 MB cache) resizing a 30 MP original was enough to get it killed.
+  // Keep each decode bounded and process one missing rendition at a time.
   sharp.concurrency(1);
   sharp.cache(false);
   const payload = await getPayload({ config });
@@ -101,33 +90,22 @@ async function main() {
   }
 
   let present = 0;
-  let restored = 0;
+  let originalsRestored = 0;
+  let renditionsRestored = 0;
   const unrecoverable: string[] = [];
 
   for (const row of rows) {
-    const filename = row.filename;
-    if (filename?.startsWith(PARKED)) {
-      // Left parked by an interrupted run: give the row its name back first.
+    let filename = row.filename;
+    const wasParked = Boolean(filename?.startsWith(PARKED));
+    if (wasParked) {
       const original = originalNameOf(row);
       if (!original) {
-        unrecoverable.push(filename);
+        unrecoverable.push(filename ?? "unknown parked media");
         continue;
       }
-      if (!dryRun) {
-        await payload.db.updateOne({ collection: "media", id: row.id, data: { filename: original }, returning: false });
-      }
-      // A row is only left parked when the process died while restoring it,
-      // so retrying it straight away would likely kill this start too — a
-      // restart loop that never serves the site. Skip it this time; the next
-      // start (or `npm run restore:media`) tries it again.
-      unrecoverable.push(`${original} (skipped this start: the previous attempt was interrupted)`);
-      continue;
+      filename = original;
     }
     if (!filename) continue;
-    if (fs.existsSync(path.join(MEDIA_DIR, filename))) {
-      present++;
-      continue;
-    }
 
     const source = SOURCES.get(filename);
     const absolute = source ? path.join(PUBLIC_DIR, source) : undefined;
@@ -136,45 +114,67 @@ async function main() {
       continue;
     }
 
+    const originalPath = path.join(MEDIA_DIR, filename);
+    const originalExists = fs.existsSync(originalPath);
+    if (originalExists) present++;
+
     if (dryRun) {
-      restored++;
+      if (!originalExists) originalsRestored++;
+      for (const size of Object.values(row.sizes ?? {})) {
+        if (size?.filename && !fs.existsSync(path.join(MEDIA_DIR, size.filename))) renditionsRestored++;
+      }
       continue;
     }
 
-    const buffer = await fsp.readFile(absolute);
-    const mimetype = MIME[path.extname(absolute).toLowerCase()] ?? "application/octet-stream";
-    // Free the name first. Payload's upload step treats a filename already
-    // held by ANY row — this row included — as taken and stores the new file
-    // as `name-1.ext`, which would rename every restored photo. Parking the
-    // row's own filename for the length of the update keeps the original.
-    await payload.db.updateOne({
-      collection: "media",
-      id: row.id,
-      data: { filename: `__restoring-${row.id}${path.extname(filename)}` },
-      returning: false,
-    });
-    try {
-      await payload.update({
-        collection: "media",
-        id: row.id,
-        data: {} as never,
-        file: { data: buffer, mimetype, name: filename, size: buffer.length },
-        depth: 0,
-        overrideAccess: true,
-        context: { ...SEED_CONTEXT },
-      });
-      restored++;
-    } catch (err) {
-      // Never leave a row parked: put its name back and carry on.
+    if (!originalExists) {
+      const tempPath = path.join(MEDIA_DIR, `.${filename}.${randomUUID()}.tmp${path.extname(filename)}`);
+      await fsp.copyFile(absolute, tempPath);
+      await fsp.rename(tempPath, originalPath);
+      originalsRestored++;
+    }
+
+    for (const size of Object.values(row.sizes ?? {})) {
+      const sizeFilename = size?.filename;
+      if (!sizeFilename || fs.existsSync(path.join(MEDIA_DIR, sizeFilename))) continue;
+
+      const dimensions = sizeFilename.match(/-(\d+)x(\d+)\.[^.]+$/);
+      const width = size.width ?? (dimensions ? Number(dimensions[1]) : undefined);
+      const height = size.height ?? (dimensions ? Number(dimensions[2]) : undefined);
+      if (!width && !height) {
+        unrecoverable.push(`${sizeFilename} (rendition dimensions are unavailable)`);
+        continue;
+      }
+
+      const tempPath = path.join(MEDIA_DIR, `.${sizeFilename}.${randomUUID()}.tmp${path.extname(sizeFilename)}`);
+      try {
+        await sharp(absolute)
+          .resize({
+            ...(width ? { width } : {}),
+            ...(height ? { height } : {}),
+            fit: width && height ? "cover" : "inside",
+            position: "centre",
+            withoutEnlargement: true,
+          })
+          .toFile(tempPath);
+        await fsp.rename(tempPath, path.join(MEDIA_DIR, sizeFilename));
+        renditionsRestored++;
+      } catch (err) {
+        unrecoverable.push(`${sizeFilename} (${err instanceof Error ? err.message : String(err)})`);
+        continue;
+      }
+    }
+
+    if (wasParked) {
       await payload.db.updateOne({ collection: "media", id: row.id, data: { filename }, returning: false });
-      unrecoverable.push(`${filename} (${err instanceof Error ? err.message : String(err)})`);
     }
   }
 
   const verb = dryRun ? "would restore" : "restored";
-  console.log(`restore-media: ${rows.length} in library, ${present} on disk, ${verb} ${restored} from public/, ${unrecoverable.length} missing with no source.`);
+  console.log(
+    `restore-media: ${rows.length} in library, ${present} originals on disk, ${verb} ${originalsRestored} originals and ${renditionsRestored} renditions, ${unrecoverable.length} missing or incomplete.`,
+  );
   if (unrecoverable.length) {
-    console.log(`restore-media: re-upload these in the admin (Media): ${unrecoverable.join(", ")}`);
+    console.log(`restore-media: check these missing or incomplete files: ${unrecoverable.join(", ")}`);
   }
   process.exit(0);
 }
