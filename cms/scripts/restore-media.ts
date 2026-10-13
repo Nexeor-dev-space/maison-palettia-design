@@ -18,17 +18,15 @@ import { SEED_CONTEXT } from "@/cms/seed/upsert";
  *
  *   npx payload run cms/scripts/restore-media.ts [--dry-run]
  *
- * Run explicitly when media files are missing:
- *   npm run restore:media
- *
- * This is intentionally not part of production startup: rebuilding image
- * sizes can exceed a small container's memory limit and prevent the site
- * from starting. WHY: the media library is two halves — rows in Postgres and
- * files in `media/` beside the code. The seed ran on a developer machine
- * against the shared database, so the rows reached the server and the files
- * did not: every `/api/media/file/…` was a 404 and `/_next/image` answered
- * 400 for the whole site. The same happens whenever a container starts on an
- * empty `media/` (a new server, a lost volume).
+ * Runs after migrations during production startup, and can also be run
+ * explicitly with `npm run restore:media`. The start command is best-effort:
+ * the standalone server still starts if image processing is killed by a
+ * container memory limit. WHY: the media library is split between rows in
+ * Postgres and files in `media/` beside the code. The seed ran on a developer
+ * machine against the shared database, so the rows reached the server and
+ * the files did not: every `/api/media/file/…` was a 404 and `/_next/image`
+ * answered 400 for the whole site. The same happens whenever a container
+ * starts on an empty `media/` (a new server, a lost volume).
  *
  * WHAT IT CAN RESTORE: every photo the seed imported, because its original
  * is in git under `public/` (cms/seed/strings/media.ts names it). It
@@ -186,7 +184,7 @@ async function main() {
 try {
   await main();
 } catch (err) {
-  // Never block the site from starting over missing photos: log and go on.
+  // Let the start command report a failed restore and continue to the server.
   console.error("restore-media: failed —", err instanceof Error ? err.message : err);
-  process.exit(0);
+  process.exit(1);
 }
