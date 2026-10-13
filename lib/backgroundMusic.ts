@@ -3,7 +3,7 @@
  * The site's background music
  * ==========================================================================
  *
- * One looping track (public/music/music.mp3) behind every page, with the
+ * One looping track (public/music/bg-music.mp3) behind every page, with the
  * wave button in the header to pause and play it — see
  * components/layout/SoundToggle.tsx.
  *
@@ -20,7 +20,7 @@
  * has said so: that is remembered on this device, and the music then waits
  * for the button rather than starting on the next visit's first click.
  *
- * NOTHING IS DOWNLOADED UNTIL IT PLAYS. The track is 7.6MB; `preload="none"`
+ * NOTHING IS DOWNLOADED UNTIL IT PLAYS. The track is 3MB; `preload="none"`
  * and a source set only on the first play keep it off the critical path for
  * every visitor who never hears it.
  *
@@ -30,7 +30,7 @@
  * visitor expects a page they are not looking at to behave.
  */
 
-const SRC = "/music/music.mp3";
+const SRC = "/music/bg-music.mp3";
 const VOLUME = 0.35;
 const FADE_MS = 700;
 /** Remembered on this device: "off" once the visitor has paused it. */

@@ -720,7 +720,7 @@ function FilterSelect({ label, options, selected, fallbackLabel, onSelect }: Fil
                 }}
                 onPointerEnter={() => setCursor(i)}
                 className={cn(
-                  "flex cursor-none items-center justify-between gap-6 rounded-sm px-4 py-3",
+                  "flex cursor-pointer items-center justify-between gap-6 rounded-sm px-4 py-3",
                   "text-[0.9375rem] font-medium leading-snug",
                   i === cursor ? "bg-cream text-text" : "text-text/80",
                   chosen && "text-primary",

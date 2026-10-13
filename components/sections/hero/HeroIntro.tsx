@@ -67,18 +67,24 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   no more. The dots start a hair before the last letter's outline settles,
   so there is no dead beat between the two.
 */
-const WRITE_MS = 900; // the pen writes "Maison Palettia", first stroke to last
+/*
+  THE WHOLE OPENING RUNS TO ABOUT FOUR SECONDS, at the client's ask: "reduce
+  the pace of the loading animation, extend it to 4 sec". Every beat is
+  slower in proportion — the writing, the wells, the ring's hold — rather
+  than one beat padded, so it still reads as one movement, only unhurried.
+*/
+const WRITE_MS = 1500; // the pen writes "Maison Palettia", first stroke to last
 const DOTS_AT = WRITE_MS - 40;
 
 /** On a touch screen, how much of the gap to the scroll the opening closes each frame. */
-const FOLLOW = 0.24;
+const FOLLOW = 0.38;
 
 /** Fired on the frame whenever its foot is refitted — see `refit` below. */
 const REFIT_EVENT = "hero-refit"; // the mark is written; the wells start filling
-const DOT_STEP = 62; // one well after another — see `.pDot` in Hero.module.css
-const BURST_AT = DOTS_AT + 380; // frame 2: the icons leave the logo
-const LIFT_AT = BURST_AT + 600; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 720; // frame 6: ... and the page is composed by ~2560ms
+const DOT_STEP = 95; // one well after another — see `.pDot` in Hero.module.css
+const BURST_AT = DOTS_AT + 640; // frame 2: the icons leave the logo
+const LIFT_AT = BURST_AT + 900; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 960; // frame 6: ... and the page is composed by ~4000ms
 
 /*
   One icon after another on the way out, and again on the way back.
@@ -90,7 +96,7 @@ const SETTLE_MS = 720; // frame 6: ... and the page is composed by ~2560ms
   every icon is home by 696ms — inside the 0.6-0.8s the storyboard gives frame
   3 for them to be in place.
 */
-const BURST_STEP = 12;
+const BURST_STEP = 18;
 /*
   The scatter, which is the same gesture reversed. It starts 150ms into the
   last phase rather than with it, so the eye follows the mark up to the bar
@@ -100,7 +106,7 @@ const BURST_STEP = 12;
   150 + 8 x 11 = 238, so the last icon leaves at 1038ms and is home at 1438ms.
 */
 const SCATTER_AT = 150;
-const SCATTER_STEP = 11;
+const SCATTER_STEP = 16;
 /*
   And the shapes that are NOT in the ring come up later still, behind the
   photograph as it opens over them. See where this is written.
@@ -125,6 +131,16 @@ const ENTER_STEP = 20;
   asked for — the banner full bleed, holding, before the page moves on.
 */
 const OPENING_SHARE = 0.52;
+/*
+  ON A PHONE THE PICTURE OPENS IN HALF THE SCROLL, at the client's ask: "make
+  the expand animation faster on mobile, otherwise it causes a glitch". The
+  slow opening kept the photograph in its most expensive state — the window
+  re-cut and every cut-out re-drawn each frame — for a whole screen of
+  scrolling, which is where a phone stutters. At 0.42 of the phone's shorter
+  hold (see `.track` in Hero.module.css) it is fully open after ~50svh of
+  scrolling instead of ~94, and the picture then stands open for the rest.
+*/
+const OPENING_SHARE_PHONE = 0.42;
 /* Where the words land, as a share of the screen's height: below both faces in the photograph. */
 const COPY_LANDING = 0.7;
 /* The opening progress at which the two actions become usable, and the cue stops being. */
@@ -814,7 +830,7 @@ export function HeroIntro() {
       const trackTop = track.getBoundingClientRect().top + window.scrollY;
       const hold = Math.max(1, track.offsetHeight - frame.offsetHeight);
       start = trackTop;
-      end = trackTop + hold * OPENING_SHARE;
+      end = trackTop + hold * (window.matchMedia("(max-width: 767px)").matches ? OPENING_SHARE_PHONE : OPENING_SHARE);
       /*
         NEVER UNDER THE BAR. Centred at COPY_LANDING, a phone's block — the
         tagline on two lines, both sentences and the two stacked actions,

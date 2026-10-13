@@ -394,7 +394,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         spent as padding above the glyph. The icon box is the glyph's size
         now, and the wrapper's top padding is gone.
       */}
-      <div className="relative overflow-hidden bg-primary pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-0">
+      <div className="relative overflow-hidden bg-primary pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-0">
         {/*
           SMALL COLOUR AT THE TWO BOTTOM CORNERS, clipped by the sheet so only
           a curve of each one shows — the brief's "colour accents", and the

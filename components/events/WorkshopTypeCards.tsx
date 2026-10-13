@@ -1,9 +1,6 @@
 import Link from "next/link";
 
 import { Reveal } from "@/components/motion/Reveal";
-import { INK } from "@/components/sections/hero/composition";
-import { DoodleMark } from "@/components/ui/DoodleMark";
-import { ModeMark } from "@/components/ui/ModeMark";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
 import { formatPrice, formatSessionDate, sessionTimeRange } from "@/lib/workshopHelpers";
@@ -65,7 +62,7 @@ export function LevelChip({ children, tone = "cream" }: { children: string; tone
  */
 /** The grounds a section's tickets take, in the order sections take them — see Ticket.module.css. */
 export const TICKET_GROUNDS = ["sage", "lavender", "terracotta", "lilac"] as const;
-export type TicketGround = (typeof TICKET_GROUNDS)[number];
+export type TicketGround = (typeof TICKET_GROUNDS)[number] | "cream";
 
 export function TypeCard({
   type,
@@ -90,33 +87,10 @@ export function TypeCard({
       className={cn(styles.ticket, styles.theme, "group press-in w-full overflow-hidden")}
     >
       <span className={cn(styles.body, "relative flex flex-col px-7 py-7 md:px-8 md:py-8")}>
-        {/*
-          TWO TINY MARKS, IN THE PADDING, NOT OVER THE WORDS.
-
-          A 5.5rem lavender starburst hung off this corner at -right-4 -top-5
-          and crossed both the chips row and the perforation — the overlap the
-          client asked to be rid of. These are 1.25rem and 1rem and they sit
-          inside the card's own `py-7` / `px-7` band, which no line of text
-          reaches, so the card keeps its hand-drawn note and every word stays
-          clear of it.
-
-          TWO INKS, BECAUSE THE INK PICKS THE DRAWING. In this sheet the
-          COLOUR chooses the glyph and the shape word only picks loose or
-          slab, so terracotta and lilac are two different marks however they
-          are named — asking for two `dot`s in one colour would print the same
-          cut-out twice.
-        */}
-        {/* A real cut-out, not a plain dot — the client's ask: every mark on
-            these cards should be one of the brand's own shapes. */}
-        <span aria-hidden className="pointer-events-none absolute right-3 top-2 w-8 rotate-[-12deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:-translate-y-0.5">
-          <DoodleMark name="splash" color={INK.terracotta} treatment="stamp" delay={240} />
-        </span>
-        <span aria-hidden className="pointer-events-none absolute bottom-2 left-3 w-4 rotate-[14deg] transition-transform duration-700 ease-editorial motion-safe:group-hover:translate-y-0.5">
-          <DoodleMark name="bean" color={INK.lilac} treatment="stamp" delay={320} />
-        </span>
-
         <span className="relative flex flex-wrap items-center gap-2">
-          <ModeMark mode="scheduled" />
+          {/* A plain filled dot, at the client's ask — the calendar icon read
+              as clutter on the ticket; the dot is the quiet mark it had. */}
+          <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-pill bg-text" />
           {type.level ? <LevelChip>{type.level}</LevelChip> : null}
           {type.status ? <LevelChip tone="lilac">{type.status}</LevelChip> : null}
         </span>

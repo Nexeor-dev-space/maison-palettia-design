@@ -275,7 +275,6 @@ export function EventsBody({
           */}
           <GroupHead
             id="create-anytime-heading"
-            mode="diy"
             title={diyDoor?.title ?? "Create Anytime"}
             lead={groupLeads.diy}
           >
@@ -329,7 +328,6 @@ export function EventsBody({
           */}
           <GroupHead
             id="scheduled-heading"
-            mode="scheduled"
             title={scheduledDoor?.title ?? "Create Together"}
             lead={groupLeads.scheduled}
           />
@@ -508,13 +506,11 @@ function Door({
 
 function GroupHead({
   id,
-  mode,
   title,
   lead,
   children,
 }: {
   id: string;
-  mode: "diy" | "scheduled";
   title: string;
   lead: string | null;
   children?: React.ReactNode;
@@ -529,7 +525,6 @@ function GroupHead({
           >
             {/* Lifted to the script's x-height: its letters sit high in their
                 line box, so a centred mark read as sitting on the baseline. */}
-            <ModeMark mode={mode} className="size-3 -translate-y-[0.15em]" />
             <ScriptTitle>{title}</ScriptTitle>
           </h2>
           {lead ? <p className="mt-4 max-w-[34rem] text-lead text-text/85">{lead}</p> : null}

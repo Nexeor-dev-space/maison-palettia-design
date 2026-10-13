@@ -281,7 +281,7 @@
 */
 :global(html[data-intro="dots"]) .pDot,
 :global(html[data-loader="dots"]) .pDot {
-  animation: dotIn 240ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
+  animation: dotIn 340ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--delay, 0ms) both;
 }
 
 @keyframes dotIn {
@@ -324,8 +324,8 @@
   transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px)))
     scale(var(--logo-s, 1));
   animation:
-    logoFly 440ms var(--ease-flight) forwards,
-    logoOut 160ms ease 360ms forwards;
+    logoFly 620ms var(--ease-flight) forwards,
+    logoOut 200ms ease 520ms forwards;
 }
 
 @keyframes logoFly {
@@ -387,6 +387,16 @@
     — most of a screen of scrolling with nothing to do but look at it.
   */
   height: 280svh;
+}
+
+/* A phone holds the banner for less: 220svh gives a 120svh hold, opened over
+   ~50svh (OPENING_SHARE_PHONE in <HeroIntro>) and then standing open for
+   ~70svh — still a full look at the picture, without the long, costly
+   in-between that stuttered on phones. */
+@media (max-width: 767px) {
+  .track {
+    height: 220svh;
+  }
 }
 
 .frame {
@@ -870,7 +880,7 @@
   transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1))
     rotate(var(--fr, 0deg));
   transition:
-    transform 400ms var(--ease-pop) var(--burst-delay, 0ms),
+    transform 560ms var(--ease-pop) var(--burst-delay, 0ms),
     opacity 140ms ease var(--burst-delay, 0ms);
 }
 
@@ -901,7 +911,7 @@
 :global(html[data-intro="settle"]) .flip[data-ring] {
   opacity: 1;
   transform: none;
-  transition: transform 400ms var(--ease-flight) var(--settle-delay, 0ms);
+  transition: transform 540ms var(--ease-flight) var(--settle-delay, 0ms);
 }
 
 /*
