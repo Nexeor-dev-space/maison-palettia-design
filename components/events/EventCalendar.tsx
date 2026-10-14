@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 
@@ -36,18 +36,20 @@ import type { Workshop } from "@/types";
  * things side by side, the way the reference boards pair a month with a
  * day:
  *
- *   THE BOARD. The month, Monday first, Dubai dates. From `lg` each day with
- *   something on is a card of warm paper carrying its sessions as tiles —
- *   time over title, the title allowed two lines — in their format's colour,
- *   with "+n more" where a day holds more than two. Below `lg` there is no
- *   room for a title, so a day carries one dot per session in the same
- *   colours, and the agenda underneath does the reading.
+ *   THE BOARD. The month, Monday first, Dubai dates, under a key to the
+ *   format colours. From `lg` each day with something on is a card of warm
+ *   paper carrying its courses as small tickets — the time on the stub, the
+ *   course on the body, a course run twice that day one ticket with both
+ *   times — in their format's colour, with "+n more" past two. Below `lg`
+ *   there is no room for a title, so a day carries one dot per session in
+ *   the same colours, and the agenda does the reading.
  *
- *   THE AGENDA. Every session of the chosen day, or of the whole month grouped
- *   by date when no day is chosen, with everything the data holds about it:
- *   the format, the experience, the time from start to end, how long, where,
- *   the price, what is left — and the way into its page. Beside the board from
- *   `xl`, where it scrolls inside the plate; under it everywhere else.
+ *   THE AGENDA. Only once a day is chosen: every session of it, with
+ *   everything the data holds — the format, the experience, the time from
+ *   start to end, how long, where, the price, what is left — and the way into
+ *   its page. Beside the board from `xl`, where it scrolls inside the plate;
+ *   under it everywhere else. With no day chosen the board has the whole
+ *   width, and the month's sessions are the cards under the calendar.
  *
  * ==========================================================================
  * STILL A DATE PICKER OVER THE SAME LIST
@@ -122,7 +124,7 @@ export function EventCalendar({
   canGoForward: boolean;
   renderedAt: number;
   /** Every format, in the studio's order — what decides each one's colour. */
-  formats?: readonly { slug: string }[];
+  formats?: readonly { slug: string; name: string }[];
   /** Where "Today" (or "Next dates") goes: this month if it has dates, else the first that does. */
   homeMonth?: string | null;
   /** Whether a filter is narrowing the board — the empty month then offers to clear it. */
@@ -153,6 +155,31 @@ export function EventCalendar({
   }, [formats]);
 
   const days = useMemo(() => grid.weeks.flat().filter((cell) => cell.inMonth), [grid]);
+
+  /*
+    THE KEY TO THE COLOURS: the formats that run this month, in the studio's
+    order. It is what lets a tile drop the experience from its title — the
+    colour says "Crochet", the tile says "Beginners" — and what makes a
+    phone's dots readable at all.
+  */
+  const legend = useMemo(() => {
+    const running = new Set(days.flatMap((cell) => cell.workshops.map((w) => w.workshopType?.slug)));
+    const shown = formats
+      .map((format, i) => ({ slug: format.slug, name: shortTitle(format.name), tone: TONES[i % TONES.length] }))
+      .filter((format) => running.has(format.slug));
+    /* "Crochet — Beginners", "Crochet — Returning Learners" share one "Crochet" label; a name with no dash stands alone. */
+    const groups: { label: string | null; formats: typeof shown }[] = [];
+    formats.forEach((format) => {
+      const entry = shown.find((f) => f.slug === format.slug);
+      if (!entry) return;
+      const at = format.name.indexOf(" — ");
+      const label = at === -1 ? null : format.name.slice(0, at);
+      const last = groups[groups.length - 1];
+      if (last && last.label === label) last.formats.push(entry);
+      else groups.push({ label, formats: [entry] });
+    });
+    return { count: shown.length, groups };
+  }, [days, formats]);
   const busy = useMemo(() => days.filter((cell) => cell.workshops.length > 0), [days]);
   const chosen = selectedDay ? (days.find((cell) => cell.key === selectedDay) ?? null) : null;
 
@@ -220,9 +247,35 @@ export function EventCalendar({
         </div>
       </div>
 
-      <div className="grid xl:grid-cols-[minmax(0,1fr)_21rem]">
+      {/* What changed, said once for a screen reader — the counts the client keeps off the page. */}
+      <p aria-live="polite" className="sr-only">
+        {chosen
+          ? `${longDate(chosen.key)}: ${chosen.workshops.length} ${chosen.workshops.length === 1 ? "session" : "sessions"}`
+          : ""}
+      </p>
+
+      <div className={cn("grid", chosen && "xl:grid-cols-[minmax(0,1fr)_21rem]")}>
         {/* ---- the board -------------------------------------------------- */}
         <div className={cn(styles.board, "min-w-0 px-2 pb-4 pt-3 sm:px-4 md:px-5 lg:px-6 lg:pb-6 lg:pt-4")}>
+          {legend.count > 1 ? (
+            <ul
+              aria-label="Colour key"
+              className="mb-1 flex flex-wrap gap-x-5 gap-y-1.5 px-1 pb-2 pt-1 text-fine text-text/80 lg:mb-2 lg:px-1.5"
+            >
+              {legend.groups.map((group) => (
+                <li key={group.formats[0].slug} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {group.label ? <span className="font-medium text-text">{group.label}</span> : null}
+                  {group.formats.map((format) => (
+                    <span key={format.slug} className="flex items-center gap-1.5">
+                      <span aria-hidden data-tone={format.tone} className={cn(styles.tone, styles.swatch)} />
+                      {format.name}
+                    </span>
+                  ))}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           {/*
             A REAL TABLE, NOT AN ARIA GRID. `role="grid"` promises arrow-key
             movement between cells, which this does not implement — each day
@@ -275,23 +328,35 @@ export function EventCalendar({
             </tbody>
           </table>
 
+          {busy.length === 0 ? (
+            <div className="mx-1 mt-3 rounded-md bg-cream/45 px-5 py-5 lg:mx-1.5">
+              <p className="text-body font-medium text-text">
+                Nothing scheduled in {monthName}
+                {narrowed ? " for these filters" : ""}.
+              </p>
+              {narrowed && onReset ? (
+                <button
+                  type="button"
+                  onClick={onReset}
+                  className="press-in mt-3 text-label font-medium uppercase tracking-eyebrow text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+                >
+                  Clear filters
+                </button>
+              ) : (
+                <p className="mt-2 text-fine text-text/75">Use the arrows above to move to a month with dates.</p>
+              )}
+            </div>
+          ) : !chosen ? (
+            <p className="mt-1 px-1 text-fine text-text/60 lg:px-1.5">Choose a date to see its sessions.</p>
+          ) : null}
         </div>
 
-        {/* ---- the agenda ------------------------------------------------- */}
-        <div ref={agendaRef} className="relative min-w-0 border-t border-text/10 bg-surface xl:border-l xl:border-t-0">
-          <Agenda
-            monthName={monthName}
-            chosen={chosen}
-            busy={busy}
-            today={today}
-            renderedAt={renderedAt}
-            toneOf={toneOf}
-            onShowMonth={() => onSelectDay(null)}
-            onSelectDay={choose}
-            narrowed={narrowed}
-            onReset={onReset}
-          />
-        </div>
+        {/* ---- the agenda: only for a chosen day ---------------------------- */}
+        {chosen ? (
+          <div ref={agendaRef} className="relative min-w-0 border-t border-text/10 bg-surface xl:border-l xl:border-t-0">
+            <Agenda day={chosen} today={today} renderedAt={renderedAt} toneOf={toneOf} onClose={() => onSelectDay(null)} />
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -319,7 +384,7 @@ function DayCell({
   const count = cell.workshops.length;
 
   /* Outside the month: an empty slot that keeps the weekday columns true. */
-  if (!cell.inMonth) return <div aria-hidden className="h-full min-h-[3rem] lg:min-h-[5.5rem]" />;
+  if (!cell.inMonth) return <div aria-hidden className="h-full min-h-[3rem] lg:min-h-[2.75rem]" />;
 
   /*
     THE NUMERAL. Today wears a Deep Lilac ring and, from `lg`, the word
@@ -353,11 +418,11 @@ function DayCell({
   /*
     A week with nothing on stands lower than one with sessions: an empty
     row only has to hold its numerals, and the height it gives up is what
-    lets a busy row print its titles in full without the board growing.
+    lets a busy row print its titles in full without the board growing. A
+    busy row is as tall as its tickets and no taller.
   */
   const shell = cn(
-    "flex h-full w-full flex-col rounded-[0.75rem] p-1 text-left min-h-[3rem] sm:min-h-[3.5rem] lg:p-2",
-    count > 0 ? "lg:min-h-[8.5rem]" : "lg:min-h-[5.5rem]",
+    "flex h-full w-full flex-col rounded-[0.75rem] p-1 text-left min-h-[3rem] sm:min-h-[3.5rem] lg:min-h-[2.75rem] lg:p-1.5",
   );
 
   if (count === 0) {
@@ -381,8 +446,15 @@ function DayCell({
     .map((w) => `${w.title} at ${sessionTimeRange(w.startsAt, w.durationMinutes).start}`)
     .join(", ")}`;
 
-  const shown = count > MAX_TILES ? MAX_TILES : count;
-  const more = count - shown;
+  /*
+    ONE TILE PER COURSE, NOT PER SITTING. Most days run the same course
+    twice — a morning and an evening — and two tiles saying the same title
+    were most of the board's noise. Sittings of one course share a tile that
+    lists their times; "+n more" still counts sessions, not tiles.
+  */
+  const tiles = groupSittings(cell.workshops);
+  const shownTiles = tiles.slice(0, MAX_TILES);
+  const more = count - shownTiles.reduce((sum, tile) => sum + tile.length, 0);
 
   return (
     <button
@@ -407,21 +479,25 @@ function DayCell({
         ) : null}
       </span>
 
-      {/* The board's reading: a tile per session, then "+n more". */}
-      <span aria-hidden className="mt-2 hidden w-full min-w-0 flex-col gap-1.5 lg:flex">
-        {cell.workshops.slice(0, shown).map((w) => (
-          <span key={w.slug} data-tone={toneOf(w)} className={cn(styles.tone, styles.tile)}>
-            <span className="text-[0.75rem] font-medium uppercase tabular-nums leading-tight tracking-[0.06em] text-text/75">
-              {sessionTimeRange(w.startsAt, w.durationMinutes).start}
+      {/* The board's reading: a ticket per course, then "+n more". */}
+      <span aria-hidden className="mt-1 hidden w-full min-w-0 flex-col gap-1 lg:flex">
+        {shownTiles.map((sittings) => (
+          <span key={sittings[0].slug} data-tone={toneOf(sittings[0])} className={cn(styles.tone, styles.ticket)}>
+            <span className={styles.stub}>
+              {/* Each time unbroken, so a narrow stub breaks between them, never inside "6:30 PM". */}
+              {sittings.map((w, i) => (
+                <span key={w.slug} className={styles.time}>
+                  {i > 0 ? <span className={styles.timeSep}>&amp; </span> : null}
+                  {shortTime(sessionTimeRange(w.startsAt, w.durationMinutes).start)}
+                </span>
+              ))}
             </span>
-            <span className={cn(styles.tileTitle, "text-label font-medium leading-[1.25] text-text")}>{w.title}</span>
+            <span className={cn(styles.ticketBody, "text-label font-medium leading-[1.25] text-text")}>
+              <span className={styles.tileTitle}>{shortTitle(sittings[0].title)}</span>
+            </span>
           </span>
         ))}
-        {more > 0 ? (
-          <span className="inline-flex items-center gap-1 self-start rounded-pill px-1.5 py-0.5 text-label font-medium text-primary underline decoration-primary/40 underline-offset-[3px]">
-            +{more} more
-          </span>
-        ) : null}
+        {more > 0 ? <span className="self-start px-1 text-[0.75rem] font-medium text-text/60">+{more} more</span> : null}
       </span>
     </button>
   );
@@ -432,40 +508,26 @@ function DayCell({
    ========================================================================== */
 
 function Agenda({
-  monthName,
-  chosen,
-  busy,
+  day,
   today,
   renderedAt,
   toneOf,
-  onShowMonth,
-  onSelectDay,
-  narrowed,
-  onReset,
+  onClose,
 }: {
-  monthName: string;
-  chosen: CalendarDay | null;
-  busy: CalendarDay[];
+  day: CalendarDay;
   today: string;
   renderedAt: number;
   toneOf: (workshop: Workshop) => Tone;
-  onShowMonth: () => void;
-  onSelectDay: (key: string) => void;
-  narrowed: boolean;
-  onReset?: () => void;
+  onClose: () => void;
 }) {
-  const sessions = chosen ? chosen.workshops : busy.flatMap((cell) => cell.workshops);
   const beside = useBeside();
-  const announce = chosen
-    ? `${longDate(chosen.key)}: ${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}`
-    : `All of ${monthName}: ${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}`;
 
   return (
     /*
       `data-lenis-prevent` WHILE IT SCROLLS ON ITS OWN. The site's smooth
       scroll (Lenis) takes every wheel event for the page, so without this
-      the wheel over the agenda moved the page and never the list — the
-      month's later dates were out of reach. Only from `xl`, where the agenda
+      the wheel over the agenda moved the page and never the list — a busy
+      day's later sessions were out of reach. Only from `xl`, where the agenda
       is the side panel with its own scroll; everywhere else it is part of
       the page and the page's smoothing should carry on over it.
     */
@@ -473,126 +535,42 @@ function Agenda({
       data-lenis-prevent={beside ? "" : undefined}
       className={cn(styles.agendaScroll, "flex flex-col xl:absolute xl:inset-0 xl:overflow-y-auto")}
     >
-      {/* What changed, said once for a screen reader — the counts the client keeps off the page. */}
-      <p aria-live="polite" className="sr-only">
-        {announce}
-      </p>
-
-      <div className="sticky top-0 z-10 bg-surface/95 px-4 pb-3 pt-5 backdrop-blur-sm sm:px-6 lg:px-8 xl:px-6">
-        <div className="flex items-center justify-between gap-4">
-          <p className="whitespace-nowrap text-label font-medium uppercase tracking-eyebrow text-text/60">
-            {chosen ? (chosen.key === today ? "Today" : "Chosen day") : "This month"}
+      <div className="sticky top-0 z-10 flex items-start justify-between gap-4 bg-surface/95 px-4 pb-3 pt-5 backdrop-blur-sm sm:px-6 lg:px-8 xl:px-6">
+        <div>
+          <p className="text-label font-medium uppercase tracking-eyebrow text-text/60">
+            {day.key === today ? "Today" : "Chosen day"}
           </p>
-          {chosen ? (
-            <button
-              type="button"
-              onClick={onShowMonth}
-              aria-label={`Show all of ${monthName}`}
-              className="press-in shrink-0 text-label font-medium uppercase tracking-eyebrow text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
-            >
-              Whole month
-            </button>
-          ) : null}
+          <h4 className="mt-1 text-h4 font-medium text-text">{dayHeading(day.key)}</h4>
         </div>
-        <h4 className="mt-1 text-h4 font-medium text-text">
-          {chosen ? dayHeading(chosen.key) : <span className="lg:max-xl:hidden">All of {monthName}</span>}
-          {chosen ? null : <span className="hidden lg:max-xl:inline">Day by day</span>}
-        </h4>
+        {/* Closing is letting the whole month back in — the same as pressing the day again. */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={`Close ${dayHeading(day.key)}`}
+          className="press-in inline-flex size-9 shrink-0 items-center justify-center rounded-pill border border-text/20 text-text transition-colors duration-300 ease-soft hover:border-primary hover:text-primary"
+        >
+          <X aria-hidden strokeWidth={1.75} className="h-4 w-4" />
+        </button>
       </div>
 
-      <div className="px-4 pb-6 sm:px-6 lg:px-8 xl:px-6">
-        {sessions.length === 0 ? (
-          <div className="rounded-md bg-cream/45 px-5 py-6">
-            <p className="text-body font-medium text-text">
-              Nothing scheduled in {monthName}
-              {narrowed ? " for these filters" : ""}.
-            </p>
-            {narrowed && onReset ? (
-              <button
-                type="button"
-                onClick={onReset}
-                className="press-in mt-3 text-label font-medium uppercase tracking-eyebrow text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
-              >
-                Clear filters
-              </button>
-            ) : (
-              <p className="mt-2 text-fine text-text/75">Use the arrows above to move to a month with dates.</p>
-            )}
-          </div>
-        ) : chosen ? (
-          <ul className="flex flex-col gap-3">
-            {sessions.map((w) => (
-              <li key={w.slug}>
-                <AgendaItem workshop={w} tone={toneOf(w)} renderedAt={renderedAt} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <>
-            {/*
-            Between `lg` and `xl` the full board is the month's reading and
-            the agenda sits under it, so repeating the whole month there would
-            only make the page twice as long. It waits for a day instead.
-          */}
-            <p className="hidden text-body text-text/80 lg:max-xl:block">
-              Choose a date on the board to see its sessions in full.
-            </p>
-            {/* The month, grouped by date. Each date heading is also the way to
-             choose that day, so the board and the list stay one control. */}
-            <ol className="flex flex-col gap-6 lg:max-xl:hidden">
-              {busy.map((cell) => (
-                <li key={cell.key}>
-                  <h5 className="mb-2">
-                    <button
-                      type="button"
-                      onClick={() => onSelectDay(cell.key)}
-                      aria-label={`Choose ${longDate(cell.key)}`}
-                      className={cn(
-                        "press-in inline-flex items-baseline gap-2 text-label font-medium uppercase tracking-eyebrow hover:text-primary",
-                        cell.key < today ? "text-text/45" : "text-text/75",
-                      )}
-                    >
-                      {shortDate(cell.key)}
-                      {cell.key === today ? <span className="text-primary">Today</span> : null}
-                    </button>
-                  </h5>
-                  <ul className="flex flex-col gap-2">
-                    {cell.workshops.map((w) => (
-                      <li key={w.slug}>
-                        <AgendaItem workshop={w} tone={toneOf(w)} renderedAt={renderedAt} compact />
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ol>
-          </>
-        )}
-      </div>
+      <ul className="flex flex-col gap-3 px-4 pb-6 sm:px-6 lg:px-8 xl:px-6">
+        {day.workshops.map((w) => (
+          <li key={w.slug}>
+            <AgendaItem workshop={w} tone={toneOf(w)} renderedAt={renderedAt} />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 /**
- * One session in the agenda: everything the data holds about it, nothing it
- * does not. The title is the link and covers the whole row, the way an
- * <EventCard> does; "View event" is the visible affordance.
- *
- * `compact` is the month list's version — format, time and what is left on
- * two lines — so a month of sessions stays scannable; the chosen day's
- * version adds the experience, the duration, the place and the price.
+ * One session in the agenda, as a ticket: everything the data holds about it
+ * on the face, what is left and the way in on the stub. The title is the
+ * link and covers the whole ticket, the way an <EventCard> does; "View
+ * event" is the visible affordance.
  */
-function AgendaItem({
-  workshop,
-  tone,
-  renderedAt,
-  compact = false,
-}: {
-  workshop: Workshop;
-  tone: Tone;
-  renderedAt: number;
-  compact?: boolean;
-}) {
+function AgendaItem({ workshop, tone, renderedAt }: { workshop: Workshop; tone: Tone; renderedAt: number }) {
   const passed = useSessionPassed(workshop.startsAt, hasSessionPassed(workshop, renderedAt));
   const { start, end } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
   const status = passed ? "Date passed" : spotsLabel(workshop);
@@ -601,46 +579,32 @@ function AgendaItem({
   }`;
 
   return (
-    <article
-      data-tone={tone}
-      className={cn(
-        styles.tone,
-        styles.agendaItem,
-        "group relative rounded-md",
-        compact ? "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 pe-3 ps-4" : "py-4 pe-4 ps-5",
-        passed && "opacity-70",
-      )}
-    >
-      <div className="min-w-0">
-        {!compact && workshop.experience ? (
-          <p className="text-label font-medium uppercase tracking-eyebrow text-text/65">{workshop.experience.name}</p>
-        ) : null}
-        <h5 className={cn("font-medium leading-snug text-text", compact ? "text-body" : "mt-1 text-h4")}>
-          <Link href={workshopHref(workshop)} aria-label={name} className="after:absolute after:inset-0 after:rounded-md">
-            {workshop.title}
-          </Link>
-        </h5>
-        <p className={cn("text-fine text-text/80", compact ? "mt-0.5" : "mt-2")}>
-          <span className="whitespace-nowrap tabular-nums">
-            {start}
-            <span aria-hidden> &ndash; </span>
-            <span className="sr-only"> to </span>
-            {end}
-          </span>
-          {!compact ? (
-            <>
-              <Sep />
-              <span className="whitespace-nowrap">{formatDuration(workshop.durationMinutes)}</span>
-            </>
+    /*
+      The wrapper carries the tone and the drop-shadow edge: the ticket's
+      notches are a mask, and a mask clips the element's own box-shadow, so
+      the edge is drawn by a filter on the parent, which follows the bites.
+    */
+    <div data-tone={tone} className={cn(styles.tone, styles.agendaWrap, passed && "opacity-70")}>
+      <article className={cn(styles.agendaTicket, "group relative rounded-md")}>
+        <div className="min-w-0 px-5 pb-4 pt-4">
+          {workshop.experience ? (
+            <p className="text-label font-medium uppercase tracking-eyebrow text-text/65">{workshop.experience.name}</p>
           ) : null}
-          {compact ? (
-            <>
-              <Sep />
-              <span className={cn("whitespace-nowrap", !passed && isScarce(workshop) && "font-medium text-text")}>{status}</span>
-            </>
-          ) : null}
-        </p>
-        {!compact ? (
+          <h5 className="mt-1 text-h4 font-medium leading-snug text-text">
+            <Link href={workshopHref(workshop)} aria-label={name} className="after:absolute after:inset-0 after:rounded-md">
+              {workshop.title}
+            </Link>
+          </h5>
+          <p className="mt-2 text-fine text-text/80">
+            <span className="whitespace-nowrap tabular-nums">
+              {start}
+              <span aria-hidden> &ndash; </span>
+              <span className="sr-only"> to </span>
+              {end}
+            </span>
+            <Sep />
+            <span className="whitespace-nowrap">{formatDuration(workshop.durationMinutes)}</span>
+          </p>
           <p className="mt-0.5 text-fine text-text/80">
             {workshop.venue ? (
               <>
@@ -650,17 +614,10 @@ function AgendaItem({
             ) : null}
             <span className="whitespace-nowrap">{formatPrice(workshop.price)}</span>
           </p>
-        ) : null}
-      </div>
+        </div>
 
-      {compact ? (
-        <ArrowRight
-          aria-hidden
-          strokeWidth={1.75}
-          className="h-4 w-4 text-primary transition-transform duration-300 ease-soft motion-safe:group-hover:translate-x-0.5"
-        />
-      ) : (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-text/10 pt-3">
+        {/* The stub: what is left, and the way in. */}
+        <div className={cn(styles.agendaStub, "px-5")}>
           <p className="flex items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-text">
             {!passed && isScarce(workshop) ? <span aria-hidden className="h-1.5 w-1.5 rounded-pill bg-terracotta" /> : null}
             {status}
@@ -673,8 +630,8 @@ function AgendaItem({
             />
           </span>
         </div>
-      )}
-    </article>
+      </article>
+    </div>
   );
 }
 
@@ -710,6 +667,32 @@ function useBeside(): boolean {
   );
 }
 
+/** A day's sessions as courses: sittings with the same title together, in the order the day first runs them. */
+function groupSittings(workshops: Workshop[]): Workshop[][] {
+  const byTitle = new Map<string, Workshop[]>();
+  for (const w of workshops) {
+    const sittings = byTitle.get(w.title);
+    if (sittings) sittings.push(w);
+    else byTitle.set(w.title, [w]);
+  }
+  return [...byTitle.values()];
+}
+
+/**
+ * "Crochet — Beginners" → "Beginners": the course without its experience,
+ * which the colour (and the key above the board) already says. A title with
+ * no dash is left whole.
+ */
+function shortTitle(title: string): string {
+  const at = title.indexOf(" — ");
+  return at === -1 ? title : title.slice(at + 3);
+}
+
+/** "11:00 AM" → "11 AM", "6:30 PM" unchanged: a tile holding two times has no room for ":00". */
+function shortTime(time: string): string {
+  return time.replace(":00", "");
+}
+
 /** "November 2026" → ["November", "2026"]. */
 function splitLabel(label: string): [string, string] {
   const at = label.lastIndexOf(" ");
@@ -735,13 +718,6 @@ function longDate(key: string): string {
 /** "Saturday 21 November", for the agenda's heading. */
 function dayHeading(key: string): string {
   return new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(civil(key));
-}
-
-/** "Sat 21 Nov", for a date in the month's list. */
-function shortDate(key: string): string {
-  return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(
-    civil(key),
-  );
 }
 
 function NavButton({
