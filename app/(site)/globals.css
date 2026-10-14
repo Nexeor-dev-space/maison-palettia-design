@@ -673,7 +673,9 @@
      deliberately departs is 769–864px, where their step to `20rem` briefly
      shrinks the gutter to 10.7px before it grows back; `max()` never narrows
      as the screen widens. */
-  --spacing-gutter: max(0.75rem, 1.3889vw);
+  /* Never less than the safe area either side: with `viewport-fit=cover` a
+     phone on its side would otherwise put the content under the notch. */
+  --spacing-gutter: max(0.75rem, 1.3889vw, env(safe-area-inset-left), env(safe-area-inset-right));
 
   /* --- Layout ------------------------------------------------------------ */
   /* Header height. The hero pulls itself up by exactly this much so the bar
@@ -985,6 +987,22 @@
 
   p {
     text-wrap: pretty;
+  }
+
+  /*
+    A PICTURE THAT FAILS TO LOAD SHOWS ITS FRAME, NOT ITS ALT TEXT.
+
+    When an image cannot be fetched (a dropped connection, a slow phone) the
+    browser paints its `alt` sentence inside the image's box in the page's
+    text colour — on a card that is a line of Charcoal run straight across
+    the photograph's frame and over the words beside it, which is what a
+    tester reported as "text overlaps image areas". The alt text is still
+    there for a screen reader; it is only not painted. Every photograph frame
+    on the site carries a ground colour of its own, so a failed image reads
+    as a soft empty frame in the brand's colours rather than as broken text.
+  */
+  img {
+    color: transparent;
   }
 
   /* Visible, on-brand focus ring for every interactive element. Sections on a
@@ -1731,7 +1749,7 @@ html[data-intro="burst"] body:has([data-hero-intro]) > header {
   /* A fail-safe, not a timing: if the script never runs, the bar still
      arrives. The intro replaces this long before it would fire — 3.6s, past
      the ~2.6s entrance now that the mark is written again. */
-  animation: intro-failsafe 0.01s 3.6s forwards;
+  animation: intro-failsafe 0.01s 5.5s forwards;
 }
 
 /*
@@ -1748,7 +1766,7 @@ html[data-intro="dots"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="burst"] body:has([data-hero-intro]) > div > footer,
 html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   visibility: hidden;
-  animation: intro-failsafe 0.01s 3.6s forwards;
+  animation: intro-failsafe 0.01s 5.5s forwards;
 }
 
 /*
@@ -1779,7 +1797,7 @@ html[data-intro="settle"] body:has([data-hero-intro]) [data-contact-fab],
 html[data-intro="settle"] body:has([data-hero-intro]) [data-bottom-nav] {
   opacity: 0;
   visibility: hidden;
-  animation: intro-failsafe 0.01s 3.6s forwards;
+  animation: intro-failsafe 0.01s 5.5s forwards;
 }
 
 /* It arrives with the bar, once the mark has landed. */

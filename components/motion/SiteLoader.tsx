@@ -45,12 +45,12 @@ import { pauseScroller, resumeScroller } from "@/lib/scroll";
  */
 
 /* The same pen and the same wells as the homepage intro — see <HeroIntro>. */
-const WRITE_MS = 900;
-const DOT_STEP = 62;
+const WRITE_MS = 1500; // the whole loader runs to about four seconds — see <HeroIntro>
+const DOT_STEP = 95;
 const DOTS_AT = WRITE_MS - 40;
-const BURST_AT = DOTS_AT + 380;
-const FLY_AT = BURST_AT + 600; // the homepage holds the ring this long before the mark lifts
-const OUT_MS = 820; // the flight and the fade, then the loader is gone
+const BURST_AT = DOTS_AT + 640;
+const FLY_AT = BURST_AT + 900; // the homepage holds the ring this long before the mark lifts
+const OUT_MS = 1000; // the flight and the fade, then the loader is gone
 
 /*
   THE RING IS THE HOMEPAGE'S — the same nine plans <HeroIntro> bursts, in its
@@ -61,8 +61,8 @@ const RING = RING_ORDER.map((id) => DOODLE_PLAN.find((plan) => plan.id === id)).
   (plan): plan is (typeof DOODLE_PLAN)[number] => Boolean(plan),
 );
 /** The homepage's steps: 12ms between bursts, 11ms between scatters. */
-const BURST_STEP = 12;
-const SCATTER_STEP = 11;
+const BURST_STEP = 18;
+const SCATTER_STEP = 16;
 /** The gap the homepage keeps between the widest cut-out and the screen's edge. */
 const RING_MARGIN = 8;
 

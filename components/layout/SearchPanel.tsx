@@ -273,7 +273,16 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
           */
           "fixed left-[var(--spacing-gutter)] right-[var(--spacing-gutter)] top-[calc(var(--spacing-header)+0.5rem)]",
           "md:top-[calc(var(--spacing-header-lg)+0.5rem)]",
-          "max-h-[calc(100dvh-var(--spacing-header)-1.5rem)] overflow-y-auto overscroll-contain",
+          /*
+            CLEAR OF THE BOTTOM BAR, NOT JUST THE SCREEN'S EDGE. The card ran
+            to 1rem above the foot of the window, which on a phone is behind
+            <BottomNav> (and on an iPhone, Safari's toolbar), so the last
+            results scrolled into a strip nobody could read or tap. The
+            height now stops above the bar (`--bottom-nav-h`, which includes
+            the home-indicator inset and is 0 on desktop), so the list ends
+            in view and every result can be scrolled to and tapped.
+          */
+          "max-h-[calc(100dvh-var(--spacing-header)-var(--bottom-nav-h,0px)-1.5rem)] overflow-y-auto overscroll-contain",
           "plate rounded-[1.75rem] bg-cream p-2.5",
           // The desktop card's own arrival, so the two shapes move alike: a
           // thing settling rather than a field being revealed. `visibility` is

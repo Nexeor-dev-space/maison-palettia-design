@@ -176,7 +176,7 @@ export function AboutMenu({
         type="button"
         aria-expanded={isOpen}
         aria-controls={menuId}
-        className={cn(linkClassName, "cursor-none items-center")}
+        className={cn(linkClassName, "cursor-pointer items-center")}
       >
         <NavLabel isActive={isActive || isOpen} paint={paint}>
           {label}

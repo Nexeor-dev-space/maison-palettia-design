@@ -35,7 +35,7 @@
   Any state change removes this rule, so on a working page it never fires.
 */
 :global(html[data-loader="write"]) .loader {
-  animation: loaderFailsafe 1ms linear 6s forwards;
+  animation: loaderFailsafe 1ms linear 7s forwards;
 }
 
 @keyframes loaderFailsafe {
@@ -112,7 +112,7 @@
     )
     rotate(var(--fr, 0deg));
   transition:
-    transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--burst-delay, 0ms),
+    transform 560ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--burst-delay, 0ms),
     opacity 140ms ease var(--burst-delay, 0ms);
 }
 
@@ -140,8 +140,8 @@
 */
 :global(html[data-loader="fly"]) .mark {
   animation:
-    siteLogoFly 520ms cubic-bezier(0.65, 0, 0.35, 1) forwards,
-    siteLogoOut 180ms ease 420ms forwards;
+    siteLogoFly 680ms cubic-bezier(0.65, 0, 0.35, 1) forwards,
+    siteLogoOut 220ms ease 580ms forwards;
 }
 
 :global(html[data-loader="fly"]) .ground {

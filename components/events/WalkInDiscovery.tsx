@@ -184,7 +184,7 @@ function CardGroup({
         {quiet ? (
           <span aria-hidden className="size-2 rounded-pill bg-terracotta" />
         ) : (
-          <ModeMark mode="diy" className="size-2.5" />
+          <ModeMark mode="diy" />
         )}
         {title}
       </h3>
