@@ -91,6 +91,85 @@
   }
 }
 
+/*
+  THE IDLE FLOAT — see `floatFor` in DoodleMark.tsx. Three gentle paths, each
+  a few pixels of travel and a couple of degrees of turn, run `alternate` so a
+  mark eases there and back with no jump at the loop. Sized in rem like the
+  home banner's own drift, so a mark never moves far enough to read as the
+  layout shifting.
+*/
+.float {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation-duration: var(--float-dur, 8s);
+  animation-delay: var(--float-delay, 0s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+/* The same box with no loop, for a mark its caller already floats. */
+.still {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The name is set per class, not through a variable: CSS Modules renames the
+   keyframes, and a name passed in a custom property would never match. */
+.floatA {
+  animation-name: floatA;
+}
+.floatB {
+  animation-name: floatB;
+}
+.floatC {
+  animation-name: floatC;
+}
+
+@keyframes floatA {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0.25rem, -0.55rem, 0) rotate(2.5deg);
+  }
+  100% {
+    transform: translate3d(-0.15rem, 0.2rem, 0) rotate(-1.5deg);
+  }
+}
+
+@keyframes floatB {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-0.35rem, -0.3rem, 0) rotate(-3deg);
+  }
+  100% {
+    transform: translate3d(0.2rem, -0.5rem, 0) rotate(1deg);
+  }
+}
+
+@keyframes floatC {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0.3rem, 0.35rem, 0) rotate(2deg);
+  }
+  100% {
+    transform: translate3d(-0.25rem, -0.4rem, 0) rotate(-2.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float {
+    animation: none;
+  }
+}
+
 .mark {
   display: block;
   height: 100%;

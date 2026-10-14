@@ -194,7 +194,9 @@ export function WorkshopsMenu({
                 />
               ) : undefined)
             }
-            image={experience.image}
+            // The page's own banner where one is set, so the menu shows the picture the
+            // page opens on; the preview card below does the same.
+            image={experience.pageImage ?? experience.image}
             active={active?.slug === experience.slug}
             onActivate={() => setActiveSlug(experience.slug)}
           />
@@ -320,7 +322,7 @@ export function WorkshopsMenu({
                   eyebrow={active.kind === "diy" ? "Create Anytime" : "Create Together"}
                   name={active.name}
                   description={active.description}
-                  image={active.image}
+                  image={active.pageImage ?? active.image}
                   meta={
                     active.status ? (
                       <span className="flex items-center gap-2.5">

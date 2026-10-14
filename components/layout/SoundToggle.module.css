@@ -28,6 +28,29 @@
     box-shadow var(--duration-fast) var(--ease-soft);
 }
 
+/*
+  ON A PHONE, THE SEARCH BLOT'S SIZE (Oct 2026). Below `lg` Search is a 36px
+  lilac blot in a 44px button, and this 44px ring beside it read as the
+  bigger of the two — the client asked for the pair to match. The drawn ring
+  comes down to 36px; the 44px a finger is owed is kept by the invisible
+  `::before` round it, the same target Search has.
+*/
+@media (max-width: 63.99rem) {
+  .toggle {
+    height: 2.25rem;
+    width: 2.25rem;
+  }
+  .toggle::before {
+    content: "";
+    position: absolute;
+    inset: -0.25rem;
+  }
+  /* Scoped under `.toggle` so it outranks the base `.wave` further down. */
+  .toggle .wave {
+    width: 1.5rem;
+  }
+}
+
 .toggle:hover,
 .toggle:focus-visible {
   background: var(--color-surface);

@@ -1,6 +1,9 @@
 "use client";
 
 import { ArrowUp } from "lucide-react";
+import type { CSSProperties } from "react";
+
+import { PaintStroke } from "@/components/layout/PaintStroke";
 import { scrollToTop } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +23,8 @@ interface BackToTopProps {
  * The scroll itself is handed to {@link scrollToTop}, which knows whether
  * Lenis is driving and what a reader asking for reduced motion should get.
  */
+const PAINT = "var(--color-terracotta)";
+
 export function BackToTop({ className }: BackToTopProps) {
   return (
     <button
@@ -40,7 +45,9 @@ export function BackToTop({ className }: BackToTopProps) {
         // <PlanYourVisit>: a rule is a graphical mark and can take the accent,
         // where an 11px label cannot without a contrast measurement per
         // ground.
-        "group relative inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-current",
+        // `group/link` as well as `group`: it is the hook <PaintStroke> swells
+        // its blot on, the same one the footer's links carry (Oct 2026).
+        "group group/link relative inline-flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-current",
         // The label is 11px and sets a 21px box. Extended to a comfortable
         // target with a pseudo-element rather than padding, so the footer's
         // baseline grid is untouched — same device as the links beside it.
@@ -60,7 +67,15 @@ export function BackToTop({ className }: BackToTopProps) {
         strokeWidth={2}
         className="shrink-0 transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-y-1"
       />
-      <span className="border-b border-current/40 pb-1 transition-colors duration-300 ease-soft group-hover:border-current">
+      {/*
+        THE FOOTER LINKS' PAINT BLOT (Oct 2026), at the client's ask, in place
+        of the rule it wore — the last control in the footer still answering
+        the pointer with an underline. Same swatch, same `blot` shape, same
+        `data-paint` so the cursor's brush loads its colour; terracotta, which
+        sits apart from the Deep Lilac Contact button beside it.
+      */}
+      <span className="relative inline-block" data-paint style={{ "--paint": PAINT } as CSSProperties}>
+        <PaintStroke paint={PAINT} shape="blot" />
         Back to top
       </span>
     </button>

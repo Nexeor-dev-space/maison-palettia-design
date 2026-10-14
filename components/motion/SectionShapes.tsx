@@ -215,7 +215,17 @@ function Shape({
             : undefined
         }
       >
-        <DoodleMark name={shape.name} color={shape.color} depth={0} treatment="stamp" />
+        {/* `idle` only where this span is not already floating it, and a
+            positional `seed` so the same mark repeated across sections does
+            not bob in step with itself. */}
+        <DoodleMark
+          name={shape.name}
+          color={shape.color}
+          depth={0}
+          treatment="stamp"
+          idle={!float}
+          seed={`${shape.top ?? ""}${shape.bottom ?? ""}${shape.left ?? ""}${shape.right ?? ""}${shape.width}`}
+        />
       </motion.span>
     </motion.span>
   );

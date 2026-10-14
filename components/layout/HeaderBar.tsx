@@ -759,7 +759,7 @@ export function HeaderBar({
           one group, and the space they give back goes where it is wanted —
           between the mark and them. The navigation's own gaps are untouched.
         */}
-        <div className="row-start-1 col-start-3 flex items-center justify-end gap-5 lg:gap-6 xl:gap-7">
+        <div className="row-start-1 col-start-3 flex items-center justify-end gap-2 sm:gap-3 lg:gap-6 xl:gap-7">
           {/*
             The way back into a booking in progress. It appears only once
             something is held, which is why it is not a permanent basket icon:
@@ -776,6 +776,10 @@ export function HeaderBar({
             it is paused. See <SoundToggle> and lib/backgroundMusic.ts.
           */}
           <SoundToggle />
+          {/* `gap-2` below `lg` (it was `gap-5`): the client asked for the
+              music button and Search to sit closer on a phone. Search's
+              blot sits 4px inside its own 44px box, so 8px here reads as
+              about 12 between the two drawn shapes. */}
 
           {/* Search leads the utilities: it is the fastest route to a date on
               the whole site, and the only control here that does something

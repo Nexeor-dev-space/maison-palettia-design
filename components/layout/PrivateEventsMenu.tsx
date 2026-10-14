@@ -139,7 +139,9 @@ export function PrivateEventsMenu({
                     key={audience.slug}
                     href={`${href}/${audience.slug}`}
                     name={audience.name}
-                    image={audience.image}
+                    // The page's own banner where one is set, so the menu shows the picture the
+                    // page opens on; the preview card below does the same.
+                    image={audience.pageImage ?? audience.image}
                     active={active?.slug === audience.slug}
                     onActivate={() => setActiveSlug(audience.slug)}
                   />
@@ -171,7 +173,7 @@ export function PrivateEventsMenu({
                   eyebrow="Private events"
                   name={active.name}
                   description={active.description}
-                  image={active.image}
+                  image={active.pageImage ?? active.image}
                   action="See this programme"
                 />
               ) : null}

@@ -152,90 +152,6 @@ export const MEDIA: MediaSeed[] = [
     tags: ["experience-hero", "gallery-make"],
   },
   {
-    // alt: lib/experiences.ts:146
-    path: "images/experience/tote-bag-1.jpg",
-    alt: "A cream canvas tote printed with pink lotus flowers and green lily pads, carried on the shoulder.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:151
-    path: "images/experience/tote-bag-2.jpg",
-    alt: "A hand laying loose red and yellow blooms of colour across a sheet of paper, the other hand steadying the page.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:156
-    path: "images/experience/tote-bag-3.jpg",
-    alt: "Someone at a studio table with a loaded paint palette in one hand, canvases propped behind them.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:195
-    path: "images/experience/ceramic-1.jpg",
-    alt: "Hands holding a small unglazed pot while a fine brush lays a band of blue dots around its neck.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:200
-    path: "images/experience/ceramic-2.jpg",
-    alt: "A jar of brushes, a palette of mixed blues and greys, and unpainted cups and bowls set out on a white table.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:205
-    path: "images/experience/ceramic-3.jpg",
-    alt: "A brush painting blue petals onto a speckled stoneware bowl, the pattern already running round its side.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:243
-    path: "images/experience/beadazzling-1.jpg",
-    alt: "A sorting tray of beads laid out by colour — pink, blue, green, yellow, orange and black.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:248
-    path: "images/experience/beadazzling-2.jpg",
-    alt: "Strands of beaded baubles hanging close together in pink, red, yellow and black.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:253
-    path: "images/experience/beadazzling-3.jpg",
-    alt: "Two people at a white table threading a line of blue and red beads, loose beads and tubes in front of them.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:277
-    path: "images/experience/mandala-1.jpg",
-    alt: "Someone at a wooden table drawing a mandala in fine concentric rings, a tray of watercolour pans beside them.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:282
-    path: "images/experience/mandala-2.jpg",
-    alt: "A mandala worked in gold line and turquoise dots across a deep brown ground, filling the frame.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:287
-    path: "images/experience/mandala-3.jpg",
-    alt: "A hand painting a mandala of blue, pink and red petals radiating from a small sun at its centre.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
     // alt: lib/experiences.ts:313
     path: "images/experience/glass-painting-1.jpg",
     alt: "A backlit panel of glass painted in red, orange, blue and teal cells divided by gold outlines.",
@@ -250,53 +166,11 @@ export const MEDIA: MediaSeed[] = [
     tags: ["experience-gallery"],
   },
   {
-    // alt: lib/experiences.ts:323
-    path: "images/experience/glass-painting-3.jpg",
-    alt: "Brushes standing in a jar beside a paint-smeared wooden palette on a small round table, an easel behind.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:352
-    path: "images/experience/candle-making-1.jpg",
-    alt: "A wooden table set for pouring: filled candle glasses with their wicks held upright, empty jars and a spool of cream twine.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:357
-    path: "images/experience/candle-making-2.jpg",
-    alt: "Wax poured from a glass jug into a tumbler while the other hand holds the wooden wick upright.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:362
-    path: "images/experience/candle-making-3.jpg",
-    alt: "A hand setting a wick into one of two speckled turquoise and terracotta candle vessels on a white table.",
-    provenance: "unknown",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:385
-    path: "images/studio/yarn-board.jpg",
-    alt: "Balls of yarn in cream, red and a variegated blue resting on a finished mustard crochet piece.",
-    provenance: "studio",
-    tags: ["experience-gallery"],
-  },
-  {
     // alt: lib/experiences.ts:390
     // also printed with a different alt at components/sections/home/StudioInterlude.tsx:142 (one record per file: the alt above wins)
     path: "images/1-2.jpg",
     alt: "A pair of hands crocheting a cream panel with a yellow hook, a wound ball of the same yarn beside them.",
     provenance: "client-supplied",
-    tags: ["experience-gallery"],
-  },
-  {
-    // alt: lib/experiences.ts:395
-    path: "images/hero-carousel/crocheting.jpg",
-    alt: "Balls of pale blue and cream yarn with a crochet hook resting on a finished blanket of shell stitch.",
-    provenance: "unknown",
     tags: ["experience-gallery"],
   },
   {

@@ -20,9 +20,6 @@ export const EXPERIENCES: ExperienceSeed[] = [
     ],
     image: "images/experiences/TOTE_BAG_PAINTING.jpg", // lib/experiences.ts:177
     gallery: [
-      "images/experience/tote-bag-1.jpg", // lib/experiences.ts:146
-      "images/experience/tote-bag-2.jpg", // lib/experiences.ts:151
-      "images/experience/tote-bag-3.jpg", // lib/experiences.ts:156
     ],
     privateEventEligible: true,
     order: 1,
@@ -38,9 +35,6 @@ export const EXPERIENCES: ExperienceSeed[] = [
     ],
     image: "images/experiences/CERAMIC_PAINTING.jpg", // lib/experiences.ts:220
     gallery: [
-      "images/experience/ceramic-1.jpg", // lib/experiences.ts:195
-      "images/experience/ceramic-2.jpg", // lib/experiences.ts:200
-      "images/experience/ceramic-3.jpg", // lib/experiences.ts:205
     ],
     privateEventEligible: true,
     order: 2,
@@ -56,9 +50,6 @@ export const EXPERIENCES: ExperienceSeed[] = [
     ],
     image: "images/experiences/BEDAZZLING.jpg", // lib/experiences.ts:261
     gallery: [
-      "images/experience/beadazzling-1.jpg", // lib/experiences.ts:243
-      "images/experience/beadazzling-2.jpg", // lib/experiences.ts:248
-      "images/experience/beadazzling-3.jpg", // lib/experiences.ts:253
     ],
     privateEventEligible: true,
     order: 3,
@@ -74,9 +65,6 @@ export const EXPERIENCES: ExperienceSeed[] = [
     ],
     image: "images/experiences/MANDALA_PAINTING.jpg", // lib/experiences.ts:294
     gallery: [
-      "images/experience/mandala-1.jpg", // lib/experiences.ts:277
-      "images/experience/mandala-2.jpg", // lib/experiences.ts:282
-      "images/experience/mandala-3.jpg", // lib/experiences.ts:287
     ],
     status: "Coming soon", // lib/experiences.ts:311
     privateEventEligible: true,
@@ -95,7 +83,6 @@ export const EXPERIENCES: ExperienceSeed[] = [
     gallery: [
       "images/experience/glass-painting-1.jpg", // lib/experiences.ts:313
       "images/experience/glass-painting-2.jpg", // lib/experiences.ts:318
-      "images/experience/glass-painting-3.jpg", // lib/experiences.ts:323
     ],
     status: "Coming soon", // lib/experiences.ts:335
     privateEventEligible: true,
@@ -112,9 +99,6 @@ export const EXPERIENCES: ExperienceSeed[] = [
     ],
     image: "images/experiences/CANDLE_MAKING.jpg", // lib/experiences.ts:370
     gallery: [
-      "images/experience/candle-making-1.jpg", // lib/experiences.ts:352
-      "images/experience/candle-making-2.jpg", // lib/experiences.ts:357
-      "images/experience/candle-making-3.jpg", // lib/experiences.ts:362
     ],
     privateEventEligible: true,
     order: 6,
@@ -130,9 +114,7 @@ export const EXPERIENCES: ExperienceSeed[] = [
     ],
     image: "images/experiences/CROCHETING.jpg", // lib/experiences.ts:403
     gallery: [
-      "images/studio/yarn-board.jpg", // lib/experiences.ts:385
       "images/1-2.jpg", // lib/experiences.ts:390
-      "images/hero-carousel/crocheting.jpg", // lib/experiences.ts:395
     ],
     privateEventEligible: true,
     order: 7,

@@ -343,6 +343,25 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         are siblings of the nav, not children, so they keep the default.
       */
       className={cn(styles.bar, "fixed inset-x-0 bottom-0 z-40 lg:hidden [--color-focus:var(--color-cream)]")}
+      /* Stays live while the About sheet is open — see `data-sheet-live` in
+         <AboutSheet>. */
+      data-sheet-live=""
+      /*
+        WHILE THE ABOUT SHEET IS OPEN, THE OTHER TABS WAIT (Oct 2026). At the
+        client's ask the sheet is dismissed by the About tab that opened it,
+        and a tap on any other tab — or on Book — does nothing until then: no
+        navigation, no second sheet. Caught here in the capture phase so it
+        stops a link before Next's router sees it and a button before its own
+        handler runs. The About button itself is let through, which is what
+        closes the sheet. (Its × and Escape still close it too.)
+      */
+      onClickCapture={(e) => {
+        if (!aboutOpen) return;
+        const control = (e.target as HTMLElement).closest("a, button");
+        if (!control || control === aboutRef.current) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       /* The entrance: the sheet arrives from under the fold once, on mount.
          Not scroll-driven — a bar that reacts to scrolling is a bar that is
          sometimes missing, and this one is the whole map.
