@@ -1,4 +1,6 @@
-import { readFile, stat } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import path from "node:path";
 
 import type { CollectionConfig, UploadConfig } from "payload";
@@ -13,6 +15,7 @@ import {
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
+import { seededMediaSource } from "@/cms/lib/seededMedia";
 
 /**
  * ==========================================================================
@@ -97,21 +100,19 @@ export const MEDIA_TAG_LABELS: Record<(typeof MEDIA_TAGS)[number], string> = {
 export const MEDIA_TAG_OPTIONS = MEDIA_TAGS.map((value) => ({ value, label: MEDIA_TAG_LABELS[value] }));
 
 /**
- * A file that is not on disk answers 404, not 500.
+ * Missing seeded files fall back to their committed public/ source.
  *
- * Replacing a photograph in the admin writes a new file and removes the old
- * one, so a cached page, a shared link or an email that still points at
- * `/api/media/file/<old name>` asks for a file that is gone — and Payload's
- * own handler answers that with a 500 "Something went wrong." This runs
- * first: the same containment check Payload makes (the name may not climb
- * out of the media folder), then a `stat`. A file that exists falls through
- * to Payload's handler, which streams it with its usual headers.
+ * If a file is missing, this checks the requested path stays inside the media
+ * folder, then serves its seeded source when available. Missing unseeded
+ * uploads answer 404 rather than Payload's 500; existing files fall through
+ * to Payload's normal handler.
  */
 type FileHandler = NonNullable<UploadConfig["handlers"]>[number];
 
 const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Parameters<FileHandler>[1]): Promise<Response | undefined> => {
   const root = path.resolve(MEDIA_DIR);
-  const file = path.resolve(root, params.filename ?? "");
+  const filename = params.filename ?? "";
+  const file = path.resolve(root, filename);
   if (!file.startsWith(root + path.sep)) return undefined; // Payload refuses it with its own 400
   try {
     await stat(file);
@@ -120,6 +121,59 @@ const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Pa
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") return undefined;
     return (await seededOriginal(params.filename ?? "")) ?? Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
   }
+
+  const source = seededMediaSource(filename);
+  if (!source) return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+
+  const publicRoot = path.resolve(PROJECT_ROOT, "public");
+  const publicFile = path.resolve(publicRoot, source);
+  if (!publicFile.startsWith(publicRoot + path.sep)) return undefined;
+  try {
+    await stat(publicFile);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+    }
+    throw error;
+  }
+
+  const mimeTypes: Record<string, string> = {
+    ".gif": "image/gif",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".mp4": "video/mp4",
+    ".otf": "font/otf",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".ttf": "font/ttf",
+    ".webp": "image/webp",
+  };
+  const contentType = mimeTypes[path.extname(publicFile).toLowerCase()];
+  if (!contentType) return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+
+  const fileStream = createReadStream(publicFile);
+  const iterator = fileStream[Symbol.asyncIterator]();
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const chunk = await iterator.next();
+        if (chunk.done) controller.close();
+        else controller.enqueue(new Uint8Array(chunk.value));
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+    cancel() {
+      fileStream.destroy();
+    },
+  });
+
+  return new Response(body, {
+    headers: {
+      "Cache-Control": "public, max-age=60",
+      "Content-Type": contentType,
+    },
+  });
 };
 
 /*
