@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 
@@ -10,7 +12,10 @@ import {
   revalidateOnMediaChange,
   revalidateOnMediaDelete,
 } from "@/cms/hooks/mediaGuards";
-import { MEDIA_DIR } from "@/cms/lib/paths";
+import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { storedFilename } from "@/cms/seed/media";
+import { MEDIA } from "@/cms/seed/strings/media";
+import { seededMediaSource } from "@/cms/lib/seededMedia";
 
 /**
  * ==========================================================================
@@ -95,30 +100,137 @@ export const MEDIA_TAG_LABELS: Record<(typeof MEDIA_TAGS)[number], string> = {
 export const MEDIA_TAG_OPTIONS = MEDIA_TAGS.map((value) => ({ value, label: MEDIA_TAG_LABELS[value] }));
 
 /**
- * A file that is not on disk answers 404, not 500.
+ * Missing seeded files fall back to their committed public/ source.
  *
- * Replacing a photograph in the admin writes a new file and removes the old
- * one, so a cached page, a shared link or an email that still points at
- * `/api/media/file/<old name>` asks for a file that is gone — and Payload's
- * own handler answers that with a 500 "Something went wrong." This runs
- * first: the same containment check Payload makes (the name may not climb
- * out of the media folder), then a `stat`. A file that exists falls through
- * to Payload's handler, which streams it with its usual headers.
+ * If a file is missing, this checks the requested path stays inside the media
+ * folder, then serves its seeded source when available. Missing unseeded
+ * uploads answer 404 rather than Payload's 500; existing files fall through
+ * to Payload's normal handler.
  */
 type FileHandler = NonNullable<UploadConfig["handlers"]>[number];
 
 const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Parameters<FileHandler>[1]): Promise<Response | undefined> => {
   const root = path.resolve(MEDIA_DIR);
-  const file = path.resolve(root, params.filename ?? "");
+  const filename = params.filename ?? "";
+  const file = path.resolve(root, filename);
   if (!file.startsWith(root + path.sep)) return undefined; // Payload refuses it with its own 400
   try {
     await stat(file);
     return undefined;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") return undefined;
-    return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+    const original = await seededOriginal(filename);
+    if (original) return original;
   }
+
+  const source = seededMediaSource(filename);
+  if (!source) return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+
+  const publicRoot = path.resolve(PROJECT_ROOT, "public");
+  const publicFile = path.resolve(publicRoot, source);
+  if (!publicFile.startsWith(publicRoot + path.sep)) return undefined;
+  try {
+    await stat(publicFile);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+    }
+    throw error;
+  }
+
+  const mimeTypes: Record<string, string> = {
+    ".gif": "image/gif",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".mp4": "video/mp4",
+    ".otf": "font/otf",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".ttf": "font/ttf",
+    ".webp": "image/webp",
+  };
+  const contentType = mimeTypes[path.extname(publicFile).toLowerCase()];
+  if (!contentType) return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+
+  const fileStream = createReadStream(publicFile);
+  const iterator = fileStream[Symbol.asyncIterator]();
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const chunk = await iterator.next();
+        if (chunk.done) controller.close();
+        else controller.enqueue(new Uint8Array(chunk.value));
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+    cancel() {
+      fileStream.destroy();
+    },
+  });
+
+  return new Response(body, {
+    headers: {
+      "Cache-Control": "public, max-age=60",
+      "Content-Type": contentType,
+    },
+  });
 };
+
+/*
+  ==========================================================================
+  A MISSING SEEDED PHOTO IS SERVED FROM ITS ORIGINAL IN GIT
+  ==========================================================================
+
+  The media library is rows in Postgres and files on the server's disk. A
+  server that starts on an empty `media/` folder — a PR preview, a new box, a
+  lost volume — has every row and none of the files, so every picture on the
+  site answered 404 and `/_next/image` 400 (PR #78's preview, Oct 2026).
+  `restore-media` rebuilds those files on start, but only where the start
+  command runs it and the folder is writable.
+
+  This is the safety net under it: when the file asked for is missing and it
+  is one of the photographs the seed imported, the original under `public/`
+  is served instead — the base name for the file itself, and for a generated
+  size (`<name>-640x427.webp`) too, since `/_next/image` resizes whatever it
+  is handed. A photo uploaded through the admin has no original in git and
+  still answers 404, which is correct: that one has to come from a backup.
+*/
+const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
+const ORIGINALS = new Map(
+  MEDIA.map((seed) => [storedFilename(seed.path).replace(/\.[^.]+$/, ""), seed.path] as const),
+);
+const MIME: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".mp4": "video/mp4",
+};
+
+async function seededOriginal(filename: string): Promise<Response | undefined> {
+  const stem = filename.replace(/\.[^.]+$/, "");
+  const source = ORIGINALS.get(stem) ?? ORIGINALS.get(stem.replace(/-\d+x\d+$/, ""));
+  if (!source) return undefined;
+  const file = path.resolve(PUBLIC_DIR, source);
+  if (!file.startsWith(path.resolve(PUBLIC_DIR) + path.sep)) return undefined;
+  try {
+    const bytes = await readFile(file);
+    return new Response(new Uint8Array(bytes), {
+      status: 200,
+      headers: {
+        "Content-Type": MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream",
+        // Short: the real file may be restored at any moment, and should then win.
+        "Cache-Control": "public, max-age=300",
+      },
+    });
+  } catch {
+    return undefined;
+  }
+}
 
 export const Media: CollectionConfig = {
   slug: "media",

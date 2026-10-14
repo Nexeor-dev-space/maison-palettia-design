@@ -319,6 +319,15 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
      none of them lists — /faq, /checkout — nothing is marked, which is
      honest: none of the five is where you are. */
   const anyCurrent = barItems.some(isCurrent) || onSheetRoute;
+  /*
+    WHILE THE ABOUT DRAWER IS OPEN, IT HOLDS THE MARK. The drawer's button
+    draws the same `layoutId` blob, so on /contact the blob left the Contact
+    slot for the About button — but the Contact icon stayed in its "current"
+    ink, Deep Lilac, now standing on the Deep Lilac bar with nothing behind
+    it: the icon vanished until the next page. So a slot is only drawn as
+    current while the drawer is shut; `aria-current` follows the route, not
+    the drawing (see <Item>'s `here`).
+  */
 
   const bar = (
     <motion.nav
@@ -394,7 +403,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
         spent as padding above the glyph. The icon box is the glyph's size
         now, and the wrapper's top padding is gone.
       */}
-      <div className="relative overflow-hidden bg-primary pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-0">
+      <div className="relative overflow-hidden bg-primary pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-0">
         {/*
           SMALL COLOUR AT THE TWO BOTTOM CORNERS, clipped by the sheet so only
           a curve of each one shows — the brief's "colour accents", and the
@@ -418,7 +427,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
 
         <ul className="relative grid grid-cols-5 items-end">
           {barItems.slice(0, 2).map((item) => (
-            <Item key={item.href} item={item} current={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
+            <Item key={item.href} item={item} current={isCurrent(item) && !aboutOpen} here={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
           ))}
 
           {/* The middle cell is a spacer: the badge is positioned against the
@@ -426,7 +435,7 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
           <li aria-hidden className="h-11" />
 
           {barItems.slice(2).map((item) => (
-            <Item key={item.href} item={item} current={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
+            <Item key={item.href} item={item} current={isCurrent(item) && !aboutOpen} here={isCurrent(item)} reduce={!!reduce} any={anyCurrent} />
           ))}
 
           {/* ABOUT IS A BUTTON, NOT A LINK, because it goes nowhere — it
@@ -559,11 +568,15 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
 function Item({
   item,
   current,
+  here,
   reduce,
   any,
 }: {
   item: NavItem;
+  /** Drawn as current: the route's slot, while the About drawer is shut. */
   current: boolean;
+  /** The route's slot, whatever is drawn — what `aria-current` says. */
+  here?: boolean;
   reduce: boolean;
   any: boolean;
 }) {
@@ -576,7 +589,7 @@ function Item({
       <Link
         href={item.href}
         aria-label={item.ariaLabel}
-        aria-current={current ? "page" : undefined}
+        aria-current={here ?? current ? "page" : undefined}
         /* 56px of height plus the label's line box clears the 44px a touch
            target owes at every width this bar is drawn at.
 

@@ -486,6 +486,8 @@ from `scripts/deploy.sh` and `Dockerfile.runtime` above. What makes it work:
   starts with `npm run start:prod` = `payload migrate` then
   `scripts/start-standalone.sh` (links `.next/static` and `public/` into the
   standalone folder, binds `0.0.0.0`, listens on `PORT`, default 3000).
+  It also attempts to restore missing seeded media after migrations. A failed
+  or memory-killed restore is logged but does not prevent the site from starting.
 
 ### Coolify settings
 
@@ -515,9 +517,14 @@ customer data lands — see "Database gate".
 The media library is rows in Postgres plus files in `/app/media`. If the
 files are missing (a new server, an empty or lost volume, or a seed that ran
 on another machine), every `/api/media/file/…` is a 404 and `/_next/image`
-answers 400. `npm run start:prod` runs `cms/scripts/restore-media.ts` before
-the server starts: any seeded photo whose file is missing is re-imported from
-its original in `public/` into the same library entry (same name, sizes
-regenerated). Photos uploaded through the admin have no copy in git; the start
-log lists them as "missing with no source" so they can be re-uploaded. Run it
-by hand with `npm run restore:media`.
+answers 400. First confirm that `/app/media` is backed by persistent storage.
+`npm run start:prod` attempts to restore missing seeded files from `public/`
+after migrations. It copies each original and regenerates missing renditions
+one at a time, without re-uploading through Payload. If the restore command
+exits unsuccessfully, startup continues and logs a warning. Photos uploaded
+through the admin have no copy in git; the command logs them as "missing with
+no source" so they can be re-uploaded.
+When a seeded file is missing from `/app/media`, its Payload file URL also
+falls back to the matching committed source in `public/`, including URLs for
+generated renditions. This keeps seeded images available even if automatic
+restoration is interrupted.

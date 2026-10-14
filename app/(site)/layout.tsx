@@ -46,6 +46,19 @@ export const viewport: Viewport = {
   // White Rock at 14% over white, the same mix `--color-surface` declares.
   themeColor: "#fdfbf8",
   colorScheme: "light",
+  /*
+    `cover`, SO THE SAFE AREAS ARE REAL. Without it iOS Safari reports
+    `env(safe-area-inset-bottom)` as 0, so <BottomNav>'s padding for the home
+    indicator never applied and its labels sat in the bottom strip of the
+    screen — the strip where, once the page has been scrolled and Safari's
+    toolbar has shrunk, a tap is taken by Safari to bring the toolbar back
+    and never reaches the page. That was the "the menu stops navigating after
+    the first page" report: the first tap worked before any scrolling; later
+    ones were swallowed. With `cover` the bar lifts its tabs above that strip.
+    The page's side gutter takes the left/right insets too (globals.css), so
+    nothing is put under the notch in landscape.
+  */
+  viewportFit: "cover",
 };
 
 /*

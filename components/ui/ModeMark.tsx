@@ -1,10 +1,16 @@
+import { CalendarCheck, DoorOpen } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 /**
- * Walk-in or scheduled, as a shape.
+ * Walk-in or scheduled, as an icon.
  *
- * A ring for walk-in DIY — open, come when you like — and a filled dot for a
- * scheduled session, a fixed point in time. Used wherever an activity appears
+ * AN OPEN DOOR for walk-in — come on in — and A CALENDAR WITH A TICK for a
+ * session booked online. It used to be a hollow ring and a filled dot, and
+ * the client pointed out the ring reads as a zero: set before "NO BOOKING" in
+ * tracked capitals it said "O NO BOOKING". An icon cannot be mistaken for a
+ * letter, and it says what the mode means instead of asking a visitor to
+ * learn a code. Used wherever an activity appears
  * (the hero, the homepage groups, the listing, the detail page), so the
  * difference is learned once and read everywhere.
  *
@@ -25,29 +31,20 @@ export function ModeMark({
   tone?: "light" | "dark" | "lilac";
   className?: string;
 }) {
-  const ink =
-    tone === "dark"
-      ? mode === "diy"
-        ? "border-cream"
-        : "bg-cream"
-      : tone === "lilac"
-        ? mode === "diy"
-          ? "border-surface"
-          : "bg-surface"
-        : mode === "diy"
-          ? "border-text"
-          : "bg-text";
+  const ink = tone === "dark" ? "text-cream" : tone === "lilac" ? "text-surface" : "text-current";
+  const Icon = mode === "diy" ? DoorOpen : CalendarCheck;
 
   return (
-    <span
+    <Icon
       aria-hidden
+      strokeWidth={2}
       className={cn(
-        "inline-block size-2.5 shrink-0 rounded-pill",
-        mode === "diy" ? "border-[1.5px]" : "",
+        // Sized by the text it stands beside, a touch larger than a capital.
+        "inline-block size-[1.15em] shrink-0",
         // Pressed on when the card it labels is hovered: the smallest member
         // of the tactile system, and the one that repeats most often.
         "transition-transform duration-[var(--duration-press)] ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-        "motion-safe:group-hover:scale-125 motion-safe:group-focus-within:scale-125",
+        "motion-safe:group-hover:scale-110 motion-safe:group-focus-within:scale-110",
         ink,
         className,
       )}

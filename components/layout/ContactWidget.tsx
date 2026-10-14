@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "@/components/layout/ContactWidget.module.css";
-import { ContactIcon } from "@/components/layout/bottomNavIcons";
+import { MailIcon } from "@/components/layout/bottomNavIcons";
 
 /* The one destination. A literal, as PRIMARY_CTA's is: it is the route itself,
    and lib/constants.ts lists it under the same href for the header and the
@@ -112,7 +112,7 @@ export function ContactWidget() {
       {/* The bottom bar's own envelope, at 28px rather than 21 — one mark
           for one destination on both surfaces. `currentColor`, so it takes
           the Charcoal ink from `text-text` above. */}
-      <ContactIcon size={28} className="block shrink-0" />
+      <MailIcon size={28} className="block shrink-0" />
 
       {/*
         THE LABEL, COLLAPSED UNTIL ASKED FOR. `grid-template-columns: 0fr ->

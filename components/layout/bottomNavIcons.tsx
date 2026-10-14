@@ -85,12 +85,28 @@ const svg = (size: number, className?: string) => ({
 export function ContactIcon({ size = 21, className }: IconProps) {
   return (
     <svg {...svg(size, className)}>
-      <path d="M4.8 4.8h14.4a2.4 2.4 0 0 1 2.4 2.4v9.6a2.4 2.4 0 0 1-2.4 2.4H4.8a2.4 2.4 0 0 1-2.4-2.4V7.2a2.4 2.4 0 0 1 2.4-2.4Zm.93 2.47L12 11.8l6.27-4.53a.9.9 0 0 1 1.06 1.46L12 14.02 4.67 8.73a.9.9 0 0 1 1.06-1.46Z" />
+      {/* A speech bubble with three dots cut out of it — "message us", in the
+          set's own filled weight. It was an envelope (read as an email/social
+          icon) and then a heart (read as a "like"); three dots say the one
+          thing this tab does. */}
+      <path d="M5.2 3.4h13.6a2.8 2.8 0 0 1 2.8 2.8v8.4a2.8 2.8 0 0 1-2.8 2.8h-7.3l-4.4 3.5a.9.9 0 0 1-1.5-.7v-2.8h-.4a2.8 2.8 0 0 1-2.8-2.8V6.2a2.8 2.8 0 0 1 2.8-2.8ZM8 9a1.4 1.4 0 1 0 0 2.8A1.4 1.4 0 0 0 8 9Zm4 0a1.4 1.4 0 1 0 0 2.8A1.4 1.4 0 0 0 12 9Zm4 0a1.4 1.4 0 1 0 0 2.8A1.4 1.4 0 0 0 16 9Z" />
     </svg>
   );
 }
 
 /** A house with its door knocked out. */
+/**
+ * The envelope — the floating Contact button's own mark on a desktop, kept
+ * when the phone's tab took the speech bubble above.
+ */
+export function MailIcon({ size = 21, className }: IconProps) {
+  return (
+    <svg {...svg(size, className)}>
+      <path d="M4.8 4.8h14.4a2.4 2.4 0 0 1 2.4 2.4v9.6a2.4 2.4 0 0 1-2.4 2.4H4.8a2.4 2.4 0 0 1-2.4-2.4V7.2a2.4 2.4 0 0 1 2.4-2.4Zm.93 2.47L12 11.8l6.27-4.53a.9.9 0 0 1 1.06 1.46L12 14.02 4.67 8.73a.9.9 0 0 1 1.06-1.46Z" />
+    </svg>
+  );
+}
+
 export function HomeIcon({ size = 21, className }: IconProps) {
   return (
     <svg {...svg(size, className)}>

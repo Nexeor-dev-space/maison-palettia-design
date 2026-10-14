@@ -403,7 +403,12 @@ async function Enquiry({ words }: { words: ContactWords }) {
               laid on it. Lavender is a colour the Light Sage does not contain,
               which is what makes the form arrive as an object.
             */}
-        <div className="rounded-[1.25rem] bg-[color-mix(in_oklab,var(--color-lavender)_55%,var(--color-cream))] px-6 py-8 md:rounded-[1.5rem] md:px-9 md:py-10">
+        {/* `relative isolate z-10`: the form is its own layer, above every
+            cut-out and paint layer the page lays round it, so no decoration
+            can ever sit over a label — "NAME" was reported half-hidden on a
+            phone, where a lavender mark on the lavender card would read as
+            letters missing. */}
+        <div className="relative isolate z-10 rounded-[1.25rem] bg-[color-mix(in_oklab,var(--color-lavender)_55%,var(--color-cream))] px-6 py-8 md:rounded-[1.5rem] md:px-9 md:py-10">
           {enquiriesEnabled ? (
             <ContactForm />
           ) : (

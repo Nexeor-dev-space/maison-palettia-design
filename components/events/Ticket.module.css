@@ -86,6 +86,12 @@
   Rock or white until Charcoal clears AA by a wide margin (the darkest, the
   terracotta, ~7:1). None is Cream, which is the page behind them.
 */
+/* White Rock — for a page whose own ground is Light Sage (an experience's
+   format page), where a sage ticket would be no card at all. */
+.theme[data-ground="cream"] {
+  --ticket-ground: var(--color-cream);
+}
+
 .theme[data-ground="lavender"] {
   --ticket-ground: var(--color-lavender-soft);
 }

@@ -245,7 +245,14 @@ export function ChoiceBody({ detail, partner }: { detail: ChoiceEvent; partner?:
         <ul className="mt-6 grid gap-5 md:grid-cols-2 lg:gap-6">
           {types.map((type, i) => (
             <Reveal as="li" key={type.slug} delay={i * 0.06} className="flex">
-              <TypeCard type={type} dates={sessions.filter((session) => session.workshopType?.slug === type.slug)} perPersonLabel={eventCopy().perPersonLabel} />
+              {/* White Rock: this page is Light Sage, where the listing's sage
+                  ticket would have no edge at all — only its words showed. */}
+              <TypeCard
+                type={type}
+                dates={sessions.filter((session) => session.workshopType?.slug === type.slug)}
+                perPersonLabel={eventCopy().perPersonLabel}
+                ground="cream"
+              />
             </Reveal>
           ))}
         </ul>
