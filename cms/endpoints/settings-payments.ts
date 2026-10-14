@@ -97,7 +97,9 @@ function mamoMessage(error: unknown): string {
   if (error instanceof MamoApiError) {
     if (error.status === 401 || error.status === 403) return "Mamo rejected the key (Unauthorized). Check it is the key for this environment.";
     if (error.status === 0) return error.messages[0] ?? "Could not reach Mamo Pay.";
-    return `Mamo answered ${error.status}${error.errorCode ? ` ${error.errorCode}` : ""}: ${error.messages.join("; ")}`;
+    // Mamo's 422 says only "See errors"; the reasons are in `errors`, keyed by field.
+    const details = Object.entries(error.errors ?? {}).map(([field, reasons]) => (/^\d+$/.test(field) ? "" : `${field}: `) + reasons.join(", "));
+    return `Mamo answered ${error.status}${error.errorCode ? ` ${error.errorCode}` : ""}: ${[...error.messages, ...details].join("; ")}`;
   }
   return error instanceof Error ? error.message : "Unexpected error.";
 }

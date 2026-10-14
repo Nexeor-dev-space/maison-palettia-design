@@ -1,4 +1,4 @@
-import { APIError, type PayloadRequest } from "payload";
+import { APIError, type Endpoint, type PayloadRequest } from "payload";
 
 import { roleOf } from "@/cms/access/roles";
 import type { Role } from "@/cms/lib/contracts";
@@ -68,4 +68,40 @@ export async function parseBody<T>(
 /** `Response.json` with the headers Payload expects on its own responses. */
 export function json(data: unknown, init: ResponseInit = {}): Response {
   return Response.json(data, { ...init, headers: { "cache-control": "no-store", ...init.headers } });
+}
+
+/**
+ * Wraps every custom endpoint so a public `APIError`'s message reaches the
+ * admin's action buttons in production.
+ *
+ * WHY IT IS NEEDED. Payload's `formatErrors` only keeps an error's message
+ * when `err.name` is set, and `APIError` sets it from `this.constructor.name`.
+ * The production Turbopack build exports Payload's classes as anonymous
+ * class expressions (`e.s(["APIError",0,class extends E{…}])`), so the name
+ * is `""` and every refusal — "Mamo answered 422: …", "Save the key first" —
+ * reaches the browser as "An unknown error occurred." with the right status.
+ * Dev builds keep the name, which is why it only shows on a deployed site.
+ *
+ * Public errors are answered here in Payload's own shape; 5xx ones are
+ * logged first, as `routeError` would. Anything else is re-thrown untouched,
+ * so non-public errors stay masked exactly as before.
+ */
+export function withPublicErrors(endpoint: Endpoint): Endpoint {
+  const handler = endpoint.handler;
+  return {
+    ...endpoint,
+    handler: async (req) => {
+      try {
+        return await handler(req);
+      } catch (error) {
+        const e = error as Partial<APIError> | null;
+        if (!(error instanceof Error) || e?.isPublic !== true || typeof e.status !== "number") throw error;
+        if (e.status >= 500) req.payload.logger.error({ err: error, msg: `${endpoint.method.toUpperCase()} ${endpoint.path}: ${error.message}` });
+        return json(
+          { errors: [{ name: "APIError", message: error.message, ...(e.data ? { data: e.data } : {}) }] },
+          { status: e.status },
+        );
+      }
+    },
+  };
 }

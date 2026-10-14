@@ -6,6 +6,7 @@ import {
   dedupeKeyFor,
   headerNamesOf,
   identifyDelivery,
+  isMamoPing,
   parseDefensively,
   readBodyCapped,
   REDACTED,
@@ -163,5 +164,20 @@ describe("unverified input handling", () => {
     expect(await readBodyCapped(small, 1024)).toBe("hello");
     const declared = new Request("http://x/", { method: "POST", body: "tiny", headers: { "content-length": "999999" } });
     expect(await readBodyCapped(declared, 1024)).toBeNull();
+  });
+});
+
+describe("isMamoPing — Mamo's registration reachability check", () => {
+  it("matches the ping Mamo sends before accepting POST /webhooks", () => {
+    expect(isMamoPing('{"ping":"pong"}')).toBe(true);
+    expect(isMamoPing('{ "ping": "pong" }\n')).toBe(true);
+  });
+
+  it("matches nothing else, so real deliveries still need the secret", () => {
+    expect(isMamoPing("")).toBe(false);
+    expect(isMamoPing("{}")).toBe(false);
+    expect(isMamoPing('{"ping":"pong","event_type":"payment.succeeded"}')).toBe(false);
+    expect(isMamoPing('{"ping":"PONG"}')).toBe(false);
+    expect(isMamoPing(`{"ping":"pong"}${" ".repeat(100)}`)).toBe(false);
   });
 });
