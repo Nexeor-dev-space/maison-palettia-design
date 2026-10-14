@@ -1,4 +1,4 @@
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 import type { CollectionConfig, UploadConfig } from "payload";
@@ -10,7 +10,9 @@ import {
   revalidateOnMediaChange,
   revalidateOnMediaDelete,
 } from "@/cms/hooks/mediaGuards";
-import { MEDIA_DIR } from "@/cms/lib/paths";
+import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { storedFilename } from "@/cms/seed/media";
+import { MEDIA } from "@/cms/seed/strings/media";
 
 /**
  * ==========================================================================
@@ -116,9 +118,64 @@ const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Pa
     return undefined;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") return undefined;
-    return Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+    return (await seededOriginal(params.filename ?? "")) ?? Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
   }
 };
+
+/*
+  ==========================================================================
+  A MISSING SEEDED PHOTO IS SERVED FROM ITS ORIGINAL IN GIT
+  ==========================================================================
+
+  The media library is rows in Postgres and files on the server's disk. A
+  server that starts on an empty `media/` folder — a PR preview, a new box, a
+  lost volume — has every row and none of the files, so every picture on the
+  site answered 404 and `/_next/image` 400 (PR #78's preview, Oct 2026).
+  `restore-media` rebuilds those files on start, but only where the start
+  command runs it and the folder is writable.
+
+  This is the safety net under it: when the file asked for is missing and it
+  is one of the photographs the seed imported, the original under `public/`
+  is served instead — the base name for the file itself, and for a generated
+  size (`<name>-640x427.webp`) too, since `/_next/image` resizes whatever it
+  is handed. A photo uploaded through the admin has no original in git and
+  still answers 404, which is correct: that one has to come from a backup.
+*/
+const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
+const ORIGINALS = new Map(
+  MEDIA.map((seed) => [storedFilename(seed.path).replace(/\.[^.]+$/, ""), seed.path] as const),
+);
+const MIME: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".mp4": "video/mp4",
+};
+
+async function seededOriginal(filename: string): Promise<Response | undefined> {
+  const stem = filename.replace(/\.[^.]+$/, "");
+  const source = ORIGINALS.get(stem) ?? ORIGINALS.get(stem.replace(/-\d+x\d+$/, ""));
+  if (!source) return undefined;
+  const file = path.resolve(PUBLIC_DIR, source);
+  if (!file.startsWith(path.resolve(PUBLIC_DIR) + path.sep)) return undefined;
+  try {
+    const bytes = await readFile(file);
+    return new Response(new Uint8Array(bytes), {
+      status: 200,
+      headers: {
+        "Content-Type": MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream",
+        // Short: the real file may be restored at any moment, and should then win.
+        "Cache-Control": "public, max-age=300",
+      },
+    });
+  } catch {
+    return undefined;
+  }
+}
 
 export const Media: CollectionConfig = {
   slug: "media",
