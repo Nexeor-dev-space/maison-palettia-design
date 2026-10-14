@@ -119,7 +119,8 @@ const missingFileIs404 = async (_req: Parameters<FileHandler>[0], { params }: Pa
     return undefined;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") return undefined;
-    return (await seededOriginal(params.filename ?? "")) ?? Response.json({ errors: [{ message: "Not found." }] }, { status: 404 });
+    const original = await seededOriginal(filename);
+    if (original) return original;
   }
 
   const source = seededMediaSource(filename);
