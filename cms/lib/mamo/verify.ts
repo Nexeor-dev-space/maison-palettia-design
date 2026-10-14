@@ -227,6 +227,20 @@ export async function readBodyCapped(request: Request, max: number = MAX_BODY_BY
 }
 
 /**
+ * Mamo's reachability check. `POST /webhooks` (and, by the same token,
+ * `PATCH`) first POSTs `{"ping":"pong"}` to the URL and refuses the
+ * registration unless it gets a 2xx — observed on the sandbox 2026-10-14,
+ * not in Mamo's reference. It arrives before Register/Update webhook has
+ * stored the new secret, so it can never authenticate; answering it 401
+ * made every registration fail. Matched on the exact text (whitespace
+ * aside) rather than parsed, so step 2's "no parsing of unauthenticated
+ * input" still holds, and answering it changes nothing and reveals nothing.
+ */
+export function isMamoPing(raw: string): boolean {
+  return raw.length <= 64 && raw.replace(/\s+/g, "") === '{"ping":"pong"}';
+}
+
+/**
  * `eventType` and the payment id from the first kilobyte of an UNVERIFIED
  * body, by pattern rather than `JSON.parse` (SPEC §H.5 step 2: no parsing of
  * unauthenticated input beyond the read). Both are clamped to what Mamo's
