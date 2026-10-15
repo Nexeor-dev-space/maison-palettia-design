@@ -41,10 +41,9 @@ import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
  * because `new Date()` would tell crawlers every page changed on every fetch,
  * which teaches them to ignore the field.
  *
- * URLs are absolute, as the protocol requires, and built from Site details'
- * public address once an admin has confirmed it (`getSite`, which until
- * then uses an https NEXT_PUBLIC_SERVER_URL, else lib/constants.ts) — so a
- * domain change in the admin moves them.
+ * URLs are absolute, as the protocol requires, and always name the
+ * production origin (lib/siteOrigin.ts, through `getSite`) — staging's
+ * sitemap lists the live addresses, never its own.
  */
 
 /** Indexable pages with no parameters. "" is the homepage. */

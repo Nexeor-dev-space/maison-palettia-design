@@ -279,8 +279,8 @@ function metadataFor(context: SeoContext, { title, description, path, image, noi
 
 /**
  * The site's SEO context from the admin: name, tagline, locale and origin
- * from Site details (`getSite`, which resolves the origin as the confirmed
- * publicUrl → an https NEXT_PUBLIC_SERVER_URL → the old constant), the
+ * from Site details (`getSite`; the origin is always the production one,
+ * lib/siteOrigin.ts), the
  * title template, card type and default share image from Search & sharing. A share image left empty
  * keeps the generated brand card at /opengraph-image.
  */

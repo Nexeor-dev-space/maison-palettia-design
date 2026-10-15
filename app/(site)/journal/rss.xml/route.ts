@@ -10,7 +10,7 @@ import { getSite } from "@/lib/constants.server";
  * Static and refreshed hourly: it reads the same cached getter the
  * listing does, so a publish (which purges the Journal's tags) reaches it
  * on the next request after the hour. Plain RSS 2.0, absolute addresses
- * from Site details' public URL, every value escaped. A post whose SEO tab
+ * on the production origin (lib/siteOrigin.ts), every value escaped. A post whose SEO tab
  * asks for noindex is left out, as it is from the sitemap. The writer is
  * `<dc:creator>` (a name), since RSS's own `<author>` must be an email.
  *

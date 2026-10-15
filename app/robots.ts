@@ -40,7 +40,7 @@ import { getRobotsDisallow } from "@/lib/seo";
  * which are the crawlers this file is for.
  *
  * The Sitemap line is absolute because the standard requires it, and it is
- * built from Site details' public address, so it moves with the domain.
+ * built from the production origin (lib/siteOrigin.ts) on every deployment.
  *
  * FROM THE ADMIN NOW (SPEC §G.2). The Disallow list is Search & sharing →
  * "Paths hidden from search engines" (`seo-defaults.robotsDisallow`, seeded
