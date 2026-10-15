@@ -5,6 +5,8 @@ import nodemailer, { type Transporter } from "nodemailer";
 import { APIError, type EmailAdapter, type Payload, type PayloadRequest, type SendEmailOptions } from "payload";
 import { Resend } from "resend";
 
+import { referencedDoodles } from "@/cms/email/doodles";
+
 import { formatDubai, redactVariables } from "@/cms/email/render";
 import { isStaffTemplate } from "@/cms/email/variables";
 import type { Attachment, TemplateKey } from "@/cms/lib/contracts";
@@ -260,10 +262,21 @@ export interface TransportResult {
  * always come from the settings, never from the caller. Throws on any
  * provider error (scrubbed of secrets).
  */
+function withInline<T>(attachments: T[] | undefined, inline: T[]): T[] | undefined {
+  if (!inline.length) return attachments;
+  return [...(attachments ?? []), ...inline];
+}
+
 export async function transportSend(settings: MailSettings, message: OutgoingMessage): Promise<TransportResult> {
   if (settings.provider === "log-only") return { provider: "log", skipped: true };
   if (!settings.fromAddress) throw new Error("No From address is set in Settings → Email sending.");
   if (!message.to.length) throw new Error("No recipient.");
+  const inline = referencedDoodles(message.html).map((doodle) => ({
+    filename: `${doodle.cid}.png`,
+    content: Buffer.from(doodle.base64, "base64"),
+    contentType: "image/png",
+    cid: doodle.cid,
+  }));
 
   if (settings.provider === "smtp") {
     if (!settings.smtp.host) throw new Error("No SMTP host is set in Settings → Email sending.");
@@ -276,7 +289,10 @@ export async function transportSend(settings: MailSettings, message: OutgoingMes
         subject: message.subject,
         html: message.html,
         text: message.text,
-        attachments: message.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })),
+        attachments: withInline(
+          message.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })),
+          inline,
+        ),
       });
       return { provider: "smtp", messageId: info.messageId };
     } catch (error) {
@@ -295,7 +311,10 @@ export async function transportSend(settings: MailSettings, message: OutgoingMes
       subject: message.subject,
       html: message.html ?? "",
       text: message.text,
-      attachments: message.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })),
+      attachments: withInline(
+        message.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })),
+        inline.map(({ cid, ...rest }) => ({ ...rest, contentId: cid })),
+      ),
     },
     message.idempotencyKey ? { idempotencyKey: message.idempotencyKey } : undefined,
   );
