@@ -1,9 +1,10 @@
 "use client";
 
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { motion, useInView, useTransform, type MotionValue } from "framer-motion";
 import { useRef } from "react";
 
 import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
+import { useScrollProgress } from "@/components/motion/useScrollProgress";
 
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { DoodleMark } from "@/components/ui/DoodleMark";
@@ -119,10 +120,7 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
   const field = useRef<HTMLDivElement>(null);
   const reduced = useHydratedReducedMotion();
 
-  const { scrollYProgress } = useScroll({
-    target: field,
-    offset: ["start end", "end start"],
-  });
+  const scrollYProgress = useScrollProgress(field, ["start end", "end start"]);
   // The idle float is JavaScript-driven and infinite; a section that is not on
   // screen has no business running it (issue #70).
   const active = useInView(field, { margin: "100px 0px 100px 0px" });
@@ -157,7 +155,7 @@ function Shape({
   active,
 }: {
   shape: ShapePlan;
-  progress: ReturnType<typeof useScroll>["scrollYProgress"];
+  progress: MotionValue<number>;
   reduced: boolean;
   active: boolean;
 }) {

@@ -4,11 +4,12 @@ import {
   easeOut,
   motion,
   useReducedMotion,
-  useScroll,
   useSpring,
   useTransform,
 } from "framer-motion";
 import { useRef, type ReactNode } from "react";
+
+import { useScrollProgress } from "@/components/motion/useScrollProgress";
 
 /** How far the block rises into place, in pixels. */
 const RISE = 120;
@@ -58,10 +59,10 @@ export function ScrollReveal({ children, className }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 0.98", "start 0.6"],
-  });
+  /* The target carries its own `y` transform. The shared hub measures through
+     the offsetParent chain, which ignores transforms (as Framer does), so the
+     rise does not feed back into the range it is driven by. */
+  const scrollYProgress = useScrollProgress(ref, ["start 0.98", "start 0.6"]);
   const eased = useSpring(scrollYProgress, CATCH_UP);
 
   // The rise carries the whole travel. The fade is over in the first fifth of
