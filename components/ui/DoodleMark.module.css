@@ -41,7 +41,6 @@
     0
   );
   transition: transform 1100ms var(--ease-out);
-  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -73,7 +72,6 @@
   height: 100%;
   pointer-events: auto;
   transition: transform 300ms var(--ease-soft);
-  will-change: transform;
 }
 
 @media (hover: hover) {

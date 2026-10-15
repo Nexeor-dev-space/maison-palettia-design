@@ -41,7 +41,6 @@
   transform: rotate(var(--tilt, 0deg));
   transform-origin: 50% 50%;
   transition: transform 520ms var(--ease-editorial);
-  will-change: transform;
 }
 
 
@@ -115,7 +114,6 @@
      `transform`, so the tilt on the frame is never fought over. */
   translate: 0 104%;
   transition: translate 620ms cubic-bezier(0.32, 0.08, 0.24, 1);
-  will-change: translate;
 }
 
 /*

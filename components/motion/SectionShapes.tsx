@@ -1,9 +1,10 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useInView, useTransform, type MotionValue } from "framer-motion";
 import { useRef } from "react";
 
 import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
+import { useScrollProgress } from "@/components/motion/useScrollProgress";
 
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { DoodleMark } from "@/components/ui/DoodleMark";
@@ -119,10 +120,10 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
   const field = useRef<HTMLDivElement>(null);
   const reduced = useHydratedReducedMotion();
 
-  const { scrollYProgress } = useScroll({
-    target: field,
-    offset: ["start end", "end start"],
-  });
+  const scrollYProgress = useScrollProgress(field, ["start end", "end start"]);
+  // The idle float is JavaScript-driven and infinite; a section that is not on
+  // screen has no business running it (issue #70).
+  const active = useInView(field, { margin: "100px 0px 100px 0px" });
 
   return (
     <div
@@ -131,7 +132,13 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
       className={cn("pointer-events-none absolute inset-0 -z-10 overflow-hidden", className)}
     >
       {plan.map((shape, i) => (
-        <Shape key={`${shape.name}-${i}`} shape={shape} progress={scrollYProgress} reduced={reduced} />
+        <Shape
+          key={`${shape.name}-${i}`}
+          shape={shape}
+          progress={scrollYProgress}
+          reduced={reduced}
+          active={active}
+        />
       ))}
     </div>
   );
@@ -145,10 +152,12 @@ function Shape({
   shape,
   progress,
   reduced,
+  active,
 }: {
   shape: ShapePlan;
-  progress: ReturnType<typeof useScroll>["scrollYProgress"];
+  progress: MotionValue<number>;
   reduced: boolean;
+  active: boolean;
 }) {
   const travel = reduced ? 0 : shape.drift;
   const y = useTransform(progress, [0, 1], [`${-travel / 2}%`, `${travel / 2}%`]);
@@ -203,15 +212,23 @@ function Shape({
       */}
       <motion.span
         className="block"
-        animate={float ? { y: [0, -9, 0, 7, 0], rotate: [0, 1.6, 0, -1.6, 0] } : undefined}
+        animate={
+          float
+            ? active
+              ? { y: [0, -9, 0, 7, 0], rotate: [0, 1.6, 0, -1.6, 0] }
+              : { y: 0, rotate: 0 }
+            : undefined
+        }
         transition={
           float
-            ? {
+            ? active
+              ? {
                 duration: float,
                 repeat: Infinity,
                 ease: "easeInOut",
                 delay: shape.floatDelay ?? 0,
               }
+              : { duration: 0 }
             : undefined
         }
       >

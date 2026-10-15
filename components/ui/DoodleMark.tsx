@@ -125,7 +125,7 @@ export function DoodleMark({
       the caller sized, so nothing about how a mark is placed changes.
     */
     <span className={styles.hoverable}>
-    <span className={styles.drift} style={{ "--depth": depth } as React.CSSProperties}>
+    <span data-drift="" className={styles.drift} style={{ "--depth": depth } as React.CSSProperties}>
     <span
       className={idle ? cn(styles.float, styles[float.path]) : styles.still}
       style={{ "--float-dur": `${float.dur}s`, "--float-delay": `${float.delay}s` } as React.CSSProperties}
