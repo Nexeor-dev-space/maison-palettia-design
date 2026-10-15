@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { serializeJsonLd } from "@/components/seo/JsonLd";
-import { eventJsonLd, localBusinessJsonLd, passesJsonLd, postalAddress, type JsonLdSite } from "@/lib/jsonLd";
+import { eventJsonLd, localBusinessJsonLd, passesJsonLd, postalAddress, sessionEventsJsonLd, type JsonLdSite } from "@/lib/jsonLd";
 import type { PartnerRecord } from "@/lib/partners";
 import type { Workshop } from "@/types";
 
@@ -114,7 +114,7 @@ describe("eventJsonLd", () => {
     expect(data["@type"]).toBe("Event");
     expect(data.url).toBe("https://example.test/events/candle-making-2026-10-11-1530");
     expect(data.startDate).toBe(session.startsAt);
-    expect(data.endDate).toBe("2026-10-11T13:30:00.000Z"); // 15:30 +04:00 plus two hours
+    expect(data.endDate).toBe("2026-10-11T17:30:00+04:00"); // 15:30 Dubai plus two hours, in Dubai time
     expect(data.image).toEqual(["https://example.test/images/experiences/CANDLE_MAKING.jpg"]);
     expect(data.location).toMatchObject({ "@type": "Place", name: "Times Square Center" });
     expect(data.offers).toMatchObject({
@@ -138,6 +138,27 @@ describe("eventJsonLd", () => {
     expect((waitlist.offers as { availability: string }).availability).toBe("https://schema.org/LimitedAvailability");
     expect((passed.offers as { availability: string }).availability).toBe("https://schema.org/SoldOut");
     expect(full).not.toHaveProperty("description");
+  });
+
+  it("writes every instant in Dubai time, even when the session's start arrives in UTC", () => {
+    const utc = eventJsonLd({ site, workshop: { ...session, startsAt: "2026-10-11T11:30:00.000Z" }, description: null, passed: false });
+    expect(utc.startDate).toBe("2026-10-11T15:30:00+04:00");
+    expect(utc.endDate).toBe("2026-10-11T17:30:00+04:00");
+    expect((utc.offers as { validThrough: string }).validThrough).toBe("2026-10-11T15:30:00+04:00");
+  });
+
+  it("files the session under its category, activity, format and city", () => {
+    const data = eventJsonLd({
+      site,
+      workshop: {
+        ...session,
+        experience: { slug: "candle-making", name: "Candle Making" },
+        workshopType: { slug: "cheesecake-collection", name: "The Cheesecake Collection" },
+      },
+      description: null,
+      passed: false,
+    });
+    expect(data.keywords).toBe("Craft, Candle Making, The Cheesecake Collection, Dubai");
   });
 
   it("prints no offer for a session with no price, and no location for one with no venue", () => {
@@ -170,5 +191,28 @@ describe("serializeJsonLd", () => {
     expect(out).not.toContain("</script>");
     expect(out).not.toContain("<");
     expect(JSON.parse(out)).toEqual({ name: "</script><img src=x onerror=alert(1)>" });
+  });
+});
+
+describe("sessionEventsJsonLd", () => {
+  const later: Workshop = { ...session, slug: "candle-making-2026-10-18-1530", startsAt: "2026-10-18T15:30:00+04:00", venue: { name: "Elsewhere Mall", locality: "Dubai" } };
+
+  it("prints every date ahead as an Event in one graph, each keeping its session's own id and offer", () => {
+    const data = sessionEventsJsonLd({ site, sessions: [session, later], description: "Pour.", partnerFor: (w) => (w.venue?.name === partner.name ? partner : undefined) });
+    const graph = data?.["@graph"] as Array<Record<string, unknown>>;
+
+    expect(data?.["@context"]).toBe("https://schema.org");
+    expect(graph).toHaveLength(2);
+    expect(graph[0]).not.toHaveProperty("@context");
+    expect(graph.map((e) => e["@id"])).toEqual([
+      "https://example.test/events/candle-making-2026-10-11-1530#event",
+      "https://example.test/events/candle-making-2026-10-18-1530#event",
+    ]);
+    expect(graph[0].location).toHaveProperty("geo");
+    expect(graph[1].location).not.toHaveProperty("geo");
+  });
+
+  it("prints nothing for a format with no date ahead", () => {
+    expect(sessionEventsJsonLd({ site, sessions: [], description: null, partnerFor: () => undefined })).toBeNull();
   });
 });

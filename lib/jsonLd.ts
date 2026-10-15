@@ -1,4 +1,5 @@
 import type { PartnerRecord } from "@/lib/partners";
+import { studioIso } from "@/lib/studioTime";
 import { bookingStepHref, isFullyBooked, workshopHref } from "@/lib/workshopHelpers";
 import type { ContactDetails, Pass, SocialLink, Workshop } from "@/types";
 
@@ -150,6 +151,9 @@ export function offerAvailability(workshop: Workshop, passed: boolean): string {
  * A dated session as a schema.org Event, for /events/[slug].
  *
  * `endDate` is derived from the duration, as the page's own time range is.
+ * All three instants (`startDate`, `endDate`, `validThrough`) are written in
+ * Dubai time with its offset (lib/studioTime.ts) — `endDate` used to come out
+ * in UTC beside a +04:00 start, the same instant written two ways.
  * The offer points at the booking step and carries the price the page
  * prints; `validThrough` is the start, because booking closes at the start
  * (see `hasSessionPassed`). A session whose date has gone by is still
@@ -177,6 +181,8 @@ export function eventJsonLd({
   const start = new Date(workshop.startsAt);
   const end = new Date(start.getTime() + workshop.durationMinutes * 60_000);
   const url = absoluteUrl(site, workshopHref(workshop));
+  const startDate = studioIso(workshop.startsAt);
+  const keywords = eventKeywords(workshop);
   const images = [workshop.image, ...(workshop.gallery ?? [])].map((img) => absoluteUrl(site, img.src));
 
   return {
@@ -187,8 +193,8 @@ export function eventJsonLd({
     ...(description ? { description } : {}),
     url,
     image: images,
-    startDate: workshop.startsAt,
-    endDate: end.toISOString(),
+    startDate,
+    endDate: studioIso(end.toISOString()),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     ...(workshop.venue ? { location: placeOf(workshop.venue.name, workshop.venue.locality, partner) } : {}),
@@ -201,12 +207,58 @@ export function eventJsonLd({
             price: workshop.price.amount,
             priceCurrency: workshop.price.currency,
             availability: offerAvailability(workshop, passed),
-            validThrough: workshop.startsAt,
+            validThrough: startDate,
             ...(workshop.seatsTotal > 0 ? { inventoryLevel: { "@type": "QuantitativeValue", value: workshop.seatsAvailable } } : {}),
           },
         }
       : {}),
-    ...(workshop.category ? { keywords: workshop.category } : {}),
+    ...(keywords ? { keywords } : {}),
+  };
+}
+
+/**
+ * The words a session is filed under: its category, the activity it is a
+ * sitting of, its format and the city — each read off the session, none
+ * invented. It was the category alone ("Craft"), which says nothing a
+ * crawler can match a search to.
+ */
+function eventKeywords(workshop: Workshop): string | null {
+  const words = [workshop.category, workshop.experience?.name, workshop.workshopType?.name, workshop.venue?.locality];
+  const unique = [...new Set(words.map((word) => word?.trim()).filter((word): word is string => Boolean(word)))];
+  return unique.length ? unique.join(", ") : null;
+}
+
+/**
+ * A workshop type's upcoming sessions as Events, for /events/{type}.
+ *
+ * The dated session pages name the type page as their canonical (see
+ * `canonicalEventPath`, lib/eventDetail.ts), so this is the page search
+ * engines index, and it carries every date ahead. Each Event keeps its
+ * session's own `@id`, `url` and booking offer, so a session reads as the
+ * same thing wherever it is printed. Null when no date is ahead: a type with
+ * nothing scheduled is a page, not an event.
+ */
+export function sessionEventsJsonLd({
+  site,
+  sessions,
+  description,
+  partnerFor,
+}: {
+  site: JsonLdSite;
+  sessions: readonly Workshop[];
+  description: string | null;
+  /** The partner record for a session's venue, when one matches. */
+  partnerFor: (workshop: Workshop) => PartnerRecord | undefined;
+}): Record<string, unknown> | null {
+  if (sessions.length === 0) return null;
+  return {
+    "@context": "https://schema.org",
+    "@graph": sessions.map((workshop) => {
+      // The graph carries the one @context.
+      const event = eventJsonLd({ site, workshop, description, partner: partnerFor(workshop), passed: false });
+      delete event["@context"];
+      return event;
+    }),
   };
 }
 

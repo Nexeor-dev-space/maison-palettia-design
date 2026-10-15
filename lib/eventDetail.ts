@@ -53,6 +53,11 @@ export interface ScheduledEvent {
     because a session is not required to have an activity entry.
   */
   experience?: CreativeExperience;
+  /**
+   * The slug whose page this one defers to as canonical — see
+   * `canonicalSlugOf`. Equal to `slug` when the page is its own canonical.
+   */
+  canonicalSlug: string;
 }
 
 /**
@@ -123,6 +128,61 @@ export async function getEventSlugs(): Promise<string[]> {
 }
 
 /**
+ * ==========================================================================
+ * WHICH PAGE A DATED SESSION DEFERS TO
+ * ==========================================================================
+ *
+ * Every dated session has its own page, and the client's timetable puts the
+ * same format on the calendar a dozen times: eleven "Crochet — Beginners"
+ * pages with the same title, description and copy, differing only in the
+ * date. Search engines read that as duplicate content and pick one at random.
+ *
+ * So a session names a stable page as its canonical: its workshop type's
+ * page (/events/crochet-beginners), which lists every date ahead and carries
+ * them as Events (`sessionEventsJsonLd`); else, for a session with no type,
+ * its activity's page (/events/candle-making), which resolves to the next
+ * date. Only a session with neither — nothing stable to defer to — is its own
+ * canonical. The session pages stay up and bookable; they just stop competing.
+ *
+ * The type and activity must be published (in `types` / `experiences`),
+ * because a canonical pointing at a 404 is worse than none.
+ */
+export function canonicalSlugOf(
+  workshop: Workshop,
+  types: readonly WorkshopType[],
+  experiences: readonly CreativeExperience[],
+): string {
+  const type = workshop.workshopType && types.find((item) => item.slug === workshop.workshopType?.slug);
+  if (type) return type.slug;
+  const parent = experienceSlugOf(workshop);
+  const experience = experiences.find((item) => item.slug === parent);
+  return experience ? experience.slug : workshop.slug;
+}
+
+/**
+ * The event slugs that are their own canonical — what /sitemap.xml lists.
+ * `getEventSlugs` minus every dated session that defers to another page.
+ */
+export async function getIndexableEventSlugs(): Promise<string[]> {
+  const [workshops, experiences, types] = await Promise.all([
+    getAllWorkshops(),
+    getCreativeExperiences(),
+    getWorkshopTypes(),
+  ]);
+  const seen = new Set(
+    workshops.filter((w) => canonicalSlugOf(w, types, experiences) === w.slug).map((w) => w.slug),
+  );
+  for (const type of types) seen.add(type.slug);
+  for (const experience of experiences) seen.add(experience.slug);
+  return [...seen];
+}
+
+/** The path this event's page names as canonical. */
+export function canonicalEventPath(detail: EventDetail): string {
+  return `/events/${detail.kind === "scheduled" ? detail.canonicalSlug : detail.slug}`;
+}
+
+/**
  * Resolve one slug, or `null` when nothing answers to it.
  *
  * Async and returning a plain value, like every other content seam in this
@@ -158,7 +218,7 @@ export async function getEventDetail(
   if (workshop) {
     const parent = experienceSlugOf(workshop);
     const experience = experiences.find((item) => item.slug === parent);
-    return { kind: "scheduled", slug, workshop, experience };
+    return { kind: "scheduled", slug, workshop, experience, canonicalSlug: canonicalSlugOf(workshop, types, experiences) };
   }
 
   /*
@@ -195,7 +255,8 @@ export async function getEventDetail(
     }
 
     const next = dates.find((item) => !hasSessionPassed(item, now)) ?? dates.at(-1);
-    if (next) return { kind: "scheduled", slug, workshop: next, experience };
+    // The activity's own address is the stable one, so it is its own canonical.
+    if (next) return { kind: "scheduled", slug, workshop: next, experience, canonicalSlug: slug };
   }
 
   return { kind: "diy", slug, experience };
