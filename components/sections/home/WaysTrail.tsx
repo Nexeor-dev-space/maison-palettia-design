@@ -8,7 +8,6 @@ import { useRef } from "react";
 import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
 import { useScrollProgress } from "@/components/motion/useScrollProgress";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { ModeMark } from "@/components/ui/ModeMark";
 import { PaintStroke } from "@/components/layout/PaintStroke";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { cn } from "@/lib/utils";
@@ -16,7 +15,6 @@ import { cn } from "@/lib/utils";
 export interface TrailDoor {
   label: string;
   href: string;
-  mode?: "diy" | "scheduled";
 }
 
 export interface TrailItem {
@@ -709,7 +707,6 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
                   style={{ "--swell": 1, "--wet": 0.44 } as React.CSSProperties}
                 >
                   <PaintStroke paint={item.paint} shape="blot" />
-                  {door.mode ? <ModeMark mode={door.mode} /> : null}
                   <span className="relative text-action font-medium uppercase tracking-eyebrow">
                     {door.label}
                   </span>

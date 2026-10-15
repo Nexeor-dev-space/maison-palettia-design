@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { SessionGate } from "@/components/booking/SessionClock";
-import { ModeMark } from "@/components/ui/ModeMark";
 
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import { cn } from "@/lib/utils";
@@ -146,11 +145,10 @@ export function EventCard({
           How you take part, not which strand it is filed under. The category
           ("Craft") came from the old Paint / Shape / Craft / Create system and
           told a visitor nothing they could act on; "Scheduled session" tells
-          them this is a date they book — the same mark and words the hero,
+          them this is a date they book — the same words the hero,
           the homepage groups and the menus use.
         */}
         <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
-          <ModeMark mode="scheduled" />
           Scheduled session
         </p>
 
