@@ -906,11 +906,11 @@ export interface Venue {
    */
   locationHref?: string | null;
   /**
-   * What the embedded map searches for. Leave empty to use “name, locality”.
+   * Only used when no pin is set below: what the Google map searches for. Leave empty to use “name, locality”.
    */
   mapQuery?: string | null;
   /**
-   * Optional. Leave empty rather than guess; the map falls back to a search.
+   * Paste the centre's Google Maps link. With a pin the site draws its own map in the Maison's colours; without one it shows a plain Google map found by search. Leave empty rather than guess.
    */
   coordinates?: {
     lat?: number | null;

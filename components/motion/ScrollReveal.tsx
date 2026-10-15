@@ -4,11 +4,12 @@ import {
   easeOut,
   motion,
   useReducedMotion,
-  useScroll,
   useSpring,
   useTransform,
 } from "framer-motion";
 import { useRef, type ReactNode } from "react";
+
+import { useScrollProgress } from "@/components/motion/useScrollProgress";
 
 /** How far the block rises into place, in pixels. */
 const RISE = 120;
@@ -18,8 +19,14 @@ const RISE = 120;
  * — the type is welded to the wheel — so the progress is run through a spring
  * first and the content arrives a beat behind the page. Damped well past
  * critical: it settles rather than springs, and never overshoots type.
+ *
+ * It was stiffness 30 / damping 11, which takes well over a second to come to
+ * rest — and a spring that has not come to rest keeps Framer's frame loop (and
+ * a style write per block) running long after the wheel has stopped, on top of
+ * Lenis's own easing (issue #70). Lenis already supplies the long, soft part
+ * of the lag, so this only has to take the edge off: it settles in ~0.4s.
  */
-const CATCH_UP = { stiffness: 30, damping: 11, mass: 1, restDelta: 0.0005 } as const;
+const CATCH_UP = { stiffness: 140, damping: 30, mass: 1, restDelta: 0.001, restSpeed: 0.01 } as const;
 
 interface ScrollRevealProps {
   children: ReactNode;
@@ -52,10 +59,10 @@ export function ScrollReveal({ children, className }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 0.98", "start 0.6"],
-  });
+  /* The target carries its own `y` transform. The shared hub measures through
+     the offsetParent chain, which ignores transforms (as Framer does), so the
+     rise does not feed back into the range it is driven by. */
+  const scrollYProgress = useScrollProgress(ref, ["start 0.98", "start 0.6"]);
   const eased = useSpring(scrollYProgress, CATCH_UP);
 
   // The rise carries the whole travel. The fade is over in the first fifth of
