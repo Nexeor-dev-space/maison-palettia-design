@@ -32,6 +32,7 @@ export interface Config {
     passes: Pass;
     testimonials: Testimonial;
     vibes: Vibe;
+    'music-tracks': MusicTrack;
     posts: Post;
     'post-categories': PostCategory;
     redirects: Redirect;
@@ -92,6 +93,7 @@ export interface Config {
     passes: PassesSelect<false> | PassesSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     vibes: VibesSelect<false> | VibesSelect<true>;
+    'music-tracks': MusicTracksSelect<false> | MusicTracksSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'post-categories': PostCategoriesSelect<false> | PostCategoriesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -134,6 +136,7 @@ export interface Config {
     'booking-settings': BookingSetting;
     'template-copy': TemplateCopy;
     'seo-defaults': SeoDefault;
+    'music-settings': MusicSetting;
     'payment-settings': PaymentSetting;
     'email-settings': EmailSetting;
     'invoice-settings': InvoiceSetting;
@@ -149,6 +152,7 @@ export interface Config {
     'booking-settings': BookingSettingsSelect<false> | BookingSettingsSelect<true>;
     'template-copy': TemplateCopySelect<false> | TemplateCopySelect<true>;
     'seo-defaults': SeoDefaultsSelect<false> | SeoDefaultsSelect<true>;
+    'music-settings': MusicSettingsSelect<false> | MusicSettingsSelect<true>;
     'payment-settings': PaymentSettingsSelect<false> | PaymentSettingsSelect<true>;
     'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
     'invoice-settings': InvoiceSettingsSelect<false> | InvoiceSettingsSelect<true>;
@@ -2408,6 +2412,70 @@ export interface Pass {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Background music for the site's player. Visitors start it themselves — it never plays on its own. Turn the player on in Settings → Music.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "music-tracks".
+ */
+export interface MusicTrack {
+  id: string;
+  title: string;
+  /**
+   * The artist or composer, as the source credits them.
+   */
+  artist: string;
+  /**
+   * Optional. Their profile on the source site, or their own site — the credit links their name to it.
+   */
+  artistUrl?: string | null;
+  /**
+   * e.g. Pixabay, Free Music Archive, Incompetech.
+   */
+  sourceName?: string | null;
+  /**
+   * The page you downloaded it from.
+   */
+  sourceUrl?: string | null;
+  /**
+   * As stated on the download page. Non-commercial (NC) licences are not listed because they cannot be used here.
+   */
+  licence: 'cc-by-4.0' | 'cc-by-sa-4.0' | 'cc-by-3.0' | 'cc0' | 'pixabay' | 'other';
+  licenceName?: string | null;
+  licenceUrl?: string | null;
+  /**
+   * Creative Commons asks that changes are mentioned; the credit then ends “Edited for this site.”
+   */
+  modified?: boolean | null;
+  /**
+   * Only when the source gives you wording to copy. It replaces the credit built from the fields above, word for word.
+   */
+  creditOverride?: string | null;
+  credit?: string | null;
+  /**
+   * Set by the licence. Every active track is credited either way.
+   */
+  attributionRequired?: boolean | null;
+  /**
+   * Untick to take a track off the site without deleting it.
+   */
+  active?: boolean | null;
+  /**
+   * Play order: lower numbers play first (unless Settings → Music shuffles).
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
  * Stories for the Journal page. The newest featured post is shown large at the top; the rest are cards, newest first.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3948,6 +4016,10 @@ export interface PayloadLockedDocument {
         value: string | Vibe;
       } | null)
     | ({
+        relationTo: 'music-tracks';
+        value: string | MusicTrack;
+      } | null)
+    | ({
         relationTo: 'posts';
         value: string | Post;
       } | null)
@@ -5472,6 +5544,37 @@ export interface VibesSelect<T extends boolean = true> {
   order?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "music-tracks_select".
+ */
+export interface MusicTracksSelect<T extends boolean = true> {
+  title?: T;
+  artist?: T;
+  artistUrl?: T;
+  sourceName?: T;
+  sourceUrl?: T;
+  licence?: T;
+  licenceName?: T;
+  licenceUrl?: T;
+  modified?: T;
+  creditOverride?: T;
+  credit?: T;
+  attributionRequired?: T;
+  active?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -7143,6 +7246,45 @@ export interface SeoDefault {
   createdAt?: string | null;
 }
 /**
+ * The background-music player. Add tracks and their credits under Content → Music.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "music-settings".
+ */
+export interface MusicSetting {
+  id: string;
+  /**
+   * A small play button in the corner of every page. Music only starts when a visitor presses it.
+   */
+  enabled?: boolean | null;
+  /**
+   * Background level; visitors can change it.
+   */
+  volume?: number | null;
+  /**
+   * Otherwise tracks play in their display order.
+   */
+  shuffle?: boolean | null;
+  /**
+   * Read by screen readers and shown when the player opens.
+   */
+  label?: string | null;
+  /**
+   * The player is hidden (and music paused) on these pages.
+   */
+  excludePaths?:
+    | {
+        /**
+         * Starts with a slash, e.g. /checkout. A trailing * matches everything beneath.
+         */
+        path: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Test/Live keys, webhook, checkout options.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -8287,6 +8429,25 @@ export interface SeoDefaultsSelect<T extends boolean = true> {
   shareImage?: T;
   twitterCard?: T;
   robotsDisallow?:
+    | T
+    | {
+        path?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "music-settings_select".
+ */
+export interface MusicSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  volume?: T;
+  shuffle?: T;
+  label?: T;
+  excludePaths?:
     | T
     | {
         path?: T;

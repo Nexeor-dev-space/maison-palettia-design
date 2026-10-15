@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 
 import { Experiences } from "./Experiences";
 import { Faqs } from "./Faqs";
+import { MusicTracks } from "./MusicTracks";
 import { Pages } from "./Pages";
 import { Passes } from "./Passes";
 import { Policies } from "./Policies";
@@ -18,6 +19,7 @@ import { WorkshopTypes } from "./WorkshopTypes";
 
 export { Experiences, EXPERIENCE_KINDS } from "./Experiences";
 export { Faqs } from "./Faqs";
+export { MusicTracks } from "./MusicTracks";
 export { FIXED_PAGE_SLUGS, isFixedPageSlug, Pages, type FixedPageSlug } from "./Pages";
 export { Passes } from "./Passes";
 export { Policies, policyBlocks } from "./Policies";
@@ -55,6 +57,7 @@ export const contentCollections: CollectionConfig[] = [
   Passes,
   Testimonials,
   Vibes,
+  MusicTracks,
   Posts,
   PostCategories,
   Redirects,

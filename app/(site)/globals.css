@@ -1844,14 +1844,19 @@ html[data-intro="settle"] body:has([data-hero-intro]) > div > footer {
   `body:has([data-hero-intro])`, so every other page shows it immediately.
 */
 html:not([data-intro]) body:has([data-hero-intro]) [data-contact-fab],
+html:not([data-intro]) body:has([data-hero-intro]) [data-music-fab],
 html:not([data-intro]) body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="play"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="play"] body:has([data-hero-intro]) [data-music-fab],
 html[data-intro="play"] body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="dots"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="dots"] body:has([data-hero-intro]) [data-music-fab],
 html[data-intro="dots"] body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="burst"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="burst"] body:has([data-hero-intro]) [data-music-fab],
 html[data-intro="burst"] body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="settle"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="settle"] body:has([data-hero-intro]) [data-music-fab],
 html[data-intro="settle"] body:has([data-hero-intro]) [data-bottom-nav] {
   opacity: 0;
   visibility: hidden;
@@ -1860,8 +1865,10 @@ html[data-intro="settle"] body:has([data-hero-intro]) [data-bottom-nav] {
 
 /* It arrives with the bar, once the mark has landed. */
 html[data-intro="done"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="done"] body:has([data-hero-intro]) [data-music-fab],
 html[data-intro="done"] body:has([data-hero-intro]) [data-bottom-nav],
 html[data-intro="skip"] body:has([data-hero-intro]) [data-contact-fab],
+html[data-intro="skip"] body:has([data-hero-intro]) [data-music-fab],
 html[data-intro="skip"] body:has([data-hero-intro]) [data-bottom-nav] {
   opacity: 1;
   visibility: visible;

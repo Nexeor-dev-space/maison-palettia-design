@@ -23,6 +23,7 @@ import { BrandCopy } from "./BrandCopy";
 import { BookingSettings } from "./BookingSettings";
 import { TemplateCopy } from "./TemplateCopy";
 import { SeoDefaults } from "./SeoDefaults";
+import { MusicSettings } from "./MusicSettings";
 import { PaymentSettings } from "./PaymentSettings";
 import { EmailSettings } from "./EmailSettings";
 import { InvoiceSettings } from "./InvoiceSettings";
@@ -38,6 +39,7 @@ export const globals: GlobalConfig[] = [
   BookingSettings,
   TemplateCopy,
   SeoDefaults,
+  MusicSettings,
   // Settings (admin)
   PaymentSettings,
   EmailSettings,
