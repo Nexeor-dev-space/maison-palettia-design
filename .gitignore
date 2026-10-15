@@ -63,3 +63,5 @@ next-env.d.ts
 .claude/
 # Next.js-generated agent file (CLAUDE.md is the source of truth)
 /AGENTS.md
+
+.vscode/
