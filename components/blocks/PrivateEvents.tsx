@@ -1,6 +1,8 @@
 import {
   CreateWithUs,
   Experiences,
+  INTRO_BANNER_IN_CODE,
+  INTRO_LINES_IN_CODE,
   Introduction,
   WhoItIsFor,
 } from "@/components/sections/private-events/PrivateEventsSections";
@@ -10,7 +12,7 @@ import { PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
 import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
 
 import { getPrivateIneligibleSlugs } from "./data";
-import { imageOf, lines, partnerOf, stored, text } from "./helpers";
+import { lines, partnerOf, stored, text } from "./helpers";
 import type { AdapterProps } from "./types";
 
 /**
@@ -25,7 +27,7 @@ export function PrivateEventsIntroAdapter({ block }: AdapterProps<"privateEvents
   const b = stored(block);
   if (!b) return <Introduction />;
   return (
-    <Introduction eyebrow={text(b.eyebrow)} lines={lines(b.headingLines) ?? []} lead={text(b.lead)} image={imageOf(b.image)} />
+    <Introduction eyebrow={text(b.eyebrow)} lines={INTRO_LINES_IN_CODE} lead={text(b.lead)} image={INTRO_BANNER_IN_CODE} />
   );
 }
 

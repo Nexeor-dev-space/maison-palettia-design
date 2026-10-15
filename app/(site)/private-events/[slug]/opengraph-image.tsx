@@ -82,7 +82,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   if (!audience) return new Response("Not found", { status: 404 });
 
   const title = audience.name;
-  const photo = audience.image;
+  const photo = audience.pageImage ?? audience.image;
   /* `image` is optional on a programme; without one the name takes the card. */
   const photoSrc = photo ? await imageDataUri(photo.src) : null;
 

@@ -96,6 +96,9 @@ export const CLOSING_LAUNCH: Record<ClosingVariant, Omit<ClosingCtaProps, "varia
 */
 const LILAC_SHAPES: readonly ShapePlan[] = groundShapes("lilac");
 
+/** Light Sage, which INK does not carry; on Deep Lilac it draws the sage slab star. */
+const SAGE_INK = "#D1E7BE";
+
 /** The /contact label, borrowed by any variant whose page never had an eyebrow. */
 function Label({ children, className = "" }: { children: string; className?: string }) {
   return (
@@ -371,6 +374,38 @@ function PrivateEventsClose({ eyebrow, lines, body, primary, secondary }: Closin
       className="relative isolate overflow-clip bg-primary py-[5.5rem] text-surface md:py-section lg:py-section-lg [--color-focus:var(--color-cream)]"
     >
       <SectionShapes plan={LILAC_SHAPES} />
+      {/*
+        SIX MARKS ROUND THE COLUMN (Oct 2026), at the client's "not enough
+        doodles here": the centred column leaves a wide empty field either
+        side, and the faint ground shapes alone read as bare. Three a side,
+        placed rather than scattered — a slab high, a loose mark at the
+        column's middle, a slab low — and only the two high slabs below `lg`,
+        where the column takes the width and the sides are gone.
+
+        THE COLOUR PICKS THE DRAWING (`resolveIcon`), so six different
+        drawings need six colour/weight pairs, and only the inks that hold on
+        Deep Lilac: Soft Lavender, White Rock and Light Sage (3.8–4.0:1), plus
+        one Terracotta slab — 2.0:1, but a solid cut-out the size of a slab
+        reads as a shape where a thin terracotta line would not.
+      */}
+      <span aria-hidden className="pointer-events-none absolute left-[4%] top-8 deco-mark w-[3.75rem] rotate-[-12deg] md:w-[5rem] lg:left-[6%] lg:top-[14%] lg:w-[6.5rem]">
+        <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={240} />
+      </span>
+      <span aria-hidden className="pointer-events-none absolute left-[13%] top-[47%] hidden deco-mark w-[3.5rem] rotate-[8deg] lg:block">
+        <DoodleMark name="splash" color={INK.whiteRock} treatment="draw" delay={420} />
+      </span>
+      <span aria-hidden className="pointer-events-none absolute bottom-[17%] left-[5%] hidden deco-mark w-[5.5rem] rotate-[6deg] lg:block">
+        <DoodleMark name="cutout" color={INK.terracotta} treatment="draw" delay={560} />
+      </span>
+      <span aria-hidden className="pointer-events-none absolute right-[4%] top-8 deco-mark w-[3.5rem] rotate-[10deg] md:w-[4.5rem] lg:right-[7%] lg:top-[15%] lg:w-[5.5rem]">
+        <DoodleMark name="slabCoral" color={INK.whiteRock} treatment="draw" delay={320} />
+      </span>
+      <span aria-hidden className="pointer-events-none absolute right-[14%] top-[50%] hidden deco-mark w-[3.75rem] rotate-[-8deg] lg:block">
+        <DoodleMark name="coral" color={INK.lavender} treatment="draw" delay={480} />
+      </span>
+      <span aria-hidden className="pointer-events-none absolute bottom-[18%] right-[5%] hidden deco-mark w-[5rem] rotate-[-6deg] lg:block">
+        <DoodleMark name="starburst" color={SAGE_INK} treatment="draw" delay={620} />
+      </span>
       <Container className="text-center">
         <div className="mx-auto max-w-[44rem]">
           <div>

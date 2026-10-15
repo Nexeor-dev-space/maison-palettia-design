@@ -4,6 +4,7 @@ import { eventCopy } from "@/components/blocks/templateCopy";
 import { Reveal } from "@/components/motion/Reveal";
 import { PartnerPlate } from "@/components/sections/LocationMap";
 import { INK } from "@/components/sections/hero/composition";
+import { BannerMarks } from "@/components/ui/BannerMarks";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
@@ -102,8 +103,11 @@ function Header({
     <section aria-labelledby="event-title" className="mt-9 md:mt-12">
       <div className="grid grid-cols-12 items-start gap-x-6 gap-y-10 lg:gap-x-10">
         {image ? (
-          <figure className="col-span-12 -mx-gutter lg:col-span-7 lg:mx-0">
+          <figure className="relative col-span-12 lg:col-span-7">
             <WorkshopPhoto image={image} aspect="aspect-[4/3] sm:aspect-[3/2]" sizes="(min-width: 1024px) 58vw, 100vw" />
+            {/* The four cut-outs over the photograph's edges that the
+                private-event pages carry; `relative` above is for them. */}
+            <BannerMarks />
           </figure>
         ) : null}
 
@@ -222,7 +226,29 @@ function AboutAndWhere({ paragraphs, partner }: { paragraphs: readonly string[];
 /* The choice — /events/candle-making                                         */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-export function ChoiceBody({ detail, partner }: { detail: ChoiceEvent; partner?: PartnerRecord }) {
+/*
+  THE CHOICE PAGE IS LAID OUT LIKE A WALK-IN PAGE, at the client's ask: the
+  About card (copy and its photographs) straight under the banner, and the
+  location with its map at the foot — the same two sections, from the same
+  components, as /events/tote-bag-painting. They used to share one row near
+  the end, About beside a location card, with no room for photographs.
+
+  The two arrive as slots because they are the event page's own server
+  components (app/(site)/events/[slug]/page.tsx); this file only places them.
+*/
+export function ChoiceBody({
+  detail,
+  partner,
+  about,
+  location,
+}: {
+  detail: ChoiceEvent;
+  partner?: PartnerRecord;
+  /** The About card — <SessionBrief> from the event page. */
+  about?: React.ReactNode;
+  /** The location and its map — <LocationSection> from the event page. */
+  location?: React.ReactNode;
+}) {
   const { experience, types, sessions } = detail;
 
   return (
@@ -235,6 +261,8 @@ export function ChoiceBody({ detail, partner }: { detail: ChoiceEvent; partner?:
         image={eventImage(detail)}
         note="Choose a format first, then the date that suits you."
       />
+
+      {about}
 
       <section aria-labelledby="formats" className="mt-14 md:mt-16">
         <Reveal>
@@ -259,7 +287,7 @@ export function ChoiceBody({ detail, partner }: { detail: ChoiceEvent; partner?:
       </section>
 
       <Progression types={types} />
-      <AboutAndWhere paragraphs={eventAbout(detail)} partner={partner} />
+      {location ?? <AboutAndWhere paragraphs={[]} partner={partner} />}
     </>
   );
 }

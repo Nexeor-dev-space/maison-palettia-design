@@ -155,9 +155,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             uncovers it. It falls back to `0px` until the measurement lands, so
             the layout is unchanged without JavaScript.
           */}
+          {/*
+            NO BOTTOM-BAR PADDING ON <main> (Oct 2026). It carried
+            `pb-[var(--bottom-nav-h)]` from when <BottomNav> arrived, but the
+            footer always follows main and reserves the bar's height under its
+            own last line (<Footer>), so nothing in main can be left under the
+            bar. On a phone the padding only opened a strip of the page's own
+            ground between the last section and <FooterWave> — on /contact a
+            pale band under the Deep Lilac close, where the desktop's wave
+            rises straight out of the section. The client asked for the two to
+            match.
+          */}
           <main
             id="main"
-            className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface pb-[var(--bottom-nav-h)]"
+            className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface"
           >
             {children}
             {/*

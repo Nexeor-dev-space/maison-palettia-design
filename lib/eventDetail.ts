@@ -337,6 +337,7 @@ export function eventImage(detail: EventDetail) {
     case "type":
       return detail.type.image ?? detail.experience?.image;
     default:
-      return detail.experience.image;
+      // The page's own opening photograph where one is set (see `pageImage`).
+      return detail.experience.pageImage ?? detail.experience.image;
   }
 }

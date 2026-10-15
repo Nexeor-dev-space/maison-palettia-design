@@ -238,6 +238,8 @@ function WalkInCard({ experience, index }: { experience: CreativeExperience; ind
   const how = flag ?? "No booking needed";
   const action = flag ? "Take a look" : "View details";
   const frame = FRAMES[index % FRAMES.length];
+  // The activity page's banner where one is set, so the card shows what its page opens on.
+  const photo = experience.pageImage ?? experience.image;
 
   return (
     <Link
@@ -251,13 +253,13 @@ function WalkInCard({ experience, index }: { experience: CreativeExperience; ind
     >
       {/* ---- the photograph ----------------------------------------------- */}
       <span className="relative block aspect-[2/1] w-full overflow-hidden bg-sage/60 sm:aspect-[3/2]">
-        {experience.image ? (
+        {photo ? (
           <Image
-            src={experience.image.src}
+            src={photo.src}
             alt=""
             fill
             sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
-            style={experience.image.position ? { objectPosition: experience.image.position } : undefined}
+            style={photo.position ? { objectPosition: photo.position } : undefined}
             className={cn(
               "object-cover transition-transform duration-700 ease-editorial motion-safe:group-hover:scale-[1.04]",
               flag && "saturate-[0.7]",

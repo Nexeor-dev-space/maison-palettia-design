@@ -77,12 +77,21 @@ const GROUND_ANCHORS: readonly Partial<Record<"top" | "bottom" | "left" | "right
     on /about at 17%.
   */
   { right: "2.5%", top: "16px" },
-  { right: "11%", top: "10px" },
   { left: "3%", bottom: "12px" },
-  { right: "2%", bottom: "10px" },
   { left: "14%", bottom: "8px" },
   { right: "17%", bottom: "8px" },
 ];
+
+/*
+  FOUR, NOT SIX (Oct 2026). Where two sections met, the upper one's
+  bottom-right mark (`right: 2%`) and the lower one's two top-right marks
+  (`right: 2.5%` and `right: 11%`) landed in one small patch at the seam —
+  three cut-outs heaped in the corner on every page, which the client boxed
+  and asked to be a single doodle. The top-right one stays as that single
+  mark; the second top mark and the bottom-right corner one are gone, so the
+  seam carries one cut-out on the right and the foot keeps its spread of
+  three (left, left-middle, right-middle).
+*/
 
 /*
   WHY FOUR OF THE SIX ARE IN THE FOOT, and the other two are on the right.
@@ -98,19 +107,23 @@ const GROUND_ANCHORS: readonly Partial<Record<"top" | "bottom" | "left" | "right
 
 /** Six sizes, one per anchor. Capped at 3.5% AND at a pixel ceiling, so a
     wide display does not grow a mark back into the text the way the old
-    8-10% did: 3.5% of a 2560px page would be 90px again. */
+    8-10% did: 3.5% of a 2560px page would be 90px again.
+
+    AND A PIXEL FLOOR (Oct 2026). A share of a 390px phone is 8-14px, which
+    `--shape-mobile` then took down to 6-10 — specks, the client's "very
+    tiny". The floor holds each at 18-30px, which is the size these read as
+    drawn at on a phone; the floor is the phone's size, so `--shape-mobile`
+    is 1 there now (globals.css). */
 const GROUND_WIDTHS = [
-  "min(3.5%, 52px)",
-  "min(2.4%, 34px)",
-  "min(3.8%, 56px)",
-  "min(2.8%, 40px)",
-  "min(3.2%, 46px)",
-  "min(2%, 30px)",
+  "clamp(28px, 3.5%, 52px)",
+  "clamp(30px, 3.8%, 56px)",
+  "clamp(26px, 3.2%, 46px)",
+  "clamp(18px, 2%, 30px)",
 ] as const;
-const GROUND_OPACITY = [0.36, 0.3, 0.38, 0.32, 0.3, 0.4] as const;
-const GROUND_DRIFT = [22, -18, 20, -16, 18, -20] as const;
-const GROUND_FLOAT = [13, 15, 11, 14, 16, 12] as const;
-const GROUND_ROTATE = [-12, 9, -6, 14, -9, 7] as const;
+const GROUND_OPACITY = [0.36, 0.38, 0.3, 0.4] as const;
+const GROUND_DRIFT = [22, 20, 18, -20] as const;
+const GROUND_FLOAT = [13, 11, 16, 12] as const;
+const GROUND_ROTATE = [-12, -6, -9, 7] as const;
 /*
   ==========================================================================
   WHICH DRAWING GOES WHERE — four shapes, and never the same one twice in a
@@ -130,18 +143,17 @@ const GROUND_ROTATE = [-12, 9, -6, 14, -9, 7] as const;
   cut-outs that can be seen on it — all five but the one drawn in the
   ground's own colour — in a fixed order, A B C D.
 
-  THE ANCHORS TAKE THEM BY SLOT, NOT BY CYCLE:
+  THE ANCHORS TAKE THEM BY SLOT, NOT BY CYCLE — one of each:
 
-      top-left A     top-middle C     top-right B
-      bottom-left B  bottom-middle D  bottom-right A
+      top-right A
+      bottom-left B   bottom-left-middle C   bottom-right-middle D
 
-  Each band of three is three different drawings. And because every ground
-  puts the same A and B in the same corners, the foot of one section and
-  the head of the next always meet as B over A on the left and A over B on
-  the right — different on both sides, whatever the two grounds are. The
-  orders below are arranged so that holds across the four grounds too: A is
-  the bow and B the splash everywhere except Deep Lilac, which has no bow
-  to show, and takes the coral as its A.
+  Four marks, four different drawings, so no section repeats itself. At the
+  seam between two sections the lower one's top-right A sits over the upper
+  one's D on the right, and the upper one's B and C have nothing above them
+  on the left — different on both sides, whatever the two grounds are. A is
+  the bow and B the splash everywhere except Deep Lilac, which has no bow to
+  show, and takes the coral as its A.
 */
 const LILAC = "#9059A4";
 const TERRACOTTA = "#D97757";
@@ -163,7 +175,7 @@ const GROUND_INKS: Record<Ground, readonly [string, string, string, string]> = {
 };
 
 /** Which of A B C D each anchor takes — see the diagram above. */
-const GROUND_SLOT = [0, 1, 1, 0, 2, 3] as const;
+const GROUND_SLOT = [0, 1, 2, 3] as const;
 
 /**
  * A section's standard ground.
@@ -175,7 +187,7 @@ const GROUND_SLOT = [0, 1, 1, 0, 2, 3] as const;
  */
 export function groundShapes(
   ground: Ground,
-  { count = 6, desktopOnly = true }: { count?: number; desktopOnly?: boolean } = {},
+  { count = 4, desktopOnly = true }: { count?: number; desktopOnly?: boolean } = {},
 ): readonly ShapePlan[] {
   const n = Math.min(count, GROUND_ANCHORS.length);
   const inks = GROUND_INKS[ground];

@@ -47,8 +47,11 @@ import type { NavItem } from "@/types";
  * HOW IT CLOSES
  * ==========================================================================
  *
- * Four ways, because a drawer with one is a trap: the close control, the
- * scrim behind it, Escape, and following any link in it. Focus moves into the
+ * The About tab that opened it, its own close control, Escape, and following
+ * any link in it. NOT the scrim, and not the bar's other tabs — at the
+ * client's ask (Oct 2026) the sheet holds until the visitor taps About again,
+ * so a stray tap outside it neither closes it nor leaves for another page
+ * (see `onClickCapture` on the bar in <BottomNav>). Focus moves into the
  * sheet when it opens and returns to the About button when it shuts — that
  * button owns `aria-expanded`, so the state is said as well as drawn.
  */
@@ -137,6 +140,17 @@ export function AboutSheet({
 
     The attribute is only cleared where this effect set it, so an `inert`
     that belongs to something else survives the sheet closing.
+
+    THE BAR AND THE SCRIM ARE NOT THE SHEET'S HOST ANY MORE (fixed Oct 2026).
+    Since the sheets moved out of <motion.nav> to be <body>'s own children
+    (see the note in <BottomNav>), the sheet, its scrim and the bar are three
+    separate body children — so this effect made the BAR inert, and the
+    SCRIM with it. Every tab under the open sheet was dead and a tap outside
+    did nothing, which left a link in the sheet as the only way out: the
+    client's "the user feels they must click a sublink to finish". Both now
+    carry `data-sheet-live` and are left alone, so the About tab can toggle
+    the sheet shut. (What the other tabs do while it is open is decided in
+    <BottomNav>: they wait.)
   */
   useEffect(() => {
     if (!open) return;
@@ -144,7 +158,7 @@ export function AboutSheet({
     if (!host) return;
 
     const silenced = Array.from(document.body.children).filter(
-      (el) => el !== host && !el.hasAttribute("inert"),
+      (el) => el !== host && !el.hasAttribute("inert") && !el.hasAttribute("data-sheet-live"),
     );
     silenced.forEach((el) => el.setAttribute("inert", ""));
 
@@ -158,9 +172,12 @@ export function AboutSheet({
           {/* The scrim. `aria-hidden` and a plain div: the sheet is not modal
               — the bar under it stays usable — so this is a surface to tap,
               not a dialog's backdrop. */}
+          {/* No tap-to-close (Oct 2026): at the client's ask the sheet is
+              shut from the About tab that opened it, so a tap on the dimmed
+              page does nothing. */}
           <motion.div
             aria-hidden
-            onClick={onClose}
+            data-sheet-live=""
             className="fixed inset-0 z-30 bg-text/25 lg:hidden"
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
