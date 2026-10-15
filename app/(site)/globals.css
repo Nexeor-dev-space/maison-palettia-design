@@ -1438,6 +1438,39 @@
 }
 
 /*
+  The map's frame — a print in a frame, at the client's ask for a border
+  round the map box. A drawn Charcoal edge, and behind it a Soft Lavender
+  block knocked a few pixels down and right, like a print pulled slightly
+  off register. Solid, not blurred, so it reads as part of the drawing rather
+  than as a UI shadow. `plate` was a 10% hairline and disappeared against the
+  map's own pale ground; this is the one frame on the site meant to be seen.
+
+  The edge is an `::after` laid OVER the box rather than a border or an
+  inset shadow on it: both of those paint under the box's children, and the
+  map (or the iframe) is an opaque layer filling the box, so the edge vanished
+  under it. Over the top and `pointer-events: none`, it keeps the frame's
+  exact size and aspect and never catches a drag. The offset shrinks on a
+  phone, where the page gutter is only 16px.
+*/
+@utility map-frame {
+  box-shadow: 5px 5px 0 0 var(--color-brand-lavender);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    border: 2px solid var(--color-brand-charcoal);
+    pointer-events: none;
+  }
+
+  @media (min-width: 768px) {
+    box-shadow: 8px 8px 0 0 var(--color-brand-lavender);
+  }
+}
+
+/*
   The press. Every control the hand can reach: buttons, filled actions, plates.
   Held to 1px and a whisker of scale — enough to feel, too little to read as a
   bounce, which the client has twice said no to.
@@ -1901,4 +1934,54 @@ html[data-intro="settle"] body:has([data-hero-intro]) > header {
   :root {
     --deco-mark: 0.52;
   }
+}
+
+/*
+  <BrandMap>'s chrome, in the palette rather than MapLibre's white boxes.
+  Three classes deep because maplibre-gl.css loads after this file (it is
+  fetched with the map) and its own rules are two classes deep.
+
+  The credit stays visible — OpenStreetMap's licence asks for it on the map —
+  but as one small line of Charcoal on a White Rock wash, not a white box
+  wrapping over a third of a phone-width map.
+*/
+.brand-map .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  margin: 0 0.5rem 0.5rem 0;
+  border-radius: 999px;
+  padding: 0.125rem 0.625rem;
+  background: color-mix(in oklab, var(--color-brand-cream) 82%, transparent);
+  font: 500 0.625rem/1.5 var(--font-sans);
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--color-brand-charcoal) 75%, transparent);
+  white-space: nowrap;
+}
+.brand-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-inner a {
+  color: inherit;
+}
+.brand-map .maplibregl-ctrl-group.maplibregl-ctrl {
+  margin: 0.75rem 0.75rem 0 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--color-brand-cream);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-brand-charcoal) 10%, transparent),
+    var(--shadow-veil);
+}
+.brand-map .maplibregl-ctrl-group.maplibregl-ctrl button {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+.brand-map .maplibregl-ctrl-group.maplibregl-ctrl button + button {
+  border-top-color: color-mix(in oklab, var(--color-brand-charcoal) 12%, transparent);
+}
+/* A click opens Google Maps, so the map says it is clickable — and still
+   shows the grab hand while it is being dragged. */
+.brand-map .maplibregl-canvas-container.maplibregl-interactive {
+  cursor: pointer;
+}
+.brand-map .maplibregl-canvas-container.maplibregl-interactive:active {
+  cursor: grabbing;
+}
+.brand-map .maplibregl-cooperative-gesture-screen.maplibregl-show {
+  font-family: var(--font-sans);
 }
