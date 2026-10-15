@@ -332,10 +332,12 @@ export function isUpcoming(detail: EventDetail): boolean {
  */
 export function eventImage(detail: EventDetail) {
   switch (detail.kind) {
+    // A format's page and a dated session open on their experience's own
+    // banner (`pageImage`) too, so all of an activity's pages share one.
     case "scheduled":
-      return detail.workshop.image;
+      return detail.experience?.pageImage ?? detail.workshop.image;
     case "type":
-      return detail.type.image ?? detail.experience?.image;
+      return detail.experience?.pageImage ?? detail.type.image ?? detail.experience?.image;
     default:
       // The page's own opening photograph where one is set (see `pageImage`).
       return detail.experience.pageImage ?? detail.experience.image;
