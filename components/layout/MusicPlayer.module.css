@@ -1,0 +1,153 @@
+/*
+  ==========================================================================
+  THE MUSIC PLAYER — the Contact button's twin, on the other corner
+  ==========================================================================
+
+  Same Light Sage ground, Charcoal ink, Deep Lilac edge and morphing cut as
+  `.fab` in ContactWidget.module.css, so the site's floating controls read
+  as one family. Change one, look at the other.
+*/
+
+/*
+  WHERE IT SITS. Above <BottomNav> and the crests of its wave below `lg`
+  (`--bottom-nav-h` is 0 from `lg` up, so the desktop offset is the plain
+  1.5rem the Contact button uses).
+*/
+.dock {
+  bottom: calc(max(0.75rem, env(safe-area-inset-bottom)) + var(--bottom-nav-h) + var(--bottom-nav-wave, 0px));
+}
+
+@media (min-width: 64rem) {
+  .dock {
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+/*
+  OUT OF THE BOOKING BAR'S WAY. <EventBookingBar> spans the width just above
+  the bottom nav on a phone and is the page's primary action; the player
+  would sit on top of it. While the bar is on the page (and not retracted),
+  the player is not drawn below `lg` — music already playing carries on.
+*/
+@media (max-width: 63.999rem) {
+  :global(body:has([data-booking-bar]:not([aria-hidden="true"]))) .dock {
+    display: none;
+  }
+}
+
+.fab {
+  border-radius: 58% 42% 46% 54% / 48% 52% 48% 52%;
+  animation: music-morph 14s ease-in-out infinite;
+  box-shadow:
+    inset 0 0 0 1.5px var(--color-primary),
+    0 6px 20px color-mix(in oklab, var(--color-text) 18%, transparent);
+  transition:
+    transform 300ms var(--ease-soft, ease),
+    box-shadow 300ms var(--ease-soft, ease);
+}
+
+.fab:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1.5px var(--color-primary),
+    0 10px 28px color-mix(in oklab, var(--color-text) 26%, transparent);
+}
+
+.chip,
+.panel {
+  box-shadow:
+    inset 0 0 0 1px var(--color-line),
+    0 6px 20px color-mix(in oklab, var(--color-text) 14%, transparent);
+}
+
+.control {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-sage);
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1.5px var(--color-primary);
+}
+
+/*
+  THE EQUALISER, only drawn while music plays — so this infinite animation
+  runs only then (CLAUDE.md, "Infinite animations must stop"). `transform`
+  only: compositor work, no layout.
+*/
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+}
+
+.bars span {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: music-bar 900ms ease-in-out infinite alternate;
+}
+
+.bars span:nth-child(2) {
+  animation-delay: -300ms;
+  animation-duration: 700ms;
+}
+
+.bars span:nth-child(3) {
+  animation-delay: -600ms;
+  animation-duration: 1100ms;
+}
+
+@keyframes music-bar {
+  from {
+    transform: scaleY(0.3);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes music-morph {
+  0%,
+  100% {
+    border-radius: 58% 42% 46% 54% / 48% 52% 48% 52%;
+  }
+  33% {
+    border-radius: 44% 56% 58% 42% / 56% 44% 56% 44%;
+  }
+  66% {
+    border-radius: 52% 48% 40% 60% / 42% 58% 42% 58%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab,
+  .bars span {
+    animation: none;
+    transition: none;
+  }
+
+  .bars span:nth-child(1) {
+    transform: scaleY(0.6);
+  }
+
+  .bars span:nth-child(3) {
+    transform: scaleY(0.8);
+  }
+}
+
+/*
+  THE FOOTER'S FOOT LEAVES ROOM, `lg` up, while the player is drawn: at the
+  bottom of every page the button would otherwise sit on the copyright line,
+  the way <ContactWidget> would on "Back to top" (which <Footer> clears with
+  the same 6.5rem on the right).
+*/
+@media (min-width: 64rem) {
+  :global(body:has([data-music-fab]) [data-footer-foot]) {
+    padding-left: calc(6.5rem - var(--spacing-gutter));
+  }
+}

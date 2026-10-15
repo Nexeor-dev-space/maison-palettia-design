@@ -12,6 +12,7 @@ import { forScript } from "@/components/ui/SectionHeader";
 import { PaintStroke, linkPaint } from "@/components/layout/PaintStroke";
 import { getBrandCopy } from "@/lib/brand.server";
 import { getBrandLogo, getContact, getFooterNav, getLegalNav, getSite, getSocialLinks } from "@/lib/constants.server";
+import { getMusicConfig } from "@/lib/music.server";
 import { getPolicies } from "@/lib/policies";
 import { getMallPartners } from "@/lib/partners";
 
@@ -176,7 +177,7 @@ export async function Footer() {
     legal row), Brand wording (tagline, mission) and the policies. Each getter
     is cached under its own tag, so a save reaches the footer on every page.
   */
-  const [partners, site, logo, contact, socialLinks, footerNav, legalNav, brand, policies] = await Promise.all([
+  const [partners, site, logo, contact, socialLinks, footerNav, legalNav, brand, policies, music] = await Promise.all([
     getMallPartners(),
     getSite(),
     getBrandLogo(),
@@ -186,6 +187,7 @@ export async function Footer() {
     getLegalNav(),
     getBrandCopy(),
     getPolicies(),
+    getMusicConfig(),
   ]);
   const year = new Date().getFullYear();
   /*
@@ -1043,7 +1045,7 @@ export async function Footer() {
         </nav>
 
         {/* ---- the foot ---- */}
-        <div className="mt-9 flex flex-col items-center gap-5 pt-0 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-10">
+        <div data-footer-foot="" className="mt-9 flex flex-col items-center gap-5 pt-0 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-10">
 
           <div className="flex flex-col items-center gap-x-7 gap-y-2 sm:flex-row sm:items-center">
             {/* The brand's P mark — the same transparent Deep Lilac cut as
@@ -1063,9 +1065,12 @@ export async function Footer() {
                 &copy; {year} {site.legalName}
               </span>
             </p>
-            {legalNav.length > 0 ? (
+            {/* "Music credits" joins the legal row while the player is on:
+                the tracks' licences ask for their credit to be findable, not
+                only while one is playing (see <MusicPlayer>). */}
+            {legalNav.length > 0 || music.enabled ? (
               <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">
-                {legalNav.map((item) => (
+                {[...legalNav, ...(music.enabled ? [{ label: "Music credits", href: "/music-credits" }] : [])].map((item) => (
                   <li key={item.href}>
                     <Link href={item.href} className="transition-colors hover:text-text">
                       {item.label}

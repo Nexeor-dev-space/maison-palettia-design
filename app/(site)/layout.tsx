@@ -17,6 +17,7 @@ import { RouteProgress } from "@/components/layout/RouteProgress";
 import { SiteChromeProvider, type SiteChromeData } from "@/components/layout/SiteChrome";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ContactWidget } from "@/components/layout/ContactWidget";
+import { MusicPlayer } from "@/components/layout/MusicPlayer";
 import { CursorLayer } from "@/components/motion/CursorLayer";
 import { AutoReveal } from "@/components/motion/AutoReveal";
 import { SiteLoader } from "@/components/motion/SiteLoader";
@@ -27,6 +28,7 @@ import { hapsha, montserrat } from "@/lib/fonts";
 import { isDraft } from "@/lib/cms/draft";
 import { getDefaultMetadata } from "@/lib/seo";
 import { getBrandLogo, getHeroRoutes, getMainNav, getPrimaryCta, getSite } from "@/lib/constants.server";
+import { getMusicConfig } from "@/lib/music.server";
 import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
 import { getVibes } from "@/lib/vibes.server";
 
@@ -89,11 +91,12 @@ async function getChrome(): Promise<SiteChromeData> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [bookingOptions, draft, chrome, analytics] = await Promise.all([
+  const [bookingOptions, draft, chrome, analytics, music] = await Promise.all([
     getBookingOptions(),
     isDraft(),
     getChrome(),
     getSiteAnalyticsConfig(),
+    getMusicConfig(),
   ]);
 
   return (
@@ -207,6 +210,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               sits above the page without a stacking context of its own; it
               renders nothing on /contact itself. */}
           <ContactWidget />
+          {/* Background music, bottom left — Content → Music and Settings →
+              Music. Only when switched on and there is a track; it never
+              plays until pressed, and it lives here so a track carries on
+              across client-side navigation. See <MusicPlayer>. */}
+          {music.enabled ? <MusicPlayer config={music} /> : null}
           {/* Below `lg` only — see <BottomNav>. Mounted after the footer so it
               paints over the page's own foot, and before <CursorLayer>'s
               siblings so nothing of it is caught by the brush. */}

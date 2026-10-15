@@ -10,6 +10,7 @@ import * as migration_20261010_160701_add_pinterest_platform from './20261010_16
 import * as migration_20261010_164841_journal_auto_excerpt from './20261010_164841_journal_auto_excerpt';
 import * as migration_20261011_052017_add_workshop_types from './20261011_052017_add_workshop_types';
 import * as migration_20261011_132002_add_session_vibes from './20261011_132002_add_session_vibes';
+import * as migration_20261015_165649_add_music from './20261015_165649_add_music';
 
 export const migrations = [
   {
@@ -70,6 +71,11 @@ export const migrations = [
   {
     up: migration_20261011_132002_add_session_vibes.up,
     down: migration_20261011_132002_add_session_vibes.down,
-    name: '20261011_132002_add_session_vibes'
+    name: '20261011_132002_add_session_vibes',
+  },
+  {
+    up: migration_20261015_165649_add_music.up,
+    down: migration_20261015_165649_add_music.down,
+    name: '20261015_165649_add_music'
   },
 ];

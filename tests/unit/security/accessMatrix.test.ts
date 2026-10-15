@@ -48,6 +48,7 @@ const C: Record<string, { create: string; read: string; update: string; delete: 
   vibes: { create: "YY--", read: "YYYY", update: "YY--", delete: "YY--" },
   redirects: { create: "YY--", read: "YYYY", update: "YY--", delete: "YY--" },
   media: { create: "YY--", read: "YYYY", update: "YY--", delete: "Y---" },
+  "music-tracks": { create: "YY--", read: "YYYY", update: "YY--", delete: "YY--" },
   // staff
   users: { create: "Y---", read: "YWW-", update: "YWW-", delete: "Y---" },
   "settings-audit": { create: "----", read: "Y---", update: "----", delete: "----" },
@@ -75,7 +76,7 @@ const C: Record<string, { create: string; read: string; update: string; delete: 
   "payload-jobs": { create: "----", read: "Y---", update: "----", delete: "----" },
 };
 
-const CONTENT_GLOBALS = ["site-settings", "navigation", "brand-copy", "booking-settings", "template-copy", "seo-defaults"];
+const CONTENT_GLOBALS = ["site-settings", "navigation", "brand-copy", "booking-settings", "template-copy", "seo-defaults", "music-settings"];
 const ADMIN_GLOBALS = ["payment-settings", "email-settings", "invoice-settings", "notification-settings", "analytics-settings"];
 const G: Record<string, { read: string; update: string }> = {
   ...Object.fromEntries(CONTENT_GLOBALS.map((slug) => [slug, { read: "YYYY", update: "YY--" }])),
