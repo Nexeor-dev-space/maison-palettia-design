@@ -1,11 +1,12 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 
 import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
+import { useScrollProgress } from "@/components/motion/useScrollProgress";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { ModeMark } from "@/components/ui/ModeMark";
 import { PaintStroke } from "@/components/layout/PaintStroke";
@@ -130,8 +131,8 @@ function TrailRow({
     thing left that answers the scroll, and it runs the length of the row it
     belongs to rather than a band between two of them.
   */
-  const { scrollYProgress } = useScroll({
-    target: row,
+  const scrollYProgress = useScrollProgress(
+    row,
     /*
       IT HAS TO BE CLOSED BY THE TIME THE JOIN IS LOOKED AT. At "end 45%" the
       line only reached 100% once the row's foot was near the top of the
@@ -147,8 +148,8 @@ function TrailRow({
       which is when the join has to be made. The draw still runs the length of
       a card, so nothing about the pace changes.
     */
-    offset: ["start 85%", "end 72%"],
-  });
+    ["start 85%", "end 72%"],
+  );
   const draw = useTransform(scrollYProgress, [0, 1], [0.001, 1]);
   const nodeIn = useTransform(scrollYProgress, [0.55, 0.85], [0, 1]);
 
@@ -409,10 +410,7 @@ function MobileLink({
     read as static. `start 95% / end 60%` is the band a 96px object needs to
     ink across the lower half of a phone's window.
   */
-  const { scrollYProgress } = useScroll({
-    target: link,
-    offset: ["start 95%", "end 60%"],
-  });
+  const scrollYProgress = useScrollProgress(link, ["start 95%", "end 60%"]);
   const draw = useTransform(scrollYProgress, [0, 1], [0.001, 1]);
   const nodeIn = useTransform(scrollYProgress, [0.3, 0.7], [0, 1]);
   /* The second mark sits further down the run, so it arrives later — the two

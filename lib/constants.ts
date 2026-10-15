@@ -379,8 +379,8 @@ export const LEGAL_NAV: NavItem[] = [
 
   Of its four files, three were pottery and have since been deleted in the
   pottery removal: the wheel loop, its poster frame and the cups. The
-  landscape survives as /images/hero/i-1.jpg and now carries the foot of
-  /contact.
+  landscape survived as /images/hero/i-1.jpg until Oct 2026, when it was
+  found unreferenced and removed with the other unused images.
 */
 
 /** TODO(client): awaiting real address, email and phone number. */

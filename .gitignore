@@ -62,3 +62,8 @@ next-env.d.ts
 
 # MapLibre browser build, copied on postinstall (scripts/vendor-maplibre.mjs)
 /public/vendor/
+.claude/
+# Next.js-generated agent file (CLAUDE.md is the source of truth)
+/AGENTS.md
+
+.vscode/

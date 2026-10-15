@@ -17,6 +17,7 @@ import {
 } from "@/lib/privateEvents";
 import type { ImageAsset } from "@/types";
 import { cn } from "@/lib/utils";
+import { BannerMarks } from "@/components/ui/BannerMarks";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { INK } from "@/components/sections/hero/composition";
@@ -273,9 +274,9 @@ type Words = { eyebrow?: string | null; lines?: readonly string[]; lead?: string
  */
 export function Introduction({
   eyebrow = "Creative experiences, made for your moment",
-  lines = ["Memories", "Made by", "Hand."],
+  lines = INTRO_LINES_IN_CODE,
   lead = "From birthdays and celebrations to team gatherings and private events, Maison Palettia brings people together to create, connect and have a little fun. Choose an experience, bring your people and leave with something you made \u2014 and a memory to go with it.",
-  image = INTRO_IMAGE,
+  image = INTRO_BANNER_IN_CODE,
 }: Words & { image?: ImageAsset | null } = {}) {
   return (
     <section
@@ -283,13 +284,67 @@ export function Introduction({
       /* `overflow-clip`, not `hidden`: a scroll container breaks the view
          timeline the brand marks draw on, and four of them hang off the
          picture's edges here. Same trap as everywhere else on this page. */
-      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-clip bg-sage pb-[5rem] pt-[2.5rem] md:pb-section md:pt-[3.5rem] lg:pb-section-lg lg:pt-[4.5rem]"
     >
       <SectionShapes plan={INTRO_SHAPES} />
       <Container className="relative">
-        <div className="grid grid-cols-12 items-center gap-x-6 gap-y-12 lg:gap-x-12">
+        {/*
+          THE DETAIL PAGES' FIRST SCREEN (Oct 2026), at the client's ask: the
+          trail across the top, the photograph on the left as a plain
+          rectangle with the four cut-outs over its edges, and the words on
+          the right — the way /events/<slug> and /private-events/<slug> open.
+          It replaces a 34rem blob on the right of the words.
+        */}
+        <Reveal>
+          <nav aria-label="Breadcrumb">
+            <ol className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-label font-medium uppercase tracking-eyebrow text-text/75">
+              <li className="flex items-center gap-2.5">
+                <Link
+                  href="/"
+                  className="-my-3.5 py-3.5 transition-colors duration-300 ease-soft hover:text-text focus-visible:text-text"
+                >
+                  Home
+                </Link>
+                <span aria-hidden className="text-text/70">
+                  /
+                </span>
+              </li>
+              <li className="text-text" aria-current="page">
+                Private events
+              </li>
+            </ol>
+          </nav>
+        </Reveal>
+
+        <div className="mt-9 grid grid-cols-12 items-start gap-x-6 gap-y-10 md:mt-12 lg:gap-x-10">
+          {/* ---- the picture ---------------------------------------------- */}
+          {/*
+            3:2 out of a 16:9 frame from `sm` (4:3 on a phone, as the detail
+            pages): the subject runs the full width of the source — the
+            palette and the second pair of hands at the left, the painting
+            hand at the right — and 3:2 keeps all of it.
+          */}
+          <div className="relative col-span-12 lg:col-span-7">
+            <Reveal variant="fadeIn" delay={0.2}>
+              <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface-alt sm:aspect-[3/2]">
+                {image ? (
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 58vw, 100vw"
+                    style={{ objectPosition: image.position ?? "50% 50%" }}
+                    className="object-cover"
+                  />
+                ) : null}
+              </span>
+            </Reveal>
+            <BannerMarks />
+          </div>
+
           {/* ---- the statement, and the sentence under it ---------------- */}
-          <div className="col-span-12 lg:col-span-6">
+          <div className="col-span-12 lg:col-span-5">
             {eyebrow ? <SectionEyebrow>{eyebrow}</SectionEyebrow> : null}
 
             {/* h1, not h2. This is the page's own title and it was the only
@@ -308,75 +363,6 @@ export function Introduction({
                   it. */}
               {lead ? <p className="script-lede max-w-[46ch] text-lead text-text/80">{lead}</p> : null}
             </Reveal>
-          </div>
-
-          {/* ---- the picture, cut out and broken by four marks ----------- */}
-          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-            <div className="relative mx-auto w-full max-w-[34rem]">
-              <Reveal variant="imageReveal" delay={0.24} className="relative block">
-                {/*
-                  3:2 out of a 16:9 frame, which is the widest the column can
-                  take without the picture turning into a letterbox strip —
-                  and it matters, because the subject runs the full width of
-                  the source: the palette and the second pair of hands at the
-                  left edge, the brush and the tote in the middle, the painting
-                  hand at the right. A 4:3 crop was tried first and it cut one
-                  end off whichever way it was positioned, which left a
-                  photograph of a palette rather than of two people at a
-                  table. 3:2 takes 16% off the width and keeps all of it.
-
-                  `overflow-clip` on the cut: `clip` honours a radius exactly
-                  as `hidden` does and makes no scroll container, which the
-                  marks hanging off this box depend on.
-                */}
-                <span
-                  className="blob relative block aspect-[3/2] w-full overflow-clip"
-                  style={{ "--blob": "42% 30% 38% 34% / 34% 40% 30% 38%" } as React.CSSProperties}
-                >
-                  {image ? (
-                    <Image
-                      src={image.src}
-                      alt={image.alt}
-                      fill
-                      sizes="(min-width: 1024px) 544px, 92vw"
-                      style={{ objectPosition: image.position ?? "50% 50%" }}
-                      className="object-cover"
-                    />
-                  ) : null}
-                </span>
-              </Reveal>
-
-              {/*
-                The four marks, placed rather than scattered — the client's
-                standing note — and every one of them crossing the picture's
-                outline. Lilac, terracotta and lavender: the three of the six
-                that can be seen on Light Sage.
-              */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -right-5 -top-8 w-[5rem] md:w-[6.5rem]"
-              >
-                <DoodleMark name="starburst" color={INK.terracotta} treatment="draw" delay={240} />
-              </span>
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -left-4 top-[28%] w-[2.25rem] md:w-[2.75rem]"
-              >
-                <DoodleMark name="bow" color={INK.lilac} treatment="draw" delay={380} />
-              </span>
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -bottom-7 -left-6 w-[8.5rem] md:w-[10.5rem]"
-              >
-                <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={460} />
-              </span>
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -right-3 bottom-[18%] w-[2.75rem] md:w-[3.5rem]"
-              >
-                <DoodleMark name="splash" color={INK.lilac} treatment="draw" delay={540} />
-              </span>
-            </div>
           </div>
         </div>
       </Container>
@@ -538,6 +524,8 @@ export function WhoItIsFor({
               AUDIENCE_TONES[audience.slug] ??
               AUDIENCE_TONES.default;
 
+            // The programme page's banner where one is set, so the card shows what its page opens on.
+            const photo = audience.pageImage ?? audience.image;
             return (
               <li
                 key={audience.slug}
@@ -596,13 +584,14 @@ export function WhoItIsFor({
                         tone.plate,
                       )}
                     >
-                      {audience.image ? (
+                      {photo ? (
                         <Image
-                          src={audience.image.src}
-                          alt={audience.image.alt}
+                          src={photo.src}
+                          alt={photo.alt}
                           fill
                           sizes="(min-width: 1024px) 23vw, (min-width: 640px) 46vw, 100vw"
                           className="object-cover"
+                          style={{ objectPosition: photo.position ?? "50% 50%" }}
                         />
                       ) : audience.mark ? (
                         <span
@@ -1218,7 +1207,13 @@ const STEP_STOCK: readonly {
     body: "text-text/85",
     folio: "text-primary/40",
     head: { name: "starleaf", color: INK.lilac },
-    edge: { name: "wave", color: INK.charcoal, place: "-left-6 -top-7", size: "w-[3.75rem]" },
+    /* CLEAR OF THE CARD (Oct 2026), at the client's ask: it sat across the
+       card's top-left corner. It now stands in the open band above the card
+       — this one is lifted `lg:mt-6` and the row starts `mt-14` under the
+       heading, which is on the left, so above it is empty — touching
+       nothing. Desktop only: stacked on a phone the only room above it is
+       the 24px gap under the card before, where it would land on that one. */
+    edge: { name: "wave", color: INK.charcoal, place: "hidden lg:block -top-[4.25rem] left-1", size: "w-[3.25rem]" },
     tilt: "lg:rotate-[-0.7deg]",
     lift: "lg:mt-6",
   },
@@ -1389,8 +1384,23 @@ function SectionLine({
   one table, from the studio's own film. See the note on the 3:2 crop in
   <Introduction>.
 */
-const INTRO_IMAGE: ImageAsset = {
-  src: "/images/hero/tote-painting.jpg",
-  alt: "Two pairs of hands at one table: one holds a red paint palette, the other paints a silver and teal design onto a pale denim tote bag.",
+/*
+  THE BANNER, HELD IN CODE (Oct 2026): a hand painting colour blocks onto a
+  small cup. It wins over the image set on the page's intro block in the CMS
+  (see PrivateEventsIntroAdapter), so the swap ships with the code and the
+  CMS's own choice is left as it is. Supplied with no source in its metadata;
+  not known to be the studio's own photograph.
+*/
+/*
+  THE HEADING IN TWO LINES (Oct 2026), held in code over the CMS's three
+  ("Memories" / "Made by" / "Hand.") at the client's ask, on a phone and a
+  desktop alike. Each entry is one line; "Made by Hand." fits the five-column
+  measure on a desktop and a phone's width at the script size.
+*/
+export const INTRO_LINES_IN_CODE: readonly string[] = ["Memories", "Made by Hand."];
+
+export const INTRO_BANNER_IN_CODE: ImageAsset = {
+  src: "/images/private-event-page-hero.jpg",
+  alt: "A hand painting a soft teal stroke onto a small cup blocked in pink, lilac, green and rust, pots of paint on the table below.",
   position: "50% 50%",
 };

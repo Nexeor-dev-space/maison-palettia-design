@@ -46,28 +46,100 @@ import { useEffect } from "react";
  * every mark sits exactly where it is drawn. The drift is decoration, and it
  * is the first thing to go.
  */
+/*
+  WHERE THE PROPERTIES ARE WRITTEN — the note above says <html>, and that is
+  what this used to do. It no longer does, and the reason is the lag in
+  issue #70.
+
+  A custom property inherits, so one write to <html> invalidates the computed
+  style of every element in the document — on every pointer frame — and starts
+  a transition on every mark on the page, the great majority of them nowhere
+  near the screen. The cost grew with the length of the page, not with what the
+  visitor could see.
+
+  So the pair is now written straight onto the marks that need it
+  (`[data-drift]`, `.pointer-lift`), and only onto those currently within the
+  window. The CSS that reads `var(--mx, 0)` is untouched: it resolves the value
+  on the element itself instead of on an ancestor, and the style recalculation
+  is limited to a mark's own little subtree.
+*/
+const TARGETS = "[data-drift], .pointer-lift";
+
 export function PointerField() {
   useEffect(() => {
     if (!window.matchMedia("(pointer: fine)").matches) return;
     if (!window.matchMedia("(hover: hover)").matches) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const root = document.documentElement;
     let frame = 0;
     let x = 0;
     let y = 0;
     let present = false;
+    // Last values written, so a frame in which nothing changed writes nothing.
+    let lastX = NaN;
+    let lastY = NaN;
+    let lastPresent: boolean | null = null;
+
+    const visible = new Set<HTMLElement>();
+    const seen = new WeakSet<Element>();
+
+    const paint = (el: HTMLElement) => {
+      el.style.setProperty("--mx", x.toFixed(3));
+      el.style.setProperty("--my", y.toFixed(3));
+      el.style.setProperty("--pointer", present ? "1" : "0");
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const el = entry.target as HTMLElement;
+          if (entry.isIntersecting) {
+            visible.add(el);
+            paint(el);
+          } else {
+            visible.delete(el);
+          }
+        }
+      },
+      // A little beyond the window, so a mark is already placed as it arrives.
+      { rootMargin: "120px" },
+    );
+
+    const adopt = (scope: ParentNode) => {
+      for (const el of scope.querySelectorAll<HTMLElement>(TARGETS)) {
+        if (seen.has(el)) continue;
+        seen.add(el);
+        observer.observe(el);
+      }
+    };
+    adopt(document);
+
+    // Marks arrive with client navigations and CMS blocks; adopt them once per
+    // frame at most rather than per mutation.
+    let scan = 0;
+    const mutations = new MutationObserver(() => {
+      if (scan) return;
+      scan = requestAnimationFrame(() => {
+        scan = 0;
+        adopt(document);
+      });
+    });
+    mutations.observe(document.body, { childList: true, subtree: true });
 
     const write = () => {
       frame = 0;
-      root.style.setProperty("--mx", x.toFixed(3));
-      root.style.setProperty("--my", y.toFixed(3));
-      root.style.setProperty("--pointer", present ? "1" : "0");
+      if (x === lastX && y === lastY && present === lastPresent) return;
+      lastX = x;
+      lastY = y;
+      lastPresent = present;
+      for (const el of visible) paint(el);
     };
 
     const onMove = (event: PointerEvent) => {
-      x = (event.clientX / window.innerWidth) * 2 - 1;
-      y = (event.clientY / window.innerHeight) * 2 - 1;
+      // Two decimals is finer than a mark can show; it keeps a near-still
+      // pointer from re-triggering every mark's transition.
+      x = Math.round(((event.clientX / window.innerWidth) * 2 - 1) * 100) / 100;
+      y = Math.round(((event.clientY / window.innerHeight) * 2 - 1) * 100) / 100;
       present = true;
       if (!frame) frame = requestAnimationFrame(write);
     };
@@ -88,12 +160,18 @@ export function PointerField() {
 
     return () => {
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(scan);
+      observer.disconnect();
+      mutations.disconnect();
+      for (const el of visible) {
+        el.style.removeProperty("--mx");
+        el.style.removeProperty("--my");
+        el.style.removeProperty("--pointer");
+      }
+      visible.clear();
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("blur", onLeave);
-      root.style.removeProperty("--mx");
-      root.style.removeProperty("--my");
-      root.style.removeProperty("--pointer");
     };
   }, []);
 

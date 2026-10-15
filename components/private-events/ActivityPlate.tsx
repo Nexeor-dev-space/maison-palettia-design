@@ -295,7 +295,11 @@ export function ActivityPlate({
   const Shell = href ? Link : "div";
   const shellProps = href ? { href } : {};
 
-  if (!experience.image) {
+  /* The activity's page banner where one is set (`pageImage`), so the tile
+     shows the picture its page opens on; else the card photograph. */
+  const photo = experience.pageImage ?? experience.image;
+
+  if (!photo) {
     return (
       <Shell
         {...(shellProps as { href: string })}
@@ -324,11 +328,11 @@ export function ActivityPlate({
       */}
       <div className={cn("relative flex-1 overflow-hidden", photoFloor ?? "min-h-0")}>
         <Image
-          src={experience.image.src}
+          src={photo.src}
           alt=""
           fill
           sizes={sizes}
-          style={{ objectPosition: experience.image.position ?? "50% 50%" }}
+          style={{ objectPosition: photo.position ?? "50% 50%" }}
           className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.04]"
         />
         {/*

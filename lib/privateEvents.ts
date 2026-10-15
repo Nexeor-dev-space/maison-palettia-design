@@ -104,6 +104,12 @@ export interface PrivateEventAudience {
    */
   image?: ImageAsset;
   /**
+   * The banner on the programme's OWN page, where it differs from `image`
+   * (which the /private-events listing card uses). Unset, the page shows
+   * `image`. Set in code — see PAGE_BANNERS_IN_CODE in privateEvents.server.ts.
+   */
+  pageImage?: ImageAsset;
+  /**
    * A brand cut-out, drawn when a programme has no photograph at all. Kept as
    * the fallback the row renders when `image` is absent.
    */

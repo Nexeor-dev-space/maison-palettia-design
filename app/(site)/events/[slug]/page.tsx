@@ -17,6 +17,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { INK } from "@/components/sections/hero/composition";
 import { LocationMap, PartnerPlate } from "@/components/sections/LocationMap";
+import { BannerMarks } from "@/components/ui/BannerMarks";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Container } from "@/components/ui/Container";
 import ticket from "@/components/ui/Ticket.module.css";
@@ -203,7 +204,12 @@ export default async function EventPage({
         <SectionShapes plan={groundShapes("sage")} />
         <Container className="relative pb-0 pt-[2.5rem] md:pt-[3.5rem] lg:pt-[4.5rem]">
           {detail.kind === "choice" ? (
-            <ChoiceBody detail={detail} partner={home} />
+            <ChoiceBody
+              detail={detail}
+              partner={home}
+              about={<SessionBrief detail={detail} />}
+              location={<LocationSection detail={detail} partner={home} />}
+            />
           ) : (
             <TypeBody detail={detail} partner={home} renderedAt={serverClock()} />
           )}
@@ -518,12 +524,15 @@ function EventHeader({
     <section aria-labelledby="event-title" className="mt-9 md:mt-12">
       <div className="grid grid-cols-12 items-start gap-x-6 gap-y-10 lg:gap-x-10">
         {image ? (
-          <figure className="col-span-12 -mx-gutter lg:col-span-7 lg:mx-0">
+          <figure className="relative col-span-12 lg:col-span-7">
             <WorkshopPhoto
               image={image}
               aspect="aspect-[4/3] sm:aspect-[3/2]"
               sizes="(min-width: 1024px) 58vw, 100vw"
             />
+            {/* The four cut-outs over the photograph's edges that the
+                private-event pages carry; `relative` above is for them. */}
+            <BannerMarks />
           </figure>
         ) : null}
 
