@@ -11,6 +11,7 @@ import * as migration_20261010_164841_journal_auto_excerpt from './20261010_1648
 import * as migration_20261011_052017_add_workshop_types from './20261011_052017_add_workshop_types';
 import * as migration_20261011_132002_add_session_vibes from './20261011_132002_add_session_vibes';
 import * as migration_20261015_165649_add_music from './20261015_165649_add_music';
+import * as migration_20261016_101514_booking_walk_in_copy from './20261016_101514_booking_walk_in_copy';
 
 export const migrations = [
   {
@@ -76,6 +77,11 @@ export const migrations = [
   {
     up: migration_20261015_165649_add_music.up,
     down: migration_20261015_165649_add_music.down,
-    name: '20261015_165649_add_music'
+    name: '20261015_165649_add_music',
+  },
+  {
+    up: migration_20261016_101514_booking_walk_in_copy.up,
+    down: migration_20261016_101514_booking_walk_in_copy.down,
+    name: '20261016_101514_booking_walk_in_copy'
   },
 ];

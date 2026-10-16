@@ -55,7 +55,10 @@ export function ExperienceCard({
   as: Tag = "div",
   className,
   actionLabel = "View details",
+  kindLabels = EXPERIENCE_KIND_LABEL,
 }: {
+  /** Mode labels' short names (“Any time” / “Scheduled”), from a client parent's `useModeCopy()`. */
+  kindLabels?: Record<"diy" | "scheduled", string>;
   experience: CreativeExperience;
   /** Place in the row. Drives the angle, the paint and the numeral. */
   index: number;
@@ -152,7 +155,7 @@ export function ExperienceCard({
             className="h-2 w-2 shrink-0 rounded-pill"
             style={{ backgroundColor: paint }}
           />
-          {experience.status ?? EXPERIENCE_KIND_LABEL[experience.kind]}
+          {experience.status ?? kindLabels[experience.kind]}
         </span>
       </Link>
     </Tag>

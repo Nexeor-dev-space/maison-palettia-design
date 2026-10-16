@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getModeCopy } from "@/lib/modeCopy.server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -126,7 +127,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
 
   if (!workshop) notFound();
 
-  const [gate, ref] = await Promise.all([getBookingGate(), getSessionBookingRef(workshop.slug)]);
+  const [gate, ref, modes] = await Promise.all([getBookingGate(), getSessionBookingRef(workshop.slug), getModeCopy()]);
   // Without the CMS's word on the switch, a full session has nothing to offer.
   if (!ref && isFullyBooked(workshop)) notFound();
   const dateClosed = ref?.bookingStatus === "closed";
@@ -177,7 +178,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
               <BookingClosed
                 heading="This Date Is Closed."
                 message={`${workshop.title} is no longer taking bookings online.`}
-                ctaLabel="See open dates"
+                ctaLabel={modes.eventPage.seeOpenLabel}
                 ctaHref="/events#scheduled"
               />
             ) : (

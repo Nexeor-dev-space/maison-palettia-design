@@ -27,6 +27,7 @@ import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
 import { hapsha, montserrat } from "@/lib/fonts";
 import { isDraft } from "@/lib/cms/draft";
 import { getDefaultMetadata } from "@/lib/seo";
+import { getModeCopy } from "@/lib/modeCopy.server";
 import { getBrandLogo, getHeroRoutes, getMainNav, getPrimaryCta, getSite } from "@/lib/constants.server";
 import { getMusicConfig } from "@/lib/music.server";
 import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
@@ -78,7 +79,7 @@ export const viewport: Viewport = {
   own tag, so a save in the admin reaches every page's chrome.
 */
 async function getChrome(): Promise<SiteChromeData> {
-  const [site, logo, mainNav, primaryCta, heroRoutes, audiences, vibes] = await Promise.all([
+  const [site, logo, mainNav, primaryCta, heroRoutes, audiences, vibes, modes] = await Promise.all([
     getSite(),
     getBrandLogo(),
     getMainNav(),
@@ -86,8 +87,9 @@ async function getChrome(): Promise<SiteChromeData> {
     getHeroRoutes(),
     getPrivateEventAudiences(),
     getVibes(),
+    getModeCopy(),
   ]);
-  return { site: { name: site.name, tagline: site.tagline }, logo, mainNav, primaryCta, heroRoutes, audiences, vibes };
+  return { site: { name: site.name, tagline: site.tagline }, logo, mainNav, primaryCta, heroRoutes, audiences, vibes, modes };
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1506,18 +1506,27 @@ export interface EventsBrowserBlock {
    */
   doors?:
     | {
+        /**
+         * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
+         */
         title: string;
         noteSource: 'journey0' | 'journey1' | 'custom';
         note?: string | null;
         /**
-         * The chip on the door, e.g. “No booking” or “Booked online”.
+         * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
          */
         modeLabel?: string | null;
         id?: string | null;
       }[]
     | null;
   groupLeads?: {
+    /**
+     * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
+     */
     diy?: string | null;
+    /**
+     * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
+     */
     scheduled?: string | null;
   };
   viewLocationLabel?: string | null;
@@ -7079,6 +7088,27 @@ export interface BookingSetting {
     diyLine?: string | null;
     scheduledLine?: string | null;
   };
+  /**
+   * The walk-in half of /events. Each card's chip is “Walk-in chip” above.
+   */
+  walkIn?: {
+    howHeading?: string | null;
+    /**
+     * The numbered steps above the cards. Leave empty to show the original three.
+     */
+    steps?:
+      | {
+          title: string;
+          body?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    openGroupTitle?: string | null;
+    soonGroupTitle?: string | null;
+    cardAction?: string | null;
+    cardSoonAction?: string | null;
+    emptyNote?: string | null;
+  };
   utilityBars?: {
     /**
      * The note and links at the foot of every event page.
@@ -8286,6 +8316,23 @@ export interface BookingSettingsSelect<T extends boolean = true> {
         scheduledSession?: T;
         diyLine?: T;
         scheduledLine?: T;
+      };
+  walkIn?:
+    | T
+    | {
+        howHeading?: T;
+        steps?:
+          | T
+          | {
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+        openGroupTitle?: T;
+        soonGroupTitle?: T;
+        cardAction?: T;
+        cardSoonAction?: T;
+        emptyNote?: T;
       };
   utilityBars?:
     | T

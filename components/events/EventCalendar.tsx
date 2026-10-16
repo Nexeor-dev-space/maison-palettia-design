@@ -1,5 +1,6 @@
 "use client";
 
+import { useModeCopy } from "@/components/layout/SiteChrome";
 import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
@@ -571,9 +572,10 @@ function Agenda({
  * event" is the visible affordance.
  */
 function AgendaItem({ workshop, tone, renderedAt }: { workshop: Workshop; tone: Tone; renderedAt: number }) {
+  const { eventPage } = useModeCopy();
   const passed = useSessionPassed(workshop.startsAt, hasSessionPassed(workshop, renderedAt));
   const { start, end } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
-  const status = passed ? "Date passed" : spotsLabel(workshop);
+  const status = passed ? eventPage.passedLabel : spotsLabel(workshop);
   const name = `${workshop.title}, ${formatSessionDate(workshop.startsAt)}, ${start} to ${end}${
     workshop.venue ? ` at ${formatVenueLine(workshop.venue)}` : ""
   }`;

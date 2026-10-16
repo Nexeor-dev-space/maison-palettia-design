@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { eventCopy } from "@/components/blocks/templateCopy";
+import { eventCopy, modeCopy } from "@/components/blocks/templateCopy";
 import { Reveal } from "@/components/motion/Reveal";
 import { PartnerPlate } from "@/components/sections/LocationMap";
 import { INK } from "@/components/sections/hero/composition";
@@ -255,7 +255,7 @@ export function ChoiceBody({
     <>
       <Breadcrumb trail={[]} current={experience.name} />
       <Header
-        eyebrow="Create Together"
+        eyebrow={modeCopy().labels.createTogether}
         title={experience.name}
         intro={eventIntro(detail)}
         image={eventImage(detail)}
@@ -313,7 +313,7 @@ export function TypeBody({
     <>
       <Breadcrumb trail={trail} current={type.name} />
       <Header
-        eyebrow={experience?.name ?? "Create Together"}
+        eyebrow={experience?.name ?? modeCopy().labels.createTogether}
         title={type.name}
         intro={eventIntro(detail)}
         image={eventImage(detail)}
