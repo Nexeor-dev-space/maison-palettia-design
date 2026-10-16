@@ -10,7 +10,6 @@ import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { ModeMark } from "@/components/ui/ModeMark";
 import { DisplayHeading, Eyebrow, ScriptTitle } from "@/components/ui/SectionHeader";
 import { WORKSHOP_JOURNEY } from "@/lib/brand";
 import type { CreativeExperience } from "@/lib/experiences";
@@ -226,7 +225,6 @@ export function EventsBody({
               {diyDoor ? (
                 <Door
                   href="#create-anytime"
-                  mode="diy"
                   title={diyDoor.title}
                   note={diyDoor.note}
                   modeLabel={diyDoor.modeLabel}
@@ -236,7 +234,6 @@ export function EventsBody({
               {scheduledDoor ? (
                 <Door
                   href="#scheduled"
-                  mode="scheduled"
                   title={scheduledDoor.title}
                   note={scheduledDoor.note}
                   modeLabel={scheduledDoor.modeLabel}
@@ -385,7 +382,7 @@ export function EventsBody({
 /**
  * One of the two doors at the head of the page.
  *
- * A field, a cut-out bleeding off its corner, the mode's own mark and the
+ * A field, a cut-out bleeding off its corner, the mode's own label and the
  * line the deck uses for it — pressing it drops into that half of the page.
  *
  * THE ARROW TRAVELS DOWN, not right: this is not a link to another page, it
@@ -398,14 +395,12 @@ export function EventsBody({
  */
 function Door({
   href,
-  mode,
   title,
   note,
   modeLabel,
   tone,
 }: {
   href: string;
-  mode: "diy" | "scheduled";
   title: string;
   note: string | null;
   /** "No booking" / "Booked online" — the mode's own label. */
@@ -458,7 +453,6 @@ function Door({
 
         <span className="relative">
           <span className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
-            <ModeMark mode={mode} />
             {modeLabel}
           </span>
 

@@ -1,7 +1,9 @@
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
+import { BrandMap, MapClickThrough } from "@/components/sections/map/BrandMap";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { PeelNote } from "@/components/ui/PeelNote";
+import type { PartnerRecord } from "@/lib/partners";
 import { cn } from "@/lib/utils";
 import type { MallPartner } from "@/types";
 
@@ -11,10 +13,9 @@ type CSSVars = React.CSSProperties & Record<`--${string}`, string>;
 /**
  * What the map is asked to find.
  *
- * A SEARCH, NOT A COORDINATE, and that is the whole design of this component.
- * Nothing in this project stores latitude and longitude — see the note in
- * <LocationDiscovery>, which refused to draw pins for the same reason — so
- * this hands the centre's name to the map and lets the map resolve it. A pin
+ * A SEARCH, NOT A COORDINATE, for the Google fallback — the map drawn when
+ * the venue has no coordinates entered. Until it does, this hands the
+ * centre's name to the map and lets the map resolve it. A pin
  * we placed ourselves would be a guess rendered as a fact, and a visitor
  * navigating by a wrong pin is worse off than one reading a correct name.
  *
@@ -41,8 +42,13 @@ export function embedSrc(partner: MallPartner): string {
   return `https://www.google.com/maps?q=${encodeURIComponent(mapSearch(partner))}&output=embed`;
 }
 
+/** Where a click on the map goes: the venue's own link, or Google's search for it. */
+export function mapsHref(partner: MallPartner): string {
+  return partner.locationHref ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearch(partner))}`;
+}
+
 interface LocationMapProps {
-  partners: MallPartner[];
+  partners: PartnerRecord[];
   className?: string;
   /**
    * Whether the plate naming each centre is drawn under its map.
@@ -83,14 +89,14 @@ interface LocationMapProps {
  * territory. So it closes that section instead. The reader gets the argument,
  * then the destination, then the ground it stands on.
  *
- * THE FRAME CARRIES THE BRAND, NOT THE MAP. Restyling map tiles into the
- * palette needs the JS API and a key, and tinting them from outside — a wash
- * over the top — would cost the legibility that is the only reason a map is
- * here. So the tiles stay as they are and everything around them is the
- * Maison's: White Rock ground, a hairline in the brand's own mix, the
- * section's eyebrow type under it, and the same ruled terracotta link the rest
- * of the site uses. The map reads as a plate set into the page rather than a
- * widget dropped onto it.
+ * THE MAP CARRIES THE BRAND TOO, once the venue has a pin. With coordinates
+ * the frame holds <BrandMap>: the neighbourhood drawn in the palette from
+ * OpenStreetMap data, no key and no account (see map/brandMapStyle.ts).
+ * Without them it holds Google's keyless embed, which cannot be restyled —
+ * a wash over it would cost the legibility that is the only reason a map is
+ * here — so there the frame alone carries the brand: White Rock ground, a
+ * hairline in the brand's own mix and the plate beside it. Either way "View
+ * location" is still what takes a visitor to their own maps app.
  *
  * SHAPES. A map is only useful at a size you can read a street from, so this
  * is deliberately the tallest plate on the homepage at every width: 4:5 on a
@@ -156,7 +162,8 @@ export function LocationMap({ partners, className, caption = true, aspect }: Loc
                 aria-hidden
                 className="pointer-events-none absolute -left-5 top-[54%] z-10 deco-mark w-[4rem] rotate-[12deg] md:w-[5rem]"
               >
-                <DoodleMark name="bean" color={INK.terracotta} treatment="stamp" delay={320} />
+                {/* The loose terracotta shape, because the slab one is the pin inside the map. */}
+                <DoodleMark name="coral" color={INK.terracotta} treatment="stamp" delay={320} />
               </span>
               <div
                 /*
@@ -177,34 +184,61 @@ export function LocationMap({ partners, className, caption = true, aspect }: Loc
                   `aspect` is a prop, and /locations passes a shorter one.
                 */
                 className={cn(
-                  "plate relative w-full overflow-hidden rounded-[1.25rem] border border-line bg-surface-alt",
+                  "map-frame relative w-full overflow-hidden rounded-[1.25rem] bg-surface-alt",
                   aspect ??
                     cn("aspect-[4/5] sm:aspect-[16/9]", single ? "lg:aspect-[2/1]" : "lg:aspect-[16/10]"),
                 )}
               >
-              <iframe
-                /*
-                  Titled, because an iframe is announced by its title and
-                  "Google Maps" would tell a screen-reader user the vendor
-                  rather than the place. `loading="lazy"` keeps the request
-                  off the initial page load.
+              {/*
+                THE MAISON'S OWN MAP WHEN THE VENUE HAS A PIN; Google's when
+                it does not. <BrandMap> draws the neighbourhood in the brand's
+                palette with the bean as the pin, and needs coordinates to do
+                it — a search cannot place a pin we draw ourselves. Until the
+                studio enters them on the venue, the embed below stands in,
+                exactly as it always has.
+              */}
+              {partner.coordinates ? (
+                <BrandMap
+                  lat={partner.coordinates.lat}
+                  lng={partner.coordinates.lng}
+                  name={partner.name}
+                  title={`Map showing ${partner.name}, ${partner.locality}`}
+                  fallbackSrc={embedSrc(partner)}
+                  mapsHref={mapsHref(partner)}
+                />
+              ) : (
+                <iframe
+                  /*
+                    Titled, because an iframe is announced by its title and
+                    "Google Maps" would tell a screen-reader user the vendor
+                    rather than the place. `loading="lazy"` keeps the request
+                    off the initial page load.
 
-                  `strict-origin-when-cross-origin`, NOT
-                  `no-referrer-when-downgrade`, and the difference is a real
-                  leak rather than a preference. That value was here with a
-                  comment claiming it "sends the origin and not the full URL",
-                  which is the opposite of what it does: on an https-to-https
-                  request it sends the full URL, path and query included. So
-                  every event page handed Google its own address the moment
-                  this map loaded. This value is what the comment described,
-                  and is also the modern browser default.
-                */
-                title={`Map showing ${partner.name}, ${partner.locality}`}
-                src={embedSrc(partner)}
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-                className="absolute inset-0 h-full w-full border-0"
-              />
+                    `strict-origin-when-cross-origin`, NOT
+                    `no-referrer-when-downgrade`, and the difference is a real
+                    leak rather than a preference. That value was here with a
+                    comment claiming it "sends the origin and not the full URL",
+                    which is the opposite of what it does: on an https-to-https
+                    request it sends the full URL, path and query included. So
+                    every event page handed Google its own address the moment
+                    this map loaded. This value is what the comment described,
+                    and is also the modern browser default.
+                  */
+                  title={`Map showing ${partner.name}, ${partner.locality}`}
+                  src={embedSrc(partner)}
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  /* Inert, with the link below over it: a click on the map
+                     opens the venue's Google Maps page, which an iframe
+                     that takes its own clicks never could. `tabIndex` keeps
+                     the dead frame out of the tab order. */
+                  tabIndex={-1}
+                  className="pointer-events-none absolute inset-0 h-full w-full border-0"
+                />
+              )}
+              {partner.coordinates ? null : (
+                <MapClickThrough href={mapsHref(partner)} label={`${partner.name}, ${partner.locality}`} />
+              )}
               </div>
             </div>
 

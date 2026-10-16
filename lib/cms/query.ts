@@ -64,6 +64,7 @@ export const GLOBAL_TAGS: Partial<Record<ContentGlobal, CacheTag>> = {
   "template-copy": TAGS.template,
   "seo-defaults": TAGS.seo,
   "analytics-settings": TAGS.analytics,
+  "music-settings": TAGS.music,
 };
 
 export interface FindOptions {

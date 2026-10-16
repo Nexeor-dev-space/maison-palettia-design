@@ -1,6 +1,7 @@
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { embedSrc } from "@/components/sections/LocationMap";
+import { BrandMap } from "@/components/sections/map/BrandMap";
 import { Container } from "@/components/ui/Container";
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
@@ -282,7 +283,7 @@ export async function WhereWeCreate({
               */}
               <div className="relative">
 
-                <div className="plate relative aspect-[5/4] overflow-clip rounded-[1.25rem] bg-surface">
+                <div className="map-frame relative aspect-[5/4] overflow-clip rounded-[1.25rem] bg-surface">
                   {/*
                     Taller than its frame and lifted by the height of Google's
                     place card, so the card sits above the frame and out of
@@ -313,14 +314,32 @@ export async function WhereWeCreate({
                     keeps the dead frame out of the tab order; the title stays,
                     so the map still announces itself.
                   */}
-                  <iframe
-                    title={`Map showing ${home.name}, ${home.locality}`}
-                    src={embedSrc(home)}
-                    loading="lazy"
-                    tabIndex={-1}
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="pointer-events-none absolute inset-x-0 -top-44 h-[calc(100%+11rem)] w-full border-0"
-                  />
+                  {/*
+                    The Maison's own map once the venue has coordinates — no
+                    place card to crop, no rating to hide — and inert, so the
+                    link below still takes the click. Without them, the
+                    cropped embed, as before.
+                  */}
+                  {home.coordinates ? (
+                    <BrandMap
+                      lat={home.coordinates.lat}
+                      lng={home.coordinates.lng}
+                      name={home.name}
+                      title={`Map showing ${home.name}, ${home.locality}`}
+                      fallbackSrc={embedSrc(home)}
+                      interactive={false}
+                      mapsHref={home.locationHref}
+                    />
+                  ) : (
+                    <iframe
+                      title={`Map showing ${home.name}, ${home.locality}`}
+                      src={embedSrc(home)}
+                      loading="lazy"
+                      tabIndex={-1}
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      className="pointer-events-none absolute inset-x-0 -top-44 h-[calc(100%+11rem)] w-full border-0"
+                    />
+                  )}
 
                   {/*
                     The link is a sibling that covers the frame rather than a

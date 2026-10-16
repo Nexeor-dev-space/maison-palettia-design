@@ -177,7 +177,7 @@ export function interpolateLexical(state: LexicalState, vars: TemplateVars): Lex
 }
 
 /* Inline styles: email clients ignore <style> blocks unevenly; the shell sets fonts, these set rhythm. */
-const LINK_STYLE = "color:#9059a4;text-decoration:underline;";
+const LINK_STYLE = "color:#7f4e90;text-decoration:underline;";
 const BUTTON_STYLE =
   "display:inline-block;background:#9059a4;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;";
 
@@ -197,8 +197,8 @@ export function lexicalToEmailHtml(state: unknown): string {
   });
   return html
     .replace(/<p(\s[^>]*)?>\s*<a([^>]*?)href="([^"]*)"([^>]*)>((?:(?!<a[\s>])[\s\S])*?)<\/a>\s*<\/p>/g, (_m, _pAttrs, before: string, href: string, after: string, label: string) => {
-      const rest = `${before}${after}`.replace(/\sstyle="[^"]*"/g, "");
-      return `<p style="margin:24px 0;"><a${rest} href="${href}" style="${BUTTON_STYLE}">${label}</a></p>`;
+      const rest = `${before}${after}`.replace(/\s(?:style|class)="[^"]*"/g, "");
+      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}">${label}</a></p>`;
     })
     .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;">`)
     .replace(/<a(?![^>]*style=)(\s)/g, `<a style="${LINK_STYLE}"$1`)

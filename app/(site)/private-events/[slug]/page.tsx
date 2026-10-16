@@ -9,6 +9,7 @@ import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { ActivityPlate } from "@/components/private-events/ActivityPlate";
+import { BannerMarks } from "@/components/ui/BannerMarks";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { getCreativeExperiences } from "@/lib/experiences";
@@ -265,6 +266,8 @@ export default async function PrivateEventProgrammePage({
  * for what went with it and why reinstating it is not a one-line change.
  */
 function Masthead({ audience }: { audience: PrivateEventAudience }) {
+  /* The page's own banner where one is set (`pageImage`), else the programme's photograph. */
+  const banner = audience.pageImage ?? audience.image;
   return (
     <section
       aria-labelledby="programme-title"
@@ -287,7 +290,7 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
         programme's colour stays where it still works: the marks around the
         picture, and every section below.
       */
-      className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-clip bg-sage pb-[5rem] pt-[2.5rem] md:pb-section md:pt-[3.5rem] lg:pb-section-lg lg:pt-[4.5rem]"
     >
       <SectionShapes plan={mastheadShapes(LIGHT_TONE)} />
 
@@ -315,27 +318,165 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
           read as two unrelated things. /about's split is 6 / 6 from column
           7 with a 2.5rem gutter, and that is this now.
         */}
-        <div className="grid grid-cols-12 items-center gap-x-6 gap-y-12 lg:gap-x-12">
-          <div className="col-span-12 lg:col-span-6">
-            <Reveal>
-              {/* The way back, and the only crumb that earns its place: this
-                  page has exactly one parent. */}
-              <Link
-                href="/private-events"
-                className="group inline-flex items-center gap-2 text-action font-medium uppercase tracking-eyebrow text-text opacity-70 transition-opacity duration-300 ease-soft hover:opacity-100"
-              >
-                <span
-                  aria-hidden
-                  className="transition-transform duration-500 ease-editorial motion-safe:group-hover:-translate-x-1"
-                >
-                  &#8592;
-                </span>
-                Private events
-              </Link>
-            </Reveal>
+        {/*
+          THE EXPERIENCE PAGES' FIRST SCREEN (Oct 2026): the trail across the
+          top, the photograph on the left and the words on the right, as
+          /events/<slug> opens. The trail replaces the "← Private events" link
+          that sat over the words; it carries the same way back.
+        */}
+        <Reveal>
+          <nav aria-label="Breadcrumb">
+            <ol className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-label font-medium uppercase tracking-eyebrow text-text/75">
+              {[
+                { label: "Home", href: "/" },
+                { label: "Private events", href: "/private-events" },
+              ].map((crumb) => (
+                <li key={crumb.href} className="flex items-center gap-2.5">
+                  <Link
+                    href={crumb.href}
+                    className="-my-3.5 py-3.5 transition-colors duration-300 ease-soft hover:text-text focus-visible:text-text"
+                  >
+                    {crumb.label}
+                  </Link>
+                  <span aria-hidden className="text-text/70">
+                    /
+                  </span>
+                </li>
+              ))}
+              <li className="text-text" aria-current="page">
+                {audience.name}
+              </li>
+            </ol>
+          </nav>
+        </Reveal>
 
+        <div className="mt-9 grid grid-cols-12 items-start gap-x-6 gap-y-10 md:mt-12 lg:gap-x-10">
+          {/*
+            THE PICTURE, OR THE MARK WHERE THERE IS NO PICTURE.
+
+            Three programmes carry a stand-in photograph whose alt describes
+            the frame and never the occasion; the fourth has none anywhere in
+            the project and takes its brand cut-out on the field instead. Both
+            fill the same box, so all four pages have one anatomy.
+          */}
+          <div className="col-span-12 lg:col-span-7">
+            <Reveal variant="fadeIn" delay={0.2}>
+              {/*
+                CUT OUT, NOT FRAMED, and with the marks over its edges — the
+                object /about opens on. A plate with a hard radius is the
+                shape every other card on the site takes; a cutting is the
+                one the brand's own deck uses for a photograph, and it is
+                what the client pointed at.
+
+                The programme's two colours do the marks, so each page still
+                reads as itself without the ground having to shout it.
+              */}
+              {/*
+                THE OBJECT /private-events OPENS ON, to the figure.
+
+                It filled its six columns at every width above `lg` and stood
+                7:6, which at 1440 is 680x583 — 220px taller than that page's
+                picture and the whole reason the two sections do not read as
+                one family. It is now that page's own box: 34rem at most,
+                centred in the columns, cut 3:2.
+
+                3:2 ON A PORTRAIT SOURCE, which is a crop and is the reason
+                the birthday photograph carries a `position`. Three of the
+                four pictures are landscape or near it and lose a strip of
+                background; `glitter-keepsakes.jpg` is 480x640, so the 3:2
+                window is 320 of its 640 rows and has to be aimed — see the
+                note beside it in lib/privateEvents.ts. All four keepsakes
+                stay in frame.
+              */}
+              {/*
+                THE EXPERIENCE PAGES' BANNER, NOW (Oct 2026). The client found
+                the 34rem blob tiny and too rounded beside /events/<slug>, so
+                this is that page's picture: seven columns, a plain rectangle
+                at `rounded-sm`, 4:3 on a phone and 3:2 from `sm`, inside the
+                page's side margin at every width (it ran edge to edge on a
+                phone until the client asked for the margin) — <WorkshopPhoto>'s box in Header
+                (components/events/WorkshopTypePages.tsx). The words take the
+                other five columns, as they do there.
+              */}
+              <div className="relative w-full">
+                {banner ? (
+                  <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface-alt sm:aspect-[3/2]">
+                    <Image
+                      src={banner.src}
+                      alt={banner.alt}
+                      fill
+                      priority
+                      sizes="(min-width: 1024px) 58vw, 100vw"
+                      className="object-cover"
+                      style={
+                        banner.position
+                          ? { objectPosition: banner.position }
+                          : undefined
+                      }
+                    />
+                  </span>
+                ) : audience.mark ? (
+                  <div
+                    aria-hidden
+                    className="grid aspect-[4/3] w-full place-items-center overflow-hidden rounded-sm bg-cream sm:aspect-[3/2]"
+                  >
+                    {/*
+                      THE DATA'S COLOUR IS NOT USED HERE, and that is a bug
+                      fix rather than a liberty. `mark.color` is White Rock,
+                      chosen when this masthead was a Deep Lilac field; the
+                      cutting it stands in for is White Rock now, so the mark
+                      was drawn in the colour of the paper it was on and the
+                      page showed an empty blob. Deep Lilac is 3.95:1 against
+                      White Rock, which a cut-out at this size can carry.
+                    */}
+                    {/*
+                      34%, NOT 46%. The share was set against a 4:5 box, where
+                      46% of the width was about 37% of the height. The box is
+                      3:2 now, so the same share drew the mark at nearly 70% of
+                      its height and the field read as a blob with a border.
+                      34% of 544 is 185px, which is half the box's height —
+                      the proportion the figure had before.
+                    */}
+                    <span className="block w-[34%]">
+                      <DoodleMark
+                        name={audience.mark.name}
+                        color={INK.lilac}
+                        treatment="draw"
+                        delay={200}
+                      />
+                    </span>
+                  </div>
+                ) : null}
+
+                {/*
+                  THE FOUR MARKS /private-events PUTS ROUND ITS PICTURE, in
+                  its colours, in its places.
+
+                  There were five here and they were arranged for the bigger
+                  box: the slab at the top right pulled in to `lg:right-2`,
+                  the wave at the bottom RIGHT, and two extra — a coral and a
+                  dot — added to cross the inside edge because a 680px picture
+                  left the gutter looking empty. A 544px picture does not, so
+                  the two come out with it and the wave goes back to the left,
+                  which is where the section being matched hangs it.
+
+                  THE COLOURS ARE FIXED NOW, NOT THE TONE'S, and that is not a
+                  loss of the programme's identity — it is the only way these
+                  two pages can draw the same mark. In this brand's sheet the
+                  COLOUR picks the drawing and the shape word only picks loose
+                  or slab (`resolveIcon`, components/sections/hero/doodles.ts),
+                  so `starburst` in the tone's Deep Lilac is a lilac leaf tile
+                  and the same word in Terracotta is the cut tile that page
+                  opens with. Pinning the pair is what makes them match. The
+                  programme's own colour still runs every section below.
+                */}
+                <BannerMarks />
+              </div>
+            </Reveal>
+          </div>
+          <div className="col-span-12 lg:col-span-5 lg:col-start-8 lg:flex lg:flex-col lg:self-stretch">
             <Reveal delay={0.08}>
-              <Eyebrow ground="light" className="mt-9">
+              <Eyebrow ground="light">
                 {programmeCopy().eyebrow}
               </Eyebrow>
             </Reveal>
@@ -388,148 +529,46 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
                 </span>
               </div>
             </Reveal>
+
+            {/*
+              THE FOOT OF THE COLUMN (Oct 2026) — the client's "huge empty
+              space at the right bottom". After a heap in the corner, a ruled
+              row and four marks at drawn-in points all read as too much or too
+              tidy, the client asked for no more than three, of different
+              sizes: so one large, one medium and one small, on a loose
+              diagonal — the large low on the left, the medium lower and
+              further across, the small high on the right.
+
+              The column stretches to the photograph's height and this band
+              takes whatever is left (`flex-1`), so the marks are placed in
+              shares of the GAP, not of the column: IN THE FLOW, a longer lead
+              (Mall & Community) shortens the gap rather than running into a
+              mark, and `min-h` keeps room for them when there is no gap at
+              all. Each box is square and centred on its point; the brand's
+              drawings are not square (aspect 0.60–1.54) and sit centred in it.
+
+              Drawings chosen not to repeat the terracotta splash on the
+              button's row: the colour picks the drawing (`resolveIcon`).
+              `stamp`, not `draw`: a scroll-driven draw this low in the first
+              screen is caught half-done at load and shows bare outlines.
+              Desktop only: below `lg` the photograph and the words stack.
+            */}
+            <div aria-hidden className="pointer-events-none relative hidden min-h-[11rem] flex-1 lg:block">
+              {/* Large */}
+              <span className="absolute left-[14%] top-[48%] block size-[5.5rem] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg]">
+                <DoodleMark name="coral" color={INK.lavender} treatment="stamp" />
+              </span>
+              {/* Medium */}
+              <span className="absolute left-[60%] top-[72%] block size-[3.5rem] -translate-x-1/2 -translate-y-1/2 rotate-[8deg]">
+                <DoodleMark name="cutout" color={INK.terracotta} treatment="stamp" />
+              </span>
+              {/* Small */}
+              <span className="absolute left-[88%] top-[26%] block size-[2.25rem] -translate-x-1/2 -translate-y-1/2 rotate-[-6deg]">
+                <DoodleMark name="starburst" color={INK.lilac} treatment="stamp" />
+              </span>
+            </div>
           </div>
 
-          {/*
-            THE PICTURE, OR THE MARK WHERE THERE IS NO PICTURE.
-
-            Three programmes carry a stand-in photograph whose alt describes
-            the frame and never the occasion; the fourth has none anywhere in
-            the project and takes its brand cut-out on the field instead. Both
-            fill the same box, so all four pages have one anatomy.
-          */}
-          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-            <Reveal variant="fadeIn" delay={0.2}>
-              {/*
-                CUT OUT, NOT FRAMED, and with the marks over its edges — the
-                object /about opens on. A plate with a hard radius is the
-                shape every other card on the site takes; a cutting is the
-                one the brand's own deck uses for a photograph, and it is
-                what the client pointed at.
-
-                The programme's two colours do the marks, so each page still
-                reads as itself without the ground having to shout it.
-              */}
-              {/*
-                THE OBJECT /private-events OPENS ON, to the figure.
-
-                It filled its six columns at every width above `lg` and stood
-                7:6, which at 1440 is 680x583 — 220px taller than that page's
-                picture and the whole reason the two sections do not read as
-                one family. It is now that page's own box: 34rem at most,
-                centred in the columns, cut 3:2.
-
-                3:2 ON A PORTRAIT SOURCE, which is a crop and is the reason
-                the birthday photograph carries a `position`. Three of the
-                four pictures are landscape or near it and lose a strip of
-                background; `glitter-keepsakes.jpg` is 480x640, so the 3:2
-                window is 320 of its 640 rows and has to be aimed — see the
-                note beside it in lib/privateEvents.ts. All four keepsakes
-                stay in frame.
-              */}
-              <div className="relative mx-auto w-full max-w-[34rem]">
-                {audience.image ? (
-                  <span
-                    className="blob relative block aspect-[3/2] w-full overflow-clip"
-                    style={{ "--blob": "42% 30% 38% 34% / 34% 40% 30% 38%" } as React.CSSProperties}
-                  >
-                    <Image
-                      src={audience.image.src}
-                      alt={audience.image.alt}
-                      fill
-                      priority
-                      sizes="(min-width: 1024px) 544px, 92vw"
-                      className="object-cover"
-                      style={
-                        audience.image.position
-                          ? { objectPosition: audience.image.position }
-                          : undefined
-                      }
-                    />
-                  </span>
-                ) : audience.mark ? (
-                  <div
-                    aria-hidden
-                    className="blob grid aspect-[3/2] w-full place-items-center overflow-clip bg-cream"
-                    style={{ "--blob": "42% 30% 38% 34% / 34% 40% 30% 38%" } as React.CSSProperties}
-                  >
-                    {/*
-                      THE DATA'S COLOUR IS NOT USED HERE, and that is a bug
-                      fix rather than a liberty. `mark.color` is White Rock,
-                      chosen when this masthead was a Deep Lilac field; the
-                      cutting it stands in for is White Rock now, so the mark
-                      was drawn in the colour of the paper it was on and the
-                      page showed an empty blob. Deep Lilac is 3.95:1 against
-                      White Rock, which a cut-out at this size can carry.
-                    */}
-                    {/*
-                      34%, NOT 46%. The share was set against a 4:5 box, where
-                      46% of the width was about 37% of the height. The box is
-                      3:2 now, so the same share drew the mark at nearly 70% of
-                      its height and the field read as a blob with a border.
-                      34% of 544 is 185px, which is half the box's height —
-                      the proportion the figure had before.
-                    */}
-                    <span className="block w-[34%]">
-                      <DoodleMark
-                        name={audience.mark.name}
-                        color={INK.lilac}
-                        treatment="draw"
-                        delay={200}
-                      />
-                    </span>
-                  </div>
-                ) : null}
-
-                {/*
-                  THE FOUR MARKS /private-events PUTS ROUND ITS PICTURE, in
-                  its colours, in its places.
-
-                  There were five here and they were arranged for the bigger
-                  box: the slab at the top right pulled in to `lg:right-2`,
-                  the wave at the bottom RIGHT, and two extra — a coral and a
-                  dot — added to cross the inside edge because a 680px picture
-                  left the gutter looking empty. A 544px picture does not, so
-                  the two come out with it and the wave goes back to the left,
-                  which is where the section being matched hangs it.
-
-                  THE COLOURS ARE FIXED NOW, NOT THE TONE'S, and that is not a
-                  loss of the programme's identity — it is the only way these
-                  two pages can draw the same mark. In this brand's sheet the
-                  COLOUR picks the drawing and the shape word only picks loose
-                  or slab (`resolveIcon`, components/sections/hero/doodles.ts),
-                  so `starburst` in the tone's Deep Lilac is a lilac leaf tile
-                  and the same word in Terracotta is the cut tile that page
-                  opens with. Pinning the pair is what makes them match. The
-                  programme's own colour still runs every section below.
-                */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -right-5 -top-8 w-[5rem] md:w-[6.5rem]"
-                >
-                  <DoodleMark name="starburst" color={INK.terracotta} treatment="draw" delay={240} />
-                </span>
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -left-4 top-[28%] w-[2.25rem] md:w-[2.75rem]"
-                >
-                  <DoodleMark name="bow" color={INK.lilac} treatment="draw" delay={380} />
-                </span>
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -bottom-7 -left-6 w-[8.5rem] md:w-[10.5rem]"
-                >
-                  <DoodleMark name="wave" color={INK.lavender} treatment="draw" delay={460} />
-                </span>
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -right-3 bottom-[18%] w-[2.75rem] md:w-[3.5rem]"
-                >
-                  <DoodleMark name="splash" color={INK.lilac} treatment="draw" delay={540} />
-                </span>
-              </div>
-            </Reveal>
-          </div>
         </div>
       </Container>
     </section>
@@ -649,7 +688,29 @@ function HowItWorks({ steps }: { steps: readonly PrivateEventStep[] }) {
       className="relative isolate overflow-clip bg-sage py-[5rem] md:py-section lg:py-section-lg"
     >
       <SectionShapes plan={groundShapes("sage")} />
-      <Container>
+      <Container className="relative">
+        {/*
+          THE BAND BESIDE THE HEADING (Oct 2026) — the client's "not enough
+          doodles here". The script heading stops about a third of the way
+          across and the cards do not start until well below it, so the whole
+          right of the masthead was bare sage. Three cut-outs at full strength
+          fill it, placed rather than scattered: a slab high on the right, a
+          loose mark lower and further in, a small one higher still and
+          further in again — a loose arc that points back at the heading.
+          Pinned to the masthead's band (`top` in shares of the space above
+          the cards), never across the measure the words use, and only the
+          first below `md`, where the heading takes the width.
+        */}
+        <span aria-hidden className="pointer-events-none absolute right-0 top-2 block w-[3rem] rotate-[-8deg] md:right-[4%] md:top-6 md:w-[5.5rem]">
+          <DoodleMark name="cutout" color={INK.terracotta} treatment="stamp" />
+        </span>
+        <span aria-hidden className="pointer-events-none absolute right-[22%] top-[6.5rem] hidden w-[4rem] rotate-[10deg] md:block">
+          <DoodleMark name="coral" color={INK.lavender} treatment="stamp" />
+        </span>
+        <span aria-hidden className="pointer-events-none absolute right-[40%] top-4 hidden w-[2.75rem] rotate-[-12deg] lg:block">
+          <DoodleMark name="bow" color={INK.lilac} treatment="stamp" />
+        </span>
+
         <Reveal>
           <Eyebrow>{programmeCopy().stepsEyebrow}</Eyebrow>
         </Reveal>
@@ -679,7 +740,10 @@ function HowItWorks({ steps }: { steps: readonly PrivateEventStep[] }) {
                     itself is not among them, for the obvious reason. */}
                 <div
                   className={cn(
-                    "plate group relative flex h-full flex-col overflow-clip rounded-[1.25rem] p-7 md:rounded-[1.5rem] md:p-8",
+                    /* No `overflow-clip`: it cut each card's corner mark
+                       down to a sliver, and the mark is there to break the
+                       edge, as the experience cards' do. */
+                    "plate group relative flex h-full flex-col rounded-[1.25rem] p-7 md:rounded-[1.5rem] md:p-8",
                     STEP_STOCK[i % STEP_STOCK.length].field,
                   )}
                 >

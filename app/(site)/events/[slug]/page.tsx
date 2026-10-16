@@ -7,7 +7,7 @@ import { BlobButton } from "@/components/ui/BlobButton";
 import { EventBookingBar } from "@/components/booking/EventBookingBar";
 import { ChoiceBody, TypeBody } from "@/components/events/WorkshopTypePages";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { eventJsonLd } from "@/lib/jsonLd";
+import { eventJsonLd, sessionEventsJsonLd } from "@/lib/jsonLd";
 import { getJsonLdSite } from "@/lib/jsonLd.server";
 import { eventCopy, eventUtilityBar, loadTemplateCopy } from "@/components/blocks/templateCopy";
 import { SessionGate } from "@/components/booking/SessionClock";
@@ -17,6 +17,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";
 import { INK } from "@/components/sections/hero/composition";
 import { LocationMap, PartnerPlate } from "@/components/sections/LocationMap";
+import { BannerMarks } from "@/components/ui/BannerMarks";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { Container } from "@/components/ui/Container";
 import ticket from "@/components/ui/Ticket.module.css";
@@ -33,7 +34,9 @@ import {
   getEventSlugs,
   isUpcoming,
   type EventDetail,
-  eventGallery,} from "@/lib/eventDetail";
+  eventGallery,
+  canonicalEventPath,
+} from "@/lib/eventDetail";
 import { getMallPartners } from "@/lib/partners";
 import { redirectOr404 } from "@/lib/cms/redirects";
 import { getMetadata } from "@/lib/seo";
@@ -106,7 +109,8 @@ export async function generateMetadata({
     description:
       (detail && eventIntro(detail)) ??
       "A Maison Palettia creative experience: art, craft and community in Dubai.",
-    path: `/events/${slug}`,
+    // A dated session defers to its type's (or activity's) page — lib/eventDetail.ts `canonicalSlugOf`.
+    path: detail ? canonicalEventPath(detail) : `/events/${slug}`,
   });
 }
 
@@ -196,14 +200,36 @@ export default async function EventPage({
     page; a format has no venue of its own, its dates do.
   */
   if (detail.kind === "choice" || detail.kind === "type") {
-    const partners = await getMallPartners();
+    const [partners, site] = await Promise.all([getMallPartners(), getJsonLdSite()]);
     const home = partners.length === 1 ? partners[0] : undefined;
+    /*
+      A format's page is the canonical for all of its dates (the session
+      pages defer to it), so it carries them: every date ahead as an Event.
+      The choice page lists formats, not dates, and prints none — each
+      date is already on its format's page.
+    */
+    const typeJsonLd =
+      detail.kind === "type"
+        ? sessionEventsJsonLd({
+            site,
+            sessions: detail.sessions,
+            description: eventIntro(detail) ?? eventAbout(detail)[0] ?? null,
+            partnerFor: (workshop) =>
+              partners.find((p) => p.name.toLowerCase() === workshop.venue?.name.toLowerCase()),
+          })
+        : null;
     return (
       <div className="relative isolate overflow-x-clip bg-sage">
+        {typeJsonLd ? <JsonLd data={typeJsonLd} /> : null}
         <SectionShapes plan={groundShapes("sage")} />
         <Container className="relative pb-0 pt-[2.5rem] md:pt-[3.5rem] lg:pt-[4.5rem]">
           {detail.kind === "choice" ? (
-            <ChoiceBody detail={detail} partner={home} />
+            <ChoiceBody
+              detail={detail}
+              partner={home}
+              about={<SessionBrief detail={detail} />}
+              location={<LocationSection detail={detail} partner={home} />}
+            />
           ) : (
             <TypeBody detail={detail} partner={home} renderedAt={serverClock()} />
           )}
@@ -518,12 +544,15 @@ function EventHeader({
     <section aria-labelledby="event-title" className="mt-9 md:mt-12">
       <div className="grid grid-cols-12 items-start gap-x-6 gap-y-10 lg:gap-x-10">
         {image ? (
-          <figure className="col-span-12 -mx-gutter lg:col-span-7 lg:mx-0">
+          <figure className="relative col-span-12 lg:col-span-7">
             <WorkshopPhoto
               image={image}
               aspect="aspect-[4/3] sm:aspect-[3/2]"
               sizes="(min-width: 1024px) 58vw, 100vw"
             />
+            {/* The four cut-outs over the photograph's edges that the
+                private-event pages carry; `relative` above is for them. */}
+            <BannerMarks />
           </figure>
         ) : null}
 

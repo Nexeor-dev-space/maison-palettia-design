@@ -17,6 +17,7 @@ import { RouteProgress } from "@/components/layout/RouteProgress";
 import { SiteChromeProvider, type SiteChromeData } from "@/components/layout/SiteChrome";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ContactWidget } from "@/components/layout/ContactWidget";
+import { MusicPlayer } from "@/components/layout/MusicPlayer";
 import { CursorLayer } from "@/components/motion/CursorLayer";
 import { AutoReveal } from "@/components/motion/AutoReveal";
 import { SiteLoader } from "@/components/motion/SiteLoader";
@@ -27,6 +28,7 @@ import { hapsha, montserrat } from "@/lib/fonts";
 import { isDraft } from "@/lib/cms/draft";
 import { getDefaultMetadata } from "@/lib/seo";
 import { getBrandLogo, getHeroRoutes, getMainNav, getPrimaryCta, getSite } from "@/lib/constants.server";
+import { getMusicConfig } from "@/lib/music.server";
 import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
 import { getVibes } from "@/lib/vibes.server";
 
@@ -89,11 +91,12 @@ async function getChrome(): Promise<SiteChromeData> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [bookingOptions, draft, chrome, analytics] = await Promise.all([
+  const [bookingOptions, draft, chrome, analytics, music] = await Promise.all([
     getBookingOptions(),
     isDraft(),
     getChrome(),
     getSiteAnalyticsConfig(),
+    getMusicConfig(),
   ]);
 
   return (
@@ -155,9 +158,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             uncovers it. It falls back to `0px` until the measurement lands, so
             the layout is unchanged without JavaScript.
           */}
+          {/*
+            NO BOTTOM-BAR PADDING ON <main> (Oct 2026). It carried
+            `pb-[var(--bottom-nav-h)]` from when <BottomNav> arrived, but the
+            footer always follows main and reserves the bar's height under its
+            own last line (<Footer>), so nothing in main can be left under the
+            bar. On a phone the padding only opened a strip of the page's own
+            ground between the last section and <FooterWave> — on /contact a
+            pale band under the Deep Lilac close, where the desktop's wave
+            rises straight out of the section. The client asked for the two to
+            match.
+          */}
           <main
             id="main"
-            className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface pb-[var(--bottom-nav-h)]"
+            className="relative z-10 mb-[var(--footer-height,0px)] flex-1 bg-surface"
           >
             {children}
             {/*
@@ -196,6 +210,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               sits above the page without a stacking context of its own; it
               renders nothing on /contact itself. */}
           <ContactWidget />
+          {/* Background music, bottom left — Content → Music and Settings →
+              Music. Only when switched on and there is a track; it never
+              plays until pressed, and it lives here so a track carries on
+              across client-side navigation. See <MusicPlayer>. */}
+          {music.enabled ? <MusicPlayer config={music} /> : null}
           {/* Below `lg` only — see <BottomNav>. Mounted after the footer so it
               paints over the page's own foot, and before <CursorLayer>'s
               siblings so nothing of it is caught by the brush. */}

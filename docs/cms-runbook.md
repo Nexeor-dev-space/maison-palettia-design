@@ -504,7 +504,7 @@ from `scripts/deploy.sh` and `Dockerfile.runtime` above. What makes it work:
 |---|---|
 | `DATABASE_URL` | Must end in `?sslmode=disable` while the Postgres server has no TLS. In production the app otherwise insists on a verified TLS connection and fails with "The server does not support SSL connections". When TLS is enabled on Postgres, switch to `?sslmode=verify-full&sslrootcert=…` (§ Database gate). |
 | `PAYLOAD_SECRET` | Must be identical everywhere the same database is used (laptops included) — it decrypts the payment/email keys stored in the admin. Rotating it needs `cms/scripts/reseal.ts` first. |
-| `NEXT_PUBLIC_SERVER_URL` | `https://<the public domain>`; baked in at build time (CSRF allowlist). Also set Settings → Site details → Site address to the same URL. |
+| `NEXT_PUBLIC_SERVER_URL` | `https://<the public domain>`; baked in at build time (CSRF allowlist). Also set Settings → Site details → Site address to the same URL (emails and payment returns use it). Canonicals, the sitemap and robots ignore both and always name `PRODUCTION_ORIGIN` in `lib/siteOrigin.ts`; any other host is served `X-Robots-Tag: noindex`. |
 | `NODE_OPTIONS` | `--max-old-space-size=1536` recommended. The build measured ~850 MB peak and passes at 768, but with little headroom. |
 | `NIXPACKS_NODE_VERSION` | `22` |
 

@@ -33,6 +33,7 @@ export const TAGS = {
   redirects: "collection:redirects",
   posts: "collection:posts",
   postCategories: "collection:post-categories",
+  musicTracks: "collection:music-tracks",
   site: "global:site-settings",
   nav: "global:navigation",
   brand: "global:brand-copy",
@@ -40,6 +41,7 @@ export const TAGS = {
   template: "global:template-copy",
   seo: "global:seo-defaults",
   analytics: "global:analytics-settings",
+  music: "global:music-settings",
 } as const;
 
 export type CacheTag = (typeof TAGS)[keyof typeof TAGS];

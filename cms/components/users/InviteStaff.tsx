@@ -2,7 +2,7 @@
 
 import { toast, useAuth, useConfig } from "@payloadcms/ui";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { callAction } from "@/cms/components/admin/api";
 import { Dialog, DialogButtons, Field } from "@/cms/components/admin/Dialog";
@@ -37,18 +37,20 @@ export function InviteStaff() {
   const [open, setOpen] = useState(() => searchParams.get("invite") === "1");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
   const [role, setRole] = useState<(typeof ROLES)[number]["value"]>("editor");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ tone: "error" | "ok" | "info"; text: string } | null>(null);
 
-  if ((user as { role?: string } | null)?.role !== "admin") return null;
-
-  const close = () => {
+  const close = useCallback(() => {
     if (busy) return;
     setOpen(false);
     setStatus(null);
+    setEmailTouched(false);
     if (searchParams.get("invite") === "1") router.replace(listUrl);
-  };
+  }, [busy, searchParams, router, listUrl]);
+
+  if ((user as { role?: string } | null)?.role !== "admin") return null;
 
   const invite = async () => {
     setBusy(true);
@@ -59,6 +61,7 @@ export function InviteStaff() {
       setOpen(false);
       setName("");
       setEmail("");
+      setEmailTouched(false);
       router.push(`${listUrl}/${res.id}`);
     } catch (error) {
       setStatus({ tone: "error", text: (error as Error).message });
@@ -67,7 +70,9 @@ export function InviteStaff() {
     }
   };
 
-  const ready = name.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const emailError = emailTouched && email.length > 0 && !emailValid;
+  const ready = name.trim().length > 0 && emailValid;
 
   return (
     <>
@@ -91,8 +96,17 @@ export function InviteStaff() {
           <Field label="Name" id="inv-name">
             <input id="inv-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} autoComplete="off" />
           </Field>
-          <Field label="Email" id="inv-email">
-            <input id="inv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" />
+          <Field label="Email" id="inv-email" hint={emailError ? <span className="mp-field__hint--error" id="inv-email-error">Enter a full email address, like name@example.com.</span> : undefined}>
+            <input
+              id="inv-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
+              onBlur={() => setEmailTouched(true)}
+              aria-invalid={emailError}
+              aria-describedby={emailError ? "inv-email-error" : undefined}
+              autoComplete="off"
+            />
           </Field>
         </div>
         <div className="mp-field">

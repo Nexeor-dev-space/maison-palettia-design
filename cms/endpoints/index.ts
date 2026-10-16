@@ -15,6 +15,8 @@ import { settingsPaymentsEndpoints } from "./settings-payments";
 import { ticketsEndpoints } from "./tickets";
 import { usersEndpoints } from "./users";
 
+import { withPublicErrors } from "./requireRole";
+
 export { json, parseBody, requireRole } from "./requireRole";
 
 /**
@@ -41,4 +43,4 @@ export const endpoints: Endpoint[] = [
   ...exportsEndpoints,
   ...findTextEndpoints,
   ...revalidateEndpoints,
-];
+].map(withPublicErrors);

@@ -6,6 +6,7 @@ import {
   dedupeKeyFor,
   headerNamesOf,
   identifyDelivery,
+  isMamoPing,
   readBodyCapped,
   redactHeaders,
 } from "@/cms/lib/mamo/verify";
@@ -30,7 +31,8 @@ import { errorText, processClaimedEvent, recordObservedHeader, recordUnverified 
  *      200 that silently drops a paid order.
  *
  * Status codes: 401 (empty body) for the rate limit and an unmatched
- * secret; 413 for an oversized body; 200 for anything understood —
+ * secret; 413 for an oversized body; 200 "pong" for Mamo's registration
+ * ping; 200 for anything understood —
  * processed, duplicate, ignored, no matching order (Mamo should stop
  * retrying those); 500 when WE failed (Mamo should retry).
  *
@@ -49,6 +51,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!allow(request, "webhooks-mamo", 60, 60_000)) return new Response(null, { status: 401 });
   const raw = await readBodyCapped(request);
   if (raw === null) return plain("payload too large", 413);
+  // Mamo's registration ping (see `isMamoPing`): unauthenticated by nature, harmless to answer.
+  if (isMamoPing(raw)) return plain("pong", 200);
 
   const req = await siteRequest(request);
   const ip = hashedClient(request);

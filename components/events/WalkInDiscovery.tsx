@@ -13,7 +13,6 @@ import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { Container } from "@/components/ui/Container";
 import { DoodleMark } from "@/components/ui/DoodleMark";
-import { ModeMark } from "@/components/ui/ModeMark";
 import type { CreativeExperience } from "@/lib/experiences";
 import { cn } from "@/lib/utils";
 import { experiencesByVibe, hasVibeTags, vibeCounts, type VibeSlug } from "@/lib/vibes";
@@ -181,11 +180,7 @@ function CardGroup({
   return (
     <section aria-labelledby={id}>
       <h3 id={id} className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow text-text/70">
-        {quiet ? (
-          <span aria-hidden className="size-2 rounded-pill bg-terracotta" />
-        ) : (
-          <ModeMark mode="diy" />
-        )}
+        {quiet ? <span aria-hidden className="size-2 rounded-pill bg-terracotta" /> : null}
         {title}
       </h3>
       <ul className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
@@ -238,6 +233,8 @@ function WalkInCard({ experience, index }: { experience: CreativeExperience; ind
   const how = flag ?? "No booking needed";
   const action = flag ? "Take a look" : "View details";
   const frame = FRAMES[index % FRAMES.length];
+  // The activity page's banner where one is set, so the card shows what its page opens on.
+  const photo = experience.pageImage ?? experience.image;
 
   return (
     <Link
@@ -251,13 +248,13 @@ function WalkInCard({ experience, index }: { experience: CreativeExperience; ind
     >
       {/* ---- the photograph ----------------------------------------------- */}
       <span className="relative block aspect-[2/1] w-full overflow-hidden bg-sage/60 sm:aspect-[3/2]">
-        {experience.image ? (
+        {photo ? (
           <Image
-            src={experience.image.src}
+            src={photo.src}
             alt=""
             fill
             sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
-            style={experience.image.position ? { objectPosition: experience.image.position } : undefined}
+            style={photo.position ? { objectPosition: photo.position } : undefined}
             className={cn(
               "object-cover transition-transform duration-700 ease-editorial motion-safe:group-hover:scale-[1.04]",
               flag && "saturate-[0.7]",
@@ -290,11 +287,7 @@ function WalkInCard({ experience, index }: { experience: CreativeExperience; ind
               style={{ "--swell": 1, "--wet": 0.44 } as React.CSSProperties}
             >
               <PaintStroke paint={frame.paint} shape="blot" />
-              {flag ? (
-                <span aria-hidden className="relative size-2 rounded-pill bg-terracotta" />
-              ) : (
-                <ModeMark mode="diy" className="relative" />
-              )}
+              {flag ? <span aria-hidden className="relative size-2 rounded-pill bg-terracotta" /> : null}
               <span className="relative text-action font-medium uppercase tracking-eyebrow">{flag ?? "No booking"}</span>
             </span>
             <span

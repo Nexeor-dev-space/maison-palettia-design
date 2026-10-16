@@ -1,5 +1,6 @@
 import { BOOKING_CONFIGURED, PAYMENT_CONFIGURED } from "@/lib/bookingFlags";
 import { ENQUIRY_CONFIGURED } from "@/lib/enquiry";
+import { PRODUCTION_ORIGIN } from "@/lib/siteOrigin";
 import type {
   ContactDetails,
   FaqItem,
@@ -47,8 +48,8 @@ export const SITE = {
   // category rather than the catalogue.
   tagline: "Creative workshops and events in Dubai",
   locale: "en_AE",
-  /** TODO(client): replace with the production domain before launch. */
-  url: "https://www.maisonpalettia.com",
+  /** The production origin (lib/siteOrigin.ts). */
+  url: PRODUCTION_ORIGIN,
 } as const;
 
 /**
@@ -379,8 +380,8 @@ export const LEGAL_NAV: NavItem[] = [
 
   Of its four files, three were pottery and have since been deleted in the
   pottery removal: the wheel loop, its poster frame and the cups. The
-  landscape survives as /images/hero/i-1.jpg and now carries the foot of
-  /contact.
+  landscape survived as /images/hero/i-1.jpg until Oct 2026, when it was
+  found unreferenced and removed with the other unused images.
 */
 
 /** TODO(client): awaiting real address, email and phone number. */

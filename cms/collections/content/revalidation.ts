@@ -126,6 +126,8 @@ export const CONTENT_REVALIDATION = {
     tags: [TAGS.postCategories, TAGS.posts],
     paths: (doc, prev) => ["/journal", ...both(doc, prev).map((slug) => `/journal/category/${slug}`)],
   },
+  // The player is in the root layout, so every page carries the playlist.
+  "music-tracks": { tags: [TAGS.musicTracks], paths: () => ["/music-credits"], layout: true },
   redirects: {
     tags: [TAGS.redirects],
     // The address a redirect leaves from: it was a cached 404 (or a cached redirect to somewhere else).

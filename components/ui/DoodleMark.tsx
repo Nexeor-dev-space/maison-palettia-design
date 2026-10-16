@@ -58,6 +58,8 @@ export function DoodleMark({
   on = true,
   delay = 0,
   depth = 8,
+  idle = true,
+  seed = "",
   className,
 }: {
   name: DoodleName;
@@ -97,9 +99,22 @@ export function DoodleMark({
    * of travel would read as the layout wobbling.
    */
   depth?: number;
+  /**
+   * The slow idle float every mark has (see `floatFor`). Off for a caller that
+   * already floats the mark itself — <SectionShapes> does, for some of its
+   * ground marks — so a shape is never moved by two loops at once.
+   */
+  idle?: boolean;
+  /**
+   * Extra input to the float's hash. Two marks with identical props would
+   * otherwise float in step; a caller placing the same mark in several spots
+   * passes something positional so they come apart.
+   */
+  seed?: string;
   className?: string;
 }) {
   const shape = resolveIcon(name, color);
+  const float = floatFor(`${name}|${color}|${treatment}|${delay}|${depth}|${seed}`);
 
   return (
     /*
@@ -110,7 +125,11 @@ export function DoodleMark({
       the caller sized, so nothing about how a mark is placed changes.
     */
     <span className={styles.hoverable}>
-    <span className={styles.drift} style={{ "--depth": depth } as React.CSSProperties}>
+    <span data-drift="" className={styles.drift} style={{ "--depth": depth } as React.CSSProperties}>
+    <span
+      className={idle ? cn(styles.float, styles[float.path]) : styles.still}
+      style={{ "--float-dur": `${float.dur}s`, "--float-delay": `${float.delay}s` } as React.CSSProperties}
+    >
     <svg
       viewBox={`0 0 ${shape.w} ${shape.h}`}
       aria-hidden
@@ -138,5 +157,37 @@ export function DoodleMark({
     </svg>
     </span>
     </span>
+    </span>
   );
+}
+
+/*
+  THE IDLE FLOAT (Oct 2026) — the client asked for every doodle on the site to
+  move on its own, smoothly, the way the home banner's already do (`.float` in
+  hero/Hero.module.css). A wrapper of its own, inside `.drift`, so the slow
+  float composes with the pointer-follow translate, the hover pop and each
+  treatment's own transform instead of fighting them for one property.
+
+  NOT IN STEP. A page carries dozens of marks, and forty shapes bobbing on one
+  clock reads as the page breathing rather than as cut-outs on paper. So each
+  mark takes a duration, a phase and one of three paths from a hash of its own
+  props — deterministic, so the server and the browser agree on it and nothing
+  mismatches on hydration — and the marks of a set, which differ by `delay`,
+  come apart.
+*/
+function floatFor(key: string): { dur: number; delay: number; path: "floatA" | "floatB" | "floatC" } {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h >>>= 0;
+  return {
+    // 6.5 to 11s a leg: slow enough to read as drifting, never as wobbling.
+    dur: 6.5 + (h % 46) / 10,
+    // A negative delay starts each mark part-way through its path, so nothing
+    // sets off together when a page loads.
+    delay: -((h >>> 8) % 90) / 10,
+    path: (["floatA", "floatB", "floatC"] as const)[(h >>> 16) % 3],
+  };
 }

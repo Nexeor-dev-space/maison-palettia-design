@@ -118,7 +118,7 @@ export const Venues: CollectionConfig = {
           type: "text",
           label: "Map search override",
           maxLength: 120,
-          admin: { width: "40%", description: "What the embedded map searches for. Leave empty to use “name, locality”." },
+          admin: { width: "40%", description: "Only used when no pin is set below: what the Google map searches for. Leave empty to use “name, locality”." },
         },
       ],
     },
@@ -127,7 +127,7 @@ export const Venues: CollectionConfig = {
       type: "group",
       label: "Pin (latitude / longitude)",
       admin: {
-        description: "Optional. Leave empty rather than guess; the map falls back to a search.",
+        description: "Paste the centre's Google Maps link. With a pin the site draws its own map in the Maison's colours; without one it shows a plain Google map found by search. Leave empty rather than guess.",
         components: { Field: "@/cms/components/fields/CoordinatesField#CoordinatesField" },
       },
       fields: [
