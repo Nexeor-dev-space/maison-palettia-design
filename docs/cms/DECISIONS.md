@@ -51,14 +51,17 @@ SPEC.md disagree, this file wins.
    gate (/events, the seven experience pages, the session pages and
    /events/candle-making/book). It disappears when the placeholder sessions
    are replaced with real ones or saved as drafts (`npm run seed -- launch`).
-9. **The site's canonical origin waits for a confirmed address.** Canonicals,
-   `og:url`, the sitemap and robots use Site details → `publicUrl` only once
-   an admin has saved it (`system-state.publicUrlConfirmedAt`); before that
-   an https `NEXT_PUBLIC_SERVER_URL`, else `SITE.url`
-   (lib/constants.server.ts `getSite`). Reason: on the shared database (#1)
-   the seeded `publicUrl` is the dev machine's `http://localhost:3200`.
-   Emails, payment returns and preview links keep the SPEC §A.4 order
-   (cms/lib/publicUrl.ts), which needs a working address on this machine.
+9. **The site's canonical origin is a code constant.** Canonicals,
+   `og:url`, JSON-LD, the sitemap, robots and the Journal feed always use
+   `PRODUCTION_ORIGIN` (lib/siteOrigin.ts, `https://maisonpalettia.com`), on
+   every deployment. Reason: live and staging are two deployments on the
+   shared database (#1), so Site details → `publicUrl` is one value for both;
+   in October 2026 it held the staging address and the live site sent every
+   crawler to staging. next.config.ts redirects `www.` to that origin (308)
+   and sends `X-Robots-Tag: noindex, nofollow` from any other host. Emails,
+   payment returns and preview links keep the SPEC §A.4 order
+   (cms/lib/publicUrl.ts), since those must reach the deployment that sent
+   them. A domain change is a code change plus a deploy.
 10. **`POST /api/site/revalidate` landed in Phase 2**, not 3B, because
     scheduled publishing (enabled on every drafted collection) purges
     through it — without it a scheduled publish changed the database but not

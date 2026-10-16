@@ -4,7 +4,7 @@ import { getLandingPageSlugs } from "@/components/blocks/data";
 import { FIXED_PAGE_SLUGS } from "@/cms/collections/content/Pages";
 import { listCategories, listPostSlugs } from "@/lib/cms/journal";
 import { getSite } from "@/lib/constants.server";
-import { getEventSlugs } from "@/lib/eventDetail";
+import { getIndexableEventSlugs } from "@/lib/eventDetail";
 import { PASSES_CONFIGURED } from "@/lib/passes";
 import { getPolicies } from "@/lib/policies";
 import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
@@ -20,14 +20,15 @@ import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
  * few places.
  *
  * THE DYNAMIC PAGES COME FROM THE SAME GETTERS THEIR ROUTES PRERENDER FROM —
- * `getEventSlugs`, `getPrivateEventAudiences`, `getPolicies`, and the CMS
+ * `getIndexableEventSlugs`, `getPrivateEventAudiences`, `getPolicies`, and the CMS
  * landing pages the catch-all serves — so a document published in the admin
  * is in this file the moment it has a page, and one unpublished is gone from
  * it the moment it does not. Every content hook revalidates
  * `/sitemap.xml` (cms/hooks/revalidate.ts, SPEC §G.4).
  *
- * WHAT IS LEFT OUT, and it is exactly the set of pages that print `noindex`
- * or are blocked in app/robots.ts. Listing a page here while telling search
+ * WHAT IS LEFT OUT: the pages that print `noindex` or are blocked in
+ * app/robots.ts, and the dated session pages, whose canonical is their
+ * workshop type's page (`canonicalSlugOf`, lib/eventDetail.ts). Listing a page here while telling search
  * engines not to index it is a contradiction Google reports as an error.
  *
  *   /checkout, /payment-success, /booking-status, /events/{slug}/book
@@ -35,16 +36,17 @@ import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
  *   /loyalty    while PASSES_CONFIGURED is false — the page's own noindex is
  *               tied to the same flag, so the two lift together
  *   /journal/{slug} whose SEO tab ticks "noindex" (the post page prints it)
+ *   /events/{session} that defers to its type or activity page — listing a
+ *               URL whose canonical is elsewhere is the same contradiction
  *
  * NO changeFrequency OR priority — Google ignores both outright. A landing
  * page carries `lastModified`, its real `updatedAt`; nothing else does yet,
  * because `new Date()` would tell crawlers every page changed on every fetch,
  * which teaches them to ignore the field.
  *
- * URLs are absolute, as the protocol requires, and built from Site details'
- * public address once an admin has confirmed it (`getSite`, which until
- * then uses an https NEXT_PUBLIC_SERVER_URL, else lib/constants.ts) — so a
- * domain change in the admin moves them.
+ * URLs are absolute, as the protocol requires, and always name the
+ * production origin (lib/siteOrigin.ts, through `getSite`) — staging's
+ * sitemap lists the live addresses, never its own.
  */
 
 /** Indexable pages with no parameters. "" is the homepage. */
@@ -65,7 +67,7 @@ const STATIC_PATHS = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [site, eventSlugs, audiences, policies, landing, posts, categories] = await Promise.all([
     getSite(),
-    getEventSlugs(),
+    getIndexableEventSlugs(),
     getPrivateEventAudiences(),
     getPolicies(),
     getLandingPageSlugs(FIXED_PAGE_SLUGS),

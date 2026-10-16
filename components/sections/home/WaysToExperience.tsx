@@ -286,7 +286,6 @@ export async function WaysToExperience({
               doors: group.doors.map((door) => ({
                 label: door.label,
                 href: door.href,
-                mode: door.mode,
               })),
               mark: group.mark ?? MARKS[i % MARKS.length],
               /* A SECOND, SMALLER SHAPE per way in — it is the node on the
@@ -315,8 +314,6 @@ export interface Door {
   label: string;
   note?: string;
   href: string;
-  /** Only the two creating modes carry the shared walk-in / scheduled mark. */
-  mode?: "diy" | "scheduled";
 }
 
 /** Each way in's cut-out, by position — the order the launch page set them. */
@@ -350,13 +347,11 @@ async function launchGroups(): Promise<WaysGroup[]> {
           label: "Create Anytime",
           note: `${walkIn} activities, no booking`,
           href: "/events#create-anytime",
-          mode: "diy",
         },
         {
           label: "Create Together",
           note: `${scheduled} guided sessions`,
           href: "/events#scheduled",
-          mode: "scheduled",
         },
       ],
     },

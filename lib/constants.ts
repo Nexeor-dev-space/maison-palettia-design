@@ -1,5 +1,6 @@
 import { BOOKING_CONFIGURED, PAYMENT_CONFIGURED } from "@/lib/bookingFlags";
 import { ENQUIRY_CONFIGURED } from "@/lib/enquiry";
+import { PRODUCTION_ORIGIN } from "@/lib/siteOrigin";
 import type {
   ContactDetails,
   FaqItem,
@@ -47,8 +48,8 @@ export const SITE = {
   // category rather than the catalogue.
   tagline: "Creative workshops and events in Dubai",
   locale: "en_AE",
-  /** TODO(client): replace with the production domain before launch. */
-  url: "https://www.maisonpalettia.com",
+  /** The production origin (lib/siteOrigin.ts). */
+  url: PRODUCTION_ORIGIN,
 } as const;
 
 /**

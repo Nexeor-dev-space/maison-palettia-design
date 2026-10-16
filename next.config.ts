@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import { withPayload } from "@payloadcms/next/withPayload";
 
+import { PRODUCTION_HOST, PRODUCTION_ORIGIN } from "./lib/siteOrigin";
+
+/** `has`/`missing` values are regular expressions matched against the whole host. */
+const PRODUCTION_HOST_PATTERN = PRODUCTION_HOST.replace(/\./g, "\\.");
+
 /**
  * ==========================================================================
  * next.config.ts — one Next process, the site and the Payload admin inside it
@@ -76,7 +81,11 @@ const nextConfig: NextConfig = {
    * will cache it — which is the right outcome here and worth knowing before
    * anyone reverses the rename.
    *
-   * These three are the only redirects that live in code. Editorial ones
+   * The fourth sends `www.` to the production origin (lib/siteOrigin.ts):
+   * both hosts answered 200 with the same pages, so every URL existed twice.
+   * It sits here rather than in the proxy so it holds on any host setup.
+   *
+   * These are the only redirects that live in code. Editorial ones
    * ("old flyer URL → new page", a renamed slug) belong to the `redirects`
    * collection in the CMS (SPEC §D.2), where staff can add them without a
    * deploy.
@@ -86,6 +95,12 @@ const nextConfig: NextConfig = {
       { source: "/workshops", destination: "/events", permanent: true },
       { source: "/workshops/:slug", destination: "/events/:slug", permanent: true },
       { source: "/workshops/:slug/book", destination: "/events/:slug/book", permanent: true },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: `www\\.${PRODUCTION_HOST_PATTERN}` }],
+        destination: `${PRODUCTION_ORIGIN}/:path*`,
+        permanent: true,
+      },
     ];
   },
 
@@ -114,6 +129,12 @@ const nextConfig: NextConfig = {
    * pages). Only `frame-ancestors` is set in the CSP, so nothing else about
    * what pages may load changes. They are set here, not in nginx, so dev,
    * Docker and any proxy all get them, and nginx does not send them twice.
+   *
+   * `X-Robots-Tag: noindex` on every host but the production one: staging
+   * (same database, same pages) was open to crawlers, as were a bare IP and
+   * `www` before its redirect. Staging pages already name production as
+   * their canonical (lib/siteOrigin.ts); this keeps the copies out of the
+   * index. The production host never matches, so live pages are unaffected.
    */
   async headers() {
     return [
@@ -124,6 +145,11 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
         ],
+      },
+      {
+        source: "/:path*",
+        missing: [{ type: "host", value: PRODUCTION_HOST_PATTERN }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
       ...NO_REFERRER_ROUTES.map((source) => ({
         source,

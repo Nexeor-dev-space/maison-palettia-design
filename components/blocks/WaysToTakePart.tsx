@@ -32,7 +32,6 @@ export function WaysToTakePartAdapter({ block }: AdapterProps<"waysToTakePart">)
           label: door.label,
           href,
           note: text(door.note) ?? undefined,
-          mode: door.noteSource === "diyCount" ? "diy" : door.noteSource === "scheduledCount" ? "scheduled" : undefined,
         };
       })
       .filter((door): door is Door => door !== null),
