@@ -15,15 +15,16 @@ import { pick, prose, text, whenIs } from "./shared";
  * own names and lines, printed in many places, so they now come from
  * Booking & checkout wording → Event page → Mode labels (lib/modeCopy.ts).
  * The fields below stay (dropping a column is not an additive migration) but
- * are read-only and say where the words are edited.
+ * are hidden: shown read-only they printed a stale value next to the live
+ * one in Mode labels, which read as two settings disagreeing.
  */
 
-const MODE_LABELS = "Edited in Settings → Booking & checkout wording → Event page → Mode labels.";
+const MODE_LABELS = "Door titles, chips and group leads are edited in Settings → Booking & checkout wording → Event page → Mode labels.";
 
-/** A field kept for its stored value but no longer read: shown read-only, pointing at Mode labels. */
+/** A field kept for its stored value but no longer read: hidden, so Mode labels is the only place these words appear. */
 const movedToModeLabels = <F extends ReturnType<typeof text>>(field: F): F => ({
   ...field,
-  admin: { ...field.admin, readOnly: true, description: MODE_LABELS },
+  admin: { ...field.admin, hidden: true },
 });
 export const EventsBrowserBlock: Block = {
   slug: "eventsBrowser",
@@ -38,7 +39,7 @@ export const EventsBrowserBlock: Block = {
       labels: { singular: "Way to book", plural: "Ways to book" },
       minRows: 2,
       maxRows: 2,
-      admin: { description: "Create Anytime first, Create Together second." },
+      admin: { description: `Create Anytime first, Create Together second. ${MODE_LABELS}` },
       fields: [
         movedToModeLabels(text("title", "Title", 24, { required: true })),
         pick(
@@ -60,6 +61,7 @@ export const EventsBrowserBlock: Block = {
       name: "groupLeads",
       type: "group",
       label: "Group heads",
+      admin: { hidden: true },
       fields: [
         movedToModeLabels(text("diy", "Create Anytime — lead", 80, { defaultValue: "Pick a project. Pick your colours. Just drop in." })),
         movedToModeLabels(text("scheduled", "Create Together — lead", 80, { defaultValue: "A little more planned. Same creative energy." })),
