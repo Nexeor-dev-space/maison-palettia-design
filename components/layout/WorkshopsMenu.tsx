@@ -1,5 +1,6 @@
 "use client";
 
+import { useModeCopy } from "@/components/layout/SiteChrome";
 import { useId, useState } from "react";
 
 import { SessionGate } from "@/components/booking/SessionClock";
@@ -65,12 +66,12 @@ interface WorkshopsMenuProps {
 const GROUPS = [
   {
     mode: "diy",
-    title: "Create Anytime",
+    labelKey: "createAnytime",
     note: "No booking needed. Create at your own pace.",
   },
   {
     mode: "scheduled",
-    title: "Create Together",
+    labelKey: "createTogether",
     note: "Scheduled workshops, booked online.",
   },
 ] as const;
@@ -126,8 +127,11 @@ export function WorkshopsMenu({
   const { isOpen, mounted, shown, regionProps, triggerProps, cardProps } =
     useMenuDisclosure(onOpenChange);
 
+  const { labels, eventPage } = useModeCopy();
+  /* The group names are Mode labels'. */
   const groups = GROUPS.map((group) => ({
     ...group,
+    title: labels[group.labelKey],
     items: experiences.filter((experience) => experience.kind === group.mode),
   })).filter((group) => group.items.length > 0);
 
@@ -190,7 +194,7 @@ export function WorkshopsMenu({
                 <SessionGate
                   startsAt={session.startsAt}
                   open={formatWorkshopDate(session.startsAt)}
-                  passed="Date passed"
+                  passed={eventPage.passedLabel}
                 />
               ) : undefined)
             }
@@ -319,7 +323,7 @@ export function WorkshopsMenu({
                   href={`/events/${active.slug}`}
                   /* The same two names as the groups beside it — this panel
                      would otherwise call one thing two things at once. */
-                  eyebrow={active.kind === "diy" ? "Create Anytime" : "Create Together"}
+                  eyebrow={active.kind === "diy" ? labels.createAnytime : labels.createTogether}
                   name={active.name}
                   description={active.description}
                   image={active.pageImage ?? active.image}
@@ -349,7 +353,7 @@ export function WorkshopsMenu({
                             </span>
                           </span>
                         }
-                        passed="Date passed"
+                        passed={eventPage.passedLabel}
                       />
                     ) : null
                   }

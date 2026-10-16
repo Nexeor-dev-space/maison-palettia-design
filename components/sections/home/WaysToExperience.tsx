@@ -1,4 +1,5 @@
 
+import { getModeCopy } from "@/lib/modeCopy.server";
 import { Reveal } from "@/components/motion/Reveal";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { Container } from "@/components/ui/Container";
@@ -321,7 +322,7 @@ const MARKS: readonly DoodleName[] = ["splash", "starburst", "starleaf", "bow"];
 
 /** The four groups as the launch page set them, with the live activity counts. */
 async function launchGroups(): Promise<WaysGroup[]> {
-  const experiences = await getCreativeExperiences();
+  const [experiences, { labels }] = await Promise.all([getCreativeExperiences(), getModeCopy()]);
   const walkIn = experiences.filter((e) => e.kind === "diy").length;
   const scheduled = experiences.filter((e) => e.kind === "scheduled").length;
 
@@ -344,12 +345,12 @@ async function launchGroups(): Promise<WaysGroup[]> {
            to the identical place and left them to find the difference again.
            `#walk-in` and `#scheduled` are the two sections' own anchors. */
         {
-          label: "Create Anytime",
+          label: labels.createAnytime,
           note: `${walkIn} activities, no booking`,
           href: "/events#create-anytime",
         },
         {
-          label: "Create Together",
+          label: labels.createTogether,
           note: `${scheduled} guided sessions`,
           href: "/events#scheduled",
         },

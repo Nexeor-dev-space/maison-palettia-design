@@ -2,6 +2,7 @@
 
 import styles from "@/components/booking/PaintBooking.module.css";
 import { BrushProgress, EYEBROW, Mark, NameLine } from "@/components/booking/PlaceCard";
+import { isValidEmail, isValidName, isValidPhone } from "@/lib/fieldValidation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -90,9 +91,9 @@ export function EnquiryStub({
   const chose = (value: string) => value !== "" && value !== undecided;
 
   const done = [
-    name.trim() !== "",
-    email.trim() !== "",
-    phone.trim() !== "",
+    isValidName(name),
+    isValidEmail(email),
+    isValidPhone(phone),
     chose(occasion),
     chose(activity),
     message.trim() !== "",
@@ -142,8 +143,8 @@ export function EnquiryStub({
             card's narrowest a wrapping row drops the third onto a line of its
             own and costs the card the height it needs to stick. */}
         <div className="mt-3.5 grid grid-cols-3 gap-x-1">
-          <Mark label="Email" on={email.trim() !== ""} />
-          <Mark label="Phone" on={phone.trim() !== ""} />
+          <Mark label="Email" on={isValidEmail(email)} />
+          <Mark label="Phone" on={isValidPhone(phone)} />
           <Mark label="Date" on={date.trim() !== ""} />
         </div>
       </div>

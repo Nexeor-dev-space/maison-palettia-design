@@ -3,6 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 import type { Pass, Workshop } from "@/types";
+import { isValidEmail, isValidName, isValidPhone, NAME_FORMAT_MESSAGE, PHONE_FORMAT_MESSAGE } from "@/lib/fieldValidation";
 
 /**
  * The basket — the browser half of the booking journey.
@@ -442,13 +443,14 @@ export function validateBookingDetails(input: BookingDetails): Record<string, st
   const errors: Record<string, string> = {};
 
   if (!input.firstName.trim()) errors.firstName = "Please tell us your first name.";
+  else if (!isValidName(input.firstName)) errors.firstName = NAME_FORMAT_MESSAGE;
   if (!input.lastName.trim()) errors.lastName = "Please tell us your last name.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) {
+  else if (!isValidName(input.lastName)) errors.lastName = NAME_FORMAT_MESSAGE;
+  if (!isValidEmail(input.email)) {
     errors.email = "Please check this email address.";
   }
-  if (input.phone.replace(/[^\d]/g, "").length < 7) {
-    errors.phone = "Please add a number we can reach you on.";
-  }
+  if (!input.phone.trim()) errors.phone = "Please add a number we can reach you on.";
+  else if (!isValidPhone(input.phone)) errors.phone = PHONE_FORMAT_MESSAGE;
 
   return errors;
 }

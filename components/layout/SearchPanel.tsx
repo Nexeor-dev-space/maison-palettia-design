@@ -1,5 +1,6 @@
 "use client";
 
+import { useModeCopy } from "@/components/layout/SiteChrome";
 import { Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -315,6 +316,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       // See the note on the full-screen shape above for why this is `inert`
       // and not `hidden`.
       inert={!isOpen}
+      data-lenis-prevent
       /*
         ==================================================================
         THE SAME CARD THE TWO MEGAMENUS OPEN — see <MenuCard>
@@ -341,6 +343,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       className={cn(
         "absolute left-1/2 top-[calc(100%+0.5rem)] z-40 -translate-x-1/2",
         "w-[calc(100vw-2*var(--spacing-gutter))] max-w-[44rem]",
+        "max-h-[calc(100dvh-var(--spacing-header-lg)-1.5rem)] overflow-y-auto overscroll-contain",
         "plate rounded-[1.75rem] bg-cream p-2.5 md:p-3",
         "transition-[opacity,translate,scale] ease-soft motion-reduce:transition-none",
         shown
@@ -612,6 +615,7 @@ function ActivityResults({
   experiences: readonly CreativeExperience[];
   onNavigate: () => void;
 }) {
+  const { labels } = useModeCopy();
   return (
     <div>
       <p className="mb-4 text-label font-medium uppercase tracking-eyebrow text-text/75">
@@ -634,7 +638,7 @@ function ActivityResults({
                 ) : null}
               </span>
               <span className="shrink-0 text-label font-medium uppercase tracking-eyebrow text-text/75">
-                {experience.kind === "diy" ? "Create Anytime" : "Create Together"}
+                {experience.kind === "diy" ? labels.createAnytime : labels.createTogether}
               </span>
             </Link>
           </li>
@@ -658,6 +662,7 @@ function ActivityResults({
  * behind the thumbnail, as <WorkshopsMenu> uses for its own.
  */
 function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: () => void }) {
+  const { eventPage } = useModeCopy();
   const { start } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
   /*
     A date that has begun reads as closed, in the event card's words. The
@@ -740,7 +745,7 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
           {scarce ? (
             <span aria-hidden className="size-1.5 shrink-0 rounded-pill bg-on-primary/90" />
           ) : null}
-          {passed ? "Date passed" : spotsLabel(workshop)}
+          {passed ? eventPage.passedLabel : spotsLabel(workshop)}
         </p>
       </div>
 

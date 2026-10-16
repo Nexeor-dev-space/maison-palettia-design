@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { SessionGate } from "@/components/booking/SessionClock";
+import { modeCopy } from "@/components/blocks/templateCopy";
 import { TERM } from "@/components/events/WorkshopTypeCards";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { PeelNote } from "@/components/ui/PeelNote";
@@ -109,7 +110,7 @@ export function SessionTicket({
                 {spotsLabel(session)}
               </>
             }
-            passed="Date passed"
+            passed={modeCopy().eventPage.passedLabel}
           />
         </p>
         <SessionGate

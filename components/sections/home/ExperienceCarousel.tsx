@@ -1,5 +1,6 @@
 "use client";
 
+import { useModeCopy } from "@/components/layout/SiteChrome";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ExperienceCard } from "@/components/events/ExperienceCard";
@@ -62,6 +63,8 @@ export function ExperienceCarousel({
   /** The label each card's paint carries in; the card's own default when absent. */
   cardAction?: string;
 }) {
+  const { labels } = useModeCopy();
+  const kindLabels = { diy: labels.anyTime, scheduled: labels.scheduled };
   const track = useRef<HTMLUListElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
@@ -198,6 +201,7 @@ export function ExperienceCarousel({
             sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 29vw, (min-width: 640px) 44vw, 74vw"
             as="li"
             actionLabel={cardAction}
+            kindLabels={kindLabels}
             className={cn(
               "w-[74%] shrink-0 snap-start sm:w-[44%] lg:w-[29%] xl:w-[22%]",
               i % 2 === 0 ? "lg:mt-0" : "lg:mt-7",

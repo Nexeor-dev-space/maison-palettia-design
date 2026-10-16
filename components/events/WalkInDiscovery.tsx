@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { StepPath, TERM } from "@/components/events/WorkshopTypeCards";
 import { FindYourVibe } from "@/components/layout/FindYourVibe";
 import { PaintStroke } from "@/components/layout/PaintStroke";
+import { useModeCopy } from "@/components/layout/SiteChrome";
 import { Reveal } from "@/components/motion/Reveal";
 import { INK } from "@/components/sections/hero/composition";
 import type { DoodleName } from "@/components/sections/hero/doodles";
@@ -60,6 +61,7 @@ import { experiencesByVibe, hasVibeTags, vibeCounts, type VibeSlug } from "@/lib
  */
 export function WalkInDiscovery({ experiences }: { experiences: CreativeExperience[] }) {
   const [vibe, setVibe] = useState<VibeSlug | null>(null);
+  const { labels, walkIn } = useModeCopy();
 
   const offersVibes = useMemo(() => hasVibeTags(experiences), [experiences]);
   const counts = useMemo(() => {
@@ -94,17 +96,17 @@ export function WalkInDiscovery({ experiences }: { experiences: CreativeExperien
         a chip is pressed.
       */}
       <p aria-live="polite" className="sr-only">
-        {shown.length} Create Anytime {shown.length === 1 ? "experience" : "experiences"} shown
+        {shown.length} {labels.createAnytime} {shown.length === 1 ? "experience" : "experiences"} shown
       </p>
 
       {shown.length === 0 ? (
         <p className="mt-10 max-w-[34rem] text-body text-text/85">
-          Nothing is tagged that way yet. Clear the filter to see every Create Anytime experience.
+          {walkIn.emptyNote}
         </p>
       ) : (
         <div className="mt-10 flex flex-col gap-12 md:mt-12 md:gap-14">
-          {open.length > 0 ? <CardGroup id="walk-in-open" title="Open for drop-ins" experiences={open} /> : null}
-          {soon.length > 0 ? <CardGroup id="walk-in-soon" title="Coming soon" experiences={soon} quiet offset={open.length} /> : null}
+          {open.length > 0 ? <CardGroup id="walk-in-open" title={walkIn.openGroupTitle} experiences={open} /> : null}
+          {soon.length > 0 ? <CardGroup id="walk-in-soon" title={walkIn.soonGroupTitle} experiences={soon} quiet offset={open.length} /> : null}
         </div>
       )}
     </Container>
@@ -119,13 +121,10 @@ export function WalkInDiscovery({ experiences }: { experiences: CreativeExperien
   The three steps, in the page's own words: the Create Anytime door says
   "Drop in, choose an experience and create at your own pace … just pick a
   project and make it yours", and this group's lead says "Pick a project.
-  Pick your colours. Just drop in." Nothing here is a new claim.
+  Pick your colours. Just drop in." Nothing here is a new claim. The heading
+  and the steps are Booking & checkout wording → Event page → Create Anytime
+  section (`walkIn`), with these words as the defaults (lib/modeCopy.ts).
 */
-const STEPS = [
-  { title: "Choose a project", body: "Browse the activities below and pick the one you would like to make." },
-  { title: "Drop in", body: "No booking needed. Just come in to the studio." },
-  { title: "Make it yours", body: "Pick your colours and create at your own pace." },
-] as const;
 
 /*
   DRAWN AS THE RECOMMENDED PATH IS, at the client's ask — the same numbered
@@ -145,15 +144,16 @@ const HOW_GROUNDS = [
 ] as const;
 
 function HowItWorks() {
+  const { walkIn } = useModeCopy();
   return (
     <section aria-labelledby="walk-in-how">
       <h3 id="walk-in-how" className={TERM}>
-        How it works
+        {walkIn.howHeading}
       </h3>
       <StepPath
         className="mt-6"
         grounds={HOW_GROUNDS}
-        steps={STEPS.map((step) => ({ key: step.title, title: step.title, note: step.body }))}
+        steps={walkIn.steps.map((step, i) => ({ key: `${i}-${step.title}`, title: step.title, note: step.body }))}
       />
     </section>
   );
@@ -229,9 +229,10 @@ const FRAMES: readonly { tint: string; paint: string; mark: DoodleName; trail: D
  * with a lilac hairline, the photograph easing in, and the arrow stepping on.
  */
 function WalkInCard({ experience, index }: { experience: CreativeExperience; index: number }) {
+  const { labels, walkIn } = useModeCopy();
   const flag = experience.status ?? null;
-  const how = flag ?? "No booking needed";
-  const action = flag ? "Take a look" : "View details";
+  const how = flag ?? labels.noBooking;
+  const action = flag ? walkIn.cardSoonAction : walkIn.cardAction;
   const frame = FRAMES[index % FRAMES.length];
   // The activity page's banner where one is set, so the card shows what its page opens on.
   const photo = experience.pageImage ?? experience.image;
@@ -288,7 +289,7 @@ function WalkInCard({ experience, index }: { experience: CreativeExperience; ind
             >
               <PaintStroke paint={frame.paint} shape="blot" />
               {flag ? <span aria-hidden className="relative size-2 rounded-pill bg-terracotta" /> : null}
-              <span className="relative text-action font-medium uppercase tracking-eyebrow">{flag ?? "No booking"}</span>
+              <span className="relative text-action font-medium uppercase tracking-eyebrow">{flag ?? labels.noBooking}</span>
             </span>
             <span
               className="relative isolate inline-flex items-center gap-2 rounded-full px-3.5 py-2.5"
