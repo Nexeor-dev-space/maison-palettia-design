@@ -1,8 +1,6 @@
-import { envPublicUrl, isAcceptablePublicUrl, PUBLIC_URL_RE } from "@/cms/lib/publicUrl";
 import { BOOKING_CONFIGURED, PAYMENT_CONFIGURED } from "@/lib/bookingFlags";
 import { TAGS } from "@/lib/cms/cache";
 import { hrefOf, lexicalToText, sizedImageOf, toNavItem } from "@/lib/cms/mappers";
-import { getCms } from "@/lib/cms/payload";
 import { contentReader, findDocs, getGlobal } from "@/lib/cms/query";
 import {
   BOOKING_REQUEST_TERMS,
@@ -64,54 +62,25 @@ export interface SiteIdentity {
 }
 
 /**
- * The public origin for canonicals, `og:url`, the sitemap and robots — the
- * addresses search engines keep.
+ * `url` is the origin search engines keep — canonicals, `og:url`, the
+ * sitemap, robots, JSON-LD — and it is always the production origin
+ * (lib/siteOrigin.ts), on every deployment.
  *
- *   1. Site details → `publicUrl`, but only once an admin has CONFIRMED it
- *      (`system-state.publicUrlConfirmedAt`, the same stamp
- *      `isPlaceholderPublicUrl()` reads). Until then the stored value is the
- *      seed's copy of whichever `.env` ran it — on the shared database
- *      (DECISIONS.md #1) that is the dev machine's `http://localhost:3200`,
- *      and a production deploy would otherwise print localhost canonicals
- *      until somebody re-saved Site details.
- *   2. `NEXT_PUBLIC_SERVER_URL`, when it is a real https address (the
- *      production build's). A local http value is a dev convenience for
- *      links that must work on this machine (emails, payment returns —
- *      cms/lib/publicUrl.ts keeps using it there); it is never an address
- *      to hand a crawler.
- *   3. The old constant, `SITE.url` — what every page printed before the CMS.
- *
- * system-state is staff-only, so this reads both globals with the server's
- * own access and caches the answer under the site-settings tag: the save
- * that confirms the address (cms/globals/SiteSettings.ts) purges that tag.
+ * It used to be Site details → `publicUrl` once confirmed, then an https
+ * `NEXT_PUBLIC_SERVER_URL`. Live and staging share one database, so the
+ * confirmed `publicUrl` was staging's, and the live site sent every crawler
+ * to staging (DECISIONS.md #9). Emails, payment returns and preview links
+ * still follow `publicUrl` (cms/lib/publicUrl.ts): those must reach the
+ * deployment that sent them, which a canonical must not.
  */
-const readConfirmedOrigin = contentReader("site-origin", [TAGS.site], async () => {
-  const payload = await getCms();
-  const [settings, state] = await Promise.all([
-    payload.findGlobal({ slug: "site-settings", depth: 0, overrideAccess: true, select: { publicUrl: true } }),
-    payload.findGlobal({ slug: "system-state", depth: 0, overrideAccess: true, select: { publicUrlConfirmedAt: true } }),
-  ]);
-  const saved = typeof settings?.publicUrl === "string" ? settings.publicUrl : "";
-  return state?.publicUrlConfirmedAt && isAcceptablePublicUrl(saved) ? saved : "";
-});
-
-const stripSlash = (url: string) => url.trim().replace(/\/+$/, "");
-
-async function siteOrigin(): Promise<string> {
-  const confirmed = await readConfirmedOrigin();
-  if (confirmed) return stripSlash(confirmed);
-  const env = envPublicUrl();
-  return PUBLIC_URL_RE.test(env) ? env : stripSlash(SITE.url);
-}
-
 export async function getSite(): Promise<SiteIdentity> {
-  const [settings, url] = await Promise.all([getGlobal("site-settings", 0), siteOrigin()]);
+  const settings = await getGlobal("site-settings", 0);
   return {
     name: settings?.name || SITE.name,
     legalName: settings?.legalName || SITE.legalName,
     tagline: settings?.tagline || SITE.tagline,
     locale: settings?.locale || SITE.locale,
-    url,
+    url: SITE.url,
   };
 }
 
