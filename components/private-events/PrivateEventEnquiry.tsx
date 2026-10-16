@@ -15,6 +15,7 @@ import { PointerTilt } from "@/components/motion/PointerTilt";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { useFitsInView } from "@/components/booking/BookingForm";
 import styles from "@/components/booking/PaintBooking.module.css";
+import { isValidEmail, isValidName, isValidPhone, NAME_FORMAT_MESSAGE, PHONE_FORMAT_MESSAGE } from "@/lib/fieldValidation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -58,6 +59,12 @@ const UNDECIDED = "Not decided yet";
 
 /** The order errors are read in, so focus lands on the first one down the page. */
 const FIELD_ORDER = ["name", "email", "phone", "date", "guests", "message"] as const;
+
+const LIVE_FIELDS = ["name", "email", "phone"] as const;
+type LiveField = (typeof LIVE_FIELDS)[number];
+const isLiveField = (name: string): name is LiveField => (LIVE_FIELDS as readonly string[]).includes(name);
+const BLANK_VALUES = { name: "", email: "", phone: "", date: "", guests: "", message: "" };
+const liveFieldError = (name: LiveField, value: string) => validate({ ...BLANK_VALUES, [name]: value.trim() })[name];
 
 /**
  * The private-event enquiry.
@@ -125,6 +132,16 @@ export function PrivateEventEnquiry({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [result, setResult] = useState<EnquiryResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const focusFirstError = useRef(false);
+  const touched = useRef(new Set<string>());
+  const updateFieldError = (name: string, message: string | undefined) =>
+    setErrors((prev) => {
+      if (prev[name] === message) return prev;
+      const next = { ...prev };
+      if (message) next[name] = message;
+      else delete next[name];
+      return next;
+    });
   /*
     A SECOND VIEW OF THE ANSWERS, NOT A SECOND COPY OF THEM.
 
@@ -178,6 +195,8 @@ export function PrivateEventEnquiry({
     something is wrong; this is what makes it actionable.
   */
   useEffect(() => {
+    if (!focusFirstError.current) return;
+    focusFirstError.current = false;
     const first = FIELD_ORDER.find((name) => errors[name]);
     if (!first || !formRef.current) return;
     formRef.current.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
@@ -214,6 +233,8 @@ export function PrivateEventEnquiry({
     };
 
     const next = validate(values);
+    LIVE_FIELDS.forEach((name) => touched.current.add(name));
+    focusFirstError.current = true;
     setErrors(next);
     if (Object.keys(next).length > 0) {
       setResult(null);
@@ -249,6 +270,7 @@ export function PrivateEventEnquiry({
       });
       // A field the server refused is marked where it is, as the browser's own checks are.
       if (outcome.status === "invalid" && outcome.field && (FIELD_ORDER as readonly string[]).includes(outcome.field)) {
+        focusFirstError.current = true;
         setErrors({ [outcome.field]: outcome.message });
       }
       setResult(outcome);
@@ -306,6 +328,7 @@ export function PrivateEventEnquiry({
     );
   }
 
+
   const errorCount = Object.keys(errors).length;
 
   const stub = (
@@ -342,6 +365,15 @@ export function PrivateEventEnquiry({
         const el = event.target as HTMLInputElement | HTMLTextAreaElement;
         if (!el.name || !(el.name in watched)) return;
         setWatched((prev) => ({ ...prev, [el.name]: el.value }));
+        if (isLiveField(el.name) && touched.current.has(el.name)) {
+          updateFieldError(el.name, (el.value.trim() || errors[el.name]) ? liveFieldError(el.name, el.value) : undefined);
+        }
+      }}
+      onBlur={(event) => {
+        const el = event.target as Element as HTMLInputElement;
+        if (!isLiveField(el.name) || !el.value.trim()) return;
+        touched.current.add(el.name);
+        updateFieldError(el.name, liveFieldError(el.name, el.value));
       }}
     >
       <Honeypot id={`${ids}-website`} />
@@ -519,6 +551,7 @@ export function PrivateEventEnquiry({
             </div>
             {errors.message ? (
               <p id={`${ids}-message-error`} className="mt-2 text-fine text-text">
+                <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-terracotta align-middle" />
                 {errors.message}
               </p>
             ) : null}
@@ -677,14 +710,13 @@ function validate(v: {
   const errors: Record<string, string> = {};
 
   if (!v.name) errors.name = "Please tell us your name.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) errors.email = "Please check this email address.";
-  // Digit count rather than a format pattern, and the same rule the booking
-  // step uses. UAE numbers are written +971 50 123 4567, 050 123 4567 and
-  // 0501234567 by people who all mean the same thing, and a regex strict
-  // enough to be worth having would reject two of the three.
-  if (v.phone.replace(/\D/g, "").length < 7) {
-    errors.phone = "Please add a number we can reach you on.";
-  }
+  else if (!isValidName(v.name)) errors.name = NAME_FORMAT_MESSAGE;
+  if (!isValidEmail(v.email)) errors.email = "Please check this email address.";
+  // The same rule the booking step uses (lib/fieldValidation): digits with
+  // spaces, a leading +, hyphens and brackets, so +971 50 123 4567,
+  // 050 123 4567 and 0501234567 all pass, and letters or other symbols do not.
+  if (!v.phone) errors.phone = "Please add a number we can reach you on.";
+  else if (!isValidPhone(v.phone)) errors.phone = PHONE_FORMAT_MESSAGE;
 
   if (v.date) {
     // `toLocaleDateString("en-CA")` is YYYY-MM-DD in the visitor's own zone,
@@ -765,6 +797,7 @@ function Field({
       </div>
       {error ? (
         <p id={`${id}-error`} className="mt-2 text-fine text-text">
+          <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-terracotta align-middle" />
           {error}
         </p>
       ) : null}
