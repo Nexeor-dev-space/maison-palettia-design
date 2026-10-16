@@ -54,6 +54,9 @@ export const PROJECT_ROOT = outsideNext(path.resolve(here, "../.."));
 /** Where `media` uploads are stored. Gitignored, backed up with the database. */
 export const MEDIA_DIR = path.join(PROJECT_ROOT, "media");
 
+/** Where `music-tracks` audio is stored — inside `media/`, so the same backup carries it. */
+export const MUSIC_DIR = path.join(MEDIA_DIR, "music");
+
 /** Where files that must never be served by URL live (invoice PDFs, Phase 3). */
 export const PRIVATE_DIR = path.join(PROJECT_ROOT, "private");
 

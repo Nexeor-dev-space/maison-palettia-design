@@ -185,6 +185,8 @@ export function EventBookingBar({ sentinelId, closed: closedAtRender, closedStat
   return (
     <div
       ref={barRef}
+      // The music player's phone placement steps aside while this is drawn (MusicPlayer.module.css).
+      data-booking-bar=""
       // `fixed` over everything the page paints, including the pinned footer.
       // `pointer-events-none` on the frame and back on for the bar itself, so
       // the empty measure either side of the desktop bar is not a dead strip

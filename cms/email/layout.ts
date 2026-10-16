@@ -1,3 +1,4 @@
+import { doodleImg } from "./doodles";
 import { escapeHtml } from "./render";
 
 /**
@@ -66,27 +67,70 @@ export function renderEmailLayout({ subject, preheader, bodyHtml, site }: EmailL
 <meta name="x-apple-disable-message-reformatting">
 <meta name="color-scheme" content="light">
 <title>${escapeHtml(subject)}</title>
+<style>
+.mp-button { transition: background-color 0.2s ease; }
+.mp-button:hover { background-color: #7a4a8c !important; }
+@media (max-width: 760px) { .mp-side { display: none !important; } }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f6efe2;-webkit-text-size-adjust:100%;">
+<body style="margin:0;padding:0;background:#efe2ca;-webkit-text-size-adjust:100%;">
 ${preheaderHtml}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6efe2;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#efe2ca;">
   <tr>
     <td align="center" style="padding:32px 12px;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:820px;">
+        <tr>
+          <td class="mp-side" width="110" align="left" valign="top" style="padding:190px 0 0;font-size:0;line-height:0;">${doodleImg("mp-doodle-cutout", 30)}</td>
+          <td align="center" valign="top" style="padding:0;">
       <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;">
         <tr>
-          <td align="center" style="padding:8px 0 24px;">${url ? `<a href="${url}" style="text-decoration:none;">${header}</a>` : header}</td>
-        </tr>
-        <tr>
-          <td style="background:#ffffff;border-radius:16px;border-top:4px solid #9059a4;padding:36px 36px 20px;font-family:${FONT};font-size:15px;line-height:1.6;color:#2d3748;">
-            ${bodyHtml}
+          <td style="padding:8px 0 24px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td width="56" align="left" valign="top" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-bow", 30)}</td>
+                <td align="center" valign="middle" style="padding:0;">${url ? `<a href="${url}" style="text-decoration:none;">${header}</a>` : header}</td>
+                <td width="56" align="right" valign="top" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-wave", 30)}</td>
+              </tr>
+            </table>
           </td>
         </tr>
         <tr>
-          <td align="center" style="padding:24px 24px 8px;font-family:${FONT};font-size:12px;line-height:1.6;color:#6b5a73;">
+          <td style="background:#d1e7be;border:1px solid #9059a4;border-radius:16px;padding:14px 16px;box-shadow:0 14px 34px -14px rgba(45,55,72,0.28);">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td align="left" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-coral", 15)}</td>
+                <td align="right" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-splash", 30)}</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding:6px 20px 8px;font-family:${FONT};font-size:15px;line-height:1.6;color:#2d3748;">
+                  ${bodyHtml}
+                </td>
+              </tr>
+              <tr>
+                <td align="left" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-bow", 24)}</td>
+                <td align="right" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-wave", 24)}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td width="56" align="left" valign="bottom" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-splash", 30)}</td>
+                <td align="center" valign="top" style="padding:24px 8px 8px;font-family:${FONT};font-size:12px;line-height:1.6;color:#6b5a73;">
             <strong style="color:#2d3748;">${name}</strong><br>
             ${contactBits.join("<br>")}
             ${url ? `<br><a href="${url}" style="color:#6b5a73;text-decoration:underline;">${escapeHtml(site.url.replace(/^https?:\/\//, ""))}</a>` : ""}
           </td>
+                <td width="56" align="right" valign="bottom" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-coral", 30)}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+          </td>
+          <td class="mp-side" width="110" align="right" valign="bottom" style="padding:0 0 150px;font-size:0;line-height:0;">${doodleImg("mp-doodle-starburst", 30)}</td>
         </tr>
       </table>
     </td>

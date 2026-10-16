@@ -7,7 +7,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { NAV_SIZE, NAV_UTILITY_SIZE, NavLabel } from "@/components/layout/NavLabel";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
-import { SoundToggle } from "@/components/layout/SoundToggle";
 import { AboutMenu } from "@/components/layout/AboutMenu";
 import { PrivateEventsMenu } from "@/components/layout/PrivateEventsMenu";
 import { WorkshopsMenu } from "@/components/layout/WorkshopsMenu";
@@ -759,7 +758,7 @@ export function HeaderBar({
           one group, and the space they give back goes where it is wanted —
           between the mark and them. The navigation's own gaps are untouched.
         */}
-        <div className="row-start-1 col-start-3 flex items-center justify-end gap-2 sm:gap-3 lg:gap-6 xl:gap-7">
+        <div className="row-start-1 col-start-3 flex items-center justify-end gap-5 lg:gap-6 xl:gap-7">
           {/*
             The way back into a booking in progress. It appears only once
             something is held, which is why it is not a permanent basket icon:
@@ -769,17 +768,6 @@ export function HeaderBar({
             away from it.
           */}
           <BasketLink />
-
-          {/*
-            The background music's switch, beside Search and dressed like
-            it — a wave that flows while the music plays and lies flat while
-            it is paused. See <SoundToggle> and lib/backgroundMusic.ts.
-          */}
-          <SoundToggle />
-          {/* `gap-2` below `lg` (it was `gap-5`): the client asked for the
-              music button and Search to sit closer on a phone. Search's
-              blot sits 4px inside its own 44px box, so 8px here reads as
-              about 12 between the two drawn shapes. */}
 
           {/* Search leads the utilities: it is the fastest route to a date on
               the whole site, and the only control here that does something

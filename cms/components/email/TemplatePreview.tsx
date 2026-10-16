@@ -3,6 +3,8 @@
 import { Button, toast, useConfig, useFormFields } from "@payloadcms/ui";
 import React, { useEffect, useRef, useState } from "react";
 
+import { withDoodleDataUris } from "@/cms/email/doodles";
+
 /**
  * ==========================================================================
  * TemplatePreview — the email as the customer will see it, before saving
@@ -125,7 +127,7 @@ export function TemplatePreview() {
             <strong>{preview.subject}</strong>
           </div>
           {mode === "html" ? (
-            <iframe title="Email preview" sandbox="" srcDoc={preview.html} style={{ width: "100%", height: 680, border: 0, background: "#fff", display: "block" }} />
+            <iframe title="Email preview" sandbox="" srcDoc={withDoodleDataUris(preview.html)} style={{ width: "100%", height: 680, border: 0, background: "#fff", display: "block" }} />
           ) : (
             <pre style={{ margin: 0, padding: 16, whiteSpace: "pre-wrap", fontSize: 13, maxHeight: 680, overflow: "auto" }}>{preview.text}</pre>
           )}
