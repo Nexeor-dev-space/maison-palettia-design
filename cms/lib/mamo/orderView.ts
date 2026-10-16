@@ -32,6 +32,7 @@ export interface MinimalOrderStatus {
 export interface CustomerOrderView extends MinimalOrderStatus {
   reference: string;
   firstName: string;
+  email?: string | null;
   channel: Order["channel"];
   lines: Array<{
     kind: "session" | "pass";
@@ -51,6 +52,7 @@ export interface CustomerOrderView extends MinimalOrderStatus {
   /** Mamo's customer-facing decline text on a failed attempt (research 02 §A10), for "/checkout?payment=failed". */
   failureMessage: string | null;
   confirmedAt: string | null;
+  isRescheduled?: boolean;
 }
 
 export async function findOrderByReference(req: PayloadRequest, reference: string): Promise<Order | null> {
@@ -126,6 +128,7 @@ export async function customerView(req: PayloadRequest, order: Order): Promise<C
     ...minimalStatus(order),
     reference: order.reference,
     firstName: order.contact?.firstName ?? "",
+    email: order.contact?.email ?? null,
     channel: order.channel,
     lines,
     totals: {
@@ -140,6 +143,7 @@ export async function customerView(req: PayloadRequest, order: Order): Promise<C
     invoiceAvailable: Boolean(order.invoice),
     failureMessage,
     confirmedAt: order.confirmedAt ?? null,
+    isRescheduled: Boolean(order.timeline?.some((t) => t.event === "moved" || t.event === "rescheduled")),
   };
 }
 

@@ -326,7 +326,13 @@ export async function findOrderByReference(reference: string): Promise<Order | n
  * routes, so every customer surface renders the same shape.
  */
 export async function orderViewOf(order: Order, { detail }: { detail: boolean }): Promise<OrderView> {
-  const view: OrderView = { reference: order.reference, status: order.status, holdExpiresAt: order.hold?.expiresAt ?? null };
+  const isRescheduled = Boolean(order.timeline?.some((t) => t.event === "moved" || t.event === "rescheduled"));
+  const view: OrderView = {
+    reference: order.reference,
+    status: order.status,
+    ...(isRescheduled ? { isRescheduled: true } : {}),
+    holdExpiresAt: order.hold?.expiresAt ?? null,
+  };
   if (!detail) return view;
 
   let tickets: OrderViewTicket[] = [];

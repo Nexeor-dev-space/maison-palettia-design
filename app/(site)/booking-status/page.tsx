@@ -41,7 +41,7 @@ export default async function BookingStatusPage({ searchParams }: { searchParams
     */
     <section
       aria-labelledby="booking-status-title"
-      className="relative isolate overflow-hidden bg-sage py-[4rem] md:py-section lg:py-section-lg"
+      className="relative isolate overflow-hidden bg-sage py-[4rem] md:py-section lg:py-section-lg min-h-[calc(100dvh-12rem)] pb-28 md:pb-44"
     >
       <SectionShapes plan={STATUS_SHAPES} />
 

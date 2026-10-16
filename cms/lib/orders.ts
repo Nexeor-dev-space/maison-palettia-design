@@ -1165,8 +1165,12 @@ export async function markRepaid(req: PayloadRequest, orderId: string, refundId:
   await completeRefund(req, refundId);
 }
 
-/** Cancel with refund (admin): seats back now, tickets void, a full refund approved on the spot. */
-export async function cancelOrder(req: PayloadRequest, orderId: string, input: { reason: string; note?: string }): Promise<{ refundId?: string }> {
+/** Cancel with refund (admin/customer): seats back now, tickets void, refund processed unless nonRefundable. */
+export async function cancelOrder(
+  req: PayloadRequest,
+  orderId: string,
+  input: { reason: string; note?: string; nonRefundable?: boolean; actor?: string },
+): Promise<{ refundId?: string }> {
   const after: Array<() => Promise<unknown>> = [];
   const out = await withTransaction(req, async () => {
     await lockOrder(req, orderId);
@@ -1175,9 +1179,11 @@ export async function cancelOrder(req: PayloadRequest, orderId: string, input: {
     const tickets = (await req.payload.find({ collection: "tickets", where: { and: [{ order: { equals: orderId } }, { status: { in: ["valid", "checked_in"] } }] }, limit: 500, depth: 0, overrideAccess: true, req })).docs as Ticket[];
     for (const t of tickets) await updateDoc(req, "tickets", t.id, { status: "void" });
     for (const [s, n] of Object.entries(seatsBySession(order.lines ?? []))) await refundSeats(req, s, n);
-    await restoreCreditsForLines(req, order, () => true);
+    if (!input.nonRefundable) {
+      await restoreCreditsForLines(req, order, () => true);
+    }
 
-    const max = await refundableFils(req, order);
+    const max = input.nonRefundable ? 0 : await refundableFils(req, order);
     let refundId: string | undefined;
     if (max >= MIN_REFUND_FILS) {
       const desk = order.channel === "desk";
@@ -1197,7 +1203,7 @@ export async function cancelOrder(req: PayloadRequest, orderId: string, input: {
       });
       refundId = refund.id;
     }
-    await transition(req, order, "cancelled", { note: input.reason.slice(0, 200), ...(refundId ? { refs: { refund: refundId } } : {}) });
+    await transition(req, order, "cancelled", { note: input.reason.slice(0, 200), by: input.actor, ...(refundId ? { refs: { refund: refundId } } : {}) });
     const refundFils = refundId ? max : 0;
     after.push(() => emailCustomer(req, orderId, "order_cancelled", orderCancelledVars(order, { reason: input.reason, note: input.note, refundFils }), { refund: refundId }));
     return { refundId };
@@ -1255,7 +1261,7 @@ export async function resendOrderEmail(req: PayloadRequest, orderId: string, wha
 export async function moveOrder(
   req: PayloadRequest,
   orderId: string,
-  input: { targetSessionId: string; priceDifference: "no_charge" | "collect_at_venue" | "refund_difference"; note?: string },
+  input: { targetSessionId: string; priceDifference: "no_charge" | "collect_at_venue" | "refund_difference"; note?: string; actor?: string },
 ): Promise<Order> {
   const after: Array<() => Promise<unknown>> = [];
   const moved = await withTransaction(req, async () => {
@@ -1319,7 +1325,7 @@ export async function moveOrder(
     if (input.priceDifference === "collect_at_venue" && diffFils > 0) {
       internalNotes = `${internalNotes ? `${internalNotes}\n` : ""}Collect ${formatAed(diffFils)} at the venue (moved to ${target.title ?? "new date"}).`.slice(0, 4000);
     }
-    const updated = await updateOrder(req, orderId, { lines, internalNotes, timeline: [...timelineOf(order), timelineEntry(req, "moved", detail)] });
+    const updated = await updateOrder(req, orderId, { lines, internalNotes, timeline: [...timelineOf(order), timelineEntry(req, "moved", detail, input.actor)] });
 
     if (input.priceDifference === "refund_difference" && diffFils < 0 && -diffFils >= MIN_REFUND_FILS) {
       await createDoc<Refund>(req, "refunds", {

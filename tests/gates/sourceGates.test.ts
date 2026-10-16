@@ -60,7 +60,7 @@ function grep(files: string[], pattern: RegExp): Hit[] {
     fs.readFileSync(file, "utf8")
       .split("\n")
       .forEach((text, index) => {
-        if (pattern.test(text)) hits.push({ file: path.relative(ROOT, file), line: index + 1, text: text.trim().slice(0, 160) });
+        if (pattern.test(text)) hits.push({ file: path.relative(ROOT, file).replace(/\\/g, "/"), line: index + 1, text: text.trim().slice(0, 160) });
       });
   }
   return hits;

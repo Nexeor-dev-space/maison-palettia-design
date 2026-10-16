@@ -46,6 +46,12 @@ function statusWords(status: DisplayStatus, copy: StatusCopy = {}): { label: str
   switch (status) {
     case "confirmed":
       return { ...pick("confirmed", "Confirmed", "Your place is held. Come to the venue at the time below."), rule: "border-primary" };
+    case "rescheduled":
+      return {
+        label: "Rescheduled",
+        note: "Your booking has been rescheduled. Come to the venue at the updated time below.",
+        rule: "border-primary",
+      };
     case "completed":
       return {
         ...pick("completed", "Completed", "This event has already taken place. We hope you took something home."),
@@ -103,7 +109,7 @@ export function BookingSummaryCard({
   statusCopy?: StatusCopy;
   purchaseConfirmedNote?: string;
 }) {
-  const status = displayStatus(view.status);
+  const status = displayStatus(view.status, view.isRescheduled);
   const words = statusWords(status, statusCopy);
   const detail = view.detail;
   const lines = detail?.lines ?? [];
