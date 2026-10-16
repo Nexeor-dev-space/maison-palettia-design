@@ -53,6 +53,7 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
   const [qty, setQty] = useState(1);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [lastNameTouched, setLastNameTouched] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [method, setMethod] = useState<(typeof METHODS)[number]["value"]>("cash");
@@ -103,6 +104,7 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
   const codeList = codes.split(/[,\s]+/).map((c) => c.trim()).filter(Boolean).slice(0, 3);
   const amountFils = isAdmin && amount.trim() ? parseAed(amount) : undefined;
   const ready = Boolean(session && qty >= 1 && firstName.trim() && lastName.trim() && (amountFils !== null || !isAdmin || !amount.trim()));
+  const lastNameError = lastNameTouched && !lastName.trim();
 
   const body = () => ({
     sessionId: session,
@@ -200,8 +202,18 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
         <Field label="First name" id="desk-first">
           <input id="desk-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="off" />
         </Field>
-        <Field label="Last name" id="desk-last">
-          <input id="desk-last" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="off" />
+        <Field label="Last name" id="desk-last" required hint={lastNameError ? <span className="mp-field__hint--error" id="desk-last-error">Enter the customer&apos;s last name.</span> : undefined}>
+          <input
+            id="desk-last"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            onBlur={() => setLastNameTouched(true)}
+            required
+            aria-required="true"
+            aria-invalid={lastNameError}
+            aria-describedby={lastNameError ? "desk-last-error" : undefined}
+            autoComplete="off"
+          />
         </Field>
       </div>
       <div className="mp-field--row">
