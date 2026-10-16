@@ -136,6 +136,7 @@ export function Confirmation({
 
 const HEADINGS: Record<DisplayStatus, string> = {
   confirmed: "You are booked.",
+  rescheduled: "Your booking is rescheduled.",
   processing: "Confirming your payment.",
   not_paid: "Payment not completed.",
   completed: "Your booking.",

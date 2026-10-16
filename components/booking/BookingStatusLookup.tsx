@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
+import { BookingActions } from "@/components/booking/BookingActions";
 import { BookingSummaryCard, type StatusCopy } from "@/components/booking/BookingSummaryCard";
 import { parseOrderView, type OrderView } from "@/components/booking/orderView";
 import { BlobButton } from "@/components/ui/BlobButton";
@@ -32,10 +33,6 @@ type Outcome =
  *
  * `?ref=` is honoured on arrival, so the confirmation's "Check booking
  * status" lands with the reference already filled in.
- *
- * Nothing is kept in the browser: the result lives in this component's state
- * and goes when the tab does. For every booking made with an email, there
- * is /my-bookings and its emailed link.
  */
 export function BookingStatusLookup({
   initialReference,
@@ -53,13 +50,11 @@ export function BookingStatusLookup({
   const [submitting, setSubmitting] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [lastEmail, setLastEmail] = useState("");
+  const [notice, setNotice] = useState<{ text: string; tone: "ok" | "warn" | "terracotta" } | null>(null);
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (submitting) return;
-    const data = new FormData(event.currentTarget);
-    const reference = String(data.get("ref") ?? "").trim();
-    const email = String(data.get("email") ?? "").trim();
+  async function performLookup(reference: string, email: string) {
     if (!reference || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setFieldError(!reference ? "Please enter your booking reference." : "Please enter the email address the booking was made with.");
       return;
@@ -67,6 +62,9 @@ export function BookingStatusLookup({
     setFieldError(null);
     setSubmitting(true);
     setOutcome(null);
+    setNotice(null);
+    setLastEmail(email);
+
     try {
       const response = await fetch("/api/site/orders/lookup", {
         method: "POST",
@@ -84,12 +82,45 @@ export function BookingStatusLookup({
         // tickets and invoice as signed downloads — is one link away.
         const k = (body as { k?: unknown } | null)?.k;
         setOutcome(view ? { status: "found", view, k: typeof k === "string" ? k : undefined } : { status: "none" });
+
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem(`mp_booking_email_${reference.toUpperCase()}`, email);
+            window.history.replaceState(null, "", `?ref=${encodeURIComponent(reference.toUpperCase())}`);
+          } catch {
+            // storage disabled / non-essential
+          }
+        }
       }
     } catch {
       setOutcome({ status: "error" });
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // Restore on mount/refresh if ref is present and email was stored
+  useEffect(() => {
+    if (!initialReference || typeof window === "undefined") return;
+    try {
+      const savedEmail = sessionStorage.getItem(`mp_booking_email_${initialReference.toUpperCase()}`);
+      if (savedEmail) {
+        setEmailInput(savedEmail);
+        performLookup(initialReference, savedEmail);
+      }
+    } catch {
+      // storage disabled
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialReference]);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+    const data = new FormData(event.currentTarget);
+    const reference = String(data.get("ref") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
+    await performLookup(reference, email);
   }
 
   return (
@@ -119,6 +150,8 @@ export function BookingStatusLookup({
             id={`${id}-email`}
             name="email"
             type="email"
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
             inputMode="email"
             autoComplete="email"
             autoCapitalize="none"
@@ -144,9 +177,34 @@ export function BookingStatusLookup({
       </form>
 
       <div aria-live="polite" className="mt-12">
+        {notice ? (
+          <div
+            role="status"
+            className={`mb-8 rounded-xl border p-5 ${
+              notice.tone === "ok"
+                ? "border-primary/50 bg-primary/10 text-text"
+                : "border-terracotta/50 bg-terracotta/10 text-text"
+            }`}
+          >
+            <p className="text-body font-medium">{notice.text}</p>
+          </div>
+        ) : null}
+
         {outcome?.status === "found" ? (
           <>
             <BookingSummaryCard view={outcome.view} statusCopy={statusCopy} purchaseConfirmedNote={purchaseConfirmedNote} />
+
+            {/* Cancel & Reschedule management actions */}
+            <BookingActions
+              view={outcome.view}
+              k={outcome.k}
+              customerEmail={lastEmail || outcome.view.detail?.guest.email}
+              onBookingUpdated={(updatedView, msg) => {
+                setOutcome((prev) => (prev?.status === "found" ? { ...prev, view: updatedView } : prev));
+                setNotice(msg);
+              }}
+            />
+
             {outcome.k ? (
               <Link
                 href={`/payment-success?ref=${encodeURIComponent(outcome.view.reference)}&k=${encodeURIComponent(outcome.k)}`}

@@ -43,12 +43,12 @@ export type OrderStatus =
  * `not_paid` is a failed or lapsed attempt: the basket is still theirs to
  * retry from checkout.
  */
-export type DisplayStatus = "confirmed" | "processing" | "not_paid" | "completed" | "cancelled" | "refunded";
+export type DisplayStatus = "confirmed" | "rescheduled" | "processing" | "not_paid" | "completed" | "cancelled" | "refunded";
 
-export function displayStatus(status: OrderStatus): DisplayStatus {
+export function displayStatus(status: OrderStatus, isRescheduled?: boolean): DisplayStatus {
   switch (status) {
     case "confirmed":
-      return "confirmed";
+      return isRescheduled ? "rescheduled" : "confirmed";
     case "completed":
       return "completed";
     case "cancelled":
@@ -64,7 +64,7 @@ export function displayStatus(status: OrderStatus): DisplayStatus {
 }
 
 /** Statuses after which nothing more will happen without a person doing something. */
-export const SETTLED: ReadonlySet<DisplayStatus> = new Set(["confirmed", "completed", "cancelled", "refunded", "not_paid"]);
+export const SETTLED: ReadonlySet<DisplayStatus> = new Set(["confirmed", "rescheduled", "completed", "cancelled", "refunded", "not_paid"]);
 
 export interface OrderViewLine {
   kind: "session" | "pass";
@@ -93,6 +93,7 @@ export interface OrderViewTicket {
 export interface OrderView {
   reference: string;
   status: OrderStatus;
+  isRescheduled?: boolean;
   /** When the seat hold lapses, while payment is outstanding. */
   holdExpiresAt?: string | null;
   /** Present only on `detail: true`. */
@@ -173,9 +174,11 @@ export function parseOrderView(value: unknown, fallbackReference?: string): Orde
   const reference = str(order?.reference) ?? fallbackReference;
   if (!order || !reference || !STATUSES.has(String(order.status))) return null;
 
+  const isRescheduled = Boolean(order.isRescheduled ?? (root as Bag)?.isRescheduled);
   const view: OrderView = {
     reference,
     status: order.status as OrderStatus,
+    ...(isRescheduled ? { isRescheduled: true } : {}),
     holdExpiresAt: str(order.holdExpiresAt) ?? null,
   };
 
@@ -214,7 +217,7 @@ function flatDetail(order: Bag): Bag {
   const status = String(order.status);
   return {
     createdAt: str(order.confirmedAt) ?? "",
-    guest: { firstName: str(order.firstName) ?? "", lastName: "" },
+    guest: { firstName: str(order.firstName) ?? "", lastName: "", email: str(order.email) },
     lines: order.lines,
     totals: order.totals,
     paid: ["confirming", "confirmed", "completed", "refunded"].includes(status),
