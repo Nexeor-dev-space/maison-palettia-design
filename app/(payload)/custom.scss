@@ -1680,6 +1680,7 @@ html[data-theme="dark"] .mp-chip {
 
     &:focus { outline: none; border-color: var(--mp-lilac); box-shadow: 0 0 0 3px var(--mp-lilac-soft); }
     &:disabled { opacity: 0.6; }
+    &[aria-invalid="true"] { border-color: var(--theme-error-500); }
   }
 
   textarea { min-height: 76px; resize: vertical; }
@@ -1690,6 +1691,7 @@ html[data-theme="dark"] .mp-chip {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 12px;
+    align-items: start;
   }
 
   &--check {
@@ -2023,6 +2025,7 @@ html[data-theme="dark"] .mp-chip {
 
 /* Repeat weekly: the "only the first 26 will be created" hint. */
 .mp-field__hint--warn { color: var(--theme-warning-700); font-weight: 600; }
+.mp-field__hint--error { color: var(--theme-error-500); }
 
 /* ── 4. Phase 1–3 field components ─────────────────────────────────────── */
 

@@ -53,6 +53,7 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
   const [qty, setQty] = useState(1);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [lastNameTouched, setLastNameTouched] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [method, setMethod] = useState<(typeof METHODS)[number]["value"]>("cash");
@@ -103,6 +104,7 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
   const codeList = codes.split(/[,\s]+/).map((c) => c.trim()).filter(Boolean).slice(0, 3);
   const amountFils = isAdmin && amount.trim() ? parseAed(amount) : undefined;
   const ready = Boolean(session && qty >= 1 && firstName.trim() && lastName.trim() && (amountFils !== null || !isAdmin || !amount.trim()));
+  const lastNameError = lastNameTouched && !lastName.trim();
 
   const body = () => ({
     sessionId: session,
@@ -163,8 +165,8 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
         </>
       }
     >
-      <Field label="Session" id="desk-session" hint={picked ? `${picked.available ?? "—"} seats left · ${aed(picked.price)} per person${picked.waitlist ? " · waitlist only online, staff may still book" : ""}` : undefined}>
-        <select id="desk-session" value={session} onChange={(e) => setSession(e.target.value)} disabled={sessions === null}>
+      <Field label="Session" id="desk-session" required hint={picked ? `${picked.available ?? "—"} seats left · ${aed(picked.price)} per person${picked.waitlist ? " · waitlist only online, staff may still book" : ""}` : undefined}>
+        <select id="desk-session" required aria-required="true" value={session} onChange={(e) => setSession(e.target.value)} disabled={sessions === null}>
           <option value="">{sessions === null ? "Loading sessions…" : sessions.length ? "Choose a date…" : "No upcoming published sessions"}</option>
           {sessions?.map((s) => (
             <option key={s.id} value={s.id}>
@@ -175,11 +177,11 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
         </select>
       </Field>
       <div className="mp-field--row">
-        <Field label="Seats" id="desk-qty">
-          <input id="desk-qty" type="number" min={1} max={50} value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))} />
+        <Field label="Seats" id="desk-qty" required>
+          <input id="desk-qty" type="number" min={1} max={50} required aria-required="true" value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))} />
         </Field>
-        <Field label="Paid by" id="desk-method">
-          <select id="desk-method" value={method} onChange={(e) => setMethod(e.target.value as typeof method)}>
+        <Field label="Paid by" id="desk-method" required>
+          <select id="desk-method" required aria-required="true" value={method} onChange={(e) => setMethod(e.target.value as typeof method)}>
             {METHODS.map((m) => (
               <option key={m.value} value={m.value}>
                 {m.label}
@@ -197,11 +199,21 @@ export function CreateBookingDialog({ open, onClose, sessionId, isAdmin }: { ope
         ) : null}
       </div>
       <div className="mp-field--row">
-        <Field label="First name" id="desk-first">
-          <input id="desk-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="off" />
+        <Field label="First name" id="desk-first" required>
+          <input id="desk-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required aria-required="true" autoComplete="off" />
         </Field>
-        <Field label="Last name" id="desk-last">
-          <input id="desk-last" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="off" />
+        <Field label="Last name" id="desk-last" required hint={lastNameError ? <span className="mp-field__hint--error" id="desk-last-error">Enter the customer&apos;s last name.</span> : undefined}>
+          <input
+            id="desk-last"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            onBlur={() => setLastNameTouched(true)}
+            required
+            aria-required="true"
+            aria-invalid={lastNameError}
+            aria-describedby={lastNameError ? "desk-last-error" : undefined}
+            autoComplete="off"
+          />
         </Field>
       </div>
       <div className="mp-field--row">
