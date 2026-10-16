@@ -149,7 +149,7 @@ export function Field({ label, hint, children, id, required }: { label: string; 
         {required ? (
           <span className="mp-field__required" aria-hidden>
             {" "}
-            (required)
+            *
           </span>
         ) : null}
       </label>
