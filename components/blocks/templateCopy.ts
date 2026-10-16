@@ -2,6 +2,8 @@ import { cache } from "react";
 
 import { resolveLink } from "@/cms/fields/link";
 import { getGlobal } from "@/lib/cms/query";
+import { MODE_COPY_DEFAULTS, mergeModeCopy, type ModeCopy, type StoredModeCopy } from "@/lib/modeCopy";
+import { getModeCopy } from "@/lib/modeCopy.server";
 import type { NavItem } from "@/types";
 
 /**
@@ -85,12 +87,15 @@ const holder = cache(() => ({
   event: EVENT_DETAIL,
   programme: PROGRAMME_DETAIL,
   policy: POLICY_DETAIL,
+  /** Booking & checkout wording → Event page (lib/modeCopy.ts): the walk-in / scheduled names and the action copy. */
+  modes: MODE_COPY_DEFAULTS as ModeCopy,
 }));
 
 /** Reads Page labels for this request; call once at the top of a template page. */
 export async function loadTemplateCopy(): Promise<void> {
-  const copy = await getGlobal("template-copy", 0);
+  const [copy, modes] = await Promise.all([getGlobal("template-copy", 0), getModeCopy()]);
   const scope = holder();
+  scope.modes = modes;
   scope.event = over(EVENT_DETAIL, copy?.eventDetail);
   scope.programme = over(PROGRAMME_DETAIL, copy?.programmeDetail);
   scope.policy = over(POLICY_DETAIL, copy?.policyDetail);
@@ -99,19 +104,22 @@ export async function loadTemplateCopy(): Promise<void> {
 export const eventCopy = (): EventDetailCopy => holder().event;
 export const programmeCopy = (): ProgrammeDetailCopy => holder().programme;
 export const policyCopy = (): PolicyDetailCopy => holder().policy;
+export const modeCopy = (): ModeCopy => holder().modes;
 
 /** The note and links at the foot of the event page (Booking & checkout wording → "More from…" bars). */
 export async function eventUtilityBar(fallback: { note: string; links: NavItem[] }): Promise<{ note?: string; links: NavItem[] }> {
   const settings = await getGlobal("booking-settings", 0);
   const bar = (settings as { utilityBars?: { eventDetail?: StoredBar } } | null)?.utilityBars?.eventDetail;
-  if (!bar) return fallback;
+  // The bar's own note wins; Event page action copy → "Foot-of-page note" stands in when it is empty.
+  const footNote = mergeModeCopy(settings as StoredModeCopy | null).eventPage.utilityNote;
+  if (!bar) return { ...fallback, note: footNote };
   const links = (bar.links ?? [])
     .map((row) => {
       const href = resolveLink(row.link);
       return href && row.label ? { label: row.label, href } : null;
     })
     .filter((link): link is NavItem => link !== null);
-  return { note: bar.note?.trim() || undefined, links: links.length ? links : fallback.links };
+  return { note: bar.note?.trim() || footNote, links: links.length ? links : fallback.links };
 }
 
 type StoredBar = {

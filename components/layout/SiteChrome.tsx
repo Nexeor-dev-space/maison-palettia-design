@@ -3,6 +3,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 import { BRAND_LOGO, DARK_HERO_ROUTES, LIGHT_HERO_ROUTES, MAIN_NAV, PRIMARY_CTA, SITE } from "@/lib/constants";
+import { MODE_COPY_DEFAULTS, type ModeCopy } from "@/lib/modeCopy";
 import { PRIVATE_EVENT_AUDIENCES, type PrivateEventAudience } from "@/lib/privateEvents";
 import { VIBES, type Vibe } from "@/lib/vibes";
 import type { NavItem } from "@/types";
@@ -44,6 +45,8 @@ export interface SiteChromeData {
   heroRoutes: { dark: string[]; light: string[] };
   audiences: PrivateEventAudience[];
   vibes: Vibe[];
+  /** Booking & checkout wording → Event page: the walk-in / scheduled names, chips and card copy (lib/modeCopy.ts). */
+  modes: ModeCopy;
 }
 
 const IN_FILE: SiteChromeData = {
@@ -54,6 +57,7 @@ const IN_FILE: SiteChromeData = {
   heroRoutes: { dark: [...DARK_HERO_ROUTES], light: [...LIGHT_HERO_ROUTES] },
   audiences: [...PRIVATE_EVENT_AUDIENCES],
   vibes: [...VIBES],
+  modes: MODE_COPY_DEFAULTS,
 };
 
 const SiteChromeContext = createContext<SiteChromeData>(IN_FILE);
@@ -63,3 +67,6 @@ export function SiteChromeProvider({ value, children }: { value: SiteChromeData;
 }
 
 export const useSiteChrome = () => useContext(SiteChromeContext);
+
+/** The walk-in / scheduled wording, for client components (server components await `getModeCopy()`). */
+export const useModeCopy = () => useContext(SiteChromeContext).modes;

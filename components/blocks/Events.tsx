@@ -3,7 +3,9 @@ import { cache } from "react";
 import { WhereWeSetUp } from "@/components/events/WhereWeSetUp";
 import { eventCopy, loadTemplateCopy } from "@/components/blocks/templateCopy";
 import { EventsBody, type EventsDoor } from "@/components/sections/events/EventsBody";
+import { WORKSHOP_JOURNEY } from "@/lib/brand";
 import { getCreativeExperiences } from "@/lib/experiences";
+import { getModeCopy } from "@/lib/modeCopy.server";
 import { getMallPartners } from "@/lib/partners";
 import { getVibes } from "@/lib/vibes.server";
 import { getAllWorkshops, serverClock } from "@/lib/workshops";
@@ -47,17 +49,24 @@ function doorNote(source: "journey0" | "journey1" | "custom", own: string | null
 /** `eventsBrowser` (+ the `pageHeader` before it) → <EventsBody> + <EventsBrowser>. */
 export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<"eventsBrowser">) {
   /* The Page labels, for the "per person" a format card prints — loaded here as the event template does. */
-  const [{ experiences, sessions, types, partners, vibes }, renderedAt] = await Promise.all([programme(), renderClock(), loadTemplateCopy()]);
+  const [{ experiences, sessions, types, partners, vibes }, renderedAt, , modes] = await Promise.all([
+    programme(),
+    renderClock(),
+    loadTemplateCopy(),
+    getModeCopy(),
+  ]);
+  const { labels } = modes;
   const words = headerWords(header, ctx);
   const b = stored(block);
 
-  const doors: EventsDoor[] | undefined = b
-    ? (b.doors ?? []).map((door) => ({
-        title: door.title,
-        note: doorNote(door.noteSource, door.note, ctx),
-        modeLabel: text(door.modeLabel),
-      }))
-    : undefined;
+  /* The names, chips and leads are Mode labels' (cms/blocks/EventsBrowser.ts); the block keeps the notes. */
+  const doors: EventsDoor[] = [
+    { title: labels.createAnytime, modeLabel: labels.noBooking },
+    { title: labels.createTogether, modeLabel: labels.bookedOnline },
+  ].map((door, i) => {
+    const own = b?.doors?.[i];
+    return { ...door, note: own ? doorNote(own.noteSource, own.note, ctx) : (ctx.brand?.journey?.[i]?.description ?? WORKSHOP_JOURNEY[i]?.description ?? null) };
+  });
 
   return (
     <EventsBody
@@ -71,7 +80,7 @@ export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<
       eyebrow={words.eyebrow}
       lines={words.lines}
       doors={doors}
-      groupLeads={b ? { diy: text(b.groupLeads?.diy), scheduled: text(b.groupLeads?.scheduled) } : undefined}
+      groupLeads={{ diy: labels.diyLine, scheduled: labels.scheduledLine }}
       viewLocationLabel={b ? text(b.viewLocationLabel) : undefined}
       emptyTitle={b ? text(b.emptyTitle) : undefined}
       emptyBody={b ? text(b.emptyBody) : undefined}

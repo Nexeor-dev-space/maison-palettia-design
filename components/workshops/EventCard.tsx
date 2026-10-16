@@ -1,5 +1,6 @@
 "use client";
 
+import { useModeCopy } from "@/components/layout/SiteChrome";
 import Link from "next/link";
 
 import { useSessionPassed } from "@/components/booking/SessionClock";
@@ -117,6 +118,7 @@ export function EventCard({
   /** The page's one `Date.now()`, taken on the server — see the note above. */
   renderedAt: number;
 }) {
+  const { eventPage } = useModeCopy();
   const { weekday, day } = sessionDateParts(workshop.startsAt);
   const { start, end } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
   const closed = isFullyBooked(workshop);
@@ -247,7 +249,7 @@ export function EventCard({
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
             <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
               {passed ? (
-                "Date passed"
+                eventPage.passedLabel
               ) : (
                 <>
                   {isScarce(workshop) ? (

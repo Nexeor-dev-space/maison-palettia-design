@@ -7,10 +7,10 @@
  * never reach a browser bundle (docs/cms/research/00-spike.md, G18).
  * lib/experiences.ts re-exports it, so server imports did not change.
  *
- * TODO(phase2-cleanup): booking-settings carries the same two words
- * (`labels.anyTime`, `labels.scheduled`). A client card can only read them
- * as props from a server parent; until the cards are handed them, these are
- * the defaults the setting was seeded with.
+ * The editable words are booking-settings' `labels.anyTime` /
+ * `labels.scheduled` (lib/modeCopy.ts): <ExperienceCard> takes them as
+ * `kindLabels` from its client parent and the gallery reads them on the
+ * server. These are the defaults for a card rendered without them.
  */
 export const EXPERIENCE_KIND_LABEL: Record<"diy" | "scheduled", string> = {
   diy: "Any time",

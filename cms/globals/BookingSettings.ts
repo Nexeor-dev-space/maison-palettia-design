@@ -514,6 +514,44 @@ export const BookingSettings: GlobalConfig = {
               ],
               { description: "The two product names appear in about twenty places; change them here once." },
             ),
+            section(
+              "walkIn",
+              "Create Anytime section (/events)",
+              [
+                copy("howHeading", "“How it works” heading", { max: 40, defaultValue: "How it works" }),
+                rows("steps", "Steps", [copy("title", "Title", { max: 40, required: true }), prose("body", "Body", { max: 160 })], {
+                  description: "The numbered steps above the cards. Leave empty to show the original three.",
+                  maxRows: 4,
+                  defaultValue: [
+                    { title: "Choose a project", body: "Browse the activities below and pick the one you would like to make." },
+                    { title: "Drop in", body: "No booking needed. Just come in to the studio." },
+                    { title: "Make it yours", body: "Pick your colours and create at your own pace." },
+                  ],
+                }),
+                {
+                  type: "row",
+                  fields: [
+                    copy("openGroupTitle", "Open group heading", { max: 40, defaultValue: "Open for drop-ins", admin: { width: "50%" } }),
+                    copy("soonGroupTitle", "Coming-soon group heading", { max: 40, defaultValue: "Coming soon", admin: { width: "50%" } }),
+                  ],
+                },
+                {
+                  type: "row",
+                  fields: [
+                    copy("cardAction", "Card button", { max: 24, defaultValue: "View details", admin: { width: "50%" } }),
+                    copy("cardSoonAction", "Card button — coming soon", { max: 24, defaultValue: "Take a look", admin: { width: "50%" } }),
+                  ],
+                },
+                prose("emptyNote", "Nothing matches the filter", {
+                  max: 160,
+                  defaultValue: "Nothing is tagged that way yet. Clear the filter to see every Create Anytime experience.",
+                }),
+              ],
+              {
+                description:
+                  "The walk-in half of /events. Each card's chip is “Walk-in chip” above.",
+              },
+            ),
             section("utilityBars", "“More from…” bars", [
               utilityBar("eventDetail", "Event page", "The note and links at the foot of every event page."),
               utilityBar("checkout", "Checkout", "The note and links at the foot of checkout."),

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getModeCopy } from "@/lib/modeCopy.server";
 import type { ReactNode } from "react";
 
 import { SessionGate } from "@/components/booking/SessionClock";
@@ -187,6 +188,8 @@ export async function TwoWaysToCreate({
     the day never depend on where the build machine happens to be.
   */
   const now = serverClock();
+  /* Only the in-file fallback below (no stored block) reads these; a stored block's roads are the editor's own. */
+  const { labels } = await getModeCopy();
   const nextDate = sessions
     .filter((session) => session.kind !== "diy" && isBookable(session, now))
     .reduceRight<ReactNode>(
@@ -276,12 +279,12 @@ export async function TwoWaysToCreate({
         <Road
           index={1}
           ground="terracotta"
-          eyebrow="No booking"
-          title="Create Anytime"
+          eyebrow={labels.noBooking}
+          title={labels.createAnytime}
           /* Not Terracotta any more — that is the ground it would sit on. */
           dot={INK.whiteRock}
           plate={walkInPlate}
-          line="Pick a project. Pick your colours. Just drop in."
+          line={labels.diyLine}
           /*
             THE DETAIL THAT USED TO BE THREE LABELLED PARAGRAPHS. The old
             version of this section carried BOOKING / MAKE / WHERE as headed
@@ -331,7 +334,7 @@ export async function TwoWaysToCreate({
             the point where it fits means cutting it to one bare word, which
             costs more than the second line does.
           */
-          facts={["No booking", "Choose your activity", home]}
+          facts={[labels.noBooking, "Choose your activity", home]}
           action={{ label: "Find the studio", href: "/locations", tone: "sage" }}
         />
 
@@ -339,17 +342,17 @@ export async function TwoWaysToCreate({
           index={2}
           ground="lilac"
           eyebrow="A date and a seat"
-          title="Create Together"
+          title={labels.createTogether}
           dot={INK.lavender}
           plate={scheduledPlate}
-          line="A little more planned. Same creative energy."
+          line={labels.scheduledLine}
           /*
             The same three, as this half answers them. The old block listed
             every upcoming date with its price and remaining seats, which is
             the events page's job — here it is only the NEXT one, because the
             question this side answers is "is there one soon?".
           */
-          facts={["Booked online", "Guided sessions", nextDate]}
+          facts={[labels.bookedOnline, "Guided sessions", nextDate]}
           action={{ label: "See the dates", href: "/events#scheduled", tone: "cream" }}
         />
         </>

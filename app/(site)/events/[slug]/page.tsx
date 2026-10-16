@@ -9,7 +9,7 @@ import { ChoiceBody, TypeBody } from "@/components/events/WorkshopTypePages";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { eventJsonLd, sessionEventsJsonLd } from "@/lib/jsonLd";
 import { getJsonLdSite } from "@/lib/jsonLd.server";
-import { eventCopy, eventUtilityBar, loadTemplateCopy } from "@/components/blocks/templateCopy";
+import { eventCopy, eventUtilityBar, loadTemplateCopy, modeCopy } from "@/components/blocks/templateCopy";
 import { SessionGate } from "@/components/booking/SessionClock";
 import { EventCard } from "@/components/events/EventCard";
 import { PageUtilityBar } from "@/components/layout/PageUtilityBar";
@@ -538,7 +538,7 @@ function EventHeader({
   const typeLabel =
     detail.kind === "scheduled"
       ? detail.workshop.category
-      : "Create Anytime";
+      : modeCopy().labels.createAnytime;
 
   return (
     <section aria-labelledby="event-title" className="mt-9 md:mt-12">
@@ -747,7 +747,7 @@ function ScheduledFacts({
               {spotsLabel(workshop)}
             </>
           }
-          passed="Date passed"
+          passed={modeCopy().eventPage.passedLabel}
         />
       </p>
     </>
@@ -786,8 +786,8 @@ function WalkInFacts({ detail }: { detail: EventDetail }) {
               though the headings had been renamed. That instruction has been
               withdrawn — the word is not to appear anywhere — so the row takes
               the name, and the repetition is the price of retiring the term. */}
-          Create Anytime
-          <Sub>No booking needed</Sub>
+          {modeCopy().labels.createAnytime}
+          <Sub>{modeCopy().labels.noBooking}</Sub>
         </dd>
       </div>
 
@@ -892,7 +892,7 @@ function PrimaryAction({
             tone={tone}
             className="w-full justify-center px-8 py-5 sm:w-auto"
           >
-            Book this experience
+            {modeCopy().eventPage.bookLabel}
           </BlobButton>
         }
         passed={<ClosedDate reason="passed" openElsewhere={openElsewhere} />}
@@ -916,7 +916,7 @@ function PrimaryAction({
   if (isUpcoming(detail)) {
     return (
       <p className="max-w-[30rem] text-body text-text/85">
-        Not running yet. It will appear in the programme when it opens.
+        {modeCopy().eventPage.comingSoonNote}
       </p>
     );
   }
@@ -975,16 +975,16 @@ function PrimaryAction({
   return (
     <div>
       <p className="text-h3 font-light tracking-[-0.015em] text-text">
-        Come on a day we are there.
+        {modeCopy().eventPage.diyTitle}
       </p>
       <p className="mt-3 max-w-[30rem] text-body text-text/85">
-        Just drop in when the experience is available and start creating.
+        {modeCopy().eventPage.diyBody}
       </p>
       <PeelNote
         href="/events#where-we-set-up"
         className="mt-6 min-h-[3.25rem] px-7"
       >
-        See where we are set up
+        {modeCopy().eventPage.diyCta}
       </PeelNote>
     </div>
   );
@@ -1037,12 +1037,13 @@ function ClosedDate({
   reason: "full" | "passed";
   openElsewhere: readonly string[];
 }) {
-  const fact = reason === "full" ? "This date is full" : "This date has passed";
+  const words = modeCopy().eventPage;
+  const fact = reason === "full" ? words.closedFullFact : words.closedPassedFact;
 
   const noneOpen = (
     <div>
       <p className="max-w-[30rem] text-body text-text/85">
-        {`${fact}, and nothing else is open just now.`}
+        {`${fact}${words.noneOpenSuffix}`}
       </p>
     </div>
   );
@@ -1055,13 +1056,13 @@ function ClosedDate({
       open={
         <div>
           <p className="max-w-[30rem] text-body text-text/85">
-            {`${fact}. Other sessions are open.`}
+            {`${fact}${words.othersOpenSuffix}`}
           </p>
           <PeelNote
             href="/events#scheduled"
             className="mt-6 min-h-[3.25rem] px-7"
           >
-            See what is open
+            {words.seeOpenLabel}
           </PeelNote>
         </div>
       }
@@ -1856,7 +1857,7 @@ function CloseSection({
             id="event-close"
             className="heading-script text-script-compact"
           >
-            Ready to Create?
+            {modeCopy().eventPage.readyHeading}
           </h2>
           {/*
             NOTE(client), raise with the p22 hold: this close only renders on a
@@ -1869,8 +1870,7 @@ function CloseSection({
             sentence goes or takes their wording.
           */}
           <p className="mt-5 max-w-[32rem] text-lead text-text/80">
-            Everything is laid out before you arrive. You bring nothing but
-            yourself.
+            {modeCopy().eventPage.readyBody}
           </p>
         </Reveal>
 
@@ -2078,7 +2078,7 @@ function SoloSession({ workshop }: { workshop: Workshop }) {
                 <span className={cn(scarce ? "text-terracotta" : "text-text/85")}>{spots}</span>
               ) : null
             }
-            passed={<span className="text-text/85">Date passed</span>}
+            passed={<span className="text-text/85">{modeCopy().eventPage.passedLabel}</span>}
           />
         </span>
 

@@ -1,6 +1,7 @@
 import { GalleryExperience, type GalleryCollection } from "@/components/gallery/GalleryExperience";
 import { EVENT_PLATES } from "@/lib/brand";
-import { EXPERIENCE_KIND_LABEL, getCreativeExperiences } from "@/lib/experiences";
+import { getCreativeExperiences } from "@/lib/experiences";
+import { getModeCopy } from "@/lib/modeCopy.server";
 
 /**
  * ==========================================================================
@@ -39,14 +40,15 @@ export async function GalleryBody({
 
 /** The activities that have a photograph, as gallery tiles. */
 export async function experienceItems(collection: string) {
-  const experiences = await getCreativeExperiences();
+  const [experiences, { labels }] = await Promise.all([getCreativeExperiences(), getModeCopy()]);
+  const kindLabel = { diy: labels.anyTime, scheduled: labels.scheduled };
   return experiences
     .filter((experience) => experience.image)
     .map((experience) => ({
       src: experience.image!.src,
       alt: experience.image!.alt,
       title: experience.name,
-      meta: experience.status ?? EXPERIENCE_KIND_LABEL[experience.kind],
+      meta: experience.status ?? kindLabel[experience.kind],
       collection,
     }));
 }

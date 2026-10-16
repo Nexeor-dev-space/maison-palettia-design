@@ -10,7 +10,21 @@ import { pick, prose, text, whenIs } from "./shared";
  * note is, by default, the matching Brand wording `journey` entry (the
  * walk-in and scheduled steps); the filter labels and the "no matches" copy
  * are in Settings → Page labels → Events browser.
+ *
+ * The door titles, the door chips and the two group leads are the product's
+ * own names and lines, printed in many places, so they now come from
+ * Booking & checkout wording → Event page → Mode labels (lib/modeCopy.ts).
+ * The fields below stay (dropping a column is not an additive migration) but
+ * are read-only and say where the words are edited.
  */
+
+const MODE_LABELS = "Edited in Settings → Booking & checkout wording → Event page → Mode labels.";
+
+/** A field kept for its stored value but no longer read: shown read-only, pointing at Mode labels. */
+const movedToModeLabels = <F extends ReturnType<typeof text>>(field: F): F => ({
+  ...field,
+  admin: { ...field.admin, readOnly: true, description: MODE_LABELS },
+});
 export const EventsBrowserBlock: Block = {
   slug: "eventsBrowser",
   interfaceName: "EventsBrowserBlock",
@@ -26,7 +40,7 @@ export const EventsBrowserBlock: Block = {
       maxRows: 2,
       admin: { description: "Create Anytime first, Create Together second." },
       fields: [
-        text("title", "Title", 24, { required: true }),
+        movedToModeLabels(text("title", "Title", 24, { required: true })),
         pick(
           "noteSource",
           "Note comes from",
@@ -39,7 +53,7 @@ export const EventsBrowserBlock: Block = {
         ),
         brandCopyLink({ path: "journey", label: "How people experience the Maison", condition: (_, s) => (s as { noteSource?: string })?.noteSource !== "custom" }),
         prose("note", "Note", 200, { condition: whenIs("noteSource", "custom") }),
-        text("modeLabel", "Mode label", 24, { description: "The chip on the door, e.g. “No booking” or “Booked online”." }),
+        movedToModeLabels(text("modeLabel", "Mode label", 24)),
       ],
     },
     {
@@ -47,8 +61,8 @@ export const EventsBrowserBlock: Block = {
       type: "group",
       label: "Group heads",
       fields: [
-        text("diy", "Create Anytime — lead", 80, { defaultValue: "Pick a project. Pick your colours. Just drop in." }),
-        text("scheduled", "Create Together — lead", 80, { defaultValue: "A little more planned. Same creative energy." }),
+        movedToModeLabels(text("diy", "Create Anytime — lead", 80, { defaultValue: "Pick a project. Pick your colours. Just drop in." })),
+        movedToModeLabels(text("scheduled", "Create Together — lead", 80, { defaultValue: "A little more planned. Same creative energy." })),
       ],
     },
     text("viewLocationLabel", "“View location” link", 24, { defaultValue: "View location" }),

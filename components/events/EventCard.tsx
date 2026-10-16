@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { SessionGate } from "@/components/booking/SessionClock";
+import { modeCopy } from "@/components/blocks/templateCopy";
 
 import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
 import { cn } from "@/lib/utils";
@@ -136,7 +137,7 @@ export function EventCard({
               <Chip dark={closed}>{spotsLabel(workshop)}</Chip>
             ) : null
           }
-          passed={<Chip dark>Date passed</Chip>}
+          passed={<Chip dark>{modeCopy().eventPage.passedLabel}</Chip>}
         />
       </div>
 
@@ -149,7 +150,7 @@ export function EventCard({
           the homepage groups and the menus use.
         */}
         <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
-          Scheduled session
+          {modeCopy().labels.scheduledSession}
         </p>
 
         <h3 className="mt-3 text-h3 font-light">
