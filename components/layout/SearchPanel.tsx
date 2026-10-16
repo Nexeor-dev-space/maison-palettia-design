@@ -316,6 +316,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       // See the note on the full-screen shape above for why this is `inert`
       // and not `hidden`.
       inert={!isOpen}
+      data-lenis-prevent
       /*
         ==================================================================
         THE SAME CARD THE TWO MEGAMENUS OPEN — see <MenuCard>
@@ -342,6 +343,7 @@ export function SearchPanel({ id, openCount, isOpen, onClose, triggerRef, worksh
       className={cn(
         "absolute left-1/2 top-[calc(100%+0.5rem)] z-40 -translate-x-1/2",
         "w-[calc(100vw-2*var(--spacing-gutter))] max-w-[44rem]",
+        "max-h-[calc(100dvh-var(--spacing-header-lg)-1.5rem)] overflow-y-auto overscroll-contain",
         "plate rounded-[1.75rem] bg-cream p-2.5 md:p-3",
         "transition-[opacity,translate,scale] ease-soft motion-reduce:transition-none",
         shown

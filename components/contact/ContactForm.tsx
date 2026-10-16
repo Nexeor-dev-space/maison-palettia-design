@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import styles from "@/components/booking/PaintBooking.module.css";
 import { EnquiryOutcome, Honeypot } from "@/components/contact/EnquiryOutcome";
 import { ENQUIRY_TOPICS, sendEnquiry, type EnquiryResult, type EnquiryTopic } from "@/lib/enquiry";
+import { isValidEmail, isValidName, isValidPhone, NAME_FORMAT_MESSAGE, PHONE_FORMAT_MESSAGE } from "@/lib/fieldValidation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -51,8 +52,9 @@ const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text
  * Validated here as well as by the browser: `required` and `type="email"` are
  * the first pass, not the only one, and someone who gets past them should see
  * the same message in the same place rather than a native bubble that
- * vanishes. Errors are set on submit rather than per keystroke, so nobody is
- * told their email is wrong while they are still halfway through typing it.
+ * vanishes. Errors appear when a filled field is left and on submit, not per
+ * keystroke before that, so nobody is told their email is wrong while they
+ * are still halfway through typing it.
  *
  * WHAT HAPPENS ON SUBMIT. The enquiry is posted to the CMS Inbox
  * (`sendEnquiry`, lib/enquiry.ts → `/api/site/enquiries`), and the form says
@@ -62,10 +64,39 @@ const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text
  * typed left in place to send again (<EnquiryOutcome>). A hidden `website`
  * field is the honeypot.
  */
+type ContactValues = { name: string; email: string; phone: string; message: string };
+
+const LIVE_FIELDS = ["name", "email", "phone"] as const;
+type LiveField = (typeof LIVE_FIELDS)[number];
+const isLiveField = (name: string): name is LiveField => (LIVE_FIELDS as readonly string[]).includes(name);
+
+function validateContact(values: ContactValues): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (!values.name) errors.name = "Please tell us your name.";
+  else if (!isValidName(values.name)) errors.name = NAME_FORMAT_MESSAGE;
+  if (!isValidEmail(values.email)) errors.email = "Please check this email address.";
+  if (values.phone && !isValidPhone(values.phone)) errors.phone = PHONE_FORMAT_MESSAGE;
+  if (!values.message) errors.message = "Please add a little about what you need.";
+  return errors;
+}
+
+const liveFieldError = (name: LiveField, value: string) =>
+  validateContact({ name: "", email: "", phone: "", message: "", [name]: value.trim() })[name];
+
 export function ContactForm() {
   const ids = useId();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
+  const focusFirstError = useRef(false);
+  const touched = useRef(new Set<string>());
+  const updateFieldError = (name: string, message: string | undefined) =>
+    setErrors((prev) => {
+      if (prev[name] === message) return prev;
+      const next = { ...prev };
+      if (message) next[name] = message;
+      else delete next[name];
+      return next;
+    });
 
   /*
     MOVE FOCUS TO THE FIRST FIELD THAT NEEDS ATTENTION.
@@ -80,8 +111,10 @@ export function ContactForm() {
     a live region for the count and focus onto the first bad field. This is
     that same pair, so all three forms now fail the same way.
   */
-  const FIELD_ORDER = ["name", "email", "message"] as const;
+  const FIELD_ORDER = ["name", "email", "phone", "message"] as const;
   useEffect(() => {
+    if (!focusFirstError.current) return;
+    focusFirstError.current = false;
     const first = FIELD_ORDER.find((name) => errors[name]);
     if (!first || !formRef.current) return;
     formRef.current.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
@@ -89,7 +122,6 @@ export function ContactForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [errors]);
 
-  const errorCount = Object.keys(errors).length;
   const [result, setResult] = useState<EnquiryResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const outcomeRef = useRef<HTMLDivElement>(null);
@@ -115,11 +147,9 @@ export function ContactForm() {
       website: get("website") || undefined,
     };
 
-    const next: Record<string, string> = {};
-    if (!enquiry.name) next.name = "Please tell us your name.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enquiry.email)) next.email = "Please check this email address.";
-    if (!enquiry.message) next.message = "Please add a little about what you need.";
-
+    const next = validateContact({ name: enquiry.name, email: enquiry.email, phone: enquiry.phone ?? "", message: enquiry.message });
+    LIVE_FIELDS.forEach((name) => touched.current.add(name));
+    focusFirstError.current = true;
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -130,6 +160,7 @@ export function ContactForm() {
     // A field the browser let through and the server did not: mark it where
     // it is, as the browser-side checks do, as well as saying so below.
     if (outcome.status === "invalid" && outcome.field && FIELD_ORDER.some((name) => name === outcome.field)) {
+      focusFirstError.current = true;
       setErrors({ [outcome.field]: outcome.message });
     }
     setResult(outcome);
@@ -157,23 +188,24 @@ export function ContactForm() {
   }
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate className="relative">
+    <form
+      ref={formRef}
+      onSubmit={onSubmit}
+      noValidate
+      className="relative"
+      onInput={(event) => {
+        const el = event.target as HTMLInputElement;
+        if (!isLiveField(el.name) || !touched.current.has(el.name)) return;
+        updateFieldError(el.name, (el.value.trim() || errors[el.name]) ? liveFieldError(el.name, el.value) : undefined);
+      }}
+      onBlur={(event) => {
+        const el = event.target as Element as HTMLInputElement;
+        if (!isLiveField(el.name) || !el.value.trim()) return;
+        touched.current.add(el.name);
+        updateFieldError(el.name, liveFieldError(el.name, el.value));
+      }}
+    >
       <Honeypot id={`${ids}-website`} />
-      {/*
-        One live region for the summary, so a screen reader hears something on
-        every unsuccessful press — the per-field messages alone are silent to
-        someone whose focus is still on the button. Wording follows the
-        private-events form so the two read as one system.
-      */}
-      <div role="alert" aria-live="assertive">
-        {errorCount > 0 ? (
-          <p className="mb-8 max-w-[36rem] border-l-2 border-terracotta pl-5 text-body text-text">
-            {errorCount === 1
-              ? "One detail needs checking before this can be sent."
-              : `${errorCount} details need checking before this can be sent.`}
-          </p>
-        ) : null}
-      </div>
 
       {/*
         One column to `sm`, two from there for the short fields, and the
@@ -202,6 +234,7 @@ export function ContactForm() {
           label="Phone"
           type="tel"
           autoComplete="tel"
+          error={errors.phone}
           optional
         />
 
@@ -265,6 +298,7 @@ export function ContactForm() {
           </div>
           {errors.message ? (
             <p id={`${ids}-message-error`} className="mt-2 text-fine text-text">
+              <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-terracotta align-middle" />
               {errors.message}
             </p>
           ) : null}
@@ -330,6 +364,7 @@ function Field({
       </div>
       {error ? (
         <p id={`${id}-error`} className="mt-2 text-fine text-text">
+          <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-terracotta align-middle" />
           {error}
         </p>
       ) : null}

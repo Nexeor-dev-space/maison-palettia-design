@@ -1502,31 +1502,19 @@ export interface PoliciesIndexBlock {
  */
 export interface EventsBrowserBlock {
   /**
-   * Create Anytime first, Create Together second.
+   * Create Anytime first, Create Together second. Door titles, chips and group leads are edited in Settings → Booking & checkout wording → Event page → Mode labels.
    */
   doors?:
     | {
-        /**
-         * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
-         */
         title: string;
         noteSource: 'journey0' | 'journey1' | 'custom';
         note?: string | null;
-        /**
-         * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
-         */
         modeLabel?: string | null;
         id?: string | null;
       }[]
     | null;
   groupLeads?: {
-    /**
-     * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
-     */
     diy?: string | null;
-    /**
-     * Edited in Settings → Booking & checkout wording → Event page → Mode labels.
-     */
     scheduled?: string | null;
   };
   viewLocationLabel?: string | null;
