@@ -144,7 +144,8 @@ const HERO_IMAGE = {
  * the photograph, showing past its edges.
  *
  * AS THE PAGE SCROLLS the banner is held still while it changes, all of it
- * driven by one number, `--p` (see <HeroIntro> and ./hero/Hero.module.css):
+ * driven by one number, `--p`, written by <HeroIntro> onto each element that
+ * reads it (see ./hero/Hero.module.css):
  *
  *   the photograph  opens from its card to the whole screen, its corners
  *                   squaring off and a slight zoom settling as it goes;
@@ -263,7 +264,11 @@ export function Hero({
           </div>
 
           {/* ---- the photograph, full size, shown through the card ---- */}
-          <div className={styles.card}>
+          {/* The resting window's box, measured by <HeroIntro> to open the card
+              with transforms. Never seen. */}
+          <div aria-hidden data-hero-window className={styles.windowProbe} />
+          <div data-hero-card className={styles.card}>
+            <div data-hero-card-inner className={styles.cardInner}>
             <div className={styles.bloom}>
               {/*
                 ONE OF THESE IS DRAWN, AND ONLY ONE IS FETCHED.
@@ -362,7 +367,8 @@ export function Hero({
               />
               ) : null}
             </div>
-            <div aria-hidden className={styles.scrim} />
+            <div aria-hidden data-hero-scrim className={styles.scrim} />
+            </div>
           </div>
 
           {/* ---- the words: under the card, then inside the picture ---- */}
@@ -570,7 +576,7 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
       )}
       style={vars}
     >
-      <div className={styles.drift}>
+      <div data-hero-drift className={styles.drift}>
         <div className={styles.parallax}>
           <div data-loop="" className={styles.float}>
             <svg

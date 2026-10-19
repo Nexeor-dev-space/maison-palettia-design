@@ -16,6 +16,31 @@
 }
 
 /*
+  THE SHEET RUNS ON PAST THE SCREEN'S FOOT, for iOS 26 Safari.
+
+  Once a scroll collapses Safari's toolbar into its small floating pill, a
+  `fixed; bottom: 0` bar stops a few pixels short of the strip Safari tints
+  behind that pill, and the page shows through the slit between the two — a
+  line of Light Sage under the purple, the gap the client photographed. It is
+  Safari's (reported against 26.0, said to be fixed in 26.1), not this bar's:
+  `bottom: 0` is honoured, and the viewport's edge is in the wrong place.
+
+  So the purple simply does not end at the bar's edge. This hangs a block of
+  it below, off screen wherever the viewport is where it should be, and filling
+  the slit wherever it is not. A fixed box adds nothing to the page's scroll
+  height, so it costs nothing anywhere else.
+*/
+.bar::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 6rem;
+  background: var(--color-primary);
+  pointer-events: none;
+}
+
+/*
   THE BADGE'S SHAPE, AND WHY IT IS NOT A CIRCLE.
 
   The brief rules out a conventional rounded button, and a circle is exactly

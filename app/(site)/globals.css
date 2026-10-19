@@ -2030,3 +2030,72 @@ html[data-intro="settle"] body:has([data-hero-intro]) > header {
     animation: none;
   }
 }
+
+/*
+  THE SECTION-GROUND DRIFT ON THE COMPOSITOR — see <SectionShapes>.
+
+  Where the browser has scroll-driven animations the span's `translate`
+  follows its own `view()` timeline over the section's pass (`cover` is
+  exactly the hub's "start end" to "end start"), and nothing on the main
+  thread runs per frame. `translate`, not `transform`: Framer still owns the
+  span's `transform` for its resting rotation, and the two must compose.
+  Where it has not, Framer writes the transform and the span gets its own
+  layer while it is on screen, so each frame is a transform update and not a
+  repaint of a section-sized vector.
+*/
+.shape-field {
+  view-timeline-name: --shape-field;
+  view-timeline-axis: block;
+}
+
+@supports (animation-timeline: view()) {
+  .shape-drift {
+    animation: shape-drift linear both;
+    animation-timeline: --shape-field;
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+@supports not (animation-timeline: view()) {
+  .shape-drift[data-loop]:not([data-offscreen]) {
+    will-change: transform;
+  }
+}
+
+@keyframes shape-drift {
+  from {
+    translate: 0 calc(var(--shape-drift, 0%) * -0.5);
+  }
+  to {
+    translate: 0 calc(var(--shape-drift, 0%) * 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shape-drift {
+    animation: none;
+  }
+}
+
+/* The peeled note's flap breathes — see <PeelNote>. A CSS loop on the flap
+   group (its origin is set inline at the fold), so the note's own frame
+   loop can stop once the flap stands. */
+.peel-sway {
+  transform-box: view-box;
+  animation: peel-sway 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes peel-sway {
+  from {
+    rotate: -0.35deg;
+  }
+  to {
+    rotate: 0.35deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peel-sway {
+    animation: none;
+  }
+}
