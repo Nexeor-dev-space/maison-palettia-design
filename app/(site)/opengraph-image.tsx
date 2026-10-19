@@ -1,13 +1,8 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-
-import { ImageResponse } from "next/og";
-
-import { INK } from "@/components/sections/hero/composition";
-import { imageDataUri } from "@/components/cms/ogImage";
-import { BRAND_LOGO } from "@/lib/constants";
-import { getBrandLogo } from "@/lib/constants.server";
-import { DEFAULT_SHARE_IMAGE, SHARE_IMAGE_SIZE } from "@/lib/seo";
+import { renderSiteCard } from "@/components/cms/shareCard";
+import { getBrandCopy } from "@/lib/brand.server";
+import { getSite } from "@/lib/constants.server";
+import { getCreativeExperiences } from "@/lib/experiences";
+import { DEFAULT_SHARE_IMAGE, SHARE_CARD_SIZE } from "@/lib/seo";
 
 /**
  * ==========================================================================
@@ -19,13 +14,24 @@ import { DEFAULT_SHARE_IMAGE, SHARE_IMAGE_SIZE } from "@/lib/seo";
  * branded artwork lib/seo.ts asks the client for has never arrived, so 25 of
  * 29 routes went out to WhatsApp, iMessage and Slack as a bare grey link.
  *
- * WHAT IT IS. The official logo — the Light Sage cut, from BRAND_LOGO, not a
- * redrawing of it — on Charcoal Slate, which is the ground that cut was made
- * for (9.07:1 there; see the note on BRAND_LOGO). Nothing else: no tagline,
- * because the platform prints the page's own title and description under the
- * card, and no type, because the brand's text face only ships as .woff2 and
- * ImageResponse cannot read that format. A card that says one thing well is
- * the right default for a page that has not chosen its own picture.
+ * WHAT IT IS. The brand card in the site's light look (components/cms/
+ * shareCard.tsx draws it, and every other card, from one composition): the
+ * logo in Deep Lilac, a small "Creative workshops · Dubai" eyebrow, the
+ * tagline from Brand wording as the script headline over a terracotta brush
+ * stroke, one plain line saying what the studio is for, and three of the
+ * activities' own photographs fanned as prints on the right. The tagline and
+ * the photographs are the CMS's, so the card follows the admin; the eyebrow
+ * and the line are fixed here because Brand wording has no field that says
+ * either in so few words.
+ *
+ * WHICH PHOTOGRAPHS. The first three published activities that carry no
+ * "Coming soon" flag, each by its own square `image` — the same frames the
+ * menu and the homepage plates use — so the card shows what a visitor can
+ * do today. With fewer, it shows fewer; with none, the words take the card.
+ *
+ * 684x360, not 1200x630, because it now carries photographs: PNG does not
+ * compress them, and WhatsApp's ceiling is 600KB — see SHARE_CARD_SIZE in
+ * lib/seo.ts, which DEFAULT_SHARE_IMAGE declares the same size from.
  *
  * HOW IT REACHES EVERY PAGE — AND WHY THIS FILE ALONE WOULD NOT. Next applies
  * a root opengraph-image only to routes that do not set `openGraph`
@@ -57,9 +63,10 @@ import { DEFAULT_SHARE_IMAGE, SHARE_IMAGE_SIZE } from "@/lib/seo";
  * `metadataBase` to resolve it against (see the note there). Edit the card
  * here; never there.
  *
- * Generated, not committed as a PNG, so it follows the logo: replace the file
- * BRAND_LOGO points at and the card changes with it. Prerendered at build —
- * nothing here reads the request.
+ * Generated, not committed as a PNG, so it follows the CMS: replace the logo
+ * in Site details, the tagline in Brand wording or an activity's photograph
+ * and the card changes with it on the next revalidation. Prerendered at
+ * build — nothing here reads the request.
  *
  * TODO(client): this is a stand-in for real share artwork, not a substitute
  * for it. When the client supplies a 1200x630 image, drop it in as
@@ -68,51 +75,20 @@ import { DEFAULT_SHARE_IMAGE, SHARE_IMAGE_SIZE } from "@/lib/seo";
  */
 
 export const alt = DEFAULT_SHARE_IMAGE.alt;
-export const size = SHARE_IMAGE_SIZE;
+export const size = SHARE_CARD_SIZE;
 export const contentType = "image/png";
 
-/*
-  THE LOGO IS SITE DETAILS' (the "on dark" cut, `getBrandLogo`), falling back
-  to the committed file. Inlined as a data URI because Satori draws only what
-  it is handed — it cannot fetch a root-relative path from a server that is,
-  at build time, not running — and read per render rather than once at
-  module scope, so replacing the logo in the admin changes the card on the
-  next revalidation (Site details purges the whole layout, SPEC §G.4).
-*/
-async function logoSrc(src: string): Promise<string> {
-  const fromCms = await imageDataUri(src, { width: 1200, keepAlpha: true });
-  if (fromCms) return fromCms;
-  const bytes = await readFile(join(process.cwd(), "public", BRAND_LOGO.src));
-  return `data:image/png;base64,${bytes.toString("base64")}`;
-}
-
-/*
-  Set by height, as everywhere else the mark is drawn — the file keeps its own
-  aspect. 300px of a 630px card is the logo at roughly the share it takes of
-  the banner on a desktop: large enough to read in WhatsApp's small square
-  crop, small enough to keep a margin in Facebook's wide one.
-*/
-const LOGO_HEIGHT = 300;
-
 export default async function Image() {
-  const logo = await getBrandLogo();
-  const src = await logoSrc(logo.src);
-  const width = Math.round((LOGO_HEIGHT * logo.width) / logo.height);
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: INK.charcoal,
-        }}
-      >
-        <img src={src} width={width} height={LOGO_HEIGHT} alt="" />
-      </div>
-    ),
-    size,
-  );
+  const [copy, site, experiences] = await Promise.all([getBrandCopy(), getSite(), getCreativeExperiences()]);
+  const photos = experiences
+    .flatMap(({ status, image }) => (!status && image?.src ? [{ src: image.src, position: image.position }] : []))
+    .slice(0, 3);
+
+  return renderSiteCard({
+    eyebrow: "Creative workshops \u00b7 Dubai",
+    headline: copy.tagline,
+    line: "Paint, craft and make something of your own.",
+    domain: new URL(site.url).host.replace(/^www\./, ""),
+    photos,
+  });
 }
