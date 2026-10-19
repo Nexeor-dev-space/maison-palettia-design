@@ -217,9 +217,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               renders nothing on /contact itself. */}
           <ContactWidget />
           {/* Background music, bottom left — Content → Music and Settings →
-              Music. Only when switched on and there is a track; it never
-              plays until pressed, and it lives here so a track carries on
-              across client-side navigation. See <MusicPlayer>. */}
+              Music. Only when switched on and there is a track; it starts
+              itself (or on the first tap, where the browser insists), and it
+              lives here so a track carries on across client-side navigation.
+              See <MusicPlayer>. */}
           {music.enabled ? <MusicPlayer config={music} /> : null}
           {/* Below `lg` only — see <BottomNav>. Mounted after the footer so it
               paints over the page's own foot, and before <CursorLayer>'s

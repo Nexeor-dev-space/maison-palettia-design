@@ -58,7 +58,7 @@ export const MusicTracks: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "artist", "licence", "active", "order"],
     description:
-      "Background music for the site's player. Visitors start it themselves — it never plays on its own. Turn the player on in Settings → Music.",
+      "Background music for the site's player. It starts by itself when a visitor arrives (or on their first tap, where the browser requires one), and they can pause it. Turn the player on in Settings → Music.",
     listSearchableFields: ["title", "artist", "sourceName"],
     components: {
       beforeListTable: [
