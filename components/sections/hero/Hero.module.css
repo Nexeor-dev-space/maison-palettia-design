@@ -39,7 +39,23 @@
   --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
   /* A piece arriving from off-screen: quick away, long settle, no overshoot. */
   --ease-land: cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-x: clip;
+  /*
+    NO `overflow-x: clip` HERE — it is on `.frame` instead, and that move is
+    the fix for the banner shaking on iPhones.
+
+    This section is also a stacking context (`isolate z-0` in Hero.tsx). A
+    clip and a stacking context on the same ancestor of a sticky element is
+    the combination iOS Safari cannot hold still: measured in the iOS 26.4
+    simulator on a stripped-down page, a bar inside the sticky frame jumped
+    back and forth by up to 7px on 42 frames of one slow drag with both, and
+    did not move at all with either one alone. On this banner that was the
+    whole frame — photograph, words and actions — shaking under the finger.
+
+    The clip was only ever keeping the doodles from widening the page, and
+    they live inside the frame, so the frame clips them now; <html> and
+    <body> clip the page as a whole. The intro's logo is `fixed` and was
+    never clipped by this anyway.
+  */
 }
 
 :global(html:not([data-intro])) .hero,
@@ -403,6 +419,9 @@
   position: sticky;
   top: 0;
   height: 100svh;
+  /* The doodles' horizontal clip, on the sticky element itself rather than
+     on the section around it — see the note at `.hero`. */
+  overflow-x: clip;
   /*
     Its own compositor layer. The frame holds still while the page moves
     under it for two screens, and every browser handles a sticky element more
