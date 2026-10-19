@@ -73,7 +73,7 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   slower in proportion — the writing, the wells, the ring's hold — rather
   than one beat padded, so it still reads as one movement, only unhurried.
 */
-const WRITE_MS = 1500; // the pen writes "Maison Palettia", first stroke to last
+const WRITE_MS = 800; // the pen writes "Maison Palettia", first stroke to last
 const DOTS_AT = WRITE_MS - 40;
 
 /** On a touch screen, how much of the gap to the scroll the opening closes each frame. */
@@ -82,9 +82,9 @@ const FOLLOW = 0.38;
 /** Fired on the frame whenever its foot is refitted — see `refit` below. */
 const REFIT_EVENT = "hero-refit"; // the mark is written; the wells start filling
 const DOT_STEP = 95; // one well after another — see `.pDot` in Hero.module.css
-const BURST_AT = DOTS_AT + 640; // frame 2: the icons leave the logo
-const LIFT_AT = BURST_AT + 900; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 960; // frame 6: ... and the page is composed by ~4000ms
+const BURST_AT = DOTS_AT + 240; // frame 2: the icons leave the logo
+const LIFT_AT = BURST_AT + 250; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 760; // frame 6: ... and the page is composed by ~2000ms
 
 /*
   One icon after another on the way out, and again on the way back.
@@ -349,6 +349,48 @@ function nextPaint(fn: () => void): () => void {
 }
 
 /**
+ * A window `resize` listener that ignores a phone's toolbar.
+ *
+ * ON A PHONE, SCROLLING RESIZES THE WINDOW. Safari and Chrome both shrink their
+ * address bar as the page starts to move and bring it back when it turns, and
+ * each time `innerHeight` changes and `resize` fires — which is to say, in the
+ * middle of the banner's opening, every time the reader changes direction.
+ * Every listener here answered with a full refit: probes appended to <body>,
+ * forced layouts, and (on the scroll timeline) every scrubbed animation
+ * cancelled and built again. That was a dropped run of frames at exactly the
+ * moment the photograph was opening under the reader's thumb.
+ *
+ * None of it can have changed. The frame is `100svh`, the SMALL viewport, which
+ * is the same height whichever state the toolbar is in, and every measurement
+ * the banner takes is against the frame. So on a touch screen a resize that
+ * leaves the width alone (the toolbar, or the keyboard) is dropped; a rotation
+ * still refits. A pointer device keeps every resize: a desktop window dragged
+ * taller really does change the frame. Bursts are folded into one call per
+ * frame either way.
+ */
+function onViewportResize(fn: () => void): () => void {
+  const touch = window.matchMedia("(pointer: coarse)").matches;
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  let queued = 0;
+  const onResize = () => {
+    const changed = window.innerWidth !== width || (!touch && window.innerHeight !== height);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    if (!changed || queued) return;
+    queued = requestAnimationFrame(() => {
+      queued = 0;
+      fn();
+    });
+  };
+  window.addEventListener("resize", onResize);
+  return () => {
+    cancelAnimationFrame(queued);
+    window.removeEventListener("resize", onResize);
+  };
+}
+
+/**
  * The entrance — the mark, and the ring of the brand's icons that bursts out
  * from behind it and then scatters into the page — and, once it is over, the
  * banner's opening on scroll and the icons' pointer depth.
@@ -408,9 +450,11 @@ export function HeroIntro() {
     document.fonts?.ready.then(() => {
       if (!cancelled) refit();
     });
-    // Registered before the scroll effect's own listener, so on a resize the
-    // foot is refitted before the words' landing is measured against it.
-    window.addEventListener("resize", refit);
+    /* The only resize listener in the banner. The scroll effect below hears
+       about a resize through REFIT_EVENT, after the foot has been refitted —
+       it used to listen as well, and every resize measured and rebuilt the
+       opening twice. A phone's toolbar is not a resize; see onViewportResize. */
+    const stopResize = onViewportResize(refit);
     /*
       And whenever the words themselves change height, for any reason the two
       lines above do not name: a face swapping in after `fonts.ready` has
@@ -424,7 +468,7 @@ export function HeroIntro() {
     return () => {
       cancelled = true;
       ro.disconnect();
-      window.removeEventListener("resize", refit);
+      stopResize();
     };
   }, []);
 
@@ -807,10 +851,29 @@ export function HeroIntro() {
     const copy = hero?.querySelector<HTMLElement>("[data-hero-copy]");
     const actions = hero?.querySelector<HTMLElement>("[data-hero-actions]");
     const cue = hero?.querySelector<HTMLElement>("[data-hero-cue]");
+    const card = hero?.querySelector<HTMLElement>("[data-hero-card]");
+    const cardInner = hero?.querySelector<HTMLElement>("[data-hero-card-inner]");
+    const windowProbe = hero?.querySelector<HTMLElement>("[data-hero-window]");
     if (!track || !frame || !copy || !actions || !cue) return;
 
     // Reduced motion: nothing opens, and the two actions are simply there.
     if (window.matchMedia(REDUCED).matches) return;
+
+    /*
+      WHO READS `--p`. Written onto these, and never onto the frame: a custom
+      property set on the frame inherits into every element under it, so one
+      write recomputed style for the whole banner on every scroll frame —
+      see the note at `.frame` in Hero.module.css. The words' block carries
+      the actions with it (they are inside it and inherit), the cue stands on
+      its own, and each cut-out's drift box is the one that moves.
+    */
+    const readers = [
+      ...frame.querySelectorAll<HTMLElement>("[data-hero-card-inner] img"),
+      frame.querySelector<HTMLElement>("[data-hero-scrim]"),
+      copy,
+      cue,
+      ...frame.querySelectorAll<HTMLElement>("[data-hero-drift]"),
+    ].filter((el): el is HTMLElement => el !== null);
 
     /*
       The frame is sticky inside its track. Measured here, on load, on resize
@@ -826,6 +889,57 @@ export function HeroIntro() {
     */
     let start = 0;
     let end = 1;
+    const inks: { el: HTMLElement; at: number; lit: boolean | null }[] = [];
+
+    /*
+      THE CARD OPENS WITH TRANSFORMS, NOT A CLIP-PATH.
+
+      A changing clip-path repaints the photograph under it every frame, and on
+      a phone that repaint is the stutter in the opening. Instead the card is
+      the full frame, scaled down (non-uniformly) to the resting window, and
+      its contents are scaled back up by the inverse so the picture itself
+      does not move: two compositor transforms per frame, nothing repainted.
+      The window's box comes from a hidden probe placed with the same --wt,
+      --wx and --wb the clip-path used, so the geometry is identical.
+      Without this script (or with reduced motion) the CSS clip-path stands.
+    */
+    const box = { w: 1, h: 1, wx: 0, wt: 0, wb: 0, r: 0 };
+    /*
+      THE CORNER IS WRITTEN WHEN IT CHANGES BY A PIXEL, NOT EVERY FRAME. The
+      two transforms above are compositor work, but `border-radius` is not:
+      on a clipped, composited layer a new radius means a new clip mask, and
+      WebKit cut one for every frame of the opening — for a corner that is
+      8px at rest and gone before the card is a tenth open. Rounded to whole
+      pixels and written only on a change, that is a handful of masks in all.
+    */
+    let radius = "";
+    const placeCard = (p: number) => {
+      if (!card || !cardInner) return;
+      const q = 1 - p;
+      const sx = (box.w - 2 * box.wx * q) / box.w;
+      const sy = (box.h - (box.wt + box.wb) * q) / box.h;
+      const tx = box.wx * q;
+      const ty = box.wt * q;
+      card.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scale(${sx.toFixed(5)}, ${sy.toFixed(5)})`;
+      cardInner.style.transform = `scale(${(1 / sx).toFixed(5)}, ${(1 / sy).toFixed(5)}) translate3d(${(-tx).toFixed(2)}px, ${(-ty).toFixed(2)}px, 0)`;
+      const r = box.r * q;
+      const next = r >= 0.5 ? `${Math.round(r / sx)}px / ${Math.round(r / sy)}px` : "0";
+      if (next !== radius) {
+        radius = next;
+        card.style.borderRadius = next;
+      }
+    };
+    const measureCard = () => {
+      if (!card || !cardInner || !windowProbe) return;
+      box.w = Math.max(1, frame.offsetWidth);
+      box.h = Math.max(1, frame.offsetHeight);
+      box.wx = windowProbe.offsetLeft;
+      box.wt = windowProbe.offsetTop;
+      box.wb = box.h - windowProbe.offsetTop - windowProbe.offsetHeight;
+      box.r = parseFloat(getComputedStyle(windowProbe).borderTopLeftRadius) || 0;
+      frame.setAttribute("data-xform", "");
+    };
+
     const measure = () => {
       const trackTop = track.getBoundingClientRect().top + window.scrollY;
       const hold = Math.max(1, track.offsetHeight - frame.offsetHeight);
@@ -842,7 +956,8 @@ export function HeroIntro() {
       const lowest = frame.offsetHeight - navBand() - footPad() - copy.offsetHeight;
       const landing = Math.min(frame.offsetHeight * COPY_LANDING - copy.offsetHeight / 2, lowest);
       const shift = landing - copy.offsetTop;
-      frame.style.setProperty("--copy-shift", `${Math.round(shift)}px`);
+      copyShift = Math.round(shift);
+      frame.style.setProperty("--copy-shift", `${copyShift}px`);
 
       /*
         EACH LINE TURNS LIGHT AS THE PHOTOGRAPH PASSES BEHIND IT — the fix for
@@ -866,10 +981,21 @@ export function HeroIntro() {
       */
       const wb = parseFloat(frame.style.getPropertyValue("--wb")) || 0;
       const sweep = wb - shift;
+      /*
+        ONE FLIP PER LINE, NOT A VALUE PER FRAME. The ink used to be a
+        `--ink` ratio driven by `--p`, and the colour and the 28px text
+        shadow it feeds were recomputed and REPAINTED on every scroll frame
+        of the opening — a blurred shadow under a large script headline is
+        the most expensive paint in the banner. Now each line records the
+        progress at which the picture's foot reaches its middle, `data-lit`
+        flips there, and a short CSS transition does the crossing: a handful
+        of frames of paint per line instead of a hundred.
+      */
+      inks.length = 0;
+      inks.push({ el: copy, at: 0.175, lit: null });
       for (const el of copy.querySelectorAll<HTMLElement>("[data-ink]")) {
         if (!(sweep > 0)) {
-          el.style.removeProperty("--ink-at");
-          el.style.removeProperty("--ink-rate");
+          inks.push({ el, at: 0.175, lit: null });
           continue;
         }
         let top = el.offsetTop;
@@ -883,8 +1009,7 @@ export function HeroIntro() {
         const at = (edge: number) => Math.min(1, Math.max(0, (copy.offsetTop + edge - frame.offsetHeight + wb) / sweep));
         const from = at(top);
         const to = at(top + el.offsetHeight);
-        el.style.setProperty("--ink-at", from.toFixed(4));
-        el.style.setProperty("--ink-rate", (1 / Math.max(0.04, to - from)).toFixed(3));
+        inks.push({ el, at: (from + to) / 2, lit: null });
       }
     };
 
@@ -930,13 +1055,230 @@ export function HeroIntro() {
       the wheel, and easing twice would make the banner trail the page.
     */
     const touch = window.matchMedia("(pointer: coarse)").matches;
+
+    /*
+      ==========================================================================
+      THE OPENING RUNS ON THE BROWSER'S OWN SCROLL TIMELINE WHERE IT CAN.
+      ==========================================================================
+
+      Everything above this writes the opening from JavaScript: a scroll event
+      arrives, `--p` is worked out, and a dozen elements are restyled. On a
+      phone that is the jitter the client filmed — twice over. The scroll
+      position a touch reports is one frame behind the finger and arrives
+      unevenly, so the photograph's window steps rather than slides; and the
+      writes land on the main thread, so whenever that thread is busy (an
+      image decoding, the next section mounting) the window simply does not
+      move for a frame, then jumps.
+
+      A ScrollTimeline hands the whole opening to the compositor instead: each
+      element gets a Web Animation whose progress IS the scroll position, read
+      on the compositor thread in the same frame the page moves, with no event
+      and no script in between. Transforms and opacity then stay in step with
+      the scroll even while the main thread is busy. This is what
+      `animation-timeline: scroll()` does in CSS, built from script because
+      the card's two transforms (see `placeCard`) must stay exact inverses at
+      every point of the opening, which a pair of two-keyframe CSS animations
+      cannot promise — interpolating a scale and its inverse separately
+      wobbles the picture mid-way. Sampling the pair forty-eight times keeps
+      the error under a fifth of a percent.
+
+      The easing is sampled into the keyframes too (the same smoothstep the
+      script path uses), so the two paths look identical; browsers without
+      ScrollTimeline (older Firefox and Safari) keep the script path.
+
+      The script keeps two jobs: the ink flips (`data-lit`) and which of the
+      cue and the actions is reachable (`inert`), both attribute toggles.
+    */
+    type ScrollTimelineCtor = new (init: { source: Element | null; axis?: "block" | "inline" }) => AnimationTimeline;
+    const ScrollTimelineImpl = (window as unknown as { ScrollTimeline?: ScrollTimelineCtor }).ScrollTimeline;
+    let timeline: AnimationTimeline | null = null;
+    if (ScrollTimelineImpl && card && cardInner && typeof card.animate === "function" && CSS.supports("animation-timeline: scroll()")) {
+      try {
+        timeline = new ScrollTimelineImpl({ source: document.scrollingElement, axis: "block" });
+      } catch {
+        timeline = null;
+      }
+    }
+    const STEPS = 48;
+    const smooth = (t: number) => t * t * (3 - 2 * t);
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+    let animations: Animation[] = [];
+    let imageAnimations: Animation[] = [];
+    let copyShift = 0;
+    /** One animation, scrubbed by the page's scroll between two positions in px. */
+    const scrub = (el: Element, frames: Keyframe[], from = start, to = end) =>
+      el.animate(frames, {
+        timeline,
+        fill: "both",
+        rangeStart: `${from}px`,
+        rangeEnd: `${to}px`,
+      } as KeyframeAnimationOptions);
+    /** Keyframes sampled evenly along the scroll, each holding the eased progress's values. */
+    const sampled = (at: (p: number) => Keyframe): Keyframe[] =>
+      Array.from({ length: STEPS + 1 }, (_, i) => ({ ...at(smooth(i / STEPS)), offset: i / STEPS, easing: "linear" }));
+    const geometry = (p: number) => {
+      const q = 1 - p;
+      return {
+        sx: (box.w - 2 * box.wx * q) / box.w,
+        sy: (box.h - (box.wt + box.wb) * q) / box.h,
+        tx: box.wx * q,
+        ty: box.wt * q,
+      };
+    };
+    /*
+      The picture's own zoom and lift join the timeline only once the intro
+      is over: its intro states set a larger scale and a transition on the
+      same property, and an animation would override both.
+    */
+    const buildImageTimeline = () => {
+      if (!timeline) return;
+      for (const a of imageAnimations) a.cancel();
+      imageAnimations = [];
+      for (const img of frame.querySelectorAll<HTMLElement>("[data-hero-card-inner] img")) {
+        const lift = parseFloat(img.style.getPropertyValue("--lift")) || 0;
+        imageAnimations.push(
+          scrub(
+            img,
+            sampled((p) => ({
+              transform: `translate3d(0, ${(lift * (1 - p)).toFixed(3)}%, 0) scale(${(1.06 - 0.06 * p).toFixed(5)})`,
+            })),
+          ),
+        );
+      }
+    };
+    const buildTimeline = () => {
+      if (!timeline || !card || !cardInner) return;
+      for (const a of animations) a.cancel();
+      animations = [];
+      try {
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        animations.push(
+          scrub(
+            card,
+            sampled((p) => {
+              const g = geometry(p);
+              return { transform: `translate3d(${g.tx.toFixed(2)}px, ${g.ty.toFixed(2)}px, 0) scale(${g.sx.toFixed(5)}, ${g.sy.toFixed(5)})` };
+            }),
+          ),
+          scrub(
+            cardInner,
+            sampled((p) => {
+              const g = geometry(p);
+              return {
+                transform: `scale(${(1 / g.sx).toFixed(5)}, ${(1 / g.sy).toFixed(5)}) translate3d(${(-g.tx).toFixed(2)}px, ${(-g.ty).toFixed(2)}px, 0)`,
+              };
+            }),
+          ),
+        );
+        /*
+          The corner is not compositor work — a new radius is a new clip mask
+          — so it is its own short animation over the first third of the
+          opening, after which it holds at nothing and costs nothing.
+        */
+        const cornerSteps = 8;
+        animations.push(
+          scrub(
+            card,
+            Array.from({ length: cornerSteps + 1 }, (_, i) => {
+              const f = i / cornerSteps;
+              const g = geometry(smooth(f / 3));
+              const r = box.r * (1 - f);
+              return {
+                borderRadius: r >= 0.5 ? `${(r / g.sx).toFixed(2)}px / ${(r / g.sy).toFixed(2)}px` : "0px / 0px",
+                offset: f,
+                easing: "linear",
+              };
+            }),
+            start,
+            start + (end - start) / 3,
+          ),
+        );
+        const scrim = frame.querySelector<HTMLElement>("[data-hero-scrim]");
+        if (scrim) animations.push(scrub(scrim, sampled((p) => ({ opacity: clamp01(p * 2.5) }))));
+        animations.push(
+          scrub(copy, sampled((p) => ({ transform: `translate3d(0, ${(p * copyShift).toFixed(2)}px, 0)` }))),
+          scrub(
+            actions,
+            sampled((p) => {
+              const arrived = clamp01((p - 0.55) * 3.2);
+              return { opacity: arrived, transform: `translate3d(0, ${((1 - arrived) * 0.75 * rem).toFixed(2)}px, 0)` };
+            }),
+          ),
+          scrub(cue, sampled((p) => ({ opacity: clamp01(1 - p * 6) }))),
+        );
+        for (const drift of frame.querySelectorAll<HTMLElement>("[data-hero-drift]")) {
+          const doodle = drift.parentElement;
+          const dirx = parseFloat(doodle?.style.getPropertyValue("--dirx") ?? "") || 0;
+          const diry = parseFloat(doodle?.style.getPropertyValue("--diry") ?? "") || 0;
+          animations.push(
+            scrub(
+              drift,
+              sampled((p) => ({
+                transform: `translate3d(${(dirx * p * 4 * rem).toFixed(2)}px, ${(diry * p * 3 * rem).toFixed(2)}px, 0) scale(${(1 - p * 0.2).toFixed(4)})`,
+                opacity: clamp01(1 - p * 1.3),
+              })),
+            ),
+          );
+        }
+        if (document.documentElement.dataset.intro === "done") buildImageTimeline();
+      } catch {
+        // A browser that has the constructor but not the range syntax: the
+        // script path takes over from here, exactly as if there were none.
+        for (const a of animations) a.cancel();
+        for (const a of imageAnimations) a.cancel();
+        animations = [];
+        imageAnimations = [];
+        timeline = null;
+      }
+    };
+    const introDone = new MutationObserver(() => {
+      if (document.documentElement.dataset.intro === "done" && imageAnimations.length === 0) buildImageTimeline();
+    });
+    introDone.observe(document.documentElement, { attributes: true, attributeFilter: ["data-intro"] });
+
     let shown = -1;
     let target = 0;
     let follow = 0;
     const apply = (p: number) => {
       shown = p;
-      frame.style.setProperty("--p", p.toFixed(4));
+      if (!timeline) {
+        const value = p.toFixed(4);
+        for (const el of readers) el.style.setProperty("--p", value);
+        placeCard(p);
+      }
+      for (const ink of inks) {
+        const lit = p >= ink.at;
+        if (lit !== ink.lit) {
+          ink.lit = lit;
+          ink.el.toggleAttribute("data-lit", lit);
+        }
+      }
     };
+
+    /*
+      THE BANNER'S LAYERS EXIST WHILE THE BANNER IS ON SCREEN, not for the
+      life of the page. `data-live` carries every `will-change` in the
+      stylesheet (the frame, the picture's card, the scrim, the words, the
+      cut-outs). Toggled by an observer, not by the scroll handler: promoting
+      twenty layers in the first frame of a scroll is itself a dropped frame,
+      so they are promoted while the page is still, and dropped once the
+      banner has gone by.
+
+      A SCREEN EARLY, coming back. On the way down the layers are made on
+      load, at rest. On the way back up from the sections below they were
+      made the moment the track's foot crossed into view — twenty layers in
+      one frame of the reader's scroll, with the banner on screen to show it.
+      The margin moves that frame a full screen ahead, while the banner is
+      still out of sight, and keeps the layers a screen past it on the way
+      down so a short scroll back does not rebuild them.
+    */
+    const live = new IntersectionObserver(
+      ([entry]) => {
+        frame.toggleAttribute("data-live", entry.isIntersecting);
+      },
+      { rootMargin: "100% 0px" },
+    );
+    live.observe(track);
     const step = () => {
       follow = 0;
       const next = shown + (target - shown) * FOLLOW;
@@ -950,7 +1292,9 @@ export function HeroIntro() {
       // tracking the scrollbar mechanically.
       const p = t * t * (3 - 2 * t);
       target = p;
-      if (!touch || shown < 0) apply(p);
+      // On the timeline the compositor already follows the finger; the
+      // easing below exists for the script path only.
+      if (!touch || shown < 0 || timeline) apply(p);
       else if (!follow) follow = requestAnimationFrame(step);
 
       const nextActions = p >= ACTIONS_FROM;
@@ -965,29 +1309,46 @@ export function HeroIntro() {
       }
     };
     const onScroll = write;
-    const onResize = () => {
+    /* Measured afresh, then either the timeline is rebuilt against the new
+       geometry or the card is placed by hand. */
+    const refresh = () => {
       measure();
+      measureCard();
+      if (timeline) buildTimeline();
+      if (!timeline) placeCard(Math.max(0, shown));
+    };
+    const onResize = () => {
+      refresh();
       onScroll();
     };
 
-    measure();
+    refresh();
     write();
     let cancelled = false;
     document.fonts?.ready.then(() => {
       if (cancelled) return;
-      measure();
-      write();
+      onResize();
     });
     const stopScroll = onScrollFrame(onScroll);
-    window.addEventListener("resize", onResize);
     // The foot was refitted (see REFIT_EVENT): measure against the new one.
+    // This is also how a real resize arrives — the fit effect owns the only
+    // resize listener, so the opening is rebuilt once per resize, not twice.
     frame.addEventListener(REFIT_EVENT, onResize);
     return () => {
       cancelled = true;
       cancelAnimationFrame(follow);
       stopScroll();
-      window.removeEventListener("resize", onResize);
       frame.removeEventListener(REFIT_EVENT, onResize);
+      live.disconnect();
+      introDone.disconnect();
+      for (const a of animations) a.cancel();
+      for (const a of imageAnimations) a.cancel();
+      frame.removeAttribute("data-live");
+      frame.removeAttribute("data-xform");
+      for (const el of readers) el.style.removeProperty("--p");
+      card?.style.removeProperty("transform");
+      card?.style.removeProperty("border-radius");
+      cardInner?.style.removeProperty("transform");
       actions.inert = false;
       cue.inert = false;
     };
