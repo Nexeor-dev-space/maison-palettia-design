@@ -816,6 +816,22 @@ export function HeroIntro() {
     if (window.matchMedia(REDUCED).matches) return;
 
     /*
+      WHO READS `--p`. Written onto these, and never onto the frame: a custom
+      property set on the frame inherits into every element under it, so one
+      write recomputed style for the whole banner on every scroll frame —
+      see the note at `.frame` in Hero.module.css. The words' block carries
+      the actions with it (they are inside it and inherit), the cue stands on
+      its own, and each cut-out's drift box is the one that moves.
+    */
+    const readers = [
+      ...frame.querySelectorAll<HTMLElement>("[data-hero-card-inner] img"),
+      frame.querySelector<HTMLElement>("[data-hero-scrim]"),
+      copy,
+      cue,
+      ...frame.querySelectorAll<HTMLElement>("[data-hero-drift]"),
+    ].filter((el): el is HTMLElement => el !== null);
+
+    /*
       The frame is sticky inside its track. Measured here, on load, on resize
       and once the fonts have arrived (the tagline's height depends on them):
 
@@ -844,6 +860,15 @@ export function HeroIntro() {
       Without this script (or with reduced motion) the CSS clip-path stands.
     */
     const box = { w: 1, h: 1, wx: 0, wt: 0, wb: 0, r: 0 };
+    /*
+      THE CORNER IS WRITTEN WHEN IT CHANGES BY A PIXEL, NOT EVERY FRAME. The
+      two transforms above are compositor work, but `border-radius` is not:
+      on a clipped, composited layer a new radius means a new clip mask, and
+      WebKit cut one for every frame of the opening — for a corner that is
+      8px at rest and gone before the card is a tenth open. Rounded to whole
+      pixels and written only on a change, that is a handful of masks in all.
+    */
+    let radius = "";
     const placeCard = (p: number) => {
       if (!card || !cardInner) return;
       const q = 1 - p;
@@ -854,7 +879,11 @@ export function HeroIntro() {
       card.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scale(${sx.toFixed(5)}, ${sy.toFixed(5)})`;
       cardInner.style.transform = `scale(${(1 / sx).toFixed(5)}, ${(1 / sy).toFixed(5)}) translate3d(${(-tx).toFixed(2)}px, ${(-ty).toFixed(2)}px, 0)`;
       const r = box.r * q;
-      card.style.borderRadius = r > 0.01 ? `${(r / sx).toFixed(2)}px / ${(r / sy).toFixed(2)}px` : "0";
+      const next = r >= 0.5 ? `${Math.round(r / sx)}px / ${Math.round(r / sy)}px` : "0";
+      if (next !== radius) {
+        radius = next;
+        card.style.borderRadius = next;
+      }
     };
     const measureCard = () => {
       if (!card || !cardInner || !windowProbe) return;
@@ -986,7 +1015,8 @@ export function HeroIntro() {
     let follow = 0;
     const apply = (p: number) => {
       shown = p;
-      frame.style.setProperty("--p", p.toFixed(4));
+      const value = p.toFixed(4);
+      for (const el of readers) el.style.setProperty("--p", value);
       placeCard(p);
       for (const ink of inks) {
         const lit = p >= ink.at;
@@ -1069,9 +1099,8 @@ export function HeroIntro() {
       frame.removeEventListener(REFIT_EVENT, onResize);
       live.disconnect();
       frame.removeAttribute("data-live");
-      live.disconnect();
-      frame.removeAttribute("data-live");
       frame.removeAttribute("data-xform");
+      for (const el of readers) el.style.removeProperty("--p");
       card?.style.removeProperty("transform");
       card?.style.removeProperty("border-radius");
       cardInner?.style.removeProperty("transform");

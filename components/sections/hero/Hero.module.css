@@ -410,15 +410,19 @@
     reposition it. Only while the banner is on screen: HeroIntro sets
     `data-live` from an observer, so nothing is held once it has gone by.
   */
-  --p: 0;
   /*
-    Two paces taken from the one progress. The tagline crosses the card's
-    foot at about 15% of the opening, so its ink has to be light by the time
-    it is over the picture (`--ink`, done at 30%), and the shade behind it
-    deep enough to read on (`--shade`, done at 40%). Paced by `--p` itself,
-    the words were grey on the photograph's brightest stripes halfway through.
+    THE OPENING'S PROGRESS, 0 TO 1 — AT REST HERE, AND ONLY AT REST.
+
+    This is the default every rule below falls back to. The live value is
+    NOT written here: a custom property on the frame inherits into every
+    doodle, path and line under it, so one write per scroll frame recomputed
+    style for the whole banner — a few hundred elements — and on a phone that
+    was the opening rendering at half rate, the window's edge stepping rather
+    than sliding. <HeroIntro> writes `--p` onto each element that actually
+    reads it (the picture, the shade, the words, the cue, each cut-out's
+    drift), so a frame's work is a handful of composited transforms.
   */
-  --shade: clamp(0, calc(var(--p) * 2.5), 1);
+  --p: 0;
   --wx: 4%;
   --wt: calc(var(--spacing-header) + 1.25rem);
   /*
@@ -662,6 +666,16 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /*
+    Two paces taken from the one progress. The tagline crosses the card's
+    foot at about 15% of the opening, so its ink has to be light by the time
+    it is over the picture (`--ink`, done at 30%), and the shade behind it
+    deep enough to read on (`--shade`, done at 40%). Paced by `--p` itself,
+    the words were grey on the photograph's brightest stripes halfway through.
+    Declared here rather than on the frame so the shade's `--p` is its own —
+    see the note on `--p` at `.frame`.
+  */
+  --shade: clamp(0, calc(var(--p) * 2.5), 1);
   background:
     radial-gradient(ellipse 75% 34% at 50% 70%, rgb(35 31 32 / 0.38), transparent 75%),
     linear-gradient(180deg, rgb(35 31 32 / 0.2) 0%, rgb(35 31 32 / 0.38) 45%, rgb(35 31 32 / 0.74) 100%);

@@ -144,7 +144,8 @@ const HERO_IMAGE = {
  * the photograph, showing past its edges.
  *
  * AS THE PAGE SCROLLS the banner is held still while it changes, all of it
- * driven by one number, `--p` (see <HeroIntro> and ./hero/Hero.module.css):
+ * driven by one number, `--p`, written by <HeroIntro> onto each element that
+ * reads it (see ./hero/Hero.module.css):
  *
  *   the photograph  opens from its card to the whole screen, its corners
  *                   squaring off and a slight zoom settling as it goes;
@@ -366,7 +367,7 @@ export function Hero({
               />
               ) : null}
             </div>
-            <div aria-hidden className={styles.scrim} />
+            <div aria-hidden data-hero-scrim className={styles.scrim} />
             </div>
           </div>
 
@@ -575,7 +576,7 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
       )}
       style={vars}
     >
-      <div className={styles.drift}>
+      <div data-hero-drift className={styles.drift}>
         <div className={styles.parallax}>
           <div data-loop="" className={styles.float}>
             <svg
