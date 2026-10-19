@@ -21,6 +21,7 @@ import { globals } from "@/cms/globals";
 import { jobsConfig } from "@/cms/jobs";
 import { runtimeEmailAdapter } from "@/cms/lib/mailer";
 import { livePreviewUrl, publicUrl, routeFor } from "@/cms/lib/publicUrl";
+import { PRODUCTION_ORIGIN } from "@/lib/siteOrigin";
 import { seedDefaults } from "@/cms/seed/defaults";
 
 /**
@@ -106,7 +107,36 @@ export default buildConfig({
     },
     // `icons` points the admin tab at the brand favicon Next already serves
     // from app/favicon.ico; without it Payload injects its own marks (SPEC §A.4).
-    meta: { titleSuffix: " · Maison Palettia", icons: [{ url: "/favicon.ico" }] },
+    /*
+      What an /admin link says when it is shared (WhatsApp, Slack, iMessage).
+      Payload fills every gap with its own: the title "Payload App", "Payload
+      is a headless CMS…" and a generated Payload card at /api/og. So each of
+      those is set here and the generated card is switched off. The share
+      image needs an ABSOLUTE URL: Payload's metadataBase falls back to
+      http://localhost:<port> because `serverURL` is deliberately unset (see
+      above), which would make a relative path unreachable. The admin is never
+      for search engines, so it says noindex too.
+    */
+    meta: {
+      titleSuffix: "· Maison Palettia Studio",
+      description: "The Maison Palettia studio admin: pages, sessions, bookings, orders and the owner's guide.",
+      icons: [{ url: "/favicon.ico" }],
+      defaultOGImageType: "off",
+      robots: { index: false, follow: false },
+      openGraph: {
+        siteName: "Maison Palettia Studio",
+        title: "Maison Palettia Studio",
+        description: "Pages, bookings, orders and the owner's guide — all in one place.",
+        images: [
+          {
+            url: `${serverUrl || PRODUCTION_ORIGIN}/images/brand/admin-og.png`,
+            width: 1200,
+            height: 630,
+            alt: "Maison Palettia Studio — the admin",
+          },
+        ],
+      },
+    },
     importMap: { baseDir: dirname },
     components: {
       graphics: {
@@ -160,7 +190,7 @@ export default buildConfig({
           Component: "@/cms/views/docs#DocsView",
           path: "/docs",
           exact: false,
-          meta: { title: "Guide", description: "How to run the studio's website, step by step." },
+          meta: { title: "Guide", description: "How to run the studio's website, step by step.", openGraph: { title: "The owner's guide · Maison Palettia Studio", description: "How to run the studio's website, step by step." } },
         },
       },
     },
