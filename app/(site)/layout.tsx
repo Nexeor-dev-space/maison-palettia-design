@@ -21,6 +21,7 @@ import { MusicPlayer } from "@/components/layout/MusicPlayer";
 import { CursorLayer } from "@/components/motion/CursorLayer";
 import { AutoReveal } from "@/components/motion/AutoReveal";
 import { SiteLoader } from "@/components/motion/SiteLoader";
+import { LoopPause } from "@/components/motion/LoopPause";
 import { PointerField } from "@/components/motion/PointerField";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
@@ -207,6 +208,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <DoodleMark> on the page can drift against it, the way the
               banner's doodles do. Renders nothing; see PointerField.tsx. */}
           <PointerField />
+          {/* Pauses every infinite CSS loop marked `data-loop` while it is
+              off screen. Renders nothing; see LoopPause.tsx. */}
+          <LoopPause />
 
           {/* The floating Contact link, from `lg` up. Late in the body so it
               sits above the page without a stacking context of its own; it

@@ -407,9 +407,9 @@
     Its own compositor layer. The frame holds still while the page moves
     under it for two screens, and every browser handles a sticky element more
     steadily when it does not have to re-rasterise the page around it to
-    reposition it. Cheap: this is one layer the size of the viewport.
+    reposition it. Only while the opening moves: HeroIntro sets
+    `data-opening` for 0 < --p < 1, so the layer is not held at rest.
   */
-  will-change: transform;
   --p: 0;
   /*
     Two paces taken from the one progress. The tagline crosses the card's
@@ -763,8 +763,15 @@
    without one each cut-out was repainted per frame, which measured as the
    largest single cost of the opening on a phone (slow frames 32 → 18 at a
    mid-range phone's speed with this alone). */
-.drift {
+.frame[data-opening] {
+  will-change: transform;
+}
+
+.frame[data-opening] .drift {
   will-change: transform, opacity;
+}
+
+.drift {
   transform: translate3d(
       calc(var(--dirx, 0) * var(--p) * 4rem),
       calc(var(--diry, 0) * var(--p) * 3rem),

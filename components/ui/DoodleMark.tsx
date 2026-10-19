@@ -127,6 +127,7 @@ export function DoodleMark({
     <span className={styles.hoverable}>
     <span data-drift="" className={styles.drift} style={{ "--depth": depth } as React.CSSProperties}>
     <span
+      data-loop={idle ? "" : undefined}
       className={idle ? cn(styles.float, styles[float.path]) : styles.still}
       style={{ "--float-dur": `${float.dur}s`, "--float-delay": `${float.delay}s` } as React.CSSProperties}
     >
