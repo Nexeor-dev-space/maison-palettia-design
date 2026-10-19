@@ -41,6 +41,12 @@ import { Icon, type IconName } from "./icons";
  * said once a search for exactly those words has answered — until then
  * the box says "Searching…".
  *
+ * THE GUIDE. "Open the guide" and one "Guide: <chapter>" entry per chapter
+ * of /admin/docs come in as the `guide` prop from CommandPaletteWithGuide
+ * (a server wrapper, so the chapters' text never reaches this bundle — only
+ * titles and keywords). They match on title, chapter keywords and section
+ * titles, so "refund" offers "Guide: Bookings & orders".
+ *
  * Recent picks are remembered per browser (localStorage) and shown while
  * the box is empty, so the second visit to an order is one keystroke.
  */
@@ -191,7 +197,10 @@ function Highlight({ text, query }: { text: string; query: string }) {
 
 type TextHit = { href: string; title: string; where: string; snippet: string; kind: string };
 
-export function CommandPalette() {
+/** One chapter of the guide, as the palette needs it (see CommandPaletteWithGuide). */
+export type GuideEntry = { slug: string; title: string; keywords: string };
+
+export function CommandPalette({ guide = [] }: { guide?: GuideEntry[] }) {
   const { user } = useAuth();
   const { config } = useConfig();
   const router = useRouter();
@@ -355,14 +364,19 @@ export function CommandPalette() {
     const textHits = hitsFor === needle ? hits.map<Item>((hit, i) => ({ id: `text:${i}`, group: "Found on the site", label: hit.title, sub: `${hit.where} — “${hit.snippet}”`, hint: hit.kind, href: hit.href, icon: "text" })) : [];
     if (effectiveText) return textHits;
     const words = needle.toLowerCase().split(/\s+/).filter(Boolean);
-    const statics = STATIC.filter((s) => s.roles.includes(role))
+    const guideItems: Static[] = [
+      { label: "Open the guide", href: "/docs", icon: "book", group: "Actions", roles: ["admin", "editor", "front-desk"], keywords: "docs help handbook manual how to instructions" },
+      ...guide.map<Static>((g) => ({ label: `Guide: ${g.title}`, href: `/docs/${g.slug}`, icon: "book", group: "Guide", roles: ["admin", "editor", "front-desk"], keywords: `docs guide help ${g.keywords}` })),
+    ];
+    const statics = [...STATIC, ...guideItems]
+      .filter((s) => s.roles.includes(role))
       .filter((s) => !words.length || words.every((w) => `${s.label} ${s.keywords ?? ""} ${s.group}`.toLowerCase().includes(w)))
       .map<Item>((s) => ({ id: `static:${s.href || s.label}`, group: s.group, label: s.label, hint: s.hint, href: s.href, icon: s.icon, mode: s.mode }));
     if (!words.length) {
       const recents = recent.map<Item>((r, i) => ({ id: `recent:${i}`, group: "Recent", label: r.label, sub: r.sub, href: r.href, icon: r.icon }));
       return [...recents, ...statics.filter((s) => s.group === "Actions")];
     }
-    const order = ["Found on the site", "Actions", "Pages", "Experiences", "Sessions", "Orders", "Customers", "Enquiries", "Media", "Promo codes", "Settings", "Go to", "Staff", "Email templates"];
+    const order = ["Found on the site", "Actions", "Pages", "Experiences", "Sessions", "Orders", "Customers", "Enquiries", "Media", "Promo codes", "Settings", "Go to", "Staff", "Email templates", "Guide"];
     const found = [...statics, ...remote, ...(autoText ? textHits : [])].sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group));
     // Always the last row for content staff: the same words, searched as website wording.
     if (canFindText && needle.length >= 3) {
@@ -377,7 +391,7 @@ export function CommandPalette() {
       });
     }
     return found;
-  }, [role, effectiveText, hits, hitsFor, needle, recent, remote, autoText, canFindText, textBusy]);
+  }, [role, effectiveText, hits, hitsFor, needle, recent, remote, autoText, canFindText, textBusy, guide]);
 
   const current = Math.min(selected, Math.max(0, items.length - 1));
 

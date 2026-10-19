@@ -69,13 +69,14 @@ import { Icon as Icon_f6e46c49eb22888b8291b326860e7ec0 } from '@/cms/components/
 import { Logo as Logo_09b791d92127ca2a255cf19f7750e626 } from '@/cms/components/admin/Logo'
 import { Warnings as Warnings_4af6303a24e2fbba499c3e9dc26ab9a4 } from '@/cms/components/admin/Warnings'
 import { Dashboard as Dashboard_1dbb1a4f51c084e2c9111c1fdde51e21 } from '@/cms/components/admin/Dashboard'
-import { CommandPalette as CommandPalette_184be990f7eaaa96d5022449fcf1463a } from '@/cms/components/admin/CommandPalette'
+import { CommandPaletteWithGuide as CommandPaletteWithGuide_6edb4b7fbeeaea187f64e6dcd7dc620e } from '@/cms/components/admin/CommandPaletteWithGuide'
 import { NavLinks as NavLinks_16443ec2b1471108d4c297e168cab56d } from '@/cms/components/admin/NavLinks'
 import { MockBanner as MockBanner_cc812a70a9f47e02dd50920e6e6235eb } from '@/cms/components/settings/MockBanner'
 import { WarningsBar as WarningsBar_ab67f1c0153aab2730c782c221eb2531 } from '@/cms/components/admin/WarningsBar'
 import { FocusListener as FocusListener_035c40348c3332c364b05c15aaa4b6e9 } from '@/cms/components/admin/FocusListener'
 import { CheckInView as CheckInView_8e506c324bcbba93622e6e5dd6514f83 } from '@/cms/views/checkIn'
 import { AnalyticsView as AnalyticsView_0587ed2b5f7bda95d5e4bd4098a37053 } from '@/cms/views/analytics'
+import { DocsView as DocsView_b82b0e76c0dcbe39943074a5cb121f16 } from '@/cms/views/docs'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -151,12 +152,13 @@ export const importMap = {
   "@/cms/components/admin/Logo#Logo": Logo_09b791d92127ca2a255cf19f7750e626,
   "@/cms/components/admin/Warnings#Warnings": Warnings_4af6303a24e2fbba499c3e9dc26ab9a4,
   "@/cms/components/admin/Dashboard#Dashboard": Dashboard_1dbb1a4f51c084e2c9111c1fdde51e21,
-  "@/cms/components/admin/CommandPalette#CommandPalette": CommandPalette_184be990f7eaaa96d5022449fcf1463a,
+  "@/cms/components/admin/CommandPaletteWithGuide#CommandPaletteWithGuide": CommandPaletteWithGuide_6edb4b7fbeeaea187f64e6dcd7dc620e,
   "@/cms/components/admin/NavLinks#NavLinks": NavLinks_16443ec2b1471108d4c297e168cab56d,
   "@/cms/components/settings/MockBanner#MockBanner": MockBanner_cc812a70a9f47e02dd50920e6e6235eb,
   "@/cms/components/admin/WarningsBar#WarningsBar": WarningsBar_ab67f1c0153aab2730c782c221eb2531,
   "@/cms/components/admin/FocusListener#FocusListener": FocusListener_035c40348c3332c364b05c15aaa4b6e9,
   "@/cms/views/checkIn#CheckInView": CheckInView_8e506c324bcbba93622e6e5dd6514f83,
   "@/cms/views/analytics#AnalyticsView": AnalyticsView_0587ed2b5f7bda95d5e4bd4098a37053,
+  "@/cms/views/docs#DocsView": DocsView_b82b0e76c0dcbe39943074a5cb121f16,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

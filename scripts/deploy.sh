@@ -367,9 +367,14 @@ if [ "$USES_RELEASES" = 1 ]; then
   # inode would leak a newer page into an older release.
   LINK_DEST=""
   [ -n "$PREV_FOR_LINKS" ] && [ -d "$RELEASES_DIR/$PREV_FOR_LINKS" ] && LINK_DEST="--link-dest=$RELEASES_DIR/$PREV_FOR_LINKS"
+  # docs/ is left out except the owner guide's screenshots and PDF, which
+  # the signed-in /admin-docs route reads at runtime (the include rules come
+  # first: rsync takes the first rule that matches).
   rsync -a --checksum $LINK_DEST \
     --exclude '/.next' --exclude '/.env*' --exclude '/media' --exclude '/private' --exclude '/assets' \
-    --exclude '/docs' --exclude '/tests' --exclude '/.git' --exclude '/.claude' --exclude '/*.tsbuildinfo' \
+    --include '/docs/' --include '/docs/admin-guide/' --include '/docs/admin-guide/images/***' \
+    --include '/docs/admin-guide/dist/' --include '/docs/admin-guide/dist/*.pdf' --exclude '/docs/**' \
+    --exclude '/tests' --exclude '/.git' --exclude '/.claude' --exclude '/*.tsbuildinfo' \
     .next/standalone/ "$REL/"
   rsync -a --exclude '/cache' .next/standalone/.next/ "$REL/.next/"
   # Standalone leaves out the hashed client chunks; public/ is re-synced from

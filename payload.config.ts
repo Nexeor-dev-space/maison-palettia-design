@@ -135,7 +135,10 @@ export default buildConfig({
       // desk → Check-in", "Reports → Analytics"), shown only to the roles that
       // may open them — right under the search since the 4B review, so the
       // sidebar's DOM order is its visual order (no CSS reordering).
-      beforeNavLinks: ["@/cms/components/admin/CommandPalette#CommandPalette", "@/cms/components/admin/NavLinks#NavLinks"],
+      // The palette is mounted through a server wrapper that hands it the
+      // guide's chapter titles (CommandPaletteWithGuide.tsx); NavLinks opens
+      // with "Docs", the owner's guide at /admin/docs.
+      beforeNavLinks: ["@/cms/components/admin/CommandPaletteWithGuide#CommandPaletteWithGuide", "@/cms/components/admin/NavLinks#NavLinks"],
       views: {
         // P3 3E: the door — camera scan, typed codes, attendee lists. The view
         // checks sign-in and role itself (Payload skips both for custom views).
@@ -149,6 +152,15 @@ export default buildConfig({
           path: "/analytics",
           exact: true,
           meta: { title: "Analytics", description: "Sales, website visits and VAT for any period." },
+        },
+        // The owner's guide (docs/admin-guide): /docs, /docs/<chapter> and
+        // /docs/print (what the PDF is printed from) — one view, not exact,
+        // that reads the rest of the path itself and checks the sign-in.
+        docs: {
+          Component: "@/cms/views/docs#DocsView",
+          path: "/docs",
+          exact: false,
+          meta: { title: "Guide", description: "How to run the studio's website, step by step." },
         },
       },
     },
