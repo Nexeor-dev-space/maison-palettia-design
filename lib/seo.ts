@@ -31,16 +31,24 @@ import type { PageSeo } from "@/types";
  */
 
 /**
- * The size of the default share card: the 1.91:1 frame Facebook, LinkedIn, X
- * and WhatsApp all cut their large card from. Shared by app/opengraph-image.tsx
- * (its `size` export) and DEFAULT_SHARE_IMAGE below, so the width and height
- * a page declares are the ones the image has.
- *
- * The per-route photograph cards are the same proportion drawn smaller, at
- * 684x360, and declare their own size: a photograph as PNG at 1200x630 is
- * over WhatsApp's 600KB limit. See app/events/[slug]/opengraph-image.tsx.
+ * The 1.91:1 frame Facebook, LinkedIn, X and WhatsApp all cut their large
+ * card from, at the size an uploaded share image is declared with when its
+ * rendition carries no dimensions of its own (`getSeoContext` below).
  */
 export const SHARE_IMAGE_SIZE = { width: 1200, height: 630 };
+
+/**
+ * The size every GENERATED share card ships at — the brand card
+ * (app/(site)/opengraph-image.tsx, so DEFAULT_SHARE_IMAGE below) and the
+ * event, programme and journal cards: the same 1.91:1 proportion as
+ * SHARE_IMAGE_SIZE, drawn smaller. Each card carries photographs, and
+ * ImageResponse writes only PNG, which a photograph does not compress in: at
+ * 1200x630 they measured 0.98–1.22MB, over the 600KB Meta's WhatsApp
+ * link-preview documentation sets for an og:image. Every card is composed at
+ * 1200x630 and scaled to this (components/cms/shareCard.tsx), so going back
+ * up is one edit here if the bytes ever stop mattering.
+ */
+export const SHARE_CARD_SIZE = { width: 684, height: 360 };
 
 /**
  * ==========================================================================
@@ -54,8 +62,9 @@ export const SHARE_IMAGE_SIZE = { width: 1200, height: 630 };
  * holds a .gitkeep and nothing else — so every page advertised a share image
  * that 404'd. It was then set to null, which was honest but left 25 of 29
  * routes unfurling on WhatsApp and iMessage as a bare grey link. It is now a
- * card the site draws itself from the official logo: see
- * app/opengraph-image.tsx for what is on it and why.
+ * card the site draws itself — the logo, the tagline and three of the
+ * activities' own photographs: see app/(site)/opengraph-image.tsx for what is
+ * on it and why.
  *
  * WHY A URL HERE AS WELL AS THE FILE THERE. A root opengraph-image only
  * reaches routes that do not set `openGraph` of their own, and every page
@@ -74,7 +83,7 @@ export const SHARE_IMAGE_SIZE = { width: 1200, height: 630 };
  */
 export const DEFAULT_SHARE_IMAGE = {
   url: "/opengraph-image",
-  ...SHARE_IMAGE_SIZE,
+  ...SHARE_CARD_SIZE,
   type: "image/png",
   alt: `${SITE.name} — ${SITE.tagline}`,
 };

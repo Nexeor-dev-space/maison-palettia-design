@@ -732,7 +732,7 @@ export const cached = <A extends unknown[], R>(key: string, tags: string[], fn: 
 | `/events` | `pages[events]` + `getCreativeExperiences` + `getAllWorkshops` (sessions) + venues + vibes | pages, experiences, sessions, venues, vibes | same | ✓ | ✓ |
 | `/events/[slug]` | `getEventDetail(slug)` (session → experience → `redirectOr404`), related sessions, venue | sessions, experiences, venues, template, booking, redirects | session/experience/venue hooks (`/events/{slug}`, prev slug on rename) | ✓ | ✓ |
 | `/events/[slug]/book` | session + booking-settings (+ `?w=` waitlist token passthrough) | sessions, booking | same; `noindex` | — | — |
-| `/events/[slug]/opengraph-image` | session/experience image (media file read via Local API, not `public/`) | sessions, experiences | same | — | — |
+| `/events/[slug]/opengraph-image` | session/experience image (media file read via Local API, not `public/`), next date, venue, price; drawn by `components/cms/shareCard.tsx`, `revalidate = 600` like the page | sessions, experiences, venues | same | — | — |
 | `/private-events`, `/private-events/[slug]`, `/private-events/book` | `pages[private-events|private-events-book]`, `programmes`, `experiences[privateEventEligible]`, `venues`, brand-copy steps | pages, programmes, experiences, venues, brand, redirects | programme/experience hooks | ✓ | ✓ |
 | `/about`, `/locations`, `/gallery`, `/faq`, `/contact`, `/policies`, `/loyalty` | `pages[slug]` + referenced collections | pages + referenced | hooks | ✓ | ✓ |
 | `/policies/[slug]` | `getPolicy(slug)` + template-copy → `redirectOr404` | policies, template, experiences (age tables), redirects | policy hook → `/policies`, `/policies/{slug}`, `/faq`, `/checkout` | ✓ | ✓ |
@@ -740,7 +740,7 @@ export const cached = <A extends unknown[], R>(key: string, tags: string[], fn: 
 | `/checkout`, `/payment-success`, `/booking-status`, `/my-bookings` | dynamic (`no-store`): orders via `/api/site/...`; copy from booking-settings | booking | — | — | — |
 | `/sitemap.xml` | pages + experiences + sessions (published, future) + programmes + policies (+ `/loyalty` when `passesLive`) | all content | any content hook → `revalidatePath("/sitemap.xml")` | — | — |
 | `/robots.txt` | `seo-defaults.robotsDisallow` + `site-settings.publicUrl` | seo, site | `revalidatePath("/robots.txt")` | — | — |
-| `/opengraph-image` (default) | site-settings logo (or `seo-defaults.shareImage` when set) | site, seo | layout revalidate | — | — |
+| `/opengraph-image` (default) | site-settings logo, brand-copy tagline, three experiences' images (or `seo-defaults.shareImage` when set) | site, seo, brand, experiences | layout revalidate | — | — |
 
 Metadata: `buildMetadata` reads `seo-defaults` + `site-settings.publicUrl` (`metadataBase`) through `cached`; per-doc `meta.*` from plugin-seo; `noindex` flag per page.
 
