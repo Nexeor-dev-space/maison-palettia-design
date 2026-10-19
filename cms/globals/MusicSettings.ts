@@ -6,11 +6,12 @@
  * (Content → Music); the player shows only while this is on AND at least one
  * track is in the playlist.
  *
- * NO AUTOPLAY SETTING, on purpose. Browsers block sound until the visitor
- * interacts, and WCAG 1.4.2 asks that audio never start on its own; the
- * player always waits for a press. What the studio controls is whether the
- * button is there, the starting volume, the order, and the pages it stays
- * off (checkout by default: nobody wants a soundtrack while paying).
+ * THE PLAYER STARTS ITSELF, at the client's ask: on arrival where the
+ * browser allows sound without a gesture, otherwise on the visitor's first
+ * tap or click anywhere (no page can override that rule). A visitor who
+ * pauses it keeps it off. See <MusicPlayer>. What the studio controls is
+ * whether the player is there, the starting volume, the order, and the pages
+ * it stays off (checkout by default: nobody wants a soundtrack while paying).
  */
 
 import type { GlobalConfig } from "payload";
@@ -36,7 +37,7 @@ export const MusicSettings: GlobalConfig = {
   },
   fields: [
     toggle("enabled", "Show the music player", {
-      description: "A small play button in the corner of every page. Music only starts when a visitor presses it.",
+      description: "A small play button in the corner of every page. Music starts by itself when a visitor arrives (or on their first tap, where the browser requires one); pausing it keeps it off for them.",
       defaultValue: false,
     }),
     {
