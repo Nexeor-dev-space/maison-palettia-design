@@ -407,8 +407,8 @@
     Its own compositor layer. The frame holds still while the page moves
     under it for two screens, and every browser handles a sticky element more
     steadily when it does not have to re-rasterise the page around it to
-    reposition it. Only while the opening moves: HeroIntro sets
-    `data-opening` for 0 < --p < 1, so the layer is not held at rest.
+    reposition it. Only while the banner is on screen: HeroIntro sets
+    `data-live` from an observer, so nothing is held once it has gone by.
   */
   --p: 0;
   /*
@@ -418,7 +418,6 @@
     deep enough to read on (`--shade`, done at 40%). Paced by `--p` itself,
     the words were grey on the photograph's brightest stripes halfway through.
   */
-  --ink: clamp(0, calc((var(--p) - 0.05) * 4), 1);
   --shade: clamp(0, calc(var(--p) * 2.5), 1);
   --wx: 4%;
   --wt: calc(var(--spacing-header) + 1.25rem);
@@ -503,7 +502,39 @@
       calc(var(--wb) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p))) round
       calc(var(--radius-sm) * (1 - var(--p)))
   );
-  will-change: clip-path;
+}
+
+/*
+  Once <HeroIntro> has measured the window it opens the card with transforms
+  instead (see `placeCard` there): no clip-path, so nothing repaints while it
+  opens. Both layers are permanent on purpose — promoting a viewport-sized
+  photograph at the first scroll would itself be the hitch this removes.
+*/
+.frame[data-xform] .card {
+  clip-path: none;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.cardInner {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.frame[data-xform] .cardInner {
+  will-change: transform;
+}
+
+.windowProbe {
+  position: absolute;
+  top: var(--wt);
+  bottom: var(--wb);
+  left: var(--wx);
+  right: var(--wx);
+  border-radius: var(--radius-sm);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /*
@@ -763,12 +794,23 @@
    without one each cut-out was repainted per frame, which measured as the
    largest single cost of the opening on a phone (slow frames 32 → 18 at a
    mid-range phone's speed with this alone). */
-.frame[data-opening] {
+.frame[data-live] {
   will-change: transform;
 }
 
-.frame[data-opening] .drift {
+.frame[data-live] .drift {
   will-change: transform, opacity;
+}
+
+/* The shade and the words both change on every frame of the opening; on
+   their own layers that is a compositor property each, not a repaint of a
+   full-screen gradient and a block of shadowed type. */
+.frame[data-live] .scrim {
+  will-change: opacity;
+}
+
+.frame[data-live] .copy {
+  will-change: transform;
 }
 
 .drift {
@@ -1118,8 +1160,17 @@
   before the first measure) they fall back to the block's old pace, so a
   desktop, where the picture is over the whole block early, reads as before.
 */
+.copy,
 .copy [data-ink] {
-  --ink: clamp(0, calc((var(--p) - var(--ink-at, 0.05)) * var(--ink-rate, 4)), 1);
+  --ink: 0;
+  transition:
+    color 260ms ease,
+    text-shadow 260ms ease;
+}
+
+.copy[data-lit],
+.copy [data-ink][data-lit] {
+  --ink: 1;
 }
 
 .line {
@@ -1353,5 +1404,50 @@
     animation: none;
     opacity: 1;
     transform: translate3d(0, 0.9rem, 0);
+  }
+}
+
+/*
+  ON A PHONE THE OPENING RUNS ON THE SCROLL ITSELF, NOT ON A SCRIPT.
+
+  A phone scrolls natively, on the compositor. <HeroIntro> hears about it
+  afterwards on the main thread, writes `--p`, and the picture's zoom and its
+  window follow — a frame behind at best, and further behind (and eased, see
+  FOLLOW) whenever the main thread is busy. That gap is the lag a visitor
+  feels under their finger.
+
+  A view timeline on the track ties the zoom to the scroll
+  position directly, so they move in the same frame the page does. The range
+  is the script's own: `contain 0%` is the track's top at the window's top
+  (`start`), and the hold is the track's height less the frame's, so
+  `contain 42%` is OPENING_SHARE_PHONE of it (`end`). cubic-bezier(1/3, 0,
+  2/3, 1) is exactly the script's smoothstep. Everything else in the banner —
+  the words, their ink, the doodles — still reads `--p`.
+
+  Without view timelines, or with reduced motion, nothing here applies and
+  the script drives the opening as before.
+*/
+@supports (animation-timeline: view()) {
+  @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+    .track {
+      view-timeline-name: --hero-open;
+      view-timeline-axis: block;
+    }
+
+    .cardImage {
+      animation: heroZoom linear both;
+      animation-timing-function: cubic-bezier(0.333, 0, 0.667, 1);
+      animation-timeline: --hero-open;
+      animation-range: contain 0% contain 42%;
+    }
+  }
+}
+
+@keyframes heroZoom {
+  from {
+    transform: translate3d(0, var(--lift, 0%), 0) scale(1.06);
+  }
+  to {
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }

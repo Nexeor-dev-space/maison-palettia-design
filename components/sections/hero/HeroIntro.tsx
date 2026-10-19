@@ -73,7 +73,7 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   slower in proportion — the writing, the wells, the ring's hold — rather
   than one beat padded, so it still reads as one movement, only unhurried.
 */
-const WRITE_MS = 1200; // the pen writes "Maison Palettia", first stroke to last
+const WRITE_MS = 800; // the pen writes "Maison Palettia", first stroke to last
 const DOTS_AT = WRITE_MS - 40;
 
 /** On a touch screen, how much of the gap to the scroll the opening closes each frame. */
@@ -82,9 +82,9 @@ const FOLLOW = 0.38;
 /** Fired on the frame whenever its foot is refitted — see `refit` below. */
 const REFIT_EVENT = "hero-refit"; // the mark is written; the wells start filling
 const DOT_STEP = 95; // one well after another — see `.pDot` in Hero.module.css
-const BURST_AT = DOTS_AT + 440; // frame 2: the icons leave the logo
-const LIFT_AT = BURST_AT + 400; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 960; // frame 6: ... and the page is composed by ~3000ms
+const BURST_AT = DOTS_AT + 240; // frame 2: the icons leave the logo
+const LIFT_AT = BURST_AT + 250; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 760; // frame 6: ... and the page is composed by ~2000ms
 
 /*
   One icon after another on the way out, and again on the way back.
@@ -807,6 +807,9 @@ export function HeroIntro() {
     const copy = hero?.querySelector<HTMLElement>("[data-hero-copy]");
     const actions = hero?.querySelector<HTMLElement>("[data-hero-actions]");
     const cue = hero?.querySelector<HTMLElement>("[data-hero-cue]");
+    const card = hero?.querySelector<HTMLElement>("[data-hero-card]");
+    const cardInner = hero?.querySelector<HTMLElement>("[data-hero-card-inner]");
+    const windowProbe = hero?.querySelector<HTMLElement>("[data-hero-window]");
     if (!track || !frame || !copy || !actions || !cue) return;
 
     // Reduced motion: nothing opens, and the two actions are simply there.
@@ -826,6 +829,44 @@ export function HeroIntro() {
     */
     let start = 0;
     let end = 1;
+    const inks: { el: HTMLElement; at: number; lit: boolean | null }[] = [];
+
+    /*
+      THE CARD OPENS WITH TRANSFORMS, NOT A CLIP-PATH.
+
+      A changing clip-path repaints the photograph under it every frame, and on
+      a phone that repaint is the stutter in the opening. Instead the card is
+      the full frame, scaled down (non-uniformly) to the resting window, and
+      its contents are scaled back up by the inverse so the picture itself
+      does not move: two compositor transforms per frame, nothing repainted.
+      The window's box comes from a hidden probe placed with the same --wt,
+      --wx and --wb the clip-path used, so the geometry is identical.
+      Without this script (or with reduced motion) the CSS clip-path stands.
+    */
+    const box = { w: 1, h: 1, wx: 0, wt: 0, wb: 0, r: 0 };
+    const placeCard = (p: number) => {
+      if (!card || !cardInner) return;
+      const q = 1 - p;
+      const sx = (box.w - 2 * box.wx * q) / box.w;
+      const sy = (box.h - (box.wt + box.wb) * q) / box.h;
+      const tx = box.wx * q;
+      const ty = box.wt * q;
+      card.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scale(${sx.toFixed(5)}, ${sy.toFixed(5)})`;
+      cardInner.style.transform = `scale(${(1 / sx).toFixed(5)}, ${(1 / sy).toFixed(5)}) translate3d(${(-tx).toFixed(2)}px, ${(-ty).toFixed(2)}px, 0)`;
+      const r = box.r * q;
+      card.style.borderRadius = r > 0.01 ? `${(r / sx).toFixed(2)}px / ${(r / sy).toFixed(2)}px` : "0";
+    };
+    const measureCard = () => {
+      if (!card || !cardInner || !windowProbe) return;
+      box.w = Math.max(1, frame.offsetWidth);
+      box.h = Math.max(1, frame.offsetHeight);
+      box.wx = windowProbe.offsetLeft;
+      box.wt = windowProbe.offsetTop;
+      box.wb = box.h - windowProbe.offsetTop - windowProbe.offsetHeight;
+      box.r = parseFloat(getComputedStyle(windowProbe).borderTopLeftRadius) || 0;
+      frame.setAttribute("data-xform", "");
+    };
+
     const measure = () => {
       const trackTop = track.getBoundingClientRect().top + window.scrollY;
       const hold = Math.max(1, track.offsetHeight - frame.offsetHeight);
@@ -866,10 +907,21 @@ export function HeroIntro() {
       */
       const wb = parseFloat(frame.style.getPropertyValue("--wb")) || 0;
       const sweep = wb - shift;
+      /*
+        ONE FLIP PER LINE, NOT A VALUE PER FRAME. The ink used to be a
+        `--ink` ratio driven by `--p`, and the colour and the 28px text
+        shadow it feeds were recomputed and REPAINTED on every scroll frame
+        of the opening — a blurred shadow under a large script headline is
+        the most expensive paint in the banner. Now each line records the
+        progress at which the picture's foot reaches its middle, `data-lit`
+        flips there, and a short CSS transition does the crossing: a handful
+        of frames of paint per line instead of a hundred.
+      */
+      inks.length = 0;
+      inks.push({ el: copy, at: 0.175, lit: null });
       for (const el of copy.querySelectorAll<HTMLElement>("[data-ink]")) {
         if (!(sweep > 0)) {
-          el.style.removeProperty("--ink-at");
-          el.style.removeProperty("--ink-rate");
+          inks.push({ el, at: 0.175, lit: null });
           continue;
         }
         let top = el.offsetTop;
@@ -883,8 +935,7 @@ export function HeroIntro() {
         const at = (edge: number) => Math.min(1, Math.max(0, (copy.offsetTop + edge - frame.offsetHeight + wb) / sweep));
         const from = at(top);
         const to = at(top + el.offsetHeight);
-        el.style.setProperty("--ink-at", from.toFixed(4));
-        el.style.setProperty("--ink-rate", (1 / Math.max(0.04, to - from)).toFixed(3));
+        inks.push({ el, at: (from + to) / 2, lit: null });
       }
     };
 
@@ -933,19 +984,32 @@ export function HeroIntro() {
     let shown = -1;
     let target = 0;
     let follow = 0;
-    /* `will-change` only while the opening is moving (0 < p < 1), not for the
-       life of the page: ~20 permanent layers for a banner that is still most
-       of the time. Written only when the answer changes. */
-    let opening: boolean | null = null;
     const apply = (p: number) => {
       shown = p;
       frame.style.setProperty("--p", p.toFixed(4));
-      const nextOpening = p > 0 && p < 1;
-      if (nextOpening !== opening) {
-        opening = nextOpening;
-        frame.toggleAttribute("data-opening", nextOpening);
+      placeCard(p);
+      for (const ink of inks) {
+        const lit = p >= ink.at;
+        if (lit !== ink.lit) {
+          ink.lit = lit;
+          ink.el.toggleAttribute("data-lit", lit);
+        }
       }
     };
+
+    /*
+      THE BANNER'S LAYERS EXIST WHILE THE BANNER IS ON SCREEN, not for the
+      life of the page. `data-live` carries every `will-change` in the
+      stylesheet (the frame, the picture's card, the scrim, the words, the
+      cut-outs). Toggled by an observer, not by the scroll handler: promoting
+      twenty layers in the first frame of a scroll is itself a dropped frame,
+      so they are promoted while the page is still, and dropped once the
+      banner has gone by.
+    */
+    const live = new IntersectionObserver(([entry]) => {
+      frame.toggleAttribute("data-live", entry.isIntersecting);
+    });
+    live.observe(track);
     const step = () => {
       follow = 0;
       const next = shown + (target - shown) * FOLLOW;
@@ -976,15 +1040,21 @@ export function HeroIntro() {
     const onScroll = write;
     const onResize = () => {
       measure();
+      measureCard();
+      placeCard(Math.max(0, shown));
       onScroll();
     };
 
     measure();
+    measureCard();
+    placeCard(0);
     write();
     let cancelled = false;
     document.fonts?.ready.then(() => {
       if (cancelled) return;
       measure();
+      measureCard();
+      placeCard(Math.max(0, shown));
       write();
     });
     const stopScroll = onScrollFrame(onScroll);
@@ -997,6 +1067,12 @@ export function HeroIntro() {
       stopScroll();
       window.removeEventListener("resize", onResize);
       frame.removeEventListener(REFIT_EVENT, onResize);
+      live.disconnect();
+      frame.removeAttribute("data-live");
+      frame.removeAttribute("data-xform");
+      card?.style.removeProperty("transform");
+      card?.style.removeProperty("border-radius");
+      cardInner?.style.removeProperty("transform");
       actions.inert = false;
       cue.inert = false;
     };

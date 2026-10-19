@@ -263,7 +263,11 @@ export function Hero({
           </div>
 
           {/* ---- the photograph, full size, shown through the card ---- */}
-          <div className={styles.card}>
+          {/* The resting window's box, measured by <HeroIntro> to open the card
+              with transforms. Never seen. */}
+          <div aria-hidden data-hero-window className={styles.windowProbe} />
+          <div data-hero-card className={styles.card}>
+            <div data-hero-card-inner className={styles.cardInner}>
             <div className={styles.bloom}>
               {/*
                 ONE OF THESE IS DRAWN, AND ONLY ONE IS FETCHED.
@@ -363,6 +367,7 @@ export function Hero({
               ) : null}
             </div>
             <div aria-hidden className={styles.scrim} />
+            </div>
           </div>
 
           {/* ---- the words: under the card, then inside the picture ---- */}
