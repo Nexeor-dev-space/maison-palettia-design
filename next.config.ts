@@ -59,7 +59,40 @@ const nextConfig: NextConfig = {
    * (`npm run build`, ci.sh and deploy.sh run it) and fails if any remain.
    */
   outputFileTracingExcludes: {
-    "*": ["./.env*", "./media/**", "./private/**", "./assets/**", "./docs/**", "./tests/**", "./e2e/**", "./.git/**", "./.claude/**"],
+    // docs/ is excluded EXCEPT the owner guide's screenshots and PDF, which the
+    // signed-in /admin-docs route streams at runtime (below). Excludes win over
+    // includes, so docs/ is listed folder by folder rather than as `./docs/**`
+    // (Turbopack's matcher has no `!(…)`); scripts/prune-standalone.sh removes
+    // anything else under docs/ that a trace still brings in.
+    "*": [
+      "./.env*",
+      "./media/**",
+      "./private/**",
+      "./assets/**",
+      "./docs/*.md",
+      "./docs/cms/**",
+      "./docs/admin-guide/*.md",
+      "./docs/admin-guide/content/**",
+      "./docs/admin-guide/scripts/**",
+      "./docs/admin-guide/capture/**",
+      "./tests/**",
+      "./e2e/**",
+      "./.git/**",
+      "./.claude/**",
+    ],
+  },
+
+  /**
+   * The owner guide (/admin/docs) reads its screenshots and PDF from disk
+   * through app/(payload)/admin-docs/[...path]/route.ts — a dynamic `fs` read
+   * the tracer cannot see, so the two folders are named here. The content
+   * itself is TypeScript and is bundled. scripts/prune-standalone.sh,
+   * scripts/deploy.sh and Dockerfile.runtime.dockerignore keep the same two
+   * folders when they drop the rest of docs/.
+   */
+  outputFileTracingIncludes: {
+    // The key is a glob over route names; `[...path]` would read as a character class.
+    "/admin-docs/**": ["./docs/admin-guide/images/**", "./docs/admin-guide/dist/*.pdf"],
   },
 
   /**

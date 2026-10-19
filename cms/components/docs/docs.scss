@@ -1,0 +1,1594 @@
+/*
+  ==========================================================================
+  The Docs tab (/admin/docs) and its print layout (/admin/docs/print)
+  ==========================================================================
+
+  Imported by cms/views/docs.tsx, so it joins the admin's CSS graph only —
+  the public site never loads it. Every colour, radius and font comes from
+  the admin theme in app/(payload)/custom.scss (`--mp-*`, `--theme-*`,
+  `--color-*`, `--font-body`, `--font-script`), so light and dark follow the
+  admin and a re-skin there re-skins the guide. No hex values here.
+
+  Everything is prefixed `mpd-` (Maison Palettia docs) and scoped under
+  `.mpd-root`, so Payload's own heading and list styles are overridden only
+  inside the guide.
+
+  Motion: none beyond short hover transitions on colour and border — no
+  scroll- or pointer-driven effects (CLAUDE.md, issue #70). The contents
+  list follows the reader with an IntersectionObserver, not a listener.
+
+  Section map: 1 layout · 2 contents + search · 3 reading column ·
+  4 blocks · 5 mocks · 6 lightbox · 7 phones and narrow screens · 8 print
+*/
+
+/* ── 1. Layout ─────────────────────────────────────────────────────────── */
+
+.mpd-root {
+  --mpd-ink: var(--theme-text, var(--theme-elevation-900));
+  --mpd-soft: var(--mp-ink-muted);
+  --mpd-line: var(--theme-elevation-150);
+  --mpd-card: var(--mp-card-bg);
+  --mpd-wash: var(--mp-lilac-mist);
+  --mpd-measure: 72ch;
+  --mpd-sticky-top: calc(var(--app-header-height, 56px) + 20px);
+
+  font-family: var(--font-body);
+  color: var(--mpd-ink);
+
+  :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure) { margin: 0; }
+  :where(h1, h2, h3, h4) { font-family: var(--font-body); letter-spacing: normal; text-transform: none; }
+
+  a { color: var(--mp-lilac-deep); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  a:hover { color: var(--mp-lilac-ink); }
+  :focus-visible { outline: 2px solid var(--mp-lilac); outline-offset: 2px; border-radius: 4px; }
+
+  code {
+    font-size: 0.88em;
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: var(--theme-elevation-100);
+    color: var(--mpd-ink);
+    overflow-wrap: anywhere;
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 0 6px;
+    font: 600 0.82em/1.6 var(--font-body);
+    text-align: center;
+    border: 1px solid var(--theme-elevation-250);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    background: var(--mpd-card);
+    color: var(--mpd-ink);
+  }
+
+  mark {
+    background: var(--mp-lilac-soft);
+    color: var(--mp-lilac-ink);
+    border-radius: 3px;
+    padding: 0 1px;
+  }
+}
+
+/* Matches found by a search are drawn with the CSS Custom Highlight API; its
+   `::highlight(mpd-hit)` rule is written by DocsShell.tsx at runtime, because
+   the build's CSS parser does not know the pseudo-element yet. */
+
+.mpd-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media print {
+  .mpd-sr { display: none; }
+}
+
+.mpd-layout {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: 48px;
+  padding-block: 28px 80px;
+  align-items: start;
+}
+
+.mpd-main { min-width: 0; }
+
+.mpd-script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  color: var(--mp-lilac);
+}
+
+.mpd-muted { color: var(--mpd-soft); }
+
+.mpd-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mp-lilac-ink);
+}
+
+.mpd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--mpd-line);
+  background: var(--mpd-card);
+  color: var(--mpd-ink) !important;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: border-color 120ms ease, background-color 120ms ease;
+
+  &:hover { border-color: var(--mp-lilac); }
+
+  &--primary {
+    background: var(--mp-lilac);
+    border-color: var(--mp-lilac);
+    color: var(--theme-elevation-0) !important;
+
+    &:hover { background: var(--mp-lilac-deep); border-color: var(--mp-lilac-deep); }
+  }
+}
+
+.mpd-ghost-btn {
+  appearance: none;
+  border: 1px solid var(--mpd-line);
+  background: transparent;
+  color: var(--mpd-ink);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font: 600 12.5px var(--font-body);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { border-color: var(--mp-lilac); color: var(--mp-lilac-ink); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+/* ── 2. Contents and search ────────────────────────────────────────────── */
+
+.mpd-aside {
+  position: sticky;
+  top: var(--mpd-sticky-top);
+  max-height: calc(100vh - var(--mpd-sticky-top) - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  display: grid;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.mpd-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  svg {
+    position: absolute;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    color: var(--mpd-soft);
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 36px 8px 36px;
+    border: 1px solid var(--theme-elevation-200);
+    border-radius: 10px;
+    background: var(--theme-input-bg, var(--mpd-card));
+    color: var(--mpd-ink);
+    font: 500 14px var(--font-body);
+
+    &::placeholder { color: var(--mpd-soft); }
+    &:focus { outline: none; border-color: var(--mp-lilac); box-shadow: 0 0 0 3px var(--mp-lilac-soft); }
+    &::-webkit-search-cancel-button { cursor: pointer; }
+  }
+
+  kbd {
+    position: absolute;
+    right: 10px;
+    pointer-events: none;
+  }
+
+  input:focus ~ kbd, input:not(:placeholder-shown) ~ kbd { display: none; }
+}
+
+.mpd-toc-toggle { display: none; }
+
+.mpd-toc {
+  display: grid;
+  gap: 10px;
+  font-size: 13.5px;
+
+  ol, ul { list-style: none; padding: 0; margin: 0; }
+  > ol { display: grid; gap: 1px; }
+
+  a { text-decoration: none; color: inherit; }
+}
+
+.mpd-toc-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mpd-soft);
+  padding-inline: 10px;
+}
+
+.mpd-toc-ch {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 6px;
+  align-items: baseline;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--theme-elevation-750) !important;
+  font-weight: 500;
+  line-height: 1.35;
+  transition: background-color 120ms ease, color 120ms ease;
+
+  &:hover { background: color-mix(in srgb, var(--theme-elevation-100) 70%, transparent); color: var(--theme-elevation-900) !important; }
+
+  &[aria-current="page"] {
+    background: var(--mp-lilac-soft);
+    color: var(--mp-lilac-ink) !important;
+    font-weight: 600;
+  }
+}
+
+.mpd-toc-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mpd-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.mpd-toc ul {
+  display: grid;
+  gap: 1px;
+  margin: 2px 0 8px 32px;
+  border-left: 1px solid var(--mpd-line);
+
+  a {
+    display: block;
+    padding: 4px 10px;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--mpd-soft) !important;
+    font-size: 13px;
+    line-height: 1.35;
+
+    &:hover { color: var(--mpd-ink) !important; }
+
+    &[aria-current="location"] {
+      color: var(--mp-lilac-ink) !important;
+      border-left-color: var(--mp-lilac);
+      font-weight: 600;
+    }
+  }
+}
+
+.mpd-pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 10px 0;
+  font-weight: 600;
+  font-size: 13px;
+
+  svg { width: 16px; height: 16px; }
+}
+
+/* Search results take the reading column's place while a search is active. */
+.mpd-results { display: grid; gap: 14px; max-width: 820px; }
+
+.mpd-results-h {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+
+  q { color: var(--mp-lilac-ink); }
+}
+
+.mpd-result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+
+  a {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--mpd-line);
+    border-radius: 12px;
+    background: var(--mpd-card);
+    color: var(--mpd-ink);
+    text-decoration: none;
+    transition: border-color 120ms ease;
+
+    &:hover, &:focus-visible { border-color: var(--mp-lilac); outline: none; }
+  }
+}
+
+.mpd-result-where {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mpd-soft);
+}
+
+.mpd-result-title { font-size: 16px; font-weight: 600; }
+.mpd-result-snippet { font-size: 14px; line-height: 1.55; color: var(--theme-elevation-700); }
+
+.mpd-hl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--mpd-wash);
+  font-size: 13.5px;
+  max-width: var(--mpd-measure);
+}
+
+/* ── 3. The reading column ─────────────────────────────────────────────── */
+
+.mpd-article {
+  font-size: 16px;
+  line-height: 1.65;
+  max-width: 780px;
+  display: grid;
+  gap: 36px;
+
+  p, li, dd { max-width: var(--mpd-measure); }
+}
+
+.mpd-ch-head {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 8px;
+
+  h1 { font-size: clamp(28px, 4vw, 38px); line-height: 1.15; font-weight: 700; color: var(--mpd-ink); }
+}
+
+.mpd-lede { font-size: 18px; line-height: 1.55; color: var(--theme-elevation-700); }
+
+.mpd-roles-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--mpd-soft); }
+
+.mpd-who {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 10px;
+  border: 1px dashed var(--theme-elevation-350);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-elevation-700);
+  white-space: nowrap;
+}
+
+.mpd-tldr {
+  background: var(--mpd-wash);
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: grid;
+  gap: 10px;
+
+  ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+  li::marker { color: var(--mp-lilac); }
+}
+
+.mpd-tldr-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mp-lilac-ink);
+
+  svg { width: 16px; height: 16px; }
+}
+
+.mpd-section {
+  display: grid;
+  gap: 14px;
+  scroll-margin-top: var(--mpd-sticky-top);
+  padding-top: 8px;
+  border-top: 1px solid var(--mpd-line);
+
+  > h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 23px;
+    line-height: 1.3;
+    font-weight: 650;
+    padding-top: 18px;
+  }
+}
+
+.mpd-anchor {
+  color: inherit !important;
+  text-decoration: none;
+
+  &:hover::after {
+    content: " #";
+    color: var(--mpd-soft);
+    font-weight: 400;
+  }
+}
+
+.mpd-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--theme-elevation-650); font-size: 15px; margin-top: -6px; }
+.mpd-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.mpd-flow {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.mpd-h3 { font-size: 16px; font-weight: 700; margin-top: 4px; }
+
+/* ── Home ── */
+
+.mpd-hero {
+  display: grid;
+  gap: 16px;
+  padding: 32px;
+  border-radius: 20px;
+  background: linear-gradient(140deg, var(--mpd-wash), var(--mpd-card) 70%);
+  border: 1px solid var(--mpd-line);
+
+  h1 { font-size: clamp(26px, 3.6vw, 36px); line-height: 1.2; font-weight: 500; }
+  h1 .mpd-script { display: block; font-size: 1.7em; line-height: 1; margin-bottom: 4px; }
+  h1 strong { font-weight: 700; }
+}
+
+.mpd-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+
+  div { background: var(--mpd-card); border: 1px solid var(--mpd-line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; }
+  dt { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mpd-soft); }
+  dd { font-weight: 600; font-size: 14.5px; }
+}
+
+.mpd-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.mpd-home h2 { font-size: 22px; font-weight: 650; margin-bottom: 14px; }
+
+.mpd-how ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  li { border: 1px solid var(--mpd-line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; background: var(--mpd-card); max-width: none; }
+  h3 { font-size: 14.5px; font-weight: 700; }
+  p { font-size: 14.5px; line-height: 1.55; color: var(--theme-elevation-700); }
+}
+
+.mpd-cards {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+
+  li { max-width: none; }
+
+  a {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 6px;
+    height: 100%;
+    padding: 16px;
+    border: 1px solid var(--mpd-line);
+    border-radius: 14px;
+    background: var(--mpd-card);
+    color: var(--mpd-ink) !important;
+    text-decoration: none;
+    transition: border-color 120ms ease;
+
+    &:hover { border-color: var(--mp-lilac); }
+  }
+
+  .is-feature a { background: var(--mpd-wash); border-color: transparent; }
+}
+
+.mpd-card-n { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mp-lilac-ink); }
+.mpd-card-t { font-weight: 650; font-size: 15.5px; line-height: 1.3; }
+.mpd-card-b { font-size: 13.5px; line-height: 1.5; color: var(--mpd-soft); }
+
+.mpd-colophon {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  padding-top: 28px;
+  border-top: 1px solid var(--mpd-line);
+  color: var(--mpd-soft);
+  font-size: 14px;
+
+  .mpd-script { font-size: 34px; line-height: 1.1; }
+}
+
+/* ── Previous / next ── */
+
+.mpd-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 12px;
+
+  a {
+    display: grid;
+    gap: 2px;
+    padding: 14px 16px;
+    border: 1px solid var(--mpd-line);
+    border-radius: 12px;
+    color: var(--mpd-ink) !important;
+    text-decoration: none;
+    transition: border-color 120ms ease;
+
+    &:hover { border-color: var(--mp-lilac); }
+  }
+
+  .is-next { grid-column: 2; text-align: right; }
+}
+
+.mpd-pager-dir { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mp-lilac-ink); }
+.mpd-pager-t { font-weight: 600; }
+
+/* ── 4. Blocks ─────────────────────────────────────────────────────────── */
+
+/* Callout circles — the lilac numbers drawn on the screenshots. */
+.mpd-c {
+  display: inline-grid;
+  place-items: center;
+  width: 1.45em;
+  height: 1.45em;
+  border-radius: 50%;
+  background: var(--mp-lilac);
+  color: var(--theme-elevation-0);
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: 0.1em;
+  font-variant-numeric: tabular-nums;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* A button or menu item, drawn like the admin's own. */
+.mpd-ui {
+  display: inline;
+  padding: 1px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--theme-elevation-200);
+  background: var(--mpd-card);
+  font-weight: 600;
+  font-size: 0.92em;
+  white-space: nowrap;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* A route through the left menu: "Settings › Staff". */
+.mpd-path {
+  display: inline;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--theme-elevation-100);
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--theme-elevation-800);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+
+  i { font-style: normal; color: var(--mpd-soft); margin-inline: 5px; }
+}
+
+.mpd-steps {
+  list-style: none;
+  counter-reset: mpd-step;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+
+  > li {
+    counter-increment: mpd-step;
+    position: relative;
+    padding-left: 38px;
+    min-height: 26px;
+
+    &::before {
+      content: counter(mpd-step);
+      position: absolute;
+      left: 0;
+      top: 0.1em;
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--theme-elevation-100);
+      color: var(--mpd-ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+  }
+}
+
+.mpd-list { padding-left: 1.3em; display: grid; gap: 6px; li::marker { color: var(--mp-lilac); } }
+
+/* Screenshots */
+.mpd-shot {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  max-width: var(--mpd-shot-max, 100%);
+
+  figcaption { display: grid; gap: 10px; }
+}
+
+.mpd-shot-frame {
+  all: unset;
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--mpd-line);
+  background: var(--mpd-card);
+  box-shadow: var(--mp-shadow);
+  cursor: zoom-in;
+
+  img { display: block; width: 100%; height: auto; }
+
+  &:focus-visible { outline: 2px solid var(--mp-lilac); outline-offset: 3px; }
+}
+
+.mpd-zoom-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mp-charcoal) 78%, transparent);
+  color: var(--theme-bg);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.mpd-shot-frame:hover .mpd-zoom-hint,
+.mpd-shot-frame:focus-visible .mpd-zoom-hint { opacity: 1; }
+
+.mpd-cap { font-size: 14.5px; line-height: 1.55; color: var(--theme-elevation-700); }
+
+.mpd-legend {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 6px 18px;
+  font-size: 14px;
+  line-height: 1.45;
+
+  li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: baseline; }
+  .mpd-c { font-size: 12px; vertical-align: 0; }
+}
+
+.mpd-shot--phone { max-width: 300px; .mpd-shot-frame { border-radius: 24px; } }
+
+.mpd-phones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 24px;
+  align-items: start;
+
+  .mpd-shot--phone { max-width: none; }
+}
+
+/* Notes */
+.mpd-note {
+  --mpd-note-ink: var(--mp-lilac-ink);
+  --mpd-note-bg: var(--mp-lilac-mist);
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: var(--mpd-note-bg);
+  border-left: 3px solid var(--mpd-note-ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+
+  svg { width: 20px; height: 20px; color: var(--mpd-note-ink); grid-row: 1 / span 2; margin-top: 2px; }
+
+  &--tip { --mpd-note-ink: var(--mp-sage-ink); --mpd-note-bg: var(--theme-success-50); }
+  &--warning { --mpd-note-ink: var(--theme-warning-650, var(--mp-terracotta)); --mpd-note-bg: var(--theme-warning-50); }
+  &--never { --mpd-note-ink: var(--theme-error-600); --mpd-note-bg: var(--theme-error-50); }
+}
+
+.mpd-note-t { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mpd-note-ink); }
+.mpd-note-b { display: grid; gap: 8px; font-size: 15px; }
+
+/* Tables */
+.mpd-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--mpd-line);
+  border-radius: 12px;
+  background: var(--mpd-card);
+
+  &:focus-visible { outline: 2px solid var(--mp-lilac); }
+}
+
+.mpd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+  line-height: 1.45;
+
+  th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--mpd-line); }
+  thead th { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mpd-soft); background: var(--theme-elevation-50); }
+  tbody tr:last-child > * { border-bottom: 0; }
+}
+
+.mpd-roles {
+  th[scope="row"] { font-weight: 500; }
+  td { text-align: center; white-space: nowrap; }
+  thead th:not(:first-child) { text-align: center; }
+
+  .mpd-roles-group th { background: var(--mpd-wash); color: var(--mp-lilac-ink); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+}
+
+.mpd-rm { font-weight: 700; font-size: 15px; }
+.mpd-rm--yes { color: var(--mp-sage-ink); }
+.mpd-rm--view { color: var(--theme-warning-600, var(--mp-terracotta)); }
+.mpd-rm--no { color: var(--theme-elevation-350); }
+.mpd-rm-note { display: block; font-size: 11.5px; color: var(--mpd-soft); }
+
+.mpd-legend-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 13px;
+  color: var(--mpd-soft);
+}
+
+/* Troubleshooting severity */
+.mpd-sev { width: 11px; height: 11px; border-radius: 50%; flex: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.mpd-sev--red { background: var(--theme-error-500); }
+.mpd-sev--amber { background: var(--mp-terracotta); }
+.mpd-sev--green { background: var(--color-success-400, var(--mp-sage-ink)); }
+
+.mpd-sev-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  &--red { background: var(--theme-error-50); color: var(--theme-error-600); }
+  &--amber { background: var(--theme-warning-50); color: var(--theme-warning-650, var(--mp-terracotta)); }
+  &--green { background: var(--theme-success-50); color: var(--mp-sage-ink); }
+}
+
+/* Day-one checklist */
+.mpd-checklist { display: grid; gap: 14px; }
+
+.mpd-checklist-head {
+  position: sticky;
+  top: var(--mpd-sticky-top);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--mpd-line);
+  border-radius: 12px;
+  background: var(--mpd-card);
+  box-shadow: var(--mp-shadow);
+}
+
+.mpd-progress {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 220px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.mpd-bar {
+  display: block;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--theme-elevation-100);
+  overflow: hidden;
+
+  i { display: block; height: 100%; background: var(--mp-lilac); transform-origin: left; transition: transform 200ms ease; }
+}
+
+.mpd-cl-steps { list-style: none; padding: 0; display: grid; gap: 12px; }
+
+.mpd-cl-step {
+  border: 1px solid var(--mpd-line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: var(--mpd-card);
+  display: grid;
+  gap: 10px;
+  max-width: none !important;
+
+  &.is-done { border-color: var(--color-success-200, var(--mp-sage)); background: var(--theme-success-50); }
+}
+
+.mpd-cl-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+
+  h3 { font-size: 16.5px; font-weight: 650; flex: 1 1 200px; }
+}
+
+.mpd-cl-n {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mp-lilac);
+  color: var(--theme-elevation-0);
+  font-weight: 700;
+  font-size: 13px;
+  flex: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.mpd-cl-time { font-size: 12px; font-weight: 600; color: var(--mpd-soft); }
+.mpd-cl-where { font-size: 13px; }
+
+.mpd-cl-items {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+
+  label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; cursor: pointer; font-size: 15px; line-height: 1.55; }
+
+  input {
+    width: 18px;
+    height: 18px;
+    margin: 3px 0 0;
+    accent-color: var(--mp-lilac);
+    cursor: pointer;
+  }
+
+  input:checked + span { color: var(--mpd-soft); text-decoration: line-through; text-decoration-color: var(--theme-elevation-300); }
+}
+
+/* Routines */
+.mpd-routine {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+
+  section { border: 1px solid var(--mpd-line); border-radius: 14px; padding: 18px; display: grid; gap: 12px; align-content: start; background: var(--mpd-card); }
+  h3 .mpd-script { display: block; font-size: 32px; line-height: 1; }
+  h3 small { display: block; margin-top: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mpd-soft); }
+  ul { list-style: none; padding: 0; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.45; }
+  li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; }
+  li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--mp-lilac); margin-top: 0.45em; }
+  li small { display: block; margin-top: 2px; font-size: 13px; color: var(--mpd-soft); }
+}
+
+/* Timeline */
+.mpd-timeline {
+  list-style: none;
+  padding: 0;
+  display: grid;
+
+  > li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 22px;
+    padding-bottom: 26px;
+    max-width: none;
+
+    &::before { content: ""; position: absolute; left: 131px; top: 8px; bottom: 0; width: 1px; background: var(--mpd-line); }
+    &:last-child::before { display: none; }
+  }
+
+  .mpd-when { padding-top: 2px; text-align: right; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mp-lilac-ink); line-height: 1.35; }
+  .mpd-what { position: relative; display: grid; gap: 6px; padding-left: 14px; min-width: 0; }
+  .mpd-what::before { content: ""; position: absolute; left: -11px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--mp-lilac); box-shadow: 0 0 0 4px var(--theme-bg); }
+  h3 { font-size: 16.5px; font-weight: 650; }
+}
+
+/* FAQ and glossary */
+.mpd-faq {
+  display: grid;
+  gap: 8px;
+
+  details { border: 1px solid var(--mpd-line); border-radius: 12px; background: var(--mpd-card); }
+  summary { cursor: pointer; padding: 14px 16px; font-weight: 600; list-style-position: inside; }
+  summary::marker { color: var(--mp-lilac); }
+  details[open] summary { border-bottom: 1px solid var(--mpd-line); }
+}
+
+.mpd-faq-body { padding: 14px 16px; display: grid; gap: 12px; }
+
+.mpd-glossary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 10px;
+
+  > div { border: 1px solid var(--mpd-line); border-radius: 12px; padding: 12px 14px; background: var(--mpd-card); display: grid; gap: 4px; }
+  dt { font-weight: 700; }
+  dd { font-size: 14.5px; line-height: 1.5; color: var(--theme-elevation-700); }
+}
+
+/* ── 5. Mocks: small drawings of the admin ─────────────────────────────── */
+
+.mpd-mock {
+  --mpd-chip-bg: var(--mp-lilac-soft);
+  --mpd-chip-ink: var(--mp-lilac-ink);
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--mpd-line);
+  border-radius: 14px;
+  background: var(--theme-elevation-50);
+  box-shadow: var(--mp-shadow);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.mpd-mock-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mpd-soft);
+
+  &::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--mp-lilac); }
+}
+
+.mpd-mock-body {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+
+  p { max-width: none; }
+  .panel { display: grid; gap: 12px; min-width: 0; padding: 14px 16px; border: 1px solid var(--mpd-line); border-radius: 10px; background: var(--mpd-card); }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .muted { color: var(--mpd-soft); font-size: 13px; }
+  .arrow { color: var(--mpd-soft); font-weight: 700; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  h4 { font-size: 14.5px; font-weight: 650; }
+  ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+
+  .field { display: grid; gap: 5px; min-width: 0; flex: 1 1 180px; }
+  .field > span { font-size: 12.5px; font-weight: 600; }
+  .field > em { font-style: normal; font-size: 12px; color: var(--mpd-soft); }
+  .input { min-height: 36px; padding: 8px 10px; border: 1px solid var(--theme-elevation-200); border-radius: 6px; background: var(--theme-input-bg, var(--mpd-card)); overflow-wrap: anywhere; }
+  .input.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid var(--theme-elevation-200); border-radius: 999px; background: var(--mpd-card); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .btn.primary { background: var(--mp-lilac); border-color: var(--mp-lilac); color: var(--theme-elevation-0); }
+
+  .check { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+  .check i { display: grid; place-items: center; width: 16px; height: 16px; flex: none; border: 1.5px solid var(--mpd-soft); border-radius: 4px; }
+  .check i.on { background: var(--mp-lilac); border-color: var(--mp-lilac); }
+  .check i.on::after { content: ""; width: 8px; height: 4px; border: 2px solid var(--theme-elevation-0); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--mpd-chip-bg);
+    color: var(--mpd-chip-ink);
+    font-size: 12px;
+    font-weight: 650;
+    white-space: nowrap;
+
+    &::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    &.g { --mpd-chip-bg: var(--theme-success-100); --mpd-chip-ink: var(--mp-sage-ink); }
+    &.a { --mpd-chip-bg: var(--theme-warning-100); --mpd-chip-ink: var(--theme-warning-650, var(--mp-terracotta)); }
+    &.r { --mpd-chip-bg: var(--theme-error-100); --mpd-chip-ink: var(--theme-error-600); }
+    &.n { --mpd-chip-bg: var(--theme-elevation-100); --mpd-chip-ink: var(--theme-elevation-650); }
+  }
+
+  /* A change's journey: four stages with arrows between them. */
+  .flowline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .stage { position: relative; display: grid; gap: 6px; align-content: start; padding: 12px; border: 1px solid var(--mpd-line); border-radius: 10px; background: var(--mpd-card); }
+  .stage b { font-size: 13.5px; }
+  .stage p { font-size: 12.5px; line-height: 1.45; color: var(--mpd-soft); }
+  .stage .tag { font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mpd-soft); }
+  .stage.live { background: var(--theme-success-100); border-color: transparent; }
+  .stage.live .tag { color: var(--mp-sage-ink); }
+  .stage + .stage::before { content: "→"; position: absolute; left: -7px; top: 50%; transform: translate(-50%, -50%); color: var(--mpd-soft); font-weight: 700; }
+
+  /* The road to live payments. */
+  .track { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; counter-reset: mpd-track; }
+  .track li { counter-increment: mpd-track; display: grid; gap: 4px; align-content: start; padding: 12px; border: 1px solid var(--mpd-line); border-radius: 10px; background: var(--mpd-card); font-size: 13px; }
+  .track li::before { content: counter(mpd-track); display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mp-lilac-soft); color: var(--mp-lilac-ink); font-size: 11.5px; font-weight: 700; }
+  .track li span { color: var(--mpd-soft); line-height: 1.45; }
+  .track li.test { border-top: 3px solid var(--mp-terracotta); }
+  .track li.live { border-top: 3px solid var(--mp-sage-ink); }
+
+  /* The answer after a scan. */
+  .verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .verdict { display: grid; gap: 6px; align-content: start; padding: 14px; border: 2px solid; border-radius: 12px; }
+  .verdict strong { font-size: 16px; line-height: 1.25; }
+  .verdict span { font-size: 12.5px; }
+  .verdict .means { font-weight: 650; padding-top: 6px; margin-top: 2px; border-top: 1px solid var(--mpd-line); }
+  .verdict.ok { background: var(--theme-success-50); border-color: var(--mp-sage-ink); strong { color: var(--mp-sage-ink); } }
+  .verdict.warn { background: var(--theme-warning-50); border-color: var(--mp-terracotta); strong { color: var(--theme-warning-650, var(--mp-terracotta)); } }
+  .verdict.stop { background: var(--theme-error-50); border-color: var(--theme-error-500); strong { color: var(--theme-error-600); } }
+
+  /* A link shared on WhatsApp. */
+  .share { max-width: 360px; display: grid; gap: 6px; padding: 8px; border-radius: 12px; background: var(--theme-success-100); }
+  .share .card { display: grid; overflow: hidden; border-radius: 8px; background: var(--mpd-card); }
+  .share .img { display: grid; place-items: center; height: 150px; background: linear-gradient(135deg, var(--mp-sage), var(--mp-cream) 55%, var(--mp-lilac-soft)); color: var(--mp-lilac-ink); font-size: 12px; font-weight: 650; letter-spacing: 0.12em; text-transform: uppercase; }
+  .share .meta { display: grid; gap: 2px; padding: 8px 10px; }
+  .share .meta b { font-size: 13.5px; }
+  .share .meta span { font-size: 12.5px; color: var(--theme-elevation-650); }
+  .share .meta i { font-style: normal; font-size: 11.5px; color: var(--mpd-soft); }
+  .share .msg { padding: 0 4px 2px; font-size: 13px; }
+}
+
+/* ── 6. Lightbox ───────────────────────────────────────────────────────── */
+
+.mpd-lightbox {
+  width: min(1280px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--mpd-card, var(--mp-card-bg));
+  color: var(--theme-text);
+  box-shadow: var(--mp-shadow-lg);
+  font-family: var(--font-body);
+  overflow: hidden;
+
+  &[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+  &::backdrop { background: color-mix(in srgb, var(--mp-charcoal) 72%, transparent); }
+}
+
+.mpd-lb-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--theme-elevation-150);
+}
+
+.mpd-lb-title { margin: 0; font-weight: 650; font-size: 15px; display: flex; gap: 10px; align-items: baseline; }
+.mpd-lb-count { font-size: 12.5px; font-weight: 500; color: var(--mp-ink-muted); }
+
+.mpd-lb-btns {
+  display: flex;
+  gap: 6px;
+
+  button {
+    appearance: none;
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid var(--theme-elevation-200);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: 600 13px var(--font-body);
+    cursor: pointer;
+
+    &:hover { border-color: var(--mp-lilac); }
+    &:focus-visible { outline: 2px solid var(--mp-lilac); outline-offset: 2px; }
+  }
+}
+
+.mpd-lb-stage {
+  overflow: auto;
+  background: var(--theme-elevation-50);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  min-height: 0;
+}
+
+.mpd-lb-img {
+  all: unset;
+  cursor: zoom-in;
+  display: block;
+
+  img { display: block; max-width: 100%; max-height: calc(100vh - 260px); width: auto; height: auto; border-radius: 8px; }
+  &:focus-visible { outline: 2px solid var(--mp-lilac); outline-offset: 3px; }
+}
+
+.mpd-lb-stage.is-full {
+  place-items: start;
+
+  .mpd-lb-img { cursor: zoom-out; }
+  .mpd-lb-img img { max-width: none; max-height: none; }
+}
+
+.mpd-lb-info {
+  display: grid;
+  gap: 8px;
+  max-height: 30vh;
+  overflow: auto;
+  padding: 12px 18px 16px;
+  border-top: 1px solid var(--theme-elevation-150);
+  font-size: 14px;
+
+  p, ol { margin: 0; }
+  .mpd-cap { font-size: 14px; }
+}
+
+/* ── 7. Narrow screens ─────────────────────────────────────────────────── */
+
+@media screen and (max-width: 1100px) {
+  .mpd-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 32px; }
+}
+
+@media screen and (max-width: 900px) {
+  .mpd-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; padding-block: 16px 56px; }
+
+  .mpd-aside {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+    gap: 10px;
+  }
+
+  .mpd-search kbd { display: none; }
+
+  .mpd-toc-toggle {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 8px 14px;
+    border: 1px solid var(--mpd-line);
+    border-radius: 10px;
+    background: var(--mpd-card);
+    color: var(--mpd-ink);
+    font: 600 14px var(--font-body);
+    cursor: pointer;
+
+    svg { width: 18px; height: 18px; transition: transform 150ms ease; }
+    &[aria-expanded="true"] svg { transform: rotate(180deg); }
+  }
+
+  .mpd-toc { display: none; padding: 8px; border: 1px solid var(--mpd-line); border-radius: 12px; background: var(--mpd-card); }
+  .mpd-toc.is-open { display: grid; }
+
+  .mpd-article { gap: 28px; font-size: 15.5px; }
+  .mpd-hero { padding: 20px; }
+  .mpd-facts, .mpd-how ul { grid-template-columns: minmax(0, 1fr); }
+  .mpd-checklist-head { top: calc(var(--app-header-height, 56px) + 8px); }
+  .mpd-pager { grid-template-columns: minmax(0, 1fr); .is-next { grid-column: 1; } }
+
+  .mpd-mock-body {
+    .split, .verdicts { grid-template-columns: minmax(0, 1fr); }
+    .flowline { grid-template-columns: minmax(0, 1fr); }
+    .stage + .stage::before { content: "↓"; left: 50%; top: -7px; }
+    .track { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  }
+
+  .mpd-timeline {
+    > li { grid-template-columns: minmax(0, 1fr); gap: 6px; padding-left: 22px; &::before { left: 4px; } }
+    .mpd-when { text-align: left; }
+    .mpd-what { padding-left: 0; &::before { left: -22px; } }
+  }
+
+  .mpd-lb-word { display: none; }
+  .mpd-lightbox { width: 100vw; max-height: 100dvh; height: 100dvh; border-radius: 0; }
+  .mpd-lb-img img { max-height: calc(100dvh - 240px); }
+}
+
+/* While searching on a phone, the results matter more than the list. */
+@media screen and (max-width: 900px) {
+  .mpd-results-h { font-size: 19px; }
+}
+
+/* ── 8. Print ──────────────────────────────────────────────────────────── */
+
+/*
+  /admin/docs/print renders without the admin chrome. On screen it reads as
+  one long document (so it can be checked before printing); on paper every
+  rule below applies. scripts/build-admin-guide-pdf.mjs prints it A4 with
+  `preferCSSPageSize`, so the @page rules here are the page setup.
+*/
+
+html:has(.mpd-print) {
+  background: var(--theme-bg);
+
+  [data-mock-banner], .mp-warnbar { display: none !important; }
+}
+
+.mpd-print {
+  --mpd-measure: none;
+  max-width: 190mm;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+
+  .mpd-section { border-top: 0; padding-top: 0; gap: 3mm; margin-top: 7mm; }
+  .mpd-section > h3 { display: flex; align-items: center; gap: 3mm; font-size: 15pt; font-weight: 650; line-height: 1.25; }
+  .mpd-flow { gap: 3.5mm; }
+  .mpd-shot-frame { cursor: default; box-shadow: none; }
+  .mpd-cap, .mpd-legend, .mpd-note-b, .mpd-table, .mpd-cl-items label { font-size: 9.5pt; }
+  .mpd-mock { box-shadow: none; font-size: 9.5pt; }
+  .mpd-lede { font-size: 12pt; }
+  .mpd-pg { color: var(--mpd-soft); font-size: 0.85em; }
+  .mpd-pg:not(:empty)::before { content: " (p. "; }
+  .mpd-pg:not(:empty)::after { content: ")"; }
+  .mpd-cl-items input { appearance: none; -webkit-appearance: none; width: 4mm; height: 4mm; border: 1.2pt solid var(--theme-elevation-500); border-radius: 1mm; background: var(--theme-elevation-0); }
+  .mpd-faq summary { list-style: none; }
+  .mpd-faq summary::-webkit-details-marker { display: none; }
+}
+
+.mpd-pg-num { font-variant-numeric: tabular-nums; color: var(--mpd-soft); font-weight: 600; min-width: 2.2em; text-align: right; }
+
+/* Cover */
+.mpd-p-cover {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10mm;
+  min-height: 277mm;
+  padding: 18mm 16mm 14mm;
+  border-radius: 6mm;
+  background: linear-gradient(160deg, var(--mp-lilac-mist), var(--theme-bg) 55%, var(--mp-cream));
+  overflow: hidden;
+}
+
+.mpd-p-band { display: grid; gap: 14mm; }
+
+.mpd-p-brand {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+
+  b { display: block; font-size: 12pt; }
+  small { display: block; font-size: 8.5pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mpd-soft); }
+}
+
+.mpd-p-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 10mm;
+  height: 10mm;
+  border-radius: 2.5mm;
+  background: var(--mp-lilac);
+  color: var(--theme-elevation-0);
+  font: 400 20pt/1 var(--font-script);
+  padding-top: 1mm;
+}
+
+.mpd-p-title {
+  display: grid;
+  gap: 3mm;
+
+  .mpd-script { font-size: 34pt; line-height: 1; }
+  h1 { font-size: 46pt; line-height: 1; font-weight: 300; letter-spacing: -0.01em; }
+  h1 b { font-weight: 700; color: var(--mp-lilac-ink); }
+}
+
+.mpd-p-sub { max-width: 130mm; font-size: 12pt; line-height: 1.5; color: var(--theme-elevation-700); }
+
+.mpd-p-window {
+  align-self: center;
+  border-radius: 4mm;
+  overflow: hidden;
+  border: 1px solid var(--mpd-line);
+  background: var(--mpd-card);
+  box-shadow: var(--mp-shadow-lg);
+
+  img { display: block; width: 100%; height: auto; max-height: 120mm; object-fit: cover; object-position: top; }
+}
+
+.mpd-p-chrome {
+  display: flex;
+  align-items: center;
+  gap: 1.5mm;
+  padding: 2.5mm 4mm;
+  border-bottom: 1px solid var(--mpd-line);
+  font-size: 8pt;
+  color: var(--mpd-soft);
+
+  i { width: 2.4mm; height: 2.4mm; border-radius: 50%; background: var(--theme-elevation-200); }
+  span { margin-left: 3mm; }
+}
+
+.mpd-p-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4mm 12mm;
+  font-size: 10pt;
+
+  b { display: block; font-size: 7.5pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mpd-soft); }
+}
+
+/* Welcome and how to read */
+.mpd-p-welcome {
+  display: grid;
+  gap: 5mm;
+  padding-top: 10mm;
+
+  h2 { font-size: 24pt; line-height: 1.2; font-weight: 400; }
+  h2 .mpd-script { display: block; font-size: 1.6em; line-height: 1; }
+  h2 strong { font-weight: 700; }
+}
+
+.mpd-p-sub-h { font-size: 13pt; font-weight: 700; margin-top: 6mm; }
+
+.mpd-p-how {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4mm;
+
+  li { border: 1px solid var(--mpd-line); border-radius: 3mm; padding: 4mm 5mm; display: grid; gap: 1.5mm; background: var(--mpd-card); }
+  h4 { font-size: 10.5pt; font-weight: 700; }
+  p { font-size: 9.5pt; }
+}
+
+/* Contents */
+.mpd-p-toc {
+  padding-top: 8mm;
+
+  > .mpd-script { font-size: 26pt; line-height: 1; }
+  h2 { font-size: 20pt; font-weight: 700; margin-bottom: 6mm; }
+
+  ol { list-style: none; padding: 0; margin: 0; }
+  > ol { display: grid; gap: 2.5mm; }
+  > ol > li { break-inside: avoid; }
+  a { color: inherit !important; text-decoration: none; }
+}
+
+.mpd-p-toc-row {
+  display: grid;
+  grid-template-columns: 22mm minmax(0, 1fr) auto;
+  gap: 4mm;
+  align-items: baseline;
+  padding: 1.5mm 0;
+  border-bottom: 0.5pt solid var(--mpd-line);
+
+  b { display: block; font-size: 11pt; }
+  small { display: block; font-size: 8.5pt; color: var(--mpd-soft); }
+}
+
+.mpd-p-toc-n { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.12em; color: var(--mp-lilac-ink); }
+
+.mpd-p-toc .is-feature .mpd-p-toc-row { background: var(--mp-lilac-mist); border-radius: 2mm; padding-inline: 2mm; }
+
+.mpd-p-toc-subs {
+  display: grid;
+  gap: 0.6mm;
+  padding: 1mm 0 0 26mm !important;
+  font-size: 8.5pt;
+
+  a { display: flex; justify-content: space-between; gap: 4mm; color: var(--theme-elevation-700) !important; }
+}
+
+/* Chapter openers */
+.mpd-p-chapter { display: grid; }
+
+.mpd-p-opener {
+  display: grid;
+  gap: 4mm;
+  padding: 10mm 0 6mm;
+  margin-bottom: 4mm;
+  border-bottom: 1pt solid var(--mpd-line);
+
+  h2 { font-size: 28pt; line-height: 1.1; font-weight: 700; }
+  .mpd-eyebrow { font-size: 9pt; }
+}
+
+.mpd-p-chapter.is-feature .mpd-p-opener { border-bottom-color: var(--mp-lilac); }
+
+.mpd-p-inthis {
+  display: grid;
+  gap: 2mm;
+  font-size: 9.5pt;
+
+  > p { font-size: 8pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mpd-soft); }
+  ol { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1mm 8mm; }
+  li { display: flex; justify-content: space-between; gap: 3mm; border-bottom: 0.5pt dotted var(--mpd-line); }
+}
+
+.mpd-p-colophon {
+  display: grid;
+  justify-items: center;
+  gap: 3mm;
+  max-width: 120mm;
+  margin: 60mm auto 0;
+  text-align: center;
+  color: var(--mpd-soft);
+
+  .mpd-script { font-size: 40pt; line-height: 1; }
+  .mpd-p-mark { width: 14mm; height: 14mm; font-size: 30pt; }
+}
+
+/*
+  A named page, so printing any other admin page is untouched by these
+  rules. The running header and footer are CSS page-margin boxes (Chrome
+  131+, written by DocsPrint.tsx), so they are part of the page itself: the
+  cover (the first page, edge to edge, no margin) has none, and the footer's
+  page number is the same physical page number the contents use.
+*/
+.mpd-print { page: mpd-guide; }
+
+@page mpd-guide {
+  size: A4;
+  margin: 18mm 15mm 18mm;
+}
+
+@page mpd-guide:first {
+  margin: 0;
+}
+
+/* The margin boxes themselves (running header, page numbers) are written by
+   DocsPrint.tsx, so the edition comes from content/front.ts. */
+
+@media print {
+  html, body { background: var(--theme-elevation-0) !important; }
+
+  /*
+    The admin's own portals (modal container, toasts, route announcer) sit
+    after .mpd-print in <body>. They are on no named page, so Chrome broke to
+    a fresh, unnamed page for them: a blank last page with no footer. Body
+    joins the guide's page and the portals are not printed.
+  */
+  body:has(> .mpd-print) { page: mpd-guide; }
+  body:has(> .mpd-print) > :not(.mpd-print) { display: none !important; }
+
+  .mpd-print {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /*
+    Block flow on paper: Chrome honours break-inside/break-after reliably in
+    block layout, much less so between grid items (a mock or the role table
+    split across pages, and a legend drawn over the table, when these were
+    grids). Spacing moves from `gap` to margins.
+  */
+  .mpd-print .mpd-p-chapter,
+  .mpd-print .mpd-section,
+  .mpd-print .mpd-flow,
+  .mpd-print .mpd-shot,
+  .mpd-print .mpd-shot figcaption,
+  .mpd-print .mpd-checklist,
+  .mpd-print .mpd-cl-steps,
+  .mpd-print .mpd-faq,
+  .mpd-print .mpd-faq-body,
+  .mpd-print .mpd-mock,
+  .mpd-print .mpd-mock-body,
+  .mpd-print .mpd-tldr,
+  .mpd-print .mpd-p-opener { display: block; }
+
+  .mpd-print .mpd-section > * + *,
+  .mpd-print .mpd-flow > * + *,
+  .mpd-print .mpd-faq-body > * + *,
+  .mpd-print .mpd-mock-body > * + *,
+  .mpd-print .mpd-mock > * + *,
+  .mpd-print .mpd-p-opener > * + * { margin-top: 3.5mm; }
+
+  .mpd-print .mpd-shot figcaption,
+  .mpd-print .mpd-shot .mpd-legend { margin-top: 2.5mm; }
+  .mpd-print .mpd-cl-steps > * + *,
+  .mpd-print .mpd-faq > * + * { margin-top: 3mm; }
+  .mpd-print .mpd-tldr ul { margin-top: 2mm; }
+
+  .mpd-p-cover {
+    min-height: 0;
+    height: 297mm;
+    border-radius: 0;
+    break-after: page;
+  }
+
+  .mpd-p-welcome { break-after: page; padding-top: 0; }
+  .mpd-p-toc { break-after: page; padding-top: 0; }
+
+  /*
+    The script's swashes rise well above its line box. At the top of a page
+    Chrome paints that ink at the foot of the page before (a stray stroke of
+    the "C" of "Contents" under the welcome page), so the script headings
+    that open a page get room inside their own box.
+  */
+  .mpd-p-welcome h2 .mpd-script,
+  .mpd-p-toc > .mpd-script { padding-top: 0.3em; }
+  .mpd-p-chapter { break-before: page; }
+  .mpd-p-opener { padding-top: 0; }
+  .mpd-p-colophon { break-before: page; }
+
+  .mpd-section > h3,
+  .mpd-h3,
+  .mpd-hint,
+  .mpd-meta { break-after: avoid; }
+
+  /* A chapter opener (title, lede, "In 30 seconds", "In this chapter") stays on one page. */
+  .mpd-p-opener { break-inside: avoid; }
+
+  .mpd-shot,
+  .mpd-note,
+  .mpd-mock,
+  .mpd-tldr,
+  .mpd-cl-step,
+  .mpd-routine section,
+  .mpd-timeline > li,
+  .mpd-glossary > div,
+  .mpd-faq details,
+  .mpd-table tr,
+  .mpd-p-how li,
+  .mpd-steps > li { break-inside: avoid; }
+
+  .mpd-steps, .mpd-legend { break-before: avoid; }
+
+  /* Tables print whole when they can; long ones repeat their header. */
+  .mpd-table-wrap { overflow: visible; border-radius: 0; }
+  .mpd-table thead { display: table-header-group; }
+
+  .mpd-phones { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5mm; }
+  .mpd-shot--phone { max-width: 62mm; }
+  .mpd-shot { max-width: min(var(--mpd-shot-max, 100%), 100%); }
+  .mpd-shot img { max-height: 200mm; object-fit: contain; }
+
+  a { text-decoration: none; }
+}

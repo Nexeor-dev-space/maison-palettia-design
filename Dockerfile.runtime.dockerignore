@@ -25,6 +25,9 @@
 .next/standalone/private
 .next/standalone/assets
 .next/standalone/docs
+# …except the owner guide's screenshots and PDF, streamed by /admin-docs.
+!.next/standalone/docs/admin-guide/images
+!.next/standalone/docs/admin-guide/dist/*.pdf
 .next/standalone/tests
 .next/standalone/.git
 .next/standalone/.claude
