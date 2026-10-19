@@ -1992,3 +1992,41 @@ html[data-intro="settle"] body:has([data-hero-intro]) > header {
 .brand-map .maplibregl-cooperative-gesture-screen.maplibregl-show {
   font-family: var(--font-sans);
 }
+
+/* ==========================================================================
+   OFF-SCREEN LOOPS ARE PAUSED — see components/motion/LoopPause.tsx.
+   ========================================================================== */
+[data-loop][data-offscreen],
+[data-loop][data-offscreen]::before,
+[data-loop][data-offscreen]::after,
+[data-loop][data-offscreen] *,
+[data-loop][data-offscreen] *::before,
+[data-loop][data-offscreen] *::after {
+  animation-play-state: paused !important;
+}
+
+/* The section-ground float — see <SectionShapes>. A CSS loop rather than a
+   JS one, so an idle page makes no per-frame style writes for it. */
+.shape-float {
+  animation: shape-float var(--shape-float, 12s) ease-in-out var(--shape-float-delay, 0s) infinite;
+}
+
+@keyframes shape-float {
+  0%,
+  50%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(0, -9px, 0) rotate(1.6deg);
+  }
+  75% {
+    transform: translate3d(0, 7px, 0) rotate(-1.6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shape-float {
+    animation: none;
+  }
+}

@@ -73,7 +73,7 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   slower in proportion — the writing, the wells, the ring's hold — rather
   than one beat padded, so it still reads as one movement, only unhurried.
 */
-const WRITE_MS = 1500; // the pen writes "Maison Palettia", first stroke to last
+const WRITE_MS = 1200; // the pen writes "Maison Palettia", first stroke to last
 const DOTS_AT = WRITE_MS - 40;
 
 /** On a touch screen, how much of the gap to the scroll the opening closes each frame. */
@@ -82,9 +82,9 @@ const FOLLOW = 0.38;
 /** Fired on the frame whenever its foot is refitted — see `refit` below. */
 const REFIT_EVENT = "hero-refit"; // the mark is written; the wells start filling
 const DOT_STEP = 95; // one well after another — see `.pDot` in Hero.module.css
-const BURST_AT = DOTS_AT + 640; // frame 2: the icons leave the logo
-const LIFT_AT = BURST_AT + 900; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 960; // frame 6: ... and the page is composed by ~4000ms
+const BURST_AT = DOTS_AT + 440; // frame 2: the icons leave the logo
+const LIFT_AT = BURST_AT + 400; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 960; // frame 6: ... and the page is composed by ~3000ms
 
 /*
   One icon after another on the way out, and again on the way back.
@@ -933,9 +933,18 @@ export function HeroIntro() {
     let shown = -1;
     let target = 0;
     let follow = 0;
+    /* `will-change` only while the opening is moving (0 < p < 1), not for the
+       life of the page: ~20 permanent layers for a banner that is still most
+       of the time. Written only when the answer changes. */
+    let opening: boolean | null = null;
     const apply = (p: number) => {
       shown = p;
       frame.style.setProperty("--p", p.toFixed(4));
+      const nextOpening = p > 0 && p < 1;
+      if (nextOpening !== opening) {
+        opening = nextOpening;
+        frame.toggleAttribute("data-opening", nextOpening);
+      }
     };
     const step = () => {
       follow = 0;
