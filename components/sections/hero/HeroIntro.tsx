@@ -349,6 +349,48 @@ function nextPaint(fn: () => void): () => void {
 }
 
 /**
+ * A window `resize` listener that ignores a phone's toolbar.
+ *
+ * ON A PHONE, SCROLLING RESIZES THE WINDOW. Safari and Chrome both shrink their
+ * address bar as the page starts to move and bring it back when it turns, and
+ * each time `innerHeight` changes and `resize` fires — which is to say, in the
+ * middle of the banner's opening, every time the reader changes direction.
+ * Every listener here answered with a full refit: probes appended to <body>,
+ * forced layouts, and (on the scroll timeline) every scrubbed animation
+ * cancelled and built again. That was a dropped run of frames at exactly the
+ * moment the photograph was opening under the reader's thumb.
+ *
+ * None of it can have changed. The frame is `100svh`, the SMALL viewport, which
+ * is the same height whichever state the toolbar is in, and every measurement
+ * the banner takes is against the frame. So on a touch screen a resize that
+ * leaves the width alone (the toolbar, or the keyboard) is dropped; a rotation
+ * still refits. A pointer device keeps every resize: a desktop window dragged
+ * taller really does change the frame. Bursts are folded into one call per
+ * frame either way.
+ */
+function onViewportResize(fn: () => void): () => void {
+  const touch = window.matchMedia("(pointer: coarse)").matches;
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  let queued = 0;
+  const onResize = () => {
+    const changed = window.innerWidth !== width || (!touch && window.innerHeight !== height);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    if (!changed || queued) return;
+    queued = requestAnimationFrame(() => {
+      queued = 0;
+      fn();
+    });
+  };
+  window.addEventListener("resize", onResize);
+  return () => {
+    cancelAnimationFrame(queued);
+    window.removeEventListener("resize", onResize);
+  };
+}
+
+/**
  * The entrance — the mark, and the ring of the brand's icons that bursts out
  * from behind it and then scatters into the page — and, once it is over, the
  * banner's opening on scroll and the icons' pointer depth.
@@ -408,9 +450,11 @@ export function HeroIntro() {
     document.fonts?.ready.then(() => {
       if (!cancelled) refit();
     });
-    // Registered before the scroll effect's own listener, so on a resize the
-    // foot is refitted before the words' landing is measured against it.
-    window.addEventListener("resize", refit);
+    /* The only resize listener in the banner. The scroll effect below hears
+       about a resize through REFIT_EVENT, after the foot has been refitted —
+       it used to listen as well, and every resize measured and rebuilt the
+       opening twice. A phone's toolbar is not a resize; see onViewportResize. */
+    const stopResize = onViewportResize(refit);
     /*
       And whenever the words themselves change height, for any reason the two
       lines above do not name: a face swapping in after `fonts.ready` has
@@ -424,7 +468,7 @@ export function HeroIntro() {
     return () => {
       cancelled = true;
       ro.disconnect();
-      window.removeEventListener("resize", refit);
+      stopResize();
     };
   }, []);
 
@@ -1219,10 +1263,21 @@ export function HeroIntro() {
       twenty layers in the first frame of a scroll is itself a dropped frame,
       so they are promoted while the page is still, and dropped once the
       banner has gone by.
+
+      A SCREEN EARLY, coming back. On the way down the layers are made on
+      load, at rest. On the way back up from the sections below they were
+      made the moment the track's foot crossed into view — twenty layers in
+      one frame of the reader's scroll, with the banner on screen to show it.
+      The margin moves that frame a full screen ahead, while the banner is
+      still out of sight, and keeps the layers a screen past it on the way
+      down so a short scroll back does not rebuild them.
     */
-    const live = new IntersectionObserver(([entry]) => {
-      frame.toggleAttribute("data-live", entry.isIntersecting);
-    });
+    const live = new IntersectionObserver(
+      ([entry]) => {
+        frame.toggleAttribute("data-live", entry.isIntersecting);
+      },
+      { rootMargin: "100% 0px" },
+    );
     live.observe(track);
     const step = () => {
       follow = 0;
@@ -1275,14 +1330,14 @@ export function HeroIntro() {
       onResize();
     });
     const stopScroll = onScrollFrame(onScroll);
-    window.addEventListener("resize", onResize);
     // The foot was refitted (see REFIT_EVENT): measure against the new one.
+    // This is also how a real resize arrives — the fit effect owns the only
+    // resize listener, so the opening is rebuilt once per resize, not twice.
     frame.addEventListener(REFIT_EVENT, onResize);
     return () => {
       cancelled = true;
       cancelAnimationFrame(follow);
       stopScroll();
-      window.removeEventListener("resize", onResize);
       frame.removeEventListener(REFIT_EVENT, onResize);
       live.disconnect();
       introDone.disconnect();

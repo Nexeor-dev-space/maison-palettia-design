@@ -71,6 +71,39 @@ const smooth = (a: number, b: number, x: number) => {
 const prefersReduced = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/*
+  THE PAPER'S GRAIN IS A PICTURE, NOT A FILTER.
+
+  It was an `feTurbulence` filter on the stuck-down part of the note, and that
+  part's clip changes on every frame of the peel — so the browser generated
+  the noise again, pixel by pixel, on every frame of the four seconds the peel
+  takes. On a phone the hero's note
+  peels on its own while the photograph is still opening, so that cost landed
+  in the middle of the scroll.
+
+  Now one tile of noise is drawn into a canvas once per page and laid over the
+  paper as a pattern; painting it is a copy, not a computation. Alpha 8/255 is
+  what the filter came to: 0.07 of grain composited `in` a fill of 0.46.
+*/
+const GRAIN_TILE = 64; // user units; the bitmap is 2.5x that, so it stays crisp
+let grainUrl: string | null = null;
+function grainTile(): string {
+  if (grainUrl !== null) return grainUrl;
+  const size = GRAIN_TILE * 2.5;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return (grainUrl = "");
+  const img = ctx.createImageData(size, size);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const g = 48 + Math.random() * 160;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = g;
+    img.data[i + 3] = 8;
+  }
+  ctx.putImageData(img, 0, 0);
+  return (grainUrl = canvas.toDataURL("image/png"));
+}
+
 export function PeelNote({
   href,
   external = false,
@@ -158,7 +191,15 @@ export function PeelNote({
         in view. On a phone, where the hero's note plays on its own while
         the photograph is still opening, that was the banner's jitter.
       */
-      setView({ progress: s.progress, lean: s.lean, sway: !busy && s.progress > 0.6 });
+      /*
+        NO BREATHING ON A TOUCH SCREEN. The sway is a CSS rotation on an SVG
+        group, and an SVG group is never its own layer: every frame of it
+        repaints the note, shadows and all, for as long as the note is on
+        screen — which on a phone is the whole time the hero stands open.
+        A breath of a third of a degree is not worth that. The pointer
+        still gets it while it holds the note peeled.
+      */
+      setView({ progress: s.progress, lean: s.lean, sway: !busy && s.progress > 0.6 && !autoPlays() });
       if (busy) frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
@@ -276,6 +317,8 @@ export function PeelNote({
   const underside = 1 - smooth(-0.2, 0.05, cos); // which face is toward us
 
   const d = ready ? pillPath(w, h) : "";
+  // Client only: `ready` is false on the server and on the first client render.
+  const grain = ready ? grainTile() : "";
 
   const shell = cn(
     "relative isolate inline-flex rotate-[-2deg] items-center justify-center rounded-[900px]",
@@ -305,18 +348,11 @@ export function PeelNote({
           viewBox={`0 0 ${w} ${h}`}
         >
           <defs>
-            <filter id={`${id}-grain`} x="0" y="0" width="100%" height="100%">
-              <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="3" result="n" />
-              <feColorMatrix in="n" type="saturate" values="0" result="g" />
-              <feComponentTransfer in="g" result="a">
-                <feFuncA type="linear" slope="0" intercept="0.07" />
-              </feComponentTransfer>
-              <feComposite in="a" in2="SourceGraphic" operator="in" result="grain" />
-              <feMerge>
-                <feMergeNode in="SourceGraphic" />
-                <feMergeNode in="grain" />
-              </feMerge>
-            </filter>
+            {grain ? (
+              <pattern id={`${id}-grain`} patternUnits="userSpaceOnUse" width={GRAIN_TILE} height={GRAIN_TILE}>
+                <image href={grain} width={GRAIN_TILE} height={GRAIN_TILE} />
+              </pattern>
+            ) : null}
             <filter id={`${id}-contact`} x="-10%" y="-40%" width="120%" height="180%">
               <feDropShadow dx="0" dy="1.5" stdDeviation="2" floodColor="#231f20" floodOpacity="0.22" />
             </filter>
@@ -360,8 +396,8 @@ export function PeelNote({
               clipPath={`url(#${id}-kept)`}
               fill="rgb(236 218 182 / 0.46)"
               stroke="rgb(35 31 32 / 0.1)"
-              filter={`url(#${id}-grain)`}
             />
+            {grain ? <path d={d} clipPath={`url(#${id}-kept)`} fill={`url(#${id}-grain)`} /> : null}
           </g>
 
           {/* The flap: the peeled part, turned about the fold. */}
