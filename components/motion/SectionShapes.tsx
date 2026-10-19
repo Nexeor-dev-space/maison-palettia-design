@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView, useTransform, type MotionValue } from "framer-motion";
+import { motion, useTransform, type MotionValue } from "framer-motion";
 import { useRef } from "react";
 
 import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
@@ -123,7 +123,6 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
   const scrollYProgress = useScrollProgress(field, ["start end", "end start"]);
   // The idle float is JavaScript-driven and infinite; a section that is not on
   // screen has no business running it (issue #70).
-  const active = useInView(field, { margin: "100px 0px 100px 0px" });
 
   return (
     <div
@@ -137,7 +136,6 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
           shape={shape}
           progress={scrollYProgress}
           reduced={reduced}
-          active={active}
         />
       ))}
     </div>
@@ -152,12 +150,10 @@ function Shape({
   shape,
   progress,
   reduced,
-  active,
 }: {
   shape: ShapePlan;
   progress: MotionValue<number>;
   reduced: boolean;
-  active: boolean;
 }) {
   const travel = reduced ? 0 : shape.drift;
   const y = useTransform(progress, [0, 1], [`${-travel / 2}%`, `${travel / 2}%`]);
@@ -210,25 +206,16 @@ function Shape({
         mark sitting beside type at a readable size. Behind content, at this
         size, a third kind of movement is one too many.
       */}
-      <motion.span
-        className="block"
-        animate={
+      {/* A CSS keyframe loop (`.shape-float` in globals.css), not a JS one:
+          it runs on the compositor with no per-frame style writes, and
+          `data-loop` hands it to <LoopPause>, which pauses it whenever this
+          mark is outside the viewport. */}
+      <span
+        data-loop={float ? "" : undefined}
+        className={cn("block", float > 0 && "shape-float")}
+        style={
           float
-            ? active
-              ? { y: [0, -9, 0, 7, 0], rotate: [0, 1.6, 0, -1.6, 0] }
-              : { y: 0, rotate: 0 }
-            : undefined
-        }
-        transition={
-          float
-            ? active
-              ? {
-                duration: float,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: shape.floatDelay ?? 0,
-              }
-              : { duration: 0 }
+            ? ({ "--shape-float": `${float}s`, "--shape-float-delay": `${shape.floatDelay ?? 0}s` } as React.CSSProperties)
             : undefined
         }
       >
@@ -243,7 +230,7 @@ function Shape({
           idle={!float}
           seed={`${shape.top ?? ""}${shape.bottom ?? ""}${shape.left ?? ""}${shape.right ?? ""}${shape.width}`}
         />
-      </motion.span>
+      </span>
     </motion.span>
   );
 }
