@@ -2409,7 +2409,7 @@ export interface Pass {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Background music for the site's player. Visitors start it themselves — it never plays on its own. Turn the player on in Settings → Music.
+ * Background music for the site's player. It starts by itself when a visitor arrives (or on their first tap, where the browser requires one), and they can pause it. Turn the player on in Settings → Music.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "music-tracks".
@@ -7272,7 +7272,7 @@ export interface SeoDefault {
 export interface MusicSetting {
   id: string;
   /**
-   * A small play button in the corner of every page. Music only starts when a visitor presses it.
+   * A small play button in the corner of every page. Music starts by itself when a visitor arrives (or on their first tap, where the browser requires one); pausing it keeps it off for them.
    */
   enabled?: boolean | null;
   /**
