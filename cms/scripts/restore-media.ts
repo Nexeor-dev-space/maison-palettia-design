@@ -7,7 +7,7 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 import sharp from "sharp";
 
-import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { MEDIA_DIR, MUSIC_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
 
@@ -40,9 +40,52 @@ import { MEDIA } from "@/cms/seed/strings/media";
  * volume (docs/cms-runbook.md, "Deploying with Coolify").
  *
  * Cheap when nothing is missing: one query and one `existsSync` per document.
+ *
+ * AND THE MUSIC, THE SAME WAY. `music-tracks` rows reach every server through
+ * the shared database and their files do not — the first track was uploaded
+ * against that database from a machine that was not a server, so both sites
+ * listed it, drew the player, and answered 500 for the file. A track whose
+ * audio is committed under `public/audio/` with its stored filename is copied
+ * into `media/music/` wherever it is missing. One `existsSync` per track.
  */
 
 const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
+const AUDIO_SOURCE_DIR = path.join(PUBLIC_DIR, "audio");
+
+type MusicRow = { filename?: string | null };
+
+/** Copy every committed track the server is missing into media/music/. */
+async function restoreMusic(payload: Awaited<ReturnType<typeof getPayload>>, dryRun: boolean) {
+  const res = await payload.find({ collection: "music-tracks", limit: 0, depth: 0, overrideAccess: true, pagination: false });
+  const rows = res.docs as unknown as MusicRow[];
+  let present = 0;
+  let restored = 0;
+  const missing: string[] = [];
+
+  for (const row of rows) {
+    const filename = row.filename;
+    if (!filename) continue;
+    const target = path.join(MUSIC_DIR, filename);
+    if (fs.existsSync(target)) {
+      present++;
+      continue;
+    }
+    const source = path.join(AUDIO_SOURCE_DIR, filename);
+    if (!fs.existsSync(source)) {
+      missing.push(filename);
+      continue;
+    }
+    if (!dryRun) {
+      await fsp.mkdir(MUSIC_DIR, { recursive: true });
+      const tempPath = path.join(MUSIC_DIR, `.${filename}.${randomUUID()}.tmp${path.extname(filename)}`);
+      await fsp.copyFile(source, tempPath);
+      await fsp.rename(tempPath, target);
+    }
+    restored++;
+  }
+
+  return { total: rows.length, present, restored, missing };
+}
 
 /** stored filename → path under public/, for every seeded photo. */
 const SOURCES = new Map(MEDIA.map((seed) => [storedFilename(seed.path), seed.path]));
@@ -175,6 +218,14 @@ async function main() {
   );
   if (unrecoverable.length) {
     console.log(`restore-media: check these missing or incomplete files: ${unrecoverable.join(", ")}`);
+  }
+
+  const music = await restoreMusic(payload, dryRun);
+  console.log(
+    `restore-media: music — ${music.total} tracks, ${music.present} on disk, ${verb} ${music.restored}, ${music.missing.length} with no committed source.`,
+  );
+  if (music.missing.length) {
+    console.log(`restore-media: these tracks will not play until uploaded on this server: ${music.missing.join(", ")}`);
   }
   process.exit(0);
 }
