@@ -1093,6 +1093,21 @@ export async function Footer() {
           */}
           <BackToTop className="lg:mr-[calc(6.5rem_-_var(--spacing-gutter))]" />
         </div>
+
+        {/* The studio's credit: its own line under the foot, in the legal
+            row's type, so it reads as a sign-off and never crowds that row —
+            beside it, all four items wrapped at tablet widths. */}
+        <p className="mt-6 text-center text-fine text-text/75">
+          Powered by{" "}
+          <a
+            href="https://nexeor.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium transition-colors hover:text-text"
+          >
+            Nexeor
+          </a>
+        </p>
       </Container>
     </footer>
   );
