@@ -191,6 +191,21 @@ export function HeaderBar({
   */
   const [isDetached, setIsDetached] = useState(false);
   const [isRising, setIsRising] = useState(false);
+  /*
+    THE SLIDE IS SWITCHED ON THE FRAME AFTER THE BAR GOES FIXED, NOT WITH IT.
+
+    Detaching on the way down puts the bar at the top of the window and
+    translates it away in the same commit — and with the transition already
+    on, the browser animated that: the bar appeared over the page and slid
+    off for 450ms. On the homepage that was 240px down, mid-way through the
+    photograph opening, every time. Without the transition on that one frame
+    the bar is simply gone; from the next frame on it slides as before.
+  */
+  const [canSlide, setCanSlide] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setCanSlide(isDetached));
+    return () => cancelAnimationFrame(id);
+  }, [isDetached]);
   const searchPanelId = useId();
   const searchTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -226,8 +241,6 @@ export function HeaderBar({
       const y = window.scrollY;
       const nextScrolled = y > 8;
       if (nextScrolled !== scrolled) setIsScrolled((scrolled = nextScrolled));
-      const nextDetached = y > DETACH_AFTER;
-      if (nextDetached !== detached) setIsDetached((detached = nextDetached));
 
       const delta = y - lastY;
       if (Math.abs(delta) > DIRECTION_DEADBAND) {
@@ -235,6 +248,22 @@ export function HeaderBar({
         if (nextRising !== rising) setIsRising((rising = nextRising));
         lastY = y;
       }
+
+      /*
+        ONCE FIXED, THE BAR STAYS FIXED UNTIL THE PAGE IS BACK AT ITS TOP.
+
+        It used to rejoin the flow at 240px on the way back up too. Going up,
+        the bar is on screen by then — fixed at the top — and in the flow it
+        sits 240px above the window, so it vanished in a frame and then
+        scrolled back down into view: on the homepage, right in the middle
+        of the photograph closing. At the very top the flow puts the bar
+        exactly where the fixed one is, so rejoining there cannot be seen.
+        In between it behaves as it does further down the page: on screen
+        going up, slid away going down. The spacer stays with it, so nothing
+        under it moves.
+      */
+      const nextDetached = detached ? y > 0 : y > DETACH_AFTER;
+      if (nextDetached !== detached) setIsDetached((detached = nextDetached));
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(read);
@@ -410,7 +439,7 @@ export function HeaderBar({
           which snaps it instead: a reader who has asked for stillness should
           still get the bar back on the way up, just without the travel.
         */
-        isDetached
+        isDetached && canSlide
           ? "transition-transform duration-[450ms] motion-reduce:transition-none"
           : "",
         /*
