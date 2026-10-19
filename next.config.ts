@@ -43,6 +43,27 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
 
+  images: {
+    /*
+      A WEEK IN THE BROWSER, NOT FOUR HOURS. Measured from outside, every
+      image request costs ~0.6–1s whatever its size — the files are already
+      small WebP; the time is the distance to the server — so the cheapest
+      image is the one a returning visitor never asks for again. Next 16's
+      default (4h, `must-revalidate`) sent every picture back to the server
+      within the same day.
+
+      A week, not a month: Next has no way to invalidate a cached image, so
+      a file replaced under the SAME name would stay stale for the whole TTL.
+      CMS uploads cannot do that (Payload renames a clashing upload), but a
+      file under public/ can be swapped in place.
+
+      WebP only (the default), no AVIF: a CDN on its free plan caches one
+      response per URL whatever the browser accepts, and an AVIF served to
+      a browser without it is a broken image.
+    */
+    minimumCacheTTL: 604800,
+  },
+
   /**
    * Keep the standalone copy to code. The tracer follows Payload's and
    * sharp's dynamic `fs` reads up to the project root and copies the whole
