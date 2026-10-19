@@ -1074,6 +1074,7 @@
 
 .accent {
   color: color-mix(in oklab, var(--color-lavender) calc(var(--ink) * 100%), var(--color-primary));
+  transition: color 260ms ease;
 }
 
 .sub {
@@ -1155,10 +1156,11 @@
 */
 /*
   EVERY LINE CARRIES ITS OWN INK — see the note in <HeroIntro>'s measure().
-  `--ink-at` is when the photograph's foot reaches the line and `--ink-rate`
-  how fast it then crosses it; both are measured. Unmeasured (no script, or
-  before the first measure) they fall back to the block's old pace, so a
-  desktop, where the picture is over the whole block early, reads as before.
+  The script measures where the photograph's foot reaches each line and sets
+  `data-lit` on it there; the short transition on `--ink`'s consumers does
+  the crossing. Before the first measure every line flips at the block's
+  old pace (progress 0.175), so a desktop, where the picture is over the
+  whole block early, reads as before.
 */
 .copy,
 .copy [data-ink] {

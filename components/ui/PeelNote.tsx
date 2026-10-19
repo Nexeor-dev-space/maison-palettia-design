@@ -110,7 +110,9 @@ export function PeelNote({
   const lean = useRef(0);
   const live = useRef({ progress: 0, lean: 0 });
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const [view, setView] = useState({ progress: 0, lean: 0, t: 0 });
+  /* `sway`: the loop has settled with the flap standing, and the breathing
+     is handed to a CSS animation (`.peel-sway`) so no script runs for it. */
+  const [view, setView] = useState({ progress: 0, lean: 0, sway: false });
   /** Which end peels: 1 = right, -1 = left. */
   const [side, setSide] = useState<1 | -1>(1);
 
@@ -125,7 +127,7 @@ export function PeelNote({
     let still = 0;
     if (prefersReduced()) {
       live.current.progress = 0.94;
-      still = requestAnimationFrame(() => setView({ progress: 0.94, lean: 0, t: 0 }));
+      still = requestAnimationFrame(() => setView({ progress: 0.94, lean: 0, sway: false }));
     }
     return () => {
       ro.disconnect();
@@ -138,8 +140,7 @@ export function PeelNote({
   /** Eases progress toward its target — slow to lift, a touch quicker to lay back. */
   const run = useCallback(() => {
     cancelAnimationFrame(frame.current);
-    const t0 = performance.now();
-    const tick = (now: number) => {
+    const tick = () => {
       const s = live.current;
       const goingUp = target.current > s.progress;
       s.progress += (target.current - s.progress) * (goingUp ? LIFT_RATE : SETTLE_RATE);
@@ -149,10 +150,16 @@ export function PeelNote({
         target.current = settleTo.current;
         settleTo.current = null;
       }
-      setView({ progress: s.progress, lean: s.lean, t: (now - t0) / 1000 });
       const busy = Math.abs(target.current - s.progress) > 0.001 || settleTo.current !== null;
-      // Keep breathing while held peeled.
-      if (busy || target.current > 0.5) frame.current = requestAnimationFrame(tick);
+      /*
+        THE LOOP STOPS WHEN THE FLAP DOES. It used to keep running for as
+        long as the note was peeled, to sway the flap — a React render and
+        an SVG filter re-raster on every frame, for minutes, on every note
+        in view. On a phone, where the hero's note plays on its own while
+        the photograph is still opening, that was the banner's jitter.
+      */
+      setView({ progress: s.progress, lean: s.lean, sway: !busy && s.progress > 0.6 });
+      if (busy) frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
   }, []);
@@ -178,7 +185,7 @@ export function PeelNote({
       cancelAnimationFrame(frame.current);
       target.current = 0;
       live.current = { progress: 0, lean: 0 };
-      setView({ progress: 0, lean: 0, t: 0 });
+      setView({ progress: 0, lean: 0, sway: false });
     },
   );
 
@@ -238,8 +245,7 @@ export function PeelNote({
   const travelShare = smooth(0, 1, prog);
   // Diagonal at the corner, swinging to upright as it travels.
   const upright = smooth(0.08, 0.75, prog);
-  const sway = prog > 0.6 ? Math.sin(view.t * 1.5) * 0.006 : 0;
-  const angle = (1 - upright) * 0.82 + upright * 0.02 + view.lean + sway; // radians below horizontal
+  const angle = (1 - upright) * 0.82 + upright * 0.02 + view.lean; // radians below horizontal
   // `u` points from the peeling end into the note.
   const u = { x: -side * Math.cos(angle), y: Math.sin(angle) };
   const C = { x: side === 1 ? w : 0, y: 0 };
@@ -316,7 +322,10 @@ export function PeelNote({
             </filter>
             {/* The flap's shadow: tight while it lies flat, long and soft across
                 the page as it stands. */}
-            <filter id={`${id}-flap`} filterUnits="userSpaceOnUse" x={-far} y={-far} width={far * 2} height={far * 2}>
+            {/* The region is the note's box plus the shadow's reach, not
+                `far`: a filter surface four times the note in each
+                direction was blurred on every frame of the peel. */}
+            <filter id={`${id}-flap`} filterUnits="userSpaceOnUse" x={-40} y={-40} width={w + 80} height={h + 80}>
               <feDropShadow
                 dx={o.x * (1.5 + 9 * lift)}
                 dy={1.5 + 4 * lift}
@@ -356,7 +365,11 @@ export function PeelNote({
           </g>
 
           {/* The flap: the peeled part, turned about the fold. */}
-          <g filter={`url(#${id}-flap)`}>
+          <g
+            filter={`url(#${id}-flap)`}
+            className={view.sway ? "peel-sway" : undefined}
+            style={{ transformOrigin: `${P.x}px ${P.y}px` }}
+          >
             <g transform={`matrix(${m.join(" ")})`}>
               <path d={d} clipPath={`url(#${id}-cut)`} fill={`url(#${id}-face)`} />
               <path d={d} clipPath={`url(#${id}-cut)`} fill={`url(#${id}-under)`} opacity={underside} />
@@ -369,27 +382,27 @@ export function PeelNote({
 
   if (trigger === "card") {
     return (
-      <span ref={setRoot} className={shell}>
+      <span ref={setRoot} data-loop="" className={shell}>
         {inner}
       </span>
     );
   }
   if (href === undefined) {
     return (
-      <button ref={setRoot} type={type} onClick={onClick} disabled={disabled} className={shell}>
+      <button ref={setRoot} data-loop="" type={type} onClick={onClick} disabled={disabled} className={shell}>
         {inner}
       </button>
     );
   }
   if (external) {
     return (
-      <a ref={setRoot} href={href} target="_blank" rel="noopener noreferrer" className={shell}>
+      <a ref={setRoot} data-loop="" href={href} target="_blank" rel="noopener noreferrer" className={shell}>
         {inner}
       </a>
     );
   }
   return (
-    <Link ref={setRoot} href={href} className={shell}>
+    <Link ref={setRoot} data-loop="" href={href} className={shell}>
       {inner}
     </Link>
   );

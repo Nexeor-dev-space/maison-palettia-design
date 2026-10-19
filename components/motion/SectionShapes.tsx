@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useTransform, type MotionValue } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useSyncExternalStore } from "react";
 
 import { useHydratedReducedMotion } from "@/components/motion/useHydratedReducedMotion";
 import { useScrollProgress } from "@/components/motion/useScrollProgress";
@@ -116,9 +116,25 @@ export interface ShapePlan {
   floatDelay?: number;
 }
 
+/*
+  WHERE THE BROWSER CAN, THE DRIFT IS A SCROLL-DRIVEN CSS ANIMATION
+  (`.shape-drift` in globals.css): it runs on the compositor with no script
+  on the scroll path at all. Elsewhere Framer writes the transform from the
+  scroll hub as before. Decided after hydration so the server and the first
+  client render agree.
+*/
+const noop = () => () => {};
+const useCssDrift = () =>
+  useSyncExternalStore(
+    noop,
+    () => typeof CSS !== "undefined" && CSS.supports("animation-timeline: view()"),
+    () => false,
+  );
+
 export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[]; className?: string }) {
   const field = useRef<HTMLDivElement>(null);
   const reduced = useHydratedReducedMotion();
+  const cssDrift = useCssDrift();
 
   const scrollYProgress = useScrollProgress(field, ["start end", "end start"]);
   // The idle float is JavaScript-driven and infinite; a section that is not on
@@ -128,7 +144,7 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
     <div
       ref={field}
       aria-hidden
-      className={cn("pointer-events-none absolute inset-0 -z-10 overflow-hidden", className)}
+      className={cn("pointer-events-none absolute inset-0 -z-10 overflow-hidden shape-field", className)}
     >
       {plan.map((shape, i) => (
         <Shape
@@ -136,6 +152,7 @@ export function SectionShapes({ plan, className }: { plan: readonly ShapePlan[];
           shape={shape}
           progress={scrollYProgress}
           reduced={reduced}
+          cssDrift={cssDrift}
         />
       ))}
     </div>
@@ -150,10 +167,12 @@ function Shape({
   shape,
   progress,
   reduced,
+  cssDrift,
 }: {
   shape: ShapePlan;
   progress: MotionValue<number>;
   reduced: boolean;
+  cssDrift: boolean;
 }) {
   const travel = reduced ? 0 : shape.drift;
   const y = useTransform(progress, [0, 1], [`${-travel / 2}%`, `${travel / 2}%`]);
@@ -165,15 +184,20 @@ function Shape({
          anything marked this way; a mark that never drifts is exactly the
          resting composition, so nothing is lost. */
       data-reveal=""
+      /* `data-loop`: <LoopPause> pauses the float and, where it is CSS, the
+         drift, while the mark is off screen; in the Framer path it also
+         marks the span as one that is moving, so it gets its own layer. */
+      data-loop=""
       className={cn(
-        "absolute block",
+        "absolute block shape-drift",
         shape.show === "lg" && "max-lg:hidden",
         shape.show === "compact" && "lg:hidden",
         shape.show === "xl" && "max-xl:hidden",
         shape.show === "below-xl" && "xl:hidden",
       )}
       style={{
-        y,
+        ...(cssDrift ? {} : { y }),
+        ...({ "--shape-drift": `${travel}%` } as React.CSSProperties),
         top: shape.top,
         bottom: shape.bottom,
         left: shape.left,
@@ -211,7 +235,6 @@ function Shape({
           `data-loop` hands it to <LoopPause>, which pauses it whenever this
           mark is outside the viewport. */}
       <span
-        data-loop={float ? "" : undefined}
         className={cn("block", float > 0 && "shape-float")}
         style={
           float

@@ -1069,6 +1069,8 @@ export function HeroIntro() {
       frame.removeEventListener(REFIT_EVENT, onResize);
       live.disconnect();
       frame.removeAttribute("data-live");
+      live.disconnect();
+      frame.removeAttribute("data-live");
       frame.removeAttribute("data-xform");
       card?.style.removeProperty("transform");
       card?.style.removeProperty("border-radius");
