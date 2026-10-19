@@ -912,7 +912,8 @@ export function HeroIntro() {
       const lowest = frame.offsetHeight - navBand() - footPad() - copy.offsetHeight;
       const landing = Math.min(frame.offsetHeight * COPY_LANDING - copy.offsetHeight / 2, lowest);
       const shift = landing - copy.offsetTop;
-      frame.style.setProperty("--copy-shift", `${Math.round(shift)}px`);
+      copyShift = Math.round(shift);
+      frame.style.setProperty("--copy-shift", `${copyShift}px`);
 
       /*
         EACH LINE TURNS LIGHT AS THE PHOTOGRAPH PASSES BEHIND IT — the fix for
@@ -1010,14 +1011,197 @@ export function HeroIntro() {
       the wheel, and easing twice would make the banner trail the page.
     */
     const touch = window.matchMedia("(pointer: coarse)").matches;
+
+    /*
+      ==========================================================================
+      THE OPENING RUNS ON THE BROWSER'S OWN SCROLL TIMELINE WHERE IT CAN.
+      ==========================================================================
+
+      Everything above this writes the opening from JavaScript: a scroll event
+      arrives, `--p` is worked out, and a dozen elements are restyled. On a
+      phone that is the jitter the client filmed — twice over. The scroll
+      position a touch reports is one frame behind the finger and arrives
+      unevenly, so the photograph's window steps rather than slides; and the
+      writes land on the main thread, so whenever that thread is busy (an
+      image decoding, the next section mounting) the window simply does not
+      move for a frame, then jumps.
+
+      A ScrollTimeline hands the whole opening to the compositor instead: each
+      element gets a Web Animation whose progress IS the scroll position, read
+      on the compositor thread in the same frame the page moves, with no event
+      and no script in between. Transforms and opacity then stay in step with
+      the scroll even while the main thread is busy. This is what
+      `animation-timeline: scroll()` does in CSS, built from script because
+      the card's two transforms (see `placeCard`) must stay exact inverses at
+      every point of the opening, which a pair of two-keyframe CSS animations
+      cannot promise — interpolating a scale and its inverse separately
+      wobbles the picture mid-way. Sampling the pair forty-eight times keeps
+      the error under a fifth of a percent.
+
+      The easing is sampled into the keyframes too (the same smoothstep the
+      script path uses), so the two paths look identical; browsers without
+      ScrollTimeline (older Firefox and Safari) keep the script path.
+
+      The script keeps two jobs: the ink flips (`data-lit`) and which of the
+      cue and the actions is reachable (`inert`), both attribute toggles.
+    */
+    type ScrollTimelineCtor = new (init: { source: Element | null; axis?: "block" | "inline" }) => AnimationTimeline;
+    const ScrollTimelineImpl = (window as unknown as { ScrollTimeline?: ScrollTimelineCtor }).ScrollTimeline;
+    let timeline: AnimationTimeline | null = null;
+    if (ScrollTimelineImpl && card && cardInner && typeof card.animate === "function" && CSS.supports("animation-timeline: scroll()")) {
+      try {
+        timeline = new ScrollTimelineImpl({ source: document.scrollingElement, axis: "block" });
+      } catch {
+        timeline = null;
+      }
+    }
+    const STEPS = 48;
+    const smooth = (t: number) => t * t * (3 - 2 * t);
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+    let animations: Animation[] = [];
+    let imageAnimations: Animation[] = [];
+    let copyShift = 0;
+    /** One animation, scrubbed by the page's scroll between two positions in px. */
+    const scrub = (el: Element, frames: Keyframe[], from = start, to = end) =>
+      el.animate(frames, {
+        timeline,
+        fill: "both",
+        rangeStart: `${from}px`,
+        rangeEnd: `${to}px`,
+      } as KeyframeAnimationOptions);
+    /** Keyframes sampled evenly along the scroll, each holding the eased progress's values. */
+    const sampled = (at: (p: number) => Keyframe): Keyframe[] =>
+      Array.from({ length: STEPS + 1 }, (_, i) => ({ ...at(smooth(i / STEPS)), offset: i / STEPS, easing: "linear" }));
+    const geometry = (p: number) => {
+      const q = 1 - p;
+      return {
+        sx: (box.w - 2 * box.wx * q) / box.w,
+        sy: (box.h - (box.wt + box.wb) * q) / box.h,
+        tx: box.wx * q,
+        ty: box.wt * q,
+      };
+    };
+    /*
+      The picture's own zoom and lift join the timeline only once the intro
+      is over: its intro states set a larger scale and a transition on the
+      same property, and an animation would override both.
+    */
+    const buildImageTimeline = () => {
+      if (!timeline) return;
+      for (const a of imageAnimations) a.cancel();
+      imageAnimations = [];
+      for (const img of frame.querySelectorAll<HTMLElement>("[data-hero-card-inner] img")) {
+        const lift = parseFloat(img.style.getPropertyValue("--lift")) || 0;
+        imageAnimations.push(
+          scrub(
+            img,
+            sampled((p) => ({
+              transform: `translate3d(0, ${(lift * (1 - p)).toFixed(3)}%, 0) scale(${(1.06 - 0.06 * p).toFixed(5)})`,
+            })),
+          ),
+        );
+      }
+    };
+    const buildTimeline = () => {
+      if (!timeline || !card || !cardInner) return;
+      for (const a of animations) a.cancel();
+      animations = [];
+      try {
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        animations.push(
+          scrub(
+            card,
+            sampled((p) => {
+              const g = geometry(p);
+              return { transform: `translate3d(${g.tx.toFixed(2)}px, ${g.ty.toFixed(2)}px, 0) scale(${g.sx.toFixed(5)}, ${g.sy.toFixed(5)})` };
+            }),
+          ),
+          scrub(
+            cardInner,
+            sampled((p) => {
+              const g = geometry(p);
+              return {
+                transform: `scale(${(1 / g.sx).toFixed(5)}, ${(1 / g.sy).toFixed(5)}) translate3d(${(-g.tx).toFixed(2)}px, ${(-g.ty).toFixed(2)}px, 0)`,
+              };
+            }),
+          ),
+        );
+        /*
+          The corner is not compositor work — a new radius is a new clip mask
+          — so it is its own short animation over the first third of the
+          opening, after which it holds at nothing and costs nothing.
+        */
+        const cornerSteps = 8;
+        animations.push(
+          scrub(
+            card,
+            Array.from({ length: cornerSteps + 1 }, (_, i) => {
+              const f = i / cornerSteps;
+              const g = geometry(smooth(f / 3));
+              const r = box.r * (1 - f);
+              return {
+                borderRadius: r >= 0.5 ? `${(r / g.sx).toFixed(2)}px / ${(r / g.sy).toFixed(2)}px` : "0px / 0px",
+                offset: f,
+                easing: "linear",
+              };
+            }),
+            start,
+            start + (end - start) / 3,
+          ),
+        );
+        const scrim = frame.querySelector<HTMLElement>("[data-hero-scrim]");
+        if (scrim) animations.push(scrub(scrim, sampled((p) => ({ opacity: clamp01(p * 2.5) }))));
+        animations.push(
+          scrub(copy, sampled((p) => ({ transform: `translate3d(0, ${(p * copyShift).toFixed(2)}px, 0)` }))),
+          scrub(
+            actions,
+            sampled((p) => {
+              const arrived = clamp01((p - 0.55) * 3.2);
+              return { opacity: arrived, transform: `translate3d(0, ${((1 - arrived) * 0.75 * rem).toFixed(2)}px, 0)` };
+            }),
+          ),
+          scrub(cue, sampled((p) => ({ opacity: clamp01(1 - p * 6) }))),
+        );
+        for (const drift of frame.querySelectorAll<HTMLElement>("[data-hero-drift]")) {
+          const doodle = drift.parentElement;
+          const dirx = parseFloat(doodle?.style.getPropertyValue("--dirx") ?? "") || 0;
+          const diry = parseFloat(doodle?.style.getPropertyValue("--diry") ?? "") || 0;
+          animations.push(
+            scrub(
+              drift,
+              sampled((p) => ({
+                transform: `translate3d(${(dirx * p * 4 * rem).toFixed(2)}px, ${(diry * p * 3 * rem).toFixed(2)}px, 0) scale(${(1 - p * 0.2).toFixed(4)})`,
+                opacity: clamp01(1 - p * 1.3),
+              })),
+            ),
+          );
+        }
+        if (document.documentElement.dataset.intro === "done") buildImageTimeline();
+      } catch {
+        // A browser that has the constructor but not the range syntax: the
+        // script path takes over from here, exactly as if there were none.
+        for (const a of animations) a.cancel();
+        for (const a of imageAnimations) a.cancel();
+        animations = [];
+        imageAnimations = [];
+        timeline = null;
+      }
+    };
+    const introDone = new MutationObserver(() => {
+      if (document.documentElement.dataset.intro === "done" && imageAnimations.length === 0) buildImageTimeline();
+    });
+    introDone.observe(document.documentElement, { attributes: true, attributeFilter: ["data-intro"] });
+
     let shown = -1;
     let target = 0;
     let follow = 0;
     const apply = (p: number) => {
       shown = p;
-      const value = p.toFixed(4);
-      for (const el of readers) el.style.setProperty("--p", value);
-      placeCard(p);
+      if (!timeline) {
+        const value = p.toFixed(4);
+        for (const el of readers) el.style.setProperty("--p", value);
+        placeCard(p);
+      }
       for (const ink of inks) {
         const lit = p >= ink.at;
         if (lit !== ink.lit) {
@@ -1053,7 +1237,9 @@ export function HeroIntro() {
       // tracking the scrollbar mechanically.
       const p = t * t * (3 - 2 * t);
       target = p;
-      if (!touch || shown < 0) apply(p);
+      // On the timeline the compositor already follows the finger; the
+      // easing below exists for the script path only.
+      if (!touch || shown < 0 || timeline) apply(p);
       else if (!follow) follow = requestAnimationFrame(step);
 
       const nextActions = p >= ACTIONS_FROM;
@@ -1068,24 +1254,25 @@ export function HeroIntro() {
       }
     };
     const onScroll = write;
-    const onResize = () => {
+    /* Measured afresh, then either the timeline is rebuilt against the new
+       geometry or the card is placed by hand. */
+    const refresh = () => {
       measure();
       measureCard();
-      placeCard(Math.max(0, shown));
+      if (timeline) buildTimeline();
+      if (!timeline) placeCard(Math.max(0, shown));
+    };
+    const onResize = () => {
+      refresh();
       onScroll();
     };
 
-    measure();
-    measureCard();
-    placeCard(0);
+    refresh();
     write();
     let cancelled = false;
     document.fonts?.ready.then(() => {
       if (cancelled) return;
-      measure();
-      measureCard();
-      placeCard(Math.max(0, shown));
-      write();
+      onResize();
     });
     const stopScroll = onScrollFrame(onScroll);
     window.addEventListener("resize", onResize);
@@ -1098,6 +1285,9 @@ export function HeroIntro() {
       window.removeEventListener("resize", onResize);
       frame.removeEventListener(REFIT_EVENT, onResize);
       live.disconnect();
+      introDone.disconnect();
+      for (const a of animations) a.cancel();
+      for (const a of imageAnimations) a.cancel();
       frame.removeAttribute("data-live");
       frame.removeAttribute("data-xform");
       for (const el of readers) el.style.removeProperty("--p");
