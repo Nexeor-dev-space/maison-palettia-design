@@ -21,7 +21,8 @@
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
     "ci": "bash scripts/ci.sh",
-    "restore:media": "payload run cms/scripts/restore-media.ts"
+    "restore:media": "payload run cms/scripts/restore-media.ts",
+    "docs:pdf": "node scripts/build-admin-guide-pdf.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.90.2",

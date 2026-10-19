@@ -19,6 +19,9 @@ import React from "react";
  * Each link is shown only to the roles that may open the view (§J) —
  * hiding is a courtesy; the view and its endpoints check the role again.
  *
+ * "Docs" (/admin/docs, the owner's guide) comes first, on its own without a
+ * group heading, and is shown to every role.
+ *
  * P4 4C: "Analytics" sits in its own "Reports" group. Since the 4B review
  * both groups render BEFORE Payload's own (they used to be moved there with
  * CSS `order`, which left keyboard focus in a different order from the
@@ -33,38 +36,48 @@ const LINKS: Array<{ path: `/${string}`; label: string; id: string; group: strin
   { path: "/analytics", label: "Analytics", id: "nav-analytics", group: "Reports", roles: ["admin", "editor"] },
 ];
 
+/** One sidebar link, marked up like Payload's own (active state included). */
+function ViewLink({ href, id, label, pathname }: { href: string; id: string; label: string; pathname: string | null }) {
+  const active = pathname === href || pathname?.startsWith(`${href}/`);
+  const inner = (
+    <>
+      {active ? <div className="nav__link-indicator" /> : null}
+      <span className="nav__link-label">{label}</span>
+    </>
+  );
+  return pathname === href ? (
+    <div className="nav__link" id={id}>
+      {inner}
+    </div>
+  ) : (
+    <Link className="nav__link" href={href} id={id} prefetch={false}>
+      {inner}
+    </Link>
+  );
+}
+
 export function NavLinks() {
   const { user } = useAuth();
   const { config } = useConfig();
   const pathname = usePathname();
   const role = (user as { role?: Role } | null)?.role;
-  const visible = LINKS.filter((l) => role && l.roles.includes(role));
-  if (visible.length === 0) return null;
+  if (!role) return null;
+  const visible = LINKS.filter((l) => l.roles.includes(role));
   const groups = [...new Set(visible.map((l) => l.group))];
 
   return (
     <>
+      {/* The guide: every role, first under the search so it is always in reach. */}
+      <div className="mp-nav-docs">
+        <ViewLink href={`${config.routes.admin}/docs`} id="nav-docs" label="Docs" pathname={pathname} />
+      </div>
       {groups.map((group) => (
         <NavGroup key={group} label={group}>
-          {visible.filter((l) => l.group === group).map((l) => {
-            const href = `${config.routes.admin}${l.path}`;
-            const active = pathname === href || pathname?.startsWith(`${href}/`);
-            const label = (
-              <>
-                {active ? <div className="nav__link-indicator" /> : null}
-                <span className="nav__link-label">{l.label}</span>
-              </>
-            );
-            return pathname === href ? (
-              <div key={l.id} className="nav__link" id={l.id}>
-                {label}
-              </div>
-            ) : (
-              <Link key={l.id} className="nav__link" href={href} id={l.id} prefetch={false}>
-                {label}
-              </Link>
-            );
-          })}
+          {visible
+            .filter((l) => l.group === group)
+            .map((l) => (
+              <ViewLink key={l.id} href={`${config.routes.admin}${l.path}`} id={l.id} label={l.label} pathname={pathname} />
+            ))}
         </NavGroup>
       ))}
     </>

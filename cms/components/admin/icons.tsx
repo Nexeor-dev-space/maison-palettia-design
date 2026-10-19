@@ -35,7 +35,8 @@ export type IconName =
   | "bolt"
   | "repeat"
   | "move"
-  | "pen";
+  | "pen"
+  | "book";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   plus: <path d="M12 5v14M5 12h14" />,
@@ -162,6 +163,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" />
       <path d="M13.5 6.5l4 4" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3z" />
+      <path d="M21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z" />
     </>
   ),
 };
