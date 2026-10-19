@@ -86,6 +86,9 @@ export interface OrderViewTicket {
   seatNo: number;
   holderName?: string;
   sessionTitle?: string;
+  /** ISO date string for when the session starts */
+  startsAt?: string;
+  venueName?: string;
   /** Signed, expiring download link (SPEC §H.7) — the only customer path to a PDF. */
   pdfUrl?: string;
 }
@@ -158,6 +161,8 @@ function parseTicket(value: unknown): OrderViewTicket | null {
     seatNo: Math.max(1, int(ticket.seatNo, 1)),
     holderName: str(ticket.holderName),
     sessionTitle: str(ticket.sessionTitle),
+    startsAt: str(ticket.startsAt),
+    venueName: str(ticket.venueName),
     // Only our own download route is followed — never an absolute URL from a body.
     pdfUrl: str(ticket.pdfUrl)?.startsWith("/api/site/") ? str(ticket.pdfUrl) : undefined,
   };
@@ -212,9 +217,10 @@ export function parseOrderView(value: unknown, fallbackReference?: string): Orde
   return view;
 }
 
-/** `CustomerOrderView` (3B) → the `detail` shape: first name only, no PDF links (the lookup is not signed in). */
+/** `CustomerOrderView` (3B) → the `detail` shape: preserves ticket & invoice download links when present. */
 function flatDetail(order: Bag): Bag {
   const status = String(order.status);
+  const inv = bag(order.invoice);
   return {
     createdAt: str(order.confirmedAt) ?? "",
     guest: { firstName: str(order.firstName) ?? "", lastName: "", email: str(order.email) },
@@ -224,10 +230,20 @@ function flatDetail(order: Bag): Bag {
     tickets: Array.isArray(order.tickets)
       ? (order.tickets as unknown[]).map((ticket) => {
           const t = bag(ticket) ?? {};
-          return { ...t, seatNo: typeof t.seatNo === "number" ? t.seatNo : 1, pdfUrl: undefined };
+          return {
+            ...t,
+            seatNo: typeof t.seatNo === "number" ? t.seatNo : 1,
+            pdfUrl: str(t.pdfUrl)?.startsWith("/api/site/") ? str(t.pdfUrl) : undefined,
+          };
         })
       : [],
-    invoice: null,
+    invoice:
+      inv && str(inv.number)
+        ? {
+            number: str(inv.number)!,
+            pdfUrl: str(inv.pdfUrl)?.startsWith("/api/site/") ? str(inv.pdfUrl) : undefined,
+          }
+        : null,
     failureMessage: order.failureMessage,
   };
 }

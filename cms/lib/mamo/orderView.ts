@@ -1,6 +1,7 @@
 import type { PayloadRequest } from "payload";
 
 import { applyPaymentSnapshot } from "@/cms/lib/contracts";
+import { signPdf } from "@/cms/lib/pdf/links";
 import type { Order, Payment } from "@/payload-types";
 
 import { gatewayForMode } from "./index";
@@ -47,8 +48,18 @@ export interface CustomerOrderView extends MinimalOrderStatus {
     passCredits: number;
   }>;
   totals: { subtotalFils: number; discountFils: number; grossFils: number; netFils: number; vatFils: number; currency: string };
-  tickets: Array<{ code: string; holderName: string | null; seatNo: number | null; status: string; sessionTitle: string | null; startsAt: string | null }>;
+  tickets: Array<{
+    code: string;
+    holderName: string | null;
+    seatNo: number | null;
+    status: string;
+    sessionTitle: string | null;
+    startsAt: string | null;
+    venueName?: string | null;
+    pdfUrl?: string;
+  }>;
   invoiceAvailable: boolean;
+  invoice?: { number: string; pdfUrl?: string } | null;
   /** Mamo's customer-facing decline text on a failed attempt (research 02 §A10), for "/checkout?payment=failed". */
   failureMessage: string | null;
   confirmedAt: string | null;
@@ -102,6 +113,7 @@ export async function customerView(req: PayloadRequest, order: Order): Promise<C
     });
     tickets = found.docs.map((ticket) => {
       const line = (order.lines ?? []).find((l) => idOf(l.session) === idOf(ticket.session));
+      const { exp, sig } = signPdf("ticket", ticket.code);
       return {
         code: ticket.code,
         holderName: ticket.holderName ?? null,
@@ -109,10 +121,29 @@ export async function customerView(req: PayloadRequest, order: Order): Promise<C
         status: String(ticket.status ?? ""),
         sessionTitle: line?.title ?? null,
         startsAt: line?.startsAt ?? null,
+        venueName: line?.venueName ?? null,
+        pdfUrl: `/api/site/tickets/${encodeURIComponent(ticket.code)}/pdf?exp=${exp}&sig=${sig}`,
       };
     });
   } catch (error) {
     payload.logger.warn({ msg: "order view: tickets unavailable", err: error instanceof Error ? error.message : String(error) });
+  }
+
+  let invoice: { number: string; pdfUrl?: string } | null = null;
+  const invoiceId = idOf(order.invoice);
+  if (invoiceId) {
+    try {
+      const invDoc = (await payload.findByID({ collection: "invoices", id: invoiceId, depth: 0, overrideAccess: true, disableErrors: true })) as { number?: string; id: string } | null;
+      if (invDoc?.number) {
+        const { exp, sig } = signPdf("invoice", invDoc.id);
+        invoice = {
+          number: invDoc.number,
+          pdfUrl: `/api/site/invoices/${encodeURIComponent(invDoc.id)}/pdf?exp=${exp}&sig=${sig}`,
+        };
+      }
+    } catch {
+      // Non-fatal
+    }
   }
 
   let failureMessage: string | null = null;
@@ -141,6 +172,7 @@ export async function customerView(req: PayloadRequest, order: Order): Promise<C
     },
     tickets,
     invoiceAvailable: Boolean(order.invoice),
+    invoice,
     failureMessage,
     confirmedAt: order.confirmedAt ?? null,
     isRescheduled: Boolean(order.timeline?.some((t) => t.event === "moved" || t.event === "rescheduled")),

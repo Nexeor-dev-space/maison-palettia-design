@@ -23,7 +23,7 @@ import {
   type TemplateKey,
 } from "./contracts";
 import { acquireSeats, bestEffort, consumeSeats, queueJob, refundSeats, releaseSeats, runSql, SoldOut, withContext, withTransaction } from "./inventory";
-import { issueCreditNote } from "./invoiceNumber";
+import { invoiceLinesFor, issueCreditNote } from "./invoiceNumber";
 import { gatewayForMode } from "./mamo";
 import { createPaymentLink } from "./mamo/links";
 import { parseMamoDate } from "./mamo/refunds";
@@ -1327,6 +1327,40 @@ export async function moveOrder(
     }
     const updated = await updateOrder(req, orderId, { lines, internalNotes, timeline: [...timelineOf(order), timelineEntry(req, "moved", detail, input.actor)] });
 
+    let invoiceId = idOf(updated.invoice);
+    if (!invoiceId) {
+      const invDoc = (
+        await req.payload.find({
+          collection: "invoices",
+          where: { and: [{ order: { equals: orderId } }, { kind: { equals: "invoice" } }] },
+          limit: 1,
+          depth: 0,
+          overrideAccess: true,
+          req,
+        })
+      ).docs[0];
+      if (invDoc) invoiceId = String(invDoc.id);
+    }
+    if (invoiceId) {
+      await withContext(req, { system: true, allowLinesUpdate: true }, (context) =>
+        req.payload.update({
+          collection: "invoices",
+          id: invoiceId,
+          data: {
+            lines: invoiceLinesFor(updated),
+          },
+          depth: 0,
+          overrideAccess: true,
+          context,
+          req,
+        }),
+      );
+      after.push(async () => {
+        const { storeInvoicePdf } = await import("./pdf/invoice");
+        await storeInvoicePdf(req, invoiceId, { force: true });
+      });
+    }
+
     if (input.priceDifference === "refund_difference" && diffFils < 0 && -diffFils >= MIN_REFUND_FILS) {
       await createDoc<Refund>(req, "refunds", {
         order: orderId,
@@ -1497,6 +1531,35 @@ export async function rescheduleSession(req: PayloadRequest, sessionId: string, 
         lines,
         timeline: [...timelineOf(order), timelineEntry(req, "rescheduled", { session: sessionId, from: session.startsAt, to: when.toISOString(), venue: venueDoc?.name ?? null, message: input.message ?? null })],
       });
+      let reschedInvoiceId = idOf(order.invoice);
+      if (!reschedInvoiceId) {
+        const invDoc = (
+          await req.payload.find({
+            collection: "invoices",
+            where: { and: [{ order: { equals: order.id } }, { kind: { equals: "invoice" } }] },
+            limit: 1,
+            depth: 0,
+            overrideAccess: true,
+            req,
+          })
+        ).docs[0];
+        if (invDoc) reschedInvoiceId = String(invDoc.id);
+      }
+      if (reschedInvoiceId) {
+        await withContext(req, { system: true, allowLinesUpdate: true }, (context) =>
+          req.payload.update({
+            collection: "invoices",
+            id: reschedInvoiceId,
+            data: {
+              lines: invoiceLinesFor({ ...order, lines: lines as Order["lines"] }),
+            },
+            depth: 0,
+            overrideAccess: true,
+            context,
+            req,
+          }),
+        );
+      }
       if (!paid.has(order.id)) continue;
       notify.push({
         orderId: order.id,

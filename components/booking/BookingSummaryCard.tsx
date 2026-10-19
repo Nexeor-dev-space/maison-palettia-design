@@ -203,28 +203,32 @@ export function BookingSummaryCard({
         the line below instead — the email carries them either way. Each link
         is signed and expires (SPEC §H.7): the only customer path to a PDF.
       */}
-      {detail && hasSession && (status === "confirmed" || status === "completed") ? (
+      {detail && hasSession && (status === "confirmed" || status === "rescheduled" || status === "completed") ? (
         <div className="mt-8 border-t border-line pt-7">
           <p className={TERM}>Tickets</p>
           {tickets.length > 0 ? (
             <ul className="mt-3 flex flex-col gap-2">
-              {tickets.map((ticket) => (
-                <li key={ticket.code} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 text-body">
-                  <span className="tabular-nums tracking-[0.06em] text-text">
-                    {ticket.code}
-                    <span className="ml-3 text-fine tracking-normal text-text/70">
-                      Place {ticket.seatNo}
-                      {ticket.status === "checked_in" ? " · checked in" : ""}
-                      {ticket.status === "refunded" ? " · refunded" : ""}
+              {tickets.map((ticket) => {
+                const ticketStartsAt = ticket.startsAt || lines[0]?.startsAt;
+                return (
+                  <li key={ticket.code} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 text-body">
+                    <span className="tabular-nums tracking-[0.06em] text-text">
+                      {ticket.code}
+                      <span className="ml-3 text-fine tracking-normal text-text/70">
+                        Place {ticket.seatNo}
+                        {ticketStartsAt ? ` · ${dayLine(ticketStartsAt)}` : ""}
+                        {ticket.status === "checked_in" ? " · checked in" : ""}
+                        {ticket.status === "refunded" ? " · refunded" : ""}
+                      </span>
                     </span>
-                  </span>
-                  {ticket.pdfUrl && ticket.status !== "refunded" ? (
-                    <a href={ticket.pdfUrl} className={`text-fine text-text ${LINK}`}>
-                      Download ticket (PDF)
-                    </a>
-                  ) : null}
-                </li>
-              ))}
+                    {ticket.pdfUrl && ticket.status !== "refunded" ? (
+                      <a href={ticket.pdfUrl} className={`text-fine text-text ${LINK}`}>
+                        Download ticket (PDF)
+                      </a>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="mt-3 text-body text-text/80">Your tickets are being issued and will arrive by email.</p>

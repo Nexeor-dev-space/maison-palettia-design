@@ -253,6 +253,26 @@ export function BookingActions({
       const updatedView: OrderView = body.orderView ?? {
         ...view,
         isRescheduled: true,
+        detail: view.detail
+          ? {
+              ...view.detail,
+              lines: view.detail.lines.map((l) =>
+                l.kind === "session" && selectedSession
+                  ? {
+                      ...l,
+                      startsAt: selectedSession.startsAt,
+                      durationMinutes: selectedSession.durationMinutes ?? l.durationMinutes,
+                      venueName: selectedSession.venueName ?? l.venueName,
+                    }
+                  : l,
+              ),
+              tickets: view.detail.tickets.map((t) => ({
+                ...t,
+                startsAt: selectedSession?.startsAt ?? t.startsAt,
+                venueName: selectedSession?.venueName ?? t.venueName,
+              })),
+            }
+          : undefined,
       };
 
       onBookingUpdated(updatedView, {

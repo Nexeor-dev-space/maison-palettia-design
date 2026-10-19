@@ -200,7 +200,8 @@ export function BookingStatusLookup({
               k={outcome.k}
               customerEmail={lastEmail || outcome.view.detail?.guest.email}
               onBookingUpdated={(updatedView, msg) => {
-                setOutcome((prev) => (prev?.status === "found" ? { ...prev, view: updatedView } : prev));
+                const parsed = parseOrderView(updatedView, outcome.view.reference);
+                setOutcome((prev) => (prev?.status === "found" ? { ...prev, view: parsed ?? updatedView } : prev));
                 setNotice(msg);
               }}
             />
