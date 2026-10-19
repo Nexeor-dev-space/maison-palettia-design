@@ -58,6 +58,15 @@ export function Wordmark({ className, onLight = false }: WordmarkProps) {
         height={art.height}
         priority
         /*
+          THE WIDTH IT IS DRAWN AT. Without `sizes`, Next offers the file's
+          own width (1120 → a 1200px file) at 1x and 3840px at 2x, and this
+          is preloaded on every page. The mark is set by height — 60px, 74px
+          from `md` — so at the cuts' 2.3–2.4:1 it is about 145px and 180px
+          across, and the browser can pick a file near that times its pixel
+          ratio.
+        */
+        sizes="(min-width: 768px) 180px, 145px"
+        /*
           Sized against the bar, and re-struck once the bar was actually the
           height it claimed to be.
 
