@@ -121,7 +121,6 @@ import { getMallPartners } from "@/lib/partners";
 */
 export interface TwoWaysRoad {
   ground: "terracotta" | "lilac";
-  eyebrow: string;
   title: string;
   line: string;
   facts: string[];
@@ -262,11 +261,8 @@ export async function TwoWaysToCreate({
             return (
               <Road
                 key={i}
-                index={i + 1}
                 ground={road.ground}
-                eyebrow={road.eyebrow}
                 title={road.title}
-                dot={warm ? INK.whiteRock : INK.lavender}
                 plate={warm ? walkInPlate : scheduledPlate}
                 line={road.line}
                 facts={[...road.facts, warm ? home : nextDate]}
@@ -277,12 +273,8 @@ export async function TwoWaysToCreate({
         ) : (
         <>
         <Road
-          index={1}
           ground="terracotta"
-          eyebrow={labels.noBooking}
           title={labels.createAnytime}
-          /* Not Terracotta any more — that is the ground it would sit on. */
-          dot={INK.whiteRock}
           plate={walkInPlate}
           line={labels.diyLine}
           /*
@@ -339,11 +331,8 @@ export async function TwoWaysToCreate({
         />
 
         <Road
-          index={2}
           ground="lilac"
-          eyebrow="A date and a seat"
           title={labels.createTogether}
-          dot={INK.lavender}
           plate={scheduledPlate}
           line={labels.scheduledLine}
           /*
@@ -535,21 +524,15 @@ const CHIP_PAINTS_ON_TERRACOTTA = [
 ] as const;
 
 function Road({
-  index,
   ground,
-  eyebrow,
   title,
-  dot,
   plate,
   line,
   facts,
   action,
 }: {
-  index: number;
   ground: "terracotta" | "lilac";
-  eyebrow: string;
   title: string;
-  dot: string;
   plate?: { src: string; alt: string; position?: string };
   line: string;
   /* Words, or (for the date) a <SessionGate> that settles on words. */
@@ -652,30 +635,14 @@ function Road({
         </span>
       </Reveal>
 
-      <Reveal delay={0.08}>
-        {/* The numeral and the label on one line: the numeral says there are
-            two of these before a word is read, and the label says which one
-            this is. Together they are four words. */}
-        <p className="mt-7 flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
-          <span aria-hidden className="block w-5 shrink-0">
-            <DoodleMark name="coral" color={dot} />
-          </span>
-          {/* FULL STRENGTH, NOT `opacity-60`. `aria-hidden` takes the numeral
-              out of what is announced, not out of what is seen — it is still
-              13px text and owes 4.5:1. At 60% it was 1.93:1 on neat
-              Terracotta, would be 2.46 on WARM_GROUND, and is 2.71 on Deep
-              Lilac (axe flags both). At full it is the label's own 4.67 on
-              either half; what sets it apart is the tabular figures and the
-              space, not a fade. Both halves, so the pair still match. */}
-          <span aria-hidden className="tabular-nums">
-            {String(index).padStart(2, "0")}
-          </span>
-          {eyebrow}
-        </p>
-      </Reveal>
-
+      {/*
+        NO EYEBROW OVER THE TITLE (Oct 2026). The numbered line that sat here
+        — "01 No Bookings Required", "02 A date and a seat" — was removed at
+        the client's ask: the title and the facts under it already say which
+        road this is and how you take part.
+      */}
       <Reveal delay={0.12}>
-        <h3 className="mt-3 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
+        <h3 className="mt-7 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
           {title}
         </h3>
       </Reveal>

@@ -30,7 +30,9 @@ export const TwoWaysBlock: Block = {
       minRows: 2,
       maxRows: 2,
       fields: [
-        text("eyebrow", "Eyebrow", 24, { required: true }),
+        /* Hidden (Oct 2026): the site no longer prints a card eyebrow. Kept, not
+           dropped, so the column stays until a release can remove it. */
+        { ...text("eyebrow", "Eyebrow", 24, { required: true }), admin: { hidden: true } },
         text("title", "Title", 24, { required: true }),
         text("line", "Line", 80, { required: true }),
         {

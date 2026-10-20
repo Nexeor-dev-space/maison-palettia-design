@@ -227,7 +227,6 @@ export function EventsBody({
                   href="#create-anytime"
                   title={diyDoor.title}
                   note={diyDoor.note}
-                  modeLabel={diyDoor.modeLabel}
                   tone="cream"
                 />
               ) : null}
@@ -236,7 +235,6 @@ export function EventsBody({
                   href="#scheduled"
                   title={scheduledDoor.title}
                   note={scheduledDoor.note}
-                  modeLabel={scheduledDoor.modeLabel}
                   tone="lilac"
                 />
               ) : null}
@@ -374,14 +372,11 @@ function Door({
   href,
   title,
   note,
-  modeLabel,
   tone,
 }: {
   href: string;
   title: string;
   note: string | null;
-  /** "No booking" / "Booked online" — the mode's own label. */
-  modeLabel: string | null;
   tone: "cream" | "lilac";
 }) {
   /*
@@ -428,12 +423,13 @@ function Door({
           <DoodleMark name={corner.name} color={corner.color} treatment="stamp" delay={260} />
         </span>
 
+        {/*
+          NO MODE LABEL OVER THE TITLE (Oct 2026). "No Booking Required" and
+          "Booked online" sat here; the client asked for them to go — the note
+          under the title says the same thing in a sentence.
+        */}
         <span className="relative">
-          <span className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
-            {modeLabel}
-          </span>
-
-          <span className="heading-script mt-3 block pb-[0.2em] text-script-compact">
+          <span className="heading-script block pb-[0.2em] text-script-compact">
             <ScriptTitle>{title}</ScriptTitle>
           </span>
         </span>
