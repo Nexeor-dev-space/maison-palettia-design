@@ -263,6 +263,7 @@ export async function TwoWaysToCreate({
                 key={i}
                 ground={road.ground}
                 title={road.title}
+                footnote={warm ? null : labels.bookedOnline}
                 plate={warm ? walkInPlate : scheduledPlate}
                 line={road.line}
                 facts={[...road.facts, warm ? home : nextDate]}
@@ -333,6 +334,7 @@ export async function TwoWaysToCreate({
         <Road
           ground="lilac"
           title={labels.createTogether}
+          footnote={labels.bookedOnline}
           plate={scheduledPlate}
           line={labels.scheduledLine}
           /*
@@ -526,6 +528,7 @@ const CHIP_PAINTS_ON_TERRACOTTA = [
 function Road({
   ground,
   title,
+  footnote,
   plate,
   line,
   facts,
@@ -533,6 +536,8 @@ function Road({
 }: {
   ground: "terracotta" | "lilac";
   title: string;
+  /** "Booked online" on the Create Together road: starred onto the title and said under the line. */
+  footnote?: string | null;
   plate?: { src: string; alt: string; position?: string };
   line: string;
   /* Words, or (for the date) a <SessionGate> that settles on words. */
@@ -644,12 +649,23 @@ function Road({
       <Reveal delay={0.12}>
         <h3 className="mt-7 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
           {title}
+          {footnote ? (
+            <span aria-hidden className="ml-1 inline-block align-top text-[0.45em] leading-none">
+              *
+            </span>
+          ) : null}
         </h3>
       </Reveal>
 
       <Reveal delay={0.16}>
         <p className={`mt-3 max-w-[34ch] text-lead tracking-[-0.01em] ${warm ? "text-text" : "text-surface"}`}>
           {line}
+          {footnote ? (
+            <span className="mt-2 block text-fine font-medium uppercase tracking-eyebrow">
+              <span aria-hidden>* </span>
+              {footnote}
+            </span>
+          ) : null}
         </p>
       </Reveal>
 
@@ -698,7 +714,11 @@ function Road({
       */}
       <Reveal delay={0.2}>
         <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-3">
-          {facts.map((fact, i) => (
+          {/* A fact that only repeats the footnote ("Booked online") is left out:
+              the star under the title already says it. */}
+          {facts
+            .filter((fact) => !(footnote && typeof fact === "string" && fact.trim().toLowerCase() === footnote.trim().toLowerCase()))
+            .map((fact, i) => (
             /*
               `isolate` IS LOAD-BEARING. <PaintStroke> sits at `z-index: -1` so
               the word stays on top of its own paint. A `relative` parent with

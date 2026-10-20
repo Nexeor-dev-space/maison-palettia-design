@@ -235,6 +235,7 @@ export function EventsBody({
                   href="#scheduled"
                   title={scheduledDoor.title}
                   note={scheduledDoor.note}
+                  footnote={scheduledDoor.modeLabel}
                   tone="lilac"
                 />
               ) : null}
@@ -372,11 +373,18 @@ function Door({
   href,
   title,
   note,
+  footnote,
   tone,
 }: {
   href: string;
   title: string;
   note: string | null;
+  /**
+   * Starred onto the title and said under the note — "* Booked online" on
+   * the Create Together door, at the client's ask (Oct 2026), now that the
+   * mode label no longer sits over the title.
+   */
+  footnote?: string | null;
   tone: "cream" | "lilac";
 }) {
   /*
@@ -431,13 +439,17 @@ function Door({
         <span className="relative">
           <span className="heading-script block pb-[0.2em] text-script-compact">
             <ScriptTitle>{title}</ScriptTitle>
+            {footnote ? <Star /> : null}
           </span>
         </span>
 
         <span className="relative mt-6 flex items-end justify-between gap-6">
           {/* Wider than it was (26ch): the cluster now fills the right half,
               so the words no longer have to be kept short to leave it room. */}
-          <span className="max-w-[36ch] text-body">{note}</span>
+          <span className="max-w-[36ch] text-body">
+            {note}
+            {footnote ? <Footnote>{footnote}</Footnote> : null}
+          </span>
           {/*
             THE WAY DOWN, ON A PEBBLE — the same hand-cut lilac blob the
             format tickets carry their arrow on (see <TypeCard>), turned to
@@ -499,5 +511,28 @@ function GroupHead({
         {children ? <div className="col-span-12 md:col-span-5 md:pb-1">{children}</div> : null}
       </div>
     </Reveal>
+  );
+}
+
+/*
+  THE ASTERISK AND ITS NOTE. The star is decoration for the eye — a screen
+  reader gets the note itself, read in its place after the description — so
+  it is `aria-hidden`, and set in the sans at a small size: the script face
+  has no asterisk worth the name.
+*/
+function Star() {
+  return (
+    <span aria-hidden className="ml-1 inline-block align-top font-sans text-[0.42em] font-medium leading-none">
+      *
+    </span>
+  );
+}
+
+function Footnote({ children }: { children: string }) {
+  return (
+    <span className="mt-3 block text-fine font-medium uppercase tracking-eyebrow">
+      <span aria-hidden>* </span>
+      {children}
+    </span>
   );
 }
