@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { BookingClosed } from "@/components/booking/BookingClosed";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { SessionGate } from "@/components/booking/SessionClock";
-import { Steps } from "@/components/booking/Steps";
 import { WaitlistForm } from "@/components/booking/WaitlistForm";
 import { WaitlistGate } from "@/components/booking/WaitlistGate";
 import { groundShapes } from "@/components/motion/groundShapes";
@@ -14,7 +13,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
-import { getBookingGate, getSessionBookingRef } from "@/lib/booking";
+import { getBookingGate, getCheckoutSettings, getSessionBookingRef } from "@/lib/booking";
 import { getEventDetail } from "@/lib/eventDetail";
 import { buildMetadata } from "@/lib/seo";
 import {
@@ -33,10 +32,10 @@ import {
 import type { Workshop } from "@/types";
 
 /**
- * Step one of two — your details.
+ * The booking, in one step — spots, details and Pay.
  *
  * The session is already chosen, so the page is deliberately narrow: a
- * reminder of what was picked, how many places, and who is coming. Nothing
+ * reminder of what was picked, how many spots, who is coming, and Pay. Nothing
  * else competes for attention, which is why there is no related-sessions rail
  * and no second photograph.
  *
@@ -111,7 +110,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const workshop = await bookableSession(slug);
   return buildMetadata({
     title: workshop ? `Book: ${workshop.title}` : "Book an event",
-    description: "Book your place at a Maison Palettia event.",
+    description: "Book your spot at a Maison Palettia event.",
     path: `/events/${slug}/book`,
     /* A step in a booking, not a page anyone searches for — and one of them
        per dated session that still has seats (`generateStaticParams` above),
@@ -127,7 +126,12 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
 
   if (!workshop) notFound();
 
-  const [gate, ref, modes] = await Promise.all([getBookingGate(), getSessionBookingRef(workshop.slug), getModeCopy()]);
+  const [gate, ref, modes, settings] = await Promise.all([
+    getBookingGate(),
+    getSessionBookingRef(workshop.slug),
+    getModeCopy(),
+    getCheckoutSettings(),
+  ]);
   // Without the CMS's word on the switch, a full session has nothing to offer.
   if (!ref && isFullyBooked(workshop)) notFound();
   const dateClosed = ref?.bookingStatus === "closed";
@@ -139,6 +143,14 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
   const scarce = isScarce(workshop);
   // The server's verdict on the date, as of this render — see the note above.
   const passed = hasSessionPassed(workshop);
+  // What Pay needs, now that it is on this page. The server re-checks the
+  // policy versions at the press, so a render up to `revalidate` old is safe.
+  const checkout = {
+    requireTerms: settings.requireTerms,
+    consents: settings.consents,
+    captureNote: settings.captureNote,
+    terms: gate.terms,
+  };
 
   return (
     <div className="relative isolate overflow-clip">
@@ -163,11 +175,6 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
           </Link>
         </Reveal>
 
-        {/*
-          The steps go with the form: "1 Your details · 2 Checkout" over a page
-          that cannot take either step would be a progress bar for a journey
-          that is not happening.
-        */}
         <SessionGate
           startsAt={workshop.startsAt}
           passedAtRender={passed}
@@ -183,7 +190,6 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
               />
             ) : (
               <>
-                <Steps current={1} />
                 {queue ? (
                   <WaitlistGate
                     waitlist={<Waitlist workshop={workshop} />}
@@ -195,6 +201,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
                         summary={<SessionSummary workshop={workshop} />}
                         strip={<SessionStrip workshop={workshop} />}
                         scarce={scarce}
+                        checkout={checkout}
                       />
                     }
                   />
@@ -206,6 +213,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
                     summary={<SessionSummary workshop={workshop} />}
                     strip={<SessionStrip workshop={workshop} />}
                     scarce={scarce}
+                    checkout={checkout}
                   />
                 )}
               </>
@@ -221,26 +229,16 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
 /**
  * The heading and its one sentence.
  *
- * "Two minutes and you are booked" is what this used to say, and at this step
- * it was not true: nothing is booked until the next page, and the line was
- * promising the visitor an outcome the button does not deliver. What replaces
- * it says what happens here and what happens next.
- *
- * "BOOK", NOT "HOLD". The heading was "Hold Your Place." — on the step
- * just before checkout and the confirmation print BOOKING_TERMS, which says
- * the booking is a request not yet confirmed, and while lib/booking.ts has
- * no backend nothing on the site holds a place. "Book" is the verb that line
- * itself starts with ("Booking here makes a request…") and the one the next
- * step's heading continues ("Complete Your Booking."), so the three read as
- * one sentence instead of a promise and its retraction.
+ * Since the booking became one step it says so: the spots, the details and
+ * Pay are all on this page, so the visitor knows the next press is the last.
+ * "Book", not "Hold" — nothing is held until Pay is pressed.
  */
 function Intro() {
   return (
     <Reveal>
-      <h1 className="text-h1 font-light tracking-[-0.02em]">Book Your Place.</h1>
+      <h1 className="text-h1 font-light tracking-[-0.02em]">Book Your Spot.</h1>
       <p className="mt-5 max-w-[32rem] text-body text-text/80">
-        Choose your places and tell us who&rsquo;s coming. You&rsquo;ll see everything once more
-        before you confirm.
+        Pick your spots at the table, tell us who&rsquo;s coming, and pay — all on this page.
       </p>
     </Reveal>
   );
