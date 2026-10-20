@@ -69,6 +69,9 @@ export function FooterReveal({ children }: FooterRevealProps) {
 
     const root = document.documentElement;
     let pinned = false;
+    // Last value written to <html>: an unchanged height writes nothing, since
+    // any write there restyles the whole document.
+    let written: string | null = null;
 
     const sync = () => {
       const height = element.getBoundingClientRect().height;
@@ -76,12 +79,13 @@ export function FooterReveal({ children }: FooterRevealProps) {
         ? height <= window.innerHeight
         : height <= window.innerHeight - PIN_HEADROOM;
 
-      if (fits) {
-        root.style.setProperty("--footer-height", `${Math.round(height)}px`);
-      } else {
+      const next = fits ? `${Math.round(height)}px` : null;
+      if (next !== written) {
+        written = next;
+        if (next) root.style.setProperty("--footer-height", next);
         // Not just cosmetic: left behind, it would hold a margin under a page
         // whose footer is back in the flow, and the page would end on a gap.
-        root.style.removeProperty("--footer-height");
+        else root.style.removeProperty("--footer-height");
       }
 
       if (fits !== pinned) {

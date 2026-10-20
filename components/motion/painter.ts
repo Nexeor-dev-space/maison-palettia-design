@@ -236,6 +236,8 @@ export function createPainter(canvas: HTMLCanvasElement): Painter | null {
     scrollX = window.scrollX;
     scrollY = window.scrollY;
     if (!dx && !dy) return;
+    // Nothing on the canvas: it was cleared when the last drop dried.
+    if (!drops.length) return;
     for (const d of drops) {
       d.x -= dx;
       d.y -= dy;

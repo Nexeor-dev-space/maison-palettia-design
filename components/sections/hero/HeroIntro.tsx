@@ -223,8 +223,8 @@ function navBand(): number {
  * than off a second media query, because the two answer the same question:
  * `--bottom-nav-h` is 0 from `lg`, and so is this.
  */
-function footPad(): number {
-  if (navBand() === 0) return 0;
+function footPad(band = navBand()): number {
+  if (band === 0) return 0;
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   return rem * 1.5;
 }
@@ -255,7 +255,8 @@ function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
 
   let foot: number;
   if (window.matchMedia(REDUCED).matches) {
-    foot = gap + copy.offsetHeight + rem + navBand() + footPad();
+    const band = navBand();
+    foot = gap + copy.offsetHeight + rem + band + footPad(band);
   } else {
     /*
       THE LAST PARAGRAPH, NOT THE FIRST.
@@ -953,11 +954,13 @@ export function HeroIntro() {
         clears the bar by the same pad the resting foot keeps. On a desktop
         the bar is 0 and the block is short, so the centre always wins there.
       */
-      const lowest = frame.offsetHeight - navBand() - footPad() - copy.offsetHeight;
+      const band = navBand();
+      const lowest = frame.offsetHeight - band - footPad(band) - copy.offsetHeight;
       const landing = Math.min(frame.offsetHeight * COPY_LANDING - copy.offsetHeight / 2, lowest);
       const shift = landing - copy.offsetTop;
       copyShift = Math.round(shift);
-      frame.style.setProperty("--copy-shift", `${copyShift}px`);
+      // `--copy-shift` is written after the ink loop below: written here, it
+      // dirtied style and the loop's first `offsetTop` forced a fresh layout.
 
       /*
         EACH LINE TURNS LIGHT AS THE PHOTOGRAPH PASSES BEHIND IT — the fix for
@@ -1011,6 +1014,7 @@ export function HeroIntro() {
         const to = at(top + el.offsetHeight);
         inks.push({ el, at: (from + to) / 2, lit: null });
       }
+      frame.style.setProperty("--copy-shift", `${copyShift}px`);
     };
 
     /*
@@ -1361,24 +1365,54 @@ export function HeroIntro() {
     if (!window.matchMedia("(pointer: fine)").matches) return;
     if (window.matchMedia(REDUCED).matches) return;
 
+    /*
+      ONTO THE ICONS, NOT THE SECTION. `.parallax` is the only rule that reads
+      the pair, and a custom property written on the <section> restyled the
+      whole banner — words, photograph and all — on every pointer frame.
+
+      AND NO LAYOUT READ PER FRAME. The section's box is measured once, in
+      page coordinates, and only again after a resize; where it is on screen
+      now is that minus the scroll, which costs no layout.
+    */
+    const targets = [...hero.querySelectorAll<HTMLElement>(`.${styles.parallax}`)];
+    const write = (mx: string, my: string) => {
+      for (const el of targets) {
+        el.style.setProperty("--mx", mx);
+        el.style.setProperty("--my", my);
+      }
+    };
+    let box: { left: number; top: number; width: number; height: number } | null = null;
+    const stale = () => {
+      box = null;
+    };
+    const ro = new ResizeObserver(stale);
+    ro.observe(hero);
+    window.addEventListener("resize", stale);
+
     let frameId = 0;
     const onMove = (event: PointerEvent) => {
       if (document.documentElement.dataset.intro !== "done") return;
       cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(() => {
-        const box = hero.getBoundingClientRect();
-        hero.style.setProperty("--mx", (((event.clientX - box.left) / box.width) * 2 - 1).toFixed(3));
-        hero.style.setProperty("--my", (((event.clientY - box.top) / box.height) * 2 - 1).toFixed(3));
+        if (!box) {
+          const r = hero.getBoundingClientRect();
+          box = { left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height: r.height };
+        }
+        const left = box.left - window.scrollX;
+        const top = box.top - window.scrollY;
+        write(
+          (((event.clientX - left) / box.width) * 2 - 1).toFixed(3),
+          (((event.clientY - top) / box.height) * 2 - 1).toFixed(3),
+        );
       });
     };
-    const onLeave = () => {
-      hero.style.setProperty("--mx", "0");
-      hero.style.setProperty("--my", "0");
-    };
+    const onLeave = () => write("0", "0");
     hero.addEventListener("pointermove", onMove);
     hero.addEventListener("pointerleave", onLeave);
     return () => {
       cancelAnimationFrame(frameId);
+      ro.disconnect();
+      window.removeEventListener("resize", stale);
       hero.removeEventListener("pointermove", onMove);
       hero.removeEventListener("pointerleave", onLeave);
     };
