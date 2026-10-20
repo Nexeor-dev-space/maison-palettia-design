@@ -2,127 +2,32 @@
 
 import { useLayoutEffect, useRef } from "react";
 
-import { portraitStretch, DOODLE_PLAN, DRAW_ORDER, RING_ORDER, type DoodlePlan } from "@/components/sections/hero/composition";
+import { DRAW_ORDER } from "@/components/sections/hero/composition";
 import styles from "@/components/sections/hero/Hero.module.css";
+import { INTRO_TIMING, REFIT_EVENT, introConfig, introRuntime, type IntroController } from "@/components/sections/hero/introCore";
 import { LogoReveal } from "@/components/sections/hero/LogoReveal";
 import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
 
 /*
-  ===================================================================
-    0.0 - 0.2s   the background is clean, and the logo fades in at the centre
-    0.2 - 0.6s   the icons burst out from behind the logo, spreading outward
-                 in a smooth, quick motion
-    0.6 - 0.8s   all icons are now in place, around the logo
-    0.8 - 1.0s   the logo gently moves up from the centre towards the bar
-    1.0 - 1.3s   as the logo settles in the bar, the icons gently drift
-                 outward and scatter across the screen
-    1.3 - 1.5s   the website is fully loaded, the logo in the top bar and the
-                 icons continuing to live throughout the design
+  THE CLOCK, THE RING AND THE FIT NOW LIVE IN ./introCore.ts, with the
+  storyboard and every note that explains a number — the frame list, the
+  pen's WRITE_MS, the wells, the burst and scatter steps, the tucked shapes'
+  fade, the short entrance. They moved because the intro no longer waits for
+  this component: the head script runs the same function from the first
+  paint, and this adopts what it started (see the intro effect below). One
+  function for both is what keeps them from drifting apart.
 
-  WHAT THIS REPLACES, AND WHY NONE OF IT SURVIVES. The entrance before it ran
-  for five seconds: the mark wrote itself from its own vector, letter by
-  letter, while eighteen cut-outs waited off-screen and flew in one at a time —
-  and a visitor could sweep a paintbrush cursor across the screen to call them
-  in early, each one stamping a splash where it landed. It was a good moment
-  and it is the wrong one now. Every part of it contradicts the note above:
-  handwriting cannot be short, an invitation to paint cannot be seamless, and
-  a canvas that waits for a hand is the opposite of transitioning naturally
-  into the site. So the pen, the splashes, the brush cursor and the clock that
-  fed them are gone rather than retimed.
-
-  WHAT IS KEPT. The artwork — the mark is still the client's own vector and the
-  icons are still the deck's own cut-outs, in the six approved colours (see
-  ./logoArt.ts and ./doodles.ts). The landing is still measured rather than
-  guessed: the mark flies to the exact box of the logo in the header bar. And
-  an escape is still offered, because an intro must never hold someone who
-  wants to be in — see `attach()`.
-
-  These are starts, in milliseconds from the first frame. ./Hero.module.css
-  owns every individual transition; this only decides when each phase begins.
+  What stays here is what only ever ran after hydration: the short entrance
+  for a return inside the site, the banner's opening on scroll, and the
+  icons' pointer depth.
 */
-/*
-  AND A BEAT BETWEEN THE MARK AND THE ICONS, at the client's ask: "we need the
-  dots animation we used before for the letter P, after that the doodle pop
-  come." The six paint wells in the "P" were part of the opening before the
-  handwriting was replaced by a fade, and they went with it. They are back,
-  and they are their own phase rather than something running under the burst —
-  the note is explicit that the icons come AFTER them.
-
-  It costs about 380ms, so the entrance runs to roughly 1.9s rather than the
-  storyboard's 1.5. That is the trade the ask makes, and it is the cheapest
-  version of it: the wells are stepped at 62ms rather than the 200 the old
-  opening used, which would have cost a second on its own.
-*/
-/*
-  AND THE MARK IS WRITTEN AGAIN, letter by letter, at the client's ask — see
-  <LogoReveal>. The pen runs from the first frame on the `play` state and
-  takes WRITE_MS; everything after it moves back by the same amount, so the
-  dots still follow a finished mark and the icons still follow the dots.
-
-  WRITE_MS IS KEPT SHORT ON PURPOSE. The original writing took 2.5 seconds
-  and was cut for it; 900ms is quick enough to read as a confident hand and
-  still lets every letter be seen arriving. The whole entrance now composes
-  by about 2.55s, against 1.88 with the fade — the cost of the writing, and
-  no more. The dots start a hair before the last letter's outline settles,
-  so there is no dead beat between the two.
-*/
-/*
-  THE WHOLE OPENING RUNS TO ABOUT FOUR SECONDS, at the client's ask: "reduce
-  the pace of the loading animation, extend it to 4 sec". Every beat is
-  slower in proportion — the writing, the wells, the ring's hold — rather
-  than one beat padded, so it still reads as one movement, only unhurried.
-*/
-const WRITE_MS = 800; // the pen writes "Maison Palettia", first stroke to last
-const DOTS_AT = WRITE_MS - 40;
+const { ENTER_MS, ENTER_STEP, WRITE_MS, DOT_STEP } = INTRO_TIMING;
+/* The foot's fit and the bar's band, borrowed from the runtime as plain code. */
+const { navBand, footPad, fitFoot, onViewportResize } = introRuntime(null, "core");
 
 /** On a touch screen, how much of the gap to the scroll the opening closes each frame. */
 const FOLLOW = 0.38;
-
-/** Fired on the frame whenever its foot is refitted — see `refit` below. */
-const REFIT_EVENT = "hero-refit"; // the mark is written; the wells start filling
-const DOT_STEP = 95; // one well after another — see `.pDot` in Hero.module.css
-const BURST_AT = DOTS_AT + 240; // frame 2: the icons leave the logo
-const LIFT_AT = BURST_AT + 250; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 760; // frame 6: ... and the page is composed by ~2000ms
-
-/*
-  One icon after another on the way out, and again on the way back.
-
-  DELIBERATELY SMALL. At 40ms the nine read as a queue leaving a door; the
-  client's word is "burst", and a burst is nine things leaving together with
-  just enough lag to see which went first. 12ms puts the last one 96ms behind
-  the first, so the whole ring is in the air inside a tenth of a second and
-  every icon is home by 696ms — inside the 0.6-0.8s the storyboard gives frame
-  3 for them to be in place.
-*/
-const BURST_STEP = 18;
-/*
-  The scatter, which is the same gesture reversed. It starts 150ms into the
-  last phase rather than with it, so the eye follows the mark up to the bar
-  first and the icons move once it has arrived — frame 5 is explicit that the
-  drift happens "as the logo settles in the navigation bar", not before it.
-
-  150 + 8 x 11 = 238, so the last icon leaves at 1038ms and is home at 1438ms.
-*/
-const SCATTER_AT = 150;
-const SCATTER_STEP = 16;
-/*
-  And the shapes that are NOT in the ring come up later still, behind the
-  photograph as it opens over them. See where this is written.
-*/
-const TUCKED_AT = 400;
-
-/*
-  The short entrance, for the homepage shown again by a link inside the site.
-
-  It has always been a different, quieter thing than the opening — nobody
-  arriving from another page should be made to watch the logo fly — and it is
-  now cut to match the opening's own pace. It is the icons settling in, and
-  nothing else.
-*/
-const ENTER_MS = 900;
-const ENTER_STEP = 20;
 
 /*
   How much of the frame's hold the opening takes; it rests fully open for the
@@ -149,190 +54,6 @@ const CUE_UNTIL = 0.12;
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
-/*
-  Clear air kept between the supporting line and the scroll cue under the
-  resting card.
-
-  IT SCALES WITH THE TYPE, and it did not use to. A flat 10px was set when the
-  foot was trimmed to give the photograph every pixel it could have — but the
-  supporting line is sized in `vw`, so on a wide screen 10px sits under 26px
-  text set on a 39px line, and the cue's label came up against the descenders
-  of "mindfulness, and community." On the machine it was measured on it cleared
-  by 13.9px; a slightly different face, a text-size preference or a rounding
-  difference closes that, and the client saw the two collide.
-
-  So the floor is 20px and the real figure is a fraction of the line the words
-  are actually set on, which holds the same proportion at every width. The cost
-  is about 3% of the photograph's height — the smallest amount that makes the
-  cue a separate thing from the sentence above it.
-*/
-const CUE_CLEARANCE_MIN = 20;
-const CUE_CLEARANCE_RATIO = 0.7;
-
-/**
- * Sizes the banner's foot — the space under the resting card — to exactly
- * what sits in it, so the photograph takes the rest of the screen and nothing
- * under it can overlap at any height.
- *
- * What sits there: the gap, the tagline and its supporting line, clear air,
- * and the scroll cue at the bottom edge. Under reduced motion the cue is not
- * shown and the two actions are, so the whole block of words counts instead.
- *
- * Read from layout — `offsetTop` and `offsetHeight` — rather than from
- * on-screen boxes, which include the intro's transforms: the words are still
- * rising out of their masks when this first runs.
- */
-/**
- * The height <BottomNav> covers, in pixels, or 0 where there is no bar.
- *
- * READ FROM THE TOKEN, NOT THE BAR. The bar is `fixed`, so it is not in the
- * banner's flow and nothing about the layout says it is there — and its
- * painted box is not the figure anyway: `--bottom-nav-h` is 4.9rem where the
- * element measures 53px, because the token reserves the band the wave rises
- * into as well. It is what <main> pads by, so it is what the banner should
- * clear.
- *
- * THROUGH A PROBE, BECAUSE `getPropertyValue` DOES NOT RESOLVE IT. A custom
- * property hands back its specified value — here the literal string
- * `calc(4.9rem + env(safe-area-inset-bottom))` — and `parseFloat` of that is
- * NaN. Applying it as a length and reading the box back is what makes the
- * browser do the arithmetic, `env()` and all. The probe is out of flow and
- * removed on the same tick, so it cannot affect what the caller then measures.
- *
- * 0 from `lg`, where the token is `0px` and there is no bar.
- */
-function navBand(): number {
-  const probe = document.createElement("div");
-  probe.style.cssText = "position:absolute;left:-9999px;top:0;width:0;visibility:hidden;height:var(--bottom-nav-h,0px)";
-  document.body.append(probe);
-  const h = probe.offsetHeight;
-  probe.remove();
-  return h;
-}
-
-/**
- * Breathing room under the banner's last control, on a phone only.
- *
- * `navBand()` makes the copy CLEAR the bar; it does not give it any air. The
- * client's note is that there is no bottom padding in the mobile banner, and
- * they are right: the second action was finishing 36px off the bar at 375,
- * which is a gap rather than a margin — the pair reads as having been pushed
- * up against something.
- *
- * 1.5rem on top of the band. A phone only, keyed off the band itself rather
- * than off a second media query, because the two answer the same question:
- * `--bottom-nav-h` is 0 from `lg`, and so is this.
- */
-function footPad(band = navBand()): number {
-  if (band === 0) return 0;
-  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  return rem * 1.5;
-}
-
-/** The resting photograph's minimum height: about a third of a short desktop
- *  window (200px at 640), less on a phone, where the words are taller. */
-function cardFloor(frameHeight: number): number {
-  const clamp = (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo, v));
-  return window.matchMedia("(min-width: 768px)").matches
-    ? clamp(160, frameHeight * 0.31, 256)
-    : clamp(128, frameHeight * 0.22, 192);
-}
-
-/** `--wt` in pixels: the bar plus the air under it. */
-function insetTop(frame: HTMLElement): number {
-  const probe = document.createElement("div");
-  probe.style.cssText = "position:absolute;visibility:hidden;width:0;height:var(--wt)";
-  frame.append(probe);
-  const h = probe.offsetHeight;
-  probe.remove();
-  return h;
-}
-
-function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
-  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  const raw = getComputedStyle(frame).getPropertyValue("--copy-gap").trim();
-  const gap = raw.endsWith("rem") ? parseFloat(raw) * rem : parseFloat(raw) || 0;
-
-  let foot: number;
-  if (window.matchMedia(REDUCED).matches) {
-    const band = navBand();
-    foot = gap + copy.offsetHeight + rem + band + footPad(band);
-  } else {
-    /*
-      THE LAST PARAGRAPH, NOT THE FIRST.
-
-      This was `copy.querySelector("p")`, which is the first one — correct for
-      as long as there was exactly one line under the script. There are two
-      now: the client's mock-up sets "There's no wrong shade of creativity."
-      above the sentence, and the foot went on being reserved down to the
-      bottom of THAT, leaving the sentence below it uncounted. The words then
-      sat in space the card had not been told to give them, and ran straight
-      into the scroll cue.
-
-      Measuring to the bottom of the last one is the version that does not
-      care how many there are, which is what this should have been.
-    */
-    const lines = copy.querySelectorAll("p");
-    const line = lines.length ? lines[lines.length - 1] : null;
-    /*
-      THE LAST THING IN THE BLOCK, NOT THE LAST PARAGRAPH, which is the same
-      correction the note above made one step short of.
-
-      The actions sit UNDER the final paragraph, so reserving to that
-      paragraph's foot left the row itself uncounted. It did not show while the
-      second action was a word on the primary's own line — the row was 60px and
-      the clearance and the cue happened to cover it. It is a second pill now,
-      and below `md` the two stack: 116px at 390, of which only the cue's worth
-      was ever reserved. The row ran off the foot of the banner and under the
-      bottom bar, which is what the client is looking at.
-
-      Measuring to the bottom of the actions when there are any is the version
-      that does not care what the block ends with.
-    */
-    const tail = copy.querySelector<HTMLElement>("[data-hero-actions]") ?? line;
-    const words = tail ? tail.offsetTop + tail.offsetHeight : copy.offsetHeight;
-    // `lineHeight` computes to a pixel length in every engine that matters; if
-    // it ever answers `normal`, the floor below is what applies. It is the
-    // LAST line's, because that is the one the cue has to clear.
-    const lead = line ? parseFloat(getComputedStyle(line).lineHeight) : NaN;
-    const clearance = Math.max(CUE_CLEARANCE_MIN, Math.round((lead || 0) * CUE_CLEARANCE_RATIO));
-    /*
-      THE BAR'S OWN BAND IS ALREADY IN HERE. <BottomNav> is fixed over the
-      window's foot on a phone, and the cue's `bottom` is `0.75rem +
-      --bottom-nav-h` (see `.cue`), so measuring the cue from the edge counts
-      the bar once. This used to add `navBand()` on top, counting it twice:
-      68px of the photograph went to empty air on every phone, and on a short
-      one (375x667) the card had no height left at all and the tagline slid
-      up under the header.
-
-      Where the cue is hidden — a short phone, see `.cue` — its height is 0
-      and its `bottom` still carries the bar, so the sum holds.
-    */
-    const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
-    foot = gap + words + clearance + cue.offsetHeight + cueFromEdge + footPad();
-  }
-  /*
-    A FLOOR UNDER THE PHOTOGRAPH, at the client's ask. The foot is whatever
-    the words need, and on a short window (a laptop at ~1350x640 with its
-    toolbars) that left the resting photograph a 60px strip. It now keeps at
-    least `cardFloor()` — about 200px there — and when the words need more
-    than the screen has left, they start lower and run past the fold. They
-    are not lost: as the page scrolls the photograph opens and `--copy-shift`
-    carries the whole block up into view, exactly as before.
-
-    `--wf` keeps the foot's NATURAL height, so the doodles placed in it
-    (`zone: "foot"`) stay laid out against the words rather than squeezed
-    into the shorter visible band. `data-short` hides the scroll cue, which
-    is pinned to the window's foot and would otherwise sit on the buttons.
-  */
-  const room = frame.offsetHeight - insetTop(frame) - cardFloor(frame.offsetHeight);
-  const short = foot > room;
-  frame.style.setProperty("--wf", `${Math.ceil(foot)}px`);
-  frame.style.setProperty("--wb", `${Math.ceil(short ? Math.max(0, room) : foot)}px`);
-  if (short) frame.dataset.short = "";
-  else delete frame.dataset.short;
-}
-
 /**
  * Two frames, so a style change lands after the browser has painted the one
  * before it. Returns a cancel function: an effect torn down between the frames
@@ -350,57 +71,20 @@ function nextPaint(fn: () => void): () => void {
 }
 
 /**
- * A window `resize` listener that ignores a phone's toolbar.
- *
- * ON A PHONE, SCROLLING RESIZES THE WINDOW. Safari and Chrome both shrink their
- * address bar as the page starts to move and bring it back when it turns, and
- * each time `innerHeight` changes and `resize` fires — which is to say, in the
- * middle of the banner's opening, every time the reader changes direction.
- * Every listener here answered with a full refit: probes appended to <body>,
- * forced layouts, and (on the scroll timeline) every scrubbed animation
- * cancelled and built again. That was a dropped run of frames at exactly the
- * moment the photograph was opening under the reader's thumb.
- *
- * None of it can have changed. The frame is `100svh`, the SMALL viewport, which
- * is the same height whichever state the toolbar is in, and every measurement
- * the banner takes is against the frame. So on a touch screen a resize that
- * leaves the width alone (the toolbar, or the keyboard) is dropped; a rotation
- * still refits. A pointer device keeps every resize: a desktop window dragged
- * taller really does change the frame. Bursts are folded into one call per
- * frame either way.
- */
-function onViewportResize(fn: () => void): () => void {
-  const touch = window.matchMedia("(pointer: coarse)").matches;
-  let width = window.innerWidth;
-  let height = window.innerHeight;
-  let queued = 0;
-  const onResize = () => {
-    const changed = window.innerWidth !== width || (!touch && window.innerHeight !== height);
-    width = window.innerWidth;
-    height = window.innerHeight;
-    if (!changed || queued) return;
-    queued = requestAnimationFrame(() => {
-      queued = 0;
-      fn();
-    });
-  };
-  window.addEventListener("resize", onResize);
-  return () => {
-    cancelAnimationFrame(queued);
-    window.removeEventListener("resize", onResize);
-  };
-}
-
-/**
  * The entrance — the mark, and the ring of the brand's icons that bursts out
  * from behind it and then scatters into the page — and, once it is over, the
  * banner's opening on scroll and the icons' pointer depth.
  *
  * The only part of the banner that needs JavaScript. Everything it animates is
  * server-rendered by <Hero> — the photograph, the words, and the icons around
- * it — and this finds them in the DOM, measures them once, and then only ever
- * changes `data-intro` on <html> and two pointer variables. The stylesheet
- * does the rest, so the whole second and a half runs on the compositor.
+ * it — and the intro finds them in the DOM, measures them once, and then only
+ * ever changes `data-intro` on <html> and two pointer variables. The
+ * stylesheet does the rest, so the whole second and a half runs on the
+ * compositor.
+ *
+ * THE INTRO ITSELF IS RUN BY THE HEAD SCRIPT, from first paint, with the
+ * same function this imports (./introCore.ts); this component adopts it on
+ * hydration and only starts it when nothing else did.
  *
  * MEASURED, NOT PLACED. Each icon is laid out in its place in the finished
  * page from the first render; before anything shows, its box is measured and
@@ -479,45 +163,19 @@ export function HeroIntro() {
     const hero = logo?.closest("section");
     if (!hero) return;
 
-    const timers: number[] = [];
-    const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(fn, ms));
-    let cancelPaint = () => {};
-
     /* ---- reduced motion: the hero composed, and nothing else ---- */
     if (window.matchMedia(REDUCED).matches) {
+      // A sequence started before the preference changed is stopped first, or
+      // its next phase would undo this one.
+      const started = window.__mpIntro;
+      if (started && started.hero === hero) started.cancel();
       html.dataset.intro = "done";
       return;
     }
 
     /*
-      EVERY PAGE LOAD PLAYS THE INTRO — a first visit, a return, a refresh.
-      `play` is written only by the script in <head> (./intro.ts), and only on
-      a real load of the homepage, so it is the one state that plays it.
-      Anything else means the homepage is being shown again inside the site —
-      by a link back from another page, or after leaving mid-intro — and gets
-      the short entrance rather than holding someone moving around the site.
-
-      React runs this effect twice in development; the first run is torn down
-      before it changes the state, so the second still finds `play`.
-    */
-    const play = html.dataset.intro === "play";
-
-    const doodles = Array.from(hero.querySelectorAll<HTMLElement>("[data-doodle]"));
-    /* The collage's own order, which is what the short in-site entrance
-       staggers on. The ring has its own order — see RING_ORDER below. */
-    const order = (el: HTMLElement) => DRAW_ORDER.indexOf(el.dataset.doodle ?? "");
-
-    let locked = false;
-    const unlock = () => {
-      if (!locked) return;
-      locked = false;
-      html.style.removeProperty("overflow");
-      resumeScroller();
-    };
-
-    /*
       Scroll restoration stays off for as long as the homepage is showing, in
-      either case below. The browser decides whether to restore when reload is
+      every case below. The browser decides whether to restore when reload is
       pressed, from the page being left — so for a refresh from halfway down to
       start at the top, where the intro happens, it has to be off already then,
       not merely switched off by the new page. Handed back on the way out, so
@@ -528,318 +186,84 @@ export function HeroIntro() {
       if ("scrollRestoration" in history) history.scrollRestoration = "auto";
     };
 
-    const finish = () => {
-      html.dataset.intro = "done";
-      unlock();
-    };
+    /*
+      ---- the intro: ADOPTED, NOT STARTED ----
 
-    /* ---- the homepage again, without a reload ---- */
-    if (!play) {
-      html.dataset.intro = "skip";
-      doodles.forEach((el) => el.style.setProperty("--enter-delay", `${80 + order(el) * ENTER_STEP}ms`));
-      hero.style.setProperty("--bloom-delay", "0ms");
-      cancelPaint = nextPaint(() => {
-        html.dataset.intro = "enter";
-        later(finish, ENTER_MS);
-      });
+      EVERY PAGE LOAD PLAYS THE INTRO — a first visit, a return, a refresh —
+      and on a page load the head script is already running it by the time
+      this hydrates (./introCore.ts): the clock started at first paint, and the
+      wells, the burst or even the lift may be behind it. So this takes over
+      the one thing the script was waiting for React to do, which is to own
+      the scroll: Lenis is paused while the script holds the page and resumed
+      when it lets go, and the lock is let go now if the lift has already
+      asked for it.
+
+      AND STARTS IT ONLY WHEN NOTHING DID. `play` still standing with no
+      sequence on this hero means the script never got to it — the document
+      finished without a parsed banner, or it threw — and the same runtime is
+      run here instead, on this hero, from the next frame: exactly what this
+      effect used to do itself.
+
+      `play` is written only by the head script, and only on a real load of
+      the homepage, so it is the one state that plays it. Anything else with
+      no sequence running means the homepage is being shown again inside the
+      site — by a link back from another page, or after leaving mid-intro —
+      and gets the short entrance below rather than holding someone moving
+      around the site.
+    */
+    const running = (c: IntroController | null | undefined): c is IntroController =>
+      !!c && c.hero === hero && !c.cancelled;
+    let intro = window.__mpIntro;
+    if (!running(intro) && html.dataset.intro === "play") {
+      try {
+        intro = introRuntime(introConfig(brandLogoRef.current), "boot", hero);
+      } catch {
+        intro = null;
+      }
+    }
+    if (running(intro)) {
+      const sequence = intro;
+      sequence.onLock = pauseScroller;
+      sequence.onUnlock = resumeScroller;
+      if (sequence.locked) pauseScroller();
+      sequence.adopt();
+      /*
+        Teardown is DEFERRED BY A TASK, and never forces `done`. React runs
+        every effect twice in development, tearing the first run down and
+        mounting again in the same task: the second run's `adopt()` clears
+        this before it fires, so the one sequence carries on untouched. A real
+        unmount — leaving the homepage mid-intro — lets it fire, and the
+        sequence stops where it stands with nothing left written on the icons
+        and the scroll released, exactly as this effect's own teardown did.
+        Restoration is released and taken again in the same task on a
+        remount, so the browser never gets a moment to restore in between.
+      */
       return () => {
-        cancelPaint();
-        timers.forEach(clearTimeout);
+        sequence.pendingCancel = window.setTimeout(sequence.cancel, 0);
         releaseRestoration();
       };
     }
 
-    /* ---- the intro ---- */
-    // At the top before anything is measured, and instantly: the page's
-    // `scroll-behavior: smooth` would otherwise glide it up under the ring.
-    // It can only have moved if someone scrolled while it was still loading.
-    if (window.scrollY !== 0) window.scrollTo({ top: 0, behavior: "instant" });
-    html.dataset.intro = "play";
-    html.style.overflow = "hidden";
-    pauseScroller();
-    locked = true;
+    /* ---- the homepage again, without a reload ---- */
+    const doodles = Array.from(hero.querySelectorAll<HTMLElement>("[data-doodle]"));
+    /* The collage's own order, which is what the short in-site entrance
+       staggers on. The ring has its own order — see RING_ORDER. */
+    const order = (el: HTMLElement) => DRAW_ORDER.indexOf(el.dataset.doodle ?? "");
+    const timers: number[] = [];
+    const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(fn, ms));
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    /*
-      The ring is measured in widths of the logo at its centre, so it keeps the
-      same close orbit around the mark at every size. `offsetWidth` is its
-      laid-out width — the fade above changes opacity only, never the box — and
-      the fallback only covers a logo that has somehow not been laid out.
-    */
-    const unit = logo?.offsetWidth || Math.min(vw, vh) * 0.4;
-    const plans = new Map(DOODLE_PLAN.map((plan) => [plan.id, plan]));
-    /*
-      THE RING IS NOW A SUBSET, so every shape has to be told which it is.
-
-      `data-ring` is what the stylesheet branches on: an icon carrying it
-      bursts out of the logo and scatters back; an icon without it is simply
-      not part of the entrance and waits, invisible, at its resting place until
-      the page composes around it. Nine of the eighteen, chosen by the rule in
-      ./composition.ts.
-
-      It is written here rather than in the markup because it is a property of
-      the entrance, not of the shape — <Hero> renders the same collage whether
-      this component runs or not.
-    */
-    const inRing = (el: HTMLElement) => plans.get(el.dataset.doodle ?? "")?.ring === true;
-    const ringOrder = (el: HTMLElement) => RING_ORDER.indexOf(el.dataset.doodle ?? "");
-
-    /*
-      Where every icon waits, and where it is going.
-
-      A shape with no box is one the width has taken out of the layout
-      (`desktopOnly` below 768) and is left out of both, or the ring could
-      never be finished.
-
-      EVERY ICON IS MEASURED WHERE IT LIES, NOT WHERE IT IS WAITING. `play`
-      carries the behind-the-logo transform, which means an element that has
-      been through this once is translated to the middle of the screen and
-      scaled down when the loop below reads its box — and React runs this
-      effect twice in development, and again on any remount. The flight's own
-      properties therefore come off first, in one pass over all of them, so the
-      single forced layout the next line triggers is paid once rather than
-      eighteen times.
-    */
-    const FLIGHT_VARS = ["--bx", "--by", "--br", "--fx", "--fy", "--fs", "--fr"] as const;
-    for (const el of doodles) {
-      for (const prop of FLIGHT_VARS) el.style.removeProperty(prop);
-      delete el.dataset.ring;
-    }
-
-    const measured: { el: HTMLElement; plan: DoodlePlan; box: DOMRect }[] = [];
-    for (const el of doodles) {
-      const plan = plans.get(el.dataset.doodle ?? "");
-      const box = el.getBoundingClientRect();
-      if (!plan || box.width === 0) continue;
-      measured.push({ el, plan, box });
-    }
-
-    /*
-      HOW FAR OUT THE RING SITS, MEASURED RATHER THAN GUESSED.
-
-      This was a constant with a breakpoint in it — 0.93 of the radius below
-      640 and 1 above — and the constant was wrong in the way constants of this
-      kind always are. At 375 the coral, which is both the widest icon and the
-      one furthest out, still finished 11px past the right edge: pulling the
-      ring in moves an icon's CENTRE and does nothing to its WIDTH, so the
-      shape at the edge keeps occupying half of itself past whatever radius it
-      is given. Turning 0.93 into 0.90 made it worse, not better, because the
-      figure was never about the radius.
-
-      So the radius is derived from the shapes instead. Every icon's box in the
-      ring is known before anything moves — the width is `flower.width` in
-      units of the mark and the height follows from the shape's own aspect —
-      and an icon turned by `flower.rotate` needs the box that turn sweeps out,
-      which for a w x h box at an angle is (w|cos| + h|sin|) across and
-      (w|sin| + h|cos|) down. From there the largest radius that still leaves
-      every icon inside the screen is arithmetic, and the ring takes it.
-
-      THIS FITS WHERE THE ICONS COME TO REST, NOT THE TOP OF THEIR BOUNCE, and
-      that is a deliberate choice rather than an oversight. The burst eases on
-      `--ease-pop`, a spring that carries a shape 9.78% past its target before
-      settling back, so at 375 the coral — the widest icon and the one furthest
-      out — swings about 9px past the right edge for roughly a tenth of a
-      second at the top of its arc. Fitting the ring to that peak instead was
-      tried and is worse: it pulls the radius to 0.85 and the coral then SITS
-      against the end of "Palettia" for the whole of frames 3 and 4. A ring
-      resting on the mark is a composition problem; a decorative shape grazing
-      the edge at the top of a bounce is what a spring looks like.
-
-      It is capped at 1, so on a screen with room this changes nothing at all
-      and the composition is the one the client has already approved — at 1440
-      it computes to 1 and the ring is untouched. At 375 it lands on 0.94,
-      which is within a point of the 0.93 that was hand-tuned there, and that
-      agreement is the reason to trust the arithmetic on the widths nobody
-      measured by hand. The floor of 0.6 is a guard against a screen so small
-      that the honest answer would be to collapse the ring into the mark.
-    */
-    const RING_MARGIN = 8;
-    let ring = 1;
-    let fitY = Infinity;
-    for (const { plan, box } of measured) {
-      if (!plan.ring) continue;
-      const w = plan.flower.width * unit;
-      const h = w * (box.height / box.width);
-      const turn = (plan.flower.rotate * Math.PI) / 180;
-      const halfW = (w * Math.abs(Math.cos(turn)) + h * Math.abs(Math.sin(turn))) / 2;
-      const halfH = (w * Math.abs(Math.sin(turn)) + h * Math.abs(Math.cos(turn))) / 2;
-      const reachX = Math.abs(plan.flower.x) * unit;
-      const reachY = Math.abs(plan.flower.y) * unit;
-      if (reachX > 0) ring = Math.min(ring, (vw / 2 - halfW - RING_MARGIN) / reachX);
-      if (reachY > 0) ring = Math.min(ring, (vh / 2 - halfH - RING_MARGIN) / reachY);
-      if (reachY > 0) fitY = Math.min(fitY, (vh / 2 - halfH - RING_MARGIN) / reachY);
-    }
-    ring = Math.max(0.6, ring);
-    const ringY = portraitStretch(ring, fitY, vw, vh);
-
-    for (const { el, plan, box } of measured) {
-      if (!inRing(el)) {
-        /*
-          Not in the entrance, and not meant to be seen arriving either.
-
-          Every shape outside the ring rests wholly behind the photograph — that
-          is the rule that decides the ring in the first place — so it is held
-          invisible and then faded up BEHIND THE BLOOM rather than in front of
-          it. At `SCATTER_AT` it came up while the picture was still opening,
-          and for about 170ms a handful of pale cut-outs stood in the middle of
-          the screen with nothing covering them yet.
-
-          The bloom finishes at 1440ms; this starts the fade at 1200 and ends
-          it at 1520, by which time the photograph is over them. See `.flip` in
-          ./Hero.module.css.
-        */
-        el.style.setProperty("--settle-delay", `${TUCKED_AT}ms`);
-        continue;
-      }
-      el.dataset.ring = "";
-      const i = ringOrder(el);
-      const x = vw / 2 + plan.flower.x * unit * ring;
-      const y = vh / 2 + plan.flower.y * unit * ringY;
-      const cx = box.left + box.width / 2;
-      const cy = box.top + box.height / 2;
-      el.style.setProperty("--fx", `${x - cx}px`);
-      el.style.setProperty("--fy", `${y - cy}px`);
-      el.style.setProperty("--fs", `${(plan.flower.width * unit) / box.width}`);
-      el.style.setProperty("--fr", `${plan.flower.rotate}deg`);
-      /*
-        BEHIND THE LOGO, WHICH IS THE WHOLE OF FRAME 2. Not off-screen, which
-        is where these used to wait: the storyboard says the icons "burst out
-        from behind the logo", so every one of them starts stacked at the
-        middle of the screen, under the mark. `.introLogo` is z-index 50 and a
-        doodle is 20 while the entrance runs, so the mark genuinely covers them
-        until they leave it.
-      */
-      el.style.setProperty("--bx", `${vw / 2 - cx}px`);
-      el.style.setProperty("--by", `${vh / 2 - cy}px`);
-      /*
-        And turned off its resting angle on the way, alternating, so the icons
-        turn out of the mark rather than sliding out of it. Deterministic, from
-        the order: nothing here is random.
-      */
-      el.style.setProperty("--br", `${plan.flower.rotate + (i % 2 ? -1 : 1) * 26}deg`);
-      el.style.setProperty("--burst-delay", `${i * BURST_STEP}ms`);
-      el.style.setProperty("--settle-delay", `${SCATTER_AT + i * SCATTER_STEP}ms`);
-    }
-
-    // Where the logo lands: the logo in the header bar, measured while the bar
-    // is hidden but still laid out.
-    const aimLogo = () => {
-      const target = document.querySelector<HTMLImageElement>('body > header a[aria-label$="home"] img');
-      if (!logo || !target) return;
-      /*
-        INK TO INK. The intro's mark is the vector, whose box is the lettering
-        alone; the header's is a PNG with transparent margins around the same
-        lettering — different ones in each cut. So the flight aims at the
-        letters inside the header's image, not at its box: the image's rect
-        is trimmed by the margins measured for whichever cut it is showing
-        (the `width` attribute is the file's own, so it tells the two apart),
-        and the scale is the ratio of the two inks. Landed, the vector's
-        letters sit on the PNG's to within a pixel, and the handover is
-        invisible.
-      */
-      const cuts = brandLogoRef.current;
-      const cut = target.getAttribute("width") === String(cuts.onLight.width) ? cuts.onLight : cuts;
-      const from = logo.getBoundingClientRect();
-      const box = target.getBoundingClientRect();
-      if (from.width === 0 || box.width === 0) return;
-      const to = {
-        left: box.left + box.width * cut.ink.left,
-        top: box.top + box.height * cut.ink.top,
-        width: box.width * cut.ink.width,
-        height: box.height * cut.ink.height,
-      };
-      logo.style.setProperty("--logo-x", `${to.left + to.width / 2 - (from.left + from.width / 2)}px`);
-      logo.style.setProperty("--logo-y", `${to.top + to.height / 2 - (from.top + from.height / 2)}px`);
-      logo.style.setProperty("--logo-s", `${to.width / from.width}`);
-    };
-
-    /*
-      THE WAY OUT, AND IT IS THE ONLY THING A HAND CAN DO HERE NOW.
-
-      The entrance before this one was a canvas: a paintbrush cursor, pieces
-      called in by sweeping, a splash stamped wherever one landed. None of that
-      belongs to a movement that is over in a second and a half, and the client
-      has asked for it to be seamless rather than interactive.
-
-      What is kept is the escape. Anything that says "I want to be in the site"
-      — a key, a wheel, a tap — ends the entrance where it stands and composes
-      the page. At 1.5s almost nobody will reach for it, and the one thing an
-      intro must never do is hold someone who did.
-    */
-    const onKey = (event: KeyboardEvent) => {
-      if (["Shift", "Control", "Alt", "Meta", "Tab"].includes(event.key)) return;
-      lift();
-    };
-    const onWheel = () => lift();
-    const onDown = () => lift();
-
-    const attach = () => {
-      window.addEventListener("keydown", onKey);
-      window.addEventListener("wheel", onWheel, { passive: true });
-      window.addEventListener("pointerdown", onDown, { passive: true });
-    };
-    const detach = () => {
-      window.removeEventListener("keydown", onKey);
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("pointerdown", onDown);
-    };
-
-    /*
-      Frames 4 to 6, which are one movement: the mark lifts to the bar, the
-      icons scatter to their places behind it, the photograph blooms open and
-      the words rise. The stylesheet holds each of those on its own delay
-      inside this phase.
-    */
-    let lifted = false;
-    function lift() {
-      if (lifted) return;
-      lifted = true;
-      timers.forEach(clearTimeout);
-      timers.length = 0;
-      detach();
-      aimLogo();
-      html.dataset.intro = "settle";
-      // Every flight is relative to layout, not to the screen, so the page may
-      // scroll while the icons finish arriving.
-      unlock();
-      later(finish, SETTLE_MS);
-    }
-
-    cancelPaint = nextPaint(() => {
-      /*
-        Frame 1 is the state change itself: `play` fades the mark up at the
-        centre over 180ms against the clean Light Sage ground, with the wells
-        collapsed inside the "P" and the ring stacked invisibly behind it.
-      */
-      attach();
-      /* The wells fill, one at a time, out of the middle of the palette. */
+    html.dataset.intro = "skip";
+    doodles.forEach((el) => el.style.setProperty("--enter-delay", `${80 + order(el) * ENTER_STEP}ms`));
+    hero.style.setProperty("--bloom-delay", "0ms");
+    const cancelPaint = nextPaint(() => {
+      html.dataset.intro = "enter";
       later(() => {
-        html.dataset.intro = "dots";
-      }, DOTS_AT);
-      /* Frames 2 and 3: the icons leave the mark and take their places. */
-      later(() => {
-        html.dataset.intro = "burst";
-      }, BURST_AT);
-      /* Frames 4, 5 and 6. */
-      later(lift, LIFT_AT);
+        html.dataset.intro = "done";
+      }, ENTER_MS);
     });
-
-    // Teardown never forces `done`: a development remount must be free to
-    // start again, and every rule the intro applies is scoped to this page.
-    // A development remount releases restoration and takes it again in the
-    // same task, so the browser never gets a moment to restore in between.
     return () => {
       cancelPaint();
       timers.forEach(clearTimeout);
-      detach();
-      // A remount must find the icons exactly as this effect first found
-      // them: at rest, with none of the flight written on them.
-      doodles.forEach((el) => {
-        delete el.dataset.ring;
-        for (const prop of FLIGHT_VARS) el.style.removeProperty(prop);
-      });
-      unlock();
       releaseRestoration();
     };
   }, []);
@@ -1427,8 +851,12 @@ export function HeroIntro() {
         of the logo in the header bar and hands over to it (frames 4 and 5).
         See <LogoReveal>; the flight aims at the header's letters, not its
         file, so the two meet exactly.
+
+        `data-intro-logo` is how the head script finds it before React has a
+        ref to give, and the flight's `--logo-*` it may already have written
+        by hydration are why React is told not to mind its style.
       */}
-      <div ref={logoRef} aria-hidden className={styles.introLogo}>
+      <div ref={logoRef} aria-hidden data-intro-logo="" suppressHydrationWarning className={styles.introLogo}>
         <LogoReveal writeMs={WRITE_MS} dotStepMs={DOT_STEP} />
       </div>
     </>

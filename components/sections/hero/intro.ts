@@ -1,3 +1,5 @@
+import { introConfig, introScript, type IntroLogoCuts } from "@/components/sections/hero/introCore";
+
 /**
  * The homepage intro's opening decision, as an inline script for <head>.
  *
@@ -18,6 +20,14 @@
  * restore when reload is pressed, from the page being left, so it has to be
  * off already by then — and hands it back when the homepage unmounts.
  *
+ * AND ON `play` IT NOW RUNS THE INTRO ITSELF, from the moment the hero has
+ * been parsed: the foot's fit, the ring, the phase chain and the flight to the
+ * header, so the entrance keeps its designed timing however late React
+ * hydrates. <HeroIntro> adopts the running sequence instead of starting one.
+ * The runtime and the reasons for it are in ./introCore.ts; this only hands
+ * it the page's configuration — the ring and the header's two logo cuts,
+ * which the layout already has from Site details.
+ *
  * EVERY OTHER PAGE gets `data-loader="write"` instead (unless the reader has
  * asked for reduced motion): the same opening, played by <SiteLoader> from
  * the layout, on any refresh or first load of any page. A separate attribute
@@ -34,4 +44,6 @@
  * client module reaches a server component as a client reference, not as its
  * value.
  */
-export const INTRO_SCRIPT = `(function(){var d=document.documentElement;if(location.pathname!=="/"){try{if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)d.setAttribute("data-loader","write")}catch(e){}return}try{if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){d.setAttribute("data-intro","done");return}if("scrollRestoration" in history)history.scrollRestoration="manual";d.setAttribute("data-intro","play")}catch(e){d.setAttribute("data-intro","skip")}})();`;
+export function introHeadScript(logo: IntroLogoCuts): string {
+  return introScript(introConfig(logo));
+}

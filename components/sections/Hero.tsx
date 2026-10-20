@@ -255,7 +255,11 @@ export function Hero({
       <HeroIntro />
 
       <div data-hero-track className={styles.track}>
-        <div data-hero-frame className={styles.frame}>
+        {/* The intro's head script fits the foot (`--wb`, `--wf`,
+            `data-short`) and promotes the layers (`data-live`) here before
+            React hydrates — see ./hero/introCore.ts — so React is told the
+            difference is expected. Its own attributes only, not the subtree. */}
+        <div data-hero-frame suppressHydrationWarning className={styles.frame}>
           {/* ---- the doodles, placed in the resting card's box ---- */}
           <div className={styles.window}>
             {DOODLE_PLAN.map((plan) => (
@@ -561,6 +565,9 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     <div
       aria-hidden
       data-doodle={plan.id}
+      /* The intro's head script writes the flight (`--fx` … `--settle-delay`)
+         and `data-ring` here before React hydrates — see ./hero/introCore.ts. */
+      suppressHydrationWarning
       /* Under reduced motion the card never opens and the actions are there
          from the start, standing in the foot's open band — so a foot mark
          that would sit behind them is left out. See `.doodle` in the CSS. */
