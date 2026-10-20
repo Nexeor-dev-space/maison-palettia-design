@@ -6,7 +6,6 @@ import { EventsBody, type EventsDoor } from "@/components/sections/events/Events
 import { WORKSHOP_JOURNEY } from "@/lib/brand";
 import { getCreativeExperiences } from "@/lib/experiences";
 import { getModeCopy } from "@/lib/modeCopy.server";
-import { getMallPartners } from "@/lib/partners";
 import { getVibes } from "@/lib/vibes.server";
 import { getAllWorkshops, serverClock } from "@/lib/workshops";
 import { getWorkshopTypes } from "@/lib/workshopTypes";
@@ -29,14 +28,13 @@ import type { AdapterProps, BlockContext } from "./types";
 
 /** The programme, read once per render for both blocks. */
 async function programme() {
-  const [experiences, workshops, types, partners, vibes] = await Promise.all([
+  const [experiences, workshops, types, vibes] = await Promise.all([
     getCreativeExperiences(),
     getAllWorkshops(),
     getWorkshopTypes(),
-    getMallPartners(),
     getVibes(),
   ]);
-  return { experiences, sessions: workshops.filter((w) => w.kind !== "diy"), types, partners, vibes };
+  return { experiences, sessions: workshops.filter((w) => w.kind !== "diy"), types, vibes };
 }
 
 /** A door's note: the first or second Brand wording journey step, or the block's own. */
@@ -49,7 +47,7 @@ function doorNote(source: "journey0" | "journey1" | "custom", own: string | null
 /** `eventsBrowser` (+ the `pageHeader` before it) → <EventsBody> + <EventsBrowser>. */
 export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<"eventsBrowser">) {
   /* The Page labels, for the "per person" a format card prints — loaded here as the event template does. */
-  const [{ experiences, sessions, types, partners, vibes }, renderedAt, , modes] = await Promise.all([
+  const [{ experiences, sessions, types, vibes }, renderedAt, , modes] = await Promise.all([
     programme(),
     renderClock(),
     loadTemplateCopy(),
@@ -73,7 +71,6 @@ export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<
       experiences={experiences}
       sessions={sessions}
       types={types}
-      partners={partners}
       vibes={vibes}
       renderedAt={renderedAt}
       perPersonLabel={eventCopy().perPersonLabel}
@@ -81,7 +78,6 @@ export async function EventsBrowserAdapter({ block, ctx, header }: AdapterProps<
       lines={words.lines}
       doors={doors}
       groupLeads={{ diy: labels.diyLine, scheduled: labels.scheduledLine }}
-      viewLocationLabel={b ? text(b.viewLocationLabel) : undefined}
       emptyTitle={b ? text(b.emptyTitle) : undefined}
       emptyBody={b ? text(b.emptyBody) : undefined}
     />

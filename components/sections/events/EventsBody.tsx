@@ -1,5 +1,4 @@
 import { ArrowDown } from "lucide-react";
-import Link from "next/link";
 
 import { EventsBrowser } from "@/components/events/EventsBrowser";
 import { WalkInDiscovery } from "@/components/events/WalkInDiscovery";
@@ -13,7 +12,6 @@ import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow, ScriptTitle } from "@/components/ui/SectionHeader";
 import { WORKSHOP_JOURNEY } from "@/lib/brand";
 import type { CreativeExperience } from "@/lib/experiences";
-import type { PartnerRecord } from "@/lib/partners";
 import { cn } from "@/lib/utils";
 import type { Vibe } from "@/lib/vibes";
 import type { WorkshopType } from "@/lib/workshopTypes";
@@ -123,6 +121,12 @@ export interface EventsWords {
   lines?: readonly string[];
   doors?: readonly EventsDoor[];
   groupLeads?: { diy: string | null; scheduled: string | null };
+  /**
+   * NOT PRINTED (Oct 2026). The venue line under Create Anytime, which this
+   * labelled, was removed at the client's ask: the same location is already
+   * on the page ("where we set up") and on every activity page. The CMS field
+   * stays until a release can drop it with a migration.
+   */
   viewLocationLabel?: string | null;
   emptyTitle?: string | null;
   emptyBody?: string | null;
@@ -132,14 +136,12 @@ export function EventsBody({
   experiences,
   sessions,
   types = [],
-  partners,
   vibes,
   renderedAt,
   eyebrow = "Experiences",
   lines = ["Make It", "Your Way."],
   doors = LAUNCH_DOORS,
   groupLeads = { diy: "Pick a project. Pick your colours. Just drop in.", scheduled: "A little more planned. Same creative energy." },
-  viewLocationLabel = "View location",
   emptyTitle = "The next dates are being set.",
   emptyBody = "Create Anytime experiences are available in the meantime.",
   perPersonLabel,
@@ -149,7 +151,6 @@ export function EventsBody({
   sessions: Workshop[];
   /** The formats the scheduled experiences run in (lib/workshopTypes.ts); none before the Oct 2026 update. */
   types?: readonly WorkshopType[];
-  partners: PartnerRecord[];
   /** The vibe taxonomy, for the browser's Vibe filter; the experiences carry the tags. */
   vibes?: readonly Vibe[];
   /** The page's one clock — see ONE CLOCK FOR THE WHOLE RENDER on the page. */
@@ -158,7 +159,6 @@ export function EventsBody({
   perPersonLabel?: string;
 }) {
   const walkIn = experiences.filter((e) => e.kind === "diy");
-  const home = partners.length === 1 ? partners[0] : undefined;
   const [diyDoor, scheduledDoor] = doors;
 
   return (
@@ -274,30 +274,7 @@ export function EventsBody({
             id="create-anytime-heading"
             title={diyDoor?.title ?? "Create Anytime"}
             lead={groupLeads.diy}
-          >
-            {/*
-              The destination, in the client's own event-page line (p19) — the
-              same one the location card on every activity page prints. It was
-              "Where the Maison sets up for each run of dates.", the second
-              half of the descriptor the client's rewrite retired. Read from
-              lib/partners.ts rather than typed here, so the two cannot drift.
-
-              The link says "View location", the plate's own label, because the
-              line now opens "Find us at…", and a link reading "Find us" after
-              it would say the same thing twice.
-            */}
-            {home ? (
-              <p className="text-body text-text">
-                {home.name}, {home.locality}
-                <span className="block text-fine text-text/85">
-                  {home.eventDescriptor ?? home.descriptor}{" "}
-                  <Link href="/locations" className="underline decoration-primary underline-offset-4">
-                    {viewLocationLabel}
-                  </Link>
-                </span>
-              </p>
-            ) : null}
-          </GroupHead>
+          />
         </Container>
 
         {/* <WalkInDiscovery> brings its own <Container>: the how-it-works
