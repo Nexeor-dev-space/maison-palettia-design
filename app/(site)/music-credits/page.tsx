@@ -41,8 +41,9 @@ export default async function MusicCreditsPage() {
             </p>
             <ol className="mt-12 grid max-w-[46rem] gap-5">
               {tracks.map((track) => (
-                <li key={track.id} className="rounded-[1.25rem] bg-cream p-6 md:p-7">
-                  <p className="text-body font-medium text-text">{track.title}</p>
+                /* `id` is what the player's "Full credit" link lands on. */
+                <li key={track.id} id={`track-${track.id}`} className="scroll-mt-28 rounded-[1.25rem] bg-cream p-6 md:p-7">
+                  <p className="text-body font-medium text-text [overflow-wrap:anywhere]">{track.title}</p>
                   <p className="text-fine text-text/70">{track.artist}</p>
                   <p className="mt-3 text-fine leading-relaxed text-text/85">
                     <TrackCredit track={track} />
