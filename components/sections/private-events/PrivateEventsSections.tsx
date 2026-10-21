@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import { groundShapes } from "@/components/motion/groundShapes";
 
@@ -330,6 +330,7 @@ export function Introduction({
                 {image ? (
                   <Image
                     src={image.src}
+                    blur={image.blur}
                     alt={image.alt}
                     fill
                     priority
@@ -587,6 +588,7 @@ export function WhoItIsFor({
                       {photo ? (
                         <Image
                           src={photo.src}
+                          blur={photo.blur}
                           alt={photo.alt}
                           fill
                           sizes="(min-width: 1024px) 23vw, (min-width: 640px) 46vw, 100vw"

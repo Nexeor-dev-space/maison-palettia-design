@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { SectionShapes } from "@/components/motion/SectionShapes";
@@ -1360,6 +1360,7 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
                         >
                           <Image
                             src={frame.src}
+                            blur={frame.blur}
                             alt={frame.alt}
                             width={420}
                             height={560}

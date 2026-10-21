@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -245,6 +245,7 @@ export function MenuRailRow({
           {image ? (
             <Image
               src={image.src}
+              blur={image.blur}
               alt=""
               fill
               sizes="44px"
@@ -358,6 +359,7 @@ export function MenuPreview({
         {image ? (
           <Image
             src={image.src}
+            blur={image.blur}
             alt={image.alt}
             fill
             /* The preview is four of twelve columns now, not five. */

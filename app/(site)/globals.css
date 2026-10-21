@@ -2099,3 +2099,36 @@ html[data-intro="settle"] body:has([data-hero-intro]) > header {
     animation: none;
   }
 }
+
+/* ==========================================================================
+   PHOTOGRAPHS FADE IN OVER THEIR BLURRED STAND-IN — see components/ui/Image.tsx
+   and lib/photoReveal.ts.
+   ==========================================================================
+
+   Hidden only once the reveal script has run (`data-blur-ready` on <html>):
+   with no script, a picture is simply shown, and never stuck invisible.
+
+   AN ANIMATION, NOT A TRANSITION, on purpose. Many of these images carry a
+   transition of their own (a hover zoom, a scroll scrub), and a `transition`
+   here would overwrite theirs; an animation runs alongside it. `backwards`
+   holds the start until it plays and then lets go, so after the fade the
+   picture's opacity is whatever its own styles say. */
+:root[data-blur-ready] img[data-blur]:not([data-loaded]) {
+  opacity: 0;
+}
+
+img[data-blur][data-loaded] {
+  animation: photo-reveal 480ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+}
+
+@keyframes photo-reveal {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  img[data-blur][data-loaded] {
+    animation: none;
+  }
+}

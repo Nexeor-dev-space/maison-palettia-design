@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -252,6 +252,7 @@ function WalkInCard({ experience, index }: { experience: CreativeExperience; ind
         {photo ? (
           <Image
             src={photo.src}
+            blur={photo.blur}
             alt=""
             fill
             sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import { getModeCopy } from "@/lib/modeCopy.server";
 import type { ReactNode } from "react";
 
@@ -21,6 +21,7 @@ import {
 } from "@/lib/workshops";
 import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
 import { getMallPartners } from "@/lib/partners";
+import type { ImageAsset } from "@/types";
 
 /**
  * ==========================================================================
@@ -538,7 +539,7 @@ function Road({
   title: string;
   /** "Booked online" on the Create Together road: starred onto the title and said under the line. */
   footnote?: string | null;
-  plate?: { src: string; alt: string; position?: string };
+  plate?: ImageAsset;
   line: string;
   /* Words, or (for the date) a <SessionGate> that settles on words. */
   facts: readonly ReactNode[];
@@ -630,6 +631,7 @@ function Road({
           {plate ? (
             <Image
               src={plate.src}
+              blur={plate.blur}
               alt={plate.alt}
               fill
               sizes="(min-width: 1024px) 42vw, 100vw"

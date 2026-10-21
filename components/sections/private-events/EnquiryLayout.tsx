@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 
 import styles from "@/components/booking/PaintBooking.module.css";
@@ -153,6 +153,7 @@ export function EnquiryLayout({
         {image ? (
         <Image
           src={image.src}
+          blur={image.blur}
           alt={image.alt}
           fill
           sizes="(min-width: 1024px) 31vw, calc(100vw - 2 * max(0.75rem, 1.3889vw))"
