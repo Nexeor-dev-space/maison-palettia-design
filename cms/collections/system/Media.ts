@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 
-import type { CollectionConfig, UploadConfig } from "payload";
+import type { CollectionBeforeChangeHook, CollectionConfig, UploadConfig } from "payload";
 
 import { anyone, isAdmin, isEditor, isEditorField } from "@/cms/access/roles";
 import {
@@ -12,6 +12,7 @@ import {
   revalidateOnMediaChange,
   revalidateOnMediaDelete,
 } from "@/cms/hooks/mediaGuards";
+import { BLURRABLE, blurPlaceholder } from "@/cms/lib/blurPlaceholder";
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
@@ -232,6 +233,24 @@ async function seededOriginal(filename: string): Promise<Response | undefined> {
   }
 }
 
+/**
+ * The blurred stand-in for a new upload (see cms/lib/blurPlaceholder.ts).
+ * Only when a file is actually arriving: an edit to the alt text keeps the
+ * one already stored. A file that cannot be read for it simply gets none —
+ * an upload is never refused over a placeholder.
+ */
+const makeBlurPlaceholder: CollectionBeforeChangeHook = async ({ data, req }) => {
+  const file = req.file as { data?: Buffer; tempFilePath?: string; mimetype?: string } | undefined;
+  if (!file) return data;
+  const source = file.data?.length ? file.data : file.tempFilePath;
+  // "" = looked, none wanted (transparency) — see cms/lib/backfillBlur.ts.
+  data.blurDataURL =
+    source && file.mimetype && BLURRABLE.has(file.mimetype)
+      ? ((await blurPlaceholder(source).catch(() => null)) ?? "")
+      : null;
+  return data;
+};
+
 export const Media: CollectionConfig = {
   slug: "media",
   labels: { singular: "Media file", plural: "Media" },
@@ -256,6 +275,7 @@ export const Media: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [requireAltOrDecorative],
+    beforeChange: [makeBlurPlaceholder],
     beforeDelete: [refuseDeleteWhileReferenced],
     afterChange: [revalidateOnMediaChange],
     afterDelete: [revalidateOnMediaDelete],
@@ -289,6 +309,13 @@ export const Media: CollectionConfig = {
     ],
   },
   fields: [
+    {
+      // The blurred stand-in drawn while the photograph loads — made from the
+      // file, never typed. See cms/lib/blurPlaceholder.ts.
+      name: "blurDataURL",
+      type: "text",
+      admin: { hidden: true },
+    },
     // 4B review: where this photo is used, before anyone tries to delete it.
     { name: "usedOn", type: "ui", label: "Used on", admin: { position: "sidebar", components: { Field: "@/cms/components/fields/MediaUsage#MediaUsage" } } },
     {

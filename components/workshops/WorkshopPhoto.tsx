@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 
 import { cn } from "@/lib/utils";
 import type { ImageAsset } from "@/types";
@@ -45,6 +45,7 @@ export function WorkshopPhoto({ image, aspect, sizes, className }: WorkshopPhoto
     <div className={cn("relative w-full overflow-hidden rounded-sm bg-surface-alt", aspect, className)}>
       <Image
         src={image.src}
+        blur={image.blur}
         alt={image.alt}
         fill
         sizes={sizes}

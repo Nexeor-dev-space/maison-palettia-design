@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { cn } from "@/lib/utils";
@@ -260,6 +260,7 @@ export function Welcome({
                 {image ? (
                 <Image
                   src={image.src}
+                  blur={image.blur}
                   /* The section's own picture and, now that it is six columns
                      wide, the page's largest contentful paint — Next says so
                      in the console. Eager, so the one thing anybody waits for

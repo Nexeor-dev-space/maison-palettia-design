@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Reveal } from "@/components/motion/Reveal";
@@ -13,6 +13,7 @@ import { forScript } from "@/components/ui/SectionHeader";
 import { SEASONAL_INTRO, SEASONAL_MOMENTS } from "@/lib/brand";
 import { scrollToY } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
+import type { ImageAsset } from "@/types";
 
 /**
  * Four seasons, one frame that holds still while they change.
@@ -69,7 +70,7 @@ interface Season {
   experience: string;
   colour: string;
   mark: DoodleName;
-  image: { src: string; alt: string };
+  image: ImageAsset;
 }
 
 const SEASONS: readonly Season[] = SEASONAL_MOMENTS.map((moment, i) => ({
@@ -344,6 +345,7 @@ export function SeasonalExperiences() {
                       >
                         <Image
                           src={season.image.src}
+                          blur={season.image.blur}
                           alt=""
                           fill
                           sizes="(min-width: 1024px) 48vw, 92vw"

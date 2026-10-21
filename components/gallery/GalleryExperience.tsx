@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
@@ -15,6 +15,7 @@ import { Container } from "@/components/ui/Container";
 import { Eyebrow, forScript } from "@/components/ui/SectionHeader";
 import styles from "@/components/gallery/GalleryExperience.module.css";
 import { cn } from "@/lib/utils";
+import type { ImageBlur } from "@/types";
 
 /* Mount detection without a setState-in-effect: false on the server, true once
    the client is running. The lightbox portals to <body>, which does not exist
@@ -46,6 +47,8 @@ const subscribeNoop = () => () => {};
 export interface GalleryItem {
   src: string;
   alt: string;
+  /** The blurred stand-in shown while it loads. */
+  blur?: ImageBlur;
   /** The activity's own name. Absent for the process frames and keepsakes. */
   title?: string;
   /** "Any time" / "Scheduled" / "Coming soon". Absent where there is none. */
@@ -324,6 +327,7 @@ function Tile({
       <span className={styles.frame}>
         <Image
           src={item.src}
+          blur={item.blur}
           alt={item.alt}
           fill
           sizes="(min-width: 1024px) 46vw, (min-width: 640px) 50vw, 100vw"
@@ -383,6 +387,7 @@ function FramedTile({
         <span className={styles.frame}>
           <Image
             src={item.src}
+            blur={item.blur}
             alt={item.alt}
             fill
             sizes="(min-width: 640px) 30vw, 92vw"
@@ -680,6 +685,7 @@ function Lightbox({
               >
                 <Image
                   src={item.src}
+                  blur={item.blur}
                   alt={item.alt}
                   fill
                   sizes="(min-width: 1024px) 72vw, 100vw"

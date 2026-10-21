@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import { getModeCopy } from "@/lib/modeCopy.server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -332,6 +332,7 @@ function SessionSummary({ workshop }: { workshop: Workshop }) {
       <div className="relative aspect-[2/1] max-h-[10rem] w-full overflow-hidden rounded-t-[1.5rem]">
         <Image
           src={workshop.image.src}
+          blur={workshop.image.blur}
           alt={workshop.image.alt}
           fill
           sizes="(min-width: 1024px) 31vw, 100vw"
@@ -404,6 +405,7 @@ function SessionStrip({ workshop }: { workshop: Workshop }) {
         <div className="relative size-[72px] shrink-0 overflow-hidden rounded-[0.875rem]">
           <Image
             src={workshop.image.src}
+            blur={workshop.image.blur}
             alt=""
             fill
             sizes="72px"

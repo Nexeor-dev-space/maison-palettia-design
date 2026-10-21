@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 
 import { JOURNAL_COPY, readingLabel } from "@/components/journal/copy";
@@ -12,6 +12,7 @@ import {
   formatJournalDate,
   type JournalPost,
 } from "@/lib/cms/journalShared";
+import type { ImageAsset } from "@/types";
 
 /**
  * The top of a story: the trail it belongs to, its category, the title,
@@ -135,6 +136,7 @@ export function ArticleHeader({
           <div className="relative aspect-[4/3] max-h-[70vh] w-full sm:aspect-[16/9] lg:aspect-[21/9]">
             <Image
               src={cover.src}
+              blur={cover.blur}
               alt={cover.alt}
               fill
               priority
@@ -155,13 +157,14 @@ function Portrait({
   photo,
 }: {
   name: string;
-  photo?: { src: string; alt: string; position?: string };
+  photo?: ImageAsset;
 }) {
   if (photo) {
     return (
       <span className="plate relative block h-10 w-10 shrink-0 overflow-clip rounded-pill bg-cream">
         <Image
           src={photo.src}
+          blur={photo.blur}
           alt=""
           fill
           sizes="40px"
