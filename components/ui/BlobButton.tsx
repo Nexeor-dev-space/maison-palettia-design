@@ -56,6 +56,8 @@ interface BlobButtonProps {
   onClick?: () => void;
   /** Button mode only. `submit` is the common case; that is why it defaults. */
   type?: "button" | "submit";
+  /** Button mode only: the id of the form it submits, when it sits outside that form. */
+  form?: string;
   /** Button mode only. A disabled control owes no contrast ratio, so this is
    *  simply dimmed and the flood is left alone — it cannot be hovered. */
   disabled?: boolean;
@@ -101,6 +103,7 @@ export function BlobButton({
   children,
   onClick,
   type = "submit",
+  form,
   disabled,
   arrow = true,
   tone = "lilac",
@@ -147,7 +150,7 @@ export function BlobButton({
 
   if (href === undefined) {
     return (
-      <button type={type} onClick={onClick} disabled={disabled} className={shell}>
+      <button type={type} form={form} onClick={onClick} disabled={disabled} className={shell}>
         {inner}
       </button>
     );

@@ -18,7 +18,6 @@ export function TwoWaysAdapter({ block }: AdapterProps<"twoWays">) {
 
   const roads: TwoWaysRoad[] = (b.roads ?? []).map((road) => ({
     ground: road.ground,
-    eyebrow: road.eyebrow,
     title: road.title,
     line: road.line,
     facts: (road.facts ?? []).map((fact) => fact.text).filter(Boolean),

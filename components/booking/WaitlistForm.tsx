@@ -70,7 +70,7 @@ export function WaitlistForm({ sessionSlug, title }: { sessionSlug: string; titl
     if (!values.name) next.name = "Please tell us your name.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) next.email = "Please check this email address.";
     if (values.phone && values.phone.replace(/\D/g, "").length < 7) next.phone = "Please check this number, or leave it blank.";
-    if (!Number.isInteger(values.qty) || values.qty < 1 || values.qty > MAX_QTY) next.qty = `Choose between 1 and ${MAX_QTY} places.`;
+    if (!Number.isInteger(values.qty) || values.qty < 1 || values.qty > MAX_QTY) next.qty = `Choose between 1 and ${MAX_QTY} spots.`;
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -126,8 +126,8 @@ export function WaitlistForm({ sessionSlug, title }: { sessionSlug: string; titl
           {outcome.position ? `You are number ${outcome.position} in the queue for ${title}.` : `We have you down for ${title}.`}
         </p>
         <p className="mt-4 max-w-[36rem] text-body text-text/80">
-          If places come free we will email you in queue order with a link to book. The link does not hold a
-          place for you — the first to book gets it — so it is worth acting on quickly.
+          If spots come free we will email you in queue order with a link to book. The link does not hold a
+          spot for you — the first to book gets it — so it is worth acting on quickly.
         </p>
       </div>
     );
@@ -140,7 +140,7 @@ export function WaitlistForm({ sessionSlug, title }: { sessionSlug: string; titl
         Join the waitlist
       </h2>
       <p className="mt-4 max-w-[34rem] text-body text-text/80">
-        This date is full. Leave your details and we will email you, in the order you joined, if places come
+        This date is full. Leave your details and we will email you, in the order you joined, if spots come
         free.
       </p>
 
@@ -150,7 +150,7 @@ export function WaitlistForm({ sessionSlug, title }: { sessionSlug: string; titl
         <WaitField id={`${ids}-phone`} name="phone" label="Phone" type="tel" autoComplete="tel" optional error={errors.phone} />
         <div className={styles.field} data-status={errors.qty ? "error" : "idle"}>
           <label htmlFor={`${ids}-qty`} className={LABEL}>
-            Places wanted
+            Spots wanted
           </label>
           <div className="relative">
             <select id={`${ids}-qty`} name="qty" defaultValue="1" className={cn(FIELD, "cursor-pointer appearance-none pr-8")}>

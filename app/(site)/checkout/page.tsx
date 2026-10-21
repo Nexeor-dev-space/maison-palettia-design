@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { BookingClosed } from "@/components/booking/BookingClosed";
-import { Steps } from "@/components/booking/Steps";
 import { Checkout } from "@/components/booking/Checkout";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
@@ -81,8 +80,6 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
 
         {settings && catalogue ? (
           <>
-            <Steps current={2} />
-
             <Reveal className="mt-12 md:mt-14">
               <h1 className="text-h1 font-light tracking-[-0.02em]">
                 Complete Your Booking.

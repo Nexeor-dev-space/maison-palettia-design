@@ -519,7 +519,8 @@ export function MenuDoor({
 }: {
   href: string;
   title: string;
-  sub: string;
+  /** The line under the title. Optional: the About panel's doors have none. */
+  sub?: string;
   mark?: DoodleName;
   tone?: DoorTone;
   /**
@@ -582,16 +583,18 @@ export function MenuDoor({
 
       <span className="min-w-0 flex-1">
         <span className="block text-h4 font-medium">{title}</span>
-        <span
-          className={cn(
-            "mt-1 block text-body",
-            /* Both are measured, hover included — see DOOR_TONE. Only the
-               quiet door's near-white ground has the headroom for an alpha. */
-            paint.ink,
-          )}
-        >
-          {sub}
-        </span>
+        {sub ? (
+          <span
+            className={cn(
+              "mt-1 block text-body",
+              /* Both are measured, hover included — see DOOR_TONE. Only the
+                 quiet door's near-white ground has the headroom for an alpha. */
+              paint.ink,
+            )}
+          >
+            {sub}
+          </span>
+        ) : null}
       </span>
 
       <span
