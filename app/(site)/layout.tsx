@@ -18,7 +18,8 @@ import { SiteChromeProvider, type SiteChromeData } from "@/components/layout/Sit
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ContactWidget } from "@/components/layout/ContactWidget";
 import { MusicPlayer } from "@/components/layout/MusicPlayer";
-import { CursorLayer, LoopPause, PointerField } from "@/components/motion/Deferred";
+import { CursorLayer, PointerField } from "@/components/motion/Deferred";
+import { LoopPause } from "@/components/motion/LoopPause";
 import { AutoReveal } from "@/components/motion/AutoReveal";
 import { SiteLoader } from "@/components/motion/SiteLoader";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";

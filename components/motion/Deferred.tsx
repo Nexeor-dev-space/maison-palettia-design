@@ -6,7 +6,11 @@ import dynamic from "next/dynamic";
   Layout effects that draw nothing a visitor can see at load, loaded after the
   page has hydrated instead of in the same bundle as it.
 
-  Each of these renders nothing (PointerField, LoopPause) or something hidden
+  LoopPause is NOT here: until it runs, every off-screen `data-loop` float
+  keeps animating, and those frames land on the load this file exists to
+  lighten. It is a few hundred bytes, so the root layout imports it directly.
+
+  Each of these renders nothing (PointerField) or something hidden
   until a pointer moves over the page (CursorLayer's brush and paint canvas),
   so leaving them out of the server HTML changes nothing on screen. What it
   changes is how much JavaScript the browser must download, parse and run
@@ -21,9 +25,5 @@ export const CursorLayer = dynamic(() => import("@/components/motion/CursorLayer
 });
 
 export const PointerField = dynamic(() => import("@/components/motion/PointerField").then((m) => m.PointerField), {
-  ssr: false,
-});
-
-export const LoopPause = dynamic(() => import("@/components/motion/LoopPause").then((m) => m.LoopPause), {
   ssr: false,
 });
