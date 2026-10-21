@@ -47,6 +47,7 @@ export async function experienceItems(collection: string) {
     .map((experience) => ({
       src: experience.image!.src,
       alt: experience.image!.alt,
+      blur: experience.image!.blur,
       title: experience.name,
       meta: experience.status ?? kindLabel[experience.kind],
       collection,

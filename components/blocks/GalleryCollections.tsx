@@ -60,7 +60,7 @@ export async function GalleryCollectionsAdapter({ block, ctx }: AdapterProps<"ga
         items = files
           .map((file) => imageOf(file))
           .filter((image): image is NonNullable<typeof image> => Boolean(image))
-          .map((image) => ({ src: image.src, alt: image.alt, collection: name }));
+          .map((image) => ({ src: image.src, alt: image.alt, blur: image.blur, collection: name }));
       }
       return {
         id: COMPOSITIONS[i % COMPOSITIONS.length],

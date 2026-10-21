@@ -25,6 +25,7 @@ import { LoopPause } from "@/components/motion/LoopPause";
 import { PointerField } from "@/components/motion/PointerField";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
+import { PHOTO_REVEAL_SCRIPT } from "@/lib/photoReveal";
 import { hapsha, montserrat } from "@/lib/fonts";
 import { isDraft } from "@/lib/cms/draft";
 import { getDefaultMetadata } from "@/lib/seo";
@@ -116,6 +117,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Decides the homepage intro before first paint; does nothing on any
             other page. See components/sections/hero/intro.ts. */}
         <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+        {/* Fades each photograph in over its blurred stand-in once it has
+            loaded and decoded — listening before any <img> is parsed. See
+            lib/photoReveal.ts and components/ui/Image.tsx. */}
+        <script dangerouslySetInnerHTML={{ __html: PHOTO_REVEAL_SCRIPT }} />
         {/*
           Scroll-triggered reveals render at opacity 0 until JavaScript runs.
           Without this, a visitor (or crawler) with JS disabled sees an empty

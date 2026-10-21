@@ -221,6 +221,7 @@ export interface UserAuthOperations {
  */
 export interface Media {
   id: string;
+  blurDataURL?: string | null;
   /**
    * Describe what is IN the frame — never an occasion the photo does not show. Required unless the file is decorative.
    */
@@ -4163,6 +4164,7 @@ export interface PayloadMigration {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  blurDataURL?: T;
   alt?: T;
   decorative?: T;
   caption?: T;

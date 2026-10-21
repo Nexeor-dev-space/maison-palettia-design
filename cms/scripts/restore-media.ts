@@ -7,6 +7,7 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 import sharp from "sharp";
 
+import { backfillBlur } from "@/cms/lib/backfillBlur";
 import { MEDIA_DIR, MUSIC_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
@@ -226,6 +227,12 @@ async function main() {
   );
   if (music.missing.length) {
     console.log(`restore-media: these tracks will not play until uploaded on this server: ${music.missing.join(", ")}`);
+  }
+
+  // Blurred stand-ins for any picture that predates them, from this disk.
+  const blur = await backfillBlur(payload, { dryRun });
+  if (blur.made || blur.none || blur.missing.length) {
+    console.log(`restore-media: blur — ${verb} ${blur.made} stand-ins, ${blur.none} need none, ${blur.missing.length} without a file here.`);
   }
   process.exit(0);
 }

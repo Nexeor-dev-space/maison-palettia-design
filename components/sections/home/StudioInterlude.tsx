@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 
 import type { ImageAsset } from "@/types";
 
@@ -106,6 +106,7 @@ export function StudioInterlude({
             >
               <Image
                 src={first.src}
+                blur={first.blur}
                 alt={first.alt}
                 fill
                 /*
@@ -155,6 +156,7 @@ export function StudioInterlude({
             >
               <Image
                 src={second.src}
+                blur={second.blur}
                 alt={second.alt}
                 fill
                 sizes="(min-width: 1024px) 58vw, 100vw"

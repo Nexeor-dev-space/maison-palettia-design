@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/motion/Stagger";

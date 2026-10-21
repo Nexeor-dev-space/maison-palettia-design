@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 
 import { JOURNAL_COPY } from "@/components/journal/copy";
 import { PeelNote } from "@/components/ui/PeelNote";
@@ -25,6 +25,7 @@ export function AuthorCard({ post }: { post: JournalPost }) {
           <span className="plate relative block h-16 w-16 shrink-0 overflow-clip rounded-pill bg-surface md:h-20 md:w-20">
             <Image
               src={author.photo.src}
+              blur={author.photo.blur}
               alt=""
               fill
               sizes="80px"

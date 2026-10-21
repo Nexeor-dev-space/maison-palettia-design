@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 
 import { groundShapes } from "@/components/motion/groundShapes";
@@ -403,6 +403,7 @@ function Masthead({ audience }: { audience: PrivateEventAudience }) {
                   <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface-alt sm:aspect-[3/2]">
                     <Image
                       src={banner.src}
+                      blur={banner.blur}
                       alt={banner.alt}
                       fill
                       priority

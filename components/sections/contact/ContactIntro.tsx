@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 
 import { ContactForm } from "@/components/contact/ContactForm";
@@ -305,6 +305,7 @@ function Portrait({ image }: { image: ImageAsset | null }) {
               nothing about an occasion.
             */
             src={image.src}
+            blur={image.blur}
             alt={image.alt}
             fill
             sizes="100vw"

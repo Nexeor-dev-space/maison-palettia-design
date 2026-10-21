@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";

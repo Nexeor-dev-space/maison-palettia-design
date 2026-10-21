@@ -7,6 +7,7 @@ import {
   type PrivateEventAudience,
   type PrivateEventStep,
 } from "@/lib/privateEvents";
+import { withStaticBlurs } from "@/lib/staticBlur";
 
 /**
  * lib/privateEvents.ts, from the CMS (SPEC §G.1).
@@ -32,7 +33,10 @@ const readProgrammes = contentReader("programmes", [TAGS.programmes], async (dra
 export async function getPrivateEventAudiences(): Promise<PrivateEventAudience[]> {
   const fromCms = await readProgrammes();
   // The in-file programmes only when the CMS could not be read (null).
-  return (fromCms ? [...fromCms] : PRIVATE_EVENT_AUDIENCES.map((audience) => ({ ...audience }))).map(holdBannerInCode);
+  // The code-held banners get their blurred stand-ins (lib/staticBlur.ts).
+  return withStaticBlurs(
+    (fromCms ? [...fromCms] : PRIVATE_EVENT_AUDIENCES.map((audience) => ({ ...audience }))).map(holdBannerInCode),
+  );
 }
 
 /*

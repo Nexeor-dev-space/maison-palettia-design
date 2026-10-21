@@ -12,6 +12,7 @@ import * as migration_20261011_052017_add_workshop_types from './20261011_052017
 import * as migration_20261011_132002_add_session_vibes from './20261011_132002_add_session_vibes';
 import * as migration_20261015_165649_add_music from './20261015_165649_add_music';
 import * as migration_20261016_101514_booking_walk_in_copy from './20261016_101514_booking_walk_in_copy';
+import * as migration_20261021_184845_media_blur_placeholder from './20261021_184845_media_blur_placeholder';
 
 export const migrations = [
   {
@@ -82,6 +83,11 @@ export const migrations = [
   {
     up: migration_20261016_101514_booking_walk_in_copy.up,
     down: migration_20261016_101514_booking_walk_in_copy.down,
-    name: '20261016_101514_booking_walk_in_copy'
+    name: '20261016_101514_booking_walk_in_copy',
+  },
+  {
+    up: migration_20261021_184845_media_blur_placeholder.up,
+    down: migration_20261021_184845_media_blur_placeholder.down,
+    name: '20261021_184845_media_blur_placeholder'
   },
 ];

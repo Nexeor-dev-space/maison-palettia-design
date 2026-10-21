@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 
 import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
@@ -188,6 +188,7 @@ export function GalleryHeader({
                   {image ? (
                     <Image
                       src={image.src}
+                      blur={image.blur}
                       alt={image.alt}
                       fill
                       priority
@@ -204,6 +205,7 @@ export function GalleryHeader({
                     <span className="relative block aspect-square w-full">
                       <Image
                         src={inset.src}
+                        blur={inset.blur}
                         alt={inset.alt}
                         fill
                         sizes="(min-width: 1024px) 18vw, 40vw"
