@@ -141,6 +141,37 @@ const OPENING_SHARE = 0.52;
   scrolling instead of ~94, and the picture then stands open for the rest.
 */
 const OPENING_SHARE_PHONE = 0.42;
+/*
+  ==========================================================================
+  ON A TOUCH SCREEN THE OPENING IS PLAYED, NOT SCRUBBED.
+  ==========================================================================
+
+  The jitter the client kept filming on iPhone was still there with every
+  scroll handler blocked and the corner animation removed, so it is not
+  ours to tune away. Measured frame by frame in the iOS Simulator against
+  staging: the pinned frame itself holds perfectly still (it stayed put
+  through a 2.5s freeze of the main thread), but Safari's scroll timeline
+  every few frames draws the whole opening — photograph, words, actions —
+  one step BEHIND where it already was, and then catches up. 23 to 46
+  backward steps in one slow drag, on staging and on any real address
+  (`localhost` hides it, which is why a dev server looked fine). That is a
+  WebKit fault in scroll-linked animations, and every scrubbed element
+  inherits it.
+
+  A timed animation does not have it: a transform or opacity animation on
+  the clock is handed whole to the compositor (Core Animation on iOS) and
+  plays at the display's own rate whatever the page or the scroll is doing.
+  So on a touch screen the same keyframes play over PLAYED_MS once the page
+  has moved PLAY_FROM pixels into the track, and play back the other way
+  when it returns within CLOSE_UNDER of the top. The pinned frame is all the
+  scroll moves; nothing the scroll drives can shake against it.
+
+  A pointer device keeps the scrubbed opening: Lenis eases the wheel there
+  and it was never part of the report.
+*/
+const PLAYED_MS = 900;
+const PLAY_FROM = 16;
+const CLOSE_UNDER = 4;
 /* Where the words land, as a share of the screen's height: below both faces in the photograph. */
 const COPY_LANDING = 0.7;
 /* The opening progress at which the two actions become usable, and the cue stops being. */
@@ -1053,6 +1084,9 @@ export function HeroIntro() {
       continuous movement and settles within a few frames of the finger
       stopping. A pointer device keeps the direct write: Lenis already eases
       the wheel, and easing twice would make the banner trail the page.
+
+      This is now the fallback only: a touch screen that has Web Animations
+      (every current one) plays the opening instead — see PLAYED_MS.
     */
     const touch = window.matchMedia("(pointer: coarse)").matches;
 
@@ -1088,11 +1122,15 @@ export function HeroIntro() {
 
       The script keeps two jobs: the ink flips (`data-lit`) and which of the
       cue and the actions is reachable (`inert`), both attribute toggles.
+
+      EXCEPT ON A TOUCH SCREEN, where the same animations run on the clock
+      instead of the scroll — see PLAYED_MS for why.
     */
+    let played = touch && !!card && !!cardInner && typeof card.animate === "function";
     type ScrollTimelineCtor = new (init: { source: Element | null; axis?: "block" | "inline" }) => AnimationTimeline;
     const ScrollTimelineImpl = (window as unknown as { ScrollTimeline?: ScrollTimelineCtor }).ScrollTimeline;
     let timeline: AnimationTimeline | null = null;
-    if (ScrollTimelineImpl && card && cardInner && typeof card.animate === "function" && CSS.supports("animation-timeline: scroll()")) {
+    if (!played && ScrollTimelineImpl && card && cardInner && typeof card.animate === "function" && CSS.supports("animation-timeline: scroll()")) {
       try {
         timeline = new ScrollTimelineImpl({ source: document.scrollingElement, axis: "block" });
       } catch {
@@ -1105,14 +1143,62 @@ export function HeroIntro() {
     let animations: Animation[] = [];
     let imageAnimations: Animation[] = [];
     let copyShift = 0;
-    /** One animation, scrubbed by the page's scroll between two positions in px. */
-    const scrub = (el: Element, frames: Keyframe[], from = start, to = end) =>
-      el.animate(frames, {
-        timeline,
-        fill: "both",
-        rangeStart: `${from}px`,
-        rangeEnd: `${to}px`,
-      } as KeyframeAnimationOptions);
+    /*
+      Which way the played opening is going, or last went: 1 open, -1 closed.
+      Every played animation lasts PLAYED_MS end to end (a shorter one, like
+      the corner, carries the rest as delays), so one `currentTime` is the
+      playhead of all of them.
+    */
+    let heading: 1 | -1 = -1;
+    const playhead = () => {
+      const lead = animations[0];
+      if (lead) return Math.min(PLAYED_MS, Math.max(0, Number(lead.currentTime) || 0));
+      return heading > 0 ? PLAYED_MS : 0;
+    };
+    /**
+     * One animation over the opening, between two scroll positions in px:
+     * scrubbed by the scroll timeline, or, played, the same share of PLAYED_MS.
+     */
+    const scrub = (el: Element, frames: Keyframe[], from = start, to = end) => {
+      if (!played) {
+        return el.animate(frames, {
+          timeline,
+          fill: "both",
+          rangeStart: `${from}px`,
+          rangeEnd: `${to}px`,
+        } as KeyframeAnimationOptions);
+      }
+      const span = Math.max(1, end - start);
+      const delay = ((from - start) / span) * PLAYED_MS;
+      const duration = ((to - from) / span) * PLAYED_MS;
+      const animation = el.animate(frames, { duration, delay, endDelay: PLAYED_MS - delay - duration, fill: "both" });
+      animation.pause();
+      return animation;
+    };
+    /*
+      STARTED BY SETTING `startTime`, NEVER BY `play()`.
+
+      Safari resolves `play()` on an animation that has sat paused since
+      the page loaded against a start time from back then: on staging the
+      card reported itself finished one frame after `play()`, its start time
+      25 seconds in the past, so the photograph jumped open in a single
+      frame instead of opening over PLAYED_MS. Writing the start time
+      ourselves (the timeline's now, less where the playhead is) runs it
+      from exactly here, in every engine, whether it was paused, finished
+      or already running the other way.
+    */
+    const runFrom = (animation: Animation, at: number, dir: 1 | -1) => {
+      const now = Number(document.timeline.currentTime ?? performance.now());
+      animation.playbackRate = dir;
+      animation.startTime = now - at / dir;
+    };
+    /** New played animations pick up where the ones they replace had got to, and keep going. */
+    const cueUp = (list: Animation[], at: number, moving: boolean) => {
+      for (const animation of list) {
+        animation.currentTime = at;
+        if (moving && (heading > 0 ? at < PLAYED_MS : at > 0)) runFrom(animation, at, heading);
+      }
+    };
     /** Keyframes sampled evenly along the scroll, each holding the eased progress's values. */
     const sampled = (at: (p: number) => Keyframe): Keyframe[] =>
       Array.from({ length: STEPS + 1 }, (_, i) => ({ ...at(smooth(i / STEPS)), offset: i / STEPS, easing: "linear" }));
@@ -1131,7 +1217,9 @@ export function HeroIntro() {
       same property, and an animation would override both.
     */
     const buildImageTimeline = () => {
-      if (!timeline) return;
+      if (!timeline && !played) return;
+      const at = playhead();
+      const moving = animations[0]?.playState === "running";
       for (const a of imageAnimations) a.cancel();
       imageAnimations = [];
       for (const img of frame.querySelectorAll<HTMLElement>("[data-hero-card-inner] img")) {
@@ -1145,9 +1233,15 @@ export function HeroIntro() {
           ),
         );
       }
+      if (played) cueUp(imageAnimations, at, moving);
     };
     const buildTimeline = () => {
-      if (!timeline || !card || !cardInner) return;
+      if ((!timeline && !played) || !card || !cardInner) return;
+      // Played: rebuilt (a rotation, the fonts arriving) from wherever it had
+      // got to; built the first time open if the page arrived scrolled into it.
+      if (played && animations.length === 0 && window.scrollY - start > PLAY_FROM) heading = 1;
+      const at = playhead();
+      const moving = animations[0]?.playState === "running";
       for (const a of animations) a.cancel();
       animations = [];
       try {
@@ -1220,6 +1314,7 @@ export function HeroIntro() {
             ),
           );
         }
+        if (played) cueUp(animations, at, moving);
         if (document.documentElement.dataset.intro === "done") buildImageTimeline();
       } catch {
         // A browser that has the constructor but not the range syntax: the
@@ -1229,6 +1324,7 @@ export function HeroIntro() {
         animations = [];
         imageAnimations = [];
         timeline = null;
+        played = false;
       }
     };
     const introDone = new MutationObserver(() => {
@@ -1241,7 +1337,7 @@ export function HeroIntro() {
     let follow = 0;
     const apply = (p: number) => {
       shown = p;
-      if (!timeline) {
+      if (!timeline && !played) {
         const value = p.toFixed(4);
         for (const el of readers) el.style.setProperty("--p", value);
         placeCard(p);
@@ -1286,17 +1382,7 @@ export function HeroIntro() {
       if (shown !== target) follow = requestAnimationFrame(step);
     };
 
-    const write = () => {
-      const t = Math.min(1, Math.max(0, (window.scrollY - start) / (end - start)));
-      // Smoothstep: the opening gathers pace and then settles, rather than
-      // tracking the scrollbar mechanically.
-      const p = t * t * (3 - 2 * t);
-      target = p;
-      // On the timeline the compositor already follows the finger; the
-      // easing below exists for the script path only.
-      if (!touch || shown < 0 || timeline) apply(p);
-      else if (!follow) follow = requestAnimationFrame(step);
-
+    const gate = (p: number) => {
       const nextActions = p >= ACTIONS_FROM;
       if (nextActions !== actionsLive) {
         actionsLive = nextActions;
@@ -1308,14 +1394,60 @@ export function HeroIntro() {
         cue.inert = !nextCue;
       }
     };
+
+    /*
+      PLAYED: the ink and the two toggles follow the playhead, not the
+      scroll — read once a frame while the opening runs, and once where it
+      stops. Only attributes change here; the movement is the compositor's.
+    */
+    let ticker = 0;
+    const tickPlayed = () => {
+      ticker = 0;
+      const p = smooth(playhead() / PLAYED_MS);
+      apply(p);
+      gate(p);
+      if (animations[0]?.playState === "running") ticker = requestAnimationFrame(tickPlayed);
+    };
+    const playTo = (dir: 1 | -1) => {
+      heading = dir;
+      for (const a of [...animations, ...imageAnimations]) {
+        const t = Number(a.currentTime) || 0;
+        // Already there; otherwise from where it is, even turned round mid-way.
+        if (dir > 0 ? t >= PLAYED_MS : t <= 0) continue;
+        runFrom(a, t, dir);
+      }
+      if (!ticker) ticker = requestAnimationFrame(tickPlayed);
+    };
+
+    const write = () => {
+      if (played) {
+        // Open once the page is a little way in; closed again only at the
+        // top, so a finger resting near the threshold cannot flicker it.
+        const into = window.scrollY - start;
+        const open = heading > 0 ? into > CLOSE_UNDER : into > PLAY_FROM;
+        if ((open ? 1 : -1) !== heading) playTo(open ? 1 : -1);
+        else if (!ticker) tickPlayed();
+        return;
+      }
+      const t = Math.min(1, Math.max(0, (window.scrollY - start) / (end - start)));
+      // Smoothstep: the opening gathers pace and then settles, rather than
+      // tracking the scrollbar mechanically.
+      const p = t * t * (3 - 2 * t);
+      target = p;
+      // On the timeline the compositor already follows the finger; the
+      // easing below exists for the script path only.
+      if (!touch || shown < 0 || timeline) apply(p);
+      else if (!follow) follow = requestAnimationFrame(step);
+      gate(p);
+    };
     const onScroll = write;
-    /* Measured afresh, then either the timeline is rebuilt against the new
+    /* Measured afresh, then either the animations are rebuilt against the new
        geometry or the card is placed by hand. */
     const refresh = () => {
       measure();
       measureCard();
-      if (timeline) buildTimeline();
-      if (!timeline) placeCard(Math.max(0, shown));
+      if (timeline || played) buildTimeline();
+      if (!timeline && !played) placeCard(Math.max(0, shown));
     };
     const onResize = () => {
       refresh();
@@ -1337,6 +1469,7 @@ export function HeroIntro() {
     return () => {
       cancelled = true;
       cancelAnimationFrame(follow);
+      cancelAnimationFrame(ticker);
       stopScroll();
       frame.removeEventListener(REFIT_EVENT, onResize);
       live.disconnect();
