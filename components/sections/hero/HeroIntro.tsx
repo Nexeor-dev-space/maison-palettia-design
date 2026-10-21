@@ -1175,14 +1175,28 @@ export function HeroIntro() {
       animation.pause();
       return animation;
     };
+    /*
+      STARTED BY SETTING `startTime`, NEVER BY `play()`.
+
+      Safari resolves `play()` on an animation that has sat paused since
+      the page loaded against a start time from back then: on staging the
+      card reported itself finished one frame after `play()`, its start time
+      25 seconds in the past, so the photograph jumped open in a single
+      frame instead of opening over PLAYED_MS. Writing the start time
+      ourselves (the timeline's now, less where the playhead is) runs it
+      from exactly here, in every engine, whether it was paused, finished
+      or already running the other way.
+    */
+    const runFrom = (animation: Animation, at: number, dir: 1 | -1) => {
+      const now = Number(document.timeline.currentTime ?? performance.now());
+      animation.playbackRate = dir;
+      animation.startTime = now - at / dir;
+    };
     /** New played animations pick up where the ones they replace had got to, and keep going. */
     const cueUp = (list: Animation[], at: number, moving: boolean) => {
       for (const animation of list) {
         animation.currentTime = at;
-        if (moving && (heading > 0 ? at < PLAYED_MS : at > 0)) {
-          animation.playbackRate = heading;
-          animation.play();
-        }
+        if (moving && (heading > 0 ? at < PLAYED_MS : at > 0)) runFrom(animation, at, heading);
       }
     };
     /** Keyframes sampled evenly along the scroll, each holding the eased progress's values. */
@@ -1398,15 +1412,9 @@ export function HeroIntro() {
       heading = dir;
       for (const a of [...animations, ...imageAnimations]) {
         const t = Number(a.currentTime) || 0;
-        // Already there. (And `play()` from the far end would rewind first.)
+        // Already there; otherwise from where it is, even turned round mid-way.
         if (dir > 0 ? t >= PLAYED_MS : t <= 0) continue;
-        // Turned round mid-way: from where it is, not from either end.
-        if (a.playState === "running") {
-          if (Math.sign(a.playbackRate) !== dir) a.reverse();
-        } else {
-          a.playbackRate = dir;
-          a.play();
-        }
+        runFrom(a, t, dir);
       }
       if (!ticker) ticker = requestAnimationFrame(tickPlayed);
     };
