@@ -415,6 +415,16 @@
   }
 }
 
+/* A touch screen plays the opening on its first few pixels of scroll rather
+   than spending scroll on it (PLAYED_MS in <HeroIntro>), so the whole hold is
+   the picture standing open. 170svh keeps that stand at the ~70svh a phone
+   had before, instead of a screen and more of a page that will not move. */
+@media (pointer: coarse) {
+  .track {
+    height: 170svh;
+  }
+}
+
 .frame {
   position: sticky;
   top: 0;
