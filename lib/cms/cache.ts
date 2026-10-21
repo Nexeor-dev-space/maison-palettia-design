@@ -46,6 +46,24 @@ export const TAGS = {
 
 export type CacheTag = (typeof TAGS)[keyof typeof TAGS];
 
+/*
+  THE CACHE'S EPOCH — part of every key `cached` makes (below). BUMP IT WITH ANY MIGRATION
+  THAT ADDS A FIELD THE SITE READS.
+
+  The data cache outlives a deploy: it is on disk under .next/cache, and the
+  build (Nixpacks keeps .next/cache between builds) prerenders from it. A
+  read cached before a migration keeps the old shape — the new field simply
+  is not in it — until something revalidates its tag, for up to a day. The
+  media blur placeholders (migration 20261021_184845) were filled straight
+  into the database, so no tag fired: staging went live with the new code
+  and every CMS photograph still read as having no `blurDataURL`.
+
+  A new epoch is a new key for every getter, so nothing cached under the old
+  shape can be read again: the next build and the server after it read
+  fresh from the database.
+*/
+const CACHE_EPOCH = "2026-10-22-media-blur";
+
 /**
  * Wraps a getter so its result is cached under `key` and the given tags.
  * `revalidate: 86400` is a safety net only — on-demand revalidation from
@@ -53,4 +71,5 @@ export type CacheTag = (typeof TAGS)[keyof typeof TAGS];
  * a page can get if a hook ever fails to fire.
  */
 export const cached = <A extends unknown[], R>(key: string, tags: string[], fn: (...args: A) => Promise<R>) =>
-  unstable_cache(fn, [key], { tags, revalidate: 86400 });
+  unstable_cache(fn, [key, CACHE_EPOCH], { tags, revalidate: 86400 });
+
