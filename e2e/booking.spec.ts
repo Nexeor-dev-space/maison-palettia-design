@@ -80,22 +80,20 @@ test("book two seats, pay on the mock page, get PDFs, an email and a door check-
   await q(`UPDATE payment_settings SET mode = 'mock'`);
   await setBookingsOpen(true);
 
-  // ── The visitor books two places ───────────────────────────────────────────
+  // ── The visitor books two spots ────────────────────────────────────────────
   const tag = Date.now().toString(36);
   const email = `e2e-booking-${tag}@example.test`;
   await page.goto(`/events/${session.slug}/book`);
-  // Up to a few seats the picker is a native radio group under painted wells; past that, − / + buttons.
+  // Up to fifteen seats the picker is a native radio group under palettes round a table; past that, − / + buttons.
   await page.locator('label:has(input[name="places"][value="2"])').click();
-  await expect(page.getByRole("radio", { name: /^2 places/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /^2 spots/ })).toBeChecked();
   await page.fill('input[name="firstName"]', "Eve");
   await page.fill('input[name="lastName"]', "Endtoend");
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="phone"]', "+971 50 123 4567");
-  await page.getByRole("button", { name: /continue to checkout/i }).click();
-  await page.waitForURL(/\/checkout/);
-
-  const pay = page.locator('form button[type="submit"]').last();
-  await expect(pay).toHaveText(/pay/i);
+  // One step: Pay is on the booking page itself, no separate checkout.
+  const pay = page.getByRole("button", { name: /^pay /i });
+  await expect(pay).toBeVisible();
   const consent = page.locator('input[name="consent"]');
   if (await consent.count()) await consent.check();
   await pay.click({ noWaitAfter: true });

@@ -9,8 +9,9 @@
  * THE PLAYER STARTS ITSELF, at the client's ask: on arrival where the
  * browser allows sound without a gesture, otherwise on the visitor's first
  * tap or click anywhere (no page can override that rule). A visitor who
- * pauses it keeps it off. See <MusicPlayer>. What the studio controls is
- * whether the player is there, the starting volume, the order, and the pages
+ * pauses it keeps it off for the rest of that visit; the next visit starts
+ * it again. See <MusicPlayer>. What the studio controls is whether the
+ * player is there, the starting volume, the order, and the pages
  * it stays off (checkout by default: nobody wants a soundtrack while paying).
  */
 
@@ -37,7 +38,7 @@ export const MusicSettings: GlobalConfig = {
   },
   fields: [
     toggle("enabled", "Show the music player", {
-      description: "A small play button in the corner of every page. Music starts by itself when a visitor arrives (or on their first tap, where the browser requires one); pausing it keeps it off for them.",
+      description: "A small play button in the corner of every page. Music starts by itself when a visitor arrives (or on their first tap, where the browser requires one); pausing it keeps it off for the rest of their visit.",
       defaultValue: false,
     }),
     {

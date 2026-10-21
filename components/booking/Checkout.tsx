@@ -347,11 +347,11 @@ function resolveLines(
 }
 
 /** Every refusal `startCheckout` can give, in words a customer can act on. Nothing is charged in any of them. */
-function refusalMessage(outcome: Exclude<StartCheckoutOutcome, { status: "redirect" | "paid" }>): string {
+export function refusalMessage(outcome: Exclude<StartCheckoutOutcome, { status: "redirect" | "paid" }>): string {
   switch (outcome.status) {
     case "sold_out":
       return typeof outcome.available === "number" && outcome.available > 0
-        ? `Only ${outcome.available} ${outcome.available === 1 ? "place is" : "places are"} left on one of the dates in your booking. Lower the number of places and try again. Nothing has been charged.`
+        ? `Only ${outcome.available} ${outcome.available === 1 ? "spot is" : "spots are"} left on one of the dates in your booking. Lower the number of spots and try again. Nothing has been charged.`
         : "One of the dates in your booking has just sold out. Remove it to continue. Nothing has been charged.";
     case "closed":
       return "Online bookings have just been paused, so this booking could not be made. Nothing has been charged.";
@@ -362,7 +362,7 @@ function refusalMessage(outcome: Exclude<StartCheckoutOutcome, { status: "redire
     case "invalid":
       return outcome.message ?? "Some details could not be accepted. Please check them and try again.";
     case "payment_link_failed":
-      return "We could not open the payment page just now. Your places are held for a few minutes — press Pay again to retry. Nothing has been charged.";
+      return "We could not open the payment page just now. Your spots are held for a few minutes — press Pay again to retry. Nothing has been charged.";
     default:
       return "We could not complete your booking just now. Nothing has been charged. Please try again in a moment.";
   }
@@ -379,7 +379,7 @@ function PaymentNotCompleted() {
       <p className="text-label font-medium uppercase tracking-eyebrow text-text">Payment not completed</p>
       <p className="mt-3 text-body text-text/80">
         The payment did not go through, so nothing has been charged. Your booking is still here and your
-        places are held for a few minutes — check your details and press Pay to try again, with the same card
+        spots are held for a few minutes — check your details and press Pay to try again, with the same card
         or another.
       </p>
     </div>
@@ -429,13 +429,25 @@ function CustomerDetails({ details, errors }: { details: BookingDetails | null; 
  * agreement at checkout", each linked. The versions agreed to travel with
  * the order (`orders.consentedPolicyVersions`).
  */
-function Consent({ id, consents, error }: { id: string; consents: CheckoutConsent[]; error?: string }) {
+export function Consent({
+  id,
+  consents,
+  error,
+  form,
+}: {
+  id: string;
+  consents: CheckoutConsent[];
+  error?: string;
+  /** The form the box belongs to, when it is drawn outside it. */
+  form?: string;
+}) {
   return (
     <div className="mt-10">
       <div className="flex items-start gap-3">
         <input
           id={id}
           name="consent"
+          form={form}
           type="checkbox"
           value="yes"
           aria-invalid={error ? true : undefined}
