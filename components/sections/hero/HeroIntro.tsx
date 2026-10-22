@@ -14,9 +14,10 @@ import { onScrollFrame, pauseScroller, resumeScroller } from "@/lib/scroll";
   storyboard and every note that explains a number — the frame list, the
   pen's WRITE_MS, the wells, the burst and scatter steps, the tucked shapes'
   fade, the short entrance. They moved because the intro no longer waits for
-  this component: the head script runs the same function from the first
-  paint, and this adopts what it started (see the intro effect below). One
-  function for both is what keeps them from drifting apart.
+  this component: the inline script after the hero (<HeroIntroScript>) runs
+  the same function from the first paint, and this adopts what it started
+  (see the intro effect below). One function for both is what keeps them from
+  drifting apart.
 
   What stays here is what only ever ran after hydration: the short entrance
   for a return inside the site, the banner's opening on scroll, and the
@@ -190,8 +191,9 @@ export function HeroIntro() {
       ---- the intro: ADOPTED, NOT STARTED ----
 
       EVERY PAGE LOAD PLAYS THE INTRO — a first visit, a return, a refresh —
-      and on a page load the head script is already running it by the time
-      this hydrates (./introCore.ts): the clock started at first paint, and the
+      and on a page load the inline script after the hero is already running
+      it by the time this hydrates (./introCore.ts): the clock started at
+      first paint, and the
       wells, the burst or even the lift may be behind it. So this takes over
       the one thing the script was waiting for React to do, which is to own
       the scroll: Lenis is paused while the script holds the page and resumed
@@ -852,7 +854,7 @@ export function HeroIntro() {
         See <LogoReveal>; the flight aims at the header's letters, not its
         file, so the two meet exactly.
 
-        `data-intro-logo` is how the head script finds it before React has a
+        `data-intro-logo` is how the inline script finds it before React has a
         ref to give, and the flight's `--logo-*` it may already have written
         by hydration are why React is told not to mind its style.
       */}

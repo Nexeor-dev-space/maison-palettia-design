@@ -11,6 +11,7 @@ import {
   type IntroController,
   type IntroLogoCuts,
 } from "../../components/sections/hero/introCore";
+import { INTRO_SCRIPT } from "../../components/sections/hero/intro";
 
 /**
  * The homepage intro's head script (components/sections/hero/introCore.ts).
@@ -221,7 +222,7 @@ class El {
 }
 
 interface Page {
-  run: () => void;
+  run: (script?: string) => void;
   html: El;
   hero: El;
   logo: El;
@@ -352,7 +353,7 @@ function page({
   const context = vm.createContext(win);
 
   return {
-    run: () => vm.runInContext(SCRIPT, context),
+    run: (script = SCRIPT) => vm.runInContext(script, context),
     html,
     hero,
     logo,
@@ -385,10 +386,18 @@ function page({
 
 /* ------------------------------------------------------------- the head */
 
-describe("introScript — the head's decision", () => {
+/*
+  The decision is made twice on a homepage load: by INTRO_SCRIPT in <head>,
+  and again by the runtime when the inline script after the hero runs it. The
+  two must agree on every branch, so both run the same cases.
+*/
+describe.each([
+  ["INTRO_SCRIPT, in <head>", INTRO_SCRIPT],
+  ["introScript, after the hero", SCRIPT],
+])("the head's decision — %s", (_, script) => {
   it("marks the loader on any other page, and nothing else", () => {
     const p = page({ path: "/about" });
-    p.run();
+    p.run(script);
     expect(p.html.getAttribute("data-loader")).toBe("write");
     expect(p.html.getAttribute("data-intro")).toBeNull();
     expect(p.controller()).toBeUndefined();
@@ -396,13 +405,13 @@ describe("introScript — the head's decision", () => {
 
   it("leaves other pages alone under reduced motion", () => {
     const p = page({ path: "/about", reduced: true });
-    p.run();
+    p.run(script);
     expect(p.html.getAttribute("data-loader")).toBeNull();
   });
 
   it("composes the homepage at once under reduced motion", () => {
     const p = page({ reduced: true });
-    p.run();
+    p.run(script);
     expect(p.html.getAttribute("data-intro")).toBe("done");
     expect(p.history.scrollRestoration).toBe("auto");
     expect(p.controller()).toBeUndefined();
@@ -410,14 +419,14 @@ describe("introScript — the head's decision", () => {
 
   it("plays on the homepage, with restoration off", () => {
     const p = page();
-    p.run();
+    p.run(script);
     expect(p.html.getAttribute("data-intro")).toBe("play");
     expect(p.history.scrollRestoration).toBe("manual");
   });
 
   it("skips when anything throws", () => {
     const p = page({ throwOnMedia: true });
-    p.run();
+    p.run(script);
     expect(p.html.getAttribute("data-intro")).toBe("skip");
   });
 });
@@ -425,6 +434,16 @@ describe("introScript — the head's decision", () => {
 /* --------------------------------------------------------- the sequence */
 
 describe("introScript — the sequence from first paint", () => {
+  it("starts once the head has already decided, as on a real load", () => {
+    const p = page();
+    p.run(INTRO_SCRIPT);
+    expect(p.html.getAttribute("data-intro")).toBe("play");
+    expect(p.controller()).toBeUndefined();
+    p.run();
+    expect(p.html.getAttribute("data-intro")).toBe("play");
+    expect(p.controller()?.hero).toBe(p.hero);
+  });
+
   it("runs play → dots → burst → settle → done on the designed clock", () => {
     const p = page();
     p.run();

@@ -14,15 +14,16 @@ import { DOODLE_PLAN, RING_ORDER } from "@/components/sections/hero/composition"
   stood still until the JavaScript arrived, and the words were hidden behind
   it the whole time.
 
-  So the clock now starts at first paint. The head script carries the whole
-  runtime — fitting the banner's foot, measuring the ring, aiming the mark at
-  the header, and the phase chain — and runs it the moment the hero has been
+  So the clock now starts at first paint. An inline script written straight
+  after the homepage's hero (<HeroIntroScript>) carries the whole runtime —
+  fitting the banner's foot, measuring the ring, aiming the mark at the
+  header, and the phase chain — and runs it the moment the hero has been
   parsed. <HeroIntro> adopts the sequence when it hydrates instead of starting
   one, and the designed timing is back on every device, however late the
   JavaScript is.
 
   ONE FUNCTION, TWO USES, SO THE TWO CANNOT DRIFT. `introRuntime` is
-  stringified into the head script by `introScript()`, and imported by
+  stringified into that inline script by `introScript()`, and imported by
   <HeroIntro> as ordinary code ("core" mode) for the helpers it still needs
   after the intro — the foot's fit and the bar's band. Being stringified is
   what sets the rules for writing it:
@@ -33,7 +34,7 @@ import { DOODLE_PLAN, RING_ORDER } from "@/components/sections/hero/composition"
       can lower it into a helper that lives somewhere else (a `for...of`, a
       spread or an optional chain could, depending on the target);
     - and the long notes live HERE, above it, not inside it: everything
-      between its braces is shipped as text in the <head> of every page.
+      between its braces is shipped as text in the homepage's HTML.
 
   tests/unit/introCore.test.ts parses the generated script and runs it
   against a stub page, so a reference that escapes the function fails there
@@ -191,7 +192,7 @@ export interface IntroRingEntry {
   rotate: number;
 }
 
-/** Everything `introRuntime` knows about the page, serialised into the head script. */
+/** Everything `introRuntime` knows about the page, serialised into the inline script. */
 export interface IntroConfig {
   ring: IntroRingEntry[];
   /** Every shape in the collage, ring or not. */
@@ -383,16 +384,19 @@ declare global {
     taller really does change the frame. Bursts are folded into one call per
     frame either way.
 
-  THE HEAD'S DECISION — unchanged from the inline script it replaces, branch
-  for branch: every other page gets `data-loader="write"` (unless reduced
-  motion) and nothing else; reduced motion on "/" gets `done`; otherwise scroll
-  restoration goes off and `play` goes on; anything that throws gets `skip`.
-  See ./intro.ts.
+  THE HEAD'S DECISION — the same as ./intro.ts's INTRO_SCRIPT, branch for
+  branch, which has already made it in <head> by the time this runs; making
+  it again changes nothing. Every other page gets `data-loader="write"`
+  (unless reduced motion) and nothing else; reduced motion on "/" gets
+  `done`; otherwise scroll restoration goes off and `play` goes on; anything
+  that throws gets `skip`.
 
-  WAITING FOR THE HERO. The script runs in <head>, before the body exists, so
-  it watches the parser (one MutationObserver, disconnected as soon as it has
-  its answer) until the banner's <section> has been parsed WHOLE — something
-  after it exists in the document, or the document has finished parsing.
+  WAITING FOR THE HERO. The banner's <section> must have been parsed WHOLE —
+  something after it exists in the document, or the document has finished
+  parsing. Written straight after the section (<HeroIntroScript>), this script
+  IS that something, so the answer is yes at once. Anywhere earlier it would
+  watch the parser (one MutationObserver, disconnected as soon as it has its
+  answer) until it was.
   Measuring half a banner would place the ring against a foot that is not
   there yet. A section inside a `hidden` container is a streamed segment not
   yet swapped into place, and is waited for too. If the document finishes
@@ -555,9 +559,9 @@ declare global {
  * The homepage intro, self-contained. See the notes above for every part.
  *
  *   "core" ....... returns the fit helpers and does nothing else.
- *   "boot" ....... the head script's decision, then the intro on the hero once
- *                  it has been parsed. Returns null (it starts later).
- *   "boot", hero . <HeroIntro>'s fallback when no head script started one: the
+ *   "boot" ....... the head's decision, then the intro on the hero once it has
+ *                  been parsed. Returns null (it starts later).
+ *   "boot", hero . <HeroIntro>'s fallback when no inline script started one: the
  *                  intro on that hero, now. Returns the controller.
  */
 export function introRuntime(cfg: IntroConfig | null, mode: "core"): IntroCore;
@@ -575,13 +579,22 @@ export function introRuntime(
   const SAFETY_MS = 8000;
   const FLIGHT_VARS = ["--bx", "--by", "--br", "--fx", "--fy", "--fs", "--fr"];
 
+  const BAND_PROBE = "position:absolute;left:-9999px;top:0;width:0;visibility:hidden;height:var(--bottom-nav-h,0px)";
+  const INSET_PROBE = "position:absolute;visibility:hidden;width:0;height:var(--wt)";
+
+  /* PROBE */
+  function probe(parent: HTMLElement, css: string): HTMLElement {
+    const el = document.createElement("div");
+    el.style.cssText = css;
+    parent.appendChild(el);
+    return el;
+  }
+
   /* NAV BAND */
   function navBand(): number {
-    const probe = document.createElement("div");
-    probe.style.cssText = "position:absolute;left:-9999px;top:0;width:0;visibility:hidden;height:var(--bottom-nav-h,0px)";
-    document.body.appendChild(probe);
-    const h = probe.offsetHeight;
-    probe.remove();
+    const el = probe(document.body, BAND_PROBE);
+    const h = el.offsetHeight;
+    el.remove();
     return h;
   }
 
@@ -605,23 +618,29 @@ export function introRuntime(
 
   /* INSET TOP */
   function insetTop(frame: HTMLElement): number {
-    const probe = document.createElement("div");
-    probe.style.cssText = "position:absolute;visibility:hidden;width:0;height:var(--wt)";
-    frame.appendChild(probe);
-    const h = probe.offsetHeight;
-    probe.remove();
+    const el = probe(frame, INSET_PROBE);
+    const h = el.offsetHeight;
+    el.remove();
     return h;
   }
 
   /* FIT FOOT, with CUE CLEARANCE */
   function fitFoot(frame: HTMLElement, copy: HTMLElement, cue: HTMLElement) {
+    /* Both probes go in before anything is read and come out after the last
+       read, so the whole measurement costs one layout. Taken one at a time
+       (navBand(), insetTop()), each insert and each removal dirtied the page
+       again and the next read laid it out again, several times per fit, on
+       the busiest frame of the load. They are hidden and out of flow, so
+       nothing read here sees them. */
+    const bandProbe = probe(document.body, BAND_PROBE);
+    const insetProbe = probe(frame, INSET_PROBE);
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     const raw = getComputedStyle(frame).getPropertyValue("--copy-gap").trim();
     const gap = raw.endsWith("rem") ? parseFloat(raw) * rem : parseFloat(raw) || 0;
+    const band = bandProbe.offsetHeight;
 
     let foot: number;
     if (window.matchMedia(REDUCED).matches) {
-      const band = navBand();
       foot = gap + copy.offsetHeight + rem + band + footPad(band);
     } else {
       const lines = copy.querySelectorAll("p");
@@ -631,9 +650,13 @@ export function introRuntime(
       const lead = line ? parseFloat(getComputedStyle(line).lineHeight) : NaN;
       const clearance = Math.max(CUE_CLEARANCE_MIN, Math.round((lead || 0) * CUE_CLEARANCE_RATIO));
       const cueFromEdge = parseFloat(getComputedStyle(cue).bottom) || 0;
-      foot = gap + words + clearance + cue.offsetHeight + cueFromEdge + footPad();
+      foot = gap + words + clearance + cue.offsetHeight + cueFromEdge + footPad(band);
     }
-    const room = frame.offsetHeight - insetTop(frame) - cardFloor(frame.offsetHeight);
+    const frameHeight = frame.offsetHeight;
+    const inset = insetProbe.offsetHeight;
+    bandProbe.remove();
+    insetProbe.remove();
+    const room = frameHeight - inset - cardFloor(frameHeight);
     const short = foot > room;
     frame.style.setProperty("--wf", Math.ceil(foot) + "px");
     frame.style.setProperty("--wb", Math.ceil(short ? Math.max(0, room) : foot) + "px");
@@ -1090,8 +1113,9 @@ export function introRuntime(
 }
 
 /**
- * The head script: the runtime above, called in "boot" mode with this page's
- * configuration. `<` is escaped so nothing in the data can close the script.
+ * The inline script <HeroIntroScript> writes after the homepage's hero: the
+ * runtime above, called in "boot" mode with this page's configuration. `<` is
+ * escaped so nothing in the data can close the script.
  */
 export function introScript(cfg: IntroConfig): string {
   return "(" + introRuntime.toString() + ")(" + JSON.stringify(cfg).replace(/</g, "\\u003c") + ",'boot');";

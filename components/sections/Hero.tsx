@@ -255,7 +255,7 @@ export function Hero({
       <HeroIntro />
 
       <div data-hero-track className={styles.track}>
-        {/* The intro's head script fits the foot (`--wb`, `--wf`,
+        {/* The intro's inline script fits the foot (`--wb`, `--wf`,
             `data-short`) and promotes the layers (`data-live`) here before
             React hydrates — see ./hero/introCore.ts — so React is told the
             difference is expected. Its own attributes only, not the subtree. */}
@@ -565,7 +565,7 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     <div
       aria-hidden
       data-doodle={plan.id}
-      /* The intro's head script writes the flight (`--fx` … `--settle-delay`)
+      /* The intro's inline script writes the flight (`--fx` … `--settle-delay`)
          and `data-ring` here before React hydrates — see ./hero/introCore.ts. */
       suppressHydrationWarning
       /* Under reduced motion the card never opens and the actions are there

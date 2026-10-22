@@ -23,7 +23,7 @@ import { LoopPause } from "@/components/motion/LoopPause";
 import { AutoReveal } from "@/components/motion/AutoReveal";
 import { SiteLoader } from "@/components/motion/SiteLoader";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { introHeadScript } from "@/components/sections/hero/intro";
+import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
 import { hapsha, montserrat } from "@/lib/fonts";
 import { isDraft } from "@/lib/cms/draft";
 import { getDefaultMetadata } from "@/lib/seo";
@@ -112,12 +112,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <head>
-        {/* Decides the homepage intro before first paint, and on "/" runs it
-            from the moment the hero is parsed; on any other page it only
-            marks the loader. The header's logo cuts are passed in so the
-            mark's flight can aim at their ink. See
+        {/* Decides the homepage intro before first paint; on any other page
+            it only marks the loader. The intro itself is started by a script
+            written after the homepage's hero (<HeroIntroScript>). See
             components/sections/hero/intro.ts. */}
-        <script dangerouslySetInnerHTML={{ __html: introHeadScript(chrome.logo) }} />
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
         {/*
           Scroll-triggered reveals render at opacity 0 until JavaScript runs.
           Without this, a visitor (or crawler) with JS disabled sees an empty
