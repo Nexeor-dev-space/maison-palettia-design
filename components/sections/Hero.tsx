@@ -509,7 +509,7 @@ export function Hero({
               {/* Two of the three drops are this span's own pseudo-elements;
                   the third is the child, because there are only two to a box.
                   See `.cueLine` in Hero.module.css. */}
-              <span aria-hidden data-loop="" className={styles.cueLine}>
+              <span aria-hidden data-loop="eager" className={styles.cueLine}>
                 <span className={styles.cueDrop} />
               </span>
             </a>
@@ -585,7 +585,7 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     >
       <div data-hero-drift className={styles.drift}>
         <div className={styles.parallax}>
-          <div data-loop="" className={styles.float}>
+          <div data-loop="eager" className={styles.float}>
             <svg
               viewBox={`0 0 ${shape.w} ${shape.h}`}
               className={styles.svg}

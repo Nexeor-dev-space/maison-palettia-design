@@ -23,19 +23,35 @@ import { useEffect } from "react";
  */
 export function LoopPause() {
   useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
+   const html = document.documentElement;
+    const release = () => {
+      if (!html.hasAttribute("data-loops")) html.setAttribute("data-loops", "");
+    };
+    if (typeof IntersectionObserver === "undefined") {
+      release();
+      return;
+    }
 
     const io = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         entry.target.toggleAttribute("data-offscreen", !entry.isIntersecting);
       }
+      release();
     });
 
+    let observed = 0;
     const scan = (root: ParentNode) => {
-      if (root instanceof Element && root.hasAttribute("data-loop")) io.observe(root);
-      for (const el of root.querySelectorAll("[data-loop]")) io.observe(el);
+      if (root instanceof Element && root.hasAttribute("data-loop")) {
+        io.observe(root);
+        observed++;
+      }
+      for (const el of root.querySelectorAll("[data-loop]")) {
+        io.observe(el);
+        observed++;
+      }
     };
     scan(document.body);
+    if (observed === 0) release();
 
     const mo = new MutationObserver((records) => {
       for (const record of records) {

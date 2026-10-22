@@ -216,8 +216,9 @@ export async function TwoWaysToCreate({
       /* `overflow-clip`, not `hidden`: `hidden` makes a scroll container, and
          the cut-out straddling the seam below draws on a view timeline, which
          resolves against the nearest one — inside a scroll container it is
-         reported as permanently out of view and never fills. */
-      className="relative isolate overflow-clip"
+         reported as permanently out of view and never fills. `render-lazy`:
+         styled when it nears the viewport — see globals.css. */
+      className="render-lazy relative isolate overflow-clip"
     >
       {/* ---- what the two halves are, before you meet them --------------- */}
       {/* `isolate`, and it is load-bearing. <SectionShapes> paints at -z-10;

@@ -123,7 +123,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           page. Keep the selector in sync with components/motion/.
         */}
         <noscript>
-          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+          {/* `:root` outranks globals.css's wait for <LoopPause>, which never
+              comes without JavaScript, so the loops run. */}
+          <style>
+            {"[data-reveal]{opacity:1!important;transform:none!important}" +
+              "html:root:root:not([data-loops]) [data-loop],html:root:root:not([data-loops]) [data-loop]::before,html:root:root:not([data-loops]) [data-loop]::after,html:root:root:not([data-loops]) [data-loop] *,html:root:root:not([data-loops]) [data-loop] *::before,html:root:root:not([data-loops]) [data-loop] *::after{animation-play-state:running!important}"}
+          </style>
         </noscript>
       </head>
       <body className="flex min-h-dvh flex-col">
