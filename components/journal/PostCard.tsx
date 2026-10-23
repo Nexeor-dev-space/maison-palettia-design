@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import type { ElementType } from "react";
 
@@ -76,6 +76,7 @@ export function PostCard({
         >
           <Image
             src={post.coverImage.src}
+            blur={post.coverImage.blur}
             alt={post.coverImage.alt}
             fill
             sizes={sizes}

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 
 import type { CreativeExperience } from "@/lib/experiences";
@@ -329,6 +329,7 @@ export function ActivityPlate({
       <div className={cn("relative flex-1 overflow-hidden", photoFloor ?? "min-h-0")}>
         <Image
           src={photo.src}
+          blur={photo.blur}
           alt=""
           fill
           sizes={sizes}

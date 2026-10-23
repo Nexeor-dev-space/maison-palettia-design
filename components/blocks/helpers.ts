@@ -3,6 +3,7 @@ import { headingLinesToStrings } from "@/cms/fields/headingLines";
 import type { PartnerRecord } from "@/lib/partners";
 import type { Media, Venue } from "@/payload-types";
 import type { ImageAsset } from "@/types";
+import { blurOf } from "@/lib/imageBlur";
 
 /**
  * ==========================================================================
@@ -77,10 +78,12 @@ export function imageOf(value: string | Media | null | undefined): ImageAsset | 
     typeof value.focalX === "number" && typeof value.focalY === "number"
       ? `${round(value.focalX)}% ${round(value.focalY)}%`
       : undefined;
+  const blur = blurOf(value);
   return {
     src: value.url,
     alt: value.decorative ? "" : (value.alt ?? ""),
     ...(position ? { position } : {}),
+    ...(blur ? { blur } : {}),
   };
 }
 

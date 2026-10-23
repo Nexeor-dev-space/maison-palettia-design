@@ -9,15 +9,16 @@ import { PAINTS_ON_CREAM, paintAt } from "@/lib/paint";
 import { cn } from "@/lib/utils";
 
 /**
- * Above this many places the palette stops being a palette.
+ * Above this many spots the table stops being a table.
  *
- * Fifteen wells is three rows of five, which still reads at a glance as "how
- * many of us are coming". Past that it is a grid to be counted rather than a
- * choice to be made, so a session that large gets a stepper instead.
+ * Fifteen wells is eight along one side of the table and seven along the
+ * other, which still reads at a glance as "how many of us are coming". Past
+ * that it is a banquet to be counted rather than a choice to be made, so a
+ * session that large gets a stepper instead.
  *
  * Exported for <BookingForm>'s live total, which has to know whether the
  * control above it says the count itself: a well is a radio named "3
- * places", a stepper button is named "One more place" whatever the count.
+ * spots", a stepper button is named "One more spot" whatever the count.
  */
 export const WELL_CAP = 15;
 
@@ -73,19 +74,19 @@ interface PlacePaletteProps {
 }
 
 /**
- * 01 — how many places, as paint wells on a palette.
+ * 01 — how many spots, as paint wells set round a studio table.
  *
  * A NATIVE RADIO GROUP UNDER THE PAINT. Each well is a `<label>` round a
  * visually hidden radio, so arrow keys move between wells, a screen reader
- * says "3 places, 3 of 9", and the choice reaches the form with nothing
+ * says "3 spots, 3 of 9", and the choice reaches the form with nothing
  * reimplemented. The paint is the radio's picture, not a replacement for it.
  *
  * Choosing four is one tap, where the stepper this replaced took three presses
  * of `+`; and choosing fills every well up to it, the way a rating does, so
- * the plate shows the size of the party rather than a single selected cell.
+ * the table shows the size of the party rather than a single selected cell.
  *
- * The plate's height is fixed per session — rows are `ceil(max / 5)` and `max`
- * does not change on the page — so nothing below it moves as the choice does.
+ * The plate's height is fixed per session — always a row of palettes, the
+ * table and another row — so nothing below it moves as the choice does.
  */
 export function PlacePalette({ max, quantity, onChange, scarce }: PlacePaletteProps) {
   const captionId = useId();
@@ -102,12 +103,12 @@ export function PlacePalette({ max, quantity, onChange, scarce }: PlacePalettePr
     describes the count the picker offers. "Left" for the scarce case and
     "available" otherwise, the same split `spotsLabel` draws.
   */
-  const count = `${max === 1 ? "One" : max} ${max === 1 ? "place" : "places"} ${scarce ? "left" : "available"} on this date`;
+  const count = `${max === 1 ? "One" : max} ${max === 1 ? "spot" : "spots"} ${scarce ? "left" : "available"} on this date`;
   const text =
     max === 1
       ? `${count}, so this booking is for one.`
       : quantity >= max
-        ? "That's every place left on this date."
+        ? "That's every spot left on this date."
         : `${count}.`;
 
   const caption = (
@@ -119,13 +120,13 @@ export function PlacePalette({ max, quantity, onChange, scarce }: PlacePalettePr
     </p>
   );
 
-  // One place left is not a choice, so it is not offered as one: no group of
+  // One spot left is not a choice, so it is not offered as one: no group of
   // one radio to tab into, just the fact.
   if (max === 1) {
     return (
       <div>
         <p className={LEGEND}>
-          <span aria-hidden>01&nbsp;&nbsp;</span>Places
+          <span aria-hidden>01&nbsp;&nbsp;</span>Spots
         </p>
         <div className="mt-5 flex flex-col gap-5 md:flex-row md:items-end md:gap-8">
           <div
@@ -151,7 +152,7 @@ export function PlacePalette({ max, quantity, onChange, scarce }: PlacePalettePr
           <div className="flex flex-col gap-2.5 md:max-w-[15rem] md:pb-1">
             <p className="flex items-end gap-3 text-text">
               <span className="text-folio font-light leading-[0.85] tabular-nums">1</span>{" "}
-              <span className="text-body text-text/75">place</span>
+              <span className="text-body text-text/75">spot</span>
             </p>
             {caption}
           </div>
@@ -163,7 +164,7 @@ export function PlacePalette({ max, quantity, onChange, scarce }: PlacePalettePr
   return (
     <fieldset aria-describedby={captionId} className="min-w-0">
       <legend className={LEGEND}>
-        <span aria-hidden>01&nbsp;&nbsp;</span>Places
+        <span aria-hidden>01&nbsp;&nbsp;</span>Spots
       </legend>
       {max > WELL_CAP ? (
         <Stepper max={max} quantity={quantity} onChange={onChange} caption={caption} />
@@ -220,6 +221,20 @@ const WELL_PAINT: Variants = {
   }),
 };
 
+/**
+ * The spots, laid round a table: half the wells along the top edge, half
+ * along the bottom, the way a studio sets out a session.
+ *
+ * NUMBERED ACROSS THE TABLE. Spot 1 is top-left and spot 2 sits opposite it,
+ * 3 beside 1 and 4 opposite 3, and so on — so a party fills the table from
+ * one end, in facing pairs, rather than all down one side. The radios stay in
+ * DOM order 1..n (arrow keys walk the count, not the geometry); each is
+ * placed on the grid by its row and column instead.
+ *
+ * The grid's columns are fluid up to 4.5rem — a well and room to pull up a
+ * chair — so a long table still fits a phone: at eight to a side each well
+ * gives up a little width rather than the table pushing the page sideways.
+ */
 function Wells({
   max,
   quantity,
@@ -233,6 +248,7 @@ function Wells({
 }) {
   const reduce = useReducedMotion() ?? false;
   const [hover, setHover] = useState(0);
+  const columns = Math.ceil(max / 2);
 
   // Where the paint stopped last time, so a bloom staggers outward from it
   // rather than from well one. Held in state and updated during render — the
@@ -248,15 +264,24 @@ function Wells({
   return (
     <div className="mt-5 flex flex-col gap-5 md:flex-row md:items-end md:gap-8">
       <div
-        className="blob plate w-full bg-cream p-6 md:w-max md:p-7"
+        className="blob plate w-full bg-cream px-4 py-5 sm:px-6 md:w-max md:p-7"
         style={{ "--blob": PLATE_BLOB } as CSSVars}
       >
         <div
-          className="grid grid-cols-5 gap-3 md:grid-cols-[repeat(5,3.25rem)] md:gap-4"
+          className={cn(styles.table, "grid justify-center gap-x-2 gap-y-2 sm:gap-x-3 md:gap-x-4")}
+          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 4.5rem))` }}
           onPointerLeave={() => setHover(0)}
         >
+          {/* The table top, under the middle row. Decoration only. */}
+          <span
+            aria-hidden
+            className={cn("blob", styles.tableTop)}
+            style={{ gridColumn: `1 / span ${columns}`, gridRow: 2 } as CSSVars}
+          />
+
           {Array.from({ length: max }, (_, i) => {
             const n = i + 1;
+            const top = i % 2 === 0;
             const filled = n <= quantity;
             const ghost = !filled && n <= hover;
             const tilt = TILTS[i % TILTS.length];
@@ -272,7 +297,8 @@ function Wells({
             return (
               <label
                 key={n}
-                className={styles.well}
+                className={cn(styles.well, top && styles.wellTop)}
+                style={{ gridColumn: Math.floor(i / 2) + 1, gridRow: top ? 1 : 3 }}
                 data-filled={filled || undefined}
                 data-ghost={ghost || undefined}
                 // The preview is for a mouse only. A finger has no hover, and
@@ -301,12 +327,13 @@ function Wells({
                   />
                 </span>
                 <span className="sr-only">
-                  {n} {n === 1 ? "place" : "places"}
+                  {n} {n === 1 ? "spot" : "spots"}
                 </span>
                 <span
                   aria-hidden
                   className={cn(
-                    "mt-1.5 text-fine tabular-nums text-text",
+                    "text-fine tabular-nums text-text",
+                    top ? "mb-1" : "mt-1",
                     quantity === n && "font-semibold",
                   )}
                 >
@@ -322,7 +349,7 @@ function Wells({
         {/* The radios carry the value; this is its picture. */}
         <p aria-hidden className="flex items-end gap-3 text-text">
           <Numeral value={quantity} digits={String(max).length} />
-          <span className="text-body text-text/75">{quantity === 1 ? "place" : "places"}</span>
+          <span className="text-body text-text/75">{quantity === 1 ? "spot" : "spots"}</span>
         </p>
         {caption}
       </div>
@@ -405,7 +432,7 @@ function Stepper({
           style={{ "--blob": PLATE_BLOB } as CSSVars}
         >
           <StepButton
-            label="One fewer place"
+            label="One fewer spot"
             atBound={quantity <= 1}
             onPress={() => onChange((q) => q - 1)}
           >
@@ -413,7 +440,7 @@ function Stepper({
           </StepButton>
           {/*
             Not a live region, although `<output>` is one by default: the
-            total under the form already announces "n places", and two
+            total under the form already announces "n spots", and two
             regions saying the same thing on one press is chatter.
           */}
           <output
@@ -423,7 +450,7 @@ function Stepper({
             {quantity}
           </output>
           <StepButton
-            label="One more place"
+            label="One more spot"
             atBound={quantity >= max}
             onPress={() => onChange((q) => q + 1)}
           >
@@ -467,7 +494,7 @@ function StepButton({
 }
 
 /**
- * One small dab per place, the palette's colours in order — the party, drawn.
+ * One small dab per spot, the palette's colours in order — the party, drawn.
  *
  * Capped at twelve and then "+n", so the row has a fixed reach and never
  * wraps into a second line that would push whatever sits under it. A new dab

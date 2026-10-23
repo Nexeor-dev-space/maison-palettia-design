@@ -251,10 +251,10 @@ export function AboutSheet({
               */}
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2.5">
                 {items.map((item) => {
-                  /* The desktop door's name and line where there is one —
-                     "About the Maison", not a second "About" under the
-                     sheet's own "About" heading — and the nav label where
-                     there is not, so a page added to MAIN_NAV still shows. */
+                  /* The desktop door's title where there is one — "Why we do
+                     it", not a second "About" under the sheet's own "About"
+                     heading — and the nav label where there is not, so a
+                     page added to MAIN_NAV still shows. */
                   const door = ABOUT_DOORS.find((d) => d.href === item.href);
                   return (
                     <li key={item.href}>
@@ -268,9 +268,6 @@ export function AboutSheet({
                       >
                         <span className="min-w-0 flex-1">
                           <span className="block text-h4 font-medium">{door?.name ?? item.label}</span>
-                          {door ? (
-                            <span className="mt-0.5 block text-fine text-text/80">{door.sub}</span>
-                          ) : null}
                         </span>
                         <span
                           aria-hidden

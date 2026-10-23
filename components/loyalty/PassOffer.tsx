@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import { BlobButton } from "@/components/ui/BlobButton";
 import Link from "next/link";
 import { useState } from "react";
@@ -125,6 +125,7 @@ function PassRow({
             <div className="relative aspect-[3/2] overflow-hidden rounded-sm bg-surface-alt sm:aspect-square">
               <Image
                 src={pass.image.src}
+                blur={pass.image.blur}
                 alt={pass.image.alt}
                 fill
                 sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 100vw"

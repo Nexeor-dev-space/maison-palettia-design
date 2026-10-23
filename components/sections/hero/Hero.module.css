@@ -415,6 +415,16 @@
   }
 }
 
+/* A touch screen plays the opening on its first few pixels of scroll rather
+   than spending scroll on it (PLAYED_MS in <HeroIntro>), so the whole hold is
+   the picture standing open. 170svh keeps that stand at the ~70svh a phone
+   had before, instead of a screen and more of a page that will not move. */
+@media (pointer: coarse) {
+  .track {
+    height: 170svh;
+  }
+}
+
 .frame {
   position: sticky;
   top: 0;
@@ -569,6 +579,16 @@
   position: absolute;
   inset: 0;
   clip-path: circle(150% at 50% calc(100% - var(--wb)));
+  /* The photograph's blurred stand-in, under it until it has loaded — see
+     `bloomStyle` in Hero.tsx. The phone's and the desktop's, at the same
+     breakpoint the two files swap at. */
+  background: var(--blur-m, none) center / cover no-repeat;
+}
+
+@media (min-width: 768px) {
+  .bloom {
+    background-image: var(--blur-d, none);
+  }
 }
 
 /*

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 
 import { INK } from "@/components/sections/hero/composition";
 import { DoodleMark } from "@/components/ui/DoodleMark";
@@ -206,6 +206,7 @@ export function BrandStoryObject({
         {photo ? (
           <Image
             src={photo.src}
+            blur={photo.blur}
             alt={photo.alt}
             fill
             sizes="(min-width: 1024px) 48vw, 100vw"

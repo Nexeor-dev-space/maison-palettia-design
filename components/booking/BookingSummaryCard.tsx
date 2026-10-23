@@ -45,7 +45,7 @@ function statusWords(status: DisplayStatus, copy: StatusCopy = {}): { label: str
   });
   switch (status) {
     case "confirmed":
-      return { ...pick("confirmed", "Confirmed", "Your place is held. Come to the venue at the time below."), rule: "border-primary" };
+      return { ...pick("confirmed", "Confirmed", "Your spot is held. Come to the venue at the time below."), rule: "border-primary" };
     case "completed":
       return {
         ...pick("completed", "Completed", "This event has already taken place. We hope you took something home."),
@@ -109,11 +109,11 @@ export function BookingSummaryCard({
   const lines = detail?.lines ?? [];
   const places = lines.reduce((n, line) => n + line.qty, 0);
   /*
-    "Places" is a seat at a session; a pass holds none until it is redeemed
+    "Spots" is a seat at a session; a pass holds none until it is redeemed
     against a date. A booking of sessions keeps the word; one with a pass in
     it counts items, which is the only word true of both.
   */
-  const unit = lines.every((line) => line.kind === "session") ? "place" : "item";
+  const unit = lines.every((line) => line.kind === "session") ? "spot" : "item";
   const hasSession = lines.some((line) => line.kind === "session");
   const tickets = (detail?.tickets ?? []).filter((ticket) => ticket.status !== "void");
 
@@ -184,7 +184,7 @@ export function BookingSummaryCard({
               </>
             ) : null}
             <div>
-              <dt className={TERM}>{line.kind === "session" ? "Places" : "Passes"}</dt>
+              <dt className={TERM}>{line.kind === "session" ? "Spots" : "Passes"}</dt>
               <dd className="mt-2 text-body tabular-nums text-text">{line.qty}</dd>
             </div>
           </div>
@@ -207,7 +207,7 @@ export function BookingSummaryCard({
                   <span className="tabular-nums tracking-[0.06em] text-text">
                     {ticket.code}
                     <span className="ml-3 text-fine tracking-normal text-text/70">
-                      Place {ticket.seatNo}
+                      Spot {ticket.seatNo}
                       {ticket.status === "checked_in" ? " · checked in" : ""}
                       {ticket.status === "refunded" ? " · refunded" : ""}
                     </span>

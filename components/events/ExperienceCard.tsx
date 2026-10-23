@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import type { ElementType } from "react";
 
@@ -105,6 +105,7 @@ export function ExperienceCard({
           {experience.image ? (
             <Image
               src={experience.image.src}
+              blur={experience.image.blur}
               alt={experience.image.alt}
               fill
               sizes={sizes}

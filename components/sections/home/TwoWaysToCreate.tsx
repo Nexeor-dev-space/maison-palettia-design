@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import { getModeCopy } from "@/lib/modeCopy.server";
 import type { ReactNode } from "react";
 
@@ -21,6 +21,7 @@ import {
 } from "@/lib/workshops";
 import { TWO_WAYS_SPOTS } from "@/components/sections/home/homeSpots";
 import { getMallPartners } from "@/lib/partners";
+import type { ImageAsset } from "@/types";
 
 /**
  * ==========================================================================
@@ -121,7 +122,6 @@ import { getMallPartners } from "@/lib/partners";
 */
 export interface TwoWaysRoad {
   ground: "terracotta" | "lilac";
-  eyebrow: string;
   title: string;
   line: string;
   facts: string[];
@@ -263,11 +263,9 @@ export async function TwoWaysToCreate({
             return (
               <Road
                 key={i}
-                index={i + 1}
                 ground={road.ground}
-                eyebrow={road.eyebrow}
                 title={road.title}
-                dot={warm ? INK.whiteRock : INK.lavender}
+                footnote={warm ? null : labels.bookedOnline}
                 plate={warm ? walkInPlate : scheduledPlate}
                 line={road.line}
                 facts={[...road.facts, warm ? home : nextDate]}
@@ -278,12 +276,8 @@ export async function TwoWaysToCreate({
         ) : (
         <>
         <Road
-          index={1}
           ground="terracotta"
-          eyebrow={labels.noBooking}
           title={labels.createAnytime}
-          /* Not Terracotta any more — that is the ground it would sit on. */
-          dot={INK.whiteRock}
           plate={walkInPlate}
           line={labels.diyLine}
           /*
@@ -340,11 +334,9 @@ export async function TwoWaysToCreate({
         />
 
         <Road
-          index={2}
           ground="lilac"
-          eyebrow="A date and a seat"
           title={labels.createTogether}
-          dot={INK.lavender}
+          footnote={labels.bookedOnline}
           plate={scheduledPlate}
           line={labels.scheduledLine}
           /*
@@ -536,22 +528,19 @@ const CHIP_PAINTS_ON_TERRACOTTA = [
 ] as const;
 
 function Road({
-  index,
   ground,
-  eyebrow,
   title,
-  dot,
+  footnote,
   plate,
   line,
   facts,
   action,
 }: {
-  index: number;
   ground: "terracotta" | "lilac";
-  eyebrow: string;
   title: string;
-  dot: string;
-  plate?: { src: string; alt: string; position?: string };
+  /** "Booked online" on the Create Together road: starred onto the title and said under the line. */
+  footnote?: string | null;
+  plate?: ImageAsset;
   line: string;
   /* Words, or (for the date) a <SessionGate> that settles on words. */
   facts: readonly ReactNode[];
@@ -643,6 +632,7 @@ function Road({
           {plate ? (
             <Image
               src={plate.src}
+              blur={plate.blur}
               alt={plate.alt}
               fill
               sizes="(min-width: 1024px) 42vw, 100vw"
@@ -653,37 +643,32 @@ function Road({
         </span>
       </Reveal>
 
-      <Reveal delay={0.08}>
-        {/* The numeral and the label on one line: the numeral says there are
-            two of these before a word is read, and the label says which one
-            this is. Together they are four words. */}
-        <p className="mt-7 flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
-          <span aria-hidden className="block w-5 shrink-0">
-            <DoodleMark name="coral" color={dot} />
-          </span>
-          {/* FULL STRENGTH, NOT `opacity-60`. `aria-hidden` takes the numeral
-              out of what is announced, not out of what is seen — it is still
-              13px text and owes 4.5:1. At 60% it was 1.93:1 on neat
-              Terracotta, would be 2.46 on WARM_GROUND, and is 2.71 on Deep
-              Lilac (axe flags both). At full it is the label's own 4.67 on
-              either half; what sets it apart is the tabular figures and the
-              space, not a fade. Both halves, so the pair still match. */}
-          <span aria-hidden className="tabular-nums">
-            {String(index).padStart(2, "0")}
-          </span>
-          {eyebrow}
-        </p>
-      </Reveal>
-
+      {/*
+        NO EYEBROW OVER THE TITLE (Oct 2026). The numbered line that sat here
+        — "01 No Bookings Required", "02 A date and a seat" — was removed at
+        the client's ask: the title and the facts under it already say which
+        road this is and how you take part.
+      */}
       <Reveal delay={0.12}>
-        <h3 className="mt-3 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
+        <h3 className="mt-7 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
           {title}
+          {footnote ? (
+            <span aria-hidden className="ml-1 inline-block align-top text-[0.45em] leading-none">
+              *
+            </span>
+          ) : null}
         </h3>
       </Reveal>
 
       <Reveal delay={0.16}>
         <p className={`mt-3 max-w-[34ch] text-lead tracking-[-0.01em] ${warm ? "text-text" : "text-surface"}`}>
           {line}
+          {footnote ? (
+            <span className="mt-2 block text-fine font-medium uppercase tracking-eyebrow">
+              <span aria-hidden>* </span>
+              {footnote}
+            </span>
+          ) : null}
         </p>
       </Reveal>
 
@@ -732,7 +717,11 @@ function Road({
       */}
       <Reveal delay={0.2}>
         <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-3">
-          {facts.map((fact, i) => (
+          {/* A fact that only repeats the footnote ("Booked online") is left out:
+              the star under the title already says it. */}
+          {facts
+            .filter((fact) => !(footnote && typeof fact === "string" && fact.trim().toLowerCase() === footnote.trim().toLowerCase()))
+            .map((fact, i) => (
             /*
               `isolate` IS LOAD-BEARING. <PaintStroke> sits at `z-index: -1` so
               the word stays on top of its own paint. A `relative` parent with

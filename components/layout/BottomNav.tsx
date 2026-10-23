@@ -424,20 +424,11 @@ export function BottomNav({ bookingOptions }: { bookingOptions: readonly Booking
       */}
       <div className="relative overflow-hidden bg-primary pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-0">
         {/*
-          SMALL COLOUR AT THE TWO BOTTOM CORNERS, clipped by the sheet so only
-          a curve of each one shows — the brief's "colour accents", and the
-          reference's own device. They are under everything and carry no
-          meaning, so they are the one place on this bar where Soft Lavender
-          and its 1.40:1 against White Rock are perfectly fine.
+          NO CORNER COLOUR. Two washes of sage and terracotta used to sit in
+          the bottom corners, and at the client's ask (Oct 2026) they are gone:
+          they read as a haze over the Experiences and About icons rather than
+          as accents. The thrown dots below are the bar's only decoration.
         */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -bottom-7 -left-6 size-20 rounded-full bg-sage/30"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -bottom-8 -right-7 size-24 rounded-full bg-terracotta/35"
-        />
         {/* Three dots of paint, thrown. Fixed positions, not random: this
             renders on the server and again on the client. */}
         <span aria-hidden className="pointer-events-none absolute left-[14%] top-1 size-1 rounded-full bg-lavender" />

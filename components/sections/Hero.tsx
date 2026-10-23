@@ -6,6 +6,7 @@ import { DOODLE_PLAN, DRAW_ORDER, type DoodlePlan } from "@/components/sections/
 import { resolveIcon } from "@/components/sections/hero/doodles";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { HeroIntro } from "@/components/sections/hero/HeroIntro";
+import { blurImage } from "@/lib/imageBlur";
 import { cn } from "@/lib/utils";
 import type { ImageAsset } from "@/types";
 
@@ -240,6 +241,21 @@ export function Hero({
         ? { src: imageMobile.src, alt: imageMobile.alt, position: imageMobile.position ?? "50% 50%", lift: HERO_IMAGE.mobile.lift }
         : null;
 
+  /*
+    THE BLURRED STAND-IN, behind the photograph — the opening layer is never
+    an empty frame, on a slow connection or a fast one (see
+    components/ui/Image.tsx; the banner draws its own because its two files
+    swap at a breakpoint inside one layer). Phone and desktop each have one;
+    Hero.module.css picks between them, and the photograph fades in over it
+    once decoded.
+  */
+  const mobileBlur = imageMobile?.blur;
+  const desktopBlur = image?.blur;
+  const bloomStyle: Vars = {
+    ...(mobileBlur ? { "--blur-m": blurImage(mobileBlur) } : {}),
+    ...(desktopBlur ? { "--blur-d": blurImage(desktopBlur) } : {}),
+  };
+
   return (
     <section
       data-hero-intro
@@ -273,7 +289,7 @@ export function Hero({
           <div aria-hidden data-hero-window className={styles.windowProbe} />
           <div data-hero-card className={styles.card}>
             <div data-hero-card-inner className={styles.cardInner}>
-            <div className={styles.bloom}>
+            <div className={styles.bloom} style={bloomStyle}>
               {/*
                 ONE OF THESE IS DRAWN, AND ONLY ONE IS FETCHED.
 
@@ -326,6 +342,7 @@ export function Hero({
                   } as Vars
                 }
                 className={cn(styles.cardImage, styles.cardImageMobile)}
+                {...(mobileBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
               />
               ) : null}
 
@@ -368,6 +385,7 @@ export function Hero({
                   } as Vars
                 }
                 className={cn(styles.cardImage, styles.cardImageDesktop)}
+                {...(desktopBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
               />
               ) : null}
             </div>

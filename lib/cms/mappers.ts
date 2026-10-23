@@ -35,6 +35,7 @@ import type {
 } from "@/payload-types";
 import type { FaqItem, ImageAsset, NavItem, Pass, Testimonial, Workshop, WorkshopStatus } from "@/types";
 import { studioIso } from "@/lib/studioTime";
+import { blurOf } from "@/lib/imageBlur";
 
 /** Moved to lib/studioTime.ts so pure modules (lib/jsonLd.ts) can share it; re-exported for existing callers. */
 export { studioIso };
@@ -108,7 +109,8 @@ export function imageOf(upload: string | Media | null | undefined, size: MediaSi
   if (!src) return undefined;
   const alt = media.decorative ? "" : (media.alt ?? "");
   const position = focalPosition(media);
-  return position ? { src, alt, position } : { src, alt };
+  const blur = blurOf(media);
+  return { src, alt, ...(position ? { position } : {}), ...(blur ? { blur } : {}) };
 }
 
 /** Every populated image in a hasMany upload, in order, missing ones dropped. */

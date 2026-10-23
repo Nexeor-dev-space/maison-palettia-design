@@ -221,6 +221,7 @@ export interface UserAuthOperations {
  */
 export interface Media {
   id: string;
+  blurDataURL?: string | null;
   /**
    * Describe what is IN the frame — never an occasion the photo does not show. Required unless the file is decorative.
    */
@@ -4163,6 +4164,7 @@ export interface PayloadMigration {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  blurDataURL?: T;
   alt?: T;
   decorative?: T;
   caption?: T;
@@ -7272,7 +7274,7 @@ export interface SeoDefault {
 export interface MusicSetting {
   id: string;
   /**
-   * A small play button in the corner of every page. Music starts by itself when a visitor arrives (or on their first tap, where the browser requires one); pausing it keeps it off for them.
+   * A small play button in the corner of every page. Music starts by itself when a visitor arrives (or on their first tap, where the browser requires one); pausing it keeps it off for the rest of their visit.
    */
   enabled?: boolean | null;
   /**
