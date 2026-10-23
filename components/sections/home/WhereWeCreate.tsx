@@ -68,8 +68,9 @@ export async function WhereWeCreate({
         undrawn outline state forever. The wave behind the map was drawn as a
         wireframe for exactly this reason. `clip` clips the same and creates no
         scrollport. Same trap as the hero's sections; see DoodleMark.module.css.
+        `render-lazy`: styled when it nears the viewport — see globals.css.
       */
-      className="relative isolate overflow-clip bg-cream py-[4rem] md:py-[5.5rem] lg:py-[6.5rem]"
+      className="render-lazy relative isolate overflow-clip bg-cream py-[4rem] md:py-[5.5rem] lg:py-[6.5rem]"
     >
       {/*
         TWO ON THE SECTION'S OWN EDGES, and two in the channel inside it — see

@@ -2005,6 +2005,33 @@ html[data-intro="settle"] body:has([data-hero-intro]) > header {
   animation-play-state: paused !important;
 }
 
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]),
+html:not([data-loops]) [data-loop]:not([data-loop="eager"])::before,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"])::after,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]) *,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]) *::before,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]) *::after {
+  animation-play-state: paused !important;
+}
+
+/*
+  SECTIONS FAR BELOW THE FOLD ARE STYLED WHEN THEY COME NEAR. The homepage's
+  first style pass touched every element of every section — about 1,800 — in
+  one task, seconds long on a slow phone, before the banner could finish.
+  `content-visibility: auto` lets the browser skip a section's style, layout
+  and paint until it nears the viewport, and keeps it rendered after that.
+  Only on sections whose root already clips (`overflow-clip`), so the paint
+  containment that comes with it clips nothing new, and none with a
+  `position: fixed` child (containment would re-anchor it). The intrinsic
+  size is a placeholder until the section has been rendered once; `auto`
+  then remembers its real height. lib/scroll.ts re-measures when the body
+  resizes, which is what a section's real height arriving does.
+*/
+.render-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1000px;
+}
+
 /* The section-ground float — see <SectionShapes>. A CSS loop rather than a
    JS one, so an idle page makes no per-frame style writes for it. */
 .shape-float {

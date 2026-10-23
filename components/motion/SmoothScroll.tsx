@@ -56,6 +56,7 @@ export function SmoothScroll() {
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     let lenis: Lenis | null = null;
+    let sleep = () => {};
 
     const sync = () => {
       // Someone who has asked for reduced motion gets the browser's own
@@ -63,6 +64,7 @@ export function SmoothScroll() {
       // the preference changes, not only on mount. WebKit gets it always; see
       // the note above.
       if (query.matches || isWebKit()) {
+        sleep();
         lenis?.destroy();
         lenis = null;
         registerScroller(null);
@@ -70,8 +72,9 @@ export function SmoothScroll() {
       }
       if (lenis) return;
       lenis = new Lenis({
-        // Lenis runs its own animation frame loop; nothing here needs to.
-        autoRaf: true,
+        // The frame loop is run below, and only while there is a scroll to
+        // ease — see `wake`.
+        autoRaf: false,
         // The fraction of the remaining distance covered each frame. The
         // default, and about a fifth of a second to settle: enough to feel
         // carried, short enough that the page never feels like it is lagging
@@ -80,6 +83,51 @@ export function SmoothScroll() {
         smoothWheel: true,
         syncTouch: false,
       });
+
+      /*
+        A FRAME LOOP THAT SLEEPS WHEN THE PAGE IS STILL.
+
+        `autoRaf` asked for an animation frame on every refresh for the life
+        of the page, whether anything was moving or not. Each request makes
+        the browser run a whole frame on the main thread — style, the page's
+        intersection observers, the commit to the compositor — so a page at
+        rest was never at rest: on a throttled phone those frames were long
+        tasks back to back, and Lighthouse never found the quiet window it
+        measures "interactive" from.
+
+        Lenis only has work to do while its eased scroll is running, and that
+        only ever starts in `scrollTo` — from the wheel (`virtual-scroll`) or
+        from code (lib/scroll.ts). So the loop is started there and stops as
+        soon as the animation has landed. Touch is native here (`syncTouch`
+        off) and never needs it.
+
+        The clock is set when the loop wakes: `raf` measures each step from
+        the last frame it saw, and a stale time would make the first step
+        after a pause a huge one — the page would jump to its target instead
+        of easing there.
+      */
+      const instance = lenis;
+      let frame = 0;
+      const tick = (time: number) => {
+        frame = 0;
+        instance.raf(time);
+        if (instance.isScrolling === "smooth") frame = requestAnimationFrame(tick);
+      };
+      const wake = () => {
+        if (frame) return;
+        instance.time = performance.now();
+        frame = requestAnimationFrame(tick);
+      };
+      const scrollTo = instance.scrollTo.bind(instance);
+      instance.scrollTo = (...args: Parameters<Lenis["scrollTo"]>) => {
+        scrollTo(...args);
+        wake();
+      };
+      sleep = () => {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      };
+
       // Published so anything that moves the page programmatically — the
       // footer's back-to-top — can hand Lenis the job instead of racing it.
       registerScroller(lenis);
@@ -89,6 +137,7 @@ export function SmoothScroll() {
     query.addEventListener("change", sync);
     return () => {
       query.removeEventListener("change", sync);
+      sleep();
       lenis?.destroy();
       registerScroller(null);
     };

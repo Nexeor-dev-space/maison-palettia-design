@@ -271,7 +271,11 @@ export function Hero({
       <HeroIntro />
 
       <div data-hero-track className={styles.track}>
-        <div data-hero-frame className={styles.frame}>
+        {/* The intro's inline script fits the foot (`--wb`, `--wf`,
+            `data-short`) and promotes the layers (`data-live`) here before
+            React hydrates — see ./hero/introCore.ts — so React is told the
+            difference is expected. Its own attributes only, not the subtree. */}
+        <div data-hero-frame suppressHydrationWarning className={styles.frame}>
           {/* ---- the doodles, placed in the resting card's box ---- */}
           <div className={styles.window}>
             {DOODLE_PLAN.map((plan) => (
@@ -523,7 +527,7 @@ export function Hero({
               {/* Two of the three drops are this span's own pseudo-elements;
                   the third is the child, because there are only two to a box.
                   See `.cueLine` in Hero.module.css. */}
-              <span aria-hidden data-loop="" className={styles.cueLine}>
+              <span aria-hidden data-loop="eager" className={styles.cueLine}>
                 <span className={styles.cueDrop} />
               </span>
             </a>
@@ -579,6 +583,9 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     <div
       aria-hidden
       data-doodle={plan.id}
+      /* The intro's inline script writes the flight (`--fx` … `--settle-delay`)
+         and `data-ring` here before React hydrates — see ./hero/introCore.ts. */
+      suppressHydrationWarning
       /* Under reduced motion the card never opens and the actions are there
          from the start, standing in the foot's open band — so a foot mark
          that would sit behind them is left out. See `.doodle` in the CSS. */
@@ -596,7 +603,7 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     >
       <div data-hero-drift className={styles.drift}>
         <div className={styles.parallax}>
-          <div data-loop="" className={styles.float}>
+          <div data-loop="eager" className={styles.float}>
             <svg
               viewBox={`0 0 ${shape.w} ${shape.h}`}
               className={styles.svg}

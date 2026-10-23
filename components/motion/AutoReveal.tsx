@@ -147,9 +147,30 @@ export function AutoReveal() {
       if (!main) return;
       const fold = window.innerHeight;
 
+      /*
+        READ EVERYTHING, THEN WRITE EVERYTHING. The inline `opacity: 0` below
+        marks the element's style dirty, so measuring the next candidate after
+        it forced a fresh style and layout pass — once per candidate, hundreds
+        of times on the home page. All the rects and computed styles are taken
+        first, against one layout, and the holds are written after.
+
+        "Outermost only" used to ask the DOM for an ancestor already marked
+        `data-auto-reveal`; with the writes deferred, the chosen set is kept
+        here instead. `querySelectorAll` is in document order, so an ancestor
+        is always decided before anything inside it.
+      */
+      const chosen: { el: HTMLElement; kind: Kind }[] = [];
+      const picked = new Set<Element>();
+      const insidePicked = (el: Element) => {
+        for (let node = el.parentElement; node && node !== main; node = node.parentElement) {
+          if (picked.has(node)) return true;
+        }
+        return false;
+      };
+
       for (const el of main.querySelectorAll<HTMLElement>(CANDIDATES)) {
         // Only the outermost candidate: a chosen ancestor already carries this one.
-        if (el.parentElement?.closest("[data-auto-reveal]")) continue;
+        if (insidePicked(el)) continue;
         if (el.closest("[data-reveal]") || el.querySelector("[data-reveal]")) continue;
         if (el.closest(SKIP_ANCESTORS)) continue;
 
@@ -162,7 +183,11 @@ export function AutoReveal() {
         if (style.display === "contents" || style.visibility === "hidden" || Number(style.opacity) < 0.99) continue;
         if (underPin(el, main)) continue;
 
-        const kind = kindOf(el);
+        picked.add(el);
+        chosen.push({ el, kind: kindOf(el) });
+      }
+
+      for (const { el, kind } of chosen) {
         const { from, duration } = MOTION[kind];
         const prior = el.style.opacity;
         el.style.opacity = "0";

@@ -18,6 +18,16 @@
  * restore when reload is pressed, from the page being left, so it has to be
  * off already by then — and hands it back when the homepage unmounts.
  *
+ * THE INTRO ITSELF IS NOT HERE. On `play` the sequence starts from the moment
+ * the hero has been parsed, so its timing no longer waits for React — but
+ * that runtime (./introCore.ts, about 10 KB) is written straight after the
+ * homepage's hero by <HeroIntroScript>, not into this <head>. Here it went
+ * out on every page of the site, uncacheable, twice over (the HTML and the
+ * server payload), to run on one of them; and from <head> it had to watch the
+ * whole document being parsed to know when the hero was there. The decision
+ * below is the same one the runtime makes in "boot" mode, branch for branch —
+ * tests/unit/introCore.test.ts runs both against the same pages.
+ *
  * EVERY OTHER PAGE gets `data-loader="write"` instead (unless the reader has
  * asked for reduced motion): the same opening, played by <SiteLoader> from
  * the layout, on any refresh or first load of any page. A separate attribute

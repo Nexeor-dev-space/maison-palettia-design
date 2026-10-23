@@ -70,8 +70,10 @@ export function ClosingStatement({
         It costs nothing structurally and it earns the page its one focal
         field: Deep Lilac is spent once on the homepage, and this is now the
         place it is spent.
+
+        `render-lazy`: styled when it nears the viewport — see globals.css.
       */
-      className="relative isolate overflow-clip bg-primary py-[5rem] md:py-[7rem] lg:py-[8.5rem]"
+      className="render-lazy relative isolate overflow-clip bg-primary py-[5rem] md:py-[7rem] lg:py-[8.5rem]"
     >
       {/* Balanced, not mirrored — see CLOSING_SPOTS in homeSpots.ts. */}
       <SectionShapes plan={CLOSING_SPOTS} />
