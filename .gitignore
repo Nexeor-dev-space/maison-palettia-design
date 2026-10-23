@@ -67,3 +67,5 @@ next-env.d.ts
 /AGENTS.md
 
 .vscode/
+
+/graphify-out/

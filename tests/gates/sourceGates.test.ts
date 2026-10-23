@@ -60,7 +60,7 @@ function grep(files: string[], pattern: RegExp): Hit[] {
     fs.readFileSync(file, "utf8")
       .split("\n")
       .forEach((text, index) => {
-        if (pattern.test(text)) hits.push({ file: path.relative(ROOT, file), line: index + 1, text: text.trim().slice(0, 160) });
+        if (pattern.test(text)) hits.push({ file: path.relative(ROOT, file).replace(/\\/g, "/"), line: index + 1, text: text.trim().slice(0, 160) });
       });
   }
   return hits;
@@ -89,6 +89,8 @@ const ALLOWED: Record<string, string[] | "anywhere"> = {
   DOCS_BOT_PASSWORD: ["scripts/build-admin-guide-pdf.mjs"],
   DOCS_BASE_URL: ["scripts/build-admin-guide-pdf.mjs"],
   DOCS_CHROME_CHANNEL: ["scripts/build-admin-guide-pdf.mjs"],
+  BLUR_FROM: ["cms/scripts/backfill-blur.ts"],
+  BLUR_DRY_RUN: ["cms/scripts/backfill-blur.ts"],
 };
 
 describe("process.env allowlist (SPEC §C.1, §K grep gate)", () => {

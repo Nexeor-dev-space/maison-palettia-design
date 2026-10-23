@@ -18,11 +18,10 @@ import { SiteChromeProvider, type SiteChromeData } from "@/components/layout/Sit
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ContactWidget } from "@/components/layout/ContactWidget";
 import { MusicPlayer } from "@/components/layout/MusicPlayer";
-import { CursorLayer } from "@/components/motion/CursorLayer";
+import { CursorLayer, PointerField } from "@/components/motion/Deferred";
+import { LoopPause } from "@/components/motion/LoopPause";
 import { AutoReveal } from "@/components/motion/AutoReveal";
 import { SiteLoader } from "@/components/motion/SiteLoader";
-import { LoopPause } from "@/components/motion/LoopPause";
-import { PointerField } from "@/components/motion/PointerField";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
 import { PHOTO_REVEAL_SCRIPT } from "@/lib/photoReveal";
@@ -114,8 +113,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <head>
-        {/* Decides the homepage intro before first paint; does nothing on any
-            other page. See components/sections/hero/intro.ts. */}
+        {/* Decides the homepage intro before first paint; on any other page
+            it only marks the loader. The intro itself is started by a script
+            written after the homepage's hero (<HeroIntroScript>). See
+            components/sections/hero/intro.ts. */}
         <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
         {/* Fades each photograph in over its blurred stand-in once it has
             loaded and decoded — listening before any <img> is parsed. See
@@ -127,7 +128,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           page. Keep the selector in sync with components/motion/.
         */}
         <noscript>
-          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+          {/* `:root` outranks globals.css's wait for <LoopPause>, which never
+              comes without JavaScript, so the loops run. */}
+          <style>
+            {"[data-reveal]{opacity:1!important;transform:none!important}" +
+              "html:root:root:not([data-loops]) [data-loop],html:root:root:not([data-loops]) [data-loop]::before,html:root:root:not([data-loops]) [data-loop]::after,html:root:root:not([data-loops]) [data-loop] *,html:root:root:not([data-loops]) [data-loop] *::before,html:root:root:not([data-loops]) [data-loop] *::after{animation-play-state:running!important}"}
+          </style>
         </noscript>
       </head>
       <body className="flex min-h-dvh flex-col">

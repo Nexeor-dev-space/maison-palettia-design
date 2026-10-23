@@ -1,4 +1,5 @@
 import { Hero } from "@/components/sections/Hero";
+import { HeroIntroScript } from "@/components/sections/hero/HeroIntroScript";
 
 import { cta, imageOf, lines, stored, text } from "./helpers";
 import type { AdapterProps } from "./types";
@@ -12,6 +13,22 @@ import type { AdapterProps } from "./types";
  * banner used to carry its own three-line copy of the sentence).
  */
 export function HeroAdapter({ block, ctx }: AdapterProps<"hero">) {
+  return (
+    <>
+      <Banner block={block} ctx={ctx} />
+      {/*
+        The intro's runtime, straight after the banner's <section> so it finds
+        the banner whole the moment it runs. Only on the homepage: the head
+        decides `play` for "/" alone, so a banner placed on any other page
+        never plays it and should not carry it. See
+        components/sections/hero/HeroIntroScript.tsx.
+      */}
+      {ctx.page === "home" ? <HeroIntroScript /> : null}
+    </>
+  );
+}
+
+function Banner({ block, ctx }: AdapterProps<"hero">) {
   const b = stored(block);
   if (!b) return <Hero />;
 
