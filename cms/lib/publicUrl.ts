@@ -73,6 +73,22 @@ export function hasGlobal(payload: Payload | undefined, slug: string): boolean {
 }
 
 export async function publicUrl(req?: PayloadRequest): Promise<string> {
+  const envUrl = envPublicUrl();
+  // Preview deployments (e.g. 103.staging-... in Coolify) and local dev environments
+  // share the staging database where site-settings.publicUrl is fixed to the main staging domain.
+  // When running on a preview environment or local dev, NEXT_PUBLIC_SERVER_URL must take precedence
+  // so payment return URLs, links, and callbacks return to this preview deployment.
+  if (
+    envUrl &&
+    (envUrl.includes(".staging-") ||
+      envUrl.includes("localhost") ||
+      envUrl.includes("127.0.0.1") ||
+      /https?:\/\/\d+\./.test(envUrl))
+  ) {
+    lastResolved = envUrl;
+    return envUrl;
+  }
+
   const payload = req?.payload;
   if (payload && hasGlobal(payload, "site-settings")) {
     try {
@@ -95,7 +111,7 @@ export async function publicUrl(req?: PayloadRequest): Promise<string> {
       payload.logger.warn({ err: error }, "publicUrl: could not read site-settings, using NEXT_PUBLIC_SERVER_URL");
     }
   }
-  const fallback = envPublicUrl();
+  const fallback = envUrl;
   if (fallback) lastResolved = fallback;
   return fallback;
 }
@@ -108,8 +124,18 @@ export async function publicUrl(req?: PayloadRequest): Promise<string> {
  * returned directly.
  */
 export function publicUrlSync(req?: PayloadRequest): string {
-  if (req?.payload && !hasGlobal(req.payload, "site-settings")) return envPublicUrl();
-  return lastResolved ?? envPublicUrl();
+  const envUrl = envPublicUrl();
+  if (
+    envUrl &&
+    (envUrl.includes(".staging-") ||
+      envUrl.includes("localhost") ||
+      envUrl.includes("127.0.0.1") ||
+      /https?:\/\/\d+\./.test(envUrl))
+  ) {
+    return envUrl;
+  }
+  if (req?.payload && !hasGlobal(req.payload, "site-settings")) return envUrl;
+  return lastResolved ?? envUrl;
 }
 
 /**
