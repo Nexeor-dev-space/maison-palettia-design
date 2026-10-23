@@ -55,6 +55,37 @@ const AUDIO_SOURCE_DIR = path.join(PUBLIC_DIR, "audio");
 
 type MusicRow = { filename?: string | null };
 
+/** Find a source file in AUDIO_SOURCE_DIR for a given filename (handles Payload numeric duplicate suffixes like _5_180, _10_120). */
+function findAudioSource(filename: string): string | null {
+  const exact = path.join(AUDIO_SOURCE_DIR, filename);
+  if (fs.existsSync(exact)) return exact;
+
+  if (!fs.existsSync(AUDIO_SOURCE_DIR)) return null;
+  const available = fs.readdirSync(AUDIO_SOURCE_DIR);
+  if (available.length === 0) return null;
+
+  const ext = path.extname(filename).toLowerCase();
+  const cleanName = (name: string) =>
+    path
+      .basename(name, path.extname(name))
+      .replace(/(_\d+)+$/, "")
+      .trim()
+      .toLowerCase();
+
+  const targetBase = cleanName(filename);
+  const match = available.find((file) => {
+    if (path.extname(file).toLowerCase() !== ext) return false;
+    return cleanName(file) === targetBase;
+  });
+
+  if (match) return path.join(AUDIO_SOURCE_DIR, match);
+
+  const extMatches = available.filter((file) => path.extname(file).toLowerCase() === ext);
+  if (extMatches.length === 1) return path.join(AUDIO_SOURCE_DIR, extMatches[0]);
+
+  return null;
+}
+
 /** Copy every committed track the server is missing into media/music/. */
 async function restoreMusic(payload: Awaited<ReturnType<typeof getPayload>>, dryRun: boolean) {
   const res = await payload.find({ collection: "music-tracks", limit: 0, depth: 0, overrideAccess: true, pagination: false });
@@ -71,8 +102,8 @@ async function restoreMusic(payload: Awaited<ReturnType<typeof getPayload>>, dry
       present++;
       continue;
     }
-    const source = path.join(AUDIO_SOURCE_DIR, filename);
-    if (!fs.existsSync(source)) {
+    const source = findAudioSource(filename);
+    if (!source) {
       missing.push(filename);
       continue;
     }
