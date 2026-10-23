@@ -2,10 +2,12 @@
 
 import { MotionConfig, motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 
+import { Consent, refusalMessage, type CheckoutConsent } from "@/components/booking/Checkout";
 import styles from "@/components/booking/PaintBooking.module.css";
+import { PassCodeField, type CodeOutcome } from "@/components/booking/PassCodeField";
 import { PaintedField, type FieldStatus } from "@/components/booking/PaintedField";
 import { PlaceCard, PlaceCardStub } from "@/components/booking/PlaceCard";
 import { PlacePalette, WELL_CAP, type PlacesChange } from "@/components/booking/PlacePalette";
@@ -14,13 +16,20 @@ import { Reveal } from "@/components/motion/Reveal";
 import { BlobButton } from "@/components/ui/BlobButton";
 import {
   BOOKING_FIELD_ORDER,
+  basketIdFor,
+  completeBooking,
+  notePendingPayment,
+  readWaitlistToken,
+  requestQuote,
   saveBookingDetails,
   saveWaitlistToken,
+  startCheckout,
   toCartLine,
   useBookingDetails,
   useCart,
   validateBookingDetails,
   type BookingDetails,
+  type QuoteView,
 } from "@/lib/cart";
 import { cn, formatMoney } from "@/lib/utils";
 import type { Workshop } from "@/types";
@@ -69,6 +78,19 @@ const HEADING = "block text-label font-medium uppercase tracking-eyebrow text-te
 */
 const SUMMARY = "Some details need a look before you continue. Each one is marked beside its field.";
 
+const MAX_CODES = 3;
+
+/** What payment needs from the server, read by the page (`getCheckoutSettings`). */
+export interface BookingCheckout {
+  /** `payment-settings.checkout.requireTerms` — and the policies it covers. */
+  requireTerms: boolean;
+  consents: CheckoutConsent[];
+  /** The line under the Pay button. */
+  captureNote: string;
+  /** The "what a booking is" sentence. */
+  terms: string;
+}
+
 interface BookingFormProps {
   workshop: Workshop;
   /**
@@ -84,12 +106,20 @@ interface BookingFormProps {
   strip: ReactNode;
   /** `isScarce` for the session, resolved by the page — see below. */
   scarce: boolean;
+  checkout: BookingCheckout;
 }
 
 /**
- * The booking step: how many places, and who is coming — painted.
+ * The booking — how many spots, who is coming, and Pay — on one page, painted.
  *
- * Places are paint wells on a palette plate (<PlacePalette>), every field is
+ * ONE STEP. The client asked for a single confirmation: this page used to
+ * hand over to /checkout, which showed the same details again for a second
+ * press. Now Pay here goes straight to Mamo Pay's hosted page (or, when
+ * nothing is owed, straight to the confirmation), with the codes and the
+ * terms box asked for alongside the details. /checkout remains for passes and
+ * for coming back from a payment that did not go through.
+ *
+ * Spots are palettes round a studio table (<PlacePalette>), every field is
  * underlined in a brush stroke (<PaintedField>), and beside the form a place
  * card fills in as it is answered (<PlaceCard>): the visitor's name in
  * script, their party as dabs of colour, a stroke for each detail still to
@@ -117,7 +147,7 @@ interface BookingFormProps {
  * is recomputed each render from that mirror, so there is nothing stored that
  * could drift from what is on screen.
  */
-export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce }: BookingFormProps) {
+export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce, checkout }: BookingFormProps) {
   const router = useRouter();
   const { lines, setLine } = useCart();
   const saved = useBookingDetails();
@@ -136,6 +166,12 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
   const [attemptCount, setAttemptCount] = useState(0);
   const [summaryShown, setSummaryShown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [consentError, setConsentError] = useState<string | undefined>(undefined);
+  const [codes, setCodes] = useState<string[]>([]);
+  // A quote is only good for the count it priced — see `freshQuote` below.
+  const [quote, setQuote] = useState<{ quantity: number; view: QuoteView } | null>(null);
+  const formId = useId();
 
   // Set before the re-render that `submitting` causes, so a second press in
   // the same frame cannot slip past it.
@@ -201,10 +237,16 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
   const done = [true, ...BOOKING_FIELD_ORDER.map((k) => !errors[k])];
   const displayName = `${values.firstName.trim()} ${values.lastName.trim()}`.trim();
   const unitLabel = formatMoney(workshop.price.amount, workshop.price.currency);
-  const totalLabel = formatMoney(workshop.price.amount * quantity, workshop.price.currency);
+  // Change the count and the total goes back to the plain sum until the codes
+  // are re-checked: a quote priced three spots, not four.
+  const freshQuote = quote && quote.quantity === quantity ? quote.view : null;
+  const totalAmount = freshQuote ? freshQuote.totals.grossFils / 100 : workshop.price.amount * quantity;
+  const totalLabel = formatMoney(totalAmount, workshop.price.currency);
+  const free = totalAmount === 0;
+  const needsConsent = checkout.requireTerms && checkout.consents.length > 0;
   // The widest the total can be, so the figures never shift their label.
   const totalMinCh = formatMoney(workshop.price.amount * max, workshop.price.currency).length + 1;
-  const placesWord = quantity === 1 ? "place" : "places";
+  const placesWord = quantity === 1 ? "spot" : "spots";
 
   /*
     What the live region says, and when.
@@ -214,10 +256,10 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
     "Total AED 720" on load, to someone who has not touched anything, is
     announcing its own bookkeeping. `picked` is only set by a choice.
 
-    ONLY WHAT IS NEW. A well is a radio whose name is "3 places", and the
+    ONLY WHAT IS NEW. A well is a radio whose name is "3 spots", and the
     screen reader has just said it; repeating the count here is chatter, so
     the region says the total alone. The stepper's buttons are named "One more
-    place" whatever the count, so for a session that large the count is said
+    spot" whatever the count, so for a session that large the count is said
     here as well — nowhere else on the page would say it.
   */
   const announcement =
@@ -277,7 +319,43 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
     settle(name, value);
   }
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  /* -- codes ----------------------------------------------------------- */
+
+  // The email the server checks pass credits against: what is in the field now.
+  const currentEmail = () =>
+    formRef.current?.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || values.email.trim() || undefined;
+
+  async function priceWith(nextCodes: string[]): Promise<CodeOutcome> {
+    if (!sessionId) return { status: "error" };
+    const result = await requestQuote({
+      lines: [{ kind: "session", id: sessionId, qty: quantity }],
+      codes: nextCodes,
+      email: currentEmail(),
+    });
+    if (result.status !== "ok") return result;
+    const rejected = nextCodes.length
+      ? result.quote.rejectedCodes.find((entry) => entry.code.toUpperCase() === nextCodes[nextCodes.length - 1])
+      : undefined;
+    if (rejected) return { status: "rejected", reason: rejected.reason };
+    setQuote({ quantity, view: result.quote });
+    return { status: "applied" };
+  }
+
+  async function applyCode(code: string): Promise<CodeOutcome> {
+    if (codes.length >= MAX_CODES) return { status: "too_many" };
+    const outcome = await priceWith([...codes, code]);
+    if (outcome.status === "applied") setCodes([...codes, code]);
+    return outcome;
+  }
+
+  function removeCode(code: string) {
+    const next = codes.filter((entry) => entry !== code);
+    setCodes(next);
+    if (next.length === 0) setQuote(null);
+    else void priceWith(next);
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submittingRef.current) return;
 
@@ -298,6 +376,8 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
     // it should see the same message in the same place either way.
     const found = validateBookingDetails(details);
     const bad = BOOKING_FIELD_ORDER.filter((k) => found[k]);
+    const consentMissing = needsConsent && data.get("consent") !== "yes";
+    setConsentError(consentMissing ? "Please confirm you have read and agree to the terms." : undefined);
 
     if (bad.length > 0) {
       /*
@@ -319,10 +399,23 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
       formRef.current?.querySelector<HTMLInputElement>(`[name="${bad[0]}"]`)?.focus();
       return;
     }
+    if (consentMissing) {
+      setFormError(null);
+      document.getElementById(`${formId}-consent`)?.focus();
+      return;
+    }
+    if (!sessionId) {
+      setFormError("This date can no longer be booked online. Please contact the studio to book it.");
+      return;
+    }
 
     submittingRef.current = true;
     setSubmitting(true);
-    setLine(toCartLine(workshop, clamp(quantity), sessionId));
+    setFormError(null);
+    // Held in the basket and the details kept, so a declined card comes back
+    // to /checkout with everything still filled in for a retry.
+    const held = toCartLine(workshop, clamp(quantity), sessionId);
+    setLine(held);
     saveBookingDetails(details);
     /*
       A waitlist offer (`/events/{slug}/book?w=…`, the link in the "a seat is
@@ -333,10 +426,45 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
     */
     const offer = new URLSearchParams(window.location.search).get("w");
     if (offer) saveWaitlistToken(workshop.slug, offer);
-    // Never awaited and never held back for the card's stamp: the press on
-    // the card plays in the same tick, and whatever of it the navigation
-    // overtakes was decoration.
-    router.push("/checkout");
+
+    /*
+      THIS SESSION ALONE. The basket can hold other lines (a pass added
+      elsewhere); this page shows and prices one session, so it pays for one
+      session. Its basketId is bound to that one line, so a second press or a
+      retry lands on the same order rather than holding the seats twice.
+    */
+    const outcome = await startCheckout({
+      basketId: basketIdFor([held]),
+      details: {
+        firstName: details.firstName,
+        lastName: details.lastName,
+        email: details.email,
+        phone: details.phone,
+        marketingOptIn: false,
+      },
+      notes: details.notes?.slice(0, 500) || undefined,
+      lines: [{ kind: "session", id: sessionId, qty: held.quantity }],
+      codes,
+      consents: needsConsent ? checkout.consents.map(({ policy, version }) => ({ policy, version })) : [],
+      waitlistToken: readWaitlistToken([held]),
+    });
+
+    if (outcome.status === "redirect") {
+      // Noted before leaving, so the confirmation knows which basket to clear
+      // once this order is paid — and only then.
+      notePendingPayment(outcome.reference);
+      window.location.assign(outcome.paymentUrl);
+      return; // The page is going; the button keeps saying so.
+    }
+    if (outcome.status === "paid") {
+      completeBooking();
+      router.push(`/payment-success?ref=${encodeURIComponent(outcome.reference)}&k=${encodeURIComponent(outcome.k)}`);
+      return;
+    }
+
+    submittingRef.current = false;
+    setSubmitting(false);
+    setFormError(refusalMessage(outcome));
   }
 
   /* -- render ------------------------------------------------------------ */
@@ -366,17 +494,18 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
         */}
         <div className="col-span-12 lg:hidden">{strip}</div>
 
+        <div className="col-span-12 mt-10 lg:col-span-7 lg:col-start-1 lg:row-start-1 lg:mt-0">
         <form
+          id={formId}
           ref={formRef}
           noValidate
           onSubmit={onSubmit}
           onInput={onInput}
           onBlur={onBlur}
-          className="col-span-12 mt-10 lg:col-span-7 lg:col-start-1 lg:row-start-1 lg:mt-0"
         >
           {intro}
 
-          {/* --- 01 places -------------------------------------------------- */}
+          {/* --- 01 spots --------------------------------------------------- */}
           <Reveal className="mt-12 md:mt-14">
             <PlacePalette
               max={max}
@@ -460,12 +589,38 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
           <div className="mt-10 lg:hidden">
             <PlaceCardStub variant="inline" {...stubProps} />
           </div>
+        </form>
 
-          {/* --- 03 ready ------------------------------------------------------ */}
+          {/*
+            --- 03 pay ----------------------------------------------------------
+            OUTSIDE THE FORM, ON PURPOSE. The code box is a form of its own and
+            forms do not nest — Enter in it would otherwise press Pay. The terms
+            box and Pay belong to the booking form through `form={formId}`, so
+            FormData and the submit still see them.
+          */}
           <section aria-labelledby="booking-ready" className="mt-12 border-t border-line pt-10">
             <h2 id="booking-ready" className={HEADING}>
-              <span aria-hidden>03&nbsp;&nbsp;</span>Ready when you are
+              <span aria-hidden>03&nbsp;&nbsp;</span>Confirm and pay
             </h2>
+
+            {sessionId ? (
+              <div className="mt-8 max-w-[28rem]">
+                <PassCodeField applied={codes} onApply={applyCode} onRemove={removeCode} disabled={submitting} />
+                {codes.length > 0 && !freshQuote ? (
+                  <button
+                    type="button"
+                    onClick={() => void priceWith(codes)}
+                    className="mt-3 text-fine text-text underline decoration-terracotta/50 underline-offset-4"
+                  >
+                    Your booking changed — update the price with your codes
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {needsConsent ? (
+              <Consent id={`${formId}-consent`} form={formId} consents={checkout.consents} error={consentError} />
+            ) : null}
 
             {/*
               Always mounted, so the region exists before anything is put in
@@ -482,7 +637,9 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
               reaching for it.
             */}
             <div role="alert" className="mt-6">
-              {attemptCount > 0 ? (
+              {formError ? (
+                <p className="mb-2 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text">{formError}</p>
+              ) : attemptCount > 0 ? (
                 <p
                   key={attemptCount}
                   className={cn(
@@ -505,7 +662,7 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
                 Total
                 <span
                   className="ml-3 inline-block text-lead font-medium tabular-nums text-text"
-                  style={{ minWidth: `${`${max} places · `.length + totalMinCh}ch` }}
+                  style={{ minWidth: `${`${max} spots · `.length + totalMinCh}ch` }}
                 >
                   {quantity} {placesWord}
                   <span aria-hidden> &middot; </span>
@@ -530,27 +687,35 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
                 ref above is what stops a second press; the label is what says
                 the first one landed.
               */}
+              {/*
+                "Pay", because the press does take payment: it opens Mamo Pay's
+                page for exactly this total. Nothing owed (a pass or a full
+                discount) → "Confirm booking", which is what that press does.
+              */}
               <BlobButton
                 type="submit"
+                form={formId}
                 arrow={!submitting}
                 className="w-full justify-center px-8 py-5 sm:w-auto"
               >
-                {submitting ? "Opening checkout…" : "Continue to checkout"}
+                {submitting
+                  ? free
+                    ? "Confirming…"
+                    : "Opening payment…"
+                  : free
+                    ? "Confirm booking"
+                    : `Pay ${totalLabel}`}
               </BlobButton>
             </div>
 
-            {/*
-              Said before the button is pressed, not after. Someone about to
-              hand over a name and a number is entitled to know nothing is
-              taken at this step: payment is the next page's, on Mamo Pay,
-              after everything has been shown once more. `body`, not `fine`:
-              this is the opposite of fine print.
-            */}
-            <p className="mt-8 max-w-[40rem] border-l-2 border-terracotta pl-5 text-body text-text/80">
-              Nothing is charged here. You&rsquo;ll review everything and pay on the next step.
+            {!free ? <p className="mt-6 max-w-[40rem] text-fine text-text/75">{checkout.captureNote}</p> : null}
+
+            {/* The one "what a booking is" sentence (booking-settings), the same words the confirmation and FAQ print. */}
+            <p className="mt-6 max-w-[40rem] border-l-2 border-terracotta pl-5 text-fine leading-[1.8] text-text/80">
+              {checkout.terms}
             </p>
           </section>
-        </form>
+        </div>
 
         <aside
           ref={asideRef}

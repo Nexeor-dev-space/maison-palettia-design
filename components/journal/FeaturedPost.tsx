@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 
 import { JOURNAL_COPY, readingLabel } from "@/components/journal/copy";
@@ -54,6 +54,7 @@ export function FeaturedPost({ post }: { post: JournalPostCard }) {
                 <span className="plate relative block aspect-[4/3] w-full overflow-clip rounded-[1.25rem] bg-surface rotate-[-1deg] transition-transform duration-500 ease-editorial motion-safe:group-hover:rotate-0">
                   <Image
                     src={post.coverImage.src}
+                    blur={post.coverImage.blur}
                     alt=""
                     fill
                     priority

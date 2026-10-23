@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+import { onScrollFrame } from "@/lib/scroll";
+
 /*
   PLAY WHEN IT CAN ACTUALLY BE SEEN — for phones and tablets.
 
@@ -21,9 +23,9 @@ import { useEffect, useRef } from "react";
   photograph has opened (see `.actions` in Hero.module.css), and a gesture
   played then would be played to nobody. So once it intersects, this polls
   the element's effective opacity — its own times every ancestor's — and
-  only fires when that is nearly 1. It keeps polling while it is in view, so
-  a button that fades OUT and back in (the hero's, as the page scrolls)
-  plays again each time it is shown.
+  only fires when that is nearly 1. It keeps checking while it is in view
+  and anything could be changing it, so a button that fades OUT and back in
+  (the hero's, as the page scrolls) plays again each time it is shown.
 */
 export const AUTO_PLAY_QUERY = "(hover: none), (max-width: 1023px)";
 
@@ -61,41 +63,102 @@ export function usePlayOnView<T extends HTMLElement>(
     let poll = 0;
     let shown = false;
 
+    /*
+      IN BURSTS, NOT FOREVER — the fix for a main thread that never went idle.
+
+      This used to poll every 150ms for as long as the element was in view,
+      and the hero's note is in view from the first paint for as long as the
+      banner is on screen: a `getComputedStyle` up the whole ancestor chain six
+      or seven times a second, at rest, indefinitely. Lighthouse could not find
+      a quiet moment on the homepage to call it interactive.
+
+      The opacity it watches only changes for a reason: the page scrolls (the
+      hero's actions are scrubbed by the scroll), a reveal plays as the element
+      arrives, or the tab comes back. So each of those ARMS the same 150ms
+      poll for the next ARM_MS, and the poll stops itself once that time is up
+      and the last SETTLED checks agree — all shown, or all hidden. Anything
+      still in between keeps it running, as before. While anything can be
+      changing the cadence is exactly what it was; at rest there is nothing.
+
+      Scroll is heard through `onScrollFrame` (lib/scroll.ts), the site's one
+      scroll hub, and only while the element is in view.
+    */
+    const ARM_MS = 2500;
+    const SETTLED = 3;
+    let inView = false;
+    let until = 0;
+    let streak = 0;
+    let last: "shown" | "hidden" | "between" | null = null;
+    let stopScroll: (() => void) | null = null;
+
     const hide = () => {
       if (shown) {
         shown = false;
         leave.current();
       }
     };
+    const halt = () => {
+      window.clearInterval(poll);
+      poll = 0;
+    };
     const check = () => {
-      const visible = effectiveOpacity(el) > 0.9;
+      // Once per check: the walk up the ancestors is the whole cost.
+      const opacity = effectiveOpacity(el);
+      const visible = opacity > 0.9;
       if (visible && !shown) {
         shown = true;
         enter.current();
-      } else if (!visible && effectiveOpacity(el) < 0.1) {
+      } else if (!visible && opacity < 0.1) {
         hide();
       }
+      const state = visible ? "shown" : opacity < 0.1 ? "hidden" : "between";
+      streak = state === last ? streak + 1 : 1;
+      last = state;
+      if (poll && performance.now() >= until && state !== "between" && streak >= SETTLED) halt();
+    };
+    const arm = () => {
+      if (!inView) return;
+      until = performance.now() + ARM_MS;
+      if (!poll) poll = window.setInterval(check, 150);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") arm();
+    };
+
+    const enterView = () => {
+      inView = true;
+      if (!stopScroll) stopScroll = onScrollFrame(arm);
+    };
+    const leaveView = () => {
+      inView = false;
+      stopScroll?.();
+      stopScroll = null;
+      halt();
     };
 
     const start = () => {
       io = new IntersectionObserver(
         ([entry]) => {
-          window.clearInterval(poll);
+          halt();
           if (entry.intersectionRatio >= 0.6) {
+            enterView();
             check();
-            poll = window.setInterval(check, 150);
-          } else if (entry.intersectionRatio === 0) {
-            hide();
+            arm();
+          } else {
+            leaveView();
+            if (entry.intersectionRatio === 0) hide();
           }
         },
         { threshold: [0, 0.6] },
       );
       io.observe(el);
+      document.addEventListener("visibilitychange", onVisibility);
     };
     const stop = () => {
       io?.disconnect();
       io = null;
-      window.clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVisibility);
+      leaveView();
       hide();
     };
 

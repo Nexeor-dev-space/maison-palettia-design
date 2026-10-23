@@ -187,8 +187,11 @@ export function ModeField(props: RadioFieldClientProps) {
       {description ? <FieldDescription description={description} path={path} /> : null}
 
       <Modal slug={MODAL_SLUG} className="confirmation-modal" style={{ padding: "var(--base)" }}>
+        {/* Above the class's blurred :before/:after overlay, as Payload's own `__wrapper` is — without it the dialog renders as a blank blur. */}
         <div
           style={{
+            position: "relative",
+            zIndex: 1,
             maxWidth: "36rem",
             margin: "10vh auto 0",
             background: "var(--theme-elevation-0)",

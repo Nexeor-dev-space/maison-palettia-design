@@ -90,7 +90,18 @@ export function AutoReveal() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (typeof Element.prototype.animate !== "function") return;
 
-    const held = new Map<Element, Animation[]>();
+    /*
+      HELD WITH ONE INLINE `opacity: 0`, NOT WITH A PAUSED ANIMATION.
+
+      This used to create both animations up front and pause them, one pair
+      per candidate — several hundred on the home page — and a paused
+      transform animation is still an animation: the browser promoted every
+      one of those elements to its own compositing layer before any of them
+      was in view, and a phone paid for that on every scrolled frame. Now a
+      held element is simply transparent, and its animations are created in
+      the moment it is released.
+    */
+    const held = new Map<HTMLElement, { from: string; duration: number; prior: string; animations: Animation[] }>();
     let io: IntersectionObserver | null = null;
 
     /* Sticky, fixed or a sideways track anywhere between the element and <main> — memoised per ancestor. */
@@ -121,8 +132,12 @@ export function AutoReveal() {
       return answer;
     };
 
-    const release = (el: Element) => {
-      held.get(el)?.forEach((animation) => animation.cancel());
+    const release = (el: HTMLElement) => {
+      const entry = held.get(el);
+      if (entry) {
+        entry.animations.forEach((animation) => animation.cancel());
+        el.style.opacity = entry.prior;
+      }
       held.delete(el);
       el.removeAttribute("data-auto-reveal");
     };
@@ -132,9 +147,30 @@ export function AutoReveal() {
       if (!main) return;
       const fold = window.innerHeight;
 
+      /*
+        READ EVERYTHING, THEN WRITE EVERYTHING. The inline `opacity: 0` below
+        marks the element's style dirty, so measuring the next candidate after
+        it forced a fresh style and layout pass — once per candidate, hundreds
+        of times on the home page. All the rects and computed styles are taken
+        first, against one layout, and the holds are written after.
+
+        "Outermost only" used to ask the DOM for an ancestor already marked
+        `data-auto-reveal`; with the writes deferred, the chosen set is kept
+        here instead. `querySelectorAll` is in document order, so an ancestor
+        is always decided before anything inside it.
+      */
+      const chosen: { el: HTMLElement; kind: Kind }[] = [];
+      const picked = new Set<Element>();
+      const insidePicked = (el: Element) => {
+        for (let node = el.parentElement; node && node !== main; node = node.parentElement) {
+          if (picked.has(node)) return true;
+        }
+        return false;
+      };
+
       for (const el of main.querySelectorAll<HTMLElement>(CANDIDATES)) {
         // Only the outermost candidate: a chosen ancestor already carries this one.
-        if (el.parentElement?.closest("[data-auto-reveal]")) continue;
+        if (insidePicked(el)) continue;
         if (el.closest("[data-reveal]") || el.querySelector("[data-reveal]")) continue;
         if (el.closest(SKIP_ANCESTORS)) continue;
 
@@ -147,15 +183,16 @@ export function AutoReveal() {
         if (style.display === "contents" || style.visibility === "hidden" || Number(style.opacity) < 0.99) continue;
         if (underPin(el, main)) continue;
 
-        const kind = kindOf(el);
+        picked.add(el);
+        chosen.push({ el, kind: kindOf(el) });
+      }
+
+      for (const { el, kind } of chosen) {
         const { from, duration } = MOTION[kind];
-        const timing: KeyframeAnimationOptions = { duration, easing: EASE, fill: "backwards" };
-        const move = el.animate([{ transform: from }, { transform: "none" }], { ...timing, composite: "add" });
-        const fade = el.animate([{ opacity: 0 }, { opacity: 1 }], { ...timing, duration: Math.round(duration * 0.75) });
-        move.pause();
-        fade.pause();
+        const prior = el.style.opacity;
+        el.style.opacity = "0";
         el.setAttribute("data-auto-reveal", kind);
-        held.set(el, [move, fade]);
+        held.set(el, { from, duration, prior, animations: [] });
       }
 
       io = new IntersectionObserver(
@@ -164,19 +201,23 @@ export function AutoReveal() {
           const steps = new Map<Element | null, number>();
           for (const entry of entries) {
             if (!entry.isIntersecting) continue;
-            const el = entry.target;
-            const animations = held.get(el);
+            const el = entry.target as HTMLElement;
+            const hold = held.get(el);
             io?.unobserve(el);
-            if (!animations) continue;
+            if (!hold) continue;
             const parent = el.parentElement;
             const step = steps.get(parent) ?? 0;
             steps.set(parent, step + 1);
             const delay = Math.min(step, MAX_STEPS) * STEP_MS;
-            for (const animation of animations) {
-              animation.effect?.updateTiming({ delay });
-              animation.play();
-            }
-            // Nothing is left on the element once it has landed.
+            const timing: KeyframeAnimationOptions = { duration: hold.duration, easing: EASE, fill: "backwards", delay };
+            /* The inline hold goes first: `fill: backwards` keeps the
+               element at the first keyframe through its delay. */
+            el.style.opacity = hold.prior;
+            const animations = [
+              el.animate([{ transform: hold.from }, { transform: "none" }], { ...timing, composite: "add" }),
+              el.animate([{ opacity: 0 }, { opacity: 1 }], { ...timing, duration: Math.round(hold.duration * 0.75) }),
+            ];
+            hold.animations = animations;
             Promise.all(animations.map((animation) => animation.finished))
               .then(() => release(el))
               .catch(() => {});

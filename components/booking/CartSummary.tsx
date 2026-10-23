@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 
 import { useSessionPassed } from "@/components/booking/SessionClock";
@@ -61,13 +61,13 @@ export function CartSummary({
   /*
     What the count is counting.
 
-    "Places" is the right word for a seat at a session and the wrong one for a
+    "Spots" is the right word for a seat at a session and the wrong one for a
     pass, which holds no place until it is redeemed against a date. A basket of
     sessions keeps the word it has always used; one with a pass in it counts
     items, which is the only word true of both. Derived rather than stored, so
     it follows the basket without anything having to remember to update it.
   */
-  const unit = lines.every((line) => line.kind === "session") ? "place" : "item";
+  const unit = lines.every((line) => line.kind === "session") ? "spot" : "item";
   const countLabel = `${places} ${places === 1 ? unit : `${unit}s`}`;
 
   return (
@@ -164,13 +164,13 @@ function CartEntry({
 }) {
   const lineTotal = line.priceAmount * line.quantity;
   /*
-    Places for a session, passes for a pass. The stepper's labels and the
+    Spots for a session, passes for a pass. The stepper's labels and the
     per-line arithmetic both read these, so the two cannot disagree — and the
     plural is spelled out rather than built by adding an "s", which is how
     "2 passs" got as far as a rendered checkout.
   */
-  const unit = line.kind === "session" ? "place" : "pass";
-  const units = line.kind === "session" ? "places" : "passes";
+  const unit = line.kind === "session" ? "spot" : "pass";
+  const units = line.kind === "session" ? "spots" : "passes";
   /* Only a session has a cap — see `setQuantity` in lib/cart.ts. */
   const atCap = line.kind === "session" && line.quantity >= line.seatsAvailable;
   /*
@@ -287,7 +287,7 @@ function CartEntry({
       {/* --- places and price ------------------------------------------- */}
       <div className="mt-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-4">
         <div>
-          <p className={TERM}>{units === "places" ? "Places" : "Passes"}</p>
+          <p className={TERM}>{units === "spots" ? "Spots" : "Passes"}</p>
           <div className="mt-2 flex items-center overflow-hidden rounded-sm border border-text/20">
             <Step
               label={`One fewer ${unit} for ${line.title}`}
@@ -359,7 +359,7 @@ function CartEntry({
         */}
         {line.kind === "session" && line.quantity >= line.seatsAvailable ? (
           <p className="text-fine text-text/75">
-            {line.seatsAvailable} {line.seatsAvailable === 1 ? "place" : "places"} left for this
+            {line.seatsAvailable} {line.seatsAvailable === 1 ? "spot" : "spots"} left for this
             date
           </p>
         ) : null}

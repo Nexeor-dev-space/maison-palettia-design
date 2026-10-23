@@ -120,6 +120,19 @@ export interface ImageAsset {
   src: string;
   alt: string;
   position?: string;
+  /** The blurred stand-in shown until the photograph has loaded. */
+  blur?: ImageBlur;
+}
+
+/**
+ * A photograph's blurred stand-in: a tiny WebP as a data URL, and the
+ * picture's aspect so the blur can be laid out like it. Made from the file
+ * by cms/lib/blurPlaceholder.ts; drawn by components/ui/Image.tsx.
+ */
+export interface ImageBlur {
+  src: string;
+  /** Width over height. */
+  aspect: number;
 }
 
 /** A money amount, kept numeric so the currency can be formatted per locale. */

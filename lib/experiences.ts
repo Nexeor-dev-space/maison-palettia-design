@@ -3,6 +3,7 @@ import { toCreativeExperience } from "@/lib/cms/mappers";
 import { contentReader, findDocs } from "@/lib/cms/query";
 import type { VibeSlug } from "@/lib/vibes";
 import type { ImageAsset } from "@/types";
+import { withStaticBlurs } from "@/lib/staticBlur";
 
 /**
  * The creative experiences on offer, and the seam the homepage reads them
@@ -337,7 +338,8 @@ export async function getCreativeExperiences(): Promise<CreativeExperience[]> {
   const fromCms = await readExperiences();
   // The in-file list only when the CMS could not be read (null); an empty
   // answer means "nothing published".
-  return (fromCms ?? EXPERIENCES).map(holdStatusInCode).map(holdPagePhotosInCode);
+  // The code-held photographs get their blurred stand-ins (lib/staticBlur.ts).
+  return withStaticBlurs((fromCms ?? EXPERIENCES).map(holdStatusInCode).map(holdPagePhotosInCode));
 }
 
 /*

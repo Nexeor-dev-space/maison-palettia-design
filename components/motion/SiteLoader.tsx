@@ -45,12 +45,12 @@ import { pauseScroller, resumeScroller } from "@/lib/scroll";
  */
 
 /* The same pen and the same wells as the homepage intro — see <HeroIntro>. */
-const WRITE_MS = 1500; // the whole loader runs to about four seconds — see <HeroIntro>
+const WRITE_MS = 800; // the whole loader runs to about two seconds — see <HeroIntro>
 const DOT_STEP = 95;
 const DOTS_AT = WRITE_MS - 40;
-const BURST_AT = DOTS_AT + 640;
-const FLY_AT = BURST_AT + 900; // the homepage holds the ring this long before the mark lifts
-const OUT_MS = 1000; // the flight and the fade, then the loader is gone
+const BURST_AT = DOTS_AT + 240;
+const FLY_AT = BURST_AT + 250; // the homepage holds the ring this long before the mark lifts
+const OUT_MS = 800; // the flight and the fade, then the loader is gone
 
 /*
   THE RING IS THE HOMEPAGE'S — the same nine plans <HeroIntro> bursts, in its

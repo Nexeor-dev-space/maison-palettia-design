@@ -6,6 +6,7 @@ import { DOODLE_PLAN, DRAW_ORDER, type DoodlePlan } from "@/components/sections/
 import { resolveIcon } from "@/components/sections/hero/doodles";
 import styles from "@/components/sections/hero/Hero.module.css";
 import { HeroIntro } from "@/components/sections/hero/HeroIntro";
+import { blurImage } from "@/lib/imageBlur";
 import { cn } from "@/lib/utils";
 import type { ImageAsset } from "@/types";
 
@@ -144,7 +145,8 @@ const HERO_IMAGE = {
  * the photograph, showing past its edges.
  *
  * AS THE PAGE SCROLLS the banner is held still while it changes, all of it
- * driven by one number, `--p` (see <HeroIntro> and ./hero/Hero.module.css):
+ * driven by one number, `--p`, written by <HeroIntro> onto each element that
+ * reads it (see ./hero/Hero.module.css):
  *
  *   the photograph  opens from its card to the whole screen, its corners
  *                   squaring off and a slight zoom settling as it goes;
@@ -239,6 +241,21 @@ export function Hero({
         ? { src: imageMobile.src, alt: imageMobile.alt, position: imageMobile.position ?? "50% 50%", lift: HERO_IMAGE.mobile.lift }
         : null;
 
+  /*
+    THE BLURRED STAND-IN, behind the photograph — the opening layer is never
+    an empty frame, on a slow connection or a fast one (see
+    components/ui/Image.tsx; the banner draws its own because its two files
+    swap at a breakpoint inside one layer). Phone and desktop each have one;
+    Hero.module.css picks between them, and the photograph fades in over it
+    once decoded.
+  */
+  const mobileBlur = imageMobile?.blur;
+  const desktopBlur = image?.blur;
+  const bloomStyle: Vars = {
+    ...(mobileBlur ? { "--blur-m": blurImage(mobileBlur) } : {}),
+    ...(desktopBlur ? { "--blur-d": blurImage(desktopBlur) } : {}),
+  };
+
   return (
     <section
       data-hero-intro
@@ -254,7 +271,11 @@ export function Hero({
       <HeroIntro />
 
       <div data-hero-track className={styles.track}>
-        <div data-hero-frame className={styles.frame}>
+        {/* The intro's inline script fits the foot (`--wb`, `--wf`,
+            `data-short`) and promotes the layers (`data-live`) here before
+            React hydrates — see ./hero/introCore.ts — so React is told the
+            difference is expected. Its own attributes only, not the subtree. */}
+        <div data-hero-frame suppressHydrationWarning className={styles.frame}>
           {/* ---- the doodles, placed in the resting card's box ---- */}
           <div className={styles.window}>
             {DOODLE_PLAN.map((plan) => (
@@ -263,8 +284,12 @@ export function Hero({
           </div>
 
           {/* ---- the photograph, full size, shown through the card ---- */}
-          <div className={styles.card}>
-            <div className={styles.bloom}>
+          {/* The resting window's box, measured by <HeroIntro> to open the card
+              with transforms. Never seen. */}
+          <div aria-hidden data-hero-window className={styles.windowProbe} />
+          <div data-hero-card className={styles.card}>
+            <div data-hero-card-inner className={styles.cardInner}>
+            <div className={styles.bloom} style={bloomStyle}>
               {/*
                 ONE OF THESE IS DRAWN, AND ONLY ONE IS FETCHED.
 
@@ -317,6 +342,7 @@ export function Hero({
                   } as Vars
                 }
                 className={cn(styles.cardImage, styles.cardImageMobile)}
+                {...(mobileBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
               />
               ) : null}
 
@@ -359,10 +385,12 @@ export function Hero({
                   } as Vars
                 }
                 className={cn(styles.cardImage, styles.cardImageDesktop)}
+                {...(desktopBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
               />
               ) : null}
             </div>
-            <div aria-hidden className={styles.scrim} />
+            <div aria-hidden data-hero-scrim className={styles.scrim} />
+            </div>
           </div>
 
           {/* ---- the words: under the card, then inside the picture ---- */}
@@ -499,7 +527,7 @@ export function Hero({
               {/* Two of the three drops are this span's own pseudo-elements;
                   the third is the child, because there are only two to a box.
                   See `.cueLine` in Hero.module.css. */}
-              <span aria-hidden className={styles.cueLine}>
+              <span aria-hidden data-loop="eager" className={styles.cueLine}>
                 <span className={styles.cueDrop} />
               </span>
             </a>
@@ -555,6 +583,9 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
     <div
       aria-hidden
       data-doodle={plan.id}
+      /* The intro's inline script writes the flight (`--fx` … `--settle-delay`)
+         and `data-ring` here before React hydrates — see ./hero/introCore.ts. */
+      suppressHydrationWarning
       /* Under reduced motion the card never opens and the actions are there
          from the start, standing in the foot's open band — so a foot mark
          that would sit behind them is left out. See `.doodle` in the CSS. */
@@ -570,9 +601,9 @@ function DoodleShape({ plan }: { plan: DoodlePlan }) {
       )}
       style={vars}
     >
-      <div className={styles.drift}>
+      <div data-hero-drift className={styles.drift}>
         <div className={styles.parallax}>
-          <div className={styles.float}>
+          <div data-loop="eager" className={styles.float}>
             <svg
               viewBox={`0 0 ${shape.w} ${shape.h}`}
               className={styles.svg}

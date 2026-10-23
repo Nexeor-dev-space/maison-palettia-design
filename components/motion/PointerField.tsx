@@ -34,8 +34,8 @@ import { useEffect } from "react";
  * across the screen produces one style recalculation per frame rather than
  * one per event.
  *
- * THE BANNER KEEPS ITS OWN. <HeroIntro> sets `--mx`/`--my` on the hero
- * <section> itself, and a value set on a nearer ancestor wins — so the
+ * THE BANNER KEEPS ITS OWN. <HeroIntro> sets `--mx`/`--my` on the banner's
+ * own `.parallax` icons, which are not targets here — so the
  * banner's doodles stay bound to the pointer's position *within the banner*,
  * which is what their composition was tuned against, while everything below
  * it reads the window-relative pair from here. The two cannot fight.

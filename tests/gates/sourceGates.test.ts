@@ -82,6 +82,13 @@ const ALLOWED: Record<string, string[] | "anywhere"> = {
   PORT: ["cms/hooks/revalidate.ts", "scripts/revalidate.mjs"],
   HOSTNAME: ["cms/hooks/revalidate.ts", "scripts/revalidate.mjs"],
   OLD_PAYLOAD_SECRET: ["cms/scripts/reseal.ts"],
+  // `npm run docs:pdf` (the owner guide's PDF): a staff login and the address
+  // to print from, typed on the command line by whoever builds the PDF —
+  // operator input to a dev tool, never in .env and never read by the app.
+  DOCS_BOT_EMAIL: ["scripts/build-admin-guide-pdf.mjs"],
+  DOCS_BOT_PASSWORD: ["scripts/build-admin-guide-pdf.mjs"],
+  DOCS_BASE_URL: ["scripts/build-admin-guide-pdf.mjs"],
+  DOCS_CHROME_CHANNEL: ["scripts/build-admin-guide-pdf.mjs"],
 };
 
 describe("process.env allowlist (SPEC §C.1, §K grep gate)", () => {

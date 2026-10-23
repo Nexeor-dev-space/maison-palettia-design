@@ -18,12 +18,13 @@ import { SiteChromeProvider, type SiteChromeData } from "@/components/layout/Sit
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ContactWidget } from "@/components/layout/ContactWidget";
 import { MusicPlayer } from "@/components/layout/MusicPlayer";
-import { CursorLayer } from "@/components/motion/CursorLayer";
+import { CursorLayer, PointerField } from "@/components/motion/Deferred";
+import { LoopPause } from "@/components/motion/LoopPause";
 import { AutoReveal } from "@/components/motion/AutoReveal";
 import { SiteLoader } from "@/components/motion/SiteLoader";
-import { PointerField } from "@/components/motion/PointerField";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { INTRO_SCRIPT } from "@/components/sections/hero/intro";
+import { PHOTO_REVEAL_SCRIPT } from "@/lib/photoReveal";
 import { hapsha, montserrat } from "@/lib/fonts";
 import { isDraft } from "@/lib/cms/draft";
 import { getDefaultMetadata } from "@/lib/seo";
@@ -112,16 +113,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <head>
-        {/* Decides the homepage intro before first paint; does nothing on any
-            other page. See components/sections/hero/intro.ts. */}
+        {/* Decides the homepage intro before first paint; on any other page
+            it only marks the loader. The intro itself is started by a script
+            written after the homepage's hero (<HeroIntroScript>). See
+            components/sections/hero/intro.ts. */}
         <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+        {/* Fades each photograph in over its blurred stand-in once it has
+            loaded and decoded — listening before any <img> is parsed. See
+            lib/photoReveal.ts and components/ui/Image.tsx. */}
+        <script dangerouslySetInnerHTML={{ __html: PHOTO_REVEAL_SCRIPT }} />
         {/*
           Scroll-triggered reveals render at opacity 0 until JavaScript runs.
           Without this, a visitor (or crawler) with JS disabled sees an empty
           page. Keep the selector in sync with components/motion/.
         */}
         <noscript>
-          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+          {/* `:root` outranks globals.css's wait for <LoopPause>, which never
+              comes without JavaScript, so the loops run. */}
+          <style>
+            {"[data-reveal]{opacity:1!important;transform:none!important}" +
+              "html:root:root:not([data-loops]) [data-loop],html:root:root:not([data-loops]) [data-loop]::before,html:root:root:not([data-loops]) [data-loop]::after,html:root:root:not([data-loops]) [data-loop] *,html:root:root:not([data-loops]) [data-loop] *::before,html:root:root:not([data-loops]) [data-loop] *::after{animation-play-state:running!important}"}
+          </style>
         </noscript>
       </head>
       <body className="flex min-h-dvh flex-col">
@@ -207,15 +219,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <DoodleMark> on the page can drift against it, the way the
               banner's doodles do. Renders nothing; see PointerField.tsx. */}
           <PointerField />
+          {/* Pauses every infinite CSS loop marked `data-loop` while it is
+              off screen. Renders nothing; see LoopPause.tsx. */}
+          <LoopPause />
 
           {/* The floating Contact link, from `lg` up. Late in the body so it
               sits above the page without a stacking context of its own; it
               renders nothing on /contact itself. */}
           <ContactWidget />
           {/* Background music, bottom left — Content → Music and Settings →
-              Music. Only when switched on and there is a track; it never
-              plays until pressed, and it lives here so a track carries on
-              across client-side navigation. See <MusicPlayer>. */}
+              Music. Only when switched on and there is a track; it starts
+              itself (or on the first tap, where the browser insists), and it
+              lives here so a track carries on across client-side navigation.
+              See <MusicPlayer>. */}
           {music.enabled ? <MusicPlayer config={music} /> : null}
           {/* Below `lg` only — see <BottomNav>. Mounted after the footer so it
               paints over the page's own foot, and before <CursorLayer>'s

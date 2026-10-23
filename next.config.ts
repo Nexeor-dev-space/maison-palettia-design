@@ -43,6 +43,27 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
 
+  images: {
+    /*
+      A WEEK IN THE BROWSER, NOT FOUR HOURS. Measured from outside, every
+      image request costs ~0.6–1s whatever its size — the files are already
+      small WebP; the time is the distance to the server — so the cheapest
+      image is the one a returning visitor never asks for again. Next 16's
+      default (4h, `must-revalidate`) sent every picture back to the server
+      within the same day.
+
+      A week, not a month: Next has no way to invalidate a cached image, so
+      a file replaced under the SAME name would stay stale for the whole TTL.
+      CMS uploads cannot do that (Payload renames a clashing upload), but a
+      file under public/ can be swapped in place.
+
+      WebP only (the default), no AVIF: a CDN on its free plan caches one
+      response per URL whatever the browser accepts, and an AVIF served to
+      a browser without it is a broken image.
+    */
+    minimumCacheTTL: 604800,
+  },
+
   /**
    * Keep the standalone copy to code. The tracer follows Payload's and
    * sharp's dynamic `fs` reads up to the project root and copies the whole
@@ -59,7 +80,40 @@ const nextConfig: NextConfig = {
    * (`npm run build`, ci.sh and deploy.sh run it) and fails if any remain.
    */
   outputFileTracingExcludes: {
-    "*": ["./.env*", "./media/**", "./private/**", "./assets/**", "./docs/**", "./tests/**", "./e2e/**", "./.git/**", "./.claude/**"],
+    // docs/ is excluded EXCEPT the owner guide's screenshots and PDF, which the
+    // signed-in /admin-docs route streams at runtime (below). Excludes win over
+    // includes, so docs/ is listed folder by folder rather than as `./docs/**`
+    // (Turbopack's matcher has no `!(…)`); scripts/prune-standalone.sh removes
+    // anything else under docs/ that a trace still brings in.
+    "*": [
+      "./.env*",
+      "./media/**",
+      "./private/**",
+      "./assets/**",
+      "./docs/*.md",
+      "./docs/cms/**",
+      "./docs/admin-guide/*.md",
+      "./docs/admin-guide/content/**",
+      "./docs/admin-guide/scripts/**",
+      "./docs/admin-guide/capture/**",
+      "./tests/**",
+      "./e2e/**",
+      "./.git/**",
+      "./.claude/**",
+    ],
+  },
+
+  /**
+   * The owner guide (/admin/docs) reads its screenshots and PDF from disk
+   * through app/(payload)/admin-docs/[...path]/route.ts — a dynamic `fs` read
+   * the tracer cannot see, so the two folders are named here. The content
+   * itself is TypeScript and is bundled. scripts/prune-standalone.sh,
+   * scripts/deploy.sh and Dockerfile.runtime.dockerignore keep the same two
+   * folders when they drop the rest of docs/.
+   */
+  outputFileTracingIncludes: {
+    // The key is a glob over route names; `[...path]` would read as a character class.
+    "/admin-docs/**": ["./docs/admin-guide/images/**", "./docs/admin-guide/dist/*.pdf"],
   },
 
   /**

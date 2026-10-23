@@ -1,5 +1,4 @@
 import { ArrowDown } from "lucide-react";
-import Link from "next/link";
 
 import { EventsBrowser } from "@/components/events/EventsBrowser";
 import { WalkInDiscovery } from "@/components/events/WalkInDiscovery";
@@ -13,7 +12,6 @@ import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow, ScriptTitle } from "@/components/ui/SectionHeader";
 import { WORKSHOP_JOURNEY } from "@/lib/brand";
 import type { CreativeExperience } from "@/lib/experiences";
-import type { PartnerRecord } from "@/lib/partners";
 import { cn } from "@/lib/utils";
 import type { Vibe } from "@/lib/vibes";
 import type { WorkshopType } from "@/lib/workshopTypes";
@@ -123,6 +121,12 @@ export interface EventsWords {
   lines?: readonly string[];
   doors?: readonly EventsDoor[];
   groupLeads?: { diy: string | null; scheduled: string | null };
+  /**
+   * NOT PRINTED (Oct 2026). The venue line under Create Anytime, which this
+   * labelled, was removed at the client's ask: the same location is already
+   * on the page ("where we set up") and on every activity page. The CMS field
+   * stays until a release can drop it with a migration.
+   */
   viewLocationLabel?: string | null;
   emptyTitle?: string | null;
   emptyBody?: string | null;
@@ -132,14 +136,12 @@ export function EventsBody({
   experiences,
   sessions,
   types = [],
-  partners,
   vibes,
   renderedAt,
   eyebrow = "Experiences",
   lines = ["Make It", "Your Way."],
   doors = LAUNCH_DOORS,
   groupLeads = { diy: "Pick a project. Pick your colours. Just drop in.", scheduled: "A little more planned. Same creative energy." },
-  viewLocationLabel = "View location",
   emptyTitle = "The next dates are being set.",
   emptyBody = "Create Anytime experiences are available in the meantime.",
   perPersonLabel,
@@ -149,7 +151,6 @@ export function EventsBody({
   sessions: Workshop[];
   /** The formats the scheduled experiences run in (lib/workshopTypes.ts); none before the Oct 2026 update. */
   types?: readonly WorkshopType[];
-  partners: PartnerRecord[];
   /** The vibe taxonomy, for the browser's Vibe filter; the experiences carry the tags. */
   vibes?: readonly Vibe[];
   /** The page's one clock — see ONE CLOCK FOR THE WHOLE RENDER on the page. */
@@ -158,7 +159,6 @@ export function EventsBody({
   perPersonLabel?: string;
 }) {
   const walkIn = experiences.filter((e) => e.kind === "diy");
-  const home = partners.length === 1 ? partners[0] : undefined;
   const [diyDoor, scheduledDoor] = doors;
 
   return (
@@ -227,7 +227,6 @@ export function EventsBody({
                   href="#create-anytime"
                   title={diyDoor.title}
                   note={diyDoor.note}
-                  modeLabel={diyDoor.modeLabel}
                   tone="cream"
                 />
               ) : null}
@@ -236,7 +235,7 @@ export function EventsBody({
                   href="#scheduled"
                   title={scheduledDoor.title}
                   note={scheduledDoor.note}
-                  modeLabel={scheduledDoor.modeLabel}
+                  footnote={scheduledDoor.modeLabel}
                   tone="lilac"
                 />
               ) : null}
@@ -274,30 +273,7 @@ export function EventsBody({
             id="create-anytime-heading"
             title={diyDoor?.title ?? "Create Anytime"}
             lead={groupLeads.diy}
-          >
-            {/*
-              The destination, in the client's own event-page line (p19) — the
-              same one the location card on every activity page prints. It was
-              "Where the Maison sets up for each run of dates.", the second
-              half of the descriptor the client's rewrite retired. Read from
-              lib/partners.ts rather than typed here, so the two cannot drift.
-
-              The link says "View location", the plate's own label, because the
-              line now opens "Find us at…", and a link reading "Find us" after
-              it would say the same thing twice.
-            */}
-            {home ? (
-              <p className="text-body text-text">
-                {home.name}, {home.locality}
-                <span className="block text-fine text-text/85">
-                  {home.eventDescriptor ?? home.descriptor}{" "}
-                  <Link href="/locations" className="underline decoration-primary underline-offset-4">
-                    {viewLocationLabel}
-                  </Link>
-                </span>
-              </p>
-            ) : null}
-          </GroupHead>
+          />
         </Container>
 
         {/* <WalkInDiscovery> brings its own <Container>: the how-it-works
@@ -397,14 +373,18 @@ function Door({
   href,
   title,
   note,
-  modeLabel,
+  footnote,
   tone,
 }: {
   href: string;
   title: string;
   note: string | null;
-  /** "No booking" / "Booked online" — the mode's own label. */
-  modeLabel: string | null;
+  /**
+   * Starred onto the title and said under the note — "* Booked online" on
+   * the Create Together door, at the client's ask (Oct 2026), now that the
+   * mode label no longer sits over the title.
+   */
+  footnote?: string | null;
   tone: "cream" | "lilac";
 }) {
   /*
@@ -451,20 +431,25 @@ function Door({
           <DoodleMark name={corner.name} color={corner.color} treatment="stamp" delay={260} />
         </span>
 
+        {/*
+          NO MODE LABEL OVER THE TITLE (Oct 2026). "No Booking Required" and
+          "Booked online" sat here; the client asked for them to go — the note
+          under the title says the same thing in a sentence.
+        */}
         <span className="relative">
-          <span className="flex items-center gap-3 text-label font-medium uppercase tracking-eyebrow">
-            {modeLabel}
-          </span>
-
-          <span className="heading-script mt-3 block pb-[0.2em] text-script-compact">
+          <span className="heading-script block pb-[0.2em] text-script-compact">
             <ScriptTitle>{title}</ScriptTitle>
+            {footnote ? <Star /> : null}
           </span>
         </span>
 
         <span className="relative mt-6 flex items-end justify-between gap-6">
           {/* Wider than it was (26ch): the cluster now fills the right half,
               so the words no longer have to be kept short to leave it room. */}
-          <span className="max-w-[36ch] text-body">{note}</span>
+          <span className="max-w-[36ch] text-body">
+            {note}
+            {footnote ? <Footnote>{footnote}</Footnote> : null}
+          </span>
           {/*
             THE WAY DOWN, ON A PEBBLE — the same hand-cut lilac blob the
             format tickets carry their arrow on (see <TypeCard>), turned to
@@ -526,5 +511,28 @@ function GroupHead({
         {children ? <div className="col-span-12 md:col-span-5 md:pb-1">{children}</div> : null}
       </div>
     </Reveal>
+  );
+}
+
+/*
+  THE ASTERISK AND ITS NOTE. The star is decoration for the eye — a screen
+  reader gets the note itself, read in its place after the description — so
+  it is `aria-hidden`, and set in the sans at a small size: the script face
+  has no asterisk worth the name.
+*/
+function Star() {
+  return (
+    <span aria-hidden className="ml-1 inline-block align-top font-sans text-[0.42em] font-medium leading-none">
+      *
+    </span>
+  );
+}
+
+function Footnote({ children }: { children: string }) {
+  return (
+    <span className="mt-3 block text-fine font-medium uppercase tracking-eyebrow">
+      <span aria-hidden>* </span>
+      {children}
+    </span>
   );
 }

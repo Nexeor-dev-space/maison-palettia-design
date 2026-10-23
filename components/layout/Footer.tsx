@@ -340,7 +340,16 @@ export async function Footer() {
             where left is right.
           */}
           <div className="col-span-12 text-center lg:col-span-4 lg:text-left">
-            <Link href="/" aria-label={`${site.name} home`} className="inline-block">
+            {/*
+              NO PREFETCH ON ANY FOOTER LINK. <FooterReveal> pins this footer
+              `fixed` underneath <main> once it has mounted, and the
+              IntersectionObserver Next prefetches by cannot see that it is
+              covered — so every link here counted as "in view" one frame after
+              hydration, and each fetched its route tree and then every segment
+              of it, on every page, on the busiest frames of the load. A click
+              still navigates client-side; it fetches then, not in advance.
+            */}
+            <Link href="/" prefetch={false} aria-label={`${site.name} home`} className="inline-block">
               {/*
                 THE DEEP LILAC CUT, BECAUSE THE GROUND IS LIGHT NOW. The client
                 supplied two: Light Sage for dark grounds and Deep Lilac for
@@ -504,7 +513,7 @@ export async function Footer() {
                       const paint = linkPaint(paintCursor++);
                       return (
                         <li key={item.href}>
-                          <Link href={item.href} className={LINK}>
+                          <Link href={item.href} prefetch={false} className={LINK}>
                             {/*
                               THE BRUSH TAKES THE LINK'S OWN PAINT HERE TOO.
 
@@ -938,6 +947,7 @@ export async function Footer() {
                 <li key={policy.slug}>
                   <Link
                     href={`/policies/${policy.slug}`}
+                    prefetch={false}
                     /*
                       ==================================================
                       `text-body`, THE SAME SIZE AS THE NAVIGATION ABOVE
@@ -1072,7 +1082,7 @@ export async function Footer() {
               <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">
                 {[...legalNav, ...(music.enabled ? [{ label: "Music credits", href: "/music-credits" }] : [])].map((item) => (
                   <li key={item.href}>
-                    <Link href={item.href} className="transition-colors hover:text-text">
+                    <Link href={item.href} prefetch={false} className="transition-colors hover:text-text">
                       {item.label}
                     </Link>
                   </li>
@@ -1093,6 +1103,21 @@ export async function Footer() {
           */}
           <BackToTop className="lg:mr-[calc(6.5rem_-_var(--spacing-gutter))]" />
         </div>
+
+        {/* The studio's credit: its own line under the foot, in the legal
+            row's type, so it reads as a sign-off and never crowds that row —
+            beside it, all four items wrapped at tablet widths. */}
+        <p className="mt-6 text-center text-fine text-text/75">
+          Powered by{" "}
+          <a
+            href="https://nexeor.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium transition-colors hover:text-text"
+          >
+            Nexeor
+          </a>
+        </p>
       </Container>
     </footer>
   );

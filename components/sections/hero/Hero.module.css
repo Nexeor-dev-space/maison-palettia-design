@@ -39,7 +39,23 @@
   --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
   /* A piece arriving from off-screen: quick away, long settle, no overshoot. */
   --ease-land: cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-x: clip;
+  /*
+    NO `overflow-x: clip` HERE — it is on `.frame` instead, and that move is
+    the fix for the banner shaking on iPhones.
+
+    This section is also a stacking context (`isolate z-0` in Hero.tsx). A
+    clip and a stacking context on the same ancestor of a sticky element is
+    the combination iOS Safari cannot hold still: measured in the iOS 26.4
+    simulator on a stripped-down page, a bar inside the sticky frame jumped
+    back and forth by up to 7px on 42 frames of one slow drag with both, and
+    did not move at all with either one alone. On this banner that was the
+    whole frame — photograph, words and actions — shaking under the finger.
+
+    The clip was only ever keeping the doodles from widening the page, and
+    they live inside the frame, so the frame clips them now; <html> and
+    <body> clip the page as a whole. The intro's logo is `fixed` and was
+    never clipped by this anyway.
+  */
 }
 
 :global(html:not([data-intro])) .hero,
@@ -399,27 +415,43 @@
   }
 }
 
+/* A touch screen plays the opening on its first few pixels of scroll rather
+   than spending scroll on it (PLAYED_MS in <HeroIntro>), so the whole hold is
+   the picture standing open. 170svh keeps that stand at the ~70svh a phone
+   had before, instead of a screen and more of a page that will not move. */
+@media (pointer: coarse) {
+  .track {
+    height: 170svh;
+  }
+}
+
 .frame {
   position: sticky;
   top: 0;
   height: 100svh;
+  /* The doodles' horizontal clip, on the sticky element itself rather than
+     on the section around it — see the note at `.hero`. */
+  overflow-x: clip;
   /*
     Its own compositor layer. The frame holds still while the page moves
     under it for two screens, and every browser handles a sticky element more
     steadily when it does not have to re-rasterise the page around it to
-    reposition it. Cheap: this is one layer the size of the viewport.
+    reposition it. Only while the banner is on screen: HeroIntro sets
+    `data-live` from an observer, so nothing is held once it has gone by.
   */
-  will-change: transform;
-  --p: 0;
   /*
-    Two paces taken from the one progress. The tagline crosses the card's
-    foot at about 15% of the opening, so its ink has to be light by the time
-    it is over the picture (`--ink`, done at 30%), and the shade behind it
-    deep enough to read on (`--shade`, done at 40%). Paced by `--p` itself,
-    the words were grey on the photograph's brightest stripes halfway through.
+    THE OPENING'S PROGRESS, 0 TO 1 — AT REST HERE, AND ONLY AT REST.
+
+    This is the default every rule below falls back to. The live value is
+    NOT written here: a custom property on the frame inherits into every
+    doodle, path and line under it, so one write per scroll frame recomputed
+    style for the whole banner — a few hundred elements — and on a phone that
+    was the opening rendering at half rate, the window's edge stepping rather
+    than sliding. <HeroIntro> writes `--p` onto each element that actually
+    reads it (the picture, the shade, the words, the cue, each cut-out's
+    drift), so a frame's work is a handful of composited transforms.
   */
-  --ink: clamp(0, calc((var(--p) - 0.05) * 4), 1);
-  --shade: clamp(0, calc(var(--p) * 2.5), 1);
+  --p: 0;
   --wx: 4%;
   --wt: calc(var(--spacing-header) + 1.25rem);
   /*
@@ -503,7 +535,39 @@
       calc(var(--wb) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p))) round
       calc(var(--radius-sm) * (1 - var(--p)))
   );
-  will-change: clip-path;
+}
+
+/*
+  Once <HeroIntro> has measured the window it opens the card with transforms
+  instead (see `placeCard` there): no clip-path, so nothing repaints while it
+  opens. Both layers are permanent on purpose — promoting a viewport-sized
+  photograph at the first scroll would itself be the hitch this removes.
+*/
+.frame[data-xform] .card {
+  clip-path: none;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.cardInner {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.frame[data-xform] .cardInner {
+  will-change: transform;
+}
+
+.windowProbe {
+  position: absolute;
+  top: var(--wt);
+  bottom: var(--wb);
+  left: var(--wx);
+  right: var(--wx);
+  border-radius: var(--radius-sm);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /*
@@ -515,6 +579,16 @@
   position: absolute;
   inset: 0;
   clip-path: circle(150% at 50% calc(100% - var(--wb)));
+  /* The photograph's blurred stand-in, under it until it has loaded — see
+     `bloomStyle` in Hero.tsx. The phone's and the desktop's, at the same
+     breakpoint the two files swap at. */
+  background: var(--blur-m, none) center / cover no-repeat;
+}
+
+@media (min-width: 768px) {
+  .bloom {
+    background-image: var(--blur-d, none);
+  }
 }
 
 /*
@@ -631,6 +705,16 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /*
+    Two paces taken from the one progress. The tagline crosses the card's
+    foot at about 15% of the opening, so its ink has to be light by the time
+    it is over the picture (`--ink`, done at 30%), and the shade behind it
+    deep enough to read on (`--shade`, done at 40%). Paced by `--p` itself,
+    the words were grey on the photograph's brightest stripes halfway through.
+    Declared here rather than on the frame so the shade's `--p` is its own —
+    see the note on `--p` at `.frame`.
+  */
+  --shade: clamp(0, calc(var(--p) * 2.5), 1);
   background:
     radial-gradient(ellipse 75% 34% at 50% 70%, rgb(35 31 32 / 0.38), transparent 75%),
     linear-gradient(180deg, rgb(35 31 32 / 0.2) 0%, rgb(35 31 32 / 0.38) 45%, rgb(35 31 32 / 0.74) 100%);
@@ -763,8 +847,26 @@
    without one each cut-out was repainted per frame, which measured as the
    largest single cost of the opening on a phone (slow frames 32 → 18 at a
    mid-range phone's speed with this alone). */
-.drift {
+.frame[data-live] {
+  will-change: transform;
+}
+
+.frame[data-live] .drift {
   will-change: transform, opacity;
+}
+
+/* The shade and the words both change on every frame of the opening; on
+   their own layers that is a compositor property each, not a repaint of a
+   full-screen gradient and a block of shadowed type. */
+.frame[data-live] .scrim {
+  will-change: opacity;
+}
+
+.frame[data-live] .copy {
+  will-change: transform;
+}
+
+.drift {
   transform: translate3d(
       calc(var(--dirx, 0) * var(--p) * 4rem),
       calc(var(--diry, 0) * var(--p) * 3rem),
@@ -1025,6 +1127,7 @@
 
 .accent {
   color: color-mix(in oklab, var(--color-lavender) calc(var(--ink) * 100%), var(--color-primary));
+  transition: color 260ms ease;
 }
 
 .sub {
@@ -1106,13 +1209,23 @@
 */
 /*
   EVERY LINE CARRIES ITS OWN INK — see the note in <HeroIntro>'s measure().
-  `--ink-at` is when the photograph's foot reaches the line and `--ink-rate`
-  how fast it then crosses it; both are measured. Unmeasured (no script, or
-  before the first measure) they fall back to the block's old pace, so a
-  desktop, where the picture is over the whole block early, reads as before.
+  The script measures where the photograph's foot reaches each line and sets
+  `data-lit` on it there; the short transition on `--ink`'s consumers does
+  the crossing. Before the first measure every line flips at the block's
+  old pace (progress 0.175), so a desktop, where the picture is over the
+  whole block early, reads as before.
 */
+.copy,
 .copy [data-ink] {
-  --ink: clamp(0, calc((var(--p) - var(--ink-at, 0.05)) * var(--ink-rate, 4)), 1);
+  --ink: 0;
+  transition:
+    color 260ms ease,
+    text-shadow 260ms ease;
+}
+
+.copy[data-lit],
+.copy [data-ink][data-lit] {
+  --ink: 1;
 }
 
 .line {

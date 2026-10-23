@@ -5,7 +5,6 @@ import maplibrePkg from "maplibre-gl/package.json";
 import { useEffect, useRef, useState } from "react";
 
 import { INK } from "@/components/sections/hero/composition";
-import { resolveIcon } from "@/components/sections/hero/doodles";
 import { brandMapStyle, MAP_INK, METRO_FILTER, METRO_ICON } from "@/components/sections/map/brandMapStyle";
 import { cn } from "@/lib/utils";
 
@@ -49,8 +48,8 @@ function loadMapLibre(): Promise<MapLibre> {
 }
 
 /**
- * The pin: a Charcoal name tag over the terracotta bean from the brand's own
- * icon set, standing on a Charcoal point at the exact spot. HTML rather than
+ * The pin: a Charcoal name tag over a plain terracotta map pin whose tip is
+ * the exact spot. HTML rather than
  * a map symbol, so the tag is set in the site's type.
  *
  * THE TAG IS THE DARKEST THING ON THE MAP, ON PURPOSE. It was a White Rock
@@ -96,27 +95,28 @@ function pinElement(name: string): { root: HTMLElement; body: HTMLElement } {
   tag.appendChild(caret);
   body.appendChild(tag);
 
-  const icon = resolveIcon("bean", INK.terracotta);
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", `0 0 ${icon.w} ${icon.h}`);
-  svg.setAttribute("class", "mt-2 w-14 -rotate-[8deg] md:w-16");
-  // A White Rock outline round the bean, then the shadow: the big roads are
+  // A plain map pin whose tip is the exact spot (the marker is anchored at
+  // the bottom). A White Rock outline, then the shadow: the big roads are
   // terracotta too, and without the outline the pin sinks into the road it
   // stands beside.
+  const svgNs = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNs, "svg");
+  svg.setAttribute("viewBox", "0 0 24 32");
+  svg.setAttribute("class", "mt-2 w-8 md:w-9");
   svg.style.filter =
     [1, -1].flatMap((x) => [1, -1].map((y) => `drop-shadow(${x * 1.5}px ${y * 1.5}px 0 ${INK.whiteRock})`)).join(" ") +
     " drop-shadow(0 4px 6px rgba(45,55,72,0.3))";
-  for (const part of icon.parts) {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", part.d);
-    path.setAttribute("fill", part.fill);
-    svg.appendChild(path);
-  }
+  const drop = document.createElementNS(svgNs, "path");
+  drop.setAttribute("d", "M12 0C5.37 0 0 5.37 0 12c0 9 12 20 12 20s12-11 12-20C24 5.37 18.63 0 12 0z");
+  drop.setAttribute("fill", INK.terracotta);
+  svg.appendChild(drop);
+  const hole = document.createElementNS(svgNs, "circle");
+  hole.setAttribute("cx", "12");
+  hole.setAttribute("cy", "12");
+  hole.setAttribute("r", "4.5");
+  hole.setAttribute("fill", INK.whiteRock);
+  svg.appendChild(hole);
   body.appendChild(svg);
-
-  const point = document.createElement("span");
-  point.className = "mt-1 block size-3 rounded-full border-2 border-cream bg-[var(--color-brand-charcoal)]";
-  body.appendChild(point);
 
   return { root, body };
 }

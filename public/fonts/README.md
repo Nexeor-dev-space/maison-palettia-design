@@ -28,6 +28,17 @@ name, or change it in `lib/fonts.ts` too.
 Licensed under the SIL Open Font License 1.1, which permits redistribution, so
 the file is committed with the project.
 
+### Static weights for the share cards
+
+`Montserrat-500-latin.woff`, `Montserrat-600-latin.woff` and
+`Montserrat-700-latin.woff` — the same face (OFL 1.1), latin subset, one static
+weight each, from Fontsource:
+`https://cdn.jsdelivr.net/fontsource/fonts/montserrat@latest/latin-{500,600,700}-normal.woff`.
+They exist only for the generated link-preview cards
+(`components/cms/shareCard.tsx`): `next/og`'s ImageResponse reads ttf, otf and
+woff but not woff2, and not a variable font. The site never loads them. The
+latin subset has no arrows, which is why the cards draw theirs.
+
 ## Hapsha Sophia Script (display / wordmark)
 
 `HapshaSophiaScript_01.otf`, supplied by the client. This is the brand's own

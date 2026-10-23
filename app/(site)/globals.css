@@ -1992,3 +1992,170 @@ html[data-intro="settle"] body:has([data-hero-intro]) > header {
 .brand-map .maplibregl-cooperative-gesture-screen.maplibregl-show {
   font-family: var(--font-sans);
 }
+
+/* ==========================================================================
+   OFF-SCREEN LOOPS ARE PAUSED — see components/motion/LoopPause.tsx.
+   ========================================================================== */
+[data-loop][data-offscreen],
+[data-loop][data-offscreen]::before,
+[data-loop][data-offscreen]::after,
+[data-loop][data-offscreen] *,
+[data-loop][data-offscreen] *::before,
+[data-loop][data-offscreen] *::after {
+  animation-play-state: paused !important;
+}
+
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]),
+html:not([data-loops]) [data-loop]:not([data-loop="eager"])::before,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"])::after,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]) *,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]) *::before,
+html:not([data-loops]) [data-loop]:not([data-loop="eager"]) *::after {
+  animation-play-state: paused !important;
+}
+
+/*
+  SECTIONS FAR BELOW THE FOLD ARE STYLED WHEN THEY COME NEAR. The homepage's
+  first style pass touched every element of every section — about 1,800 — in
+  one task, seconds long on a slow phone, before the banner could finish.
+  `content-visibility: auto` lets the browser skip a section's style, layout
+  and paint until it nears the viewport, and keeps it rendered after that.
+  Only on sections whose root already clips (`overflow-clip`), so the paint
+  containment that comes with it clips nothing new, and none with a
+  `position: fixed` child (containment would re-anchor it). The intrinsic
+  size is a placeholder until the section has been rendered once; `auto`
+  then remembers its real height. lib/scroll.ts re-measures when the body
+  resizes, which is what a section's real height arriving does.
+*/
+.render-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1000px;
+}
+
+/* The section-ground float — see <SectionShapes>. A CSS loop rather than a
+   JS one, so an idle page makes no per-frame style writes for it. */
+.shape-float {
+  animation: shape-float var(--shape-float, 12s) ease-in-out var(--shape-float-delay, 0s) infinite;
+}
+
+@keyframes shape-float {
+  0%,
+  50%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(0, -9px, 0) rotate(1.6deg);
+  }
+  75% {
+    transform: translate3d(0, 7px, 0) rotate(-1.6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shape-float {
+    animation: none;
+  }
+}
+
+/*
+  THE SECTION-GROUND DRIFT ON THE COMPOSITOR — see <SectionShapes>.
+
+  Where the browser has scroll-driven animations the span's `translate`
+  follows its own `view()` timeline over the section's pass (`cover` is
+  exactly the hub's "start end" to "end start"), and nothing on the main
+  thread runs per frame. `translate`, not `transform`: Framer still owns the
+  span's `transform` for its resting rotation, and the two must compose.
+  Where it has not, Framer writes the transform and the span gets its own
+  layer while it is on screen, so each frame is a transform update and not a
+  repaint of a section-sized vector.
+*/
+.shape-field {
+  view-timeline-name: --shape-field;
+  view-timeline-axis: block;
+}
+
+@supports (animation-timeline: view()) {
+  .shape-drift {
+    animation: shape-drift linear both;
+    animation-timeline: --shape-field;
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+@supports not (animation-timeline: view()) {
+  .shape-drift[data-loop]:not([data-offscreen]) {
+    will-change: transform;
+  }
+}
+
+@keyframes shape-drift {
+  from {
+    translate: 0 calc(var(--shape-drift, 0%) * -0.5);
+  }
+  to {
+    translate: 0 calc(var(--shape-drift, 0%) * 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shape-drift {
+    animation: none;
+  }
+}
+
+/* The peeled note's flap breathes — see <PeelNote>. A CSS loop on the flap
+   group (its origin is set inline at the fold), so the note's own frame
+   loop can stop once the flap stands. */
+.peel-sway {
+  transform-box: view-box;
+  animation: peel-sway 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes peel-sway {
+  from {
+    rotate: -0.35deg;
+  }
+  to {
+    rotate: 0.35deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peel-sway {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   PHOTOGRAPHS FADE IN OVER THEIR BLURRED STAND-IN — see components/ui/Image.tsx
+   and lib/photoReveal.ts.
+   ==========================================================================
+
+   Hidden only once the reveal script has run (`data-blur-ready` on <html>):
+   with no script, a picture is simply shown, and never stuck invisible.
+
+   AN ANIMATION, NOT A TRANSITION, on purpose. Many of these images carry a
+   transition of their own (a hover zoom, a scroll scrub), and a `transition`
+   here would overwrite theirs; an animation runs alongside it. `backwards`
+   holds the start until it plays and then lets go, so after the fade the
+   picture's opacity is whatever its own styles say. */
+:root[data-blur-ready] img[data-blur]:not([data-loaded]) {
+  opacity: 0;
+}
+
+img[data-blur][data-loaded] {
+  animation: photo-reveal 480ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+}
+
+@keyframes photo-reveal {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  img[data-blur][data-loaded] {
+    animation: none;
+  }
+}

@@ -40,7 +40,6 @@ interface AboutDoor {
   slug: string;
   href: string;
   name: string;
-  sub: string;
 }
 
 /*
@@ -55,44 +54,24 @@ interface AboutDoor {
   describe a page two different ways.
 */
 export const ABOUT_DOORS: readonly AboutDoor[] = [
+  /*
+    THE LINE IS THE TITLE (Oct 2026). Each door was a page name over a short
+    line — "About the Maison / Why we do it." — and the client asked for the
+    line alone: it says why you would open the page, which the page name did
+    not. No second line under it, and no full stop on a title.
+  */
   {
     slug: "about",
     /* Overwritten from the `href` prop below, so the tab and its first door
        can never point at two different routes. */
     href: "/about",
-    name: "About the Maison",
     /* The footer's own heading over MISSION, word for word. */
-    sub: "Why we do it.",
+    name: "Why we do it",
   },
-  {
-    slug: "locations",
-    href: "/locations",
-    name: "Locations",
-    sub: "Where to find us.",
-  },
-  {
-    slug: "gallery",
-    href: "/gallery",
-    name: "Gallery",
-    /* "What gets made here." is the gallery's own description and one word
-       too long for the column. */
-    sub: "What gets made.",
-  },
-  {
-    slug: "journal",
-    href: "/journal",
-    name: "Journal",
-    /* Shorter than the Journal's masthead ("Notes from the Table.") so it
-       holds one line beside its neighbours at 1440 — "Where to find us." is
-       the column's longest line and this is one character under it. */
-    sub: "Notes & stories.",
-  },
-  {
-    slug: "contact",
-    href: "/contact",
-    name: "Contact",
-    sub: "Write to us.",
-  },
+  { slug: "locations", href: "/locations", name: "Where to find us" },
+  { slug: "gallery", href: "/gallery", name: "What gets made" },
+  { slug: "journal", href: "/journal", name: "Notes & stories" },
+  { slug: "contact", href: "/contact", name: "Write to us" },
 ];
 
 interface AboutMenuProps {
@@ -229,7 +208,6 @@ export function AboutMenu({
                 key={door.slug}
                 href={door.slug === "about" ? href : door.href}
                 title={door.name}
-                sub={door.sub}
               />
             ))}
           </div>

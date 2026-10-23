@@ -28,6 +28,9 @@
  *                            first path x cpu combination (backward
  *                            compatible); `results` has every combination.
  *   --headed                 launch a visible browser (real GPU compositing)
+ *   --mobile                 emulate a phone: 390x844 at 3x, touch, coarse
+ *                            pointer, mobile UA. Takes the site's phone paths
+ *                            (no Lenis, no brush, no grain, native scroll).
  *   --trace <file.zip>       Playwright trace of the first measured run only
  *   --screenshots <dir>      after the intro, scroll to 0/25/50/75/100% of the
  *                            hero hold and save hero-<pct>.png (first measured
@@ -151,6 +154,7 @@ const RUNS = Number(arg("runs", 5));
 const LABEL = arg("label", "run");
 const JSON_OUT = arg("json", "");
 const HEADED = has("headed");
+const MOBILE = has("mobile");
 const TRACE = arg("trace", "");
 const SHOTS = arg("screenshots", "");
 const MARKER = arg("marker", "");
@@ -207,7 +211,7 @@ function grepDir(dir, needle) {
   return false;
 }
 
-const meta = { timestamp: new Date().toISOString(), gitHead: null, buildId: null };
+const meta = { timestamp: new Date().toISOString(), gitHead: null, buildId: null, mobile: MOBILE };
 try {
   meta.gitHead = execFileSync("git", ["rev-parse", "--short", "HEAD"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 } catch {
@@ -360,7 +364,18 @@ async function heroShots(page, dir) {
 }
 
 async function oneRun(browser, { pagePath, cpu, trace, shotsDir }) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await browser.newContext(
+    MOBILE
+      ? {
+          viewport: { width: 390, height: 844 },
+          deviceScaleFactor: 3,
+          isMobile: true,
+          hasTouch: true,
+          userAgent:
+            "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
+        }
+      : { viewport: { width: 1440, height: 900 } },
+  );
   if (trace) await context.tracing.start({ screenshots: true, snapshots: true });
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
@@ -409,7 +424,7 @@ for (const pagePath of PATHS) {
     const summary = {};
     const min = {};
     const max = {};
-    let md = `\n### ${LABEL} — ${URL_BASE}${pagePath}, CPU ${cpu}x, median of ${RUNS}\n\n| scenario | ${cols.join(" | ")} |\n|---|${cols.map(() => "---").join("|")}|\n`;
+    let md = `\n### ${LABEL} — ${URL_BASE}${pagePath}, ${MOBILE ? "phone 390x844, " : ""}CPU ${cpu}x, median of ${RUNS}\n\n| scenario | ${cols.join(" | ")} |\n|---|${cols.map(() => "---").join("|")}|\n`;
     let noise = `\n| scenario | fps min–max | styleMs min–max | noise |\n|---|---|---|---|\n`;
     for (const name of SCENARIOS) {
       summary[name] = {};

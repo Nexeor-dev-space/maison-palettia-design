@@ -56,7 +56,7 @@ interface PlaceCardStubProps {
   /** First and last name, trimmed. Empty until either is typed. */
   displayName: string;
   quantity: number;
-  /** The price of one place, already formatted: "AED 240". */
+  /** The price of one spot, already formatted: "AED 240". */
   unitLabel: string;
   totalLabel: string;
   /** The widest the total can get, in `ch`, so it never moves its label. */
@@ -126,7 +126,7 @@ export function PlaceCardStub({
 
       <div className="mt-3 text-fine text-text">
         <div className="flex items-baseline justify-between gap-4">
-          <span className={EYEBROW}>Places</span>
+          <span className={EYEBROW}>Spots</span>
           <span className="tabular-nums">
             {quantity} &times; {unitLabel}
           </span>
@@ -155,7 +155,7 @@ export function PlaceCardStub({
 
       <BrushProgress done={done} className="mt-3" />
 
-      <p className="mt-3 text-fine text-text/75">Nothing is booked yet. You&rsquo;ll review and pay on the next step.</p>
+      <p className="mt-3 text-fine text-text/75">Nothing is booked until you pay below.</p>
 
       <Stamp show={submitting} />
     </div>

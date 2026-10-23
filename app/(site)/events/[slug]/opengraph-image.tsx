@@ -1,13 +1,25 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-
-import { ImageResponse } from "next/og";
-
-import { imageDataUri } from "@/components/cms/ogImage";
-import { INK } from "@/components/sections/hero/composition";
-import { BRAND_LOGO } from "@/lib/constants";
-import { getBrandLogo } from "@/lib/constants.server";
-import { eventImage, eventTitle, getEventDetail, getEventSlugs } from "@/lib/eventDetail";
+import { renderItemCard, toneForSlug, type ShareDetail } from "@/components/cms/shareCard";
+import {
+  eventFlag,
+  eventImage,
+  eventIntro,
+  eventTitle,
+  getEventDetail,
+  getEventSlugs,
+  type EventDetail,
+  type WalkInEvent,
+} from "@/lib/eventDetail";
+import { getMallPartners } from "@/lib/partners";
+import { SHARE_CARD_SIZE } from "@/lib/seo";
+import {
+  formatPrice,
+  formatVenueLine,
+  formatWorkshopDate,
+  hasSessionPassed,
+  isFullyBooked,
+  sessionTimeRange,
+} from "@/lib/workshopHelpers";
+import type { Workshop } from "@/types";
 
 /**
  * ==========================================================================
@@ -21,13 +33,25 @@ import { eventImage, eventTitle, getEventDetail, getEventSlugs } from "@/lib/eve
  * activity lands in lib/experiences.ts, its share card follows with no other
  * change.
  *
- * THE CARD. The photograph as a square on the left, the activity's name in
- * the brand script on Charcoal Slate on the right, the logo under it. Square
- * because every activity photograph is supplied square (1024x1024), so the
- * whole frame shows uncropped. Charcoal Slate because it is the ground the
- * Light Sage logo was cut for. No other type: the brand's text face ships only
- * as .woff2, which ImageResponse cannot read, and the platform prints the
- * page's title and description beside the card anyway.
+ * THE CARD. The site's light share card (components/cms/shareCard.tsx — the
+ * composition and its reasons live there): the activity's photograph as a
+ * tilted print on the right; on the left the logo, a chip, the name in the
+ * brand script, and what a visitor needs to decide, each with a small icon —
+ *
+ *   a dated session, a format, an activity split into formats ..... chip
+ *     "<category> workshop"; the next date and start time in Dubai time
+ *     ("Next:" when there is more than one ahead), the venue, and the price
+ *     ("AED 240 per person", or "From AED …" when the dates ahead differ);
+ *     pill "Book your seat".
+ *   a walk-in activity ..... chip "Walk in · any time"; its one line, "Drop
+ *     in any time" and the studio's one confirmed destination (the rule the
+ *     page's location section uses — see `partner` there); no price, because
+ *     none is recorded. Pill "Just drop in". A flagged activity ("Coming
+ *     soon") wears its flag as the chip and says "Find out more" instead.
+ *
+ * Every card is its own: its photograph, its name, its facts, and a chip
+ * colour and print tilt fixed by its slug (`toneForSlug`), so two activities
+ * shared side by side in a chat do not look like one card twice.
  *
  * ==========================================================================
  * WHY 684x360 AND NOT 1200x630 — WHATSAPP
@@ -45,11 +69,11 @@ import { eventImage, eventTitle, getEventDetail, getEventSlugs } from "@/lib/eve
  * spare for a busier photograph than any supplied so far.
  *
  * Every measurement on the card is drawn at 1200x630 and scaled by `U`, so
- * the composition can go back up with one edit if a JPEG pipeline ever makes
- * the bytes stop mattering.
+ * the composition can go back up with one edit (SHARE_CARD_SIZE in
+ * lib/seo.ts) if a JPEG pipeline ever makes the bytes stop mattering.
  *
- * KEPT IN STEP WITH app/private-events/[slug]/opengraph-image.tsx, which
- * draws the same card for the four programmes. Change one, change both.
+ * The programme and journal cards are the same composition with their own
+ * words; change the look in components/cms/shareCard.tsx, once.
  *
  * WHY THE PAGE ITSELF SAYS NOTHING ABOUT IMAGES. A file here only wins if the
  * page's metadata leaves `openGraph.images` unset, and lib/seo.ts does that
@@ -61,9 +85,17 @@ import { eventImage, eventTitle, getEventDetail, getEventSlugs } from "@/lib/eve
   would need generateImageMetadata, which moves the URL under an id segment.
   The activity's name is on the card and in og:title beside it.
 */
-export const alt = "A Maison Palettia activity: its photograph beside its name";
-export const size = { width: 684, height: 360 };
+export const alt = "A Maison Palettia activity: its photograph beside its name and when and where to join it";
+export const size = SHARE_CARD_SIZE;
 export const contentType = "image/png";
+
+/*
+  The page's own window (see `revalidate` in page.tsx): the card now prints
+  the next date, which moves on as dates pass, so it is re-drawn as often as
+  the page that names it rather than living as long as the deployment.
+  A literal, not `60 * 10`: the value has to be statically analysable.
+*/
+export const revalidate = 600;
 
 /*
   Prerender a card for every slug the page prerenders, from the same list.
@@ -74,93 +106,86 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
-/* Request-independent, so read once. Both are the client's own files; the
-   committed logo is only the fallback for the Site details one below. */
-const scriptFont = await readFile(
-  join(process.cwd(), "public", "fonts", "HapshaSophiaScript_01.otf"),
-);
-const logo = await readFile(join(process.cwd(), "public", BRAND_LOGO.src));
-const committedLogoSrc = `data:image/png;base64,${logo.toString("base64")}`;
-
-/*
-  THE LOGO IS SITE DETAILS' ("on dark" cut, `getBrandLogo`), read per render
-  as the site-wide card does, so replacing it in the admin changes this card
-  on the next revalidation; the committed file answers when it cannot be read.
-*/
-async function brandLogo(): Promise<{ src: string; width: number }> {
-  const cut = await getBrandLogo();
-  const src = (await imageDataUri(cut.src, { width: 1200, keepAlpha: true })) ?? committedLogoSrc;
-  return { src, width: Math.round((LOGO_HEIGHT * cut.width) / cut.height) };
+/** The dates still ahead, soonest first, that this page sells. */
+function datesAhead(detail: Exclude<EventDetail, WalkInEvent>, now: number): Workshop[] {
+  const dates = detail.kind === "scheduled" ? [detail.workshop] : detail.sessions;
+  return dates.filter((session) => !hasSessionPassed(session, now));
 }
 
-/*
-  The photograph comes from the event's own record — a Media upload once the
-  CMS has the activity, a committed /public file before — so it is read and
-  re-encoded by components/cms/ogImage.ts, which knows both places and turns
-  the Media sizes' WebP into something Satori can draw.
-*/
-/** Scale from the 1200x630 the card was composed at to the size it ships at. */
-const U = size.height / 630;
-const SIDE = size.height;
-const LOGO_HEIGHT = Math.round(92 * U);
+/** "AED 240 per person", or "From AED 240" when the dates ahead are not all one price. */
+function priceLine(sessions: readonly Workshop[]): string | null {
+  if (!sessions.length) return null;
+  const cheapest = sessions.reduce((low, session) => (session.price.amount < low.price.amount ? session : low));
+  const same = sessions.every(
+    (session) => session.price.amount === cheapest.price.amount && session.price.currency === cheapest.price.currency,
+  );
+  return same ? `${formatPrice(cheapest.price)} per person` : `From ${formatPrice(cheapest.price)}`;
+}
+
+/** "Sat 24 Oct · 3:30 PM" — the start, in the studio's time zone. */
+const whenLine = (session: Workshop) =>
+  `${formatWorkshopDate(session.startsAt)} \u00b7 ${sessionTimeRange(session.startsAt, session.durationMinutes).start}`;
+
+/** "Craft workshop" from the session's free-text category; "Workshop" without one. */
+function workshopChip(category: string | undefined): string {
+  const clean = category?.trim();
+  if (!clean) return "Workshop";
+  return /workshop/i.test(clean) ? clean : `${clean} workshop`;
+}
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const detail = await getEventDetail(slug);
+  const now = Date.now();
+  const detail = await getEventDetail(slug, now);
 
   /* The page 404s for an unknown slug; its card does the same. */
   if (!detail) return new Response("Not found", { status: 404 });
 
-  const title = eventTitle(detail);
   const photo = eventImage(detail);
-  /*
-    An activity without a photograph gets the same card with the square left
-    out and the name given the width — still its own, still on brand, and it
-    fills in by itself once a photograph is added to its entry.
-  */
-  const photoSrc = photo ? await imageDataUri(photo.src) : null;
+  const common = {
+    title: eventTitle(detail),
+    /* An activity without a photograph gets the same card with the print left out. */
+    photo: photo ? { src: photo.src, position: photo.position } : null,
+  };
 
-  const logoCut = await brandLogo();
+  if (detail.kind === "diy") {
+    const partners = await getMallPartners();
+    const venue = partners.length === 1 ? partners[0] : undefined;
+    const flag = eventFlag(detail);
+    const details: ShareDetail[] = [];
+    if (!flag) details.push({ icon: "walk", text: "Drop in any time" });
+    if (venue) details.push({ icon: "pin", text: formatVenueLine(venue) });
+    return renderItemCard({
+      ...common,
+      seed: detail.slug,
+      chip: { label: flag ?? "Walk in \u00b7 any time", tone: toneForSlug(detail.slug) },
+      lede: eventIntro(detail),
+      details,
+      cta: flag ? "Find out more" : "Just drop in",
+    });
+  }
 
-  return new ImageResponse(
-    (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: INK.charcoal }}>
-        {photo && photoSrc ? (
-          <img
-            src={photoSrc}
-            width={SIDE}
-            height={SIDE}
-            alt=""
-            style={{ objectFit: "cover", objectPosition: photo.position ?? "50% 50%" }}
-          />
-        ) : null}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            padding: `${72 * U}px ${56 * U}px ${60 * U}px`,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              fontFamily: "Hapsha",
-              fontSize: (title.length > 16 ? 76 : 92) * U,
-              lineHeight: 1.15,
-              color: INK.whiteRock,
-            }}
-          >
-            {title}
-          </div>
-          <img src={logoCut.src} width={logoCut.width} height={LOGO_HEIGHT} alt="" />
-        </div>
-      </div>
-    ),
+  const ahead = datesAhead(detail, now);
+  const next = ahead[0];
+  const shown = next ?? (detail.kind === "scheduled" ? detail.workshop : undefined);
+  const details: ShareDetail[] = [
     {
-      ...size,
-      fonts: [{ name: "Hapsha", data: scriptFont, weight: 400, style: "normal" }],
+      icon: "calendar",
+      text: next ? `${ahead.length > 1 && detail.kind !== "scheduled" ? "Next: " : ""}${whenLine(next)}` : "New dates coming soon",
     },
-  );
+  ];
+  if (shown?.venue) details.push({ icon: "pin", text: formatVenueLine(shown.venue) });
+  const price = priceLine(ahead.length ? ahead : shown ? [shown] : []);
+  if (price) details.push({ icon: "price", text: price });
+
+  /* A dated session shares its format's colour and tilt, so its card and the format's agree. */
+  const seed = detail.kind === "scheduled" ? detail.canonicalSlug : detail.slug;
+  const soldOut = detail.kind === "scheduled" && next !== undefined && isFullyBooked(next);
+  return renderItemCard({
+    ...common,
+    seed,
+    chip: { label: workshopChip(shown?.category), tone: toneForSlug(seed) },
+    details,
+    cta: !next ? "See what\u2019s on" : soldOut ? "See other dates" : "Book your seat",
+  });
 }

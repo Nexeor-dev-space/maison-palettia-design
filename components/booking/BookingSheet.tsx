@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
 
@@ -379,6 +379,7 @@ function OptionCard({
         {option.image ? (
           <Image
             src={option.image.src}
+            blur={option.image.blur}
             alt=""
             fill
             /* A 68px box, and the source is a tall crop — the

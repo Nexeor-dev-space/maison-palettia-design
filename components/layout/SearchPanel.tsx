@@ -2,7 +2,7 @@
 
 import { useModeCopy } from "@/components/layout/SiteChrome";
 import { Search, X } from "lucide-react";
-import Image from "next/image";
+import Image from "@/components/ui/Image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
@@ -680,6 +680,7 @@ function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: 
       <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-sm bg-cream lg:w-[4.5rem]">
         <Image
           src={workshop.image.src}
+          blur={workshop.image.blur}
           alt=""
           fill
           sizes="72px"

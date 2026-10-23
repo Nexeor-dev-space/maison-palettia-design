@@ -129,6 +129,7 @@ function touchPaint(canvas: HTMLCanvasElement | null): (() => void) | undefined 
   const CLEAR = /^(transparent$|rgba?\([^)]*,\s*0(\.0+)?\s*\)$)/;
 
   let down: { id: number; x: number; y: number; t: number } | null = null;
+  let alive = true;
   const onDown = (event: PointerEvent) => {
     if (event.pointerType === "mouse" || !event.isPrimary) return;
     const target = event.target as Element | null;
@@ -141,16 +142,31 @@ function touchPaint(canvas: HTMLCanvasElement | null): (() => void) | undefined 
     if (!start || event.pointerId !== start.id) return;
     if (performance.now() - start.t > TAP_MS) return;
     if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > TAP_SLOP) return;
-    for (const node of document.elementsFromPoint(event.clientX, event.clientY)) {
-      if (node === canvas) continue;
-      const style = getComputedStyle(node);
-      if (style.visibility === "hidden" || Number(style.opacity) < 0.05) continue;
-      if (style.backgroundColor && !CLEAR.test(style.backgroundColor)) {
-        painter.ground(style.backgroundColor);
-        break;
-      }
-    }
-    painter.drop(event.clientX, event.clientY);
+    const { clientX: x, clientY: y } = event;
+    /*
+      AFTER THE TAP HAS PAINTED, NOT INSIDE IT. `elementsFromPoint` and
+      `getComputedStyle` force a layout, and in the handler that cost lands
+      on the tap itself — the link it opens, the menu it toggles — and in the
+      INP Lighthouse reports. The ground has to be read before the drop (it
+      decides the colour), so both wait together: a frame, then a task, which
+      puts them after the browser has shown the tap's own response. A drop a
+      frame or two late is invisible; the colour is unchanged.
+    */
+    requestAnimationFrame(() =>
+      setTimeout(() => {
+        if (!alive) return;
+        for (const node of document.elementsFromPoint(x, y)) {
+          if (node === canvas) continue;
+          const style = getComputedStyle(node);
+          if (style.visibility === "hidden" || Number(style.opacity) < 0.05) continue;
+          if (style.backgroundColor && !CLEAR.test(style.backgroundColor)) {
+            painter.ground(style.backgroundColor);
+            break;
+          }
+        }
+        painter.drop(x, y);
+      }, 0),
+    );
   };
   const onCancel = () => {
     down = null;
@@ -162,6 +178,7 @@ function touchPaint(canvas: HTMLCanvasElement | null): (() => void) | undefined 
   window.addEventListener("pointercancel", onCancel, { passive: true });
   window.addEventListener("scroll", onScroll, { passive: true });
   return () => {
+    alive = false;
     window.removeEventListener("pointerdown", onDown);
     window.removeEventListener("pointerup", onUp);
     window.removeEventListener("pointercancel", onCancel);

@@ -30,7 +30,18 @@ STANDALONE="$ROOT/.next/standalone"
 
 cd "$STANDALONE"
 shopt -s dotglob nullglob
-rm -rf -- .env .env.* media private assets docs tests e2e .git .claude ./*.tsbuildinfo
+rm -rf -- .env .env.* media private assets tests e2e .git .claude ./*.tsbuildinfo
+
+# docs/ goes too, except the owner guide's screenshots and PDF: the signed-in
+# /admin-docs route (app/(payload)/admin-docs) streams them at runtime, and
+# next.config.ts `outputFileTracingIncludes` put them here on purpose.
+if [ -d docs ]; then
+  find docs -mindepth 1 -maxdepth 1 ! -name admin-guide -exec rm -rf -- {} +
+  if [ -d docs/admin-guide ]; then
+    find docs/admin-guide -mindepth 1 -maxdepth 1 ! -name images ! -name dist -exec rm -rf -- {} +
+    [ -d docs/admin-guide/dist ] && find docs/admin-guide/dist -mindepth 1 ! -name '*.pdf' -exec rm -rf -- {} +
+  fi
+fi
 
 # Prove it: a later Next or Payload upgrade that traces something new
 # must not quietly bring a secret back.
@@ -40,3 +51,6 @@ if [ -n "$leftover" ]; then
   exit 1
 fi
 echo "ok  .next/standalone has no .env, media/ or private/"
+if [ -d "$ROOT/docs/admin-guide/images" ] && [ ! -d docs/admin-guide/images ]; then
+  echo "prune-standalone: warning — docs/admin-guide/images is not in .next/standalone; the guide's screenshots will 404 (check outputFileTracingIncludes in next.config.ts)" >&2
+fi
