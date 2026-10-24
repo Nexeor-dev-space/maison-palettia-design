@@ -12,7 +12,7 @@ import { hrefOf } from "@/lib/cms/mappers";
 import { getCms } from "@/lib/cms/payload";
 import { contentReader, getGlobal } from "@/lib/cms/query";
 import { BOOKING_REQUEST_TERMS, BOOKING_TERMS } from "@/lib/constants";
-import type { Customer, Order } from "@/payload-types";
+import type { Customer, Order, Session } from "@/payload-types";
 
 /**
  * ==========================================================================
@@ -326,7 +326,13 @@ export async function findOrderByReference(reference: string): Promise<Order | n
  * routes, so every customer surface renders the same shape.
  */
 export async function orderViewOf(order: Order, { detail }: { detail: boolean }): Promise<OrderView> {
-  const view: OrderView = { reference: order.reference, status: order.status, holdExpiresAt: order.hold?.expiresAt ?? null };
+  const isRescheduled = Boolean(order.timeline?.some((t) => t.event === "moved" || t.event === "rescheduled"));
+  const view: OrderView = {
+    reference: order.reference,
+    status: order.status,
+    ...(isRescheduled ? { isRescheduled: true } : {}),
+    holdExpiresAt: order.hold?.expiresAt ?? null,
+  };
   if (!detail) return view;
 
   let tickets: OrderViewTicket[] = [];
@@ -340,14 +346,19 @@ export async function orderViewOf(order: Order, { detail }: { detail: boolean })
       sort: "seatNo",
       select: { code: true, status: true, seatNo: true, holderName: true, session: true },
     });
-    tickets = result.docs.map((ticket) => ({
-      code: ticket.code,
-      status: ticket.status,
-      seatNo: ticket.seatNo,
-      holderName: ticket.holderName ?? undefined,
-      sessionTitle: typeof ticket.session === "object" && ticket.session ? (ticket.session.title ?? undefined) : undefined,
-      pdfUrl: signedPdfPath("ticket", ticket.code),
-    }));
+    tickets = result.docs.map((ticket) => {
+      const sess = typeof ticket.session === "object" && ticket.session ? (ticket.session as Session) : null;
+      return {
+        code: ticket.code,
+        status: ticket.status,
+        seatNo: ticket.seatNo,
+        holderName: ticket.holderName ?? undefined,
+        sessionTitle: sess?.title ?? undefined,
+        startsAt: sess?.startsAt ?? undefined,
+        venueName: (typeof sess?.venue === "object" && sess?.venue ? sess.venue.name : undefined) ?? undefined,
+        pdfUrl: signedPdfPath("ticket", ticket.code),
+      };
+    });
   } catch {
     // No tickets yet (or the table is not there): the card says they are on their way.
   }
