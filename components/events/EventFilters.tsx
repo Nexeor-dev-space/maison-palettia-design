@@ -294,7 +294,7 @@ function ViewToggle({
 }) {
   const options: { value: ListingView; label: string; Icon: typeof List }[] = [
     { value: "list", label: "List", Icon: List },
-    { value: "calendar", label: "Calendar", Icon: CalendarDays },
+    { value: "calendar", label: "View Schedule", Icon: CalendarDays },
   ];
   return (
     <div

@@ -168,7 +168,6 @@ export function WorkshopsMenu({
       key={group.mode}
       title={group.title}
       note={group.note}
-      fill={group.mode === "diy"}
     >
       {group.items.map((experience) => {
         const session = sessionFor(experience.slug);
