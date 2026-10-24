@@ -180,7 +180,7 @@ export function MenuRailGroup({
       */}
       <p className="px-3 text-label font-medium uppercase tracking-eyebrow text-text/55">{title}</p>
       {note ? <p className="mt-1.5 px-3 text-fine leading-[1.5] text-text/60">{note}</p> : null}
-      <ul className={cn("mt-2 flex flex-col", fill && "flex-1 justify-between")}>{children}</ul>
+      <ul className={cn("mt-2 flex flex-col gap-1", fill && "flex-1")}>{children}</ul>
     </div>
   );
 }
