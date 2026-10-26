@@ -433,38 +433,44 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
       session. Its basketId is bound to that one line, so a second press or a
       retry lands on the same order rather than holding the seats twice.
     */
-    const outcome = await startCheckout({
-      basketId: basketIdFor([held]),
-      details: {
-        firstName: details.firstName,
-        lastName: details.lastName,
-        email: details.email,
-        phone: details.phone,
-        marketingOptIn: false,
-      },
-      notes: details.notes?.slice(0, 500) || undefined,
-      lines: [{ kind: "session", id: sessionId, qty: held.quantity }],
-      codes,
-      consents: needsConsent ? checkout.consents.map(({ policy, version }) => ({ policy, version })) : [],
-      waitlistToken: readWaitlistToken([held]),
-    });
+    try {
+      const outcome = await startCheckout({
+        basketId: basketIdFor([held]),
+        details: {
+          firstName: details.firstName,
+          lastName: details.lastName,
+          email: details.email,
+          phone: details.phone,
+          marketingOptIn: false,
+        },
+        notes: details.notes?.slice(0, 500) || undefined,
+        lines: [{ kind: "session", id: sessionId, qty: held.quantity }],
+        codes,
+        consents: needsConsent ? checkout.consents.map(({ policy, version }) => ({ policy, version })) : [],
+        waitlistToken: readWaitlistToken([held]),
+      });
 
-    if (outcome.status === "redirect") {
-      // Noted before leaving, so the confirmation knows which basket to clear
-      // once this order is paid — and only then.
-      notePendingPayment(outcome.reference);
-      window.location.assign(outcome.paymentUrl);
-      return; // The page is going; the button keeps saying so.
-    }
-    if (outcome.status === "paid") {
-      completeBooking();
-      router.push(`/payment-success?ref=${encodeURIComponent(outcome.reference)}&k=${encodeURIComponent(outcome.k)}`);
-      return;
-    }
+      if (outcome.status === "redirect") {
+        // Noted before leaving, so the confirmation knows which basket to clear
+        // once this order is paid — and only then.
+        notePendingPayment(outcome.reference);
+        window.location.assign(outcome.paymentUrl);
+        return; // The page is going; the button keeps saying so.
+      }
+      if (outcome.status === "paid") {
+        completeBooking();
+        router.push(`/payment-success?ref=${encodeURIComponent(outcome.reference)}&k=${encodeURIComponent(outcome.k)}`);
+        return;
+      }
 
-    submittingRef.current = false;
-    setSubmitting(false);
-    setFormError(refusalMessage(outcome));
+      submittingRef.current = false;
+      setSubmitting(false);
+      setFormError(refusalMessage(outcome));
+    } catch {
+      submittingRef.current = false;
+      setSubmitting(false);
+      setFormError("Something went wrong while starting checkout. Please try again.");
+    }
   }
 
   /* -- render ------------------------------------------------------------ */
