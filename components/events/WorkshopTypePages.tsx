@@ -100,8 +100,8 @@ function Header({
   children?: React.ReactNode;
 }) {
   return (
-    <section aria-labelledby="event-title" className="mt-9 md:mt-12">
-      <div className="grid grid-cols-12 items-start gap-x-6 gap-y-10 lg:gap-x-10">
+    <section aria-labelledby="event-title" className="mt-6 md:mt-10 lg:mt-12">
+      <div className="grid grid-cols-12 items-start gap-x-6 gap-y-6 md:gap-y-8 lg:gap-y-10 lg:gap-x-10">
         {image ? (
           <figure className="relative col-span-12 lg:col-span-7">
             <WorkshopPhoto image={image} aspect="aspect-[4/3] sm:aspect-[3/2]" sizes="(min-width: 1024px) 58vw, 100vw" />
@@ -119,7 +119,7 @@ function Header({
             </p>
           </Reveal>
 
-          <h1 id="event-title" className="mt-5">
+          <h1 id="event-title" className="mt-3 md:mt-5">
             <Reveal as="span" variant="maskUp" className="heading-script block pb-[0.3em] text-script-compact">
               <ScriptTitle>{title}</ScriptTitle>
             </Reveal>
@@ -264,7 +264,7 @@ export function ChoiceBody({
 
       {about}
 
-      <section aria-labelledby="formats" className="mt-14 md:mt-16">
+      <section aria-labelledby="formats" className="mt-10 md:mt-14 lg:mt-16">
         <Reveal>
           <h2 id="formats" className={TERM}>
             {types.length === 1 ? "The format" : "Choose a format"}

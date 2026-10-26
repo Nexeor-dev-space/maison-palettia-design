@@ -30,36 +30,37 @@
   --tone-wash: color-mix(in oklab, var(--color-brand-lilac) 15%, white);
 }
 
+.tone[data-tone="forest"],
 .tone[data-tone="terracotta"] {
-  --tone: var(--color-brand-terracotta);
-  --tone-wash: color-mix(in oklab, var(--color-brand-terracotta) 18%, white);
+  /* Deep forest / olive sage green to align with brand */
+  --tone: color-mix(in oklab, var(--color-brand-sage) 45%, #1b381e);
+  --tone-wash: color-mix(in oklab, #315233 14%, white);
 }
 
 .tone[data-tone="sage"] {
-  /* Light Sage is too pale to be a mark on its own; its edge is the sage
-     taken a third of the way to Charcoal, which is still unmistakably it. */
+  /* Light Sage: softened with charcoal for legible borders */
   --tone: color-mix(in oklab, var(--color-brand-sage) 62%, var(--color-brand-charcoal));
   --tone-wash: color-mix(in oklab, var(--color-brand-sage) 70%, white);
 }
 
 .tone[data-tone="lavender"] {
-  /* Cooler and stronger than the lilac's wash, which it otherwise sits too
-     close to: Soft Lavender is the bluer of the two purples, so it is let be
-     blue. */
+  /* Soft Lavender: cool purple accent */
   --tone: color-mix(in oklab, var(--color-brand-lavender) 70%, var(--color-brand-lilac));
   --tone-wash: color-mix(in oklab, var(--color-brand-lavender) 46%, white);
 }
 
-.tone[data-tone="rose"] {
-  /* The sixth: Warm Terracotta and Deep Lilac mixed half and half, a dusty
-     rose that is neither — so a sixth format is not a repeat of the first. */
-  --tone: color-mix(in oklab, var(--color-brand-terracotta) 50%, var(--color-brand-lilac));
-  --tone-wash: color-mix(in oklab, color-mix(in oklab, var(--color-brand-terracotta) 50%, var(--color-brand-lilac)) 16%, white);
+.tone[data-tone="plum"],
+.tone[data-tone="slate"] {
+  /* Deep Plum / Royal Purple */
+  --tone: color-mix(in oklab, var(--color-brand-lilac) 75%, var(--color-brand-charcoal));
+  --tone-wash: color-mix(in oklab, var(--color-brand-lilac) 24%, white);
 }
 
-.tone[data-tone="slate"] {
-  --tone: var(--color-brand-charcoal);
-  --tone-wash: color-mix(in oklab, var(--color-brand-cream) 55%, white);
+.tone[data-tone="moss"],
+.tone[data-tone="rose"] {
+  /* Earthy moss / warm green */
+  --tone: color-mix(in oklab, var(--color-brand-sage) 60%, #1e5635);
+  --tone-wash: color-mix(in oklab, #2e6040 14%, white);
 }
 
 /* ------------------------------------------------------------------------ */
