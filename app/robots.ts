@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { getSite } from "@/lib/constants.server";
 import { getRobotsDisallow } from "@/lib/seo";
+import { isProductionDeployment } from "@/lib/siteOrigin";
 
 /**
  * ==========================================================================
@@ -36,11 +37,15 @@ import { getRobotsDisallow } from "@/lib/seo";
  * undo. /private-events/book is the enquiry form a host is meant to find,
  * not a transaction, and it is indexable on purpose.
  *
+ * Staging / non-production: Keep pages crawlable so search engines can read
+ * the `noindex, nofollow` meta and header tags to de-index them, but omit
+ * the sitemap reference so search engines do not crawl the full site tree.
+ *
  * The wildcard in the event-booking line is honoured by Google and Bing,
  * which are the crawlers this file is for.
  *
  * The Sitemap line is absolute because the standard requires it, and it is
- * built from the production origin (lib/siteOrigin.ts) on every deployment.
+ * built from the production origin (lib/siteOrigin.ts) on production deployments.
  *
  * FROM THE ADMIN NOW (SPEC §G.2). The Disallow list is Search & sharing →
  * "Paths hidden from search engines" (`seo-defaults.robotsDisallow`, seeded
@@ -50,6 +55,7 @@ import { getRobotsDisallow } from "@/lib/seo";
 const DISALLOW = ["/checkout", "/payment-success", "/booking-status", "/events/*/book"];
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
+  const isProd = isProductionDeployment();
   const [site, disallow] = await Promise.all([getSite(), getRobotsDisallow()]);
   return {
     rules: {
@@ -57,6 +63,6 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       allow: "/",
       disallow: disallow ?? DISALLOW,
     },
-    sitemap: `${site.url}/sitemap.xml`,
+    ...(isProd ? { sitemap: `${site.url}/sitemap.xml` } : {}),
   };
 }

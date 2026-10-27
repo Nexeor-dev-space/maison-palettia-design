@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getGlobal } from "@/lib/cms/query";
 import { SITE } from "@/lib/constants";
 import { getSite } from "@/lib/constants.server";
+import { isProductionDeployment } from "@/lib/siteOrigin";
 import type { PageSeo } from "@/types";
 
 /**
@@ -163,48 +164,52 @@ const siteOpenGraph = (context: SeoContext) =>
  * and canonical URL through `buildMetadata`; the homepage through
  * `homeMetadata`.
  */
-const defaultMetadataFor = (context: SeoContext): Metadata => ({
-  metadataBase: new URL(context.url),
-  title: {
-    default: context.name,
-    template: context.titleTemplate,
-  },
-  description: context.tagline,
-  applicationName: context.name,
-  /*
-    NO CANONICAL AND NO `openGraph.url` HERE — "/" and then "./" were both
-    tried, and both were wrong somewhere.
+const defaultMetadataFor = (context: SeoContext): Metadata => {
+  const isProd = isProductionDeployment();
+  const robotsFields = !isProd ? { robots: { index: false, follow: false } } : {};
 
-    These defaults are inherited by every route that does not set its own,
-    which is the homepage and every error page. "/" made each of them claim
-    the homepage as its canonical: a 404 at /events/not-a-slug told search
-    engines it was a copy of the front page.
+  return {
+    metadataBase: new URL(context.url),
+    title: {
+      default: context.name,
+      template: context.titleTemplate,
+    },
+    description: context.tagline,
+    applicationName: context.name,
+    /*
+      NO CANONICAL AND NO `openGraph.url` HERE — "/" and then "./" were both
+      tried, and both were wrong somewhere.
 
-    "./" resolves against the route's own pathname (resolveRelativeUrl in
-    next/dist/lib/metadata/resolvers/resolve-url.js), and under `next dev`,
-    where every request renders afresh, that looked right — /does-not-exist
-    pointed at itself. Production is different: the default 404 is
-    prerendered ONCE, as the static route /_not-found, and every unmatched
-    URL is served that one file. Built, .next/server/app/_not-found.html
-    carried `canonical` and `og:url` of "https://…/_not-found" — an internal
-    path, on every 404.
+      These defaults are inherited by every route that does not set its own,
+      which is the homepage and every error page. "/" made each of them claim
+      the homepage as its canonical: a 404 at /events/not-a-slug told search
+      engines it was a copy of the front page.
 
-    A 404 has no canonical page, so the honest tag is none, and the defaults
-    now carry neither field. The homepage, the one page that relied on them,
-    sets its own through `homeMetadata` below; every page built with
-    `buildMetadata` already set its own and is unaffected.
-  */
-  openGraph: siteOpenGraph(context),
-  twitter: { card: context.twitterCard },
-  /*
-    NO `robots` HERE, deliberately. A page with no robots tag is indexable —
-    that is the default every crawler applies — so `index, follow` said
-    nothing a missing tag does not. What it did do was collide: Next adds
-    `noindex` to its 404 page, and this default printed `index, follow`
-    alongside it, so every 404 carried two robots tags that disagree. The
-    pages that must stay out of search set `noindex` through `buildMetadata`.
-  */
-});
+      "./" resolves against the route's own pathname (resolveRelativeUrl in
+      next/dist/lib/metadata/resolvers/resolve-url.js), and under `next dev`,
+      where every request renders afresh, that looked right — /does-not-exist
+      pointed at itself. Production is different: the default 404 is
+      prerendered ONCE, as the static route /_not-found, and every unmatched
+      URL is served that one file. Built, .next/server/app/_not-found.html
+      carried `canonical` and `og:url` of "https://…/_not-found" — an internal
+      path, on every 404.
+
+      A 404 has no canonical page, so the honest tag is none, and the defaults
+      now carry neither field. The homepage, the one page that relied on them,
+      sets its own through `homeMetadata` below; every page built with
+      `buildMetadata` already set its own and is unaffected.
+    */
+    openGraph: siteOpenGraph(context),
+    twitter: { card: context.twitterCard },
+    /*
+      Robots directive: On any non-production deployment (staging, preview, dev),
+      we enforce `noindex, nofollow` globally to prevent search engine indexing.
+      On production, we omit `robots` here so pages are indexable by default,
+      and pages that must stay out of search set `noindex` through `buildMetadata`.
+    */
+    ...robotsFields,
+  };
+};
 
 /**
  * The homepage's canonical and share URL — the two fields `defaultMetadata`
@@ -214,10 +219,16 @@ const defaultMetadataFor = (context: SeoContext): Metadata => ({
  * name, locale, title and description. `images` stays absent, which is what
  * lets app/opengraph-image.tsx keep supplying the homepage's card.
  */
-const homeMetadataFor = (context: SeoContext): Metadata => ({
-  alternates: { canonical: "/" },
-  openGraph: { ...siteOpenGraph(context), url: "/" },
-});
+const homeMetadataFor = (context: SeoContext): Metadata => {
+  const isProd = isProductionDeployment();
+  const robotsFields = !isProd ? { robots: { index: false, follow: false } } : {};
+
+  return {
+    alternates: { canonical: "/" },
+    ...robotsFields,
+    openGraph: { ...siteOpenGraph(context), url: "/" },
+  };
+};
 
 /** Build per-page metadata without repeating the shared defaults. */
 export function buildMetadata(seo: PageSeo): Metadata {
@@ -245,13 +256,13 @@ function metadataFor(context: SeoContext, { title, description, path, image, noi
   const imageFields = ogImage ? { images: [ogImage] } : {};
 
   /*
-    `noindex, nofollow` for the pages that are not anybody's entry point —
-    /checkout, /payment-success, /booking-status and the (since removed)
-    /blog placeholder were all indexable, so a customer's own confirmation page could turn up
-    in search. Every other page carries no robots tag, which is `index,
-    follow` by default (see the note in `defaultMetadata`).
+    `noindex, nofollow` on non-production deployments or for pages that are not
+    anybody's entry point (/checkout, /payment-success, /booking-status).
+    Every other production page carries no robots tag, which is `index, follow`
+    by default.
   */
-  const robotsFields = noindex
+  const isProd = isProductionDeployment();
+  const robotsFields = noindex || !isProd
     ? { robots: { index: false, follow: false } }
     : {};
 
