@@ -541,8 +541,8 @@ function EventHeader({
       : modeCopy().labels.createAnytime;
 
   return (
-    <section aria-labelledby="event-title" className="mt-9 md:mt-12">
-      <div className="grid grid-cols-12 items-start gap-x-6 gap-y-10 lg:gap-x-10">
+    <section aria-labelledby="event-title" className="mt-6 md:mt-10 lg:mt-12">
+      <div className="grid grid-cols-12 items-start gap-x-6 gap-y-6 md:gap-y-8 lg:gap-y-10 lg:gap-x-10">
         {image ? (
           <figure className="relative col-span-12 lg:col-span-7">
             <WorkshopPhoto
@@ -569,7 +569,7 @@ function EventHeader({
             </p>
           </Reveal>
 
-          <h1 id="event-title" className="mt-5">
+          <h1 id="event-title" className="mt-3 md:mt-5">
             <Stagger>
               {/*
                 The brand's script, as every other page title on the site is
@@ -776,18 +776,18 @@ function WalkInFacts({ detail }: { detail: EventDetail }) {
     /* No top rule: this sits inside the White Rock field now, and the
        field's edge is the separation. The rule between the two halves of
        the list below stays — that one divides content, not sections. */
-    <dl className="grid grid-cols-2 gap-x-8 gap-y-7">
+    <dl className={cn("grid gap-x-8 gap-y-7", flag ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1")}>
       <div>
         <dt className={TERM}>How it runs</dt>
         <dd className="mt-3 text-lead font-medium leading-snug text-text">
-          {/* IT SAYS THE NAME AFTER ALL. This row used to answer "how does it
-              run" with the deck's own word for the mechanism, on the client's
-              earlier instruction that walk-in could stay in descriptions even
-              though the headings had been renamed. That instruction has been
-              withdrawn — the word is not to appear anywhere — so the row takes
-              the name, and the repetition is the price of retiring the term. */}
-          {modeCopy().labels.createAnytime}
-          <Sub>{modeCopy().labels.noBooking}</Sub>
+          <span className="inline-block whitespace-nowrap text-[0.95rem] sm:text-lead">
+            {modeCopy().labels.createAnytime}
+          </span>
+          <Sub>
+            <span className="inline-block whitespace-nowrap">
+              {modeCopy().labels.noBooking}
+            </span>
+          </Sub>
         </dd>
       </div>
 
@@ -795,8 +795,6 @@ function WalkInFacts({ detail }: { detail: EventDetail }) {
         <div>
           <dt className={TERM}>{eventCopy().statusTerm}</dt>
           <dd className="mt-3 text-lead font-medium leading-snug text-text">
-            {/* The studio's own wording, carried through rather than
-                paraphrased into something that sounds more certain. */}
             {flag}
           </dd>
         </div>
@@ -1248,7 +1246,7 @@ function SessionBrief({ detail }: { detail: EventDetail }) {
     <section
       aria-labelledby={titled ? "event-about" : undefined}
       aria-label={titled ? undefined : "Session details"}
-      className="mt-14 md:mt-16 lg:mt-20"
+      className="mt-10 md:mt-14 lg:mt-20"
     >
       {/*
         ==================================================================
