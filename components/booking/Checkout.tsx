@@ -237,7 +237,15 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, terms
         // Noted before leaving, so the confirmation knows which basket to clear
         // once this order is paid — and only then.
         notePendingPayment(outcome.reference);
-        window.location.assign(outcome.paymentUrl);
+        try {
+          window.location.href = outcome.paymentUrl;
+        } catch {
+          window.location.assign(outcome.paymentUrl);
+        }
+        setTimeout(() => {
+          submittingRef.current = false;
+          setSubmitting(false);
+        }, 8000);
         return; // The page is going; the button keeps saying so.
       }
       if (outcome.status === "paid") {
