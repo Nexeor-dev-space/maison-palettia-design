@@ -56,6 +56,7 @@
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
   transition: transform 420ms var(--ease-editorial);
+  filter: drop-shadow(0 0 0.5px rgb(45 55 72 / 0.18)) drop-shadow(0 4px 12px rgb(45 55 72 / 0.05));
 }
 
 /* The format ticket: Light Sage, and a shorter stub measure for three lines.

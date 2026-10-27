@@ -1926,8 +1926,6 @@ function MoreEvents({
   const others = sessions.filter((session) => session.slug !== currentSlug);
   if (others.length === 0) return null;
 
-  const solo = others.length === 1 ? others[0] : null;
-
   return (
     <section aria-labelledby="more-events" className="relative mt-20 md:mt-28 lg:mt-32">
       {/*
@@ -1954,29 +1952,23 @@ function MoreEvents({
         </h2>
       </Reveal>
 
-      {solo ? (
-        <Reveal variant="fadeIn" className="mt-8 md:mt-10">
-          <SoloSession workshop={solo} />
-        </Reveal>
-      ) : (
-        <ul
-          className="mt-8 grid grid-cols-1 gap-6 md:mt-10 xl:grid-cols-2"
-        >
-          {others.map((session, i) => (
-            <Reveal as="li" key={session.slug} delay={i * 0.08}>
-              <EventCard
-                workshop={session}
-                sizes={
-                  others.length >= 3
-                    ? "(min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
-                    : "(min-width: 640px) 46vw, 92vw"
-                }
-                className="h-full"
-              />
-            </Reveal>
-          ))}
-        </ul>
-      )}
+      <ul className="mt-8 grid grid-cols-1 gap-6 md:mt-10 xl:grid-cols-2">
+        {others.map((session, i) => (
+          <Reveal as="li" key={session.slug} delay={i * 0.08} className="flex">
+            <EventCard
+              workshop={session}
+              ground="cream"
+              index={i}
+              sizes={
+                others.length >= 3
+                  ? "(min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
+                  : "(min-width: 640px) 46vw, 92vw"
+              }
+              className="h-full w-full"
+            />
+          </Reveal>
+        ))}
+      </ul>
     </section>
   );
 }

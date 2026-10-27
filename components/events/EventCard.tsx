@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { useSessionPassed } from "@/components/booking/SessionClock";
 import { LevelChip, TERM, TICKET_GROUNDS, type TicketGround } from "@/components/events/WorkshopTypeCards";
+import { useModeCopy } from "@/components/layout/SiteChrome";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
 import {
@@ -23,7 +24,7 @@ import styles from "./Ticket.module.css";
 
 /**
  * EventCard — styled to match the reference ticket design:
- * - Left side: Title, category badge, and subtitle/venue.
+ * - Left side: Session label, Title, category badge, and subtitle/venue.
  * - Vertical divider: dashed perforation line between body and stub.
  * - Right side: Next available date, time, price, and circular arrow button.
  * - Rounded corners and decorative notched edges from Ticket.module.css.
@@ -36,6 +37,7 @@ export function EventCard({
   className,
   ground,
   perPersonLabel = "per person",
+  sessionLabel,
 }: {
   workshop: Workshop;
   index?: number;
@@ -44,6 +46,7 @@ export function EventCard({
   className?: string;
   ground?: TicketGround;
   perPersonLabel?: string;
+  sessionLabel?: string;
 }) {
   const { start } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
   const closed = isFullyBooked(workshop);
@@ -53,7 +56,10 @@ export function EventCard({
     renderedAt ? Date.parse(workshop.startsAt) <= renderedAt : hasSessionPassed(workshop),
   );
 
-  const cardGround = ground ?? TICKET_GROUNDS[index % TICKET_GROUNDS.length];
+  const { labels } = useModeCopy();
+  const sessionTypeLabel = sessionLabel ?? labels?.scheduledSession ?? "Scheduled session";
+
+  const cardGround = ground ?? (index !== undefined ? TICKET_GROUNDS[index % TICKET_GROUNDS.length] : "cream");
   const badge = workshop.workshopType?.level || workshop.category;
 
   return (
@@ -68,9 +74,12 @@ export function EventCard({
         className,
       )}
     >
-      {/* Left side: title, category badge, and location/details */}
+      {/* Left side: session label, title, category badge, and location/details */}
       <span className={cn(styles.body, "relative flex flex-col justify-between p-6 md:p-7 min-w-0")}>
         <div>
+          <p className="mb-2 text-label font-medium uppercase tracking-eyebrow text-text/75">
+            {sessionTypeLabel}
+          </p>
           <span className="heading-script relative block pb-[0.2em] text-script-panel">
             <ScriptTitle>{workshop.title}</ScriptTitle>
           </span>

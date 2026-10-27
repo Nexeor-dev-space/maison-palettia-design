@@ -280,6 +280,7 @@ export function ChoiceBody({
                 dates={sessions.filter((session) => session.workshopType?.slug === type.slug)}
                 perPersonLabel={eventCopy().perPersonLabel}
                 ground="cream"
+                sessionLabel={modeCopy().labels.scheduledSession}
               />
             </Reveal>
           ))}

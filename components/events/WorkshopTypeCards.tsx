@@ -71,12 +71,14 @@ export function TypeCard({
   dates,
   perPersonLabel = "per person",
   ground = "sage",
+  sessionLabel = "Scheduled session",
 }: {
   type: WorkshopType;
   dates: Workshop[];
   perPersonLabel?: string;
   /** The section's ticket colour; every ticket in one section shares it. */
   ground?: TicketGround;
+  sessionLabel?: string;
 }) {
   const next = dates[0];
   const from = dates.length ? Math.min(...dates.map((d) => d.price.amount)) : null;
@@ -90,6 +92,9 @@ export function TypeCard({
     >
       <span className={cn(styles.body, "relative flex flex-col justify-between p-6 md:p-7 min-w-0")}>
         <div>
+          <p className="mb-2 text-label font-medium uppercase tracking-eyebrow text-text/75">
+            {sessionLabel}
+          </p>
           <span className="heading-script relative block pb-[0.2em] text-script-panel">
             <ScriptTitle>{type.name}</ScriptTitle>
           </span>
