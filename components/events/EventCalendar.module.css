@@ -30,36 +30,37 @@
   --tone-wash: color-mix(in oklab, var(--color-brand-lilac) 15%, white);
 }
 
+.tone[data-tone="forest"],
 .tone[data-tone="terracotta"] {
-  --tone: var(--color-brand-terracotta);
-  --tone-wash: color-mix(in oklab, var(--color-brand-terracotta) 18%, white);
+  /* Deep Forest Pine: dark, cool green (L ~ 0.24) */
+  --tone: #183d22;
+  --tone-wash: color-mix(in oklab, #183d22 12%, white);
 }
 
 .tone[data-tone="sage"] {
-  /* Light Sage is too pale to be a mark on its own; its edge is the sage
-     taken a third of the way to Charcoal, which is still unmistakably it. */
-  --tone: color-mix(in oklab, var(--color-brand-sage) 62%, var(--color-brand-charcoal));
-  --tone-wash: color-mix(in oklab, var(--color-brand-sage) 70%, white);
+  /* Fresh Celadon Sage: light, soft herb green (L ~ 0.64) */
+  --tone: #7ca76e;
+  --tone-wash: color-mix(in oklab, var(--color-brand-sage) 75%, white);
 }
 
 .tone[data-tone="lavender"] {
-  /* Cooler and stronger than the lilac's wash, which it otherwise sits too
-     close to: Soft Lavender is the bluer of the two purples, so it is let be
-     blue. */
-  --tone: color-mix(in oklab, var(--color-brand-lavender) 70%, var(--color-brand-lilac));
+  /* Soft Lavender: cool, light periwinkle purple (L ~ 0.58) */
+  --tone: #7c6ec4;
   --tone-wash: color-mix(in oklab, var(--color-brand-lavender) 46%, white);
 }
 
-.tone[data-tone="rose"] {
-  /* The sixth: Warm Terracotta and Deep Lilac mixed half and half, a dusty
-     rose that is neither — so a sixth format is not a repeat of the first. */
-  --tone: color-mix(in oklab, var(--color-brand-terracotta) 50%, var(--color-brand-lilac));
-  --tone-wash: color-mix(in oklab, color-mix(in oklab, var(--color-brand-terracotta) 50%, var(--color-brand-lilac)) 16%, white);
+.tone[data-tone="plum"],
+.tone[data-tone="slate"] {
+  /* Deep Royal Plum: rich, dark velvet purple (L ~ 0.26) */
+  --tone: #4d1e5a;
+  --tone-wash: color-mix(in oklab, #4d1e5a 12%, white);
 }
 
-.tone[data-tone="slate"] {
-  --tone: var(--color-brand-charcoal);
-  --tone-wash: color-mix(in oklab, var(--color-brand-cream) 55%, white);
+.tone[data-tone="moss"],
+.tone[data-tone="rose"] {
+  /* Earthy Moss: warm, rich mid-tone olive green (L ~ 0.42) */
+  --tone: #3e6d2b;
+  --tone-wash: color-mix(in oklab, #3e6d2b 14%, white);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -279,14 +280,13 @@
   }
 }
 
-/* The phone's reading of a ticket: one dot in the ticket's own wash. */
+/* The phone's reading of a ticket: one dot in the format's mark. */
 .dot {
   display: block;
   height: 0.5rem;
   width: 0.5rem;
   border-radius: 999px;
-  background: var(--tone-wash);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tone) 70%, transparent);
+  background: var(--tone);
 }
 
 /* The colour key's swatch: the format's mark, a little larger than a dot. */

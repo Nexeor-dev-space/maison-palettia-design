@@ -100,35 +100,21 @@ export function EventCard({
   return (
     <article
       className={cn(
-        "group press-in relative flex flex-col",
-        // The tile lifts as one object — picture, chip and type together —
-        // rather than the picture moving inside a card that stays put. That
-        // is the "layered" reading: everything on the tile answers, each by a
-        // different amount. Transform only, so nothing in the grid reflows.
-        "transition-transform duration-[var(--duration-hover)] ease-editorial",
-        "motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-within:-translate-y-1",
-        // A sold-out date stays in the grid and stays readable — it is still
-        // information — but it stops competing with the ones that can be had.
-        // So does a date gone by, as far as the server could tell.
+        "group press-in plate relative flex h-full flex-col overflow-clip rounded-[1.25rem] md:rounded-[1.5rem] bg-cream",
+        "transition-shadow duration-300 ease-soft hover:shadow-[0_0_0_1.5px_var(--color-primary)] focus-within:shadow-[0_0_0_1.5px_var(--color-primary)]",
         (closed || passed) && "opacity-75",
         className,
       )}
     >
-      {/* The pointer becomes a dab of Deep Lilac over the picture — the same
-          mark the activity plates use. See <CursorLayer>. */}
-      <div className="relative" data-paint style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}>
+      {/* The photograph flush across top */}
+      <div className="relative aspect-[3/2] w-full overflow-hidden bg-sage/60" data-paint style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}>
         <WorkshopPhoto
           image={workshop.image}
           aspect="aspect-[3/2]"
           sizes={sizes}
+          className="rounded-none h-full w-full object-cover transition-transform duration-700 ease-editorial motion-safe:group-hover:scale-[1.04]"
         />
 
-        {/*
-          The chip sits on a solid ground rather than a tint, so it is legible
-          over any photograph without anyone re-measuring when the studio swaps
-          a picture. White Rock on Charcoal is 12.33:1; the near-white on Deep
-          Lilac is 4.90:1, which is what `--color-on-primary` exists for.
-        */}
         <SessionGate
           startsAt={workshop.startsAt}
           passedAtRender={passed}
@@ -141,46 +127,27 @@ export function EventCard({
         />
       </div>
 
-      <div className="mt-6 flex flex-1 flex-col">
-        {/*
-          How you take part, not which strand it is filed under. The category
-          ("Craft") came from the old Paint / Shape / Craft / Create system and
-          told a visitor nothing they could act on; "Scheduled session" tells
-          them this is a date they book — the same words the hero,
-          the homepage groups and the menus use.
-        */}
-        <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text">
+      {/* Structured Card Content */}
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text/75">
           {modeCopy().labels.scheduledSession}
         </p>
 
-        <h3 className="mt-3 text-h3 font-light">
+        <h3 className="mt-2 text-h3 font-light leading-snug">
           <Link
             href={workshopHref(workshop)}
-            className="after:absolute after:inset-0"
+            className="after:absolute after:inset-0 text-text transition-colors duration-300 ease-soft group-hover:text-primary"
           >
-            {/* `ink-rule` is the site's single underline — the navbar's
-                gesture, defined once in globals.css. It replaced a
-                background-size trick that did the same thing a third slower
-                and only here. */}
             <span className="ink-rule" style={{ "--rule": "var(--color-primary)" } as React.CSSProperties}>
               {workshop.title}
             </span>
           </Link>
         </h3>
 
-        {/*
-          Date, then time, then place — the same order and the same formatters
-          the listing and the event page use, so a visitor who has read one has
-          already learned how to read the others.
-        */}
-        <p className="mt-4 text-body text-text">
+        <p className="mt-3 text-body text-text">
           <time dateTime={workshop.startsAt}>
             {weekday} {formatSessionDate(workshop.startsAt)}
           </time>
-          {/* /70, not /40. It separates two data points, so it is doing
-              structural work rather than decorating — and /40 measured 2.17:1
-              on this ground, which is faint enough to read as a rendering
-              artefact rather than as a considered mark. */}
           <span aria-hidden className="px-2 text-text/70">
             &middot;
           </span>
@@ -188,18 +155,12 @@ export function EventCard({
         </p>
 
         {workshop.venue ? (
-          <p className="mt-1.5 text-fine text-text/75">
+          <p className="mt-1 text-fine text-text/75">
             {workshop.venue.name}, {workshop.venue.locality}
           </p>
         ) : null}
 
-        {/*
-          `mt-auto` pins this to the foot of the tile, so the price rows line up
-          across the grid even when one title wraps to two lines and its
-          neighbour does not. Without it the rules stagger and the grid reads as
-          a collage.
-        */}
-        <div className="mt-auto flex items-baseline justify-between gap-4 border-t border-line pt-5">
+        <div className="mt-auto flex items-baseline justify-between gap-4 border-t border-line/60 pt-4 mt-5">
           <p className="text-body font-medium text-text">
             {formatPrice(workshop.price)}
             <span className="ml-1.5 text-fine font-normal text-text/75">
@@ -209,7 +170,7 @@ export function EventCard({
 
           <span
             aria-hidden
-            className="inline-flex shrink-0 items-baseline gap-2 text-action font-medium uppercase tracking-eyebrow text-text"
+            className="inline-flex shrink-0 items-baseline gap-1.5 text-action font-medium uppercase tracking-eyebrow text-text transition-transform duration-300 ease-editorial group-hover:text-primary"
           >
             <SessionGate
               startsAt={workshop.startsAt}
@@ -223,11 +184,6 @@ export function EventCard({
           </span>
         </div>
 
-        {/*
-          Duration is carried for a screen reader and for machines but not
-          printed: the tile already sets four facts and a fifth turns a scan
-          into a read. The event page prints it in full.
-        */}
         <span className="sr-only">
           Lasts{" "}
           <time dateTime={durationToIso(workshop.durationMinutes)}>

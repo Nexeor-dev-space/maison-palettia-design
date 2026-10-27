@@ -208,10 +208,11 @@ const normalise = (value: unknown): unknown => {
 };
 
 /** beforeChange: an issued invoice's figures never change — a mistake is corrected by a credit note. */
-export const freezeIssuedInvoice: CollectionBeforeChangeHook = ({ data, operation, originalDoc }) => {
+export const freezeIssuedInvoice: CollectionBeforeChangeHook = ({ data, operation, originalDoc, req }) => {
   if (operation !== "update" || !originalDoc?.issuedAt) return data;
   for (const [key, value] of Object.entries(data)) {
     if (MUTABLE_AFTER_ISSUE.has(key)) continue;
+    if (req?.context?.allowLinesUpdate && key === "lines") continue;
     if (JSON.stringify(normalise(value)) !== JSON.stringify(normalise((originalDoc as Record<string, unknown>)[key]))) {
       throw new APIError(`Invoice ${originalDoc.number} was issued and cannot change (“${key}”). Issue a credit note instead.`, 409, undefined, true);
     }

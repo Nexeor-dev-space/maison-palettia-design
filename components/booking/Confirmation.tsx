@@ -63,12 +63,12 @@ export function Confirmation({
   /** The "what a booking is" sentence (booking-settings). */
   terms: string;
 }) {
-  const status = view ? displayStatus(view.status) : null;
+  const status = view ? displayStatus(view.status, view.isRescheduled) : null;
   const polling = usePollWhileProcessing(reference, k, view?.status ?? null, status === "processing");
 
   // Paid for (captured counts — `confirming` is only the tickets being issued):
   // forget the basket this order was made from.
-  const paid = status === "confirmed" || status === "completed" || view?.status === "confirming";
+  const paid = status === "confirmed" || status === "rescheduled" || status === "completed" || view?.status === "confirming";
   useEffect(() => {
     if (!reference || !paid) return;
     const pending = pendingPaymentReference();
@@ -102,7 +102,7 @@ export function Confirmation({
         </p>
       ) : null}
 
-      {status === "confirmed" || status === "completed" ? (
+      {status === "confirmed" || status === "rescheduled" || status === "completed" ? (
         <p className="mt-8 max-w-[42rem] text-fine leading-[1.8] text-text/75">
           {terms} A confirmation with your tickets and invoice has been sent to the email address on the
           booking.
@@ -136,6 +136,7 @@ export function Confirmation({
 
 const HEADINGS: Record<DisplayStatus, string> = {
   confirmed: "You are booked.",
+  rescheduled: "Your booking is rescheduled.",
   processing: "Confirming your payment.",
   not_paid: "Payment not completed.",
   completed: "Your booking.",

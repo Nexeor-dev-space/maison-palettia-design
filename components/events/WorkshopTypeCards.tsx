@@ -31,13 +31,15 @@ import styles from "./Ticket.module.css";
 /** The small-caps label every field on the event pages uses. */
 export const TERM = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
 
-/** "Beginner" · "New this month" — a small chip beside a name. */
+/** "Beginner" · "New this month" — a small chip below a name. */
 export function LevelChip({ children, tone = "cream" }: { children: string; tone?: "cream" | "lilac" }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-pill px-3 py-1 text-label font-medium uppercase tracking-eyebrow",
-        tone === "lilac" ? "bg-primary text-on-primary" : "bg-cream text-text",
+        "inline-flex items-center rounded-pill px-2.5 py-0.5 text-[0.6875rem] font-medium uppercase tracking-[0.1em]",
+        tone === "lilac"
+          ? "bg-primary text-on-primary"
+          : "bg-cream/90 text-text border border-text/15 shadow-[0_1px_2px_rgba(0,0,0,0.04)]",
       )}
     >
       {children}
@@ -87,16 +89,15 @@ export function TypeCard({
       className={cn(styles.ticket, styles.theme, "group press-in w-full overflow-hidden")}
     >
       <span className={cn(styles.body, "relative flex flex-col px-7 py-7 md:px-8 md:py-8")}>
-        <span className="relative flex flex-wrap items-center gap-2">
-          {/* A plain filled dot, at the client's ask — the calendar icon read
-              as clutter on the ticket; the dot is the quiet mark it had. */}
-          <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-pill bg-text" />
-          {type.level ? <LevelChip>{type.level}</LevelChip> : null}
-          {type.status ? <LevelChip tone="lilac">{type.status}</LevelChip> : null}
-        </span>
-        <span className="heading-script relative mt-3 block pb-[0.2em] text-script-panel">
+        <span className="heading-script relative block pb-[0.2em] text-script-panel">
           <ScriptTitle>{type.name}</ScriptTitle>
         </span>
+        {type.level || type.status ? (
+          <span className="relative mt-1 flex flex-wrap items-center gap-2">
+            {type.level ? <LevelChip>{type.level}</LevelChip> : null}
+            {type.status ? <LevelChip tone="lilac">{type.status}</LevelChip> : null}
+          </span>
+        ) : null}
         {type.description ? <span className="relative mt-2 block max-w-[30rem] text-body text-text/85">{type.description}</span> : null}
         {type.progressionNote ? <span className="relative mt-2 block text-fine text-text/75">{type.progressionNote}</span> : null}
       </span>

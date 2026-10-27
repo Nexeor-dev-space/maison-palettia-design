@@ -6,6 +6,7 @@ import { APIError, type PayloadRequest } from "payload";
 
 import { lexicalToEmailText } from "@/cms/email/render";
 import type { Attachment } from "@/cms/lib/contracts";
+import { invoiceLinesFor } from "@/cms/lib/invoiceNumber";
 import { formatAed } from "@/cms/lib/money";
 import { PRIVATE_DIR } from "@/cms/lib/paths";
 import type { Invoice, InvoiceFile, InvoiceSetting, Order, Payment, Refund } from "@/payload-types";
@@ -272,6 +273,8 @@ export async function loadInvoiceView(req: PayloadRequest, invoiceId: string): P
   const footerNote = settings?.footerNote ? lexicalToEmailText(settings.footerNote) : "";
 
   const seller = invoice.seller ?? {};
+  const hasMoved = invoice.kind === "invoice" && Boolean(order?.timeline?.some((t) => t.event === "moved" || t.event === "rescheduled"));
+  const rawLines = hasMoved && order ? invoiceLinesFor(order) : (invoice.lines ?? []);
   const view: InvoiceView = {
     kind: invoice.kind,
     number: invoice.number,
@@ -287,7 +290,7 @@ export async function loadInvoiceView(req: PayloadRequest, invoiceId: string): P
       phone: seller.phone ?? "",
     },
     buyer: { name: invoice.buyer?.name ?? "", email: invoice.buyer?.email ?? "" },
-    lines: (invoice.lines ?? []).map((line) => ({
+    lines: rawLines.map((line) => ({
       description: line.description,
       qty: line.qty,
       unitNetFils: line.unitNetFils,
@@ -318,9 +321,40 @@ export async function renderInvoicePdf(req: PayloadRequest, invoiceId: string): 
 export const INVOICE_DIR = path.join(PRIVATE_DIR, "invoices");
 
 /** The stored PDF for an invoice, if 3D's `generate-invoice-pdf` has written one and the file is on disk. */
-export async function readStoredInvoicePdf(req: PayloadRequest, invoice: Pick<Invoice, "file">): Promise<Buffer | null> {
+export async function readStoredInvoicePdf(
+  req: PayloadRequest,
+  invoice: Pick<Invoice, "file"> & Partial<Pick<Invoice, "id" | "order" | "generatedAt" | "kind">>,
+): Promise<Buffer | null> {
   const fileId = relId(invoice.file);
   if (!fileId) return null;
+
+  let orderId = relId(invoice.order);
+  let generatedAt = invoice.generatedAt ? new Date(invoice.generatedAt).getTime() : 0;
+  if (!orderId && "id" in invoice && typeof (invoice as { id?: unknown }).id === "string") {
+    const full = (await req.payload.findByID({ collection: "invoices", id: (invoice as { id: string }).id, depth: 0, overrideAccess: true, req }).catch(() => null)) as Invoice | null;
+    if (full) {
+      orderId = relId(full.order);
+      generatedAt = full.generatedAt ? new Date(full.generatedAt).getTime() : 0;
+    }
+  }
+
+  if (orderId && invoice.kind !== "credit_note") {
+    try {
+      const order = (await req.payload.findByID({ collection: "orders", id: orderId, depth: 0, overrideAccess: true, req }).catch(() => null)) as Order | null;
+      if (order?.timeline?.length) {
+        const moveEvents = order.timeline.filter((t) => t.event === "moved" || t.event === "rescheduled");
+        if (moveEvents.length > 0) {
+          const lastMoveAt = Math.max(...moveEvents.map((e) => new Date(e.at).getTime()));
+          if (lastMoveAt > generatedAt) {
+            return null;
+          }
+        }
+      }
+    } catch {
+      // Non-fatal: fall through to serving stored file if order query fails
+    }
+  }
+
   const file = (await req.payload.findByID({ collection: "invoice-files", id: fileId, depth: 0, overrideAccess: true, req }).catch(() => null)) as InvoiceFile | null;
   if (!file?.filename) return null;
   return fs.readFile(path.join(INVOICE_DIR, path.basename(file.filename))).catch(() => null);
@@ -363,6 +397,9 @@ export async function storeInvoicePdf(req: PayloadRequest, invoiceId: string, op
     req,
     context: { system: true },
   });
+  if (existing && opts.force) {
+    await req.payload.delete({ collection: "invoice-files", id: existing, overrideAccess: true, depth: 0, req, context: { system: true } }).catch(() => null);
+  }
   return { fileId: String(stored.id), created: true };
 }
 

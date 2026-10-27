@@ -79,8 +79,8 @@ import type { Workshop } from "@/types";
  * component and must not read Date.now() while rendering.
  */
 
-/** The six format tones, in the order formats take them; see EventCalendar.module.css. */
-const TONES = ["lilac", "terracotta", "sage", "lavender", "slate", "rose"] as const;
+/** The six format tones in brand purple and green shades; see EventCalendar.module.css. */
+const TONES = ["lilac", "forest", "lavender", "sage", "plum", "moss"] as const;
 type Tone = (typeof TONES)[number];
 
 /** How many sessions a day's card prints as tiles before "+n more". */
