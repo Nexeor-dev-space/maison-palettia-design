@@ -28,3 +28,18 @@
 export const PRODUCTION_ORIGIN = "https://maisonpalettia.com";
 
 export const PRODUCTION_HOST = new URL(PRODUCTION_ORIGIN).host;
+
+/**
+ * Whether the current deployment is the production site (maisonpalettia.com).
+ * Any other host (staging, preview, localhost, or unset) returns false.
+ */
+export function isProductionDeployment(): boolean {
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!serverUrl) return false;
+  try {
+    return new URL(serverUrl).host === PRODUCTION_HOST;
+  } catch {
+    return false;
+  }
+}
+
