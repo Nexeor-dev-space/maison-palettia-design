@@ -1960,12 +1960,7 @@ function MoreEvents({
         </Reveal>
       ) : (
         <ul
-          className={cn(
-            "mt-8 grid grid-cols-1 gap-x-6 gap-y-14 md:mt-10 lg:gap-x-10",
-            others.length >= 3
-              ? "sm:grid-cols-2 lg:grid-cols-3"
-              : "sm:grid-cols-2",
-          )}
+          className="mt-8 grid grid-cols-1 gap-6 md:mt-10 xl:grid-cols-2"
         >
           {others.map((session, i) => (
             <Reveal as="li" key={session.slug} delay={i * 0.08}>
