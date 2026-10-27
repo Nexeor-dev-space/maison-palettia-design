@@ -411,7 +411,7 @@ function Door({
       <a
         href={href}
         className={cn(
-          "group press-in relative flex h-full min-h-[13rem] flex-col justify-between overflow-hidden rounded-[1.25rem] px-7 py-7 md:min-h-[15rem] md:rounded-[1.75rem] md:px-9 md:py-9",
+          "group press-in relative flex h-full min-h-[13rem] flex-col overflow-hidden rounded-[1.25rem] px-7 py-7 md:min-h-[15rem] md:rounded-[1.75rem] md:px-9 md:py-9",
           field,
         )}
       >
@@ -432,37 +432,23 @@ function Door({
         </span>
 
         {/*
-          NO MODE LABEL OVER THE TITLE (Oct 2026). "No Booking Required" and
-          "Booked online" sat here; the client asked for them to go — the note
-          under the title says the same thing in a sentence.
+          Title and description grouped together with consistent vertical spacing.
         */}
-        <span className="relative">
+        <div className="relative">
           <span className="heading-script block pb-[0.2em] text-script-compact">
             <ScriptTitle>{title}</ScriptTitle>
             {footnote ? <Star /> : null}
           </span>
-        </span>
-
-        <span className="relative mt-6 flex items-end justify-between gap-6">
-          {/* Wider than it was (26ch): the cluster now fills the right half,
-              so the words no longer have to be kept short to leave it room. */}
-          <span className="max-w-[36ch] text-body">
+          <p className="mt-3.5 max-w-[36ch] text-body md:mt-4">
             {note}
             {footnote ? <Footnote>{footnote}</Footnote> : null}
-          </span>
-          {/*
-            THE WAY DOWN, ON A PEBBLE — the same hand-cut lilac blob the
-            format tickets carry their arrow on (see <TypeCard>), turned to
-            point down the page, at the client's ask. It was a bare "↓" in
-            the field's ink, which at body size was the smallest thing on a
-            very large card.
+          </p>
+        </div>
 
-            The pebble takes the opposite of its field, so it always reads as
-            an object ON the card: Deep Lilac with the near-white arrow on the
-            White Rock door (4.90:1), and the near-white `surface` with a Deep
-            Lilac arrow on the Deep Lilac door (4.90:1 the other way round).
-            Decorative either way — the whole door is the link.
-          */}
+        {/*
+          Pebble arrow pinned to bottom-right corner.
+        */}
+        <div className="relative mt-auto flex justify-end pt-6">
           <span
             aria-hidden
             className={cn(
@@ -472,12 +458,9 @@ function Door({
               "motion-safe:group-hover:translate-y-1 motion-safe:group-hover:rotate-[2deg]",
             )}
           >
-            {/* An icon rather than the "↓" character: Montserrat draws that
-                glyph at about half the weight and size of its "→", so on the
-                pebble it read as a speck. */}
             <ArrowDown strokeWidth={2.25} className="h-5 w-5" />
           </span>
-        </span>
+        </div>
       </a>
     </li>
   );

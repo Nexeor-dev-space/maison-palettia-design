@@ -71,12 +71,14 @@ export function TypeCard({
   dates,
   perPersonLabel = "per person",
   ground = "sage",
+  sessionLabel = "Scheduled session",
 }: {
   type: WorkshopType;
   dates: Workshop[];
   perPersonLabel?: string;
   /** The section's ticket colour; every ticket in one section shares it. */
   ground?: TicketGround;
+  sessionLabel?: string;
 }) {
   const next = dates[0];
   const from = dates.length ? Math.min(...dates.map((d) => d.price.amount)) : null;
@@ -88,22 +90,27 @@ export function TypeCard({
       data-ground={ground}
       className={cn(styles.ticket, styles.theme, "group press-in w-full overflow-hidden")}
     >
-      <span className={cn(styles.body, "relative flex flex-col px-7 py-7 md:px-8 md:py-8")}>
-        <span className="heading-script relative block pb-[0.2em] text-script-panel">
-          <ScriptTitle>{type.name}</ScriptTitle>
-        </span>
-        {type.level || type.status ? (
-          <span className="relative mt-1 flex flex-wrap items-center gap-2">
-            {type.level ? <LevelChip>{type.level}</LevelChip> : null}
-            {type.status ? <LevelChip tone="lilac">{type.status}</LevelChip> : null}
+      <span className={cn(styles.body, "relative flex flex-col justify-between p-6 md:p-7 min-w-0")}>
+        <div>
+          <p className="mb-2 text-label font-medium uppercase tracking-eyebrow text-text/75">
+            {sessionLabel}
+          </p>
+          <span className="heading-script relative block pb-[0.2em] text-script-panel">
+            <ScriptTitle>{type.name}</ScriptTitle>
           </span>
-        ) : null}
-        {type.description ? <span className="relative mt-2 block max-w-[30rem] text-body text-text/85">{type.description}</span> : null}
+          {type.level || type.status ? (
+            <span className="relative mt-1 flex flex-wrap items-center gap-2">
+              {type.level ? <LevelChip>{type.level}</LevelChip> : null}
+              {type.status ? <LevelChip tone="lilac">{type.status}</LevelChip> : null}
+            </span>
+          ) : null}
+          {type.description ? <span className="relative mt-2 block max-w-[30rem] text-body text-text/85">{type.description}</span> : null}
+        </div>
         {type.progressionNote ? <span className="relative mt-2 block text-fine text-text/75">{type.progressionNote}</span> : null}
       </span>
 
       {/* The stub: the next date, the price, and the way in. */}
-      <span className={cn(styles.stub, "px-6 py-4 md:px-7 md:py-6")}>
+      <span className={cn(styles.stub, "px-6 py-5 md:px-7 md:py-6")}>
         <span className="min-w-0">
           <span className={TERM}>Next date</span>
           {next ? (

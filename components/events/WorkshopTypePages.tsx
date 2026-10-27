@@ -270,7 +270,7 @@ export function ChoiceBody({
             {types.length === 1 ? "The format" : "Choose a format"}
           </h2>
         </Reveal>
-        <ul className="mt-6 grid gap-5 md:grid-cols-2 lg:gap-6">
+        <ul className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-2 lg:gap-6">
           {types.map((type, i) => (
             <Reveal as="li" key={type.slug} delay={i * 0.06} className="flex">
               {/* White Rock: this page is Light Sage, where the listing's sage
@@ -280,6 +280,7 @@ export function ChoiceBody({
                 dates={sessions.filter((session) => session.workshopType?.slug === type.slug)}
                 perPersonLabel={eventCopy().perPersonLabel}
                 ground="cream"
+                sessionLabel={modeCopy().labels.scheduledSession}
               />
             </Reveal>
           ))}

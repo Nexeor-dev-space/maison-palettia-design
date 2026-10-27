@@ -38,9 +38,11 @@
 .wave {
   position: absolute;
   inset-inline: 0;
-  bottom: 0;
-  /* The SVG is `preserveAspectRatio: none`, so this height IS the amplitude. */
-  height: 2.75rem;
+  bottom: -2px;
+  /* The SVG is `preserveAspectRatio: none`, so this height IS the amplitude.
+     Adding 2px with bottom: -2px ensures a seamless 2px overlap onto the footer,
+     preventing any subpixel gap or horizontal hairline between main and footer. */
+  height: calc(2.75rem + 2px);
   z-index: 1;
   display: block;
   width: 100%;
@@ -49,12 +51,12 @@
 
 @media (min-width: 768px) {
   .wave {
-    height: 3.5rem;
+    height: calc(3.5rem + 2px);
   }
 }
 
 @media (min-width: 1024px) {
   .wave {
-    height: 4.5rem;
+    height: calc(4.5rem + 2px);
   }
 }

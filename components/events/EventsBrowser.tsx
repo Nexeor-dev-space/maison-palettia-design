@@ -9,7 +9,7 @@ import { Progression, TICKET_GROUNDS, TypeCard } from "@/components/events/Works
 import { Reveal } from "@/components/motion/Reveal";
 import { PeelNote } from "@/components/ui/PeelNote";
 import { ScriptTitle } from "@/components/ui/SectionHeader";
-import { EventCard } from "@/components/workshops/EventCard";
+import { EventCard } from "@/components/events/EventCard";
 import {
   applyFilters,
   buildFacets,
@@ -335,7 +335,7 @@ export function EventsBrowser({
                 takes `h-full`, so two cards in a row are the same height
                 however long one of the names runs.
               */}
-              <ol className="mt-5 grid gap-6 md:mt-6 md:grid-cols-2 lg:gap-8">
+              <ol className="mt-5 grid grid-cols-1 gap-6 md:mt-6 xl:grid-cols-2 lg:gap-8">
                 {events.map(({ workshop, position }) => (
                   <li key={workshop.slug} className="h-full">
                     <EventCard workshop={workshop} index={position} renderedAt={renderedAt} />
@@ -474,7 +474,7 @@ function FormatGroup({
       </Reveal>
 
       {formats.length > 0 ? (
-        <ul className="mt-7 grid gap-5 md:mt-8 md:grid-cols-2 lg:gap-6">
+        <ul className="mt-7 grid grid-cols-1 gap-5 md:mt-8 xl:grid-cols-2 lg:gap-6">
           {formats.map(({ type, dates }, i) => (
             <Reveal as="li" key={type.slug} delay={Math.min(i, 6) * 0.05} className="flex">
               <TypeCard type={type} dates={dates} perPersonLabel={perPersonLabel} ground={ground} />
@@ -485,7 +485,7 @@ function FormatGroup({
 
       {/* Sittings with no format — the cards they always had, so a date is never lost from the page. */}
       {loose.length > 0 ? (
-        <ol className="mt-7 grid gap-6 md:mt-8 md:grid-cols-2 lg:gap-8">
+        <ol className="mt-7 grid grid-cols-1 gap-6 md:mt-8 xl:grid-cols-2 lg:gap-8">
           {loose.map((workshop, position) => (
             <li key={workshop.slug} className="h-full">
               <EventCard workshop={workshop} index={position} renderedAt={renderedAt} />

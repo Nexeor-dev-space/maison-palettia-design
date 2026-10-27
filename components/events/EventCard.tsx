@@ -1,214 +1,135 @@
+"use client";
+
 import Link from "next/link";
 
-import { SessionGate } from "@/components/booking/SessionClock";
-import { modeCopy } from "@/components/blocks/templateCopy";
-
-import { WorkshopPhoto } from "@/components/workshops/WorkshopPhoto";
+import { useSessionPassed } from "@/components/booking/SessionClock";
+import { LevelChip, TERM, TICKET_GROUNDS, type TicketGround } from "@/components/events/WorkshopTypeCards";
+import { useModeCopy } from "@/components/layout/SiteChrome";
+import { ScriptTitle } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
 import {
-  durationToIso,
-  formatDuration,
   formatPrice,
   formatSessionDate,
+  formatVenueLine,
   hasSessionPassed,
   isFullyBooked,
   isScarce,
-  sessionDateParts,
   sessionTimeRange,
   spotsLabel,
   workshopHref,
-} from "@/lib/workshops";
+} from "@/lib/workshopHelpers";
 import type { Workshop } from "@/types";
 
+import styles from "./Ticket.module.css";
+
 /**
- * One event, as a tile in a grid.
- *
- * ==========================================================================
- * THE BRIEF WAS "ARRANGE THEM LIKE PLATINUMLIST" — HERE IS WHAT THAT MEANT
- * ==========================================================================
- *
- * What is worth taking from a ticketing marketplace is the ANATOMY, not the
- * styling: a picture, a status chip on it, then a fixed reading order of
- * title, date, place, price, with the whole tile clickable. A visitor scanning
- * six of those compares dates in one pass. That is genuinely better than what
- * this site had on the homepage — one session at a time behind arrows, which
- * is a posture of browsing rather than of choosing.
- *
- * WHAT IS DELIBERATELY NOT TAKEN, AND THIS IS THE IMPORTANT HALF. Platinumlist
- * cards carry "Top seller", "Selling fast", "Bestseller", "26% OFF", a
- * strikethrough original price and a star rating. Every one of those is a
- * claim, and this project has data for none of them — no ratings, no sales
- * ranking, no list price to discount from, no second price tier. Reproducing
- * that chrome would mean writing urgency the studio has not earned and cannot
- * support, which is the one thing the brief for this site has ruled out at
- * every stage.
- *
- * So the chip says only what `seatsAvailable` already knows:
- *
- *   date gone by ....... "Date passed"     — charcoal, a statement of fact
- *   fully booked ....... "Fully booked"    — charcoal, a statement of fact
- *   nearly gone ........ "3 spots left"    — Deep Lilac, the one accent
- *   comfortably open ... nothing at all
- *
- * The first row is decided twice: by the server when the HTML is rendered,
- * and again by <SessionGate> against the visitor's clock, because this card
- * sits on a prerendered page and a date can lapse between the render and the
- * visit. The same gate turns "Book" into "View" at the foot.
- *
- * The third case matters most. A chip on every tile is a chip that means
- * nothing; scarcity only reads as scarcity when most tiles are quiet. That is
- * `isScarce`, which the site already uses, not a new rule invented here.
- *
- * NO BORDER, NO SHADOW, NO PANEL. The house language has none anywhere — see
- * <WorkshopPhoto>, which exists to set a photograph as artwork rather than as
- * the top of a card. So the picture is the tile's body and the type sits under
- * it on the page's own ground, with one hairline above the price row. It reads
- * as a repeating unit in a grid, which is what a card is for, without
- * importing a marketplace's box.
- *
- * ONE LINK PER TILE, stretched over the whole thing by its `::after`. The
- * price row's affordance is a `<span>` for that reason: a second anchor to the
- * same page would put every event in the tab order twice.
+ * EventCard — styled to match the reference ticket design:
+ * - Left side: Session label, Title, category badge, and subtitle/venue.
+ * - Vertical divider: dashed perforation line between body and stub.
+ * - Right side: Next available date, time, price, and circular arrow button.
+ * - Rounded corners and decorative notched edges from Ticket.module.css.
  */
 export function EventCard({
   workshop,
+  index = 0,
+  renderedAt,
   sizes,
   className,
+  ground,
+  perPersonLabel = "per person",
+  sessionLabel,
 }: {
   workshop: Workshop;
-  /** Rendered width per breakpoint, so the browser fetches one size only. */
-  sizes: string;
+  index?: number;
+  renderedAt?: number;
+  sizes?: string;
   className?: string;
+  ground?: TicketGround;
+  perPersonLabel?: string;
+  sessionLabel?: string;
 }) {
-  const { weekday } = sessionDateParts(workshop.startsAt);
-  const { start } = sessionTimeRange(
-    workshop.startsAt,
-    workshop.durationMinutes,
-  );
+  const { start } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
   const closed = isFullyBooked(workshop);
   const scarce = isScarce(workshop);
-  // The server's verdict, for the HTML; <SessionGate> below re-asks it.
-  const passed = hasSessionPassed(workshop);
+  const passed = useSessionPassed(
+    workshop.startsAt,
+    renderedAt ? Date.parse(workshop.startsAt) <= renderedAt : hasSessionPassed(workshop),
+  );
 
-  /*
-    Printed only when it is not the title said twice. Several activities are
-    filed under a category of their own name — "Ceramic Painting" under
-    "Ceramic Painting" — and an eyebrow repeating the heading beneath it is the
-    kind of furniture that makes a composition look automated.
-  */
+  const { labels } = useModeCopy();
+  const sessionTypeLabel = sessionLabel ?? labels?.scheduledSession ?? "Scheduled session";
+
+  const cardGround = ground ?? (index !== undefined ? TICKET_GROUNDS[index % TICKET_GROUNDS.length] : "cream");
+  const badge = workshop.workshopType?.level || workshop.category;
 
   return (
-    <article
+    <Link
+      href={workshopHref(workshop)}
+      data-ground={cardGround}
       className={cn(
-        "group press-in plate relative flex h-full flex-col overflow-clip rounded-[1.25rem] md:rounded-[1.5rem] bg-cream",
-        "transition-shadow duration-300 ease-soft hover:shadow-[0_0_0_1.5px_var(--color-primary)] focus-within:shadow-[0_0_0_1.5px_var(--color-primary)]",
+        styles.ticket,
+        styles.theme,
+        "group press-in w-full overflow-hidden",
         (closed || passed) && "opacity-75",
         className,
       )}
     >
-      {/* The photograph flush across top */}
-      <div className="relative aspect-[3/2] w-full overflow-hidden bg-sage/60" data-paint style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}>
-        <WorkshopPhoto
-          image={workshop.image}
-          aspect="aspect-[3/2]"
-          sizes={sizes}
-          className="rounded-none h-full w-full object-cover transition-transform duration-700 ease-editorial motion-safe:group-hover:scale-[1.04]"
-        />
-
-        <SessionGate
-          startsAt={workshop.startsAt}
-          passedAtRender={passed}
-          open={
-            closed || scarce ? (
-              <Chip dark={closed}>{spotsLabel(workshop)}</Chip>
-            ) : null
-          }
-          passed={<Chip dark>{modeCopy().eventPage.passedLabel}</Chip>}
-        />
-      </div>
-
-      {/* Structured Card Content */}
-      <div className="flex flex-1 flex-col p-5 sm:p-6">
-        <p className="flex items-center gap-2.5 text-label font-medium uppercase tracking-eyebrow text-text/75">
-          {modeCopy().labels.scheduledSession}
-        </p>
-
-        <h3 className="mt-2 text-h3 font-light leading-snug">
-          <Link
-            href={workshopHref(workshop)}
-            className="after:absolute after:inset-0 text-text transition-colors duration-300 ease-soft group-hover:text-primary"
-          >
-            <span className="ink-rule" style={{ "--rule": "var(--color-primary)" } as React.CSSProperties}>
-              {workshop.title}
-            </span>
-          </Link>
-        </h3>
-
-        <p className="mt-3 text-body text-text">
-          <time dateTime={workshop.startsAt}>
-            {weekday} {formatSessionDate(workshop.startsAt)}
-          </time>
-          <span aria-hidden className="px-2 text-text/70">
-            &middot;
-          </span>
-          <span className="tabular-nums">{start}</span>
-        </p>
-
-        {workshop.venue ? (
-          <p className="mt-1 text-fine text-text/75">
-            {workshop.venue.name}, {workshop.venue.locality}
+      {/* Left side: session label, title, category badge, and location/details */}
+      <span className={cn(styles.body, "relative flex flex-col justify-between p-6 md:p-7 min-w-0")}>
+        <div>
+          <p className="mb-2 text-label font-medium uppercase tracking-eyebrow text-text/75">
+            {sessionTypeLabel}
           </p>
-        ) : null}
-
-        <div className="mt-auto flex items-baseline justify-between gap-4 border-t border-line/60 pt-4 mt-5">
-          <p className="text-body font-medium text-text">
-            {formatPrice(workshop.price)}
-            <span className="ml-1.5 text-fine font-normal text-text/75">
-              per person
-            </span>
-          </p>
-
-          <span
-            aria-hidden
-            className="inline-flex shrink-0 items-baseline gap-1.5 text-action font-medium uppercase tracking-eyebrow text-text transition-transform duration-300 ease-editorial group-hover:text-primary"
-          >
-            <SessionGate
-              startsAt={workshop.startsAt}
-              passedAtRender={passed}
-              open={closed ? "View" : "Book"}
-              passed="View"
-            />
-            <span className="transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1">
-              &#8594;
-            </span>
+          <span className="heading-script relative block pb-[0.2em] text-script-panel">
+            <ScriptTitle>{workshop.title}</ScriptTitle>
           </span>
+          <div className="relative mt-1 flex flex-wrap items-center gap-2">
+            {badge ? <LevelChip>{badge}</LevelChip> : null}
+            {closed || scarce ? (
+              <LevelChip tone="lilac">{spotsLabel(workshop)}</LevelChip>
+            ) : passed ? (
+              <LevelChip tone="lilac">Date passed</LevelChip>
+            ) : null}
+          </div>
         </div>
 
-        <span className="sr-only">
-          Lasts{" "}
-          <time dateTime={durationToIso(workshop.durationMinutes)}>
-            {formatDuration(workshop.durationMinutes)}
-          </time>
-        </span>
-      </div>
-    </article>
-  );
-}
+        {workshop.venue ? (
+          <span className="relative mt-3 block text-fine text-text/75">
+            {formatVenueLine(workshop.venue)}
+          </span>
+        ) : workshop.workshopType?.name ? (
+          <span className="relative mt-3 block text-fine text-text/75">
+            {workshop.workshopType.name}
+          </span>
+        ) : null}
+      </span>
 
-/** The status chip on the photograph. */
-function Chip({ dark = false, children }: { dark?: boolean; children: React.ReactNode }) {
-  return (
-    <p
-      className={cn(
-        "absolute left-3 top-3 rounded-sm px-3 py-1.5 text-label font-medium uppercase tracking-eyebrow",
-        dark ? "bg-text text-on-dark" : "bg-primary text-on-primary",
-        // A few pixels more than the tile, so the two read as separate
-        // layers rather than as one flat picture.
-        "transition-transform duration-[var(--duration-hover)] ease-editorial",
-        "motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5",
-      )}
-    >
-      {children}
-    </p>
+      {/* Vertical divider perforation and right side: date, time, price, arrow */}
+      <span className={cn(styles.stub, "px-6 py-5 md:px-7 md:py-6")}>
+        <span className="min-w-0">
+          <span className={TERM}>Next date</span>
+          <span className="mt-1.5 block text-body font-medium leading-snug">
+            {formatSessionDate(workshop.startsAt)}
+            <span className="block">{start}</span>
+            <span className="mt-1 block text-fine font-normal text-text/75">
+              {formatPrice(workshop.price)} {perPersonLabel}
+            </span>
+          </span>
+        </span>
+
+        {/* Circular arrow button navigating to event details */}
+        <span
+          aria-hidden
+          className={cn(
+            "grid size-11 shrink-0 self-end place-items-center rounded-[58%_42%_55%_45%/50%_58%_42%_50%]",
+            "bg-primary text-on-primary rotate-[-6deg] md:mt-4",
+            "transition-transform duration-500 ease-editorial",
+            "motion-safe:group-hover:translate-x-1 motion-safe:group-hover:rotate-[2deg]",
+          )}
+        >
+          <span className="text-lead leading-none">&#8594;</span>
+        </span>
+      </span>
+    </Link>
   );
 }

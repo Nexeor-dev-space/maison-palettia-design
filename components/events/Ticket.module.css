@@ -56,6 +56,7 @@
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
   transition: transform 420ms var(--ease-editorial);
+  filter: drop-shadow(0 0 0.5px rgb(45 55 72 / 0.18)) drop-shadow(0 4px 12px rgb(45 55 72 / 0.05));
 }
 
 /* The format ticket: Light Sage, and a shorter stub measure for three lines.
@@ -151,9 +152,9 @@
       radial-gradient(circle at calc(100% - var(--stub)) 100%, transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
   }
 
-  /* Wide enough for "17 November 2026" on one line at the body size. */
+  /* Wide enough for "17 November 2026" on one line at the body size while giving max width to description. */
   .theme {
-    --stub: 15rem;
+    --stub: 14rem;
   }
 
   .stub {
