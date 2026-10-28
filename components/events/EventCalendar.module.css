@@ -12,55 +12,49 @@
   THE FORMAT TONES. Each format (a candle theme, a crochet level) takes one,
   by its place in the studio's own order, so every sitting of one course is
   the same colour all month and the shape of the month reads before a word
-  does. Two values per tone:
+  does. Six formats, six brand colours: each tone is one of them exactly, as
+  the brand sheet gives it, never a mix of two. Two values per tone:
 
-    --tone        the strong mark: the phone dot's ring, the legend swatch and
-                  an agenda card's hover hairline. Never under text.
-    --tone-wash   the tile's ground. Light enough that Charcoal Slate on it
-                  clears AA comfortably — the lightest is ~11:1, the darkest
-                  (the sage) ~9:1 — so the colour is never what has to be read.
+    --tone        the brand colour itself: the board's ticket, the agenda's
+                  card, the phone dot, the legend swatch.
+    --tone-ink    the text on that colour. Charcoal Slate on the three light
+                  ones; light ink on the three dark ones — White Rock on
+                  Charcoal Slate (~9:1), the near-white on-primary on Deep
+                  Lilac (~5:1) and on Warm Terracotta (~3:1). The terracotta
+                  pairing is the client's choice over a darker, AA-clearing
+                  ink: it reads as one family with the other dark tickets.
 
-  Six, because six formats is what the programme runs — two candle themes
-  and four crochet levels. A seventh wraps round to the first, and the tile
-  still carries its name, so a repeat costs only the at-a-glance reading,
-  never the information.
+  A seventh format wraps round to the first, and the ticket still carries its
+  name, so a repeat costs only the at-a-glance reading, never the information.
 */
 .tone {
   --tone: var(--color-brand-lilac);
-  --tone-wash: color-mix(in oklab, var(--color-brand-lilac) 15%, white);
+  --tone-ink: var(--color-on-primary);
 }
 
-.tone[data-tone="forest"],
 .tone[data-tone="terracotta"] {
-  /* Deep Forest Pine: dark, cool green (L ~ 0.24) */
-  --tone: #183d22;
-  --tone-wash: color-mix(in oklab, #183d22 12%, white);
+  --tone: var(--color-brand-terracotta);
+  --tone-ink: var(--color-on-primary);
 }
 
 .tone[data-tone="sage"] {
-  /* Fresh Celadon Sage: light, soft herb green (L ~ 0.64) */
-  --tone: #7ca76e;
-  --tone-wash: color-mix(in oklab, var(--color-brand-sage) 75%, white);
+  --tone: var(--color-brand-sage);
+  --tone-ink: var(--color-brand-charcoal);
 }
 
 .tone[data-tone="lavender"] {
-  /* Soft Lavender: cool, light periwinkle purple (L ~ 0.58) */
-  --tone: #7c6ec4;
-  --tone-wash: color-mix(in oklab, var(--color-brand-lavender) 46%, white);
+  --tone: var(--color-brand-lavender);
+  --tone-ink: var(--color-brand-charcoal);
 }
 
-.tone[data-tone="plum"],
-.tone[data-tone="slate"] {
-  /* Deep Royal Plum: rich, dark velvet purple (L ~ 0.26) */
-  --tone: #4d1e5a;
-  --tone-wash: color-mix(in oklab, #4d1e5a 12%, white);
+.tone[data-tone="charcoal"] {
+  --tone: var(--color-brand-charcoal);
+  --tone-ink: var(--color-brand-cream);
 }
 
-.tone[data-tone="moss"],
-.tone[data-tone="rose"] {
-  /* Earthy Moss: warm, rich mid-tone olive green (L ~ 0.42) */
-  --tone: #3e6d2b;
-  --tone-wash: color-mix(in oklab, #3e6d2b 14%, white);
+.tone[data-tone="cream"] {
+  --tone: var(--color-brand-cream);
+  --tone-ink: var(--color-brand-charcoal);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -126,8 +120,8 @@
   THE SITE'S TICKET, SMALL. The same anatomy as the format and session
   tickets (components/events/Ticket.module.css, components/ui/Ticket.module.css):
   a stub and a body, a dashed perforation between them, and a notch bitten
-  out of each edge where it would tear. The stub holds the time(s), a shade
-  deeper than the body; the body holds the course.
+  out of each edge where it would tear. The stub holds the time(s), the
+  body the course, both in the format's brand colour.
 
   TWO MASKS, ONE PER HALF, as in ui/Ticket's .faceCut / .stubCut: each half
   bites its own corners, so neither needs to know how tall or wide the other
@@ -166,8 +160,8 @@
   column-gap: 0.25rem;
   padding: 0 0.5rem;
   border-radius: var(--radius) var(--radius) 0 0;
-  background: color-mix(in oklab, var(--tone) 18%, var(--tone-wash));
-  color: color-mix(in oklab, var(--color-brand-charcoal) 85%, transparent);
+  background: var(--tone);
+  color: var(--tone-ink);
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.25;
@@ -194,7 +188,8 @@
   min-width: 0;
   padding: 0 0.5rem;
   border-radius: 0 0 var(--radius) var(--radius);
-  background: var(--tone-wash);
+  background: var(--tone);
+  color: var(--tone-ink);
   -webkit-mask:
     radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
     radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
@@ -210,7 +205,7 @@
   top: 0;
   left: calc(var(--notch) + 3px);
   right: calc(var(--notch) + 3px);
-  border-top: 1px dashed color-mix(in oklab, var(--color-brand-charcoal) 30%, transparent);
+  border-top: 1px dashed color-mix(in oklab, var(--tone-ink) 45%, transparent);
 }
 
 /* The course name: two lines before an ellipsis upright, three flat — what
@@ -276,7 +271,7 @@
     left: 0;
     right: auto;
     border-top: 0;
-    border-left: 1px dashed color-mix(in oklab, var(--color-brand-charcoal) 30%, transparent);
+    border-left: 1px dashed color-mix(in oklab, var(--tone-ink) 45%, transparent);
   }
 }
 
@@ -297,6 +292,12 @@
   flex-shrink: 0;
   border-radius: 999px;
   background: var(--tone);
+}
+
+/* White Rock is nearly the paper it sits on; a hairline keeps its mark. */
+.tone[data-tone="cream"].dot,
+.tone[data-tone="cream"].swatch {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-brand-charcoal) 30%, transparent);
 }
 
 /* On a chosen day the phone cell is filled lilac, so its dots go to the
@@ -322,8 +323,9 @@
   overlay, and a mask on the face alone would cut that overlay off at the
   perforation, leaving the stub dead to a press.
 
-  Face and stub are one background, a hard stop at the tear: the face in the
-  format's wash, the stub a shade deeper, as on the board.
+  Face and stub are the format's brand colour, as its ticket on the board
+  is, and the text is that tone's ink: the card beside a day is the same
+  colour as the day's ticket.
 */
 .agendaTicket {
   --stub: 4.75rem;
@@ -331,11 +333,8 @@
   --edge: 0.5px;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    to bottom,
-    var(--tone-wash) calc(100% - var(--stub)),
-    color-mix(in oklab, var(--tone) 14%, var(--tone-wash)) 0
-  );
+  background: var(--tone);
+  color: var(--tone-ink);
   -webkit-mask-image:
     radial-gradient(circle at 0 calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge))),
     radial-gradient(circle at 100% calc(100% - var(--stub)), transparent var(--notch), #000 calc(var(--notch) + var(--edge)));
@@ -366,7 +365,31 @@
   top: 0;
   left: calc(var(--notch) + 0.35rem);
   right: calc(var(--notch) + 0.35rem);
-  border-top: 1.5px dashed color-mix(in oklab, var(--color-brand-charcoal) 25%, transparent);
+  border-top: 1.5px dashed color-mix(in oklab, var(--tone-ink) 45%, transparent);
+}
+
+/* The card's quieter lines, in its own ink: the experience, the details and
+   the separators between them. */
+.ink65 {
+  color: color-mix(in oklab, var(--tone-ink) 65%, transparent);
+}
+
+.ink80 {
+  color: color-mix(in oklab, var(--tone-ink) 80%, transparent);
+}
+
+.ink35 {
+  color: color-mix(in oklab, var(--tone-ink) 35%, transparent);
+}
+
+/* "Few spots left": terracotta, except on a terracotta card, where it would
+   vanish and takes the card's ink instead. */
+.scarce {
+  background: var(--color-brand-terracotta);
+}
+
+.tone[data-tone="terracotta"] .scarce {
+  background: var(--tone-ink);
 }
 
 /* The edge, and on reach a hairline in the format's own colour — drawn by a

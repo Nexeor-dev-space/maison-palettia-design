@@ -79,8 +79,8 @@ import type { Workshop } from "@/types";
  * component and must not read Date.now() while rendering.
  */
 
-/** The six format tones in brand purple and green shades; see EventCalendar.module.css. */
-const TONES = ["lilac", "forest", "lavender", "sage", "plum", "moss"] as const;
+/** The six brand colours, in the order formats take them; see EventCalendar.module.css. */
+const TONES = ["lilac", "terracotta", "sage", "lavender", "charcoal", "cream"] as const;
 type Tone = (typeof TONES)[number];
 
 /** How many sessions a day's card prints as tiles before "+n more". */
@@ -493,7 +493,7 @@ function DayCell({
                 </span>
               ))}
             </span>
-            <span className={cn(styles.ticketBody, "text-label font-medium leading-[1.25] text-text")}>
+            <span className={cn(styles.ticketBody, "text-label font-medium leading-[1.25]")}>
               <span className={styles.tileTitle}>{shortTitle(sittings[0].title)}</span>
             </span>
           </span>
@@ -590,14 +590,14 @@ function AgendaItem({ workshop, tone, renderedAt }: { workshop: Workshop; tone: 
       <article className={cn(styles.agendaTicket, "group relative rounded-md")}>
         <div className="min-w-0 px-5 pb-4 pt-4">
           {workshop.experience ? (
-            <p className="text-label font-medium uppercase tracking-eyebrow text-text/65">{workshop.experience.name}</p>
+            <p className={cn("text-label font-medium uppercase tracking-eyebrow", styles.ink65)}>{workshop.experience.name}</p>
           ) : null}
-          <h5 className="mt-1 text-h4 font-medium leading-snug text-text">
+          <h5 className="mt-1 text-h4 font-medium leading-snug">
             <Link href={workshopHref(workshop)} aria-label={name} className="after:absolute after:inset-0 after:rounded-md">
               {workshop.title}
             </Link>
           </h5>
-          <p className="mt-2 text-fine text-text/80">
+          <p className={cn("mt-2 text-fine", styles.ink80)}>
             <span className="whitespace-nowrap tabular-nums">
               {start}
               <span aria-hidden> &ndash; </span>
@@ -607,7 +607,7 @@ function AgendaItem({ workshop, tone, renderedAt }: { workshop: Workshop; tone: 
             <Sep />
             <span className="whitespace-nowrap">{formatDuration(workshop.durationMinutes)}</span>
           </p>
-          <p className="mt-0.5 text-fine text-text/80">
+          <p className={cn("mt-0.5 text-fine", styles.ink80)}>
             {workshop.venue ? (
               <>
                 {workshop.venue.name}
@@ -620,11 +620,11 @@ function AgendaItem({ workshop, tone, renderedAt }: { workshop: Workshop; tone: 
 
         {/* The stub: what is left, and the way in. */}
         <div className={cn(styles.agendaStub, "px-5")}>
-          <p className="flex items-center gap-2 text-label font-medium uppercase tracking-eyebrow text-text">
-            {!passed && isScarce(workshop) ? <span aria-hidden className="h-1.5 w-1.5 rounded-pill bg-terracotta" /> : null}
+          <p className="flex items-center gap-2 text-label font-medium uppercase tracking-eyebrow">
+            {!passed && isScarce(workshop) ? <span aria-hidden className={cn("h-1.5 w-1.5 rounded-pill", styles.scarce)} /> : null}
             {status}
           </p>
-          <span aria-hidden className="flex items-center gap-1.5 text-label font-medium uppercase tracking-eyebrow text-primary">
+          <span aria-hidden className="flex items-center gap-1.5 text-label font-medium uppercase tracking-eyebrow">
             View event
             <ArrowRight
               strokeWidth={1.75}
@@ -642,7 +642,7 @@ function Sep() {
      so "6 spots available" drops to the next line at 320px instead of
      running out of its card. */
   return (
-    <span aria-hidden className="text-text/35">
+    <span aria-hidden className={styles.ink35}>
       {" "}
       &middot;{" "}
     </span>
