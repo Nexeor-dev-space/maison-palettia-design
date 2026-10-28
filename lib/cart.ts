@@ -636,6 +636,7 @@ async function postJson(url: string, body: unknown): Promise<{ response: Respons
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
       cache: "no-store",
+      signal: AbortSignal.timeout(25_000),
     });
     let json: Json = {};
     try {
@@ -659,7 +660,7 @@ const text = (value: unknown) => (typeof value === "string" && value ? value : u
  */
 export async function startCheckout(body: StartCheckoutBody): Promise<StartCheckoutOutcome> {
   const result = await postJson("/api/site/checkout/start", body);
-  if (!result) return { status: "error" };
+  if (!result) return { status: "payment_link_failed" };
   const { response, json } = result;
   const reference = text(json.reference);
 
@@ -690,7 +691,14 @@ export async function startCheckout(body: StartCheckoutBody): Promise<StartCheck
   if (response.status === 429) return { status: "rate_limited" };
   // 422 `amount_below_minimum`: under Mamo's AED 2 floor — the server's message says so.
   if (response.status === 400 || response.status === 422) return { status: "invalid", message: text(json.message) };
-  if (response.status === 502) return { status: "payment_link_failed" };
+  if (
+    response.status === 502 ||
+    response.status === 504 ||
+    reason === "payment_link_failed" ||
+    reason === "gateway_error"
+  ) {
+    return { status: "payment_link_failed" };
+  }
   return { status: "error" };
 }
 

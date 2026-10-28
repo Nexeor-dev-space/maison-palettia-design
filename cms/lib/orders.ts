@@ -253,19 +253,24 @@ async function uniqueReference(req: PayloadRequest, prefix: string): Promise<str
 async function issuePaymentLink(req: PayloadRequest, gateway: PaymentGateway, order: Order): Promise<{ paymentUrl: string }> {
   // 3B's builder owns the Mamo body rules (title ≤ 50 chars, AED 2 minimum,
   // inline-needs-names fallback, `k` on both return URLs — research 02 §B5).
+  // The external call to Mamo Pay is made outside of any DB transaction so
+  // network latency never locks Postgres rows or starves the connection pool.
   const { link } = await createPaymentLink(req, gateway, order);
-  const row = await createDoc<Payment>(req, "payments", {
-    order: order.id,
-    provider: "mamo",
-    status: "link_ready",
-    amountFils: order.totals.grossFils,
-    currency: "AED",
-    providerLinkId: link.id,
-    providerLinkUrl: link.payment_url,
-    mode: gateway.mode,
+  const row = await withTransaction(req, async () => {
+    const payment = await createDoc<Payment>(req, "payments", {
+      order: order.id,
+      provider: "mamo",
+      status: "link_ready",
+      amountFils: order.totals.grossFils,
+      currency: "AED",
+      providerLinkId: link.id,
+      providerLinkUrl: link.payment_url,
+      mode: gateway.mode,
+    });
+    await updateOrder(req, order.id, { payment: payment.id });
+    if (order.status !== "awaiting_payment") await transition(req, order, "awaiting_payment", { refs: { payment: payment.id } });
+    return payment;
   });
-  await updateOrder(req, order.id, { payment: row.id });
-  if (order.status !== "awaiting_payment") await transition(req, order, "awaiting_payment", { refs: { payment: row.id } });
   return { paymentUrl: link.payment_url };
 }
 
@@ -418,7 +423,7 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
 
   // ── online: the Mamo link ──
   try {
-    const { paymentUrl } = await withTransaction(req, () => issuePaymentLink(req, gateway as PaymentGateway, order));
+    const { paymentUrl } = await issuePaymentLink(req, gateway as PaymentGateway, order);
     return { reference: order.reference, paymentUrl, holdExpiresAt: String(order.hold?.expiresAt ?? "") };
   } catch (error) {
     // Keep the hold: the customer can retry within it (§H.1 failed).
@@ -460,14 +465,49 @@ async function reuseOpenOrder(req: PayloadRequest, gateway: PaymentGateway, inpu
     await expireOrder(req, open.id, { force: true, note: "replaced by a changed basket" });
     return null;
   }
-  return withTransaction(req, async () => {
-    await lockOrder(req, open.id);
-    const fresh = await loadOrder(req, open.id);
-    await retireCurrentLink(req, gateway, fresh, "expired");
-    const { paymentUrl } = await issuePaymentLink(req, gateway, fresh);
-    await appendTimeline(req, open.id, "link_reissued", { reason: "same basket submitted again" });
-    return { reference: fresh.reference, reused: true as const, paymentUrl, holdExpiresAt: String(fresh.hold?.expiresAt ?? "") };
-  });
+
+  // Fast path: if the open order already has a live, valid Mamo payment link, return it immediately.
+  // Avoids redundant Mamo deactivation + recreation and eliminates race conditions on rapid retries.
+  const paymentId = idOf(open.payment);
+  if (paymentId && (open.status === "awaiting_payment" || open.status === "pending_payment")) {
+    const payment = (await req.payload.findByID({
+      collection: "payments",
+      id: paymentId,
+      depth: 0,
+      overrideAccess: true,
+      disableErrors: true,
+      req,
+    })) as Payment | null;
+
+    if (
+      payment &&
+      payment.provider === "mamo" &&
+      payment.status === "link_ready" &&
+      payment.providerLinkUrl &&
+      !payment.linkDeactivatedAt
+    ) {
+      return {
+        reference: open.reference,
+        reused: true as const,
+        paymentUrl: payment.providerLinkUrl,
+        holdExpiresAt: String(open.hold?.expiresAt ?? ""),
+      };
+    }
+  }
+
+  try {
+    await retireCurrentLink(req, gateway, open, "expired");
+    const { paymentUrl } = await issuePaymentLink(req, gateway, open);
+    await withTransaction(req, async () => {
+      await appendTimeline(req, open.id, "link_reissued", { reason: "same basket submitted again" });
+    });
+    return { reference: open.reference, reused: true as const, paymentUrl, holdExpiresAt: String(open.hold?.expiresAt ?? "") };
+  } catch (error) {
+    await bestEffort(req, "mark order failed after link error", () =>
+      withTransaction(req, async () => transition(req, open, "failed", { note: `payment link could not be reissued: ${(error as Error)?.message ?? "error"}`.slice(0, 200) })),
+    );
+    throw new CheckoutError("gateway_error", "We could not reach the payment provider. Please try again in a moment.", 502, { reference: open.reference });
+  }
 }
 
 async function markHolds(req: PayloadRequest, orderId: string, status: "consumed" | "released"): Promise<Array<{ session: string; qty: number }>> {
