@@ -79,8 +79,8 @@ import type { Workshop } from "@/types";
  * component and must not read Date.now() while rendering.
  */
 
-/** The six format tones in brand purple and green shades; see EventCalendar.module.css. */
-const TONES = ["lilac", "forest", "lavender", "sage", "plum", "moss"] as const;
+/** The six brand colours, in the order formats take them; see EventCalendar.module.css. */
+const TONES = ["lilac", "terracotta", "sage", "lavender", "charcoal", "cream"] as const;
 type Tone = (typeof TONES)[number];
 
 /** How many sessions a day's card prints as tiles before "+n more". */
@@ -493,7 +493,7 @@ function DayCell({
                 </span>
               ))}
             </span>
-            <span className={cn(styles.ticketBody, "text-label font-medium leading-[1.25] text-text")}>
+            <span className={cn(styles.ticketBody, "text-label font-medium leading-[1.25]")}>
               <span className={styles.tileTitle}>{shortTitle(sittings[0].title)}</span>
             </span>
           </span>
