@@ -31,6 +31,8 @@ import { useConsent } from "./ConsentBanner";
  * measurement) can leave from a checkout page. Microsoft Clarity records
  * whole sessions and follows route changes on its own, so on an excluded
  * page it is told to `stop` and on the next allowed page to `start` again.
+ * The same stop runs when the visitor withdraws consent from "Cookie
+ * settings" after the tags have loaded.
  * A script that is already loaded cannot be unloaded, which is why the
  * per-page gate matters more than the first load. The URL reported is origin + pathname only: query
  * strings (which can carry an order reference or a token) are never sent.
@@ -185,7 +187,16 @@ export function ExternalAnalytics({
   const allowed = configured && (consentRequired ? choice === "granted" : choice !== undefined);
 
   useEffect(() => {
-    if (!allowed) return;
+    if (!allowed) {
+      // Consent withdrawn after the tags loaded: stop what can be stopped
+      // (Clarity records continuously; GA4 gets its opt-out flag) and forget
+      // the page so a later re-grant reports it afresh.
+      if (installed.current) {
+        silence(external);
+        lastPath.current = null;
+      }
+      return;
+    }
     const path = normalisePath(pathname || window.location.pathname);
     if (!path) return;
     if (isExcludedPath(path, exclude.split("\n"))) {
