@@ -114,12 +114,13 @@ describe("toSiteAnalyticsConfig", () => {
   it("passes only well-formed public ids and always keeps the booking pages excluded", () => {
     const config = analytics.toSiteAnalyticsConfig({
       excludePaths: [{ path: "/private" }],
-      external: { provider: "ga4", measurementId: "G-ABC123", metaPixelId: "123'); alert(1);//" },
+      external: { provider: "ga4", measurementId: "G-ABC123", metaPixelId: "123'); alert(1);//", clarityProjectId: "abc123xyz0" },
       consent: { required: true, policyLink: { type: "internal", url: "/policies/privacy" } },
     });
     expect(config.external.provider).toBe("ga4");
     expect(config.external.measurementId).toBe("G-ABC123");
     expect(config.external.metaPixelId).toBeNull();
+    expect(config.external.clarityProjectId).toBe("abc123xyz0");
     expect(config.beacon.excludePaths).toEqual(expect.arrayContaining(["/checkout", "/payment-success", "/my-bookings", "/booking-status", "/dev", "/private"]));
     expect(config.consent.policyHref).toBe("/policies/privacy");
     expect(shared.hasExternalTags(config)).toBe(true);

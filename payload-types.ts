@@ -7626,7 +7626,7 @@ export interface NotificationSetting {
   createdAt?: string | null;
 }
 /**
- * First-party panel, optional GA4/Plausible/Umami/Meta, cookie consent.
+ * First-party panel, optional GA4/Plausible/Umami/Meta/Clarity, cookie consent.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "analytics-settings".
@@ -7679,6 +7679,10 @@ export interface AnalyticsSetting {
      * Digits only. Leave empty for no pixel. Loads only after consent, like the provider above.
      */
     metaPixelId?: string | null;
+    /**
+     * Letters and digits, from Clarity → Settings → Overview. Leave empty for no Clarity. Records sessions, so it never runs on the booking pages and loads only after consent.
+     */
+    clarityProjectId?: string | null;
   };
   /**
    * Shown once; the choice is remembered in the visitor's browser.
@@ -8661,6 +8665,7 @@ export interface AnalyticsSettingsSelect<T extends boolean = true> {
         umamiScriptUrl?: T;
         umamiWebsiteId?: T;
         metaPixelId?: T;
+        clarityProjectId?: T;
       };
   consent?:
     | T

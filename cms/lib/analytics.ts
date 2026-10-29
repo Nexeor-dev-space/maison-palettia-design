@@ -299,6 +299,7 @@ interface AnalyticsSettingsDoc {
     umamiScriptUrl?: string | null;
     umamiWebsiteId?: string | null;
     metaPixelId?: string | null;
+    clarityProjectId?: string | null;
   } | null;
   consent?: {
     required?: boolean | null;
@@ -328,6 +329,7 @@ export function toSiteAnalyticsConfig(doc: AnalyticsSettingsDoc | null | undefin
     umamiScriptUrl: ok(ext.umamiScriptUrl, /^https:\/\/[^\s"'<>]+$/i),
     umamiWebsiteId: ok(ext.umamiWebsiteId, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
     metaPixelId: ok(ext.metaPixelId, /^\d{5,20}$/),
+    clarityProjectId: ok(ext.clarityProjectId, /^[a-z0-9]{5,32}$/i),
   };
   // A provider without its id is "none": the tags component never has to guess.
   const complete =
