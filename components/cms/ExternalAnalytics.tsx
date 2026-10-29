@@ -3,13 +3,13 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-import { isExcludedPath, normalisePath, type SiteAnalyticsConfig } from "@/cms/collections/analytics/shared";
+import { hasExternalTags, isExcludedPath, normalisePath, type SiteAnalyticsConfig } from "@/cms/collections/analytics/shared";
 
 import { useConsent } from "./ConsentBanner";
 
 /**
  * ==========================================================================
- * ExternalAnalytics — GA4 / Plausible / Umami / Meta Pixel, only after
+ * ExternalAnalytics — GA4 / Plausible / Umami / Meta Pixel / Clarity, only after
  * consent and never on the booking pages (SPEC §C.3, §G.2, §H.10)
  * ==========================================================================
  *
@@ -28,9 +28,11 @@ import { useConsent } from "./ConsentBanner";
  * on every route change — except on excluded pages, where it reports
  * nothing and, for GA4, also raises Google's own opt-out flag
  * (`window["ga-disable-G-…"]`) so not even an automatic event (enhanced
- * measurement) can leave from a checkout page. A script that is already
- * loaded cannot be unloaded, which is why the per-page gate matters more
- * than the first load. The URL reported is origin + pathname only: query
+ * measurement) can leave from a checkout page. Microsoft Clarity records
+ * whole sessions and follows route changes on its own, so on an excluded
+ * page it is told to `stop` and on the next allowed page to `start` again.
+ * A script that is already loaded cannot be unloaded, which is why the
+ * per-page gate matters more than the first load. The URL reported is origin + pathname only: query
  * strings (which can carry an order reference or a token) are never sent.
  *
  * THE IDS ARE DATA, NEVER CODE. The admin validates each id's shape
@@ -50,6 +52,7 @@ type TagWindow = Window & {
   umami?: { track: (props?: unknown) => void };
   fbq?: Queue;
   _fbq?: Queue;
+  clarity?: Queue;
   [key: `ga-disable-${string}`]: boolean | undefined;
 };
 
@@ -119,7 +122,19 @@ function install(external: SiteAnalyticsConfig["external"]) {
     fbq("init", external.metaPixelId);
     void loadScript("mp-meta-pixel", "https://connect.facebook.net/en_US/fbevents.js").catch(() => undefined);
   }
+
+  if (external.clarityProjectId && !w.clarity) {
+    // Clarity's documented stub: queue calls until the tag replaces it.
+    const clarity: Queue = (...args: unknown[]) => {
+      (clarity.q = clarity.q || []).push(args);
+    };
+    w.clarity = clarity;
+    void loadScript("mp-clarity", `https://www.clarity.ms/tag/${encodeURIComponent(external.clarityProjectId)}`).catch(() => undefined);
+  }
 }
+
+/** Clarity was told to stop on an excluded page and has not been started again yet. */
+let clarityStopped = false;
 
 /** One page view to each configured provider. */
 function trackPageView(external: SiteAnalyticsConfig["external"], path: string) {
@@ -136,11 +151,20 @@ function trackPageView(external: SiteAnalyticsConfig["external"], path: string) 
     else void loadScript("mp-umami", external.umamiScriptUrl ?? "").then(send, () => undefined);
   }
   if (external.metaPixelId) w.fbq?.("track", "PageView");
+  if (external.clarityProjectId && clarityStopped) {
+    clarityStopped = false;
+    w.clarity?.("start");
+  }
 }
 
 /** On an excluded page: make sure nothing can be sent from here, even automatically. */
 function silence(external: SiteAnalyticsConfig["external"]) {
-  if (external.provider === "ga4" && external.measurementId) (window as unknown as TagWindow)[`ga-disable-${external.measurementId}`] = true;
+  const w = window as unknown as TagWindow;
+  if (external.provider === "ga4" && external.measurementId) w[`ga-disable-${external.measurementId}`] = true;
+  if (external.clarityProjectId && w.clarity) {
+    clarityStopped = true;
+    w.clarity("stop");
+  }
 }
 
 export function ExternalAnalytics({
@@ -157,7 +181,7 @@ export function ExternalAnalytics({
   const installed = useRef(false);
   const lastPath = useRef<string | null>(null);
   const exclude = excludePaths.join("\n");
-  const configured = external.provider !== "none" || Boolean(external.metaPixelId);
+  const configured = hasExternalTags({ external });
   const allowed = configured && (consentRequired ? choice === "granted" : choice !== undefined);
 
   useEffect(() => {

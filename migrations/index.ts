@@ -13,6 +13,7 @@ import * as migration_20261011_132002_add_session_vibes from './20261011_132002_
 import * as migration_20261015_165649_add_music from './20261015_165649_add_music';
 import * as migration_20261016_101514_booking_walk_in_copy from './20261016_101514_booking_walk_in_copy';
 import * as migration_20261021_184845_media_blur_placeholder from './20261021_184845_media_blur_placeholder';
+import * as migration_20261029_065943_add_clarity_project_id from './20261029_065943_add_clarity_project_id';
 
 export const migrations = [
   {
@@ -88,6 +89,11 @@ export const migrations = [
   {
     up: migration_20261021_184845_media_blur_placeholder.up,
     down: migration_20261021_184845_media_blur_placeholder.down,
-    name: '20261021_184845_media_blur_placeholder'
+    name: '20261021_184845_media_blur_placeholder',
+  },
+  {
+    up: migration_20261029_065943_add_clarity_project_id.up,
+    down: migration_20261029_065943_add_clarity_project_id.down,
+    name: '20261029_065943_add_clarity_project_id'
   },
 ];

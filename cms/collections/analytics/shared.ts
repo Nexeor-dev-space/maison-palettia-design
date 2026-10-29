@@ -120,6 +120,7 @@ export interface SiteAnalyticsConfig {
     umamiScriptUrl: string | null;
     umamiWebsiteId: string | null;
     metaPixelId: string | null;
+    clarityProjectId: string | null;
   };
   consent: {
     required: boolean;
@@ -131,12 +132,12 @@ export interface SiteAnalyticsConfig {
 }
 
 /** True when any third-party tag is configured (otherwise there is nothing to ask consent for). */
-export const hasExternalTags = (config: SiteAnalyticsConfig): boolean =>
-  config.external.provider !== "none" || Boolean(config.external.metaPixelId);
+export const hasExternalTags = (config: Pick<SiteAnalyticsConfig, "external">): boolean =>
+  config.external.provider !== "none" || Boolean(config.external.metaPixelId) || Boolean(config.external.clarityProjectId);
 
 export const DEFAULT_SITE_ANALYTICS: SiteAnalyticsConfig = {
   beacon: { enabled: true, respectDoNotTrack: true, excludePaths: [...SENSITIVE_PATHS] },
-  external: { provider: "none", measurementId: null, plausibleDomain: null, umamiScriptUrl: null, umamiWebsiteId: null, metaPixelId: null },
+  external: { provider: "none", measurementId: null, plausibleDomain: null, umamiScriptUrl: null, umamiWebsiteId: null, metaPixelId: null, clarityProjectId: null },
   consent: {
     required: true,
     bannerText: "We use analytics cookies to understand how the site is used. Nothing is loaded until you accept.",

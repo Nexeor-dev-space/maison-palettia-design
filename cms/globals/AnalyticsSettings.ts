@@ -10,7 +10,8 @@
  *     `excludePaths`, which are seeded with the checkout and account routes
  *     because a payment flow is nobody's business to chart.
  *
- *   - OPTIONAL THIRD-PARTY TAGS. GA4, Plausible, Umami or a Meta Pixel. These
+ *   - OPTIONAL THIRD-PARTY TAGS. GA4, Plausible, Umami, a Meta Pixel or
+ *     Microsoft Clarity. These
  *     ids are public (they are in every page's HTML by design), not secrets,
  *     so they are plain text fields — but each is validated to its own shape
  *     and rendered into scripts through `JSON.stringify`, never string
@@ -97,7 +98,7 @@ export const AnalyticsSettings: GlobalConfig = {
   label: "Analytics & tracking",
   admin: {
     group: "Settings (admin)",
-    description: "First-party panel, optional GA4/Plausible/Umami/Meta, cookie consent.",
+    description: "First-party panel, optional GA4/Plausible/Umami/Meta/Clarity, cookie consent.",
   },
   access: { read: isAdmin, update: isAdmin },
   hooks: {
@@ -189,6 +190,12 @@ export const AnalyticsSettings: GlobalConfig = {
             description: "Digits only. Leave empty for no pixel. Loads only after consent, like the provider above.",
             max: 20,
             validate: matches(/^\d{5,20}$/, "A Meta Pixel ID is 5 to 20 digits."),
+          }),
+          copy("clarityProjectId", "Microsoft Clarity project ID", {
+            description:
+              "Letters and digits, from Clarity → Settings → Overview. Leave empty for no Clarity. Records sessions, so it never runs on the booking pages and loads only after consent.",
+            max: 32,
+            validate: matches(/^[a-z0-9]{5,32}$/i, "A Clarity project ID is 5 to 32 letters or digits."),
           }),
         ],
         { description: "Public ids, not secrets. Scripts load only after the visitor accepts the consent banner." },
