@@ -179,7 +179,7 @@ export function interpolateLexical(state: LexicalState, vars: TemplateVars): Lex
 /* Inline styles: email clients ignore <style> blocks unevenly; the shell sets fonts, these set rhythm. */
 const LINK_STYLE = "color:#7f4e90;text-decoration:underline;";
 const BUTTON_STYLE =
-  "display:inline-block;background:#9059a4;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;";
+  "display:inline-block;background:#9059a4;background-image:linear-gradient(#9059a4,#9059a4);color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;";
 
 /**
  * Lexical → email HTML. Payload's default converters, then three inline
@@ -198,12 +198,12 @@ export function lexicalToEmailHtml(state: unknown): string {
   return html
     .replace(/<p(\s[^>]*)?>\s*<a([^>]*?)href="([^"]*)"([^>]*)>((?:(?!<a[\s>])[\s\S])*?)<\/a>\s*<\/p>/g, (_m, _pAttrs, before: string, href: string, after: string, label: string) => {
       const rest = `${before}${after}`.replace(/\s(?:style|class)="[^"]*"/g, "");
-      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}">${label}</a></p>`;
+      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}"><span style="color:#ffffff !important;">${label}</span></a></p>`;
     })
     .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;">`)
-    .replace(/<a(?![^>]*style=)(\s)/g, `<a style="${LINK_STYLE}"$1`)
+    .replace(/<a(?![^>]*style=)(\s)/g, `<a class="mp-link" style="${LINK_STYLE}"$1`)
     .replace(/<(ul|ol)(?![^>]*style=)(\s[^>]*)?>/g, (_m, tag: string, attrs: string | undefined) => `<${tag}${attrs ?? ""} style="margin:0 0 16px;padding-left:22px;">`)
-    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:#2d3748;">`);
+    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} class="mp-heading" style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:#2d3748;">`);
 }
 
 /** Lexical → plain text, keeping link URLs ("Download your tickets: https://…"). */
