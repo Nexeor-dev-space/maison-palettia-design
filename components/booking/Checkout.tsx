@@ -266,7 +266,7 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, terms
 
   return (
     <div className="mt-10 grid grid-cols-12 gap-x-6 md:mt-14 lg:gap-x-10">
-      <aside className="col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1">
+      <aside className="col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:sticky lg:top-[calc(var(--spacing-header-set-lg)+1.5rem)] lg:self-start">
         <Reveal variant="fadeIn">
           <CartSummary
             lines={lines}

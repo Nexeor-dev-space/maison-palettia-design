@@ -68,7 +68,7 @@ function findAudioSource(filename: string): string | null {
   const cleanName = (name: string) =>
     path
       .basename(name, path.extname(name))
-      .replace(/(_\d+)+$/, "")
+      .replace(/(?:[_-]\d+|\s*\(\d+\))+$/, "")
       .trim()
       .toLowerCase();
 

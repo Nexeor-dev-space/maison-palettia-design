@@ -60,7 +60,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
        footer's wave directly. */
     <div className="relative isolate overflow-clip">
       <SectionShapes plan={groundShapes("sage")} />
-      <Container className="pb-0 pt-[3.5rem] md:pt-[5rem] lg:pt-[6rem]">
+      <Container className="pb-16 md:pb-24 pt-[3.5rem] md:pt-[5rem] lg:pt-[6rem]">
         <Reveal>
           <Link
             href="/events"
