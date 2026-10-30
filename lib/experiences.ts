@@ -252,12 +252,12 @@ const EXPERIENCES: readonly CreativeExperience[] = [
     ],
     gallery: [
       {
-        src: "/images/experience/glass-painting-1.jpg",
+        src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/experience/glass-painting-1.jpg",
         alt:
           "A backlit panel of glass painted in red, orange, blue and teal cells divided by gold outlines.",
       },
       {
-        src: "/images/experience/glass-painting-2.jpg",
+        src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/experience/glass-painting-2.jpg",
         alt:
           "A hand painting red poppies and green stems onto a glass panel laid flat, jars of colour around it.",
       },

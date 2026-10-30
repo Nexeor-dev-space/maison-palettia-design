@@ -36,7 +36,7 @@ import { cn } from "@/lib/utils";
   The `fullBleedStatement` block (SPEC §E.2, dormant) hands in the held
   photograph; the words are Brand wording's community passage, as before.
 */
-export function CommunityMoment({ image = "/images/middle-section-bg.jpg" }: { image?: string } = {}) {
+export function CommunityMoment({ image = "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/middle-section-bg.jpg" }: { image?: string } = {}) {
   return (
     <section
       aria-labelledby="community-heading"

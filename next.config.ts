@@ -62,6 +62,27 @@ const nextConfig: NextConfig = {
       a browser without it is a broken image.
     */
     minimumCacheTTL: 604800,
+
+    /*
+      With object storage on (cms/lib/storage.ts) Payload writes every media
+      URL as `/api/media/file/<name>?prefix=media`. Next 16 refuses a local
+      image with a query string unless `search` allows it — and once
+      `localPatterns` exists it blocks every local path NOT listed, so the
+      second entry restates today's default (any local path, no query).
+    */
+    localPatterns: [
+      { pathname: "/api/media/file/**", search: "?prefix=media" },
+      { pathname: "/**", search: "" },
+    ],
+
+    // MinIO bucket holding the high-resolution images (maison-palettia).
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "api.staging-obj-blob.client2.nexeor.com",
+        pathname: "/maison-palettia/**",
+      },
+    ],
   },
 
   /**

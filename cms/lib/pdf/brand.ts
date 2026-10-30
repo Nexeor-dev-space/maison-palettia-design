@@ -4,7 +4,8 @@ import path from "node:path";
 import type { PayloadRequest } from "payload";
 import sharp from "sharp";
 
-import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { PROJECT_ROOT } from "@/cms/lib/paths";
+import { readMediaFile } from "@/cms/lib/storage";
 import type { InvoiceSetting, Media, SiteSetting } from "@/payload-types";
 
 /**
@@ -35,9 +36,9 @@ async function mediaDoc(req: PayloadRequest, value: unknown): Promise<Media | nu
   return (await req.payload.findByID({ collection: "media", id, depth: 0, overrideAccess: true, req }).catch(() => null)) as Media | null;
 }
 
-async function toPdfImage(file: string, mimeType: string | null | undefined): Promise<Buffer | null> {
+async function toPdfImage(raw: Buffer | null, mimeType: string | null | undefined): Promise<Buffer | null> {
+  if (!raw) return null;
   try {
-    const raw = await fs.readFile(file);
     if (mimeType === "image/png" || mimeType === "image/jpeg") return raw;
     return await sharp(raw, { density: 300 }).resize({ width: 600, withoutEnlargement: false }).png().toBuffer();
   } catch {
@@ -57,7 +58,7 @@ export async function loadBrand(req: PayloadRequest): Promise<PdfBrand> {
     const cacheKey = `${media.id}:${media.updatedAt}`;
     if (logoCache.has(cacheKey)) logo = logoCache.get(cacheKey) ?? null;
     else {
-      logo = await toPdfImage(path.join(MEDIA_DIR, path.basename(media.filename)), media.mimeType);
+      logo = await toPdfImage(await readMediaFile(media.filename, (media as { prefix?: string | null }).prefix), media.mimeType);
       logoCache.set(cacheKey, logo);
     }
   }
