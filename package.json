@@ -22,6 +22,7 @@
     "test:e2e": "playwright test",
     "ci": "bash scripts/ci.sh",
     "restore:media": "payload run cms/scripts/restore-media.ts",
+    "upload:media": "payload run cms/scripts/upload-media-to-storage.ts",
     "docs:pdf": "node scripts/build-admin-guide-pdf.mjs"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@payloadcms/next": "^3.90.2",
     "@payloadcms/plugin-seo": "^3.90.2",
     "@payloadcms/richtext-lexical": "^3.90.2",
+    "@payloadcms/storage-s3": "3.90.2",
     "@yudiel/react-qr-scanner": "^2.6.0",
     "bowser": "^2.14.1",
     "framer-motion": "^13.2.0",

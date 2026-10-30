@@ -78,6 +78,7 @@ import { CheckInView as CheckInView_8e506c324bcbba93622e6e5dd6514f83 } from '@/c
 import { AnalyticsView as AnalyticsView_0587ed2b5f7bda95d5e4bd4098a37053 } from '@/cms/views/analytics'
 import { DocsView as DocsView_b82b0e76c0dcbe39943074a5cb121f16 } from '@/cms/views/docs'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 
 /** @type import('payload').ImportMap */
 export const importMap = {
@@ -160,5 +161,6 @@ export const importMap = {
   "@/cms/views/checkIn#CheckInView": CheckInView_8e506c324bcbba93622e6e5dd6514f83,
   "@/cms/views/analytics#AnalyticsView": AnalyticsView_0587ed2b5f7bda95d5e4bd4098a37053,
   "@/cms/views/docs#DocsView": DocsView_b82b0e76c0dcbe39943074a5cb121f16,
-  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
+  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24
 }

@@ -68,3 +68,15 @@ SPEC.md disagree, this file wins.
     the cached page. It implements the SPEC §G.4 contract exactly; 3B owns
     the folder and may restyle it. `<SeatsLive>` is the opposite case: it is
     not mounted until 3B's availability route exists.
+11. **Media files live in a MinIO bucket; two more `.env` keys.** The `media`
+    collection stores its originals and generated sizes in the
+    `maison-palettia` bucket under `media/`, through `@payloadcms/storage-s3`
+    (payload.config.ts, cms/lib/storage.ts). Files are still served by
+    Payload at `/api/media/file/<name>`, so stored URLs and `next/image` are
+    unchanged. `STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY` are the
+    exception to "three keys": the plugin is built when the config loads,
+    before the database is reachable, so they cannot be admin settings. The
+    endpoint and bucket are constants beside them. Without both keys the
+    plugin is off and uploads fall back to `media/` on disk (CI, `next
+    build`). Existing files are copied once with `npm run upload:media`
+    (`--dry-run` first). Music tracks and invoice PDFs stay on disk.

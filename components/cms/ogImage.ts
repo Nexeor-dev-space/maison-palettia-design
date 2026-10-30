@@ -4,16 +4,14 @@ import path from "node:path";
 
 import sharp from "sharp";
 
-import { MEDIA_DIR } from "@/cms/lib/paths";
+import { readMediaFile } from "@/cms/lib/storage";
 
 /** The file behind a card's `src`, or null when it cannot be read. */
 async function readSource(src: string): Promise<Buffer | null> {
   try {
     const clean = src.split(/[?#]/)[0];
-    const file = clean.startsWith("/api/media/file/")
-      ? path.join(MEDIA_DIR, path.basename(decodeURIComponent(clean)))
-      : path.join(process.cwd(), "public", path.normalize(clean).replace(/^(\.\.[/\\])+/, ""));
-    return await readFile(file);
+    if (clean.startsWith("/api/media/file/")) return await readMediaFile(decodeURIComponent(clean));
+    return await readFile(path.join(process.cwd(), "public", path.normalize(clean).replace(/^(\.\.[/\\])+/, "")));
   } catch {
     return null;
   }
@@ -28,12 +26,12 @@ async function readSource(src: string): Promise<Buffer | null> {
  * journal story's) draw with `next/og`, and Satori draws only what it is handed:
  * it cannot fetch a root-relative URL from a server that, at build time, is
  * not running — and it cannot decode WebP, which is what the Media
- * collection's generated sizes are. So the bytes are read from disk and
+ * collection's generated sizes are. So the bytes are read directly and
  * re-encoded here:
  *
- *   · `/api/media/file/<name>` (an upload) → `media/<name>` on the persistent
- *     disk (cms/lib/paths.ts — never the build output). Only the file's
- *     basename is used, so a crafted URL cannot reach outside `media/`.
+ *   · `/api/media/file/<name>` (an upload) → the media bucket, or `media/<name>`
+ *     on the persistent disk when storage is off (cms/lib/storage.ts). Only
+ *     the file's basename is used, so a crafted URL cannot reach outside it.
  *   · any other root-relative path → `public/<path>`, the committed files the
  *     cards used before the CMS (and still use until the seed has run).
  *

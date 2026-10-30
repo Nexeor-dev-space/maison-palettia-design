@@ -9,6 +9,7 @@ import sharp from "sharp";
 
 import { backfillBlur } from "@/cms/lib/backfillBlur";
 import { MEDIA_DIR, MUSIC_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { STORAGE_ENABLED } from "@/cms/lib/storage";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
 
@@ -158,7 +159,10 @@ async function main() {
   await fsp.mkdir(MEDIA_DIR, { recursive: true });
 
   const rows: MediaRow[] = [];
-  for (let page = 1; ; page++) {
+  // With object storage on, the bucket holds the library; rebuilding files on
+  // this disk would only create copies nothing reads. Music still lives on disk.
+  if (STORAGE_ENABLED) console.log("restore-media: library files are in object storage — skipping the disk restore.");
+  for (let page = 1; !STORAGE_ENABLED; page++) {
     const res = await payload.find({ collection: "media", limit: 200, page, depth: 0, overrideAccess: true, pagination: true });
     rows.push(...(res.docs as unknown as MediaRow[]));
     if (!res.hasNextPage) break;
