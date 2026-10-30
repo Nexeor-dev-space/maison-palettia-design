@@ -943,6 +943,6 @@ const APART_SHAPES: readonly ShapePlan[] = groundShapes("lavender");
   export, already cut to its wavy outline (see the note in <Welcome>).
 */
 const WELCOME_IMAGE: ImageAsset = {
-  src: "/images/about-page-img.png",
+  src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/about-page-img.png",
   alt: "Two hands holding a small ceramic pot painted in blocks of soft blue, lilac, pink, yellow and green, a fine brush adding the last line.",
 };

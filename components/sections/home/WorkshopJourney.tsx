@@ -108,7 +108,7 @@ export function WorkshopJourney() {
               style={{ "--paint": "var(--color-primary)" } as React.CSSProperties}
             >
               <Image
-                src="/images/workshop-journey.jpg"
+                src="https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/workshop-journey.jpg"
                 alt="A child's hands colouring in a printed butterfly with an orange crayon, a second pair of hands holding the page steady alongside."
                 fill
                 sizes="(min-width: 1024px) 58vw, 100vw"

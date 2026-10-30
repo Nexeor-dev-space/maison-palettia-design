@@ -62,6 +62,15 @@ const nextConfig: NextConfig = {
       a browser without it is a broken image.
     */
     minimumCacheTTL: 604800,
+
+    // MinIO bucket holding the high-resolution images (maison-palettia).
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "api.staging-obj-blob.client2.nexeor.com",
+        pathname: "/maison-palettia/**",
+      },
+    ],
   },
 
   /**
