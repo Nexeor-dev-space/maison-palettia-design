@@ -79,4 +79,4 @@ SPEC.md disagree, this file wins.
     endpoint and bucket are constants beside them. Without both keys the
     plugin is off and uploads fall back to `media/` on disk (CI, `next
     build`). Existing files are copied once with `npm run upload:media`
-    (`--dry-run` first). Music tracks and invoice PDFs stay on disk.
+    (`DRY_RUN=1` first). Music tracks and invoice PDFs stay on disk.
