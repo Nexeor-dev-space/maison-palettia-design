@@ -24,7 +24,7 @@ export function doodleImg(cid: string, width: number): string {
   const doodle = EMAIL_DOODLES.find((item) => item.cid === cid);
   if (!doodle) return "";
   const height = Math.round((width * doodle.height) / doodle.width);
-  return `<img src="cid:${doodle.cid}" alt="" width="${width}" height="${height}" style="display:inline-block;border:0;outline:none;width:${width}px;height:${height}px;">`;
+  return `<img class="mp-doodle" src="cid:${doodle.cid}" alt="" width="${width}" height="${height}" style="display:inline-block;border:0;outline:none;width:${width}px;height:${height}px;">`;
 }
 
 export function referencedDoodles(html: string | undefined): EmailDoodle[] {

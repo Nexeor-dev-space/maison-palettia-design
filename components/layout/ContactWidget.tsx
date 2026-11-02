@@ -54,7 +54,16 @@ const CONTACT_HREF = "/contact";
  */
 export function ContactWidget() {
   const pathname = usePathname();
-  if (pathname === CONTACT_HREF || pathname.startsWith(`${CONTACT_HREF}/`)) return null;
+  if (
+    pathname === CONTACT_HREF ||
+    pathname.startsWith(`${CONTACT_HREF}/`) ||
+    pathname === "/checkout" ||
+    pathname.startsWith("/checkout/") ||
+    pathname === "/payment-success" ||
+    pathname.startsWith("/payment-success/")
+  ) {
+    return null;
+  }
 
   return (
     <Link

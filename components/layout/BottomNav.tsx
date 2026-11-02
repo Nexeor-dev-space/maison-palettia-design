@@ -267,6 +267,9 @@ const WAVE =
 
 export function BottomNav({ bookingOptions }: { bookingOptions: readonly BookingOption[] }) {
   const pathname = usePathname();
+  const isCheckout = pathname === "/checkout" || pathname.startsWith("/checkout/");
+  if (isCheckout) return null;
+
   const reduce = useReducedMotion();
   const { mainNav } = useSiteChrome();
   const barItems = useMemo(() => barItemsOf(mainNav), [mainNav]);
