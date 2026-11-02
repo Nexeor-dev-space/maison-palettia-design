@@ -249,80 +249,80 @@ function TrailRow({
           */
           className="pointer-events-none absolute inset-0 -z-10 hidden lg:block"
         >
-        <svg
-          className="absolute inset-0 h-full w-full overflow-visible"
-          viewBox="0 0 1400 600"
-          preserveAspectRatio="none"
-          fill="none"
-        >
-          <motion.path
-            data-reveal=""
-            d={linkPath(index)}
-            stroke={item.paint}
-            strokeWidth={6}
-            strokeLinecap="round"
-            /*
-              ================================================================
-              NO `vector-effect`, AND THAT IS THE BUG THE CLIENT SAW
-              ================================================================
-
-              It was `vectorEffect="non-scaling-stroke"`, to hold the line to
-              one weight through `preserveAspectRatio="none"`. It also stops
-              the line ever reaching the next card.
-
-              `pathLength` draws by normalising the path to 1 and animating a
-              `stroke-dasharray` against it — but under non-scaling-stroke
-              Chrome measures the dash in SCREEN space while the
-              normalisation is in USER space, and `preserveAspectRatio="none"`
-              makes those two differ by the cell's stretch. The ink covers
-              1/stretch of the path, however finished the animation says it is.
-
-              Measured at 1920x1000 with the draw reported complete
-              (stroke-dasharray 1px, stroke-dashoffset 0): the path's own
-              rendered box reached y 474 and the next card's top edge was at
-              399 — but the last inked pixel was at 304. Ninety-five pixels of
-              geometry with no paint on it. Removing the attribute and
-              re-measuring the same frame put the last inked pixel at 398, on
-              the card's edge.
-
-              THE SCALE IS WHY IT LOOKED FINE ON SOME SCREENS. The svg is
-              1400 user units wide, so at a 1400px-wide container the stretch
-              is 1.0 and nothing is lost; at 1920 it is 1.33 and a fifth of
-              every line goes missing. That is the whole of "the first path is
-              not touching" — it was never a scroll position or a coordinate,
-              it was the viewport.
-
-              WHAT IT COSTS. The stroke now scales with the cell, so 6 units
-              is about 4.3px at 1024 and 8px at 1920, and it is a little
-              wider where the curve runs flat than where it runs steep. On a
-              line that is meant to read as drawn by hand that is a brush, not
-              a defect — and it is the cheaper of the two, by a long way,
-              against a connector that does not connect.
-            */
-            style={reduced ? { pathLength: 1 } : { pathLength: draw }}
-          />
-        </svg>
-
-        {TRAIL_MARKS_BY_LINK[index] ? (
-          <motion.span
-            data-reveal=""
-            className="absolute block"
-            style={{
-              left: `${TRAIL_MARKS_BY_LINK[index].x}%`,
-              top: `${TRAIL_MARKS_BY_LINK[index].y}%`,
-              width: `${TRAIL_MARKS_BY_LINK[index].w}%`,
-              scale: reduced ? 1 : nodeIn,
-              opacity: reduced ? 1 : nodeIn,
-            }}
+          <svg
+            className="absolute inset-0 h-full w-full overflow-visible"
+            viewBox="0 0 1400 600"
+            preserveAspectRatio="none"
+            fill="none"
           >
-            <DoodleMark
-              name={item.trailMark}
-              color={item.paint}
-              treatment="stamp"
-              depth={0}
+            <motion.path
+              data-reveal=""
+              d={linkPath(index)}
+              stroke={item.paint}
+              strokeWidth={6}
+              strokeLinecap="round"
+              /*
+                ================================================================
+                NO `vector-effect`, AND THAT IS THE BUG THE CLIENT SAW
+                ================================================================
+  
+                It was `vectorEffect="non-scaling-stroke"`, to hold the line to
+                one weight through `preserveAspectRatio="none"`. It also stops
+                the line ever reaching the next card.
+  
+                `pathLength` draws by normalising the path to 1 and animating a
+                `stroke-dasharray` against it — but under non-scaling-stroke
+                Chrome measures the dash in SCREEN space while the
+                normalisation is in USER space, and `preserveAspectRatio="none"`
+                makes those two differ by the cell's stretch. The ink covers
+                1/stretch of the path, however finished the animation says it is.
+  
+                Measured at 1920x1000 with the draw reported complete
+                (stroke-dasharray 1px, stroke-dashoffset 0): the path's own
+                rendered box reached y 474 and the next card's top edge was at
+                399 — but the last inked pixel was at 304. Ninety-five pixels of
+                geometry with no paint on it. Removing the attribute and
+                re-measuring the same frame put the last inked pixel at 398, on
+                the card's edge.
+  
+                THE SCALE IS WHY IT LOOKED FINE ON SOME SCREENS. The svg is
+                1400 user units wide, so at a 1400px-wide container the stretch
+                is 1.0 and nothing is lost; at 1920 it is 1.33 and a fifth of
+                every line goes missing. That is the whole of "the first path is
+                not touching" — it was never a scroll position or a coordinate,
+                it was the viewport.
+  
+                WHAT IT COSTS. The stroke now scales with the cell, so 6 units
+                is about 4.3px at 1024 and 8px at 1920, and it is a little
+                wider where the curve runs flat than where it runs steep. On a
+                line that is meant to read as drawn by hand that is a brush, not
+                a defect — and it is the cheaper of the two, by a long way,
+                against a connector that does not connect.
+              */
+              style={reduced ? { pathLength: 1 } : { pathLength: draw }}
             />
-          </motion.span>
-        ) : null}
+          </svg>
+
+          {TRAIL_MARKS_BY_LINK[index] ? (
+            <motion.span
+              data-reveal=""
+              className="absolute block"
+              style={{
+                left: `${TRAIL_MARKS_BY_LINK[index].x}%`,
+                top: `${TRAIL_MARKS_BY_LINK[index].y}%`,
+                width: `${TRAIL_MARKS_BY_LINK[index].w}%`,
+                scale: reduced ? 1 : nodeIn,
+                opacity: reduced ? 1 : nodeIn,
+              }}
+            >
+              <DoodleMark
+                name={item.trailMark}
+                color={item.paint}
+                treatment="stamp"
+                depth={0}
+              />
+            </motion.span>
+          ) : null}
         </span>
       ) : null}
 

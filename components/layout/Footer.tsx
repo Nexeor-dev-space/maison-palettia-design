@@ -604,23 +604,23 @@ export async function Footer() {
                different colours and advance the run by two. */
             const directionsPaint = linkPaint(paintCursor++);
             return (
-            <div key={partner.slug} className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
-              <FooterHeading mark="bow" markColor="#9059A4">
-                Find us
-              </FooterHeading>
-              <p className="mt-4 flex items-center justify-center gap-2 text-lead leading-snug text-text sm:justify-start">
-                <MapPin aria-hidden size={16} strokeWidth={1.9} className="shrink-0 text-primary" />
-                {partner.name}
-              </p>
-              <p className="mt-1 text-body text-text/75">{partner.locality}</p>
-              {partner.locationHref ? (
-                <a
-                  href={partner.locationHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${LINK} mt-3 items-baseline gap-2`}
-                >
-                  {/*
+              <div key={partner.slug} className="col-span-12 text-center sm:col-span-6 sm:text-left lg:col-span-4">
+                <FooterHeading mark="bow" markColor="#9059A4">
+                  Find us
+                </FooterHeading>
+                <p className="mt-4 flex items-center justify-center gap-2 text-lead leading-snug text-text sm:justify-start">
+                  <MapPin aria-hidden size={16} strokeWidth={1.9} className="shrink-0 text-primary" />
+                  {partner.name}
+                </p>
+                <p className="mt-1 text-body text-text/75">{partner.locality}</p>
+                {partner.locationHref ? (
+                  <a
+                    href={partner.locationHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${LINK} mt-3 items-baseline gap-2`}
+                  >
+                    {/*
                     ==========================================================
                     THE PAINT, NOT A HAIRLINE — at the client's ask
                     ==========================================================
@@ -650,29 +650,29 @@ export async function Footer() {
                     under the text pushes the paint down out of its own line
                     box rather than making room for it.
                   */}
-                  <span
-                    className="relative inline-block"
-                    data-paint
-                    style={{ "--paint": directionsPaint } as CSSProperties}
-                  >
-                    <PaintStroke paint={directionsPaint} shape="blot" />
-                    Get directions
-                  </span>
-                  <span className="sr-only">(opens Google Maps in a new tab)</span>
-                  {/* `ArrowUpRight`, not the &#8599; entity it replaced. The
+                    <span
+                      className="relative inline-block"
+                      data-paint
+                      style={{ "--paint": directionsPaint } as CSSProperties}
+                    >
+                      <PaintStroke paint={directionsPaint} shape="blot" />
+                      Get directions
+                    </span>
+                    <span className="sr-only">(opens Google Maps in a new tab)</span>
+                    {/* `ArrowUpRight`, not the &#8599; entity it replaced. The
                       entity renders in whatever the system font has for it —
                       a different weight and baseline on every platform, and
                       nothing like the stroke the rest of the page is drawn
                       with. An icon inherits the ink and the weight. */}
-                  <ArrowUpRight
-                    aria-hidden
-                    size={14}
-                    strokeWidth={2}
-                    className="shrink-0 translate-y-[1px] transition-transform duration-500 ease-editorial motion-safe:group-hover/link:-translate-y-0.5 motion-safe:group-hover/link:translate-x-0.5"
-                  />
-                </a>
-              ) : null}
-            </div>
+                    <ArrowUpRight
+                      aria-hidden
+                      size={14}
+                      strokeWidth={2}
+                      className="shrink-0 translate-y-[1px] transition-transform duration-500 ease-editorial motion-safe:group-hover/link:-translate-y-0.5 motion-safe:group-hover/link:translate-x-0.5"
+                    />
+                  </a>
+                ) : null}
+              </div>
             );
           })}
 
@@ -934,7 +934,7 @@ export async function Footer() {
               </p>
             </div>
 
-          {/*
+            {/*
             `gap-y-3.5` FOR THE REASON THE GROUPS ABOVE TAKE `space-y-3.5`.
             Each link is a 45.25px box that occupies 33.25 of flow, because
             `-my-1.5` pulls 6px off each end; at a 10px gap the rows pitch at
@@ -942,57 +942,57 @@ export async function Footer() {
             at 47.25 and clears by 2. The full arithmetic is on `LINK`.
           */}
             <ul className="relative col-span-12 grid grid-cols-1 gap-x-7 gap-y-1 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3 xl:col-span-9">
-            {policies.map((policy) => {
-              return (
-                <li key={policy.slug}>
-                  <Link
-                    href={`/policies/${policy.slug}`}
-                    prefetch={false}
-                    /*
-                      ==================================================
-                      `text-body`, THE SAME SIZE AS THE NAVIGATION ABOVE
-                      ==================================================
-
-                      These were `text-fine` — 13px, on the reasonable-sounding
-                      argument that reference links should be quieter than
-                      navigation. Rendered, the swatch underneath them was not
-                      there at all, and the reason is arithmetic rather than
-                      taste: <PaintStroke> sizes its blot to the span it sits
-                      in and scales it by `--swell`. A 16px link gives it a
-                      35.5px box and inks 7.1px of paint in the leading below
-                      the word. A 13px link gives it 20.9px, inks 4.2px — and
-                      at that size the masked brush, which tapers at both
-                      ends, is drawn almost entirely BEHIND the glyphs, because
-                      a 13px line box has about 3px under its baseline to put
-                      anything in.
-
-                      Forcing the swell back up was tried and is the wrong
-                      repair: it inks the right number of pixels in the wrong
-                      place, through the type.
-
-                      So the type takes the footer's own body size and the
-                      swatch needs no tuning at all — it is the navigation's
-                      swatch, drawn the way the navigation draws it. The
-                      hierarchy is carried by the GROUND instead, which is
-                      what the plate is for: these are plainly the quieter
-                      list because they sit on a panel of their own, not
-                      because their labels were shrunk until their paint
-                      stopped working.
-
-                      `inline-flex` and not `flex`: the swatch is drawn to the
-                      span's box, and a full-width cell would stretch a blot
-                      meant for a word across an empty track.
-                    */
-                    /* NO `leading-snug`, which was the last thing keeping the
-                       swatch invisible after the size was fixed. The blot is
-                       drawn to the span's box and inked in the leading BELOW
-                       the word; snug leading on a 16px label gives a 22px box
-                       where the groups above get 33, and the paint goes back
-                       behind the glyphs. The footer's own 1.65 is the number
-                       the swatch was tuned against. */
-                    className="group/link flex items-baseline gap-2.5 py-1.5 text-fine text-text/90 transition-colors duration-300 ease-soft hover:text-primary"
-                  >
-                    {/*
+              {policies.map((policy) => {
+                return (
+                  <li key={policy.slug}>
+                    <Link
+                      href={`/policies/${policy.slug}`}
+                      prefetch={false}
+                      /*
+                        ==================================================
+                        `text-body`, THE SAME SIZE AS THE NAVIGATION ABOVE
+                        ==================================================
+  
+                        These were `text-fine` — 13px, on the reasonable-sounding
+                        argument that reference links should be quieter than
+                        navigation. Rendered, the swatch underneath them was not
+                        there at all, and the reason is arithmetic rather than
+                        taste: <PaintStroke> sizes its blot to the span it sits
+                        in and scales it by `--swell`. A 16px link gives it a
+                        35.5px box and inks 7.1px of paint in the leading below
+                        the word. A 13px link gives it 20.9px, inks 4.2px — and
+                        at that size the masked brush, which tapers at both
+                        ends, is drawn almost entirely BEHIND the glyphs, because
+                        a 13px line box has about 3px under its baseline to put
+                        anything in.
+  
+                        Forcing the swell back up was tried and is the wrong
+                        repair: it inks the right number of pixels in the wrong
+                        place, through the type.
+  
+                        So the type takes the footer's own body size and the
+                        swatch needs no tuning at all — it is the navigation's
+                        swatch, drawn the way the navigation draws it. The
+                        hierarchy is carried by the GROUND instead, which is
+                        what the plate is for: these are plainly the quieter
+                        list because they sit on a panel of their own, not
+                        because their labels were shrunk until their paint
+                        stopped working.
+  
+                        `inline-flex` and not `flex`: the swatch is drawn to the
+                        span's box, and a full-width cell would stretch a blot
+                        meant for a word across an empty track.
+                      */
+                      /* NO `leading-snug`, which was the last thing keeping the
+                         swatch invisible after the size was fixed. The blot is
+                         drawn to the span's box and inked in the leading BELOW
+                         the word; snug leading on a 16px label gives a 22px box
+                         where the groups above get 33, and the paint goes back
+                         behind the glyphs. The footer's own 1.65 is the number
+                         the swatch was tuned against. */
+                      className="group/link flex items-baseline gap-2.5 py-1.5 text-fine text-text/90 transition-colors duration-300 ease-soft hover:text-primary"
+                    >
+                      {/*
                       ====================================================
                       `isolate`, AND WITHOUT IT THE PAINT IS UNDER THE PLATE
                       ====================================================
@@ -1017,7 +1017,7 @@ export async function Footer() {
                       plate. Same trap, same fix, as the `-z-10` note on
                       <SectionShapes>.
                     */}
-                    {/*
+                      {/*
                       AN ARROW, NOT A PAINTED SWATCH, AND THAT IS WHY THESE
                       COULD FINALLY GET SMALLER.
 
@@ -1037,19 +1037,19 @@ export async function Footer() {
                       with a small lilac arrow that travels on hover and a
                       rule that only appears when you are on the link.
                     */}
-                    <span
-                      aria-hidden
-                      className="shrink-0 text-primary/70 transition-transform duration-300 ease-editorial motion-safe:group-hover/link:translate-x-0.5"
-                    >
-                      &#8594;
-                    </span>
-                    <span className="underline decoration-transparent decoration-[1.5px] underline-offset-[5px] transition-colors duration-300 ease-soft group-hover/link:decoration-primary/55">
-                      {policy.navLabel}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
+                      <span
+                        aria-hidden
+                        className="shrink-0 text-primary/70 transition-transform duration-300 ease-editorial motion-safe:group-hover/link:translate-x-0.5"
+                      >
+                        &#8594;
+                      </span>
+                      <span className="underline decoration-transparent decoration-[1.5px] underline-offset-[5px] transition-colors duration-300 ease-soft group-hover/link:decoration-primary/55">
+                        {policy.navLabel}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </nav>
