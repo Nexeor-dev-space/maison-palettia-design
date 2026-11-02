@@ -40,6 +40,30 @@ export interface EmailLayoutInput {
 
 const FONT = "Montserrat, 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
+/**
+ * Dark mode, for the clients that ask for it (prefers-color-scheme, Outlook's
+ * data-ogsc/ogsb). Brand Ink #231f20 for the ground, a deep sage for the
+ * card, White Rock cream for text, Soft Lavender for links. Doodles keep
+ * their own colours in both modes.
+ */
+const DARK = {
+  ground: "#231f20",
+  card: "#2b3527",
+  border: "#a77bb8",
+  text: "#efe2ca",
+  muted: "#c9bba5",
+  link: "#c4b5fd",
+} as const;
+
+/**
+ * Locks a background against automatic dark mode: the Gmail apps rewrite
+ * `background-color` but leave `background-image` alone, so the same colour
+ * as a one-stop gradient survives (the button in render.ts does the same).
+ * Only for areas with no text on them: Gmail still lightens text, and light
+ * text on a locked light ground would be unreadable.
+ */
+const locked = (hex: string) => `background:${hex};background-image:linear-gradient(${hex},${hex});`;
+
 export function renderEmailLayout({ subject, preheader, bodyHtml, site }: EmailLayoutInput): string {
   const name = escapeHtml(site.name || "Maison Palettia");
   const url = escapeHtml(site.url || "");
@@ -59,6 +83,13 @@ export function renderEmailLayout({ subject, preheader, bodyHtml, site }: EmailL
     ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#efe2ca;opacity:0;">${escapeHtml(preheader)}${"&#8199;&#65279;&#847; ".repeat(40)}</div>`
     : "";
 
+  // One <style> per concern. Gmail drops a whole block over one selector it
+  // does not support (attribute selectors, most pseudo-classes), so the
+  // mobile rule, the prefers-color-scheme palette, the :root/:hover extras
+  // and Outlook's [data-ogsc]/[data-ogsb] dark-mode hooks each stand alone:
+  // losing one costs only that block. The Gmail apps ignore
+  // prefers-color-scheme and darken inline colours themselves; the logo
+  // backing and the button survive that, the rest is Gmail's palette.
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -69,76 +100,36 @@ export function renderEmailLayout({ subject, preheader, bodyHtml, site }: EmailL
 <meta name="supported-color-schemes" content="light dark">
 <title>${escapeHtml(subject)}</title>
 <style>
-:root {
-  color-scheme: light dark;
-  supported-color-schemes: light dark;
-}
-.mp-button { transition: background-color 0.2s ease; }
-.mp-button:hover { background-color: #7a4a8c !important; }
 @media (max-width: 760px) { .mp-side { display: none !important; } }
-
-/* Dark mode styles */
+</style>
+<style>
 @media (prefers-color-scheme: dark) {
-  body, .mp-body, .mp-bg { background-color: #1a181b !important; }
+  body, .mp-body, .mp-bg { background-color: ${DARK.ground} !important; }
   .mp-card {
-    background-color: #242c22 !important;
-    border-color: #a879bc !important;
+    background-color: ${DARK.card} !important;
+    border-color: ${DARK.border} !important;
     box-shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.6) !important;
   }
-  .mp-body-text, .mp-body-text p, .mp-body-text td, .mp-body-text li {
-    color: #f7f3ed !important;
-  }
-  .mp-heading, h1, h2, h3, h4, h5, h6 {
-    color: #ffffff !important;
-  }
-  .mp-body-text a, a.mp-link {
-    color: #d8a8ee !important;
-  }
-  .mp-footer-text, .mp-footer-text td {
-    color: #c4b5cb !important;
-  }
-  .mp-footer-text strong {
-    color: #f7f3ed !important;
-  }
-  .mp-footer-link, .mp-footer-text a {
-    color: #d8a8ee !important;
-  }
-  .mp-header-fallback {
-    color: #f7f3ed !important;
-  }
-  .mp-doodle, img.mp-doodle {
-    filter: brightness(0) invert(1) opacity(0.85);
-  }
+  .mp-body-text, .mp-body-text p, .mp-body-text td, .mp-body-text li { color: ${DARK.text} !important; }
+  .mp-heading, .mp-body-text h1, .mp-body-text h2, .mp-body-text h3, .mp-body-text h4, .mp-body-text h5, .mp-body-text h6 { color: ${DARK.text} !important; }
+  .mp-body-text a, .mp-link { color: ${DARK.link} !important; }
+  .mp-footer-text { color: ${DARK.muted} !important; }
+  .mp-footer-name, .mp-header-fallback { color: ${DARK.text} !important; }
+  .mp-footer-link { color: ${DARK.link} !important; }
 }
-
-/* Outlook Android / iOS / Web [data-ogsc] & [data-ogsb] support */
-[data-ogsc] body, [data-ogsb] body,
-[data-ogsc] .mp-body, [data-ogsb] .mp-body,
-[data-ogsc] .mp-bg, [data-ogsb] .mp-bg {
-  background-color: #1a181b !important;
-}
-[data-ogsc] .mp-card, [data-ogsb] .mp-card {
-  background-color: #242c22 !important;
-  border-color: #a879bc !important;
-}
-[data-ogsc] .mp-body-text, [data-ogsc] .mp-body-text p, [data-ogsc] .mp-body-text td,
-[data-ogsc] .mp-body-text li, [data-ogsb] .mp-body-text {
-  color: #f7f3ed !important;
-}
-[data-ogsc] .mp-heading, [data-ogsc] h1, [data-ogsc] h2, [data-ogsc] h3,
-[data-ogsc] h4, [data-ogsc] h5, [data-ogsc] h6 {
-  color: #ffffff !important;
-}
-[data-ogsc] .mp-body-text a, [data-ogsc] a.mp-link {
-  color: #d8a8ee !important;
-}
-[data-ogsc] .mp-footer-text, [data-ogsc] .mp-footer-text strong,
-[data-ogsc] .mp-footer-link, [data-ogsc] .mp-footer-text a {
-  color: #d8a8ee !important;
-}
-[data-ogsc] .mp-doodle, [data-ogsc] img.mp-doodle {
-  filter: brightness(0) invert(1) opacity(0.85);
-}
+</style>
+<style>
+:root { color-scheme: light dark; supported-color-schemes: light dark; }
+.mp-button { transition: background-color 0.2s ease; }
+.mp-button:hover { background-color: #7a4a8c !important; }
+</style>
+<style>
+[data-ogsb] .mp-body, [data-ogsb] .mp-bg { background-color: ${DARK.ground} !important; }
+[data-ogsb] .mp-card { background-color: ${DARK.card} !important; border-color: ${DARK.border} !important; }
+[data-ogsc] .mp-body-text, [data-ogsc] .mp-body-text p, [data-ogsc] .mp-body-text li, [data-ogsc] .mp-heading { color: ${DARK.text} !important; }
+[data-ogsc] .mp-body-text a, [data-ogsc] .mp-link, [data-ogsc] .mp-footer-link { color: ${DARK.link} !important; }
+[data-ogsc] .mp-footer-text { color: ${DARK.muted} !important; }
+[data-ogsc] .mp-footer-name, [data-ogsc] .mp-header-fallback { color: ${DARK.text} !important; }
 </style>
 </head>
 <body class="mp-body" style="margin:0;padding:0;background:#efe2ca;-webkit-text-size-adjust:100%;">
@@ -152,12 +143,18 @@ ${preheaderHtml}
           <td align="center" valign="top" style="padding:0;">
       <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;">
         <tr>
-          <td style="padding:8px 0 24px;">
+          <td style="padding:2px 0 18px;">
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
               <tr>
-                <td width="56" align="left" valign="top" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-bow", 30)}</td>
-                <td align="center" valign="middle" style="padding:0;">${url ? `<a href="${url}" style="text-decoration:none;">${header}</a>` : header}</td>
-                <td width="56" align="right" valign="top" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-wave", 30)}</td>
+                <td width="56" align="left" valign="top" style="padding:6px 0 0;font-size:0;line-height:0;">${doodleImg("mp-doodle-bow", 30)}</td>
+                <td align="center" valign="middle" style="padding:0;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
+                    <tr>
+                      <td class="mp-logo" style="${locked("#efe2ca")}border-radius:14px;padding:6px 14px;">${url ? `<a href="${url}" style="text-decoration:none;">${header}</a>` : header}</td>
+                    </tr>
+                  </table>
+                </td>
+                <td width="56" align="right" valign="top" style="padding:6px 0 0;font-size:0;line-height:0;">${doodleImg("mp-doodle-wave", 30)}</td>
               </tr>
             </table>
           </td>
@@ -187,7 +184,7 @@ ${preheaderHtml}
               <tr>
                 <td width="56" align="left" valign="bottom" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-splash", 30)}</td>
                 <td class="mp-footer-text" align="center" valign="top" style="padding:24px 8px 8px;font-family:${FONT};font-size:12px;line-height:1.6;color:#6b5a73;">
-            <strong style="color:#2d3748;">${name}</strong><br>
+            <strong class="mp-footer-name" style="color:#2d3748;">${name}</strong><br>
             ${contactBits.join("<br>")}
             ${url ? `<br><a href="${url}" class="mp-footer-link" style="color:#6b5a73;text-decoration:underline;">${escapeHtml(site.url.replace(/^https?:\/\//, ""))}</a>` : ""}
           </td>

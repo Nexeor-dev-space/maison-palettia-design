@@ -107,6 +107,24 @@ describe("layout", () => {
     expect(html).not.toContain("<script>");
     expect(html).toContain("<p>body</p>");
   });
+
+  it("keeps Gmail-unsafe selectors out of the blocks Gmail must keep", () => {
+    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test", logoUrl: "https://a.test/logo.png" } });
+    const blocks = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+    const mobile = blocks.find((css) => css.includes(".mp-side"));
+    const dark = blocks.find((css) => css.includes("prefers-color-scheme: dark"));
+    for (const css of [mobile, dark]) {
+      expect(css).toBeDefined();
+      // Gmail drops a whole block over an attribute selector or a pseudo-class.
+      expect(css).not.toMatch(/\[|:root|:hover/);
+    }
+    expect(mobile).not.toBe(dark);
+    // Doodles keep their brand colours in dark mode.
+    expect(html).not.toContain("filter:");
+    // Light mode stays inline: cream page, sage card.
+    expect(html).toContain("background:#efe2ca;");
+    expect(html).toContain("background:#d1e7be;");
+  });
 });
 
 describe("redaction (SPEC §D.5)", () => {
