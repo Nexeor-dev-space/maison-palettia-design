@@ -23,12 +23,11 @@
  * here would do nothing, so the Logos section says who changes them instead.
  */
 
-import path from "node:path";
-
 import type { GlobalAfterChangeHook, GlobalBeforeChangeHook, GlobalBeforeOperationHook, GlobalConfig } from "payload";
 import sharp from "sharp";
 
 import { anyone, isEditor, roleOf } from "@/cms/access/roles";
+import { readMediaFile } from "@/cms/lib/storage";
 import { TAGS } from "@/lib/cms/cache";
 
 import { choice, copy, fold, httpsUrl, matches, pathList, prose, rows, section, toggle } from "./copyFields";
@@ -81,14 +80,13 @@ async function inkBoxOf(
     depth: 0,
     overrideAccess: true,
     req,
-  })) as { filename?: string | null } | null;
+  })) as { filename?: string | null; prefix?: string | null } | null;
   if (!media?.filename) return null;
 
-  const upload = req.payload.collections.media?.config.upload;
-  const staticDir = upload && typeof upload === "object" ? upload.staticDir : undefined;
-  if (!staticDir) return null;
+  const file = await readMediaFile(media.filename, media.prefix);
+  if (!file) return null;
 
-  const { data, info } = await sharp(path.join(staticDir, media.filename))
+  const { data, info } = await sharp(file)
     .resize({ width: 1200, withoutEnlargement: true })
     .ensureAlpha()
     .raw()

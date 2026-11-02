@@ -83,7 +83,7 @@ const HERO_IMAGE = {
     notes made for the same reason. The desktop card is wide enough to hold
     the pair and stays centred.
   */
-  src: "/images/image.png",
+  src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/image.png",
   alt: "Two women laughing behind the ceramics they have painted, one holding up a mug dotted with small blue flowers, the other a scallop-edged tray patterned with little pink blooms, with shelves of plain crockery behind them.",
   position: { desktop: "50% 50%", mobile: "38% 50%" },
   lift: "-2%",
@@ -112,7 +112,7 @@ const HERO_IMAGE = {
     nothing on the page claims it is. See `image-provenance`.
   */
   mobile: {
-    src: "/images/mobile-hero.png",
+    src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/mobile-hero.png",
     alt: "Two women laughing behind the ceramics they have painted, one holding up a mug dotted with small blue flowers, the other a scallop-edged tray patterned with little pink blooms, at a wooden table with shelves of plain crockery behind them.",
     /*
       CENTRED, AND FOR ONCE THAT IS SIMPLY RIGHT. The picture gives up 86px of

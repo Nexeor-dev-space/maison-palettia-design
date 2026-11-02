@@ -241,7 +241,7 @@ function NotFound({ reference }: { reference: string | null }) {
 function PageHeading({ children }: { children: React.ReactNode }) {
   return (
     <Reveal>
-      <h1 className="mt-9 max-w-[20ch] text-h1 font-light uppercase tracking-[-0.02em]">{children}</h1>
+      <h1 className="mt-6 max-w-[28ch] text-h2 font-light uppercase tracking-[-0.015em] md:mt-7">{children}</h1>
     </Reveal>
   );
 }

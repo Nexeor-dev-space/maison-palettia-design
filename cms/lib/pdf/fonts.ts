@@ -5,7 +5,8 @@ import path from "node:path";
 import PDFDocument from "pdfkit";
 import type { PayloadRequest } from "payload";
 
-import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { PROJECT_ROOT } from "@/cms/lib/paths";
+import { readMediaFile } from "@/cms/lib/storage";
 import type { InvoiceSetting, Media } from "@/payload-types";
 
 /**
@@ -96,13 +97,24 @@ async function usable(buffer: Buffer): Promise<boolean> {
   return ok;
 }
 
+const mediaFontCache = new Map<string, Buffer>();
+
 async function mediaFont(req: PayloadRequest, value: unknown): Promise<Buffer | null> {
   const media = (value && typeof value === "object" ? value : null) as Media | null;
   const id = typeof value === "string" ? value : media?.id;
   if (!id) return null;
   const doc = media?.filename ? media : ((await req.payload.findByID({ collection: "media", id, depth: 0, overrideAccess: true, req }).catch(() => null)) as Media | null);
   if (!doc?.filename) return null;
-  const buffer = await readCached(path.join(MEDIA_DIR, path.basename(doc.filename)));
+  // Keyed by id + update time, like the logo: a replaced font is a new upload.
+  const cacheKey = `${doc.id}:${doc.updatedAt}`;
+  let buffer = mediaFontCache.get(cacheKey) ?? null;
+  if (!buffer) {
+    buffer = await readMediaFile(doc.filename, (doc as { prefix?: string | null }).prefix);
+    if (buffer) {
+      if (mediaFontCache.size > 8) mediaFontCache.clear();
+      mediaFontCache.set(cacheKey, buffer);
+    }
+  }
   if (!buffer) return null;
   if (await usable(buffer)) return buffer;
   req.payload.logger.warn({ media: id, filename: doc.filename }, "pdf: the uploaded font cannot be embedded (variable or WOFF2?) — using the fallback");

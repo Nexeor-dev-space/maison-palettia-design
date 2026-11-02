@@ -1,10 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
-
 import type { Payload } from "payload";
 
 import { BLURRABLE, blurPlaceholder } from "@/cms/lib/blurPlaceholder";
-import { MEDIA_DIR } from "@/cms/lib/paths";
+import { readMediaFile } from "@/cms/lib/storage";
 
 type Row = { id: string | number; filename?: string | null; mimeType?: string | null; blurDataURL?: string | null };
 
@@ -12,8 +9,8 @@ type Row = { id: string | number; filename?: string | null; mimeType?: string | 
  * Give every picture in the library that has no blurred stand-in yet one
  * (cms/lib/blurPlaceholder.ts) — files uploaded before the field existed.
  *
- * The bytes come from this server's media/ folder; with `origin`, a file
- * that is not on this disk is fetched from that site's public file URL
+ * The bytes come from this server's media/ folder or the media bucket; with
+ * `origin`, a file that is in neither is fetched from that site's public file URL
  * instead (how cms/scripts/backfill-blur.ts fills the shared database from a
  * developer machine). Written straight to the row — no hooks, no
  * revalidation, nothing else about the document changes.
@@ -36,8 +33,7 @@ export async function backfillBlur(payload: Payload, opts: { origin?: string; dr
   for (const row of rows) {
     if (row.blurDataURL != null || !row.filename || !row.mimeType || !BLURRABLE.has(row.mimeType)) continue;
 
-    const local = path.join(MEDIA_DIR, row.filename);
-    let source: Buffer | string | undefined = fs.existsSync(local) ? local : undefined;
+    let source: Buffer | string | undefined = (await readMediaFile(row.filename)) ?? undefined;
     if (!source && opts.origin) {
       const res = await fetch(new URL(`/api/media/file/${encodeURIComponent(row.filename)}`, opts.origin)).catch(() => null);
       if (res?.ok) source = Buffer.from(await res.arrayBuffer());

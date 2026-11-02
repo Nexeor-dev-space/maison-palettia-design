@@ -211,7 +211,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
         hands. Supplied and used as asked; drop a different file at this path
         and nothing else has to change.
       */
-      src: "/images/who-is-it-for/birthday-parties.jpg",
+      src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/who-is-it-for/birthday-parties.jpg",
       alt:
         "Three friends in paper party hats leaning in around a chocolate birthday cake with a lit number candle, sparklers burning in their hands.",
       /*
@@ -240,7 +240,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
       /* The filename's spelling is the client's own and is left exactly as
          supplied — renaming a delivered asset to tidy it is how a path goes
          stale in one place and not the other. */
-      src: "/images/who-is-it-for/corporate-evebts.jpg",
+      src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/who-is-it-for/corporate-evebts.jpg",
       alt:
         "Three colleagues around a wooden table painting on paper with watercolours, one standing and leaning in over the other two.",
       /* 2000x1333, the three of them across the middle band. */
@@ -257,7 +257,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
     lead:
       "Hands-on creative experiences that get students making, exploring new skills and learning through creativity.",
     image: {
-      src: "/images/who-is-it-for/school-programs.jpg",
+      src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/who-is-it-for/school-programs.jpg",
       alt:
         "Four school-age children at a table spread with felt tips and paintings, one holding up a loaded paint palette and another a brush.",
       /* 2000x1429. Four heads across the upper half, so the crop is held
@@ -287,7 +287,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
       nothing has to branch — remove the file and the lilac field returns.
     */
     image: {
-      src: "/images/who-is-it-for/malls-community.jpg",
+      src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/who-is-it-for/malls-community.jpg",
       alt:
         "A woman painting a pattern onto a ceramic mug at a long table of glaze bottles and brush pots, with other people working and talking behind her.",
       /*

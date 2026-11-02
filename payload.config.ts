@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { seoPlugin } from "@payloadcms/plugin-seo";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { s3Storage } from "@payloadcms/storage-s3";
 import { buildConfig } from "payload";
 import sharp from "sharp";
 
@@ -21,6 +22,7 @@ import { globals } from "@/cms/globals";
 import { jobsConfig } from "@/cms/jobs";
 import { runtimeEmailAdapter } from "@/cms/lib/mailer";
 import { livePreviewUrl, publicUrl, routeFor } from "@/cms/lib/publicUrl";
+import { MEDIA_PREFIX, S3_CLIENT_CONFIG, STORAGE_BUCKET, STORAGE_ENABLED } from "@/cms/lib/storage";
 import { PRODUCTION_ORIGIN } from "@/lib/siteOrigin";
 import { seedDefaults } from "@/cms/seed/defaults";
 
@@ -233,6 +235,17 @@ export default buildConfig({
   // names it. Merged over Payload's English; nothing else changes.
   i18n: { translations: { en: { general: { untitled: "New — not saved yet" } } } },
   plugins: [
+    // Media files in the MinIO bucket (cms/lib/storage.ts). Served through
+    // Payload's own /api/media/file/<name> route, so stored URLs are unchanged.
+    // `alwaysInsertFields` keeps the schema the same when the plugin is off
+    // (no credentials), so one migration covers dev, CI and production.
+    s3Storage({
+      enabled: STORAGE_ENABLED,
+      alwaysInsertFields: true,
+      bucket: STORAGE_BUCKET,
+      config: S3_CLIENT_CONFIG,
+      collections: { media: { prefix: MEDIA_PREFIX } },
+    }),
     // The SEO tab (P2 2A, SPEC §A.4, §I) on the five collections with a page of
     // their own: meta title, description, share image, snippet preview and
     // the generate buttons, plus our `noindex` checkbox (cms/fields/seo.ts).

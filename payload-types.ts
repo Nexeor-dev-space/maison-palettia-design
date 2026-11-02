@@ -263,6 +263,8 @@ export interface Media {
       )[]
     | null;
   sizeNotice?: string | null;
+  prefix?: string | null;
+  _objectKey?: string | null;
   folder?: (string | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -4174,6 +4176,8 @@ export interface MediaSelect<T extends boolean = true> {
   consent?: T;
   tags?: T;
   sizeNotice?: T;
+  prefix?: T;
+  _objectKey?: T;
   folder?: T;
   updatedAt?: T;
   createdAt?: T;
