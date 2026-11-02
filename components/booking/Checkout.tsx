@@ -266,7 +266,7 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, terms
 
   return (
     <div className="mt-10 grid grid-cols-12 gap-x-6 md:mt-14 lg:gap-x-10">
-      <aside className="col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:sticky lg:top-[calc(var(--spacing-header-set-lg)+1.5rem)] lg:self-start">
+      <aside className="col-span-12 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:self-start lg:sticky lg:top-[calc(var(--spacing-header-set-lg)+1.5rem)] lg:max-h-[calc(100vh-var(--spacing-header-set-lg)-2rem)] lg:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <Reveal variant="fadeIn">
           <CartSummary
             lines={lines}
@@ -278,26 +278,26 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, terms
             priced={
               freshQuote
                 ? {
-                    discount: freshQuote.totals.discountFils / 100,
-                    total: freshQuote.totals.grossFils / 100,
-                    passCredits: freshQuote.passCredits,
+                    discount:freshQuote.totals.discountFils / 100,
+          total: freshQuote.totals.grossFils / 100,
+          passCredits: freshQuote.passCredits,
                   }
-                : null
+          : null
             }
-            codes={
-              <>
-                <PassCodeField applied={codes} onApply={applyCode} onRemove={removeCode} disabled={submitting} />
-                {codes.length > 0 && !freshQuote ? (
-                  <button
-                    type="button"
-                    onClick={() => void priceWith(codes)}
-                    className="mt-3 text-fine text-text underline decoration-terracotta/50 underline-offset-4"
-                  >
-                    Your booking changed — update the price with your codes
-                  </button>
-                ) : null}
-              </>
-            }
+          codes={
+            <>
+              <PassCodeField applied={codes} onApply={applyCode} onRemove={removeCode} disabled={submitting} />
+              {codes.length > 0 && !freshQuote ? (
+                <button
+                  type="button"
+                  onClick={() => void priceWith(codes)}
+                  className="mt-3 text-fine text-text underline decoration-terracotta/50 underline-offset-4"
+                >
+                  Your booking changed — update the price with your codes
+                </button>
+              ) : null}
+            </>
+          }
           />
         </Reveal>
       </aside>
