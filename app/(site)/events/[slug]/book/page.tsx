@@ -153,7 +153,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
   };
 
   return (
-    <div className="relative isolate overflow-clip">
+    <div className="relative isolate">
       <SectionShapes plan={groundShapes("sage")} />
       <Container className="py-[3.5rem] md:py-[5rem] lg:py-[6rem]">
         <Reveal>
