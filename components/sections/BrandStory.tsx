@@ -184,7 +184,7 @@ export function BrandStoryObject({
   const photo =
     image === undefined
       ? {
-          src: "/images/about-sec-img.png",
+          src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/about-sec-img.png",
           alt: "Three poured candles in a lined gift box: one in a cut-glass tumbler set with raspberries, one in a brass tin with raspberries and blueberries, and one swirled in a fluted white pot.",
           position: "50% 50%",
         }

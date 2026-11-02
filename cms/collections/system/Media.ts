@@ -14,6 +14,7 @@ import {
 } from "@/cms/hooks/mediaGuards";
 import { BLURRABLE, blurPlaceholder } from "@/cms/lib/blurPlaceholder";
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { STORAGE_ENABLED } from "@/cms/lib/storage";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
 import { seededMediaSource } from "@/cms/lib/seededMedia";
@@ -23,8 +24,11 @@ import { seededMediaSource } from "@/cms/lib/seededMedia";
  * media — every picture, film and font the site or its PDFs use (SPEC §D.1)
  * ==========================================================================
  *
- * FILES LIVE ON DISK, at `<repo>/media/`, gitignored and backed up with the
- * database. The path is absolute and comes from cms/lib/paths.ts, which is
+ * FILES LIVE IN THE MINIO BUCKET (cms/lib/storage.ts) under `media/`, when the
+ * storage credentials are set; otherwise on disk, as described next. The rest
+ * of this note is the disk layout, which is also the fallback and what the
+ * migration script copies from. On disk: `<repo>/media/`, gitignored and
+ * backed up with the database. The path is absolute and comes from cms/lib/paths.ts, which is
  * the only place that knows how to find the checkout from inside each of
  * the three ways the CMS runs. Neither `process.cwd()` nor a path relative
  * to this file is safe on its own: the standalone server chdirs into
@@ -283,7 +287,9 @@ export const Media: CollectionConfig = {
   upload: {
     staticDir: MEDIA_DIR,
     // Payload types a handler as "a Response or nothing", not "maybe a Response"; the cast says the same thing.
-    handlers: [missingFileIs404 as FileHandler],
+    // With object storage on, the storage plugin's own handler serves (and 404s)
+    // the file; this disk-and-git fallback would answer 404 before it ran.
+    handlers: STORAGE_ENABLED ? [] : [missingFileIs404 as FileHandler],
     mimeTypes: [
       "image/jpeg",
       "image/png",

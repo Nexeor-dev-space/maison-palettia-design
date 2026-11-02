@@ -112,7 +112,7 @@ const PROCESS_FRAMES: readonly { src: string; alt: string }[] = [
     alt: "A hand painting a silver motif onto denim with a fine brush, a red palette of mixed colour beside it.",
   },
   {
-    src: "/images/experience/painting.jpg",
+    src: "https://api.staging-obj-blob.client2.nexeor.com/maison-palettia/public/images/experience/painting.jpg",
     alt: "A hand drawing a brush across a small canvas on an easel, working a white bloom over a soft blue ground, a loaded palette below it.",
   },
   {
