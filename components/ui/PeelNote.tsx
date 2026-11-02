@@ -322,7 +322,7 @@ export function PeelNote({
 
   const shell = cn(
     "relative isolate inline-flex rotate-[-2deg] items-center justify-center rounded-[900px]",
-    "text-action font-medium uppercase tracking-eyebrow text-primary",
+    "text-action font-semibold uppercase tracking-eyebrow text-text",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
     disabled ? "cursor-not-allowed opacity-55" : null,
     className,

@@ -592,7 +592,7 @@ function Road({
       */}
       <span
         aria-hidden
-        className="pointer-events-none absolute right-[6%] top-[3%] z-10 block w-12 rotate-[14deg] sm:w-16"
+        className="pointer-events-none absolute right-[6%] top-[3%] z-0 block w-12 rotate-[14deg] sm:w-16"
       >
         <DoodleMark
           name="splash"
@@ -603,7 +603,7 @@ function Road({
       </span>
       <span
         aria-hidden
-        className="pointer-events-none absolute bottom-[6%] right-[8%] z-10 block w-10 -rotate-12 sm:w-14"
+        className="pointer-events-none absolute bottom-[6%] right-[8%] z-0 block w-10 -rotate-12 sm:w-14"
       >
         <DoodleMark
           name="starleaf"
@@ -617,7 +617,7 @@ function Road({
         /* Below the button, not at 16%: the fact chips wrap to a third row on a
            phone and 16% put this behind "Sun 11 Oct". A mark crossing a panel
            edge is the deck's habit; a mark sitting on a date is not. */
-        className="pointer-events-none absolute bottom-[3%] left-[5%] z-10 block w-10 rotate-[8deg] sm:w-12 lg:hidden"
+        className="pointer-events-none absolute bottom-[3%] left-[5%] z-0 block w-10 rotate-[8deg] sm:w-12 lg:hidden"
       >
         <DoodleMark
           name="bow"
@@ -627,6 +627,7 @@ function Road({
         />
       </span>
 
+      <div className="relative z-10">
       <Reveal variant="imageReveal">
         <span className="plate relative block aspect-[16/9] w-full overflow-clip rounded-[1.5rem] lg:max-h-[21rem]">
           {plate ? (
@@ -650,7 +651,7 @@ function Road({
         road this is and how you take part.
       */}
       <Reveal delay={0.12}>
-        <h3 className="mt-7 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
+        <h3 className={`mt-7 text-h1 font-semibold uppercase tracking-tight [font-family:var(--font-deck)] [font-synthesis:none] ${warm ? "text-text" : "text-white"}`}>
           {title}
           {footnote ? (
             <span aria-hidden className="ml-1 inline-block align-top text-[0.45em] leading-none">
@@ -661,7 +662,7 @@ function Road({
       </Reveal>
 
       <Reveal delay={0.16}>
-        <p className={`mt-3 max-w-[34ch] text-lead tracking-[-0.01em] ${warm ? "text-text" : "text-surface"}`}>
+        <p className={`mt-3 max-w-[34ch] text-lead tracking-[-0.01em] ${warm ? "text-text font-normal" : "text-white font-normal"}`}>
           {line}
           {footnote ? (
             <span className="mt-2 block text-fine font-medium uppercase tracking-eyebrow">
@@ -765,7 +766,7 @@ function Road({
                   the bar keeps under its words. Here the blob is meant to
                   cover the chip, so it runs to the bottom of the box. */}
               <PaintStroke paint={chips[i % chips.length]} shape="blot" />
-              <span className="relative text-action font-medium uppercase tracking-eyebrow text-text">
+              <span className="relative text-action font-semibold uppercase tracking-eyebrow text-text">
                 {fact}
               </span>
             </li>
@@ -780,6 +781,7 @@ function Road({
           </BlobButton>
         </Reveal>
       ) : null}
+      </div>
     </div>
   );
 }

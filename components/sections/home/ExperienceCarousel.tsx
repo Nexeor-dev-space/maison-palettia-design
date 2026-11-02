@@ -172,7 +172,7 @@ export function ExperienceCarousel({
             than two neighbours leaning together spend, which is why the third
             card sat on the second. See the pivot note in the stylesheet.
           */
-          "flex snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain pb-4 pt-2 lg:gap-8",
+          "flex snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain px-gutter pt-6 pb-8 lg:gap-8",
           styles.track,
           "scroll-px-gutter",
         )}
@@ -202,6 +202,8 @@ export function ExperienceCarousel({
             as="li"
             actionLabel={cardAction}
             kindLabels={kindLabels}
+            loading="eager"
+            priority={i < 7}
             className={cn(
               "w-[74%] shrink-0 snap-start sm:w-[44%] lg:w-[29%] xl:w-[22%]",
               i % 2 === 0 ? "lg:mt-0" : "lg:mt-7",
@@ -229,7 +231,7 @@ export function ExperienceCarousel({
         the section's right rail, level with the heading above, which is the
         line every other element on the sheet already ends at.
       */}
-      <div aria-hidden className="mt-2 hidden justify-end gap-3 pr-gutter lg:flex">
+      <div aria-hidden className="mt-2 hidden justify-end gap-3 px-gutter lg:flex">
         {([-1, 1] as const).map((direction) => (
           <button
             key={direction}

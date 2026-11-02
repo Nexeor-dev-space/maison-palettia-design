@@ -539,7 +539,7 @@ export function HeaderBar({
           // page's own centre line, which is where every width in the brief
           // sees it.
           "grid grid-cols-[auto_1fr_auto] items-center gap-6",
-          "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
+          "2xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
           "transition-[height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
           /*
             ONE HEIGHT NOW, AND THE PINNING IS WHY.
@@ -631,7 +631,7 @@ export function HeaderBar({
             row 1 lets the columns be assigned in any order the breakpoints
             want while the row stays one row.
           */
-          className="row-start-1 hidden self-stretch lg:col-start-2 lg:flex lg:justify-start xl:col-start-1"
+          className="row-start-1 hidden self-stretch lg:col-start-2 lg:flex lg:justify-start 2xl:col-start-1"
         >
           {/*
             24px at 1024, 44px from 1280. The labels are heavier now and the
@@ -674,7 +674,7 @@ export function HeaderBar({
             it: the mark leaves the centre under `xl` and sits at the left
             edge with the row beside it. See the grid above.
           */}
-          <ul className="flex items-stretch gap-6 xl:gap-8 2xl:gap-12">
+          <ul className="flex items-stretch gap-5 xl:gap-6 2xl:gap-8">
             {/*
               Two filters, two different jobs. `secondary` entries are dropped
               from the bar entirely and kept in the mobile menu and the footer;
@@ -750,7 +750,7 @@ export function HeaderBar({
           and the row reverts to the ordinary mobile arrangement without a
           second set of markup to keep in step.
         */}
-        <div className="row-start-1 col-start-1 flex items-center justify-start xl:col-start-2 xl:justify-center">
+        <div className="row-start-1 col-start-1 flex items-center justify-start 2xl:col-start-2 2xl:justify-center">
           {/* Light ground gets the Deep Lilac cut; the sage cut would vanish. */}
           <Wordmark onLight={!onDarkInk} />
         </div>
@@ -787,7 +787,7 @@ export function HeaderBar({
           one group, and the space they give back goes where it is wanted —
           between the mark and them. The navigation's own gaps are untouched.
         */}
-        <div className="row-start-1 col-start-3 flex items-center justify-end gap-5 lg:gap-6 xl:gap-7">
+        <div className="row-start-1 col-start-3 flex items-center justify-end gap-4 lg:gap-5 xl:gap-6 2xl:gap-7">
           {/*
             The way back into a booking in progress. It appears only once
             something is held, which is why it is not a permanent basket icon:

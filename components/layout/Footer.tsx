@@ -304,7 +304,7 @@ export async function Footer() {
         <DoodleMark name="bow" color="#9059A4" treatment="stamp" depth={0} />
       </span>
 
-      <Container className="relative pb-[calc(2rem+var(--bottom-nav-h))] pt-16 md:pt-20 lg:pb-10 lg:pt-24">
+      <Container className="relative pb-[calc(2rem+var(--bottom-nav-h))] pt-16 md:pt-20 lg:pb-24 lg:pt-24">
         {/*
           THE CORAL THAT USED TO BLEED OFF THIS CORNER HAS GONE, and the note
           it carried is worth keeping because it was right at the time: the
@@ -1055,7 +1055,7 @@ export async function Footer() {
         </nav>
 
         {/* ---- the foot ---- */}
-        <div data-footer-foot="" className="mt-9 flex flex-col items-center gap-5 pt-0 text-center text-fine text-text/75 sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-10">
+        <div data-footer-foot="" className="mt-9 flex flex-col items-center gap-5 pt-0 text-center text-label font-medium text-text sm:flex-row sm:items-center sm:justify-between sm:text-left md:mt-10">
 
           <div className="flex flex-col items-center gap-x-7 gap-y-2 sm:flex-row sm:items-center">
             {/* The brand's P mark — the same transparent Deep Lilac cut as
@@ -1082,7 +1082,7 @@ export async function Footer() {
               <ul className="flex flex-wrap items-center gap-x-7 gap-y-2">
                 {[...legalNav, ...(music.enabled ? [{ label: "Music credits", href: "/music-credits" }] : [])].map((item) => (
                   <li key={item.href}>
-                    <Link href={item.href} prefetch={false} className="transition-colors hover:text-text">
+                    <Link href={item.href} prefetch={false} className="font-medium transition-colors hover:text-text">
                       {item.label}
                     </Link>
                   </li>
@@ -1107,7 +1107,7 @@ export async function Footer() {
         {/* The studio's credit: its own line under the foot, in the legal
             row's type, so it reads as a sign-off and never crowds that row —
             beside it, all four items wrapped at tablet widths. */}
-        <p className="mt-6 text-center text-fine text-text/75">
+        <p className="mt-6 text-center text-label font-medium text-text">
           Powered by{" "}
           <a
             href="https://nexeor.com"

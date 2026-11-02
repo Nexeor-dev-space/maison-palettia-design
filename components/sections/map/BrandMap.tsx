@@ -274,11 +274,32 @@ export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = tru
     let map: MapLibreMap | null = null;
     let cancelled = false;
     let loaded = false;
+    let failsafe: ReturnType<typeof setTimeout> | null = null;
 
     const start = async () => {
       try {
         const maplibre = await loadMapLibre();
         if (cancelled) return;
+
+        const hasWebGL = (() => {
+          try {
+            const canvas = document.createElement("canvas");
+            return Boolean(window.WebGLRenderingContext && (canvas.getContext("webgl2") || canvas.getContext("webgl")));
+          } catch {
+            return false;
+          }
+        })();
+
+        if (!hasWebGL) {
+          setFailed(true);
+          return;
+        }
+
+        failsafe = setTimeout(() => {
+          if (!loaded && !cancelled) {
+            setFailed(true);
+          }
+        }, 2500);
 
         const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const zoom = node.clientWidth < 520 ? ZOOM_NARROW : ZOOM;
@@ -321,8 +342,10 @@ export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = tru
         });
 
         map.once("load", () => {
+          if (failsafe) clearTimeout(failsafe);
           if (cancelled || !map) return;
           loaded = true;
+          setReady(true);
           // Once the first tiles are in, settle on the zoom that shows the
           // nearest station — over the 1.5s entrance the rest of the site
           // keeps to, or at once for a visitor who asked for no motion (the
@@ -336,7 +359,6 @@ export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = tru
               map.easeTo({ zoom: target, duration: 1500 });
               dropIn(pin.body);
             }
-            setReady(true);
           });
         });
         map.on("error", () => {
@@ -362,6 +384,7 @@ export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = tru
 
     return () => {
       cancelled = true;
+      if (failsafe) clearTimeout(failsafe);
       observer.disconnect();
       map?.remove();
     };

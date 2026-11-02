@@ -60,7 +60,9 @@ export function ContactWidget() {
     pathname === "/checkout" ||
     pathname.startsWith("/checkout/") ||
     pathname === "/payment-success" ||
-    pathname.startsWith("/payment-success/")
+    pathname.startsWith("/payment-success/") ||
+    pathname.endsWith("/book") ||
+    pathname.includes("/book/")
   ) {
     return null;
   }
@@ -91,7 +93,7 @@ export function ContactWidget() {
           below: the bar and this button are never on screen together, so
           there is nothing to clear.
         */
-        styles.fab + " hidden lg:inline-flex " +
+        styles.fab + " hidden lg:inline-flex max-w-[calc(100vw-3rem)] " +
         "fixed right-[max(1.5rem,env(safe-area-inset-right))] z-30 " +
         "bottom-[max(1.5rem,env(safe-area-inset-bottom))] " +
         /*

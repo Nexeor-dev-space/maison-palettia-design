@@ -490,7 +490,7 @@ export function Hero({
                   every pixel of height is paid twice. 52 is still well over
                   the 44 a touch target owes.
                 */
-                className="min-h-[3.25rem] px-9 shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)] md:min-h-[3.75rem]"
+                className="min-h-[3.25rem] px-9 font-semibold shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)] md:min-h-[3.75rem]"
               >
                 {primary.label}
               </BlobButton>

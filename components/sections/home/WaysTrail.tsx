@@ -641,7 +641,7 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
           */}
           <span
             aria-hidden
-            className="pointer-events-none absolute -right-3 -top-4 block w-12 rotate-[10deg] md:w-14"
+            className="pointer-events-none absolute -right-3 -top-4 -z-10 block w-12 rotate-[10deg] md:w-14"
           >
             <DoodleMark
               name={item.mark}
@@ -652,7 +652,7 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
           </span>
           <span
             aria-hidden
-            className="pointer-events-none absolute -bottom-5 -left-4 block w-10 -rotate-12 md:w-12"
+            className="pointer-events-none absolute -bottom-5 -left-4 -z-10 block w-10 -rotate-12 md:w-12"
           >
             <DoodleMark
               name={item.trailMark}
@@ -670,7 +670,7 @@ function TrailCard({ item, index }: { item: TrailItem; index: number }) {
           {/* `text-body`, not `text-fine`. 13px is the step for a caption or a
               legal note; this is the sentence that says what the way in IS,
               and it sits under a 28px name with nothing between them. */}
-          <p className="mt-3 max-w-[46ch] text-body text-text/85">
+          <p className="mt-3 max-w-[46ch] text-body font-normal text-text">
             {item.lede}
           </p>
 
