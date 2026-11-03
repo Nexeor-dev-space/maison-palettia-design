@@ -62,7 +62,7 @@ describe("rendering escapes what customers type", () => {
   it("keeps a real link, styles a lone link as a button, and keeps the URL in plain text", () => {
     const { html, text } = render(["Before", "[Download your tickets]({{links.tickets}})"], { links: { tickets: "https://maison.test/t?sig=a&exp=1" } });
     expect(html).toContain('href="https://maison.test/t?sig=a&amp;exp=1"');
-    expect(html).toMatch(/<a[^>]+style="display:inline-block;background:#9059a4/);
+    expect(html).toMatch(/<a[^>]+style="display:inline-block;background:#efe2ca/);
     expect(text).toContain("Download your tickets: https://maison.test/t?sig=a&exp=1");
   });
 
@@ -106,6 +106,27 @@ describe("layout", () => {
     expect(html).toContain("A &amp; B");
     expect(html).not.toContain("<script>");
     expect(html).toContain("<p>body</p>");
+  });
+
+  it("keeps the light design and only darkens the page in a dark theme", () => {
+    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
+    expect(html).toContain('<meta name="color-scheme" content="light dark">');
+    const dark = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes("prefers-color-scheme: dark"));
+    expect(dark).toContain("body, .mp-body, .mp-bg { background-color: #9059a4 !important; }");
+    expect(dark).toContain(".mp-card { background-color: #2d3748 !important;");
+    expect(dark).not.toMatch(/\[|:root|:hover/);
+    expect(html).toContain("background:#efe2ca;");
+    expect(html).toContain("background:#9059a4;background-image:linear-gradient(#9059a4,#9059a4);");
+    const mobile = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes(".mp-side"));
+    expect(mobile).not.toMatch(/\[|:root|:hover/);
+  });
+
+  it("swaps to the dark logo only in a dark theme", () => {
+    const site = { name: "A", url: "https://a.test", logoUrl: "https://a.test/light.png", logoDarkUrl: "https://a.test/dark.png" };
+    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site });
+    expect(html).toMatch(/<img class="mp-logo-light" src="https:\/\/a.test\/light.png"[^>]*style="display:block;/);
+    expect(html).toMatch(/<img class="mp-logo-dark" src="https:\/\/a.test\/dark.png"[^>]*style="display:none;mso-hide:all;/);
+    expect(renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { ...site, logoDarkUrl: null } })).not.toContain('class="mp-logo-dark"');
   });
 });
 
