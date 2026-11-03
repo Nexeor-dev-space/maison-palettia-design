@@ -116,10 +116,13 @@ export async function emailSite(req?: PayloadRequest): Promise<EmailSite> {
     const site = (await req.payload.findGlobal({ slug: "site-settings", depth: 1, overrideAccess: true, req })) as SiteSetting;
     const logo = (typeof site.logoOnLight === "object" ? site.logoOnLight : null) as Media | null;
     const logoUrl = logo?.url && EMAIL_SAFE_IMAGE.test(logo.mimeType ?? "") ? absolute(url, logo.url) : null;
+    const darkLogo = (typeof site.logoOnDark === "object" ? site.logoOnDark : null) as Media | null;
+    const logoDarkUrl = darkLogo?.url && EMAIL_SAFE_IMAGE.test(darkLogo.mimeType ?? "") ? absolute(url, darkLogo.url) : null;
     return {
       name: site.name || fallback.name,
       url,
       logoUrl,
+      logoDarkUrl,
       addressLines: (site.contact?.addressLines ?? []).map((row) => row.line).filter(Boolean),
       email: site.contact?.email ?? null,
       phone: site.contact?.phone ?? null,
