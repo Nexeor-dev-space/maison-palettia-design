@@ -652,11 +652,6 @@ function Road({
       <Reveal delay={0.12}>
         <h3 className="mt-7 text-h1 font-light uppercase tracking-[0.02em] [font-family:var(--font-deck)] [font-synthesis:none]">
           {title}
-          {footnote ? (
-            <span aria-hidden className="ml-1 inline-block align-top text-[0.45em] leading-none">
-              *
-            </span>
-          ) : null}
         </h3>
       </Reveal>
 
@@ -665,7 +660,6 @@ function Road({
           {line}
           {footnote ? (
             <span className="mt-2 block text-fine font-medium uppercase tracking-eyebrow">
-              <span aria-hidden>* </span>
               {footnote}
             </span>
           ) : null}

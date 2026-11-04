@@ -437,7 +437,6 @@ function Door({
         <div className="relative">
           <span className="heading-script block pb-[0.2em] text-script-compact">
             <ScriptTitle>{title}</ScriptTitle>
-            {footnote ? <Star /> : null}
           </span>
           <p className="mt-3.5 max-w-[36ch] text-body md:mt-4">
             {note}
@@ -514,7 +513,6 @@ function Star() {
 function Footnote({ children }: { children: string }) {
   return (
     <span className="mt-3 block text-fine font-medium uppercase tracking-eyebrow">
-      <span aria-hidden>* </span>
       {children}
     </span>
   );
