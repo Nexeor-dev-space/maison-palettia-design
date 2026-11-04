@@ -62,7 +62,7 @@ describe("rendering escapes what customers type", () => {
   it("keeps a real link, styles a lone link as a button, and keeps the URL in plain text", () => {
     const { html, text } = render(["Before", "[Download your tickets]({{links.tickets}})"], { links: { tickets: "https://maison.test/t?sig=a&exp=1" } });
     expect(html).toContain('href="https://maison.test/t?sig=a&amp;exp=1"');
-    expect(html).toMatch(/<a[^>]+style="display:inline-block;background:#efe2ca/);
+    expect(html).toMatch(/<a[^>]+style="display:inline-block;background-color:#efe2ca;background:linear-gradient\(#efe2ca,#efe2ca\);/);
     expect(text).toContain("Download your tickets: https://maison.test/t?sig=a&exp=1");
   });
 
@@ -112,13 +112,30 @@ describe("layout", () => {
     const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
     expect(html).toContain('<meta name="color-scheme" content="light dark">');
     const dark = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes("prefers-color-scheme: dark"));
-    expect(dark).toContain("body, .mp-body, .mp-bg { background-color: #9059a4 !important; }");
+    expect(dark).toContain("body, .mp-body, .mp-bg { background: #9059a4 !important; }");
     expect(dark).toContain(".mp-card { background-color: #2d3748 !important;");
     expect(dark).not.toMatch(/\[|:root|:hover/);
-    expect(html).toContain("background:#efe2ca;");
-    expect(html).toContain("background:#9059a4;background-image:linear-gradient(#9059a4,#9059a4);");
+    expect(html).toContain('class="mp-bg" bgcolor="#efe2ca" style="background-color:#efe2ca;background:linear-gradient(#efe2ca,#efe2ca);"');
+    expect(html).toContain('class="mp-card" bgcolor="#9059a4" style="background-color:#9059a4;background:linear-gradient(#9059a4,#9059a4);');
     const mobile = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes(".mp-side"));
     expect(mobile).not.toMatch(/\[|:root|:hover/);
+  });
+
+  it("locks the brand colours where Gmail recolours them, and lets a real dark theme undo the lock", () => {
+    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
+    // Gmail Android mangles an inline background-image gradient; only the shorthand survives.
+    expect(html).not.toMatch(/style="[^"]*background-image:/);
+    const blocks = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+    const lock = blocks.findIndex((css) => css.includes(".mp-bg { background-image: linear-gradient(#efe2ca, #efe2ca) !important; }"));
+    const dark = blocks.findIndex((css) => css.includes("prefers-color-scheme: dark"));
+    expect(lock).toBeGreaterThanOrEqual(0);
+    expect(blocks[lock]).not.toMatch(/\[|:root|:hover/);
+    // Same specificity, so the dark theme has to come later to win.
+    expect(dark).toBeGreaterThan(lock);
+    expect(blocks[dark]).toContain(".mp-card { background-color: #2d3748 !important; background-image: none !important;");
+    // Text on the ground keeps an unlocked cream backing that dark modes darken with it.
+    expect(html).toMatch(/<td class="mp-footer-text"[^>]*><div class="mp-on-page" style="background-color:#efe2ca;/);
+    expect(blocks[dark]).toContain(".mp-on-page { background: transparent !important; }");
   });
 
   it("swaps to the dark logo only in a dark theme", () => {
