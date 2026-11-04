@@ -60,15 +60,22 @@ export function Dialog({
   const cardRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
 
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+
   useEffect(() => {
     if (!open) return;
     openerRef.current = document.activeElement as HTMLElement | null;
-    const first = cardRef.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-dialog-close])");
-    const t = window.setTimeout(() => first?.focus(), 30);
+    const t = window.setTimeout(() => {
+      const first = cardRef.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-dialog-close])");
+      first?.focus();
+    }, 30);
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !busy) {
+      if (event.key === "Escape" && !busyRef.current) {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
       }
     };
     document.addEventListener("keydown", onKey, true);
@@ -80,7 +87,7 @@ export function Dialog({
       document.body.style.overflow = previousOverflow;
       openerRef.current?.focus?.();
     };
-  }, [open, busy, onClose]);
+  }, [open]);
 
   if (!open || !isClient) return null;
 

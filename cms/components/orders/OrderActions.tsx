@@ -167,11 +167,11 @@ export function OrderActions() {
     }
   };
 
-  const close = () => {
+  const close = useCallback(() => {
     if (busy) return;
     setWhich(null);
     setStatus(null);
-  };
+  }, [busy]);
 
   const run = async (path: string, body: Record<string, unknown> | undefined, done: string | ((r: Record<string, unknown>) => string)) => {
     setBusy(true);

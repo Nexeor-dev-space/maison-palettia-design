@@ -814,7 +814,9 @@ $mp-icons: (
 /* The session's Sold / Held / Left chips (SessionQuickStats). */
 .mp-session-stats {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  white-space: nowrap;
   gap: 0.4em;
   align-items: center;
   margin-inline-end: calc(var(--base) / 2);
