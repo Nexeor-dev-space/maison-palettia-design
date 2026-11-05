@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { Customers } from "./Customers";
+import { CreditNotes } from "./CreditNotes";
 import { InvoiceCounters } from "./InvoiceCounters";
 import { InvoiceFiles } from "./InvoiceFiles";
 import { Invoices } from "./Invoices";
@@ -14,6 +15,7 @@ import { SeatHolds } from "./SeatHolds";
 import { Tickets } from "./Tickets";
 import { Waitlist } from "./Waitlist";
 
+export { CREDIT_NOTE_STATUSES, CreditNotes, mintCreditNoteCode, normaliseCreditNoteCode } from "./CreditNotes";
 export { Customers } from "./Customers";
 export { INVOICE_KINDS, Invoices } from "./Invoices";
 export { InvoiceCounters } from "./InvoiceCounters";
@@ -46,6 +48,7 @@ export const commerceCollections: CollectionConfig[] = [
   Invoices,
   PassPurchases,
   PromoCodes,
+  CreditNotes,
   Waitlist,
   Payments,
   PaymentEvents,

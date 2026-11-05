@@ -32,6 +32,7 @@ import { formatAed, fromMamoAmount, MIN_REFUND_FILS } from "./money";
 import { adminUrl } from "./notifyStaff";
 import { appendTimeline, timelineEntry, timelineOf, transition } from "./orderState";
 import { allocate, assertPayable, quote, reservePassSql, reservePromoSql, restorePassSql, restoreReservations } from "./pricing";
+import { mintCreditNoteCode } from "@/cms/collections/commerce/CreditNotes";
 import { DEFAULT_REFERENCE_PREFIX, mintReference } from "./reference";
 import { REPEAT_MAX, repeatDates } from "./sessionSeries";
 import { cancelWaitlistFor, validWaitlistTokenFor } from "./waitlist";
@@ -351,6 +352,8 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
           lines: priced.lines,
           codes: priced.applied.map((a) => ({ code: a.code, kind: a.kind, purchase: a.purchase, seatsCovered: a.seatsCovered, discountFils: a.discountFils })),
           promo: priced.promo ? { promoCode: priced.promo.promoCode, code: priced.promo.code, discountFils: priced.promo.discountFils } : undefined,
+          creditNoteUsed: priced.promo?.isCreditNote ? priced.promo.creditNoteId : null,
+          originalBooking: priced.promo?.isCreditNote ? priced.promo.originalOrderId : null,
           passRedemptions: priced.passRedemptions,
           totals: priced.totals,
           deskPayment,
@@ -378,6 +381,32 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
       const purchase = (await req.payload.findByID({ collection: "pass-purchases", id: r.passPurchase, depth: 0, overrideAccess: true, req })) as PassPurchase;
       const redemptions = (purchase.redemptions ?? []).map(({ forOrder, n, at, restored }) => ({ forOrder: idOf(forOrder), n, at, restored }));
       await updateDoc(req, "pass-purchases", purchase.id, { redemptions: [...redemptions, { forOrder: order.id, n: r.n, at: now.toISOString(), restored: false }] });
+    }
+
+    // Credit note redeemed: link order and update credit note
+    if (priced.promo?.isCreditNote && priced.promo.creditNoteId) {
+      await req.payload.update({
+        collection: "credit-notes" as never,
+        id: priced.promo.creditNoteId,
+        data: {
+          status: "redeemed",
+          redeemedInOrder: order.id,
+          redeemedAt: now.toISOString(),
+          redeemedAmountFils: priced.promo.discountFils,
+        } as never,
+        depth: 0,
+        overrideAccess: true,
+        req,
+      });
+      if (priced.promo.originalOrderId) {
+        await bestEffort(req, "append timeline on original order for credit note redeemed", () =>
+          appendTimeline(req, priced.promo!.originalOrderId!, "credit_note_redeemed", {
+            creditNote: priced.promo!.code,
+            newBooking: order.reference,
+            amount: formatAed(priced.promo!.discountFils),
+          }),
+        );
+      }
     }
 
     // Seats. Staff may book a waitlist-only session; online needs the offer token for that email.
@@ -725,7 +754,14 @@ async function cancelledSessionIds(req: PayloadRequest, order: Order): Promise<s
 /** Seats held, credits and the promo use go back (expiry, and a payment for a cancelled session). */
 async function releaseOrderHold(req: PayloadRequest, order: Order): Promise<void> {
   for (const hold of await markHolds(req, order.id, "released")) await releaseSeats(req, hold.session, hold.qty);
-  await restoreReservations(req, { passRedemptions: (order.passRedemptions ?? []).map((r) => ({ passPurchase: idOf(r.passPurchase) as string, n: r.n })), promoCodeId: idOf(order.promo?.promoCode) ?? null });
+  const creditNoteId = (order as { creditNoteUsed?: unknown }).creditNoteUsed
+    ? idOf((order as { creditNoteUsed?: unknown }).creditNoteUsed)
+    : null;
+  await restoreReservations(req, {
+    passRedemptions: (order.passRedemptions ?? []).map((r) => ({ passPurchase: idOf(r.passPurchase) as string, n: r.n })),
+    promoCodeId: creditNoteId ? null : idOf(order.promo?.promoCode) ?? null,
+    creditNoteId,
+  });
   for (const r of order.passRedemptions ?? []) await markRedemptionRestored(req, idOf(r.passPurchase) as string, order.id);
 }
 
@@ -1221,6 +1257,12 @@ export async function cancelOrder(
     for (const [s, n] of Object.entries(seatsBySession(order.lines ?? []))) await refundSeats(req, s, n);
     if (!input.nonRefundable) {
       await restoreCreditsForLines(req, order, () => true);
+      const creditNoteId = (order as { creditNoteUsed?: unknown }).creditNoteUsed
+        ? idOf((order as { creditNoteUsed?: unknown }).creditNoteUsed)
+        : null;
+      if (creditNoteId) {
+        await restoreReservations(req, { creditNoteId });
+      }
     }
 
     const max = input.nonRefundable ? 0 : await refundableFils(req, order);
@@ -1697,3 +1739,61 @@ export async function recomputeCustomerStats(req: PayloadRequest, customerId: st
     ...(rows[0]?.last ? { lastOrderAt: new Date(String(rows[0].last)).toISOString() } : {}),
   });
 }
+
+/**
+ * Issues a credit note against an existing booking (Issue #183).
+ * Links the credit note to the original booking ID and customer.
+ * Mandatory expiry date and specified credit amount.
+ */
+export async function issueCreditNoteForOrder(
+  req: PayloadRequest,
+  order: Order,
+  input: {
+    amountFils: number;
+    expiresAt: string;
+    code?: string;
+    notes?: string;
+  },
+): Promise<Record<string, unknown>> {
+  if (!Number.isInteger(input.amountFils) || input.amountFils < 100) {
+    throw new CheckoutError("invalid_amount", "Credit amount must be at least AED 1.00.", 400);
+  }
+  if (!input.expiresAt || isNaN(new Date(input.expiresAt).getTime()) || new Date(input.expiresAt).getTime() <= Date.now()) {
+    throw new CheckoutError("invalid_expiry", "A future expiry date is mandatory.", 400);
+  }
+
+  const code = input.code?.trim().toUpperCase().replace(/\s+/g, "") || mintCreditNoteCode();
+  const customerId = idOf(order.customer);
+  const customerEmail = (order.contact?.email ?? "").trim().toLowerCase();
+  const customerName = [order.contact?.firstName, order.contact?.lastName].filter(Boolean).join(" ");
+
+  return withTransaction(req, async () => {
+    const doc = (await req.payload.create({
+      collection: "credit-notes" as never,
+      data: {
+        code,
+        status: "available",
+        order: order.id,
+        amountFils: input.amountFils,
+        customer: customerId ?? null,
+        customerEmail,
+        customerName,
+        issuedAt: new Date().toISOString(),
+        expiresAt: new Date(input.expiresAt).toISOString(),
+        notes: input.notes?.slice(0, 1000) ?? null,
+      } as never,
+      depth: 0,
+      overrideAccess: true,
+      req,
+    })) as unknown as Record<string, unknown>;
+
+    await appendTimeline(req, order.id, "credit_note_issued", {
+      code,
+      amount: formatAed(input.amountFils),
+      expiresAt: new Date(input.expiresAt).toISOString(),
+    });
+
+    return doc;
+  });
+}
+

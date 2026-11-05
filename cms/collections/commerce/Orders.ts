@@ -303,6 +303,22 @@ const fields: Field[] = [
       },
     ],
   },
+  systemField({
+    name: "creditNoteUsed",
+    type: "relationship",
+    relationTo: "credit-notes",
+    label: "Credit note redeemed",
+    index: true,
+    admin: { description: "Credit note redeemed to pay for this booking." },
+  }),
+  systemField({
+    name: "originalBooking",
+    type: "relationship",
+    relationTo: "orders",
+    label: "Original booking",
+    index: true,
+    admin: { description: "Original booking referenced by the redeemed credit note." },
+  }),
   {
     name: "passRedemptions",
     type: "array",
@@ -369,6 +385,14 @@ const fields: Field[] = [
     on: "order",
     label: "Refunds",
     admin: { allowCreate: false, defaultColumns: ["amountFils", "reason", "status", "createdAt"] },
+  },
+  {
+    name: "creditNotesIssued",
+    type: "join",
+    collection: "credit-notes",
+    on: "order",
+    label: "Credit notes issued",
+    admin: { allowCreate: false, defaultColumns: ["code", "amountFils", "status", "expiresAt", "issuedAt"] },
   },
   {
     name: "timeline",

@@ -70,7 +70,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 const STATUS_TONE: Record<string, string> = { confirmed: "ok", completed: "ok", confirming: "lilac", awaiting_payment: "lilac", pending_payment: "lilac", failed: "warn", expired: "warn" };
 
-type Which = null | "refund" | "move" | "cancel" | "resend-confirmation" | "resend-tickets" | "invoice" | "resolve";
+type Which = null | "refund" | "move" | "cancel" | "resend-confirmation" | "resend-tickets" | "invoice" | "resolve" | "credit-note";
 
 export function OrderActions() {
   const { id, initialData, lastUpdateTime } = useDocumentInfo();
@@ -86,6 +86,11 @@ export function OrderActions() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ tone: "error" | "ok" | "info"; text: string } | null>(null);
   const [pending, setPending] = useState<PendingRefund[]>([]);
+
+  // Credit note form
+  const [creditAmount, setCreditAmount] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [creditNoteNote, setCreditNoteNote] = useState("");
 
   // Refund form
   const [refundable, setRefundable] = useState<number | null>(null);
@@ -132,6 +137,13 @@ export function OrderActions() {
       } catch (error) {
         setStatus({ tone: "error", text: (error as Error).message });
       }
+    }
+    if (next === "credit-note") {
+      setCreditAmount(order.totals?.grossFils ? (order.totals.grossFils / 100).toFixed(2) : "");
+      const d = new Date();
+      d.setMonth(d.getMonth() + 6);
+      setExpiryDate(d.toISOString().slice(0, 16));
+      setCreditNoteNote("");
     }
     if (next === "move") {
       setTargets(null);
@@ -208,6 +220,9 @@ export function OrderActions() {
   const items: MenuItem[] = [];
   if (paid) {
     items.push({ label: "Refund…", icon: "refund", hint: desk ? "Record money handed back at the desk" : isAdmin ? "Full or partial, sent to Mamo Pay" : "Request for an admin to approve", onClick: () => void openDialog("refund") });
+  }
+  if (isAdmin && paid) {
+    items.push({ label: "Issue credit note…", icon: "ticket", hint: "Issue booking credit for reschedule", onClick: () => void openDialog("credit-note") });
   }
   if (order.status === "confirmed" && seatLine) {
     items.push({ label: "Move to another date…", icon: "move", hint: "Same experience, new session", onClick: () => void openDialog("move") });
@@ -448,6 +463,76 @@ export function OrderActions() {
       >
         <Field label="What you checked (optional)" id="rs-note">
           <textarea id="rs-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} />
+        </Field>
+      </Dialog>
+
+      {/* Credit note */}
+      <Dialog
+        open={which === "credit-note"}
+        onClose={close}
+        title="Issue a credit note"
+        intro={`Issue a booking credit note for ${who}. A unique promo code will be generated that the customer can redeem for future bookings.`}
+        busy={busy}
+        footer={
+          <DialogButtons
+            onCancel={close}
+            onConfirm={() =>
+              run(
+                `/actions/orders/${id}/credit-note`,
+                {
+                  amountFils: parseAed(creditAmount),
+                  expiresAt: expiryDate ? new Date(expiryDate).toISOString() : "",
+                  note: creditNoteNote.trim() || undefined,
+                },
+                (r) => `Credit note issued with promo code ${String((r.creditNote as { code?: string } | undefined)?.code ?? "")}.`,
+              )
+            }
+            confirmLabel="Issue credit note"
+            busyLabel="Issuing…"
+            busy={busy}
+            disabled={parseAed(creditAmount) === null || (parseAed(creditAmount) ?? 0) < 100 || !expiryDate}
+            status={status}
+          />
+        }
+      >
+        <Field label="Original booking" hint={order.reference ?? ""}>
+          <input type="text" value={order.reference ?? ""} readOnly disabled />
+        </Field>
+        <Field
+          label="Credit amount"
+          hint={creditAmount && parseAed(creditAmount) === null ? "Enter a valid amount in AED." : "In AED. Will be applied at checkout when the customer redeems the promo code."}
+          id="cn-amount"
+        >
+          <input
+            id="cn-amount"
+            type="text"
+            inputMode="decimal"
+            value={creditAmount}
+            onChange={(e) => setCreditAmount(e.target.value)}
+            placeholder="e.g. 250"
+          />
+        </Field>
+        <Field
+          label="Expiry date"
+          hint="Mandatory. The credit note cannot be redeemed after this date."
+          id="cn-expiry"
+        >
+          <input
+            id="cn-expiry"
+            type="datetime-local"
+            value={expiryDate}
+            onChange={(e) => setExpiryDate(e.target.value)}
+            required
+          />
+        </Field>
+        <Field label="Note (optional)" hint="Reason for credit (e.g. reschedule request)" id="cn-note">
+          <textarea
+            id="cn-note"
+            rows={3}
+            value={creditNoteNote}
+            onChange={(e) => setCreditNoteNote(e.target.value)}
+            maxLength={1000}
+          />
         </Field>
       </Dialog>
     </>

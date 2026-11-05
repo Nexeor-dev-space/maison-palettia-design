@@ -66,6 +66,7 @@ const C: Record<string, { create: string; read: string; update: string; delete: 
   tickets: { create: "----", read: "Y-Y-", update: "Y-Y-", delete: "----" },
   "pass-purchases": { create: "----", read: "Y-Y-", update: "Y---", delete: "----" },
   "promo-codes": { create: "Y---", read: "Y-Y-", update: "Y---", delete: "Y---" },
+  "credit-notes": { create: "Y---", read: "Y-Y-", update: "Y---", delete: "Y---" },
   waitlist: { create: "Y-Y-", read: "Y-Y-", update: "Y-Y-", delete: "Y---" },
   // inbox, comms, reports
   enquiries: { create: "----", read: "YYY-", update: "YYY-", delete: "Y---" },
