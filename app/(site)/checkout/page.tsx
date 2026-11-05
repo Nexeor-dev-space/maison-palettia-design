@@ -58,7 +58,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     /* `pb-0` — see the note on the same change in app/events/[slug]: the
        utility bar closes this page as a Deep Lilac field and meets the
        footer's wave directly. */
-    <div className="relative isolate overflow-clip">
+    <div className="relative isolate">
       <SectionShapes plan={groundShapes("sage")} />
       <Container className="pb-16 md:pb-24 pt-[3.5rem] md:pt-[5rem] lg:pt-[6rem]">
         <Reveal>

@@ -6,7 +6,6 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { flushSync } from "react-dom";
 
 import { Consent, refusalMessage, type CheckoutConsent } from "@/components/booking/Checkout";
-import styles from "@/components/booking/PaintBooking.module.css";
 import { PassCodeField, type CodeOutcome } from "@/components/booking/PassCodeField";
 import { PaintedField, type FieldStatus } from "@/components/booking/PaintedField";
 import { PlaceCard, PlaceCardStub } from "@/components/booking/PlaceCard";
@@ -178,7 +177,6 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
   const submittingRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   const asideRef = useRef<HTMLElement>(null);
-  const cardFits = useFitsInView(asideRef);
 
   /*
     COMING BACK FROM CHECKOUT, the form is as it was left — DERIVED, NOT
@@ -455,9 +453,9 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
         // once this order is paid — and only then.
         notePendingPayment(outcome.reference);
         try {
-          window.location.href = outcome.paymentUrl;
-        } catch {
           window.location.assign(outcome.paymentUrl);
+        } catch {
+          window.location.replace(outcome.paymentUrl);
         }
         setTimeout(() => {
           submittingRef.current = false;
@@ -733,8 +731,7 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
 
         <aside
           ref={asideRef}
-          data-fits={cardFits || undefined}
-          className={`hidden lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:block lg:self-start ${styles.stickyCard}`}
+          className="hidden lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:block lg:self-start lg:sticky lg:top-[calc(var(--spacing-header-set-lg)+1.5rem)] lg:max-h-[calc(100vh-var(--spacing-header-set-lg)-2rem)] lg:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           <Reveal variant="fadeIn">
             <PointerTilt max={4}>
