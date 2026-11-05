@@ -200,7 +200,7 @@ export function lexicalToEmailHtml(state: unknown): string {
   return html
     .replace(/<p(\s[^>]*)?>\s*<a([^>]*?)href="([^"]*)"([^>]*)>((?:(?!<a[\s>])[\s\S])*?)<\/a>\s*<\/p>/g, (_m, _pAttrs, before: string, href: string, after: string, label: string) => {
       const rest = `${before}${after}`.replace(/\s(?:style|class)="[^"]*"/g, "");
-      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}"><span style="color:#9059a4 !important;">${label}</span></a></p>`;
+      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}"><span class="mp-button-label" style="color:#9059a4 !important;"><span class="mp-button-text">${label}</span></span></a></p>`;
     })
     .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;">`)
     .replace(/<a(?![^>]*style=)(\s)/g, `<a class="mp-link" style="${LINK_STYLE}"$1`)

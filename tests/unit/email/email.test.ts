@@ -122,9 +122,20 @@ describe("layout", () => {
   it("locks the backgrounds in a form Gmail keeps", () => {
     const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
     expect(html).not.toMatch(/style="[^"]*background-image:/);
-    const lock = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes(".mp-bg { background-image: linear-gradient(#efe2ca, #efe2ca) !important; }"));
+    const lock = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes("background-blend-mode: screen, screen, normal !important;"));
+    expect(lock).toMatch(/^\s*@media screen \{/);
+    expect(lock).toContain(".mp-body, .mp-bg, .mp-button { background-image: linear-gradient(#00aa00, #00aa00), linear-gradient(#00a800, #00a800), linear-gradient(#ef00ca, #ef00ca) !important;");
     expect(lock).toContain(".mp-card { background-image: linear-gradient(#9059a4, #9059a4) !important; }");
     expect(lock).not.toMatch(/\[|:root|:hover/);
+  });
+
+  it("keeps the footer text in the brand colours when Gmail darkens it", () => {
+    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test", email: "a@b.test" } });
+    expect(html).toContain('<span class="mp-footer-lines"><a href="mailto:a@b.test"');
+    expect(html).toContain(".mp-footer-text, .mp-button-label { background-image: linear-gradient(#000000, #000000) !important; mix-blend-mode: exclusion !important; }");
+    expect(html).toContain(".mp-footer-name { color: #dedddf !important; }");
+    expect(html).toContain(".mp-footer-lines, .mp-footer-lines a, .mp-button-text { color: #b6d8a0 !important; mix-blend-mode: hard-light !important; }");
+    expect(html).not.toContain("[data-ogsc] .mp-footer-name");
   });
 
   it("shows the one logo, with no dark-mode swap", () => {

@@ -73,9 +73,13 @@ export function renderEmailLayout({ subject, preheader, bodyHtml, site }: EmailL
 @media (max-width: 760px) { .mp-side { display: none !important; } }
 </style>
 <style>
-.mp-bg { background-image: linear-gradient(#efe2ca, #efe2ca) !important; }
+@media screen {
+.mp-body, .mp-bg, .mp-button { background-image: linear-gradient(#00aa00, #00aa00), linear-gradient(#00a800, #00a800), linear-gradient(#ef00ca, #ef00ca) !important; background-blend-mode: screen, screen, normal !important; }
 .mp-card { background-image: linear-gradient(#9059a4, #9059a4) !important; }
-.mp-button { background-image: linear-gradient(#efe2ca, #efe2ca) !important; }
+.mp-footer-text, .mp-button-label { background-image: linear-gradient(#000000, #000000) !important; mix-blend-mode: exclusion !important; }
+.mp-footer-name { color: #dedddf !important; }
+.mp-footer-lines, .mp-footer-lines a, .mp-button-text { color: #b6d8a0 !important; mix-blend-mode: hard-light !important; }
+}
 </style>
 <style>
 :root { color-scheme: light only; supported-color-schemes: light only; }
@@ -86,8 +90,7 @@ export function renderEmailLayout({ subject, preheader, bodyHtml, site }: EmailL
 [data-ogsb] .mp-body, [data-ogsb] .mp-bg, [data-ogsb] .mp-button { background-color: #efe2ca !important; }
 [data-ogsb] .mp-card { background-color: #9059a4 !important; }
 [data-ogsc] .mp-body-text, [data-ogsc] .mp-body-text p, [data-ogsc] .mp-body-text li, [data-ogsc] .mp-body-text strong, [data-ogsc] .mp-body-text b, [data-ogsc] .mp-heading, [data-ogsc] .mp-link { color: #efe2ca !important; }
-[data-ogsc] .mp-button, [data-ogsc] .mp-button span, [data-ogsc] .mp-footer-text, [data-ogsc] .mp-footer-link, [data-ogsc] .mp-header-fallback { color: #9059a4 !important; }
-[data-ogsc] .mp-footer-name { color: #2d3748 !important; }
+[data-ogsc] .mp-button, [data-ogsc] .mp-footer-text, [data-ogsc] .mp-header-fallback { color: #9059a4 !important; }
 </style>
 </head>
 <body class="mp-body" style="margin:0;padding:0;background:#efe2ca;-webkit-text-size-adjust:100%;">
@@ -138,8 +141,8 @@ ${preheaderHtml}
                 <td align="center" valign="top" style="padding:28px 8px 8px;">
                   <div class="mp-footer-text" style="padding:0;font-family:${FONT};font-size:12px;line-height:1.7;color:#9059a4;">
             <strong class="mp-footer-name" style="font-weight:700;color:#2d3748;">${name}</strong><br>
-            ${contactBits.join("<br>")}
-            ${url ? `<br><a href="${url}" class="mp-footer-link" style="color:#9059a4;text-decoration:underline;">${escapeHtml(site.url.replace(/^https?:\/\//, ""))}</a>` : ""}
+            <span class="mp-footer-lines">${contactBits.join("<br>")}
+            ${url ? `<br><a href="${url}" class="mp-footer-link" style="color:#9059a4;text-decoration:underline;">${escapeHtml(site.url.replace(/^https?:\/\//, ""))}</a>` : ""}</span>
                   </div>
                 </td>
                 <td width="56" align="right" valign="bottom" style="padding:0;font-size:0;line-height:0;">${doodleImg("mp-doodle-coral", 38)}</td>
