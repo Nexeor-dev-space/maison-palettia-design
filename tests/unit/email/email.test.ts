@@ -108,42 +108,30 @@ describe("layout", () => {
     expect(html).toContain("<p>body</p>");
   });
 
-  it("keeps the light design and only darkens the page in a dark theme", () => {
+  it("keeps one theme in light and dark mode", () => {
     const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
-    expect(html).toContain('<meta name="color-scheme" content="light dark">');
-    const dark = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes("prefers-color-scheme: dark"));
-    expect(dark).toContain("body, .mp-body, .mp-bg { background: #9059a4 !important; }");
-    expect(dark).toContain(".mp-card { background-color: #2d3748 !important;");
-    expect(dark).not.toMatch(/\[|:root|:hover/);
+    expect(html).toContain('<meta name="color-scheme" content="light only">');
+    expect(html).not.toContain("prefers-color-scheme");
     expect(html).toContain('class="mp-bg" bgcolor="#efe2ca" style="background-color:#efe2ca;background:linear-gradient(#efe2ca,#efe2ca);"');
     expect(html).toContain('class="mp-card" bgcolor="#9059a4" style="background-color:#9059a4;background:linear-gradient(#9059a4,#9059a4);');
+    expect(html).toContain("[data-ogsb] .mp-card { background-color: #9059a4 !important; }");
     const mobile = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes(".mp-side"));
     expect(mobile).not.toMatch(/\[|:root|:hover/);
   });
 
-  it("locks the brand colours where Gmail recolours them, and lets a real dark theme undo the lock", () => {
+  it("locks the backgrounds in a form Gmail keeps", () => {
     const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
-    // Gmail Android mangles an inline background-image gradient; only the shorthand survives.
     expect(html).not.toMatch(/style="[^"]*background-image:/);
-    const blocks = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
-    const lock = blocks.findIndex((css) => css.includes(".mp-bg { background-image: linear-gradient(#efe2ca, #efe2ca) !important; }"));
-    const dark = blocks.findIndex((css) => css.includes("prefers-color-scheme: dark"));
-    expect(lock).toBeGreaterThanOrEqual(0);
-    expect(blocks[lock]).not.toMatch(/\[|:root|:hover/);
-    // Same specificity, so the dark theme has to come later to win.
-    expect(dark).toBeGreaterThan(lock);
-    expect(blocks[dark]).toContain(".mp-card { background-color: #2d3748 !important; background-image: none !important;");
-    // Text on the ground keeps an unlocked cream backing that dark modes darken with it.
-    expect(html).toMatch(/<td class="mp-footer-text"[^>]*><div class="mp-on-page" style="background-color:#efe2ca;/);
-    expect(blocks[dark]).toContain(".mp-on-page { background: transparent !important; }");
+    const lock = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes(".mp-bg { background-image: linear-gradient(#efe2ca, #efe2ca) !important; }"));
+    expect(lock).toContain(".mp-card { background-image: linear-gradient(#9059a4, #9059a4) !important; }");
+    expect(lock).not.toMatch(/\[|:root|:hover/);
   });
 
-  it("swaps to the dark logo only in a dark theme", () => {
+  it("shows the one logo, with no dark-mode swap", () => {
     const site = { name: "A", url: "https://a.test", logoUrl: "https://a.test/light.png", logoDarkUrl: "https://a.test/dark.png" };
     const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site });
-    expect(html).toMatch(/<img class="mp-logo-light" src="https:\/\/a.test\/light.png"[^>]*style="display:block;/);
-    expect(html).toMatch(/<img class="mp-logo-dark" src="https:\/\/a.test\/dark.png"[^>]*style="display:none;mso-hide:all;/);
-    expect(renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { ...site, logoDarkUrl: null } })).not.toContain('class="mp-logo-dark"');
+    expect(html).toMatch(/<img class="mp-logo" src="https:\/\/a.test\/light.png"[^>]*style="display:block;/);
+    expect(html).not.toContain("dark.png");
   });
 });
 

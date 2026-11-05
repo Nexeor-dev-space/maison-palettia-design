@@ -176,21 +176,12 @@ export function interpolateLexical(state: LexicalState, vars: TemplateVars): Lex
   return { ...state, root: { ...state.root, children: mapChildren(state.root.children) ?? [] } };
 }
 
-/**
- * A background that app dark modes leave alone. Gmail's apps ignore
- * prefers-color-scheme and recolour every background-color themselves
- * (Android turns the cream into #372f1c), but a one-colour gradient is an
- * image, which they do not touch. It must be the `background` shorthand on
- * its own: Gmail Android rewrites an inline `background-image:linear-gradient()`
- * into an invalid url() (hteumeuleu/email-bugs#135), and the colour beneath
- * it then gets darkened. background-color first, for clients without gradients.
- */
 export const lockedBackground = (hex: string) => `background-color:${hex};background:linear-gradient(${hex},${hex});`;
 
 /* Inline styles: email clients ignore <style> blocks unevenly; the shell sets fonts, these set rhythm. */
 const LINK_STYLE = "color:#efe2ca;text-decoration:underline;";
 const BUTTON_STYLE =
-  `display:inline-block;${lockedBackground("#efe2ca")}color:#9059a4;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;`;
+  `display:inline-block;${lockedBackground("#efe2ca")}color:#9059a4;text-decoration:none;font-weight:600;letter-spacing:0.02em;padding:13px 26px;border-radius:999px;box-shadow:0 8px 18px -10px rgba(45,55,72,0.45);`;
 
 /**
  * Lexical → email HTML. Payload's default converters, then three inline
