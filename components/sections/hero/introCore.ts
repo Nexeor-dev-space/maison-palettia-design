@@ -106,12 +106,12 @@ import { DOODLE_PLAN, RING_ORDER } from "@/components/sections/hero/composition"
   slower in proportion — the writing, the wells, the ring's hold — rather
   than one beat padded, so it still reads as one movement, only unhurried.
 */
-const WRITE_MS = 800; // the pen writes "Maison Palettia", first stroke to last
+const WRITE_MS = 1350; // the pen writes "Maison Palettia", first stroke to last
 const DOTS_AT = WRITE_MS - 40; // the mark is written; the wells start filling
 const DOT_STEP = 95; // one well after another — see `.pDot` in Hero.module.css
-const BURST_AT = DOTS_AT + 240; // frame 2: the icons leave the logo
-const LIFT_AT = BURST_AT + 250; // frame 4: the mark starts for the bar, the icons follow
-const SETTLE_MS = 760; // frame 6: ... and the page is composed by ~2000ms
+const BURST_AT = DOTS_AT + 540; // frame 2: the icons leave the logo
+const LIFT_AT = BURST_AT + 650; // frame 4: the mark starts for the bar, the icons follow
+const SETTLE_MS = 960; // frame 6: ... and the page is composed by ~3500ms
 
 /*
   One icon after another on the way out, and again on the way back.
