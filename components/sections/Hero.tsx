@@ -228,11 +228,11 @@ export function Hero({
       ? HERO_IMAGE
       : image
         ? {
-            src: image.src,
-            alt: image.alt,
-            position: { desktop: image.position ?? "50% 50%", mobile: cropOf(image, HERO_IMAGE.position.mobile) },
-            lift: HERO_IMAGE.lift,
-          }
+          src: image.src,
+          alt: image.alt,
+          position: { desktop: image.position ?? "50% 50%", mobile: cropOf(image, HERO_IMAGE.position.mobile) },
+          lift: HERO_IMAGE.lift,
+        }
         : null;
   const mobile =
     imageMobile === undefined
@@ -289,8 +289,8 @@ export function Hero({
           <div aria-hidden data-hero-window className={styles.windowProbe} />
           <div data-hero-card className={styles.card}>
             <div data-hero-card-inner className={styles.cardInner}>
-            <div className={styles.bloom} style={bloomStyle}>
-              {/*
+              <div className={styles.bloom} style={bloomStyle}>
+                {/*
                 ONE OF THESE IS DRAWN, AND ONLY ONE IS FETCHED.
 
                 `display: none` is what makes that true — see the pair in
@@ -318,78 +318,78 @@ export function Hero({
                 beat later than a preload would start it, on the connection
                 that can afford the beat.
               */}
-              {mobile ? (
-              <Image
-                src={mobile.src}
-                alt={mobile.alt}
-                fill
-                priority
-                /*
-                  A WIDTH DERIVED FROM THE HEIGHT, like the landscape file
-                  below — but a much smaller one, because the shape is
-                  different. `sizes` is a WIDTH hint and this picture is
-                  fitted to the window's HEIGHT, so what has to be requested
-                  is 0.558 x that height plus headroom for the 1.06 rest
-                  scale: 70vh, against the 190vh a 1.78:1 file needs. Asking
-                  for 190 here would fetch nearly three times the pixels the
-                  window can show.
-                */
-                sizes="70vh"
-                style={
-                  {
-                    "--pos-m": mobile.position,
-                    "--lift": mobile.lift,
-                  } as Vars
-                }
-                className={cn(styles.cardImage, styles.cardImageMobile)}
-                {...(mobileBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
-              />
-              ) : null}
+                {mobile ? (
+                  <Image
+                    src={mobile.src}
+                    alt={mobile.alt}
+                    fill
+                    priority
+                    /*
+                      A WIDTH DERIVED FROM THE HEIGHT, like the landscape file
+                      below — but a much smaller one, because the shape is
+                      different. `sizes` is a WIDTH hint and this picture is
+                      fitted to the window's HEIGHT, so what has to be requested
+                      is 0.558 x that height plus headroom for the 1.06 rest
+                      scale: 70vh, against the 190vh a 1.78:1 file needs. Asking
+                      for 190 here would fetch nearly three times the pixels the
+                      window can show.
+                    */
+                    sizes="70vh"
+                    style={
+                      {
+                        "--pos-m": mobile.position,
+                        "--lift": mobile.lift,
+                      } as Vars
+                    }
+                    className={cn(styles.cardImage, styles.cardImageMobile)}
+                    {...(mobileBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
+                  />
+                ) : null}
 
-              {desktop ? (
-              <Image
-                src={desktop.src}
-                alt={desktop.alt}
-                fill
-                loading="lazy"
-                fetchPriority="high"
-                /*
-                  ==========================================================
-                  THE COVER CROP SETS THE WIDTH, NOT THE ELEMENT
-                  ==========================================================
-
-                  `100vw` was wrong by a factor of six on a phone, and it is
-                  the one defect a visitor cannot miss: the card is the full
-                  height of the window, and a 1.78:1 photograph fitted to that
-                  height is rendered about 1800px wide at 320 — of which the
-                  window shows 320. The browser was asked for a 320px-wide
-                  file and it obliged, so the slice it had to draw was scaled
-                  up six times. A blurred half-face, on the first screen of
-                  the site.
-
-                  `sizes` is a WIDTH hint, so the height has to be expressed
-                  through it: the picture needs about 1.78 x the viewport
-                  height, and `vh` is a perfectly good unit here. 190vh is
-                  that with headroom for the 1.06 rest scale.
-
-                  Desktop asks for 110vw rather than 100 for the same reason
-                  in miniature — at 1440x900 the cover render is 1601px wide,
-                  not 1440.
-                */
-                sizes="(max-width: 1023px) 190vh, 110vw"
-                style={
-                  {
-                    "--pos-d": desktop.position.desktop,
-                    "--pos-m": desktop.position.mobile,
-                    "--lift": desktop.lift,
-                  } as Vars
-                }
-                className={cn(styles.cardImage, styles.cardImageDesktop)}
-                {...(desktopBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
-              />
-              ) : null}
-            </div>
-            <div aria-hidden data-hero-scrim className={styles.scrim} />
+                {desktop ? (
+                  <Image
+                    src={desktop.src}
+                    alt={desktop.alt}
+                    fill
+                    loading="lazy"
+                    fetchPriority="high"
+                    /*
+                      ==========================================================
+                      THE COVER CROP SETS THE WIDTH, NOT THE ELEMENT
+                      ==========================================================
+    
+                      `100vw` was wrong by a factor of six on a phone, and it is
+                      the one defect a visitor cannot miss: the card is the full
+                      height of the window, and a 1.78:1 photograph fitted to that
+                      height is rendered about 1800px wide at 320 — of which the
+                      window shows 320. The browser was asked for a 320px-wide
+                      file and it obliged, so the slice it had to draw was scaled
+                      up six times. A blurred half-face, on the first screen of
+                      the site.
+    
+                      `sizes` is a WIDTH hint, so the height has to be expressed
+                      through it: the picture needs about 1.78 x the viewport
+                      height, and `vh` is a perfectly good unit here. 190vh is
+                      that with headroom for the 1.06 rest scale.
+    
+                      Desktop asks for 110vw rather than 100 for the same reason
+                      in miniature — at 1440x900 the cover render is 1601px wide,
+                      not 1440.
+                    */
+                    sizes="(max-width: 1023px) 190vh, 110vw"
+                    style={
+                      {
+                        "--pos-d": desktop.position.desktop,
+                        "--pos-m": desktop.position.mobile,
+                        "--lift": desktop.lift,
+                      } as Vars
+                    }
+                    className={cn(styles.cardImage, styles.cardImageDesktop)}
+                    {...(desktopBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
+                  />
+                ) : null}
+              </div>
+              <div aria-hidden data-hero-scrim className={styles.scrim} />
             </div>
           </div>
 
@@ -429,49 +429,49 @@ export function Hero({
               the one now sitting under the script.
             */}
             {sub ? (
-            <p
-              data-ink
-              className={cn(
-                styles.reveal,
-                styles.sub,
-                "script-lede mx-auto max-w-[42rem] italic",
-                /*
-                  A STEP DOWN ON A PHONE, and it is a measurement rather than
-                  a preference. At `lead` this set to 20px and wrapped to TWO
-                  lines at 390; at `body` it is 17 and holds on one. The line
-                  it saves is 32px of the banner's foot, which is part of the
-                  budget the second action needs — see the note on the row
-                  below. From `md` there is room for the larger step and it
-                  takes it.
-                */
-                "text-body md:text-lead",
-              )}
-              style={delay(240)}
-            >
-              {sub}
-            </p>
+              <p
+                data-ink
+                className={cn(
+                  styles.reveal,
+                  styles.sub,
+                  "script-lede mx-auto max-w-[42rem] italic",
+                  /*
+                    A STEP DOWN ON A PHONE, and it is a measurement rather than
+                    a preference. At `lead` this set to 20px and wrapped to TWO
+                    lines at 390; at `body` it is 17 and holds on one. The line
+                    it saves is 32px of the banner's foot, which is part of the
+                    budget the second action needs — see the note on the row
+                    below. From `md` there is room for the larger step and it
+                    takes it.
+                  */
+                  "text-body md:text-lead",
+                )}
+                style={delay(240)}
+              >
+                {sub}
+              </p>
             ) : null}
 
             {lead ? (
-            <p
-              data-ink
-              className={cn(
-                styles.reveal,
-                styles.sub,
-                "mx-auto mt-3 max-w-[46rem] md:mt-4",
-                /*
-                  Same step, same reason. `statement` is 22px and this sentence
-                  took FOUR lines of it at 390 — 128px of an 844px screen. At
-                  `lead` it is 20 and takes three. The client's note was that
-                  the banner's type is too big on a phone, and these two
-                  paragraphs together were 192px of it.
-                */
-                "text-lead md:text-statement",
-              )}
-              style={delay(320)}
-            >
-              {lead}
-            </p>
+              <p
+                data-ink
+                className={cn(
+                  styles.reveal,
+                  styles.sub,
+                  "mx-auto mt-3 max-w-[46rem] md:mt-4",
+                  /*
+                    Same step, same reason. `statement` is 22px and this sentence
+                    took FOUR lines of it at 390 — 128px of an 844px screen. At
+                    `lead` it is 20 and takes three. The client's note was that
+                    the banner's type is too big on a phone, and these two
+                    paragraphs together were 192px of it.
+                  */
+                  "text-lead md:text-statement",
+                )}
+                style={delay(320)}
+              >
+                {lead}
+              </p>
             ) : null}
 
             <div data-hero-actions className={styles.actions}>
@@ -481,19 +481,19 @@ export function Hero({
                   <HeroIntro> was still covering the banner, and read the
                   intro's own sage backdrop instead of the picture. */}
               {primary ? (
-              <BlobButton
-                href={primary.href}
-                tone="sage"
-                /*
-                  52px ON A PHONE, 60 FROM `md`. The pair stacks below `md` —
-                  323px and 285px of pill cannot share a 350px measure — so
-                  every pixel of height is paid twice. 52 is still well over
-                  the 44 a touch target owes.
-                */
-                className="min-h-[3.25rem] px-9 shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)] md:min-h-[3.75rem]"
-              >
-                {primary.label}
-              </BlobButton>
+                <BlobButton
+                  href={primary.href}
+                  tone="sage"
+                  /*
+                    52px ON A PHONE, 60 FROM `md`. The pair stacks below `md` —
+                    323px and 285px of pill cannot share a 350px measure — so
+                    every pixel of height is paid twice. 52 is still well over
+                    the 44 a touch target owes.
+                  */
+                  className="min-h-[3.25rem] px-9 font-semibold shadow-[0_10px_30px_-12px_rgb(35_31_32/0.5)] md:min-h-[3.75rem]"
+                >
+                  {primary.label}
+                </BlobButton>
               ) : null}
               {/*
                 A STICKY NOTE, at the client's ask (2026-10-07): translucent
@@ -504,34 +504,34 @@ export function Hero({
                 See <PeelNote>.
               */}
               {secondary ? (
-              <PeelNote href={secondary.href} className="min-h-[3.25rem] min-w-[20.125rem] px-9 md:min-h-[3.75rem]">
-                {secondary.label}
-              </PeelNote>
+                <PeelNote href={secondary.href} className="min-h-[3.25rem] min-w-[20.125rem] px-9 md:min-h-[3.75rem]">
+                  {secondary.label}
+                </PeelNote>
               ) : null}
             </div>
           </div>
 
           {/* ---- the way down, until the page moves ---- */}
           {scrollCue ? (
-          <div data-hero-cue className={styles.cue}>
-            <a
-              href={scrollCue.target}
-              aria-label="Scroll down to Creative experiences"
-              className={cn(
-                styles.reveal,
-                "flex flex-col items-center gap-3 whitespace-nowrap text-label font-medium uppercase tracking-eyebrow text-text/80 transition-colors duration-300 ease-soft hover:text-text",
-              )}
-              style={delay(380)}
-            >
-              {scrollCue.label}
-              {/* Two of the three drops are this span's own pseudo-elements;
+            <div data-hero-cue className={styles.cue}>
+              <a
+                href={scrollCue.target}
+                aria-label="Scroll down to Creative experiences"
+                className={cn(
+                  styles.reveal,
+                  "flex flex-col items-center gap-3 whitespace-nowrap text-label font-medium uppercase tracking-eyebrow text-text/80 transition-colors duration-300 ease-soft hover:text-text",
+                )}
+                style={delay(380)}
+              >
+                {scrollCue.label}
+                {/* Two of the three drops are this span's own pseudo-elements;
                   the third is the child, because there are only two to a box.
                   See `.cueLine` in Hero.module.css. */}
-              <span aria-hidden data-loop="eager" className={styles.cueLine}>
-                <span className={styles.cueDrop} />
-              </span>
-            </a>
-          </div>
+                <span aria-hidden data-loop="eager" className={styles.cueLine}>
+                  <span className={styles.cueDrop} />
+                </span>
+              </a>
+            </div>
           ) : null}
         </div>
       </div>

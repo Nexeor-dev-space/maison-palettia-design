@@ -217,6 +217,7 @@
   from {
     stroke-dashoffset: var(--len);
   }
+
   to {
     stroke-dashoffset: 0;
   }
@@ -226,6 +227,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -234,6 +236,7 @@
 /* Less motion: the finished mark, at once. (The <head> script already skips
    the intro for this reader; this is the belt to that braces.) */
 @media (prefers-reduced-motion: reduce) {
+
   .pen,
   .penCover {
     animation: none !important;
@@ -337,8 +340,7 @@
 */
 :global(html[data-intro="settle"]) .introLogo {
   opacity: 1;
-  transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px)))
-    scale(var(--logo-s, 1));
+  transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px))) scale(var(--logo-s, 1));
   animation:
     logoFly 620ms var(--ease-flight) forwards,
     logoOut 200ms ease 520ms forwards;
@@ -349,10 +351,10 @@
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+
   to {
     opacity: 1;
-    transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px)))
-      scale(var(--logo-s, 1));
+    transform: translate(calc(-50% + var(--logo-x, 0px)), calc(-50% + var(--logo-y, 0px))) scale(var(--logo-s, 1));
   }
 }
 
@@ -530,11 +532,7 @@
   inset: 0;
   z-index: 10;
   overflow: hidden;
-  clip-path: inset(
-    calc(var(--wt) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p)))
-      calc(var(--wb) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p))) round
-      calc(var(--radius-sm) * (1 - var(--p)))
-  );
+  clip-path: inset(calc(var(--wt) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p))) calc(var(--wb) * (1 - var(--p))) calc(var(--wx) * (1 - var(--p))) round calc(var(--radius-sm) * (1 - var(--p))));
 }
 
 /*
@@ -773,17 +771,12 @@
   --y: var(--m-y);
   --w: var(--m-w);
   left: calc(var(--wx) * (1 - var(--z)) + (100% - 2 * var(--wx) * (1 - var(--z))) * var(--x));
-  top: calc(
-    (var(--wt) + (100% - var(--wt) - var(--wb)) * var(--y)) * (1 - var(--z)) +
-      (100% - var(--wb) + var(--wf, var(--wb)) * var(--y)) * var(--z)
-  );
+  top: calc((var(--wt) + (100% - var(--wt) - var(--wb)) * var(--y)) * (1 - var(--z)) + (100% - var(--wb) + var(--wf, var(--wb)) * var(--y)) * var(--z));
   /* A floor for the foot only: its widths are shares of the whole banner, and
      at 768 a 3% mark is a 23px speck in a band of open air. The card's
      marks keep their measured sizes — `0 * 2.5rem` is no floor at all. */
-  width: max(
-    calc((100% - 2 * var(--wx) * (1 - var(--z))) * var(--w)),
-    calc(2.75rem * var(--z))
-  );
+  width: max(calc((100% - 2 * var(--wx) * (1 - var(--z))) * var(--w)),
+      calc(2.75rem * var(--z)));
 }
 
 @media (min-width: 768px) {
@@ -832,7 +825,7 @@
    puts them UNDER the mark (z-index 50), so frame 2 reads as a burst from
    behind the logo rather than from in front of it. */
 :global(html[data-intro="burst"]) .doodle,
-:global(html[data-intro="play"]) .doodle ,
+:global(html[data-intro="play"]) .doodle,
 :global(html[data-intro="dots"]) .doodle {
   z-index: 20;
 }
@@ -867,21 +860,16 @@
 }
 
 .drift {
-  transform: translate3d(
-      calc(var(--dirx, 0) * var(--p) * 4rem),
+  transform: translate3d(calc(var(--dirx, 0) * var(--p) * 4rem),
       calc(var(--diry, 0) * var(--p) * 3rem),
-      0
-    )
-    scale(calc(1 - var(--p) * 0.2));
+      0) scale(calc(1 - var(--p) * 0.2));
   opacity: calc(1 - var(--p) * 1.3);
 }
 
 .parallax {
-  transform: translate3d(
-    calc(var(--mx, 0) * var(--depth, 0) * 1px),
-    calc(var(--my, 0) * var(--depth, 0) * 1px),
-    0
-  );
+  transform: translate3d(calc(var(--mx, 0) * var(--depth, 0) * 1px),
+      calc(var(--my, 0) * var(--depth, 0) * 1px),
+      0);
   transition: transform 1100ms var(--ease-out);
 }
 
@@ -919,21 +907,20 @@
   ./composition.ts for which nine of the eighteen take part and why.
 */
 :global(html:not([data-intro])) .flip,
-:global(html[data-intro="play"]) .flip ,
+:global(html[data-intro="play"]) .flip,
 :global(html[data-intro="dots"]) .flip {
   opacity: 0;
   transform: none;
 }
 
 :global(html:not([data-intro])) .flip[data-ring],
-:global(html[data-intro="play"]) .flip[data-ring] ,
+:global(html[data-intro="play"]) .flip[data-ring],
 :global(html[data-intro="dots"]) .flip[data-ring] {
-  transform: translate(var(--bx, 0px), var(--by, 0px))
-    scale(calc(var(--fs, 1) * 0.34)) rotate(var(--br, 0deg));
+  transform: translate(var(--bx, 0px), var(--by, 0px)) scale(calc(var(--fs, 1) * 0.34)) rotate(var(--br, 0deg));
 }
 
 :global(html:not([data-intro])) .ink,
-:global(html[data-intro="play"]) .ink ,
+:global(html[data-intro="play"]) .ink,
 :global(html[data-intro="dots"]) .ink {
   stroke-dashoffset: 0;
   fill-opacity: 1;
@@ -979,8 +966,7 @@
 
 :global(html[data-intro="burst"]) .flip[data-ring] {
   opacity: 1;
-  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1))
-    rotate(var(--fr, 0deg));
+  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1)) rotate(var(--fr, 0deg));
   transition:
     transform 560ms var(--ease-pop) var(--burst-delay, 0ms),
     opacity 140ms ease var(--burst-delay, 0ms);
@@ -1055,9 +1041,11 @@
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
+
   50% {
     transform: translate3d(0.18rem, -0.45rem, 0) rotate(2deg);
   }
+
   100% {
     transform: translate3d(-0.12rem, 0.15rem, 0) rotate(-1.5deg);
   }
@@ -1131,11 +1119,9 @@
 }
 
 .sub {
-  color: color-mix(
-    in oklab,
-    var(--color-cream) calc(var(--ink) * 100%),
-    color-mix(in oklab, var(--color-text) 86%, var(--color-sage))
-  );
+  color: color-mix(in oklab,
+      var(--color-cream) calc(var(--ink) * 100%),
+      color-mix(in oklab, var(--color-text) 86%, var(--color-sage)));
 }
 
 /*
@@ -1270,7 +1256,7 @@
   are simply shown, in the place the scroll cue would have had.
 */
 .actions {
-  --in: clamp(0, calc((var(--p) - 0.55) * 3.2), 1);
+  --in: clamp(0, calc((var(--p) - 0.15) * 5), 1);
   margin-top: 1.25rem;
   display: flex;
   flex-wrap: wrap;
@@ -1279,6 +1265,7 @@
   gap: 0.75rem 1.75rem;
   opacity: var(--in);
   transform: translate3d(0, calc((1 - var(--in)) * 0.75rem), 0);
+  transition: opacity 300ms ease;
 }
 
 @media (min-width: 768px) {
@@ -1453,6 +1440,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .cueLine::before,
   .cueLine::after,
   .cueDrop {

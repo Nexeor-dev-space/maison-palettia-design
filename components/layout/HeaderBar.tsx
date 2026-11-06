@@ -410,173 +410,173 @@ export function HeaderBar({
 
   return (
     <>
-    <header
-      className={cn(
-        /*
-          THREE POSITIONS, AND ONLY THE FIRST TWO ARE EVER SEEN.
-
-            in flow      at the top of the document, `relative` so `z-50`
-                         still applies — the overlays hang off this element
-                         and have to stack over the page.
-            fixed, up    translated off the top. This is the "not fixed" the
-                         client asked for while reading down: the bar is out
-                         of flow but out of sight, so the page is whole.
-            fixed, down  on screen, over whatever is passing.
-
-          `relative` is kept for the first because a `fixed` bar takes no
-          space, and every page on this site is laid out against a bar that
-          does — the hero pulls itself up by `-mt-header` to sit under it. Go
-          fixed at the top and the hero would clear a bar that is no longer
-          there. So the switch happens 240px down, out of sight, and a spacer
-          takes the bar's place in the same render.
-        */
-        isDetached ? "fixed inset-x-0 top-0" : "relative",
-        "z-50 transition-colors duration-500",
-        "ease-[cubic-bezier(0.4,0,0.2,1)]",
-        /*
-          The slide. Transform only — an animated `top` would lay out on every
-          frame, where a transform is composited. Held behind `motion-reduce`,
-          which snaps it instead: a reader who has asked for stillness should
-          still get the bar back on the way up, just without the travel.
-        */
-        isDetached && canSlide
-          ? "transition-transform duration-[450ms] motion-reduce:transition-none"
-          : "",
-        /*
-          `translate-none` on screen, never `translate-y-0`. Tailwind 4 writes
-          these as the CSS `translate` property, and any value but `none` —
-          `0 0` included — makes the bar the containing block for `fixed`
-          descendants. The menu and search overlays are `fixed` children of
-          this element, sized top-to-bottom against the screen; contained by a
-          64px bar they measured 0px tall, so tapping the menu turned the bar
-          dark and showed nothing. `none` still transitions to and from
-          `-translate-y-full`, so the slide is unchanged.
-        */
-        isDetached && !isPinned ? "-translate-y-full" : "translate-none",
-        // The focus ring follows the ink. Cream is right over the hero and
-        // inside an open overlay; on the page's pale grounds it would vanish,
-        // so the ring falls back to Deep Lilac there.
-        onDarkInk ? "[--color-focus:var(--color-cream)]" : "[--color-focus:var(--color-primary)]",
-        /*
-          LIGHT SAGE ON SCROLL, which the bar carries from the moment the page
-          has moved at all.
-
-          It was `bg-surface` — the page's own near-white — on the argument
-          that a bar of pure white over a #fffdf9 page reads as a second,
-          colder surface laid on top. That argument was about WHITE, and it
-          still holds; the client has asked for the brand's Light Sage instead,
-          which is not a neutral at all but the palette's own soft ground, so
-          the bar now states a colour rather than trying to disappear.
-
-          THE INK STILL CLEARS EVERYTHING IT OWES. Charcoal Slate on Light Sage
-          is 9.07:1 against the 11.61 it had on the near-white — a real drop
-          and nowhere near the 4.5 it needs. The focus ring is Deep Lilac on
-          this ground at 3.83:1, past the 3:1 a ring owes, and the header's
-          Deep Lilac logo cut clears the same bar at the same figure.
-
-          `border-b` IS APPLIED WITH THE GROUND, NOT KEPT AND MADE
-          TRANSPARENT, and that is a layout fix rather than a tidy-up. A
-          transparent border still occupies its pixel: the bar measured 121px
-          against the 120px the hero pulls itself up by, so one row of the
-          page's own near-white ground showed above the artwork as a hairline
-          across the top of the window.
-
-          ONE PLACE DECIDES THE INK, AND EVERYTHING IN THE BAR INHERITS IT.
-          Setting `color` here and letting the row use `text-current` means the
-          flip is one class rather than a conditional on every link, icon and
-          rule inside it — and it cannot go half-done, which is what a bar of
-          White Rock links over a pale section would be.
-
-          THE BAR AND THE PANELS ARE TWO GROUNDS NOW, DELIBERATELY. This note
-          used to say the bar takes the same white when a panel is open
-          "because every panel hanging under it is that white, and the two have
-          to read as one field" — and that had already stopped being true
-          before this change: <WorkshopsMenu> and <PrivateEventsMenu> are
-          `bg-cream` (White Rock), not the near-white. So the pairing is Light
-          Sage over White Rock, two of the brand's own grounds meeting on the
-          bar's hairline, rather than one field that no longer matches itself.
-          Both panels are one class away from Light Sage if the join is ever
-          wanted closed.
-
-          Charcoal on the page measures 11.61:1; White Rock over the hero is
-          held up by the photograph's own head wash, which is measured in
-          <Hero>.
-        */
-        hasGround ? "border-b border-text/10 bg-sage" : "bg-transparent",
-        onDarkInk ? "text-on-dark" : "text-text",
-      )}
-    >
-      <Container
+      <header
         className={cn(
-          // Three tracks rather than `justify-between`. Spaced-between puts
-          // whatever is in the middle at the centre of the *leftovers* once
-          // the outer two have taken their share — which is never the centre
-          // of the page, and moves every time a label changes.
-          //
-          // `minmax(0,1fr) auto minmax(0,1fr)` from `lg`. The two outer tracks
-          // are given identical flexible widths, so the `auto` between them
-          // lands on the page's own centre line no matter that three nav links
-          // and two actions are nothing like the same size. The `minmax(0,…)`
-          // is the guarantee: a bare `1fr` is really `minmax(auto,1fr)` and
-          // still refuses to shrink below its content, so the wider side would
-          // push the mark off centre the moment the two stopped matching.
-          //
-          // THE CENTRED ARRANGEMENT STARTS AT `xl`, NOT `lg`, AND THAT IS A
-          // COLLISION RATHER THAN A PREFERENCE. Between 1024 and 1279 the two
-          // flexible tracks are (width − mark − gaps)/2, which at 1024 gives
-          // the navigation 409px — and the four labels measure 425 on their
-          // own, before a single gap between them. They printed over the mark:
-          // at 1024 "Gallery" sat on top of the wordmark, unreadable, and it
-          // was still 23px under the "M" at 1280. Closing every gap to zero
-          // would not have cleared it; the row simply does not fit beside a
-          // centred mark at those widths.
-          //
-          // So `[auto_1fr_auto]` now covers `lg` as well as the phone. The
-          // mark takes the first `auto` track at the left edge, the navigation
-          // takes the `1fr` beside it, and the actions keep the last — the
-          // arrangement the client chose when the alternatives were put to
-          // them. At `xl` there is room again and the mark goes back to the
-          // page's own centre line, which is where every width in the brief
-          // sees it.
-          "grid grid-cols-[auto_1fr_auto] items-center gap-6",
-          "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
-          "transition-[height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
           /*
-            ONE HEIGHT NOW, AND THE PINNING IS WHY.
-
-            The bar used to settle 8px shorter once the page moved. An
-            out-of-flow bar can do that for free; an in-flow one cannot —
-            shrinking it moves every pixel of the document up by the
-            difference, so the whole page would lurch at 8px of scroll and
-            lurch back on the way home.
-
-            It also quietly fixes a mismatch that was always there: both
-            overlays hang from the *resting* height (<MobileNav>'s
-            `top-header`, <SearchPanel>'s mobile shape the same), so a settled
-            bar left a strip of page showing between the bar and the panel.
+            THREE POSITIONS, AND ONLY THE FIRST TWO ARE EVER SEEN.
+  
+              in flow      at the top of the document, `relative` so `z-50`
+                           still applies — the overlays hang off this element
+                           and have to stack over the page.
+              fixed, up    translated off the top. This is the "not fixed" the
+                           client asked for while reading down: the bar is out
+                           of flow but out of sight, so the page is whole.
+              fixed, down  on screen, over whatever is passing.
+  
+            `relative` is kept for the first because a `fixed` bar takes no
+            space, and every page on this site is laid out against a bar that
+            does — the hero pulls itself up by `-mt-header` to sit under it. Go
+            fixed at the top and the hero would clear a bar that is no longer
+            there. So the switch happens 240px down, out of sight, and a spacer
+            takes the bar's place in the same render.
           */
+          isDetached ? "fixed inset-x-0 top-0" : "relative",
+          "z-50 transition-colors duration-500",
+          "ease-[cubic-bezier(0.4,0,0.2,1)]",
           /*
-            THE DESKTOP HEIGHT NEVER APPLIED, AND THE BAR HAS BEEN 64px SINCE.
-
-            This read `md:h-header-lg`, and that utility is not generated —
-            measured at 700, 900 and 1440, the row was 64px at all three. The
-            token is fine and the breakpoint is fine: the hero's own
-            `md:-mt-header-lg` resolves to -72px from the same variable at the
-            same width. It is `h-*` specifically that does not pick this name
-            up, so the class sat in the markup looking correct and did nothing.
-
-            The mismatch was live: the hero pulled up 72px under a 64px bar, so
-            the two disagreed by 8px about where the page starts — the same
-            class of bug as the white stroke this bar had earlier.
-
-            Referencing the variable directly is unambiguous and keeps the
-            token the single source of truth, which an arbitrary `4.5rem` here
-            would not.
+            The slide. Transform only — an animated `top` would lay out on every
+            frame, where a transform is composited. Held behind `motion-reduce`,
+            which snaps it instead: a reader who has asked for stillness should
+            still get the bar back on the way up, just without the travel.
           */
-          "h-header md:h-[var(--spacing-header-lg)]",
+          isDetached && canSlide
+            ? "transition-transform duration-[450ms] motion-reduce:transition-none"
+            : "",
+          /*
+            `translate-none` on screen, never `translate-y-0`. Tailwind 4 writes
+            these as the CSS `translate` property, and any value but `none` —
+            `0 0` included — makes the bar the containing block for `fixed`
+            descendants. The menu and search overlays are `fixed` children of
+            this element, sized top-to-bottom against the screen; contained by a
+            64px bar they measured 0px tall, so tapping the menu turned the bar
+            dark and showed nothing. `none` still transitions to and from
+            `-translate-y-full`, so the slide is unchanged.
+          */
+          isDetached && !isPinned ? "-translate-y-full" : "translate-none",
+          // The focus ring follows the ink. Cream is right over the hero and
+          // inside an open overlay; on the page's pale grounds it would vanish,
+          // so the ring falls back to Deep Lilac there.
+          onDarkInk ? "[--color-focus:var(--color-cream)]" : "[--color-focus:var(--color-primary)]",
+          /*
+            LIGHT SAGE ON SCROLL, which the bar carries from the moment the page
+            has moved at all.
+  
+            It was `bg-surface` — the page's own near-white — on the argument
+            that a bar of pure white over a #fffdf9 page reads as a second,
+            colder surface laid on top. That argument was about WHITE, and it
+            still holds; the client has asked for the brand's Light Sage instead,
+            which is not a neutral at all but the palette's own soft ground, so
+            the bar now states a colour rather than trying to disappear.
+  
+            THE INK STILL CLEARS EVERYTHING IT OWES. Charcoal Slate on Light Sage
+            is 9.07:1 against the 11.61 it had on the near-white — a real drop
+            and nowhere near the 4.5 it needs. The focus ring is Deep Lilac on
+            this ground at 3.83:1, past the 3:1 a ring owes, and the header's
+            Deep Lilac logo cut clears the same bar at the same figure.
+  
+            `border-b` IS APPLIED WITH THE GROUND, NOT KEPT AND MADE
+            TRANSPARENT, and that is a layout fix rather than a tidy-up. A
+            transparent border still occupies its pixel: the bar measured 121px
+            against the 120px the hero pulls itself up by, so one row of the
+            page's own near-white ground showed above the artwork as a hairline
+            across the top of the window.
+  
+            ONE PLACE DECIDES THE INK, AND EVERYTHING IN THE BAR INHERITS IT.
+            Setting `color` here and letting the row use `text-current` means the
+            flip is one class rather than a conditional on every link, icon and
+            rule inside it — and it cannot go half-done, which is what a bar of
+            White Rock links over a pale section would be.
+  
+            THE BAR AND THE PANELS ARE TWO GROUNDS NOW, DELIBERATELY. This note
+            used to say the bar takes the same white when a panel is open
+            "because every panel hanging under it is that white, and the two have
+            to read as one field" — and that had already stopped being true
+            before this change: <WorkshopsMenu> and <PrivateEventsMenu> are
+            `bg-cream` (White Rock), not the near-white. So the pairing is Light
+            Sage over White Rock, two of the brand's own grounds meeting on the
+            bar's hairline, rather than one field that no longer matches itself.
+            Both panels are one class away from Light Sage if the join is ever
+            wanted closed.
+  
+            Charcoal on the page measures 11.61:1; White Rock over the hero is
+            held up by the photograph's own head wash, which is measured in
+            <Hero>.
+          */
+          hasGround ? "border-b border-text/10 bg-sage" : "bg-transparent",
+          onDarkInk ? "text-on-dark" : "text-text",
         )}
       >
-        {/*
+        <Container
+          className={cn(
+            // Three tracks rather than `justify-between`. Spaced-between puts
+            // whatever is in the middle at the centre of the *leftovers* once
+            // the outer two have taken their share — which is never the centre
+            // of the page, and moves every time a label changes.
+            //
+            // `minmax(0,1fr) auto minmax(0,1fr)` from `lg`. The two outer tracks
+            // are given identical flexible widths, so the `auto` between them
+            // lands on the page's own centre line no matter that three nav links
+            // and two actions are nothing like the same size. The `minmax(0,…)`
+            // is the guarantee: a bare `1fr` is really `minmax(auto,1fr)` and
+            // still refuses to shrink below its content, so the wider side would
+            // push the mark off centre the moment the two stopped matching.
+            //
+            // THE CENTRED ARRANGEMENT STARTS AT `xl`, NOT `lg`, AND THAT IS A
+            // COLLISION RATHER THAN A PREFERENCE. Between 1024 and 1279 the two
+            // flexible tracks are (width − mark − gaps)/2, which at 1024 gives
+            // the navigation 409px — and the four labels measure 425 on their
+            // own, before a single gap between them. They printed over the mark:
+            // at 1024 "Gallery" sat on top of the wordmark, unreadable, and it
+            // was still 23px under the "M" at 1280. Closing every gap to zero
+            // would not have cleared it; the row simply does not fit beside a
+            // centred mark at those widths.
+            //
+            // So `[auto_1fr_auto]` now covers `lg` as well as the phone. The
+            // mark takes the first `auto` track at the left edge, the navigation
+            // takes the `1fr` beside it, and the actions keep the last — the
+            // arrangement the client chose when the alternatives were put to
+            // them. At `xl` there is room again and the mark goes back to the
+            // page's own centre line, which is where every width in the brief
+            // sees it.
+            "grid grid-cols-[auto_1fr_auto] items-center gap-6",
+            "2xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
+            "transition-[height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+            /*
+              ONE HEIGHT NOW, AND THE PINNING IS WHY.
+  
+              The bar used to settle 8px shorter once the page moved. An
+              out-of-flow bar can do that for free; an in-flow one cannot —
+              shrinking it moves every pixel of the document up by the
+              difference, so the whole page would lurch at 8px of scroll and
+              lurch back on the way home.
+  
+              It also quietly fixes a mismatch that was always there: both
+              overlays hang from the *resting* height (<MobileNav>'s
+              `top-header`, <SearchPanel>'s mobile shape the same), so a settled
+              bar left a strip of page showing between the bar and the panel.
+            */
+            /*
+              THE DESKTOP HEIGHT NEVER APPLIED, AND THE BAR HAS BEEN 64px SINCE.
+  
+              This read `md:h-header-lg`, and that utility is not generated —
+              measured at 700, 900 and 1440, the row was 64px at all three. The
+              token is fine and the breakpoint is fine: the hero's own
+              `md:-mt-header-lg` resolves to -72px from the same variable at the
+              same width. It is `h-*` specifically that does not pick this name
+              up, so the class sat in the markup looking correct and did nothing.
+  
+              The mismatch was live: the hero pulled up 72px under a 64px bar, so
+              the two disagreed by 8px about where the page starts — the same
+              class of bug as the white stroke this bar had earlier.
+  
+              Referencing the variable directly is unambiguous and keeps the
+              token the single source of truth, which an arbitrary `4.5rem` here
+              would not.
+            */
+            "h-header md:h-[var(--spacing-header-lg)]",
+          )}
+        >
+          {/*
           The left track: where to go. First in the source as well as on the
           screen, so a keyboard's tab order runs left to right across the bar
           in the order the eye reads it — nav, mark, actions — rather than
@@ -593,7 +593,7 @@ export function HeaderBar({
           row, the mark and the actions share it. It steps to the left edge
           under `xl` precisely so that they fit. See the grid above.
         */}
-        {/*
+          {/*
           `self-stretch` down this chain is what makes the strands menu usable
           with a mouse. Its panel hangs from the bottom of the bar, but the
           entry's own box was only as tall as the word — leaving a 37px strip
@@ -603,7 +603,7 @@ export function HeaderBar({
           entry's bottom edge exactly where the panel's top edge is, so there
           is nothing to cross. Measured: the gap is now 0.
         */}
-        {/*
+          {/*
           TWO TRACKS, ONE NAV. At `lg` it is the middle track, beside a mark
           that is sitting at the left edge; at `xl` it takes the first and the
           mark goes to the centre. See the note on the grid above.
@@ -618,29 +618,29 @@ export function HeaderBar({
           preserves meaning and operability; a nav reached after it on every
           desktop would be the worse half of the trade.
         */}
-        <nav
-          aria-label="Primary"
-          /*
-            `row-start-1` ON ALL THREE, AND IT IS NOT DECORATION.
-
-            Grid auto-placement is sparse: it never moves backwards. The nav
-            comes first in the source and at `lg` it asks for column 2, so the
-            mark asking for column 1 after it could not be placed in the same
-            row and was pushed into an implicit SECOND one — a two-storey bar
-            with the wordmark sitting under the links. Pinning every child to
-            row 1 lets the columns be assigned in any order the breakpoints
-            want while the row stays one row.
-          */
-          className="row-start-1 hidden self-stretch lg:col-start-2 lg:flex lg:justify-start xl:col-start-1"
-        >
-          {/*
+          <nav
+            aria-label="Primary"
+            /*
+              `row-start-1` ON ALL THREE, AND IT IS NOT DECORATION.
+  
+              Grid auto-placement is sparse: it never moves backwards. The nav
+              comes first in the source and at `lg` it asks for column 2, so the
+              mark asking for column 1 after it could not be placed in the same
+              row and was pushed into an implicit SECOND one — a two-storey bar
+              with the wordmark sitting under the links. Pinning every child to
+              row 1 lets the columns be assigned in any order the breakpoints
+              want while the row stays one row.
+            */
+            className="row-start-1 hidden self-stretch lg:col-start-2 lg:flex lg:justify-start 2xl:col-start-1"
+          >
+            {/*
             24px at 1024, 44px from 1280. The labels are heavier now and the
             row gained a fourth thing to fit; measured, 32px everywhere left
             the 1024 track 2px short and wrapped a label. The wide screens keep
             the air — it is only the narrow end of the desktop range that has
             to give it up.
           */}
-          {/*
+            {/*
             THE BAR IS A PALETTE, AND THE PAINT IS HANDED OUT BY POSITION.
 
             Each top-level link carries a swatch behind its word — see
@@ -654,7 +654,7 @@ export function HeaderBar({
             palette — pale paint behind pale type. Null there, and <NavLabel>
             falls back to the hairline it has always drawn.
           */}
-          {/*
+            {/*
             32px FROM 1280, NOT 44 — and this is a collision, not a taste call.
 
             Measured on /locations at 1280: the four labels plus three 44px
@@ -674,72 +674,72 @@ export function HeaderBar({
             it: the mark leaves the centre under `xl` and sits at the left
             edge with the row beside it. See the grid above.
           */}
-          <ul className="flex items-stretch gap-6 xl:gap-8 2xl:gap-12">
-            {/*
+            <ul className="flex items-stretch gap-5 xl:gap-6 2xl:gap-8">
+              {/*
               Two filters, two different jobs. `secondary` entries are dropped
               from the bar entirely and kept in the mobile menu and the footer;
               `utility` entries stay in the bar but belong with search on the
               right. See both flags on NavItem.
             */}
-            {primaryNav.map((item, i) =>
-              item.menu === "private-events" ? (
-                <li key={item.href} className="flex items-center">
-                  <PrivateEventsMenu
-                    onOpenChange={setIsStrandsOpen}
-                    label={item.label}
-                    href={item.href}
-                    isActive={isActive(item.href)}
-                    linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
-                    paint={onDarkInk ? null : linkPaint(i)}
-                  />
-                </li>
-              ) : item.menu === "about" ? (
-                /* The third panel. Doors rather than a rail, for the reason
-                   set out in <AboutMenu> — and the same <MenuCard>, so it
-                   opens as the other two do. */
-                <li key={item.href} className="flex items-center">
-                  <AboutMenu
-                    onOpenChange={setIsStrandsOpen}
-                    label={item.label}
-                    href={item.href}
-                    isActive={isActive(item.href)}
-                    linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
-                    paint={onDarkInk ? null : linkPaint(i)}
-                  />
-                </li>
-              ) : item.menu === "experiences" ? (
-                <li key={item.href} className="flex items-center">
-                  <WorkshopsMenu
-                    onOpenChange={setIsStrandsOpen}
-                    label={item.label}
-                    experiences={experiences}
-                    // The same dates the search panel and the listing read, so
-                    // a seat count in the menu can never disagree with one two
-                    // clicks away. Matched to an activity by slug inside.
-                    sessions={workshops}
-                    isActive={isActive(item.href)}
-                    linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
-                    paint={onDarkInk ? null : linkPaint(i)}
-                  />
-                </li>
-              ) : (
-                <li key={item.href} className="flex items-center">
-                  <Link
-                    href={item.href}
-                    aria-current={isActive(item.href) ? "page" : undefined}
-                    className={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
-                  >
-                    <NavLabel isActive={isActive(item.href)} paint={onDarkInk ? null : linkPaint(i)}>
-                      {item.label}
-                    </NavLabel>
-                  </Link>
-                </li>
-              ),
-            )}
-          </ul>
-        </nav>
+              {primaryNav.map((item, i) =>
+                item.menu === "private-events" ? (
+                  <li key={item.href} className="flex items-center">
+                    <PrivateEventsMenu
+                      onOpenChange={setIsStrandsOpen}
+                      label={item.label}
+                      href={item.href}
+                      isActive={isActive(item.href)}
+                      linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
+                      paint={onDarkInk ? null : linkPaint(i)}
+                    />
+                  </li>
+                ) : item.menu === "about" ? (
+                  /* The third panel. Doors rather than a rail, for the reason
+                     set out in <AboutMenu> — and the same <MenuCard>, so it
+                     opens as the other two do. */
+                  <li key={item.href} className="flex items-center">
+                    <AboutMenu
+                      onOpenChange={setIsStrandsOpen}
+                      label={item.label}
+                      href={item.href}
+                      isActive={isActive(item.href)}
+                      linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
+                      paint={onDarkInk ? null : linkPaint(i)}
+                    />
+                  </li>
+                ) : item.menu === "experiences" ? (
+                  <li key={item.href} className="flex items-center">
+                    <WorkshopsMenu
+                      onOpenChange={setIsStrandsOpen}
+                      label={item.label}
+                      experiences={experiences}
+                      // The same dates the search panel and the listing read, so
+                      // a seat count in the menu can never disagree with one two
+                      // clicks away. Matched to an activity by slug inside.
+                      sessions={workshops}
+                      isActive={isActive(item.href)}
+                      linkClassName={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
+                      paint={onDarkInk ? null : linkPaint(i)}
+                    />
+                  </li>
+                ) : (
+                  <li key={item.href} className="flex items-center">
+                    <Link
+                      href={item.href}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className={cn(NAV_LINK, NAV_SIZE, NAV_WEIGHT)}
+                    >
+                      <NavLabel isActive={isActive(item.href)} paint={onDarkInk ? null : linkPaint(i)}>
+                        {item.label}
+                      </NavLabel>
+                    </Link>
+                  </li>
+                ),
+              )}
+            </ul>
+          </nav>
 
-        {/*
+          {/*
           The centre track, and the only thing in it. Both flanking tracks are
           the same flexible width, so the mark sits on the page's own centre
           line rather than wherever the nav happened to end — and stays there
@@ -750,12 +750,12 @@ export function HeaderBar({
           and the row reverts to the ordinary mobile arrangement without a
           second set of markup to keep in step.
         */}
-        <div className="row-start-1 col-start-1 flex items-center justify-start xl:col-start-2 xl:justify-center">
-          {/* Light ground gets the Deep Lilac cut; the sage cut would vanish. */}
-          <Wordmark onLight={!onDarkInk} />
-        </div>
+          <div className="row-start-1 col-start-1 flex items-center justify-start 2xl:col-start-2 2xl:justify-center">
+            {/* Light ground gets the Deep Lilac cut; the sage cut would vanish. */}
+            <Wordmark onLight={!onDarkInk} />
+          </div>
 
-        {/*
+          {/*
           The right track: how to reach us, and how to find something.
 
           THE WIDTH BUDGET IS FIXED HERE RATHER THAN TRIMMED AGAIN. True
@@ -779,7 +779,7 @@ export function HeaderBar({
           one solid block of colour in the corner is the single thing that most
           made it look like one.
         */}
-        {/*
+          {/*
           TIGHTER THAN THE NAVIGATION OPPOSITE, which is the third thing that
           ranks the row. The cluster ran at the same 36px the destinations do,
           so three utilities spread across the right-hand track read as three
@@ -787,8 +787,8 @@ export function HeaderBar({
           one group, and the space they give back goes where it is wanted —
           between the mark and them. The navigation's own gaps are untouched.
         */}
-        <div className="row-start-1 col-start-3 flex items-center justify-end gap-5 lg:gap-6 xl:gap-7">
-          {/*
+          <div className="row-start-1 col-start-3 flex items-center justify-end gap-4 lg:gap-5 xl:gap-6 2xl:gap-7">
+            {/*
             The way back into a booking in progress. It appears only once
             something is held, which is why it is not a permanent basket icon:
             an empty basket in the corner of a studio's website is shop
@@ -796,59 +796,59 @@ export function HeaderBar({
             date. Without it, checkout was reachable only by not navigating
             away from it.
           */}
-          <BasketLink />
+            <BasketLink />
 
-          {/* Search leads the utilities: it is the fastest route to a date on
+            {/* Search leads the utilities: it is the fastest route to a date on
               the whole site, and the only control here that does something
               rather than going somewhere. */}
-          <SearchTrigger
-            ref={searchTriggerRef}
-            isOpen={isSearchOpen}
-            onClick={toggleSearch}
-            panelId={searchPanelId}
-            /*
-              NO SWATCH, AND IT IS STILL NOT A CTA — the brief that put paint
-              here was explicit that Search must not become one, and this moves
-              in the same direction rather than against it. The paint is the
-              navigation's mark now (see NAV_SIZE in <NavLabel>), and Search is
-              the one control in the bar that already has a signal no other
-              entry has: the icon. It keeps that, and the hairline underneath.
-            */
-            paint={null}
-          />
+            <SearchTrigger
+              ref={searchTriggerRef}
+              isOpen={isSearchOpen}
+              onClick={toggleSearch}
+              panelId={searchPanelId}
+              /*
+                NO SWATCH, AND IT IS STILL NOT A CTA — the brief that put paint
+                here was explicit that Search must not become one, and this moves
+                in the same direction rather than against it. The paint is the
+                navigation's mark now (see NAV_SIZE in <NavLabel>), and Search is
+                the one control in the bar that already has a signal no other
+                entry has: the icon. It keeps that, and the hairline underneath.
+              */
+              paint={null}
+            />
 
-          {/*
+            {/*
             Contact, set in the same type as the navigation opposite so the two
             halves of the bar read as one row rather than as a nav and a
             toolbar. Desktop only — on a phone it is in the menu with
             everything else, and repeating it in a three-control bar would
             crowd the one control that has to be easy to hit.
           */}
-          {utilityNav.map((item) => (
-            /*
-              Wrapped rather than given `hidden` directly, because NAV_LINK
-              already carries `inline-flex`: two display utilities on one
-              element are settled by their order in the generated stylesheet
-              rather than by the order they are written, and `hidden` lost —
-              Contact rendered on a 360px phone beside the menu button. The
-              same trap is documented on the booking action this replaced.
-            */
-            <div key={item.href} className="hidden lg:block">
-              <Link
-                href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={cn(NAV_LINK, NAV_UTILITY_SIZE, NAV_WEIGHT)}
-              >
-                {/* The utility rung: a step down in size and no swatch. See
+            {utilityNav.map((item) => (
+              /*
+                Wrapped rather than given `hidden` directly, because NAV_LINK
+                already carries `inline-flex`: two display utilities on one
+                element are settled by their order in the generated stylesheet
+                rather than by the order they are written, and `hidden` lost —
+                Contact rendered on a 360px phone beside the menu button. The
+                same trap is documented on the booking action this replaced.
+              */
+              <div key={item.href} className="hidden lg:block">
+                <Link
+                  href={item.href}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  className={cn(NAV_LINK, NAV_UTILITY_SIZE, NAV_WEIGHT)}
+                >
+                  {/* The utility rung: a step down in size and no swatch. See
                     the note on the two rungs in <NavLabel>. */}
-                <NavLabel isActive={isActive(item.href)} paint={null}>
-                  {item.label}
-                </NavLabel>
-              </Link>
-            </div>
-          ))}
+                  <NavLabel isActive={isActive(item.href)} paint={null}>
+                    {item.label}
+                  </NavLabel>
+                </Link>
+              </div>
+            ))}
 
-          {/*
+            {/*
             THE HAMBURGER IS GONE, at the client's ask, and it went because it
             had nothing left to hold. <BottomNav> and its More sheet carry
             every entry in MAIN_NAV between them — Experiences and Locations
@@ -866,21 +866,21 @@ export function HeaderBar({
             still clears it, the scroll lock and `overlayOpen` still read it,
             and putting a trigger back is one button.
           */}
-        </div>
-      </Container>
+          </div>
+        </Container>
 
-      <SearchPanel
-        id={searchPanelId}
-        openCount={searchOpenCount}
-        isOpen={isSearchOpen}
-        onClose={closeSearch}
-        triggerRef={searchTriggerRef}
-        workshops={workshops}
-        experiences={experiences}
-      />
-    </header>
+        <SearchPanel
+          id={searchPanelId}
+          openCount={searchOpenCount}
+          isOpen={isSearchOpen}
+          onClose={closeSearch}
+          triggerRef={searchTriggerRef}
+          workshops={workshops}
+          experiences={experiences}
+        />
+      </header>
 
-    {/*
+      {/*
       The bar's stand-in, and the reason detaching is invisible.
 
       A `fixed` element takes no space, so the moment the bar leaves the flow
@@ -890,9 +890,9 @@ export function HeaderBar({
       number, so the two cannot drift: change the bar's height and this
       follows in the same edit.
     */}
-    {isDetached ? (
-      <div aria-hidden className="h-header md:h-[var(--spacing-header-lg)]" />
-    ) : null}
+      {isDetached ? (
+        <div aria-hidden className="h-header md:h-[var(--spacing-header-lg)]" />
+      ) : null}
     </>
   );
 }

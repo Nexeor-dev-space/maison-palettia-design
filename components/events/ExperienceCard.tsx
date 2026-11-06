@@ -56,6 +56,8 @@ export function ExperienceCard({
   className,
   actionLabel = "View details",
   kindLabels = EXPERIENCE_KIND_LABEL,
+  loading,
+  priority,
 }: {
   /** Mode labels' short names (“Any time” / “Scheduled”), from a client parent's `useModeCopy()`. */
   kindLabels?: Record<"diy" | "scheduled", string>;
@@ -70,6 +72,8 @@ export function ExperienceCard({
   className?: string;
   /** The pill the paint carries in — the homepage block's `cardCta` (SPEC §E.1). */
   actionLabel?: string;
+  loading?: "lazy" | "eager";
+  priority?: boolean;
 }) {
   const paint = WASH[index % WASH.length];
   const tilt = (index % 2 === 0 ? -1 : 1) * (1.1 + (index % 3) * 0.35);
@@ -111,6 +115,8 @@ export function ExperienceCard({
               sizes={sizes}
               style={{ objectPosition: experience.image.position ?? "50% 50%" }}
               className={styles.base}
+              loading={loading ?? (index < 7 ? "eager" : undefined)}
+              priority={priority}
             />
           ) : null}
 
@@ -150,7 +156,7 @@ export function ExperienceCard({
           {experience.name}
         </span>
 
-        <span className="mt-1.5 flex items-center gap-2 text-fine text-text/75">
+        <span className="mt-1.5 flex items-center gap-2 text-label font-medium text-text">
           <span
             aria-hidden
             className="h-2 w-2 shrink-0 rounded-pill"

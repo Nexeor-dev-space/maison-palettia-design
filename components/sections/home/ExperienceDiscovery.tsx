@@ -171,7 +171,7 @@ export async function ExperienceDiscovery({
         container, so a card is visibly cut off at the right — which is what
         tells a visitor there is more of it without a label saying so.
       */}
-      <div className="mt-10 pl-gutter md:mt-14">
+      <div className="mt-10 md:mt-14">
         <ExperienceCarousel experiences={experiences} cardAction={cardAction} />
       </div>
     </DeckSheet>

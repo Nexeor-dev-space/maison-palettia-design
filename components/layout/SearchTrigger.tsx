@@ -86,7 +86,7 @@ export function SearchTrigger({ ref, isOpen, onClick, panelId }: SearchTriggerPr
           behind the glyph, because a phone's bar has no width to give.
         */
         "group/nav relative isolate inline-flex size-11 items-center justify-center rounded-full " +
-        styles.blot + " lg:h-11 lg:w-[15rem] lg:justify-start lg:gap-2.5 lg:pl-5 lg:pr-5 xl:w-[17rem] " +
+        styles.blot + " max-w-full lg:h-11 lg:w-[13.5rem] lg:justify-start lg:gap-2.5 lg:pl-5 lg:pr-5 xl:w-[15rem] 2xl:w-[17rem] " +
         "lg:bg-surface/70 lg:shadow-[inset_0_0_0_1.5px_color-mix(in_oklab,var(--color-primary)_55%,transparent)] " +
         "lg:hover:bg-surface lg:focus-visible:bg-surface " +
         "text-current transition-colors duration-300 ease-soft " +
