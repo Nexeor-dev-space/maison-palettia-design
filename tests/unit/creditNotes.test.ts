@@ -1,3 +1,4 @@
+import type { CollectionBeforeValidateHook } from "payload";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -57,10 +58,24 @@ describe("Credit Note System (FEAT #183)", () => {
     });
   });
 
+  const callPrepareHook = (args: {
+    data?: any;
+    req?: any;
+    operation?: "create" | "update";
+    originalDoc?: any;
+  }) =>
+    prepareCreditNote({
+      collection: {} as any,
+      context: {} as any,
+      req: {} as any,
+      operation: "create",
+      ...args,
+    } as Parameters<CollectionBeforeValidateHook>[0]);
+
   describe("2. Mandatory Expiry Date & BeforeValidate Hook", () => {
     it("throws an error when expiry date is missing", async () => {
       await expect(
-        prepareCreditNote({
+        callPrepareHook({
           data: {
             order: "order-001",
             amountFils: 10_000,
@@ -81,7 +96,7 @@ describe("Credit Note System (FEAT #183)", () => {
         customerEmail: "user@example.com",
       };
 
-      const prepared = await prepareCreditNote({
+      const prepared = await callPrepareHook({
         data,
         req: {} as any,
         operation: "create",
@@ -102,7 +117,7 @@ describe("Credit Note System (FEAT #183)", () => {
         customerEmail: "user@example.com",
       };
 
-      const prepared = await prepareCreditNote({
+      const prepared = await callPrepareHook({
         data,
         req: {} as any,
         operation: "update",
@@ -139,7 +154,7 @@ describe("Credit Note System (FEAT #183)", () => {
         expiresAt: futureDate,
       };
 
-      const prepared = await prepareCreditNote({
+      const prepared = await callPrepareHook({
         data,
         req: mockReq,
         operation: "create",
