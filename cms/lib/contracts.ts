@@ -106,7 +106,14 @@ export interface Quote {
   lines: OrderLine[];
   totals: Totals;
   passRedemptions: Array<{ passPurchase: string; n: number }>;
-  promo?: { promoCode: string; code: string; discountFils: Fils };
+  promo?: {
+    promoCode: string;
+    code: string;
+    discountFils: Fils;
+    isCreditNote?: boolean;
+    creditNoteId?: string;
+    originalOrderId?: string;
+  };
   rejectedCodes: Array<{ code: string; reason: "invalid" | "expired" | "exhausted" | "min_spend" | "not_applicable" | "one_promo_only" }>;
 }
 // reserve=true runs the atomic UPDATEs (promo `uses`, pass `sessions_remaining`) inside the request's transaction.
@@ -141,7 +148,7 @@ export type StartCheckoutResult =
 // §H.3 steps 1–5 (startCheckout), §H.5 step 7 (applyPaymentSnapshot), §H.6 (expireOrder), §H.7 (refunds, move,
 // session cancel / reschedule / repeat) live in cms/lib/orders.ts; the state machine in cms/lib/orderState.ts
 // (`transition` is the ONLY way `orders.status` changes); gapless numbering + invoice snapshots in cms/lib/invoiceNumber.ts.
-export { applyPaymentSnapshot, cancelOrder, cancelSession, completeRefund, expireOrder, moveOrder, repeatSession, rescheduleSession, startCheckout, syncRefunds } from "./orders";
+export { applyPaymentSnapshot, cancelOrder, cancelSession, completeRefund, expireOrder, issueCreditNoteForOrder, moveOrder, repeatSession, rescheduleSession, startCheckout, syncRefunds } from "./orders";
 export { transition } from "./orderState";
 export { issueCreditNote, issueInvoice, nextInvoiceNumber } from "./invoiceNumber";
 

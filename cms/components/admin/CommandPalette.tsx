@@ -120,6 +120,7 @@ const SOURCES: Source[] = [
   { slug: "enquiries", group: "Enquiries", icon: "mail", roles: ["admin", "editor", "front-desk"], fields: ["name", "email", "message"], label: (d) => str(d.name), sub: (d) => `${str(d.status).replace(/_/g, " ")} · ${str(d.message).replace(/\s+/g, " ").slice(0, 70)}` },
   { slug: "media", group: "Media", icon: "image", roles: ["admin", "editor", "front-desk"], fields: ["filename", "alt", "caption"], label: (d) => str(d.alt) || str(d.filename), sub: (d) => str(d.filename) },
   { slug: "promo-codes", group: "Promo codes", icon: "ticket", roles: ["admin", "front-desk"], fields: ["code", "label"], label: (d) => str(d.code), sub: (d) => str(d.label) },
+  { slug: "credit-notes", group: "Credit notes", icon: "ticket", roles: ["admin", "front-desk"], fields: ["code", "customerEmail", "customerName"], label: (d) => str(d.code), sub: (d) => `${str(d.status)} · ${str(d.customerEmail)}` },
   { slug: "users", group: "Staff", icon: "users", roles: ["admin"], fields: ["name", "email"], label: (d) => str(d.name), sub: (d) => `${str(d.role)} · ${str(d.email)}` },
   { slug: "email-templates", group: "Email templates", icon: "mail", roles: ["admin", "editor"], fields: ["label", "subject"], label: (d) => str(d.label), sub: (d) => str(d.subject) },
 ];
