@@ -113,7 +113,7 @@ export function toneForSlug(slug: string): ShareTone {
 
 const FONT_DIR = join(process.cwd(), "public", "fonts");
 const [scriptFont, sans500, sans600, sans700] = await Promise.all([
-  readFile(join(FONT_DIR, "HapshaSophiaScript_01.otf")),
+  readFile(join(FONT_DIR, "HapshaSophiaScript.otf")),
   readFile(join(FONT_DIR, "Montserrat-500-latin.woff")),
   readFile(join(FONT_DIR, "Montserrat-600-latin.woff")),
   readFile(join(FONT_DIR, "Montserrat-700-latin.woff")),

@@ -705,7 +705,7 @@ Dimensions from `sips`; sizes rounded; provenance from C2PA/XMP scan (`SynthID` 
 | Logo scraps | `fav-new-log.png`, `favicon-logo.png` (1254², source of `app/icon.png`), `new-fav-logo.jpg` | keep one as the favicon master in `media` |
 | Doodles | `doodles/d1…d10.png` 1000² ×10 | superseded by inline SVG `hero/doodles.ts`; delete |
 | Videos | `videos/maison-banner.mp4` 16 MB (1920×1080, 61 s — same cut as `maison-film.mp4` at 1080p), `maison-banner-bg-1.mp4` 5.9 MB (1920×1080, 21 s), `video-bg.mp4` 2.6 MB (1920×1080, 13 s) | unreferenced; masters live in `assets/video-masters/` (gitignored 111 MB file noted) |
-| Fonts | `fonts/Qarine.otf` (unused), `HapshaSophiaScript_01.ttf` (otf is used by `lib/fonts.ts:78` and both OG generators) | keep otf; README says licence file pending |
+| Fonts | `fonts/Qarine.otf` (unused), `HapshaSophiaScript.{woff,otf,ttf}` (woff is used by `lib/fonts.ts`, otf by PDF and OG generators) | licensed font integrated; demo cuts removed |
 
 Masters in `assets/` (not served; 13 jpgs up to 5426×8000) stay in the repo as-is; the `media` collection should be seeded from `public/images`, not from masters.
 
