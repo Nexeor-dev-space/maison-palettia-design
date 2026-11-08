@@ -8,7 +8,7 @@ import { getPayload } from "payload";
 import sharp from "sharp";
 
 import { backfillBlur } from "@/cms/lib/backfillBlur";
-import { MEDIA_DIR, MUSIC_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
+import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { STORAGE_ENABLED } from "@/cms/lib/storage";
 import { storedFilename } from "@/cms/seed/media";
 import { MEDIA } from "@/cms/seed/strings/media";
@@ -42,83 +42,9 @@ import { MEDIA } from "@/cms/seed/strings/media";
  * volume (docs/cms-runbook.md, "Deploying with Coolify").
  *
  * Cheap when nothing is missing: one query and one `existsSync` per document.
- *
- * AND THE MUSIC, THE SAME WAY. `music-tracks` rows reach every server through
- * the shared database and their files do not — the first track was uploaded
- * against that database from a machine that was not a server, so both sites
- * listed it, drew the player, and answered 500 for the file. A track whose
- * audio is committed under `public/audio/` with its stored filename is copied
- * into `media/music/` wherever it is missing. One `existsSync` per track.
  */
 
 const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
-const AUDIO_SOURCE_DIR = path.join(PUBLIC_DIR, "audio");
-
-type MusicRow = { filename?: string | null };
-
-/** Find a source file in AUDIO_SOURCE_DIR for a given filename (handles Payload numeric duplicate suffixes like _5_180, _10_120). */
-function findAudioSource(filename: string): string | null {
-  const exact = path.join(AUDIO_SOURCE_DIR, filename);
-  if (fs.existsSync(exact)) return exact;
-
-  if (!fs.existsSync(AUDIO_SOURCE_DIR)) return null;
-  const available = fs.readdirSync(AUDIO_SOURCE_DIR);
-  if (available.length === 0) return null;
-
-  const ext = path.extname(filename).toLowerCase();
-  const cleanName = (name: string) =>
-    path
-      .basename(name, path.extname(name))
-      .replace(/(?:[_-]\d+|\s*\(\d+\))+$/, "")
-      .trim()
-      .toLowerCase();
-
-  const targetBase = cleanName(filename);
-  const match = available.find((file) => {
-    if (path.extname(file).toLowerCase() !== ext) return false;
-    return cleanName(file) === targetBase;
-  });
-
-  if (match) return path.join(AUDIO_SOURCE_DIR, match);
-
-  const extMatches = available.filter((file) => path.extname(file).toLowerCase() === ext);
-  if (extMatches.length === 1) return path.join(AUDIO_SOURCE_DIR, extMatches[0]);
-
-  return null;
-}
-
-/** Copy every committed track the server is missing into media/music/. */
-async function restoreMusic(payload: Awaited<ReturnType<typeof getPayload>>, dryRun: boolean) {
-  const res = await payload.find({ collection: "music-tracks", limit: 0, depth: 0, overrideAccess: true, pagination: false });
-  const rows = res.docs as unknown as MusicRow[];
-  let present = 0;
-  let restored = 0;
-  const missing: string[] = [];
-
-  for (const row of rows) {
-    const filename = row.filename;
-    if (!filename) continue;
-    const target = path.join(MUSIC_DIR, filename);
-    if (fs.existsSync(target)) {
-      present++;
-      continue;
-    }
-    const source = findAudioSource(filename);
-    if (!source) {
-      missing.push(filename);
-      continue;
-    }
-    if (!dryRun) {
-      await fsp.mkdir(MUSIC_DIR, { recursive: true });
-      const tempPath = path.join(MUSIC_DIR, `.${filename}.${randomUUID()}.tmp${path.extname(filename)}`);
-      await fsp.copyFile(source, tempPath);
-      await fsp.rename(tempPath, target);
-    }
-    restored++;
-  }
-
-  return { total: rows.length, present, restored, missing };
-}
 
 /** stored filename → path under public/, for every seeded photo. */
 const SOURCES = new Map(MEDIA.map((seed) => [storedFilename(seed.path), seed.path]));
@@ -160,7 +86,7 @@ async function main() {
 
   const rows: MediaRow[] = [];
   // With object storage on, the bucket holds the library; rebuilding files on
-  // this disk would only create copies nothing reads. Music still lives on disk.
+  // this disk would only create copies nothing reads.
   if (STORAGE_ENABLED) console.log("restore-media: library files are in object storage — skipping the disk restore.");
   for (let page = 1; !STORAGE_ENABLED; page++) {
     const res = await payload.find({ collection: "media", limit: 200, page, depth: 0, overrideAccess: true, pagination: true });
@@ -254,14 +180,6 @@ async function main() {
   );
   if (unrecoverable.length) {
     console.log(`restore-media: check these missing or incomplete files: ${unrecoverable.join(", ")}`);
-  }
-
-  const music = await restoreMusic(payload, dryRun);
-  console.log(
-    `restore-media: music — ${music.total} tracks, ${music.present} on disk, ${verb} ${music.restored}, ${music.missing.length} with no committed source.`,
-  );
-  if (music.missing.length) {
-    console.log(`restore-media: these tracks will not play until uploaded on this server: ${music.missing.join(", ")}`);
   }
 
   // Blurred stand-ins for any picture that predates them, from this disk.

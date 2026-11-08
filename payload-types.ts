@@ -2463,6 +2463,8 @@ export interface MusicTrack {
    * Play order: lower numbers play first (unless Settings → Music shuffles).
    */
   order: number;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -5567,6 +5569,8 @@ export interface MusicTracksSelect<T extends boolean = true> {
   attributionRequired?: T;
   active?: T;
   order?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
