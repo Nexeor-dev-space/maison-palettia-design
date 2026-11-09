@@ -176,10 +176,12 @@ export function interpolateLexical(state: LexicalState, vars: TemplateVars): Lex
   return { ...state, root: { ...state.root, children: mapChildren(state.root.children) ?? [] } };
 }
 
+export const lockedBackground = (hex: string) => `background-color:${hex};background:linear-gradient(${hex},${hex});`;
+
 /* Inline styles: email clients ignore <style> blocks unevenly; the shell sets fonts, these set rhythm. */
 const LINK_STYLE = "color:#efe2ca;text-decoration:underline;";
 const BUTTON_STYLE =
-  "display:inline-block;background:#efe2ca;background-image:linear-gradient(#efe2ca,#efe2ca);color:#9059a4;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;";
+  `display:inline-block;${lockedBackground("#efe2ca")}color:#9059a4;text-decoration:none;font-weight:600;letter-spacing:0.02em;padding:13px 26px;border-radius:999px;box-shadow:0 8px 18px -10px rgba(45,55,72,0.45);`;
 
 /**
  * Lexical → email HTML. Payload's default converters, then three inline
@@ -198,7 +200,7 @@ export function lexicalToEmailHtml(state: unknown): string {
   return html
     .replace(/<p(\s[^>]*)?>\s*<a([^>]*?)href="([^"]*)"([^>]*)>((?:(?!<a[\s>])[\s\S])*?)<\/a>\s*<\/p>/g, (_m, _pAttrs, before: string, href: string, after: string, label: string) => {
       const rest = `${before}${after}`.replace(/\s(?:style|class)="[^"]*"/g, "");
-      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}"><span style="color:#9059a4 !important;">${label}</span></a></p>`;
+      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}"><span class="mp-button-label" style="color:#9059a4 !important;"><span class="mp-button-text">${label}</span></span></a></p>`;
     })
     .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;">`)
     .replace(/<a(?![^>]*style=)(\s)/g, `<a class="mp-link" style="${LINK_STYLE}"$1`)

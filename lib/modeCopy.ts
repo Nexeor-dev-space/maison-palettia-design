@@ -75,7 +75,10 @@ export const MODE_COPY_DEFAULTS: ModeCopy = {
     anyTime: "Any time",
     scheduled: "Scheduled",
     noBooking: "No booking",
-    bookedOnline: "Booked online",
+    /* Empty on purpose: the client retired this tag. A field left blank keeps
+       the default (see `over`), so any wording here would come back the moment
+       the CMS field was cleared. Typing a label into the CMS still shows it. */
+    bookedOnline: "",
     scheduledSession: "Scheduled session",
     diyLine: "Pick a project. Pick your colours. Just drop in.",
     scheduledLine: "A little more planned. Same creative energy.",

@@ -19,7 +19,8 @@ const toTrack = (doc: MusicTrackDoc): MusicTrack | null => {
   const name = licenceName(doc);
   return {
     id: String(doc.id),
-    src: doc.url,
+    // Versioned so that replacing a track's file reaches browsers holding the old one.
+    src: `${doc.url}?v=${Date.parse(doc.updatedAt)}`,
     mimeType: doc.mimeType ?? null,
     title: doc.title,
     artist: doc.artist,

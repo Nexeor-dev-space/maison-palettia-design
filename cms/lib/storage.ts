@@ -28,6 +28,8 @@ export const STORAGE_ENDPOINT = "https://api.staging-obj-blob.client2.nexeor.com
 export const STORAGE_BUCKET = "maison-palettia";
 /** Folder inside the bucket, so uploads sit beside — not among — the committed `public/images/…` copies. */
 export const MEDIA_PREFIX = "media";
+/** Folder inside the bucket for `music-tracks` uploads. */
+export const MUSIC_PREFIX = "music";
 
 const accessKeyId = process.env.STORAGE_ACCESS_KEY ?? "";
 const secretAccessKey = process.env.STORAGE_SECRET_KEY ?? "";
