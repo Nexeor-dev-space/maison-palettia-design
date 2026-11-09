@@ -14,9 +14,11 @@ import { CONTENT_GROUP, orderField, publicContentAccess } from "./shared";
  * An upload collection of its own rather than more mime types on `media`:
  * a track has no alt text, focal point or image sizes, and it does have a
  * creator and a licence that the site is obliged to print. Files live in
- * `media/music/` (cms/lib/paths.ts), inside the folder the backup already
- * carries, and are served same-origin at `/api/music-tracks/file/<name>`
- * with byte ranges, which Safari needs before it will play audio at all.
+ * the storage bucket under `music/` (payload.config.ts), so an upload made on
+ * any server survives a redeploy; `media/music/` is only the fallback when
+ * storage is off. Payload serves them same-origin at
+ * `/api/music-tracks/file/<name>` with byte ranges, which Safari needs before
+ * it will play audio at all.
  *
  * ATTRIBUTION IS THE POINT OF THE FIELDS. "Copyright-free" music is nearly
  * always licensed music: Creative Commons BY wants the title, the creator,

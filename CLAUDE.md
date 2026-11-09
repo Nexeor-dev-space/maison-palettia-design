@@ -44,7 +44,7 @@ npm run seed                # idempotent CMS seed (cms/seed/index.ts)
 
 - All colours, type, spacing, radii and breakpoints live in `app/(site)/globals.css` under `@theme static`; no hex values elsewhere. Re-skin via `--color-brand-*`.
 - Layout is full-bleed; use `<Container>` / `--spacing-gutter` rather than restating gutter numbers.
-- Montserrat for UI/body; Hapsha Sophia Script (`font-display`) only for wordmark/large display moments (licensed font file not yet in repo — see `public/fonts/README.md`).
+- Montserrat for UI/body; Hapsha Sophia Script (`font-display`) only for wordmark/large display moments (licensed font files integrated — see `public/fonts/README.md`).
 - Animate with `<Reveal>` / `<Stagger>` and variants from `lib/motion.ts`; both respect reduced motion.
 
 ## Animation and UI performance (read before touching motion, scroll or pointer code)
