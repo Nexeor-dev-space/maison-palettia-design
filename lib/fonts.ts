@@ -70,12 +70,10 @@ export const montserrat = localFont({
  * face at once. That was the documented intent — see public/fonts/README.md,
  * which says in as many words not to ship the fallback.
  *
- * Loaded from the .otf as supplied. A .woff2 would be roughly half the bytes
- * over the wire and is worth generating before launch, but the difference is
- * about 20KB on a face that is only used at display size.
+ * Loaded from the official licensed .woff webfont (67KB) for fast web delivery.
  */
 export const hapsha = localFont({
-  src: [{ path: "../public/fonts/HapshaSophiaScript_01.otf", weight: "400", style: "normal" }],
+  src: [{ path: "../public/fonts/HapshaSophiaScript.woff", weight: "400", style: "normal" }],
   display: "swap",
   variable: "--font-hapsha",
 });

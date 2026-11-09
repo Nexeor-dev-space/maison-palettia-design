@@ -202,6 +202,6 @@ contact, SEO) is done. The CMS was built in the phases of
 
 ## Outstanding client assets
 
-Search the codebase for `TODO(client)`. Currently pending: logo artwork, the
-Hapsha Sophia Script font file, production domain, address / email / phone,
-social profile URLs, Open Graph image, and legal page content.
+Search the codebase for `TODO(client)`. Currently pending: logo artwork,
+production domain, address / email / phone, social profile URLs, Open Graph
+image, and legal page content.
