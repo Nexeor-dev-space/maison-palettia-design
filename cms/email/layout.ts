@@ -28,8 +28,10 @@ import { EMAIL_GROUND, EMAIL_INK, escapeHtml, lockedBackground } from "./render"
  *   to #efe2ca.
  * - Text is #dedddf on black inside `.mp-text`, blended with `exclusion`:
  *   black leaves the ground untouched and #dedddf over #efe2ca is #2d3748.
- * Nothing but text may go inside `.mp-text`, and no element in it may set its
- * own colour unless the lock lists it: anything else is blended the wrong way.
+ * Nothing but text may go inside `.mp-text`, one must never sit inside another,
+ * and no element in it may set its own colour unless the lock lists it: anything
+ * else is blended the wrong way. The message is wrapped block by block
+ * (lexicalToEmailHtml in render.ts), so pictures editors insert stay outside.
  *
  * Everything that comes from settings is escaped here; the body arrives as
  * HTML that cms/email/render.ts has already made safe.
@@ -135,7 +137,7 @@ ${preheaderHtml}
               </tr>
               <tr>
                 <td colspan="2" style="padding:8px 22px 10px;">
-                  <div class="mp-text" style="font-family:${FONT};font-size:15px;line-height:1.65;color:${INK};">${bodyHtml}</div>
+                  <div style="font-family:${FONT};font-size:15px;line-height:1.65;color:${INK};">${bodyHtml}</div>
                 </td>
               </tr>
               <tr>

@@ -155,7 +155,7 @@ export function renderSource(source: Pick<TemplateSource, "subject" | "preheader
   const subject = interpolate(source.subject, all).replace(/\s+/g, " ").trim() || site.name;
   const preheader = interpolate(source.preheader ?? "", all).replace(/\s+/g, " ").trim();
   const body = isLexicalState(source.body) ? interpolateLexical(source.body, all) : null;
-  const bodyHtml = body ? lexicalToEmailHtml(body) : `<p>${escapeHtml(subject)}</p>`;
+  const bodyHtml = body ? lexicalToEmailHtml(body) : `<div class="mp-text"><p>${escapeHtml(subject)}</p></div>`;
   const bodyText = body ? lexicalToEmailText(body) : subject;
   return {
     subject,

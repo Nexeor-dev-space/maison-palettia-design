@@ -88,7 +88,7 @@ export const emails: Chapter = {
           type: "info",
           title: "Good to know",
           text: [
-            "Every email now wears the studio's look: a cream background with the logo, a soft green card with a lilac border, small hand-drawn doodles in the corners, a lilac pill button and a footer with your contact details. You only write the words; the design is added for you.",
+            "Every email now wears the studio's look: a cream background with charcoal text, the logo, small hand-drawn doodles in the corners, an outlined pill button and a footer with your contact details. You only write the words; the design is added for you.",
           ],
         },
         {
@@ -96,7 +96,7 @@ export const emails: Chapter = {
           file: "24-email-template-preview.webp",
           width: 1200,
           height: 833,
-          caption: "Below the message, a live preview with sample values shows exactly what the customer will receive: the cream background, the logo, the soft green card with a lilac border, small hand-drawn doodles and a lilac button. Send me this emails the preview to you.",
+          caption: "Below the message, a live preview with sample values shows exactly what the customer will receive: the cream background, charcoal text, the logo, small hand-drawn doodles and an outlined button. Send me this emails the preview to you.",
           title: "Emails — templates",
           callouts: [
             { n: 1, label: "Preview with sample values" },

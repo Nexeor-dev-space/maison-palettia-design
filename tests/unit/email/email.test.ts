@@ -150,6 +150,27 @@ describe("layout", () => {
     expect(html).not.toContain("dark.png");
   });
 
+  it("locks every text block but leaves pictures and rules out of the blend", () => {
+    const text = (value: string) => ({ type: "text", text: value, version: 1 });
+    const item = (children: unknown[]) => ({ type: "listitem", value: 1, children, version: 1 });
+    const html = lexicalToEmailHtml({
+      root: {
+        type: "root",
+        children: [
+          { type: "paragraph", children: [text("Before")], version: 1 },
+          { type: "list", listType: "bullet", tag: "ul", children: [item([text("One")]), item([{ type: "list", listType: "bullet", tag: "ul", children: [item([text("Nested")])], version: 1 }])], version: 1 },
+          { type: "upload", relationTo: "media", value: { url: "https://a.test/p.png", mimeType: "image/png", width: 10, height: 10, alt: "p" }, version: 1 },
+          { type: "horizontalrule", version: 1 },
+          { type: "paragraph", children: [text("After")], version: 1 },
+        ],
+      },
+    });
+    expect(html.match(/class="mp-text"/g)).toHaveLength(3);
+    for (const block of html.split('<div class="mp-text">').slice(1)) expect(block.split("</div>")[0]).not.toMatch(/<(img|hr|div)\b/);
+    expect(html).toContain("https://a.test/p.png");
+    expect(html).toContain('<hr style="border:0;border-top:1px solid #2d3748;');
+  });
+
   it("sets the name as a wordmark when there is no such logo", () => {
     expect(layout()).toContain('class="mp-text mp-header-fallback"');
   });

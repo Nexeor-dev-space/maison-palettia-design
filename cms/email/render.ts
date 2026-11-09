@@ -192,15 +192,29 @@ const BUTTON_STYLE =
  * style passes: paragraph spacing, link colour, and "a paragraph that is
  * only a link becomes a button" — the one layout device editors get without
  * a custom block.
+ *
+ * Each top-level block is converted alone so that text can be wrapped in
+ * `.mp-text` (the Gmail colour lock, layout.ts) while a picture or a rule the
+ * editor inserted stays outside it, where it is not blended.
  */
 export function lexicalToEmailHtml(state: unknown): string {
   if (!isLexicalState(state)) return "";
-  const html = convertLexicalToHTML({
-    data: state as never,
-    disableContainer: true,
-    disableIndent: true,
-    converters: { ...defaultHTMLConverters },
-  });
+  return state.root.children
+    .map((child) => {
+      const html = styleEmailBlock(
+        convertLexicalToHTML({
+          data: { ...state, root: { ...state.root, children: [child] } } as never,
+          disableContainer: true,
+          disableIndent: true,
+          converters: { ...defaultHTMLConverters },
+        }),
+      );
+      return /<(?:img|picture|hr)\b/i.test(html) ? html : `<div class="mp-text">${html}</div>`;
+    })
+    .join("");
+}
+
+function styleEmailBlock(html: string): string {
   return html
     .replace(/<p(\s[^>]*)?>\s*<a([^>]*?)href="([^"]*)"([^>]*)>((?:(?!<a[\s>])[\s\S])*?)<\/a>\s*<\/p>/g, (_m, _pAttrs, before: string, href: string, after: string, label: string) => {
       const rest = `${before}${after}`.replace(/\s(?:style|class)="[^"]*"/g, "");
@@ -209,7 +223,8 @@ export function lexicalToEmailHtml(state: unknown): string {
     .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;">`)
     .replace(/<a(?![^>]*style=)(\s)/g, `<a class="mp-link" style="${LINK_STYLE}"$1`)
     .replace(/<(ul|ol)(?![^>]*style=)(\s[^>]*)?>/g, (_m, tag: string, attrs: string | undefined) => `<${tag}${attrs ?? ""} style="margin:0 0 16px;padding-left:22px;">`)
-    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} class="mp-heading" style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:${EMAIL_INK};">`);
+    .replace(/<hr(?![^>]*style=)(\s[^>]*)?>/g, `<hr style="border:0;border-top:1px solid ${EMAIL_INK};margin:24px 0;">`)
+    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:${EMAIL_INK};">`);
 }
 
 /** Lexical → plain text, keeping link URLs ("Download your tickets: https://…"). */
