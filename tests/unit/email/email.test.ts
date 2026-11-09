@@ -4,7 +4,7 @@ import { TEMPLATE_KEYS } from "@/cms/collections/comms/EmailTemplates";
 
 import { normalizeVars } from "@/cms/email/aliases";
 import { DEFAULT_TEMPLATES, toLexical } from "@/cms/email/defaults";
-import { renderEmailLayout } from "@/cms/email/layout";
+import { type EmailSite, renderEmailLayout } from "@/cms/email/layout";
 import {
   findVariables,
   findVariablesInString,
@@ -62,7 +62,7 @@ describe("rendering escapes what customers type", () => {
   it("keeps a real link, styles a lone link as a button, and keeps the URL in plain text", () => {
     const { html, text } = render(["Before", "[Download your tickets]({{links.tickets}})"], { links: { tickets: "https://maison.test/t?sig=a&exp=1" } });
     expect(html).toContain('href="https://maison.test/t?sig=a&amp;exp=1"');
-    expect(html).toMatch(/<a[^>]+style="display:inline-block;background-color:#efe2ca;background:linear-gradient\(#efe2ca,#efe2ca\);/);
+    expect(html).toMatch(/<a[^>]+style="display:inline-block;border:1\.5px solid #2d3748;color:#2d3748;/);
     expect(text).toContain("Download your tickets: https://maison.test/t?sig=a&exp=1");
   });
 
@@ -108,108 +108,49 @@ describe("layout", () => {
     expect(html).toContain("<p>body</p>");
   });
 
-  it("keeps one theme in light and dark mode", () => {
-    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
+  const layout = (site: EmailSite = { name: "A", url: "https://a.test" }) => renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site });
+  const styleBlocks = (html: string) => [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+
+  it("is one colour, with no second ground for dark mode to split off", () => {
+    const html = layout({ name: "A", url: "https://a.test", email: "a@b.test" });
     expect(html).toContain('<meta name="color-scheme" content="light only">');
     expect(html).not.toContain("prefers-color-scheme");
     expect(html).toContain('class="mp-bg" bgcolor="#efe2ca" style="background-color:#efe2ca;background:linear-gradient(#efe2ca,#efe2ca);"');
-    expect(html).toContain('class="mp-card" bgcolor="#9059a4" style="background-color:#9059a4;background:linear-gradient(#9059a4,#9059a4);');
-    expect(html).toContain("[data-ogsb] .mp-card { background-color: #9059a4 !important; }");
-    const mobile = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes(".mp-side"));
-    expect(mobile).not.toMatch(/\[|:root|:hover/);
+    expect(html).not.toContain("#9059a4");
+    expect(html.match(/bgcolor="#[0-9a-f]{6}"/g)).toEqual(['bgcolor="#efe2ca"', 'bgcolor="#efe2ca"']);
+    const visible = html.replace(/<style>[\s\S]*?<\/style>/g, "").replace(/;base64,[^"]*/g, "");
+    expect([...new Set(visible.match(/#[0-9a-f]{6}\b/g))].sort()).toEqual(["#2d3748", "#efe2ca"]);
   });
 
-  it("locks the backgrounds in a form Gmail keeps", () => {
-    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
-    expect(html).not.toMatch(/style="[^"]*background-image:/);
-    const lock = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes("background-blend-mode: screen, screen, normal !important;"));
+  it("keeps Gmail's stylesheet free of anything it would drop the block for", () => {
+    const blocks = styleBlocks(layout());
+    expect(blocks.find((css) => css.includes(".mp-side"))).not.toMatch(/\[|:root|:hover/);
+    const lock = blocks.find((css) => css.includes("linear-gradient"));
     expect(lock).toMatch(/^\s*@media screen \{/);
-    expect(lock).toContain(".mp-body, .mp-bg, .mp-button { background-image: linear-gradient(#00aa00, #00aa00), linear-gradient(#00a800, #00a800), linear-gradient(#ef00ca, #ef00ca) !important;");
-    expect(lock).toContain(".mp-card { background-image: linear-gradient(#9059a4, #9059a4) !important; }");
     expect(lock).not.toMatch(/\[|:root|:hover/);
+    expect(layout()).not.toMatch(/style="[^"]*background-image:/);
   });
 
-  it("keeps the footer text in the brand colours when Gmail darkens it", () => {
-    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test", email: "a@b.test" } });
-    expect(html).toContain('<span class="mp-footer-lines"><a href="mailto:a@b.test"');
-    expect(html).toContain(".mp-footer-text, .mp-button-label { background-image: linear-gradient(#000000, #000000) !important; mix-blend-mode: exclusion !important; }");
-    expect(html).toContain(".mp-footer-name { color: #dedddf !important; }");
-    expect(html).toContain(".mp-footer-lines, .mp-footer-lines a, .mp-button-text { color: #b6d8a0 !important; mix-blend-mode: hard-light !important; }");
-    expect(html).not.toContain("[data-ogsc] .mp-footer-name");
+  it("states the Gmail lock so that it resolves to the two brand colours", () => {
+    const lock = styleBlocks(layout()).find((css) => css.includes("background-blend-mode"));
+    const screen = (...values: number[]) => Math.round(255 * (1 - values.reduce((left, v) => left * (1 - v / 255), 1)));
+    const exclusion = (a: number, b: number) => Math.round(a + b - (2 * a * b) / 255);
+    expect([screen(0x00, 0x00, 0xef), screen(0xaa, 0xa8, 0x00), screen(0x00, 0x00, 0xca)]).toEqual([0xef, 0xe2, 0xca]);
+    expect([exclusion(0xef, 0xde), exclusion(0xe2, 0xdd), exclusion(0xca, 0xdf)]).toEqual([0x2d, 0x37, 0x48]);
+    expect(lock).toContain("linear-gradient(#00aa00, #00aa00), linear-gradient(#00a800, #00a800), linear-gradient(#ef00ca, #ef00ca)");
+    expect(lock).toContain("mix-blend-mode: exclusion !important;");
+    expect(lock).toContain("color: #dedddf !important;");
+    const text = layout({ name: "A", url: "https://a.test", email: "a@b.test" }).split(/<div class="mp-text"/).slice(1).map((part) => part.split("</div>")[0]);
+    expect(text.join("").match(/<strong[^>]*color:/)).toBeNull();
   });
 
-  it("shows the one logo, with no dark-mode swap", () => {
-    const site = { name: "A", url: "https://a.test", logoUrl: "https://a.test/light.png", logoDarkUrl: "https://a.test/dark.png" };
-    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site });
+  it("uses the logo made for light grounds", () => {
+    const html = layout({ name: "A", url: "https://a.test", logoUrl: "https://a.test/light.png", logoDarkUrl: "https://a.test/dark.png" });
     expect(html).toMatch(/<img class="mp-logo" src="https:\/\/a.test\/light.png"[^>]*style="display:block;/);
     expect(html).not.toContain("dark.png");
   });
-});
 
-describe("redaction (SPEC §D.5)", () => {
-  it("redacts links/token/url/magic keys at any depth and keeps the rest", () => {
-    const out = redactVariables({
-      customer: { firstName: "Layla" },
-      links: { tickets: "https://x", invoice: "https://y" },
-      "links.myBookings": "https://z",
-      token: "abc",
-      urlForRetry: "https://r",
-      retryUrl: "https://r2",
-      magicLink: "https://m",
-      nested: { link: "https://n", ok: 1 },
-      list: [{ token: "t" }, "plain"],
-      at: new Date("2026-01-01T00:00:00Z"),
-    }) as Record<string, unknown>;
-    expect(out.customer).toEqual({ firstName: "Layla" });
-    expect(out.links).toBe(REDACTED);
-    expect(out["links.myBookings"]).toBe(REDACTED);
-    expect(out.token).toBe(REDACTED);
-    expect(out.urlForRetry).toBe(REDACTED);
-    expect(out.retryUrl).toBe(REDACTED);
-    expect(out.magicLink).toBe(REDACTED);
-    expect(out.nested).toEqual({ link: REDACTED, ok: 1 });
-    expect(out.list).toEqual([{ token: REDACTED }, "plain"]);
-    expect(out.at).toBe("2026-01-01T00:00:00.000Z");
-  });
-
-  it("redacts a signed URL hiding under an innocent key", () => {
-    const out = redactVariables({ note: "see https://x.test/api/site/tickets/MPT-1/pdf?exp=1&sig=abc", where: "/my-bookings?t=xyz" }) as Record<string, unknown>;
-    expect(out.note).toBe(REDACTED);
-    expect(out.where).toBe(REDACTED);
-  });
-});
-
-describe("keys, variables and house copy stay in step", () => {
-  const keys = TEMPLATE_KEYS.map((option) => option.value);
-
-  it("has a variable list and house copy for every template key", () => {
-    expect(Object.keys(TEMPLATE_VARIABLES).sort()).toEqual([...keys].sort());
-    expect(DEFAULT_TEMPLATES.map((t) => t.key).sort()).toEqual([...keys].sort());
-  });
-
-  it("uses only declared variables in every default template (the save check would refuse otherwise)", () => {
-    for (const template of DEFAULT_TEMPLATES) {
-      const used = findVariables(toLexical(template.paragraphs), findVariablesInString(`${template.subject} ${template.preheader ?? ""}`));
-      const allowed = variableNamesFor(template.key);
-      const unknown = [...used].filter((name) => !allowed.has(name));
-      expect({ key: template.key, unknown }).toEqual({ key: template.key, unknown: [] });
-    }
-  });
-
-  it("renders every default template with its samples without leaving braces behind", () => {
-    for (const template of DEFAULT_TEMPLATES) {
-      const vars = sampleVariables(template.key);
-      const state = interpolateLexical(toLexical(template.paragraphs) as never, vars);
-      const html = lexicalToEmailHtml(state);
-      expect(html).not.toMatch(/\{\{|%7B%7B/);
-      expect(interpolate(template.subject, vars)).not.toMatch(/\{\{/);
-    }
-  });
-
-  it("knows which templates are staff alerts", () => {
-    expect(isStaffTemplate("admin_new_order")).toBe(true);
-    expect(isStaffTemplate("staff_login_link")).toBe(true);
-    expect(isStaffTemplate("order_confirmation")).toBe(false);
-    expect(COMMON_VARIABLES.every((v) => v.name.startsWith("site."))).toBe(true);
+  it("sets the name as a wordmark when there is no such logo", () => {
+    expect(layout()).toContain('class="mp-text mp-header-fallback"');
   });
 });

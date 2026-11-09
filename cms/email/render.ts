@@ -176,12 +176,16 @@ export function interpolateLexical(state: LexicalState, vars: TemplateVars): Lex
   return { ...state, root: { ...state.root, children: mapChildren(state.root.children) ?? [] } };
 }
 
+/** The whole email is these two colours: White Rock and Charcoal Slate. The Gmail lock in layout.ts is worked out from them. */
+export const EMAIL_GROUND = "#efe2ca";
+export const EMAIL_INK = "#2d3748";
+
 export const lockedBackground = (hex: string) => `background-color:${hex};background:linear-gradient(${hex},${hex});`;
 
 /* Inline styles: email clients ignore <style> blocks unevenly; the shell sets fonts, these set rhythm. */
-const LINK_STYLE = "color:#efe2ca;text-decoration:underline;";
+const LINK_STYLE = `color:${EMAIL_INK};text-decoration:underline;`;
 const BUTTON_STYLE =
-  `display:inline-block;${lockedBackground("#efe2ca")}color:#9059a4;text-decoration:none;font-weight:600;letter-spacing:0.02em;padding:13px 26px;border-radius:999px;box-shadow:0 8px 18px -10px rgba(45,55,72,0.45);`;
+  `display:inline-block;border:1.5px solid ${EMAIL_INK};color:${EMAIL_INK};text-decoration:none;font-weight:600;letter-spacing:0.02em;padding:13px 26px;border-radius:999px;`;
 
 /**
  * Lexical → email HTML. Payload's default converters, then three inline
@@ -200,12 +204,12 @@ export function lexicalToEmailHtml(state: unknown): string {
   return html
     .replace(/<p(\s[^>]*)?>\s*<a([^>]*?)href="([^"]*)"([^>]*)>((?:(?!<a[\s>])[\s\S])*?)<\/a>\s*<\/p>/g, (_m, _pAttrs, before: string, href: string, after: string, label: string) => {
       const rest = `${before}${after}`.replace(/\s(?:style|class)="[^"]*"/g, "");
-      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}"><span class="mp-button-label" style="color:#9059a4 !important;"><span class="mp-button-text">${label}</span></span></a></p>`;
+      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}">${label}</a></p>`;
     })
     .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;">`)
     .replace(/<a(?![^>]*style=)(\s)/g, `<a class="mp-link" style="${LINK_STYLE}"$1`)
     .replace(/<(ul|ol)(?![^>]*style=)(\s[^>]*)?>/g, (_m, tag: string, attrs: string | undefined) => `<${tag}${attrs ?? ""} style="margin:0 0 16px;padding-left:22px;">`)
-    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} class="mp-heading" style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:#efe2ca;">`);
+    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} class="mp-heading" style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:${EMAIL_INK};">`);
 }
 
 /** Lexical → plain text, keeping link URLs ("Download your tickets: https://…"). */
