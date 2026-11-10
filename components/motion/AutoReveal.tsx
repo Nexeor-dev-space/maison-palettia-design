@@ -51,11 +51,11 @@ import { useEffect } from "react";
  */
 
 const CANDIDATES =
-  "h1,h2,h3,h4,h5,p,li,article,figure,blockquote,table,form,dl,img,picture,video,a,button,[data-card]";
+  "h1,h2,h3,h4,h5,p,li,article,blockquote,table,form,dl,video,a,button,[data-card]";
 
 const SKIP_ANCESTORS = "header,footer,nav,[role=dialog],[aria-modal=true],[data-no-reveal],[data-hero-intro]";
 
-type Kind = "heading" | "card" | "text" | "photo";
+type Kind = "heading" | "card" | "text";
 
 const EASE = "cubic-bezier(0.22, 0.8, 0.28, 1)";
 
@@ -63,7 +63,6 @@ const MOTION: Record<Kind, { from: string; duration: number }> = {
   heading: { from: "translateY(46px) skewY(2.2deg)", duration: 1100 },
   card: { from: "translateY(70px) scale(0.965)", duration: 1200 },
   text: { from: "translateY(34px)", duration: 1000 },
-  photo: { from: "scale(1.16)", duration: 1500 },
 };
 
 /** Between siblings that come into view together. */
@@ -73,12 +72,7 @@ const MAX_STEPS = 6;
 function kindOf(el: Element): Kind {
   const tag = el.tagName;
   if (tag === "H1" || tag === "H2" || tag === "H3") return "heading";
-  if (tag === "IMG" || tag === "PICTURE" || tag === "VIDEO") {
-    const parent = el.parentElement;
-    const clip = parent ? getComputedStyle(parent).overflow : "visible";
-    return clip === "hidden" || clip === "clip" ? "photo" : "card";
-  }
-  if (tag === "LI" || tag === "ARTICLE" || tag === "FIGURE" || tag === "A" || tag === "BUTTON" || el.hasAttribute("data-card"))
+  if (tag === "LI" || tag === "ARTICLE" || tag === "A" || tag === "BUTTON" || tag === "VIDEO" || el.hasAttribute("data-card"))
     return "card";
   return "text";
 }
@@ -173,6 +167,7 @@ export function AutoReveal() {
         if (insidePicked(el)) continue;
         if (el.closest("[data-reveal]") || el.querySelector("[data-reveal]")) continue;
         if (el.closest(SKIP_ANCESTORS)) continue;
+        if (el.tagName === "IMG" || el.tagName === "PICTURE" || el.tagName === "FIGURE") continue;
 
         const rect = el.getBoundingClientRect();
         if (rect.width < 4 || rect.height < 4) continue;

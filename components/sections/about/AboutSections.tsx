@@ -251,7 +251,7 @@ export function Welcome({
                 it. The marks are inside this box, so they keep hugging the
                 picture whatever its size. */}
             <div className="relative mx-auto max-w-[34rem]">
-            <Reveal variant="imageReveal" delay={0.24} className="relative block">
+            <div className="relative block">
               <span
                 className="relative block aspect-[4/5] w-full"
                 data-paint
@@ -274,7 +274,7 @@ export function Welcome({
                 />
                 ) : null}
               </span>
-            </Reveal>
+            </div>
 
             <span
               aria-hidden

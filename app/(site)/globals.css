@@ -2145,17 +2145,13 @@ html:not([data-loops]) [data-loop]:not([data-loop="eager"]) *::after {
 }
 
 img[data-blur][data-loaded] {
-  animation: photo-reveal 480ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+  opacity: 1;
 }
 
-@keyframes photo-reveal {
-  from {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  img[data-blur][data-loaded] {
-    animation: none;
-  }
+/* Hide the blur placeholder layer as soon as the photograph has loaded */
+:has(> img[data-blur][data-loaded]) > [data-blur-layer],
+[data-blur-layer]:has(~ img[data-blur][data-loaded]) {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease-out;
 }
