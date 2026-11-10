@@ -72,6 +72,7 @@ export const sessions: Chapter = {
           type: "steps",
           items: [
             "Further down, set the main photograph ((1)). Square works best.",
+            "Under it, **Page photograph** is the wide picture at the top of the experience's own page. Leave it empty to use the main photograph there too.",
             "The pencil ((2)) edits the photo's alt text and focal point. The [[×]] ((3)) removes it from here only; it stays in Media.",
             "Add up to three gallery photos ((4)) and drag the dots to change their order.",
           ],
@@ -88,6 +89,15 @@ export const sessions: Chapter = {
             { n: 2, label: "Pencil: edit this photo (alt text, focal point)" },
             { n: 3, label: "×: remove it from here (the photo stays in Media)" },
             { n: 4, label: "Gallery cards — drag the dots to reorder" },
+          ],
+        },
+        {
+          type: "info",
+          title: "Which photo shows where",
+          text: [
+            "**Main photograph**: the experience's cards on the Events page, the Gallery page and the homepage.",
+            "**Page photograph**: the top of the experience's own page and its date pages, and the preview in the Workshops menu. A wide photo works best; set its focal point so the crop keeps the subject.",
+            "**Gallery**: the fanned cards beside the About text.",
           ],
         },
         {

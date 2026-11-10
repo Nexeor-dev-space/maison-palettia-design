@@ -153,7 +153,7 @@ export function checkSeed(payload: Payload): { problems: Problem[]; pagesWithPro
   const collections: Array<[string, Row[]]> = [
     ["vibes", VIBES as unknown as Row[]],
     ["venues", CURRENT_VENUES as unknown as Row[]],
-    ["experiences", EXPERIENCES.map((e) => ({ ...e, about: e.about.map((paragraph) => ({ paragraph })), image: undefined, gallery: undefined }))],
+    ["experiences", EXPERIENCES.map((e) => ({ ...e, about: e.about.map((paragraph) => ({ paragraph })), image: undefined, pageImage: undefined, gallery: undefined }))],
     ["workshop-types", WORKSHOP_TYPES.map((t) => ({ ...t, about: (t.about ?? []).map((paragraph) => ({ paragraph })), progression: { note: t.progression?.note }, experience: undefined, image: undefined }))],
     ["sessions", SESSIONS.map((s) => ({ ...s, slug: sessionSlug(sessionSlugBase(s), s.startsAt), experience: undefined, workshopType: undefined, venue: undefined, image: undefined, status: undefined }))],
     ["programmes", PROGRAMMES.map((p) => ({ ...p, image: undefined }))],

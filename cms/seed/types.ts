@@ -21,6 +21,8 @@ export interface ExperienceSeed {
   description?: string;
   about: string[];
   image?: PublicPath;
+  /** The wide photograph that opens the experience's own page; unset, the page opens on `image`. */
+  pageImage?: PublicPath;
   gallery: PublicPath[];
   status?: string;
   privateEventEligible: boolean;

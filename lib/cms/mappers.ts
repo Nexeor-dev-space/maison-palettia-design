@@ -177,6 +177,9 @@ export function toCreativeExperience(doc: CmsExperience): CreativeExperience {
     .map((vibe) => populated(vibe)?.slug)
     .filter((slug): slug is string => Boolean(slug)) as VibeSlug[];
   const image = imageOf(doc.image);
+  // The page's own opening photograph is a full-width banner, so it asks for
+  // the widest rendition; unset, every reader falls back to `image`.
+  const pageImage = imageOf(doc.pageImage, "hero");
   return {
     slug: doc.slug,
     name: doc.name,
@@ -187,6 +190,7 @@ export function toCreativeExperience(doc: CmsExperience): CreativeExperience {
     ...(doc.status ? { status: doc.status } : {}),
     ...(vibes.length ? { vibes } : {}),
     ...(image ? { image } : {}),
+    ...(pageImage ? { pageImage } : {}),
   };
 }
 

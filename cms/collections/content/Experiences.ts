@@ -25,6 +25,15 @@ import { CONTENT_GROUP, contentDrafts, draftedContentAccess, gallery, image, ord
  * `about[]` is the long copy and is craft only — price, age, duration and
  * group size are facts on the session and the policies (01 §4.2).
  *
+ * TWO PHOTOGRAPHS, TWO JOBS. `image` is the square one on cards, menu
+ * thumbs, the gallery and the homepage. `pageImage` is the wide one that
+ * opens the experience's own page (and its type and session pages, the
+ * Workshops menu preview and the private-events plate); empty, those fall
+ * back to `image`. Until Nov 2026 the page photographs and the About frames
+ * were held in code (lib/experiences.ts) and laid over the CMS answer, so an
+ * editor's change never showed on the page; they are CMS fields now, and
+ * cms/lib/pagePhotos.ts moved the code-held files into the library once.
+ *
  * Publishing an experience whose photographs are AI-generated or of unknown
  * origin is refused by `publishGate` unless Site details allows it. A
  * published slug is changed by admins only and the old address redirects;
@@ -86,6 +95,7 @@ export const Experiences: CollectionConfig = {
     beforeValidate: [
       imageryPublishGate([
         { field: "image", noun: "The hero image" },
+        { field: "pageImage", noun: "The page photograph" },
         { field: "gallery", noun: "The gallery image" },
       ]),
     ],
@@ -130,6 +140,11 @@ export const Experiences: CollectionConfig = {
       description: "One row per paragraph; two is the house length. Craft only — no price, age, duration or group size here.",
     }),
     image("image", "Main photograph", "Square works best: menu thumbs are 48 px squares and cards are near-square. At least 1000 px."),
+    image(
+      "pageImage",
+      "Page photograph",
+      "Optional. Opens this experience's own page and its date pages, and is the preview in the Workshops menu. Leave empty to use the main photograph. Landscape, at least 1600 px wide; set the focal point so a wide crop keeps the subject.",
+    ),
     gallery("gallery", "Gallery (up to 3)", 3, "Fanned beside the About section on the experience page. Must not repeat the main photograph."),
     {
       name: "status",

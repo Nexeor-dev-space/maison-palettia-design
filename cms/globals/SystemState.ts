@@ -17,6 +17,11 @@
  * `publicUrlConfirmedAt` is stamped by the first human save of Site details
  * and read by `isPlaceholderPublicUrl()`; the other stamps belong to the
  * seed and the daily jobs (§H.9).
+ *
+ * `pagePhotosMovedAt` is stamped once by cms/lib/pagePhotos.ts, when the
+ * experience pages' photographs have been moved out of the code and onto
+ * the experiences' own fields. Until it is set, lib/experiences.ts keeps
+ * laying the in-file photographs over the CMS answer, as the site did.
  */
 
 import type { GlobalConfig } from "payload";
@@ -49,5 +54,6 @@ export const SystemState: GlobalConfig = {
       validate: matches(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD"),
     }),
     { name: "lastInventoryReconcileAt", type: "date", label: "Last inventory reconcile" },
+    { name: "pagePhotosMovedAt", type: "date", label: "Experience page photographs moved into the library at" },
   ],
 };

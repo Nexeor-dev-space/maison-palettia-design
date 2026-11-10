@@ -588,6 +588,10 @@ export interface Experience {
    */
   image?: (string | null) | Media;
   /**
+   * Optional. Opens this experience's own page and its date pages, and is the preview in the Workshops menu. Leave empty to use the main photograph. Landscape, at least 1600 px wide; set the focal point so a wide crop keeps the subject.
+   */
+  pageImage?: (string | null) | Media;
+  /**
    * Fanned beside the About section on the experience page. Must not repeat the main photograph.
    */
   gallery?: (string | Media)[] | null;
@@ -5209,6 +5213,7 @@ export interface ExperiencesSelect<T extends boolean = true> {
         id?: T;
       };
   image?: T;
+  pageImage?: T;
   gallery?: T;
   ageGuidance?: T;
   meta?:
@@ -7738,6 +7743,7 @@ export interface SystemState {
   publicUrlConfirmedAt?: string | null;
   lastDigestDay?: string | null;
   lastInventoryReconcileAt?: string | null;
+  pagePhotosMovedAt?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -8712,6 +8718,7 @@ export interface SystemStateSelect<T extends boolean = true> {
   publicUrlConfirmedAt?: T;
   lastDigestDay?: T;
   lastInventoryReconcileAt?: T;
+  pagePhotosMovedAt?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

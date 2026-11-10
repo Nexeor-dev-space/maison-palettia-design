@@ -512,6 +512,32 @@ from `scripts/deploy.sh` and `Dockerfile.runtime` above. What makes it work:
 non-superuser role, TLS or a private network) is still owed before real
 customer data lands — see "Database gate".
 
+### Experience page photographs (Nov 2026, runs once)
+
+Each experience has a **Page photograph** field beside its **Gallery**. Before
+this release those photos were held in code and laid over the CMS, so changing
+them in the admin had no effect on the page.
+
+`npm run start:prod` moves the code-held photos into the media library and
+onto the seven experiences the first time it starts after the migration
+(`cms/lib/pagePhotos.ts`, called from `restore-media`). It then stamps
+`system-state.pagePhotosMovedAt` and never runs again. Until the stamp is set
+the site keeps showing the in-file photos, so the pages look the same before
+and after, whatever order migrate, build and start happen in. The start log
+says what it did (`restore-media: page photographs — …`).
+
+- A server that does not start through `start:prod` (systemd with
+  `scripts/deploy.sh`) runs it by hand, once, **on the server**:
+  `npx payload run cms/scripts/move-page-photos.ts`
+  (`PAGE_PHOTOS_DRY_RUN=1` in front reports without writing).
+- Never run it from a laptop pointed at the shared database: the uploads
+  would land on the laptop. It refuses there.
+- The moved photos keep their true origin: seven are marked **Stock**
+  (Shutterstock, contributor noted, no licence on file) and nineteen
+  **Unknown**. An editor cannot publish an experience using an Unknown photo
+  unless Site details allows it; relabel each photo in Media once its source
+  is confirmed, or replace it.
+
 ### Photos missing on the server ("image" requests return 400)
 
 The media library is rows in Postgres plus files in `/app/media`. If the

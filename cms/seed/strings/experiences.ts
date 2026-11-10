@@ -3,8 +3,11 @@ import type { ExperienceSeed } from "../types";
 /**
  * The seven activities, copied by value from lib/experiences.ts (git
  * 2e1651b), in the array's order (the client's own: walk-in first).
- * `image` / `gallery` are paths under public/ — the seed resolves them to
- * the media documents imported by cms/seed/media.ts. Age guidance is joined
+ * `image` / `pageImage` / `gallery` are paths under public/ — the seed
+ * resolves them to the media documents imported by cms/seed/media.ts.
+ * `pageImage` and `gallery` are each page's own photographs (the client's
+ * Oct 2026 set); cms/lib/pagePhotos.ts reads them from here to move an
+ * existing database onto the CMS fields once. Age guidance is joined
  * from lib/policies.ts by activity name (SPEC §F.3) in AGE_GUIDANCE below.
  */
 
@@ -19,7 +22,11 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "Give a plain cotton bag a little colour, a little chaos and a lot of you. Paint it, personalise it and walk out with something no one else has.", // lib/experiences.ts:142
     ],
     image: "images/experiences/TOTE_BAG_PAINTING.jpg", // lib/experiences.ts:177
+    pageImage: "images/experiences/tote-bag-painting/tote-bag-painting-hero.jpg",
     gallery: [
+      "images/experiences/tote-bag-painting/tote-bag-painting-leaves.jpg",
+      "images/experiences/tote-bag-painting/tote-bag-painting-koi.jpg",
+      "images/experiences/tote-bag-painting/tote-bag-painting-table.jpg",
     ],
     privateEventEligible: true,
     order: 1,
@@ -34,7 +41,11 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "Start with a blank ceramic and see what happens. Play with shapes, patterns and colour until an everyday piece becomes something you’ll want to use again and again.", // lib/experiences.ts:191
     ],
     image: "images/experiences/CERAMIC_PAINTING.jpg", // lib/experiences.ts:220
+    pageImage: "images/experiences/ceramic-painting/ceramic-painting-hero.jpg",
     gallery: [
+      "images/experiences/ceramic-painting/ceramic-painting-cups.jpg",
+      "images/experiences/ceramic-painting/ceramic-painting-cherries.jpg",
+      "images/experiences/ceramic-painting/ceramic-painting-plates.jpg",
     ],
     privateEventEligible: true,
     order: 2,
@@ -49,7 +60,11 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "Choose what you want to bedazzle, pick your gems and start placing them one by one. Build a pattern, follow the light or cover the whole thing in sparkle.", // lib/experiences.ts:231
     ],
     image: "images/experiences/BEDAZZLING.jpg", // lib/experiences.ts:261
+    pageImage: "images/experiences/bedazzling/bedazzling-hero.png",
     gallery: [
+      "images/experiences/bedazzling/bedazzling-espresso-martini.jpg",
+      "images/experiences/bedazzling/bedazzling-can.jpg",
+      "images/experiences/bedazzling/bedazzling-cherries.jpg",
     ],
     privateEventEligible: true,
     order: 3,
@@ -64,7 +79,11 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "Build your mandala one dot, petal and ring at a time. Watch the pattern grow as colours and shapes repeat, shift and come together.", // lib/experiences.ts:273
     ],
     image: "images/experiences/MANDALA_PAINTING.jpg", // lib/experiences.ts:294
+    pageImage: "images/experiences/mandala-painting/mandala-painting-hero.jpg",
     gallery: [
+      "images/experiences/mandala-painting/mandala-painting-teal.jpg",
+      "images/experiences/mandala-painting/mandala-painting-red.jpg",
+      "images/experiences/mandala-painting/mandala-painting-candles.jpg",
     ],
     status: "Coming soon", // lib/experiences.ts:311
     privateEventEligible: true,
@@ -80,9 +99,11 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "Paint your design, layer in your colours and let the light become part of it. What starts on the table takes on a whole new look by the window.", // lib/experiences.ts:309
     ],
     image: "images/experiences/GLASS_PAINTING.jpg", // lib/experiences.ts:337
+    pageImage: "images/experiences/glass-painting/glass-painting-hero.jpg",
     gallery: [
-      "images/experience/glass-painting-1.jpg", // lib/experiences.ts:313
-      "images/experience/glass-painting-2.jpg", // lib/experiences.ts:318
+      "images/experience/glass-painting-1.jpg",
+      "images/experience/glass-painting-2.jpg",
+      "images/experiences/glass-painting/glass-painting-bottle.jpg",
     ],
     status: "Coming soon", // lib/experiences.ts:335
     privateEventEligible: true,
@@ -98,7 +119,11 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "Set with dried flowers, or with hearts pressed into the surface, or left perfectly plain. It cools into the shape of the vessel you poured it in.", // lib/experiences.ts:348
     ],
     image: "images/experiences/CANDLE_MAKING.jpg", // lib/experiences.ts:370
+    pageImage: "images/experiences/candle-making/candle-making-hero.jpg",
     gallery: [
+      "images/experiences/candle-making/candle-making-table.jpg",
+      "images/experiences/candle-making/candle-making-wicks.jpg",
+      "images/experiences/candle-making/candle-making-jars.jpg",
     ],
     privateEventEligible: true,
     order: 6,
@@ -113,8 +138,11 @@ export const EXPERIENCES: ExperienceSeed[] = [
       "Granny squares worked a round at a time, in whatever colours come out of the basket. A blanket is only ever one of these joined to the next.", // lib/experiences.ts:381
     ],
     image: "images/experiences/CROCHETING.jpg", // lib/experiences.ts:403
+    pageImage: "images/experiences/crocheting/crocheting-hero.jpg",
     gallery: [
-      "images/1-2.jpg", // lib/experiences.ts:390
+      "images/experiences/crocheting/crocheting-granny-square.jpg",
+      "images/experiences/crocheting/crocheting-blanket.jpg",
+      "images/experiences/crocheting/crocheting-table.jpg",
     ],
     privateEventEligible: true,
     order: 7,

@@ -91,6 +91,8 @@ const ALLOWED: Record<string, string[] | "anywhere"> = {
   DOCS_CHROME_CHANNEL: ["scripts/build-admin-guide-pdf.mjs"],
   BLUR_FROM: ["cms/scripts/backfill-blur.ts"],
   BLUR_DRY_RUN: ["cms/scripts/backfill-blur.ts"],
+  PAGE_PHOTOS_DRY_RUN: ["cms/scripts/move-page-photos.ts"],
+  PAGE_PHOTOS_FORCE: ["cms/scripts/move-page-photos.ts"],
 };
 
 describe("process.env allowlist (SPEC §C.1, §K grep gate)", () => {

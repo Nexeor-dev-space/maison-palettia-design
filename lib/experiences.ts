@@ -1,6 +1,9 @@
+import { pagePhotosMoved } from "@/cms/lib/pagePhotosState";
 import { TAGS } from "@/lib/cms/cache";
 import { toCreativeExperience } from "@/lib/cms/mappers";
+import { getCms } from "@/lib/cms/payload";
 import { contentReader, findDocs } from "@/lib/cms/query";
+import { pageGallery } from "@/lib/pagePhotosTransition";
 import type { VibeSlug } from "@/lib/vibes";
 import type { ImageAsset } from "@/types";
 import { withStaticBlurs } from "@/lib/staticBlur";
@@ -124,7 +127,8 @@ export interface CreativeExperience {
   /**
    * The photograph at the top of the activity's OWN page, where it differs
    * from `image` (which the menu, the homepage carousel and the cards use).
-   * Unset, the page opens on `image`. See PAGE_PHOTOS_IN_CODE below.
+   * Unset, the page opens on `image`. The experience's "Page photograph" in
+   * the CMS; set in the admin, like `gallery`, and never laid over in code.
    */
   pageImage?: ImageAsset & { position?: string };
 }
@@ -151,7 +155,15 @@ export interface CreativeExperience {
 /* The CMS (`experiences`, seeded from this array by 2B) is the source now.
    This array is only what `getCreativeExperiences` returns when the
    collection cannot be read at all (a build without the database); an empty
-   CMS answer is "nothing published" and is never replaced by it. */
+   CMS answer is "nothing published" and is never replaced by it.
+
+   `pageImage` and `gallery` are each page's own photographs — the client's
+   Oct 2026 set under public/images/experiences/<slug>/. Until Nov 2026 they
+   were laid over whatever the CMS answered, so a photograph changed in the
+   admin never reached the page; they are the experience's "Page photograph"
+   and "Gallery" in the CMS now and this copy is the fallback alone. Where
+   each file came from (seven are Shutterstock images, the rest carry no
+   source) is recorded on its media document — cms/seed/strings/media.ts. */
 const EXPERIENCES: readonly CreativeExperience[] = [
   {
     slug: "tote-bag-painting",
@@ -160,7 +172,25 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       "Your tote called. It wants a personality.",
       "Give a plain cotton bag a little colour, a little chaos and a lot of you. Paint it, personalise it and walk out with something no one else has.",
     ],
-    // gallery: held in code below (PAGE_PHOTOS_IN_CODE), which replaces any list here.
+    pageImage: {
+      src: "/images/experiences/tote-bag-painting/tote-bag-painting-hero.jpg",
+      alt: "A hand painting blue jellyfish with long trailing tentacles onto a canvas tote, pots of paint and paper cups on the table behind.",
+      position: "45% 50%",
+    },
+    gallery: [
+      {
+        src: "/images/experiences/tote-bag-painting/tote-bag-painting-leaves.jpg",
+        alt: "A canvas tote painted with a sprig of green leaves over soft pink and teal washes, a palette of greens and a water glass beside it.",
+      },
+      {
+        src: "/images/experiences/tote-bag-painting/tote-bag-painting-koi.jpg",
+        alt: "Seen from above, a hand outlining two koi fish and small stars in black on a canvas tote, palettes and a mug on the table.",
+      },
+      {
+        src: "/images/experiences/tote-bag-painting/tote-bag-painting-table.jpg",
+        alt: "A row of people at a long wooden table painting small flowers onto canvas totes, bottles of fabric paint lined up on a shelf.",
+      },
+    ],
     description: "A plain tote, waiting for your personality.",
     kind: "diy",
     image: {
@@ -180,7 +210,25 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       "Ceramic is better with a little colour.",
       "Start with a blank ceramic and see what happens. Play with shapes, patterns and colour until an everyday piece becomes something you’ll want to use again and again.",
     ],
-    // gallery: held in code below (PAGE_PHOTOS_IN_CODE), which replaces any list here.
+    pageImage: {
+      src: "/images/experiences/ceramic-painting/ceramic-painting-hero.jpg",
+      alt: "Hands painting soft blocks of pink, peach, blue and teal onto a small white pot with a fine brush, pots of paint blurred behind.",
+      position: "50% 26%",
+    },
+    gallery: [
+      {
+        src: "/images/experiences/ceramic-painting/ceramic-painting-cups.jpg",
+        alt: "A small cup painted in loose strokes of pale blue, yellow and pink, other painted cups and plain white ware around it.",
+      },
+      {
+        src: "/images/experiences/ceramic-painting/ceramic-painting-cherries.jpg",
+        alt: "Hands painting little pink cherries with green stems onto a plain ceramic cup, a palette of paints on the table beside it.",
+      },
+      {
+        src: "/images/experiences/ceramic-painting/ceramic-painting-plates.jpg",
+        alt: "Two people bent over their pieces at a long table, each painting a scalloped ceramic dish in soft green with a fine brush.",
+      },
+    ],
     description: "A little piece of you, in ceramic form.",
     kind: "diy",
     image: {
@@ -197,15 +245,25 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       "How much sparkle is too much?",
       "Choose what you want to bedazzle, pick your gems and start placing them one by one. Build a pattern, follow the light or cover the whole thing in sparkle.",
     ],
-    /*
-      NOTE(client): these three are BEADING — a sorting tray, strung baubles,
-      a necklace being threaded — while the copy above describes placing gems.
-      They are the set supplied under this activity's name, so they are shown;
-      the alt lines say beads, because that is what is in them. If the studio
-      means rhinestones rather than beads, this set wants replacing, or the
-      copy wants to say beads.
-    */
-    // gallery: held in code below (PAGE_PHOTOS_IN_CODE), which replaces any list here.
+    pageImage: {
+      src: "/images/experiences/bedazzling/bedazzling-hero.png",
+      alt: "A hand pressing small gems onto a peacock design with a pink drill pen, rows of blue, teal and pearl-white stones already set.",
+      position: "50% 45%",
+    },
+    gallery: [
+      {
+        src: "/images/experiences/bedazzling/bedazzling-espresso-martini.jpg",
+        alt: "A hand holding up a pink canvas covered in gems that spell out Espresso Martini under a sparkling cocktail glass.",
+      },
+      {
+        src: "/images/experiences/bedazzling/bedazzling-can.jpg",
+        alt: "Hands setting red and silver gems onto a drinks can with a white pen, trays and tubs of loose stones on the wooden table.",
+      },
+      {
+        src: "/images/experiences/bedazzling/bedazzling-cherries.jpg",
+        alt: "A small white canvas on a wooden easel, bedazzled with two red gem cherries hanging from a pink pearl bow.",
+      },
+    ],
     description: "When in doubt, add a little sparkle.",
     kind: "diy",
     image: {
@@ -223,7 +281,25 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       "Start in the centre. Let the rest unfold.",
       "Build your mandala one dot, petal and ring at a time. Watch the pattern grow as colours and shapes repeat, shift and come together.",
     ],
-    // gallery: held in code below (PAGE_PHOTOS_IN_CODE), which replaces any list here.
+    pageImage: {
+      src: "/images/experiences/mandala-painting/mandala-painting-hero.jpg",
+      alt: "A dot mandala painted in teal, lilac and cream on a dark round board, laid among daisies, dried petals and an old book page.",
+      position: "50% 74%",
+    },
+    gallery: [
+      {
+        src: "/images/experiences/mandala-painting/mandala-painting-teal.jpg",
+        alt: "Close on a teal mandala outlined in gold, rings of tiny gold dots and dark teardrop petals around a blue centre.",
+      },
+      {
+        src: "/images/experiences/mandala-painting/mandala-painting-red.jpg",
+        alt: "Rings of raised yellow dots, each with a blue centre, spiralling out across a deep red painted board.",
+      },
+      {
+        src: "/images/experiences/mandala-painting/mandala-painting-candles.jpg",
+        alt: "Two dot mandalas in gold and amber on black boards, set among orange pillar candles, a slice of amethyst and a fern.",
+      },
+    ],
     kind: "diy",
     // The client's own wording, carried through rather than paraphrased —
     // the same flag glass painting carries, and it reaches every surface
@@ -261,12 +337,16 @@ const EXPERIENCES: readonly CreativeExperience[] = [
         alt:
           "A hand painting red poppies and green stems onto a glass panel laid flat, jars of colour around it.",
       },
-      /*
-        NOTE(client): the third frame is brushes and a palette rather than
-        glass. It is in the set supplied under this activity's name and it
-        reads as the studio, which is true; the alt line claims no glass.
-      */
+      {
+        src: "/images/experiences/glass-painting/glass-painting-bottle.jpg",
+        alt: "Hands painting white clouds onto a glass bottle with a teal sea already painted around its base.",
+      },
     ],
+    pageImage: {
+      src: "/images/experiences/glass-painting/glass-painting-hero.jpg",
+      alt: "A fine brush flooding amber paint into a rose outlined in black on textured glass, the leaves around it already filled in green.",
+      position: "50% 55%",
+    },
     kind: "diy",
     // The client's own wording, carried through rather than paraphrased.
     status: "Coming soon",
@@ -284,7 +364,25 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       "Wax, a wick and the colour you choose, poured and left to set. The shade is decided before anything is melted, so the jar is one you specified rather than one you picked off a shelf.",
       "Set with dried flowers, or with hearts pressed into the surface, or left perfectly plain. It cools into the shape of the vessel you poured it in.",
     ],
-    // gallery: held in code below (PAGE_PHOTOS_IN_CODE), which replaces any list here.
+    pageImage: {
+      src: "/images/experiences/candle-making/candle-making-hero.jpg",
+      alt: "A hand holding a poured candle in a glass with a pink label, dried pink and purple flowers set in the wax, black wick trimmers at its centre.",
+      position: "55% 55%",
+    },
+    gallery: [
+      {
+        src: "/images/experiences/candle-making/candle-making-table.jpg",
+        alt: "A long wooden table laid with lace doilies, glass jars and paper cups, and bowls of bubble, rose and flower candles in bright colours.",
+      },
+      {
+        src: "/images/experiences/candle-making/candle-making-wicks.jpg",
+        alt: "Hands trimming the wick of a cream-and-lilac bubble candle with scissors, a blue bubble candle, a pink shell and a pink arch candle beside it.",
+      },
+      {
+        src: "/images/experiences/candle-making/candle-making-jars.jpg",
+        alt: "Hands holding a freshly poured jar candle with its wick held straight by two sticks, sprinkling dried lavender from a small dish.",
+      },
+    ],
     description: "Wax, wick and colour, poured and left to set.",
     kind: "scheduled",
     image: {
@@ -301,7 +399,25 @@ const EXPERIENCES: readonly CreativeExperience[] = [
       "A hook, a ball of yarn and one stitch to start from. Everything after that is the same movement repeated, which is what makes a first row possible at all.",
       "Granny squares worked a round at a time, in whatever colours come out of the basket. A blanket is only ever one of these joined to the next.",
     ],
-    // gallery: held in code below (PAGE_PHOTOS_IN_CODE), which replaces any list here.
+    pageImage: {
+      src: "/images/experiences/crocheting/crocheting-hero.jpg",
+      alt: "Hands working a small round of white cotton on a gold crochet hook, the first rounds already open and lacy.",
+      position: "50% 32%",
+    },
+    gallery: [
+      {
+        src: "/images/experiences/crocheting/crocheting-granny-square.jpg",
+        alt: "Hands in a speckled knit sweater starting a pale pink round on a hook, finished granny squares in mustard, green and rust laid out behind.",
+      },
+      {
+        src: "/images/experiences/crocheting/crocheting-blanket.jpg",
+        alt: "A granny-square blanket in red, olive green, cream and white, edged in dark teal, with a ball of the teal yarn resting on it.",
+      },
+      {
+        src: "/images/experiences/crocheting/crocheting-table.jpg",
+        alt: "Two people at a wooden table, one crocheting from a ball of blue yarn while the other points to her work, balls of coloured yarn around them.",
+      },
+    ],
     description: "A hook, a ball of yarn and one stitch to start from.",
     kind: "scheduled",
     image: {
@@ -323,8 +439,38 @@ export { EXPERIENCE_KIND_LABEL } from "@/lib/experienceLabels";
  */
 const readExperiences = contentReader("experiences", [TAGS.experiences, TAGS.vibes], async (draft) => {
   const docs = await findDocs("experiences", draft, { drafts: true, sort: "order", depth: 1 });
-  return docs.map(toCreativeExperience);
+  const experiences = docs.map(toCreativeExperience);
+  // Read inside the cached loader, so one cache entry holds one consistent answer.
+  return (await pagePhotosMoved(await getCms())) ? experiences : experiences.map(withInFilePagePhotos);
 });
+
+/*
+  ==========================================================================
+  THE PAGE PHOTOGRAPHS, UNTIL THE LIBRARY HOLDS THEM
+  ==========================================================================
+
+  Each page's banner and About frames used to be held here and laid over the
+  CMS answer, whatever the admin said. They are the experience's own "Page
+  photograph" and "Gallery" now, and cms/lib/pagePhotos.ts moves the files
+  into the library once, at the first server start after the release.
+
+  Between the deploy and that move the CMS has no page photographs yet, and
+  a build may already have cached that answer. So until the move has stamped
+  the database, the in-file photographs are laid over the CMS answer exactly
+  as before — the site looks the same on either side of the move, whichever
+  order migrate, build and start happen in. Once stamped, this is never
+  applied again: the admin decides, and an emptied Page photograph falls
+  back to the main one.
+
+  Delete this, the move and lib/pagePhotosTransition.ts together when every
+  database has been moved.
+*/
+function withInFilePagePhotos(experience: CreativeExperience): CreativeExperience {
+  const inFile = EXPERIENCES.find((entry) => entry.slug === experience.slug);
+  if (!inFile?.pageImage) return experience;
+  const gallery = pageGallery(experience.slug, experience.gallery ?? [], inFile.gallery ?? []);
+  return { ...experience, pageImage: inFile.pageImage, ...(gallery.length ? { gallery } : {}) };
+}
 
 /**
  * Every creative experience, in the studio's own order.
@@ -338,8 +484,9 @@ export async function getCreativeExperiences(): Promise<CreativeExperience[]> {
   const fromCms = await readExperiences();
   // The in-file list only when the CMS could not be read (null); an empty
   // answer means "nothing published".
-  // The code-held photographs get their blurred stand-ins (lib/staticBlur.ts).
-  return withStaticBlurs((fromCms ?? EXPERIENCES).map(holdStatusInCode).map(holdPagePhotosInCode));
+  // The in-file photographs get their blurred stand-ins (lib/staticBlur.ts);
+  // CMS photographs carry their own and pass through untouched.
+  return withStaticBlurs((fromCms ?? EXPERIENCES).map(holdStatusInCode));
 }
 
 /*
@@ -371,242 +518,4 @@ function holdStatusInCode(experience: CreativeExperience): CreativeExperience {
   if (!STATUS_HELD_IN_CODE.includes(experience.slug)) return experience;
   const status = EXPERIENCES.find((entry) => entry.slug === experience.slug)?.status;
   return status ? { ...experience, status } : experience;
-}
-
-/*
-  ==========================================================================
-  AN ACTIVITY PAGE'S PHOTOGRAPHS, SET HERE RATHER THAN IN THE CMS
-  ==========================================================================
-
-  At the client's ask (Oct 2026) the Bedazzling page opens on a new picture —
-  a hand setting gems on a peacock design with a drill pen — and its About
-  section shows three new frames. They are laid over whatever the CMS
-  answers, like the status flags above, so the change ships with the code
-  and does not depend on an upload in the admin.
-
-  ONLY THE PAGE CHANGES. The hero goes in `pageImage`, not `image`, so the
-  activity's card in the menu, on the homepage and on /events keeps the
-  square photograph it has; `gallery` is read by the activity's page alone.
-
-  To hand these back to the CMS, delete the entry here and set the
-  photographs on the experience in the admin.
-*/
-const BEDAZZLING_PHOTOS = "/images/experiences/bedazzling";
-
-const PAGE_PHOTOS_IN_CODE: Record<string, Pick<CreativeExperience, "pageImage" | "gallery">> = {
-  bedazzling: {
-    pageImage: {
-      src: `${BEDAZZLING_PHOTOS}/bedazzling-hero.png`,
-      alt: "A hand pressing small gems onto a peacock design with a pink drill pen, rows of blue, teal and pearl-white stones already set.",
-      position: "50% 45%",
-    },
-    gallery: [
-      {
-        src: `${BEDAZZLING_PHOTOS}/bedazzling-espresso-martini.jpg`,
-        alt: "A hand holding up a pink canvas covered in gems that spell out Espresso Martini under a sparkling cocktail glass.",
-      },
-      {
-        src: `${BEDAZZLING_PHOTOS}/bedazzling-can.jpg`,
-        alt: "Hands setting red and silver gems onto a drinks can with a white pen, trays and tubs of loose stones on the wooden table.",
-      },
-      {
-        src: `${BEDAZZLING_PHOTOS}/bedazzling-cherries.jpg`,
-        alt: "A small white canvas on a wooden easel, bedazzled with two red gem cherries hanging from a pink pearl bow.",
-      },
-    ],
-  },
-};
-
-/*
-  CANDLE MAKING (Oct 2026): the page's banner — dried flowers being pressed
-  into a poured candle — and three new frames for its About card.
-  PROVENANCE: three of the four are Shutterstock images (Yavdat, Di Studio and
-  New Africa, read from each supplied file's own metadata) and may only stay
-  with a licence; the fourth, the table of coloured candles, carries no source
-  at all. None is the studio's own photograph or its guests.
-*/
-const CANDLE_PHOTOS = "/images/experiences/candle-making";
-PAGE_PHOTOS_IN_CODE["candle-making"] = {
-  pageImage: {
-    src: `${CANDLE_PHOTOS}/candle-making-hero.jpg`,
-    alt: "A hand holding a poured candle in a glass with a pink label, dried pink and purple flowers set in the wax, black wick trimmers at its centre.",
-    position: "55% 55%",
-  },
-  gallery: [
-    {
-      src: `${CANDLE_PHOTOS}/candle-making-table.jpg`,
-      alt: "A long wooden table laid with lace doilies, glass jars and paper cups, and bowls of bubble, rose and flower candles in bright colours.",
-    },
-    {
-      src: `${CANDLE_PHOTOS}/candle-making-wicks.jpg`,
-      alt: "Hands trimming the wick of a cream-and-lilac bubble candle with scissors, a blue bubble candle, a pink shell and a pink arch candle beside it.",
-    },
-    {
-      src: `${CANDLE_PHOTOS}/candle-making-jars.jpg`,
-      alt: "Hands holding a freshly poured jar candle with its wick held straight by two sticks, sprinkling dried lavender from a small dish.",
-    },
-  ],
-};
-
-/*
-  CERAMIC PAINTING (Oct 2026): the page's banner — hands painting colour
-  blocks onto a small pot — and three new frames for its About card. The
-  banner is a PORTRAIT photograph in a landscape frame, so it is aimed at the
-  pot (`position`). PROVENANCE: two of the About frames are Shutterstock
-  images (oatawa and Roman Zaiets, read from each supplied file's metadata)
-  and may only stay with a licence; the banner and the painted-cup frame
-  carry no source at all. None is the studio's own photograph or its guests.
-*/
-const CERAMIC_PHOTOS = "/images/experiences/ceramic-painting";
-PAGE_PHOTOS_IN_CODE["ceramic-painting"] = {
-  pageImage: {
-    src: `${CERAMIC_PHOTOS}/ceramic-painting-hero.jpg`,
-    alt: "Hands painting soft blocks of pink, peach, blue and teal onto a small white pot with a fine brush, pots of paint blurred behind.",
-    position: "50% 26%",
-  },
-  gallery: [
-    {
-      src: `${CERAMIC_PHOTOS}/ceramic-painting-cups.jpg`,
-      alt: "A small cup painted in loose strokes of pale blue, yellow and pink, other painted cups and plain white ware around it.",
-    },
-    {
-      src: `${CERAMIC_PHOTOS}/ceramic-painting-cherries.jpg`,
-      alt: "Hands painting little pink cherries with green stems onto a plain ceramic cup, a palette of paints on the table beside it.",
-    },
-    {
-      src: `${CERAMIC_PHOTOS}/ceramic-painting-plates.jpg`,
-      alt: "Two people bent over their pieces at a long table, each painting a scalloped ceramic dish in soft green with a fine brush.",
-    },
-  ],
-};
-
-/*
-  CROCHETING (Oct 2026): the page's banner — hands working a small white
-  round on a gold hook — and three new frames for its About card. The banner
-  is a PORTRAIT photograph in a landscape frame, so it is aimed at the hands
-  (`position`). PROVENANCE: the table frame is a Shutterstock image (Alfonso
-  Soler, read from the supplied file's metadata) and may only stay with a
-  licence; the other three carry no source at all. None is the studio's own
-  photograph or its guests.
-*/
-const CROCHET_PHOTOS = "/images/experiences/crocheting";
-PAGE_PHOTOS_IN_CODE["crocheting"] = {
-  pageImage: {
-    src: `${CROCHET_PHOTOS}/crocheting-hero.jpg`,
-    alt: "Hands working a small round of white cotton on a gold crochet hook, the first rounds already open and lacy.",
-    position: "50% 32%",
-  },
-  gallery: [
-    {
-      src: `${CROCHET_PHOTOS}/crocheting-granny-square.jpg`,
-      alt: "Hands in a speckled knit sweater starting a pale pink round on a hook, finished granny squares in mustard, green and rust laid out behind.",
-    },
-    {
-      src: `${CROCHET_PHOTOS}/crocheting-blanket.jpg`,
-      alt: "A granny-square blanket in red, olive green, cream and white, edged in dark teal, with a ball of the teal yarn resting on it.",
-    },
-    {
-      src: `${CROCHET_PHOTOS}/crocheting-table.jpg`,
-      alt: "Two people at a wooden table, one crocheting from a ball of blue yarn while the other points to her work, balls of coloured yarn around them.",
-    },
-  ],
-};
-
-/*
-  GLASS PAINTING (Oct 2026): a new banner, and ONE of the About card's three
-  frames replaced — the third — so the first two stay whatever the CMS gives.
-  That is why it is a slot swap rather than a whole gallery.
-  PROVENANCE: the bottle frame is a Shutterstock image (Sumala Chidchoi, read
-  from the supplied file's metadata) and may only stay with a licence; the
-  banner carries no source at all. Neither is the studio's own photograph.
-*/
-const GLASS_PHOTOS = "/images/experiences/glass-painting";
-PAGE_PHOTOS_IN_CODE["glass-painting"] = {
-  pageImage: {
-    src: `${GLASS_PHOTOS}/glass-painting-hero.jpg`,
-    alt: "A fine brush flooding amber paint into a rose outlined in black on textured glass, the leaves around it already filled in green.",
-    position: "50% 55%",
-  },
-};
-
-/*
-  MANDALA PAINTING (Oct 2026): the page's banner — a finished dot mandala in
-  teal, lilac and cream among dried flowers — and three new frames for its
-  About card. The banner is a PORTRAIT photograph in a landscape frame, so it
-  is aimed at the mandala (`position`). PROVENANCE: none of the four carries a
-  source in its metadata, and none is the studio's own work. The banner has a
-  printed page of a Harry Potter novel in it, legible at banner size.
-*/
-const MANDALA_PHOTOS = "/images/experiences/mandala-painting";
-PAGE_PHOTOS_IN_CODE["mandala-painting"] = {
-  pageImage: {
-    src: `${MANDALA_PHOTOS}/mandala-painting-hero.jpg`,
-    alt: "A dot mandala painted in teal, lilac and cream on a dark round board, laid among daisies, dried petals and an old book page.",
-    position: "50% 74%",
-  },
-  gallery: [
-    {
-      src: `${MANDALA_PHOTOS}/mandala-painting-teal.jpg`,
-      alt: "Close on a teal mandala outlined in gold, rings of tiny gold dots and dark teardrop petals around a blue centre.",
-    },
-    {
-      src: `${MANDALA_PHOTOS}/mandala-painting-red.jpg`,
-      alt: "Rings of raised yellow dots, each with a blue centre, spiralling out across a deep red painted board.",
-    },
-    {
-      src: `${MANDALA_PHOTOS}/mandala-painting-candles.jpg`,
-      alt: "Two dot mandalas in gold and amber on black boards, set among orange pillar candles, a slice of amethyst and a fern.",
-    },
-  ],
-};
-
-/*
-  TOTE BAG PAINTING (Oct 2026): the page's banner — a brush finishing a row
-  of blue jellyfish on a canvas tote — and three new frames for its About
-  card. PROVENANCE: none of the four carries a source in its metadata, and
-  none is known to be the studio's own session.
-*/
-const TOTE_PHOTOS = "/images/experiences/tote-bag-painting";
-PAGE_PHOTOS_IN_CODE["tote-bag-painting"] = {
-  pageImage: {
-    src: `${TOTE_PHOTOS}/tote-bag-painting-hero.jpg`,
-    alt: "A hand painting blue jellyfish with long trailing tentacles onto a canvas tote, pots of paint and paper cups on the table behind.",
-    position: "45% 50%",
-  },
-  gallery: [
-    {
-      src: `${TOTE_PHOTOS}/tote-bag-painting-leaves.jpg`,
-      alt: "A canvas tote painted with a sprig of green leaves over soft pink and teal washes, a palette of greens and a water glass beside it.",
-    },
-    {
-      src: `${TOTE_PHOTOS}/tote-bag-painting-koi.jpg`,
-      alt: "Seen from above, a hand outlining two koi fish and small stars in black on a canvas tote, palettes and a mug on the table.",
-    },
-    {
-      src: `${TOTE_PHOTOS}/tote-bag-painting-table.jpg`,
-      alt: "A row of people at a long wooden table painting small flowers onto canvas totes, bottles of fabric paint lined up on a shelf.",
-    },
-  ],
-};
-
-/** Single About frames replaced in code, by slug and position (0-based). */
-const GALLERY_SLOTS_IN_CODE: Record<string, Record<number, ImageAsset>> = {
-  "glass-painting": {
-    2: {
-      src: `${GLASS_PHOTOS}/glass-painting-bottle.jpg`,
-      alt: "Hands painting white clouds onto a glass bottle with a teal sea already painted around its base.",
-    },
-  },
-};
-
-function holdPagePhotosInCode(experience: CreativeExperience): CreativeExperience {
-  const photos = PAGE_PHOTOS_IN_CODE[experience.slug];
-  const held = photos ? { ...experience, ...photos } : experience;
-  const slots = GALLERY_SLOTS_IN_CODE[experience.slug];
-  if (!slots) return held;
-  // Sets the slot even past the end of a shorter list, so a gallery seeded
-  // with two photos still shows the code-held third.
-  const gallery = [...(held.gallery ?? [])];
-  for (const [i, photo] of Object.entries(slots)) gallery[Number(i)] = photo;
-  return { ...held, gallery: gallery.filter(Boolean) };
 }

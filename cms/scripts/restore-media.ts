@@ -8,6 +8,7 @@ import { getPayload } from "payload";
 import sharp from "sharp";
 
 import { backfillBlur } from "@/cms/lib/backfillBlur";
+import { describeMove, movePagePhotos } from "@/cms/lib/pagePhotos";
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { STORAGE_ENABLED } from "@/cms/lib/storage";
 import { storedFilename } from "@/cms/seed/media";
@@ -42,6 +43,11 @@ import { MEDIA } from "@/cms/seed/strings/media";
  * volume (docs/cms-runbook.md, "Deploying with Coolify").
  *
  * Cheap when nothing is missing: one query and one `existsSync` per document.
+ *
+ * It also carries two one-off fills that need the same moment — after the
+ * migrations, before the server: the blurred stand-ins (cms/lib/
+ * backfillBlur.ts) and the experience pages' photographs moving from the
+ * code into the library (cms/lib/pagePhotos.ts; one global read once done).
  */
 
 const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
@@ -180,6 +186,17 @@ async function main() {
   );
   if (unrecoverable.length) {
     console.log(`restore-media: check these missing or incomplete files: ${unrecoverable.join(", ")}`);
+  }
+
+  // The experience pages' photographs, out of the code and into the library:
+  // once per database (cms/lib/pagePhotos.ts). Its own failure must not stop
+  // the blur fill below, or the start — the site shows the in-file copies
+  // until this has succeeded, and the next start tries again.
+  try {
+    const move = await movePagePhotos(payload, { dryRun, log: (line) => console.log(`restore-media: ${line}`) });
+    if (move.state !== "already-moved") console.log(`restore-media: page photographs — ${describeMove(move)}`);
+  } catch (err) {
+    console.error("restore-media: page photographs were not moved —", err instanceof Error ? err.message : err);
   }
 
   // Blurred stand-ins for any picture that predates them, from this disk.

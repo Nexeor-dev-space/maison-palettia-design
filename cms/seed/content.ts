@@ -146,6 +146,7 @@ export async function seedContent(
         description: experience.description,
         about: experience.about.map((paragraph) => ({ paragraph })),
         image: mediaId(media, experience.image),
+        pageImage: mediaId(media, experience.pageImage),
         gallery: experience.gallery.map((p) => mediaId(media, p)),
         status: experience.status,
         ageGuidance: AGE_GUIDANCE[experience.slug],

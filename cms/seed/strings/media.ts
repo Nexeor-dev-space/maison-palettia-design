@@ -3,6 +3,8 @@
  * The media import list (SPEC §F.1) — the 72 files under public/ the code
  * references today (01-content-inventory.md §9.1, minus the three favicons,
  * which stay static, and the missing pigment-on-paper.jpg, defect #1).
+ * Plus the 26 experience-page photographs that lib/experiences.ts used to
+ * hold in code (Nov 2026) — see the block below `images/1-2.jpg`.
  * ==========================================================================
  *
  * One record per FILE: a picture printed in two places with two different
@@ -27,6 +29,8 @@ export interface MediaSeed {
   /** Focal point in percent of width and height. */
   focal?: [number, number];
   provenance: "studio" | "client-supplied" | "stock" | "ai-generated" | "unknown";
+  /** For `stock`: what is known about the licence — the library's "Licence / purchase reference". */
+  licence?: string;
   tags: string[];
   caption?: string;
   consent?: boolean;
@@ -171,6 +175,187 @@ export const MEDIA: MediaSeed[] = [
     path: "images/1-2.jpg",
     alt: "A pair of hands crocheting a cream panel with a yellow hook, a wound ball of the same yarn beside them.",
     provenance: "client-supplied",
+    tags: ["experience-gallery"],
+  },
+  /*
+    THE EXPERIENCE PAGES' OWN PHOTOGRAPHS — the client's Oct 2026 set, one
+    banner ("Page photograph") and up to three About frames ("Gallery") per
+    activity. Alt text and focal points are the ones lib/experiences.ts held
+    while these were laid over the CMS in code. PROVENANCE is what each file
+    says about itself: seven carry Shutterstock credit and copyright in their
+    metadata (`stock`, with the contributor in `licence` — no licence is on
+    file); the other nineteen carry no source at all (`unknown`). None is
+    known to be the studio's own photograph or its guests. The mandala banner
+    has a printed page of a Harry Potter novel in it, legible at banner size.
+  */
+  {
+    path: "images/experiences/tote-bag-painting/tote-bag-painting-hero.jpg",
+    alt: "A hand painting blue jellyfish with long trailing tentacles onto a canvas tote, pots of paint and paper cups on the table behind.",
+    focal: [45, 50],
+    provenance: "unknown",
+    tags: ["hero"],
+  },
+  {
+    path: "images/experiences/tote-bag-painting/tote-bag-painting-leaves.jpg",
+    alt: "A canvas tote painted with a sprig of green leaves over soft pink and teal washes, a palette of greens and a water glass beside it.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/tote-bag-painting/tote-bag-painting-koi.jpg",
+    alt: "Seen from above, a hand outlining two koi fish and small stars in black on a canvas tote, palettes and a mug on the table.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/tote-bag-painting/tote-bag-painting-table.jpg",
+    alt: "A row of people at a long wooden table painting small flowers onto canvas totes, bottles of fabric paint lined up on a shelf.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/ceramic-painting/ceramic-painting-hero.jpg",
+    alt: "Hands painting soft blocks of pink, peach, blue and teal onto a small white pot with a fine brush, pots of paint blurred behind.",
+    focal: [50, 26],
+    provenance: "unknown",
+    tags: ["hero"],
+  },
+  {
+    path: "images/experiences/ceramic-painting/ceramic-painting-cups.jpg",
+    alt: "A small cup painted in loose strokes of pale blue, yellow and pink, other painted cups and plain white ware around it.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/ceramic-painting/ceramic-painting-cherries.jpg",
+    alt: "Hands painting little pink cherries with green stems onto a plain ceramic cup, a palette of paints on the table beside it.",
+    provenance: "stock",
+    licence: "Shutterstock — oatawa, © 2026 (read from the file). No licence on file: confirm one is held, or replace the picture.",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/ceramic-painting/ceramic-painting-plates.jpg",
+    alt: "Two people bent over their pieces at a long table, each painting a scalloped ceramic dish in soft green with a fine brush.",
+    provenance: "stock",
+    licence: "Shutterstock — Roman Zaiets, © 2026 (read from the file). No licence on file: confirm one is held, or replace the picture.",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/bedazzling/bedazzling-hero.png",
+    alt: "A hand pressing small gems onto a peacock design with a pink drill pen, rows of blue, teal and pearl-white stones already set.",
+    focal: [50, 45],
+    provenance: "unknown",
+    tags: ["hero"],
+  },
+  {
+    path: "images/experiences/bedazzling/bedazzling-espresso-martini.jpg",
+    alt: "A hand holding up a pink canvas covered in gems that spell out Espresso Martini under a sparkling cocktail glass.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/bedazzling/bedazzling-can.jpg",
+    alt: "Hands setting red and silver gems onto a drinks can with a white pen, trays and tubs of loose stones on the wooden table.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/bedazzling/bedazzling-cherries.jpg",
+    alt: "A small white canvas on a wooden easel, bedazzled with two red gem cherries hanging from a pink pearl bow.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/mandala-painting/mandala-painting-hero.jpg",
+    alt: "A dot mandala painted in teal, lilac and cream on a dark round board, laid among daisies, dried petals and an old book page.",
+    focal: [50, 74],
+    provenance: "unknown",
+    tags: ["hero"],
+  },
+  {
+    path: "images/experiences/mandala-painting/mandala-painting-teal.jpg",
+    alt: "Close on a teal mandala outlined in gold, rings of tiny gold dots and dark teardrop petals around a blue centre.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/mandala-painting/mandala-painting-red.jpg",
+    alt: "Rings of raised yellow dots, each with a blue centre, spiralling out across a deep red painted board.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/mandala-painting/mandala-painting-candles.jpg",
+    alt: "Two dot mandalas in gold and amber on black boards, set among orange pillar candles, a slice of amethyst and a fern.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/glass-painting/glass-painting-hero.jpg",
+    alt: "A fine brush flooding amber paint into a rose outlined in black on textured glass, the leaves around it already filled in green.",
+    focal: [50, 55],
+    provenance: "unknown",
+    tags: ["hero"],
+  },
+  {
+    path: "images/experiences/glass-painting/glass-painting-bottle.jpg",
+    alt: "Hands painting white clouds onto a glass bottle with a teal sea already painted around its base.",
+    provenance: "stock",
+    licence: "Shutterstock — Sumala Chidchoi, © 2025 (read from the file). No licence on file: confirm one is held, or replace the picture.",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/candle-making/candle-making-hero.jpg",
+    alt: "A hand holding a poured candle in a glass with a pink label, dried pink and purple flowers set in the wax, black wick trimmers at its centre.",
+    focal: [55, 55],
+    provenance: "stock",
+    licence: "Shutterstock — Yavdat, © 2021 (read from the file). No licence on file: confirm one is held, or replace the picture.",
+    tags: ["hero"],
+  },
+  {
+    path: "images/experiences/candle-making/candle-making-table.jpg",
+    alt: "A long wooden table laid with lace doilies, glass jars and paper cups, and bowls of bubble, rose and flower candles in bright colours.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/candle-making/candle-making-wicks.jpg",
+    alt: "Hands trimming the wick of a cream-and-lilac bubble candle with scissors, a blue bubble candle, a pink shell and a pink arch candle beside it.",
+    provenance: "stock",
+    licence: "Shutterstock — Di Studio, © 2023 (read from the file). No licence on file: confirm one is held, or replace the picture.",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/candle-making/candle-making-jars.jpg",
+    alt: "Hands holding a freshly poured jar candle with its wick held straight by two sticks, sprinkling dried lavender from a small dish.",
+    provenance: "stock",
+    licence: "Shutterstock — New Africa, © 2021 (read from the file). No licence on file: confirm one is held, or replace the picture.",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/crocheting/crocheting-hero.jpg",
+    alt: "Hands working a small round of white cotton on a gold crochet hook, the first rounds already open and lacy.",
+    focal: [50, 32],
+    provenance: "unknown",
+    tags: ["hero"],
+  },
+  {
+    path: "images/experiences/crocheting/crocheting-granny-square.jpg",
+    alt: "Hands in a speckled knit sweater starting a pale pink round on a hook, finished granny squares in mustard, green and rust laid out behind.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/crocheting/crocheting-blanket.jpg",
+    alt: "A granny-square blanket in red, olive green, cream and white, edged in dark teal, with a ball of the teal yarn resting on it.",
+    provenance: "unknown",
+    tags: ["experience-gallery"],
+  },
+  {
+    path: "images/experiences/crocheting/crocheting-table.jpg",
+    alt: "Two people at a wooden table, one crocheting from a ball of blue yarn while the other points to her work, balls of coloured yarn around them.",
+    provenance: "stock",
+    licence: "Shutterstock — Alfonso Soler, © 2026 (read from the file). No licence on file: confirm one is held, or replace the picture.",
     tags: ["experience-gallery"],
   },
   {

@@ -58,6 +58,7 @@ function metadataOf(seed: MediaSeed): Record<string, unknown> {
     alt: seed.alt,
     decorative: seed.decorative ?? false,
     provenance: seed.provenance,
+    ...(seed.licence ? { licence: seed.licence } : {}),
     tags: seed.tags,
     ...(seed.caption ? { caption: seed.caption } : {}),
     ...(seed.consent !== undefined ? { consent: seed.consent } : {}),
@@ -65,10 +66,20 @@ function metadataOf(seed: MediaSeed): Record<string, unknown> {
   };
 }
 
-export async function seedMedia(payload: Payload, tally: Tally, log: (line: string) => void): Promise<MediaIds> {
+export interface MediaOptions {
+  /** Import only these public paths (the rest of the list is not looked at). */
+  only?: ReadonlySet<string>;
+  /** Upload what is absent; never rewrite the metadata of a file already in the library. */
+  createOnly?: boolean;
+  /** Report what would be uploaded without writing. Absent files get no id. */
+  dryRun?: boolean;
+}
+
+export async function seedMedia(payload: Payload, tally: Tally, log: (line: string) => void, options: MediaOptions = {}): Promise<MediaIds> {
   const ids: MediaIds = new Map();
 
   for (const seed of MEDIA) {
+    if (options.only && !options.only.has(seed.path)) continue;
     const filename = storedFilename(seed.path);
     const absolute = path.join(PUBLIC_DIR, seed.path);
     const data = metadataOf(seed);
@@ -85,7 +96,9 @@ export async function seedMedia(payload: Payload, tally: Tally, log: (line: stri
 
     if (existing) {
       ids.set(seed.path, existing.id);
-      if (differs(data, existing)) {
+      if (options.createOnly) {
+        tally.add("media", "unchanged");
+      } else if (differs(data, existing)) {
         await payload.update({
           collection: "media",
           id: existing.id,
@@ -112,6 +125,11 @@ export async function seedMedia(payload: Payload, tally: Tally, log: (line: stri
 
     const mimetype = MIME[path.extname(seed.path).toLowerCase()];
     if (!mimetype) throw new Error(`media: no MIME type known for ${seed.path}`);
+
+    if (options.dryRun) {
+      tally.add("media", "created");
+      continue;
+    }
 
     const created = (await payload.create({
       collection: "media",
