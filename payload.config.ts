@@ -94,9 +94,37 @@ const ssl =
 /** The collections with a route of their own: SEO tab and live preview (SPEC §A.4; `posts` = the Journal). */
 const SEO_COLLECTIONS = ["pages", "experiences", "workshop-types", "sessions", "programmes", "policies", "posts"] as const;
 
+class CsrfAllowlist extends Array<string> {
+  override includes(searchElement: string, fromIndex?: number): boolean {
+    if (super.includes(searchElement, fromIndex)) return true;
+    try {
+      const url = new URL(searchElement);
+      // Allow staging preview subdomains (e.g. 200.staging-maison-palettia-design.client2.nexeor.com)
+      if (
+        url.hostname === "staging-maison-palettia-design.client2.nexeor.com" ||
+        url.hostname.endsWith(".staging-maison-palettia-design.client2.nexeor.com")
+      ) {
+        return true;
+      }
+      if (serverUrl) {
+        const baseHost = new URL(serverUrl).hostname;
+        if (url.hostname === baseHost || url.hostname.endsWith(`.${baseHost}`)) {
+          return true;
+        }
+      }
+      if (!isProd && (url.hostname === "localhost" || url.hostname === "127.0.0.1")) {
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+}
+
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || "",
-  csrf: Array.from(new Set([serverUrl, ...(isProd ? [] : ["http://localhost:3200", "http://127.0.0.1:3200"])].filter(Boolean))) as string[],
+  csrf: new CsrfAllowlist(
+    ...Array.from(new Set([serverUrl, ...(isProd ? [] : ["http://localhost:3200", "http://127.0.0.1:3200"])].filter(Boolean) as string[])),
+  ),
   cors: [], // no cross-origin REST consumers — the site is same-origin
   admin: {
     user: "users",
