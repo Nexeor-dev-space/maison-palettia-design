@@ -39,7 +39,7 @@ export const normaliseCreditNoteCode = (value: unknown): unknown =>
 export const mintCreditNoteCode = (): string =>
   `CN-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
-export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, req }) => {
+export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, req, operation }) => {
   if (!data) return data;
 
   if (!data.code || typeof data.code !== "string" || !data.code.trim()) {
@@ -58,6 +58,25 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
       : data.order && typeof data.order === "object" && "id" in data.order
         ? String(data.order.id)
         : undefined;
+
+  // Prevent duplicate credit note issuance against the same booking
+  if (orderId && operation === "create" && req?.payload?.find) {
+    try {
+      const existing = await req.payload.find({
+        collection: "credit-notes",
+        where: { order: { equals: orderId } },
+        limit: 1,
+        depth: 0,
+        overrideAccess: true,
+        req,
+      });
+      if (existing.docs.length > 0) {
+        throw new APIError("A credit note has already been issued for this booking.", 409);
+      }
+    } catch (err) {
+      if (err instanceof APIError) throw err;
+    }
+  }
 
   if (orderId && (!data.customerEmail || !data.customerName || !data.customer)) {
     try {
@@ -116,10 +135,10 @@ export const CreditNotes: CollectionConfig = {
   slug: "credit-notes",
   labels: { singular: "Credit note", plural: "Credit notes" },
   admin: {
-    group: BOOKINGS_GROUP,
+    group: "Credit Notes",
     useAsTitle: "code",
-    defaultColumns: ["code", "order", "customerEmail", "amountFils", "status", "expiresAt", "issuedAt"],
-    description: "Credit notes issued to customers for rescheduling or credits. Redeemed at checkout via promo code.",
+    defaultColumns: ["code", "order", "redeemedInOrder", "customerEmail", "amountFils", "status", "expiresAt", "issuedAt"],
+    description: "Credit notes issued to customers for rescheduling. Redeemed at checkout via promo code.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["code", "customerEmail", "customerName"],
     components: {

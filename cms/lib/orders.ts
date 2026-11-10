@@ -30,7 +30,7 @@ import { parseMamoDate } from "./mamo/refunds";
 import { mintReturnK } from "./mamo/returnToken";
 import { formatAed, fromMamoAmount, MIN_REFUND_FILS } from "./money";
 import { adminUrl } from "./notifyStaff";
-import { appendTimeline, timelineEntry, timelineOf, transition } from "./orderState";
+import { appendTimeline, canTransition, timelineEntry, timelineOf, transition } from "./orderState";
 import { allocate, assertPayable, quote, reservePassSql, reservePromoSql, restorePassSql, restoreReservations } from "./pricing";
 import { mintCreditNoteCode } from "@/cms/collections/commerce/CreditNotes";
 import { DEFAULT_REFERENCE_PREFIX, mintReference } from "./reference";
@@ -1768,6 +1768,25 @@ export async function issueCreditNoteForOrder(
   const customerName = [order.contact?.firstName, order.contact?.lastName].filter(Boolean).join(" ");
 
   return withTransaction(req, async () => {
+    // 1. Prevent duplicate credit note issuance against the same booking
+    const existing = await req.payload.find({
+      collection: "credit-notes" as never,
+      where: { order: { equals: order.id } },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+      req,
+    });
+    if (existing.docs.length > 0) {
+      throw new CheckoutError("duplicate_credit_note", `A credit note has already been issued for booking ${order.reference}.`, 409);
+    }
+
+    // 2. Validate order status - only confirmed/confirming bookings can be credited & cancelled
+    if (!["confirmed", "confirming"].includes(order.status as string)) {
+      throw new CheckoutError("not_cancellable", `Credit note cannot be issued: Booking ${order.reference} is ${order.status}.`, 400);
+    }
+
+    // 3. Create credit note
     const doc = (await req.payload.create({
       collection: "credit-notes" as never,
       data: {
@@ -1787,6 +1806,29 @@ export async function issueCreditNoteForOrder(
       req,
     })) as unknown as Record<string, unknown>;
 
+    // 4. Void active tickets and release seats back to session inventory
+    const tickets = (await req.payload.find({
+      collection: "tickets",
+      where: { and: [{ order: { equals: order.id } }, { status: { in: ["valid", "checked_in"] } }] },
+      limit: 500,
+      depth: 0,
+      overrideAccess: true,
+      req,
+    })).docs as Ticket[];
+    for (const t of tickets) await updateDoc(req, "tickets", t.id, { status: "void" });
+    for (const [s, n] of Object.entries(seatsBySession(order.lines ?? []))) {
+      await refundSeats(req, s, n);
+    }
+
+    // 5. Automatically change the original booking status to Cancelled
+    if (canTransition(order.status as OrderStatus, "cancelled")) {
+      await transition(req, order, "cancelled", {
+        note: `Credit note ${code} (${formatAed(input.amountFils)}) issued for reschedule.`,
+        refs: { creditNote: String(doc.id) },
+      });
+    }
+
+    // 6. Record timeline entry on the booking
     await appendTimeline(req, order.id, "credit_note_issued", {
       code,
       amount: formatAed(input.amountFils),

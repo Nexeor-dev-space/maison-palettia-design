@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 
 import { ActionsMenu, type MenuItem } from "@/cms/components/admin/ActionsMenu";
-import { aed, callAction, fmtWhen, freshKey, parseAed } from "@/cms/components/admin/api";
+import { aed, callAction, fmtDate, fmtWhen, freshKey, parseAed } from "@/cms/components/admin/api";
 import { Check, Dialog, DialogButtons, Field } from "@/cms/components/admin/Dialog";
 
 /**
@@ -43,6 +43,8 @@ type OrderData = {
 };
 
 type PendingRefund = { id: string; amountFils: number; status: string; providerRefundId?: string | null; reason?: string };
+
+type IssuedCreditNoteInfo = { id: string; code: string; amountFils: number; status: "available" | "redeemed" | "expired"; expiresAt: string };
 
 type SessionOption = { id: string; label: string; available: number | null; priceFils: number };
 
@@ -86,6 +88,7 @@ export function OrderActions() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ tone: "error" | "ok" | "info"; text: string } | null>(null);
   const [pending, setPending] = useState<PendingRefund[]>([]);
+  const [creditNote, setCreditNote] = useState<IssuedCreditNoteInfo | null>(null);
 
   // Credit note form
   const [creditAmount, setCreditAmount] = useState("");
@@ -117,6 +120,20 @@ export function OrderActions() {
     let cancelled = false;
     callAction<{ docs: PendingRefund[] }>(api, `/refunds?where[order][equals]=${id}&where[status][equals]=requested&depth=0&limit=10`)
       .then((res) => !cancelled && setPending(res.docs))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [api, id, isAdmin, lastUpdateTime]);
+
+  // Credit note issued on this order (disables duplicate issuance and shows summary).
+  useEffect(() => {
+    if (!id || !isAdmin) return;
+    let cancelled = false;
+    callAction<{ docs: IssuedCreditNoteInfo[] }>(api, `/credit-notes?where[order][equals]=${id}&depth=0&limit=1`)
+      .then((res) => {
+        if (!cancelled) setCreditNote(res.docs?.[0] ?? null);
+      })
       .catch(() => undefined);
     return () => {
       cancelled = true;
@@ -221,8 +238,19 @@ export function OrderActions() {
   if (paid) {
     items.push({ label: "Refund…", icon: "refund", hint: desk ? "Record money handed back at the desk" : isAdmin ? "Full or partial, sent to Mamo Pay" : "Request for an admin to approve", onClick: () => void openDialog("refund") });
   }
-  if (isAdmin && paid) {
-    items.push({ label: "Issue credit note…", icon: "ticket", hint: "Issue booking credit for reschedule", onClick: () => void openDialog("credit-note") });
+  if (isAdmin) {
+    const hasNote = Boolean(creditNote);
+    items.push({
+      label: "Issue credit note…",
+      icon: "ticket",
+      hint: hasNote
+        ? `Credit note ${creditNote!.code} already issued (${creditNote!.status})`
+        : !paid
+          ? "Only confirmed bookings can be credited"
+          : "Issue booking credit for reschedule",
+      disabled: hasNote || !paid,
+      onClick: () => void openDialog("credit-note"),
+    });
   }
   if (order.status === "confirmed" && seatLine) {
     items.push({ label: "Move to another date…", icon: "move", hint: "Same experience, new session", onClick: () => void openDialog("move") });
@@ -257,6 +285,15 @@ export function OrderActions() {
       <span className={`mp-chip mp-chip--${STATUS_TONE[order.status] ?? "muted"}`} style={{ marginInlineEnd: 8 }}>
         {STATUS_LABEL[order.status] ?? order.status}
       </span>
+      {creditNote ? (
+        <span
+          className="mp-chip mp-chip--lilac"
+          style={{ marginInlineEnd: 8 }}
+          title={`Credit note ${creditNote.code}: ${aed(creditNote.amountFils)} (${creditNote.status}) · Expires ${fmtDate(creditNote.expiresAt)}`}
+        >
+          Credit note: {creditNote.code} ({creditNote.status})
+        </span>
+      ) : null}
       {order.needsReview ? (
         <span className="mp-chip mp-chip--warn" style={{ marginInlineEnd: 8 }}>
           Needs review

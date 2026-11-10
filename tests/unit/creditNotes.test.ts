@@ -164,6 +164,30 @@ describe("Credit Note System (FEAT #183)", () => {
       expect(prepared.customerName).toBe("Fatima Al Mansoori");
       expect(prepared.customer).toBe("customer-999");
     });
+
+    it("prevents duplicate credit note creation for an order that already has one", async () => {
+      const futureDate = new Date(Date.now() + 86400000 * 30).toISOString();
+      const mockReq = {
+        payload: {
+          find: async () => ({
+            docs: [{ id: "existing-cn-1", code: "CN-EXISTING" }],
+          }),
+        },
+      } as any;
+
+      await expect(
+        callPrepareHook({
+          data: {
+            code: "CN-NEW001",
+            order: "order-001",
+            amountFils: 10_000,
+            expiresAt: futureDate,
+          },
+          req: mockReq,
+          operation: "create",
+        }),
+      ).rejects.toThrow("A credit note has already been issued for this booking.");
+    });
   });
 
   describe("3. Credit Application & Pricing Calculation", () => {
@@ -276,15 +300,20 @@ describe("Credit Note System (FEAT #183)", () => {
   });
 
   describe("5. Collection Definition & Admin Display Requirements", () => {
-    it("configures all 7 required columns in CreditNotes defaultColumns", () => {
+    it("configures all required columns in CreditNotes defaultColumns including order and redeemedInOrder", () => {
       const cols = CreditNotes.admin?.defaultColumns as string[];
       expect(cols).toContain("code");
       expect(cols).toContain("order");
+      expect(cols).toContain("redeemedInOrder");
       expect(cols).toContain("customerEmail");
       expect(cols).toContain("amountFils");
       expect(cols).toContain("status");
       expect(cols).toContain("expiresAt");
       expect(cols).toContain("issuedAt");
+    });
+
+    it("has dedicated admin group 'Credit Notes'", () => {
+      expect(CreditNotes.admin?.group).toBe("Credit Notes");
     });
 
     it("defines the three statuses: available, redeemed, expired", () => {
