@@ -41,14 +41,23 @@ latin subset has no arrows, which is why the cards draw theirs.
 
 ## Hapsha Sophia Script (display / wordmark)
 
-`HapshaSophiaScript_01.otf`, supplied by the client. This is the brand's own
-script and it is what every `--font-display` on the site resolves to.
+The official licensed font files (purchased and integrated):
+- `HapshaSophiaScript.woff` (67KB) — loaded via `next/font/local` in `lib/fonts.ts`
+  and served to web browsers with optimal wire weight.
+- `HapshaSophiaScript.otf` (135KB) — loaded by PDFkit (`cms/lib/pdf/fonts.ts`)
+  for invoice/ticket rendering and by OpenGraph share cards
+  (`components/cms/shareCard.tsx`).
+- `HapshaSophiaScript.ttf` (130KB) — TrueType master face.
+- `HapshaSophiaSans.{woff,otf,ttf}` — the bundled companion sans face from the
+  official font package (Montserrat remains the primary UI/body sans).
+- `Hapsha_Sophia_Chararcter_Set.pdf` — foundry character set specimen sheet.
 
-A .woff2 would be roughly half the bytes over the wire and is worth generating
-before launch — about 20KB on a face only used at display size.
+This replaces the previous unlicensed demo cut (`HapshaSophiaScript_01.*`),
+providing the full 455-glyph character set including proper quotation marks
+(`’`, `‘`), dashes (`—`, `–`), ligatures, and extended character support.
 
 ## Unused files
 
-`Qarine.otf` and `HapshaSophiaScript_01.ttf` sit here but nothing loads them —
-neither is referenced by `lib/fonts.ts` or by any stylesheet. Qarine's
-registration was removed from globals.css deliberately; see the note there.
+`Qarine.otf` sits here but nothing loads it — neither is referenced by
+`lib/fonts.ts` or by any stylesheet. Qarine's registration was removed from
+globals.css deliberately; see the note there.

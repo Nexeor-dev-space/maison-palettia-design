@@ -345,7 +345,7 @@ export async function TwoWaysToCreate({
             the events page's job — here it is only the NEXT one, because the
             question this side answers is "is there one soon?".
           */
-          facts={[labels.bookedOnline, "Guided sessions", nextDate]}
+          facts={["Guided sessions", nextDate]}
           action={{ label: "See the dates", href: "/events#scheduled", tone: "cream" }}
         />
         </>
@@ -711,10 +711,15 @@ function Road({
       */}
       <Reveal delay={0.2}>
         <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-3">
-          {/* A fact that only repeats the footnote ("Booked online") is left out:
-              the star under the title already says it. */}
+          {/* A fact that only repeats the footnote is left out: the star under
+              the title already says it. "Booked online" is retired as a tag, but
+              the Home page's stored Create Together facts still hold that row. */}
           {facts
-            .filter((fact) => !(footnote && typeof fact === "string" && fact.trim().toLowerCase() === footnote.trim().toLowerCase()))
+            .filter((fact) => {
+              if (typeof fact !== "string") return true;
+              const text = fact.trim().toLowerCase();
+              return text !== "booked online" && !(footnote && text === footnote.trim().toLowerCase());
+            })
             .map((fact, i) => (
             /*
               `isolate` IS LOAD-BEARING. <PaintStroke> sits at `z-index: -1` so

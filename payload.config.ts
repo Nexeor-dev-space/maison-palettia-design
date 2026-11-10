@@ -22,7 +22,7 @@ import { globals } from "@/cms/globals";
 import { jobsConfig } from "@/cms/jobs";
 import { runtimeEmailAdapter } from "@/cms/lib/mailer";
 import { livePreviewUrl, publicUrl, routeFor } from "@/cms/lib/publicUrl";
-import { MEDIA_PREFIX, S3_CLIENT_CONFIG, STORAGE_BUCKET, STORAGE_ENABLED } from "@/cms/lib/storage";
+import { MEDIA_PREFIX, MUSIC_PREFIX, S3_CLIENT_CONFIG, STORAGE_BUCKET, STORAGE_ENABLED } from "@/cms/lib/storage";
 import { PRODUCTION_ORIGIN } from "@/lib/siteOrigin";
 import { seedDefaults } from "@/cms/seed/defaults";
 
@@ -244,7 +244,7 @@ export default buildConfig({
       alwaysInsertFields: true,
       bucket: STORAGE_BUCKET,
       config: S3_CLIENT_CONFIG,
-      collections: { media: { prefix: MEDIA_PREFIX } },
+      collections: { media: { prefix: MEDIA_PREFIX }, "music-tracks": { prefix: MUSIC_PREFIX } },
     }),
     // The SEO tab (P2 2A, SPEC §A.4, §I) on the five collections with a page of
     // their own: meta title, description, share image, snippet preview and

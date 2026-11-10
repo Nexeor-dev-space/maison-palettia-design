@@ -179,7 +179,7 @@ export const PAGES: PageSeed[] = [
             eyebrow: "A date and a seat", // :290
             title: "Create Together", // :291
             line: "A little more planned. Same creative energy.", // :294
-            facts: lines("Booked online", "Guided sessions"), // :301 (+ the next date, derived)
+            facts: lines("Guided sessions"), // :301 (+ the next date, derived)
             cta: cta("See the dates", "/events", "scheduled"), // :302
             ground: "lilac", // :289
           },
@@ -527,7 +527,7 @@ export const PAGES: PageSeed[] = [
         blockType: "eventsBrowser",
         doors: [
           { title: "Create Anytime", noteSource: "journey0", modeLabel: "No booking" }, // :195-196 (WORKSHOP_JOURNEY[0].description), :416
-          { title: "Create Together", noteSource: "journey1", modeLabel: "Booked online" }, // :204-205 (WORKSHOP_JOURNEY[1].description), :416
+          { title: "Create Together", noteSource: "journey1", modeLabel: "" }, // :204-205 (WORKSHOP_JOURNEY[1].description), :416
         ],
         groupLeads: {
           diy: "Pick a project. Pick your colours. Just drop in.", // app/(site)/events/page.tsx:244

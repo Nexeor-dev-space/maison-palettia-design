@@ -24,7 +24,7 @@ import type { InvoiceSetting, Media } from "@/payload-types";
  *
  * The display face (the session title on a ticket, the document title on
  * an invoice) is the brand script the site already ships,
- * public/fonts/HapshaSophiaScript_01.otf, falling back to the bold face.
+ * public/fonts/HapshaSophiaScript.otf, falling back to the bold face.
  *
  * EVERY CANDIDATE IS TRIED BEFORE IT IS TRUSTED. pdfkit embeds fonts when
  * the document ends, and a font it cannot subset (a variable font, some
@@ -56,7 +56,7 @@ export interface PdfFontSet {
 const BUNDLED = {
   regular: path.join(PROJECT_ROOT, "cms/pdf/fonts/Inter-Regular.ttf"),
   bold: path.join(PROJECT_ROOT, "cms/pdf/fonts/Inter-Bold.ttf"),
-  display: path.join(PROJECT_ROOT, "public/fonts/HapshaSophiaScript_01.otf"),
+  display: path.join(PROJECT_ROOT, "public/fonts/HapshaSophiaScript.otf"),
 };
 
 const verdicts = new Map<string, boolean>();

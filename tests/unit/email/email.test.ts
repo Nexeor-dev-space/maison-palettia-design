@@ -62,7 +62,7 @@ describe("rendering escapes what customers type", () => {
   it("keeps a real link, styles a lone link as a button, and keeps the URL in plain text", () => {
     const { html, text } = render(["Before", "[Download your tickets]({{links.tickets}})"], { links: { tickets: "https://maison.test/t?sig=a&exp=1" } });
     expect(html).toContain('href="https://maison.test/t?sig=a&amp;exp=1"');
-    expect(html).toMatch(/<a[^>]+style="display:inline-block;background:#efe2ca/);
+    expect(html).toMatch(/<a[^>]+style="display:inline-block;background-color:#efe2ca;background:linear-gradient\(#efe2ca,#efe2ca\);/);
     expect(text).toContain("Download your tickets: https://maison.test/t?sig=a&exp=1");
   });
 
@@ -108,25 +108,41 @@ describe("layout", () => {
     expect(html).toContain("<p>body</p>");
   });
 
-  it("keeps the light design and only darkens the page in a dark theme", () => {
+  it("keeps one theme in light and dark mode", () => {
     const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
-    expect(html).toContain('<meta name="color-scheme" content="light dark">');
-    const dark = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes("prefers-color-scheme: dark"));
-    expect(dark).toContain("body, .mp-body, .mp-bg { background-color: #9059a4 !important; }");
-    expect(dark).toContain(".mp-card { background-color: #2d3748 !important;");
-    expect(dark).not.toMatch(/\[|:root|:hover/);
-    expect(html).toContain("background:#efe2ca;");
-    expect(html).toContain("background:#9059a4;background-image:linear-gradient(#9059a4,#9059a4);");
+    expect(html).toContain('<meta name="color-scheme" content="light only">');
+    expect(html).not.toContain("prefers-color-scheme");
+    expect(html).toContain('class="mp-bg" bgcolor="#efe2ca" style="background-color:#efe2ca;background:linear-gradient(#efe2ca,#efe2ca);"');
+    expect(html).toContain('class="mp-card" bgcolor="#9059a4" style="background-color:#9059a4;background:linear-gradient(#9059a4,#9059a4);');
+    expect(html).toContain("[data-ogsb] .mp-card { background-color: #9059a4 !important; }");
     const mobile = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes(".mp-side"));
     expect(mobile).not.toMatch(/\[|:root|:hover/);
   });
 
-  it("swaps to the dark logo only in a dark theme", () => {
+  it("locks the backgrounds in a form Gmail keeps", () => {
+    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test" } });
+    expect(html).not.toMatch(/style="[^"]*background-image:/);
+    const lock = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).find((css) => css.includes("background-blend-mode: screen, screen, normal !important;"));
+    expect(lock).toMatch(/^\s*@media screen \{/);
+    expect(lock).toContain(".mp-body, .mp-bg, .mp-button { background-image: linear-gradient(#00aa00, #00aa00), linear-gradient(#00a800, #00a800), linear-gradient(#ef00ca, #ef00ca) !important;");
+    expect(lock).toContain(".mp-card { background-image: linear-gradient(#9059a4, #9059a4) !important; }");
+    expect(lock).not.toMatch(/\[|:root|:hover/);
+  });
+
+  it("keeps the footer text in the brand colours when Gmail darkens it", () => {
+    const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { name: "A", url: "https://a.test", email: "a@b.test" } });
+    expect(html).toContain('<span class="mp-footer-lines"><a href="mailto:a@b.test"');
+    expect(html).toContain(".mp-footer-text, .mp-button-label { background-image: linear-gradient(#000000, #000000) !important; mix-blend-mode: exclusion !important; }");
+    expect(html).toContain(".mp-footer-name { color: #dedddf !important; }");
+    expect(html).toContain(".mp-footer-lines, .mp-footer-lines a, .mp-button-text { color: #b6d8a0 !important; mix-blend-mode: hard-light !important; }");
+    expect(html).not.toContain("[data-ogsc] .mp-footer-name");
+  });
+
+  it("shows the one logo, with no dark-mode swap", () => {
     const site = { name: "A", url: "https://a.test", logoUrl: "https://a.test/light.png", logoDarkUrl: "https://a.test/dark.png" };
     const html = renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site });
-    expect(html).toMatch(/<img class="mp-logo-light" src="https:\/\/a.test\/light.png"[^>]*style="display:block;/);
-    expect(html).toMatch(/<img class="mp-logo-dark" src="https:\/\/a.test\/dark.png"[^>]*style="display:none;mso-hide:all;/);
-    expect(renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site: { ...site, logoDarkUrl: null } })).not.toContain('class="mp-logo-dark"');
+    expect(html).toMatch(/<img class="mp-logo" src="https:\/\/a.test\/light.png"[^>]*style="display:block;/);
+    expect(html).not.toContain("dark.png");
   });
 });
 

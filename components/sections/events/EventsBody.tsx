@@ -105,7 +105,7 @@ const SCHEDULED_SHAPES: readonly ShapePlan[] = groundShapes("cream");
 /** The two doors as the page shipped them; the notes are WORKSHOP_JOURNEY's first two steps. */
 const LAUNCH_DOORS: readonly EventsDoor[] = [
   { title: "Create Anytime", note: WORKSHOP_JOURNEY[0]?.description ?? null, modeLabel: "No booking" },
-  { title: "Create Together", note: WORKSHOP_JOURNEY[1]?.description ?? null, modeLabel: "Booked online" },
+  { title: "Create Together", note: WORKSHOP_JOURNEY[1]?.description ?? null, modeLabel: null },
 ];
 
 /** One of the two doors at the head of the page. */
