@@ -468,8 +468,9 @@ const readExperiences = contentReader("experiences", [TAGS.experiences, TAGS.vib
 function withInFilePagePhotos(experience: CreativeExperience): CreativeExperience {
   const inFile = EXPERIENCES.find((entry) => entry.slug === experience.slug);
   if (!inFile?.pageImage) return experience;
-  const gallery = pageGallery(experience.slug, experience.gallery ?? [], inFile.gallery ?? []);
-  return { ...experience, pageImage: inFile.pageImage, ...(gallery.length ? { gallery } : {}) };
+  const pageImage = experience.pageImage ?? inFile.pageImage;
+  const gallery = experience.gallery && experience.gallery.length > 0 ? experience.gallery : pageGallery(experience.slug, experience.gallery ?? [], inFile.gallery ?? []);
+  return { ...experience, pageImage, ...(gallery.length ? { gallery } : {}) };
 }
 
 /**

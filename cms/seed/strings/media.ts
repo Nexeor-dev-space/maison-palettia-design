@@ -181,10 +181,10 @@ export const MEDIA: MediaSeed[] = [
     THE EXPERIENCE PAGES' OWN PHOTOGRAPHS — the client's Oct 2026 set, one
     banner ("Page photograph") and up to three About frames ("Gallery") per
     activity. Alt text and focal points are the ones lib/experiences.ts held
-    while these were laid over the CMS in code. PROVENANCE is what each file
-    says about itself: seven carry Shutterstock credit and copyright in their
-    metadata (`stock`, with the contributor in `licence` — no licence is on
-    file); the other nineteen carry no source at all (`unknown`). None is
+    while these were laid over the CMS in code. PROVENANCE: seven carry
+    Shutterstock credit and copyright in their metadata (`stock`, with the
+    contributor in `licence` — no licence is on file); the other nineteen
+    are part of the client's asset pack (`client-supplied`). None is
     known to be the studio's own photograph or its guests. The mandala banner
     has a printed page of a Harry Potter novel in it, legible at banner size.
   */
@@ -192,38 +192,38 @@ export const MEDIA: MediaSeed[] = [
     path: "images/experiences/tote-bag-painting/tote-bag-painting-hero.jpg",
     alt: "A hand painting blue jellyfish with long trailing tentacles onto a canvas tote, pots of paint and paper cups on the table behind.",
     focal: [45, 50],
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["hero"],
   },
   {
     path: "images/experiences/tote-bag-painting/tote-bag-painting-leaves.jpg",
     alt: "A canvas tote painted with a sprig of green leaves over soft pink and teal washes, a palette of greens and a water glass beside it.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/tote-bag-painting/tote-bag-painting-koi.jpg",
     alt: "Seen from above, a hand outlining two koi fish and small stars in black on a canvas tote, palettes and a mug on the table.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/tote-bag-painting/tote-bag-painting-table.jpg",
     alt: "A row of people at a long wooden table painting small flowers onto canvas totes, bottles of fabric paint lined up on a shelf.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/ceramic-painting/ceramic-painting-hero.jpg",
     alt: "Hands painting soft blocks of pink, peach, blue and teal onto a small white pot with a fine brush, pots of paint blurred behind.",
     focal: [50, 26],
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["hero"],
   },
   {
     path: "images/experiences/ceramic-painting/ceramic-painting-cups.jpg",
     alt: "A small cup painted in loose strokes of pale blue, yellow and pink, other painted cups and plain white ware around it.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
@@ -244,57 +244,57 @@ export const MEDIA: MediaSeed[] = [
     path: "images/experiences/bedazzling/bedazzling-hero.png",
     alt: "A hand pressing small gems onto a peacock design with a pink drill pen, rows of blue, teal and pearl-white stones already set.",
     focal: [50, 45],
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["hero"],
   },
   {
     path: "images/experiences/bedazzling/bedazzling-espresso-martini.jpg",
     alt: "A hand holding up a pink canvas covered in gems that spell out Espresso Martini under a sparkling cocktail glass.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/bedazzling/bedazzling-can.jpg",
     alt: "Hands setting red and silver gems onto a drinks can with a white pen, trays and tubs of loose stones on the wooden table.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/bedazzling/bedazzling-cherries.jpg",
     alt: "A small white canvas on a wooden easel, bedazzled with two red gem cherries hanging from a pink pearl bow.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/mandala-painting/mandala-painting-hero.jpg",
     alt: "A dot mandala painted in teal, lilac and cream on a dark round board, laid among daisies, dried petals and an old book page.",
     focal: [50, 74],
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["hero"],
   },
   {
     path: "images/experiences/mandala-painting/mandala-painting-teal.jpg",
     alt: "Close on a teal mandala outlined in gold, rings of tiny gold dots and dark teardrop petals around a blue centre.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/mandala-painting/mandala-painting-red.jpg",
     alt: "Rings of raised yellow dots, each with a blue centre, spiralling out across a deep red painted board.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/mandala-painting/mandala-painting-candles.jpg",
     alt: "Two dot mandalas in gold and amber on black boards, set among orange pillar candles, a slice of amethyst and a fern.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/glass-painting/glass-painting-hero.jpg",
     alt: "A fine brush flooding amber paint into a rose outlined in black on textured glass, the leaves around it already filled in green.",
     focal: [50, 55],
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["hero"],
   },
   {
@@ -315,7 +315,7 @@ export const MEDIA: MediaSeed[] = [
   {
     path: "images/experiences/candle-making/candle-making-table.jpg",
     alt: "A long wooden table laid with lace doilies, glass jars and paper cups, and bowls of bubble, rose and flower candles in bright colours.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
@@ -336,19 +336,19 @@ export const MEDIA: MediaSeed[] = [
     path: "images/experiences/crocheting/crocheting-hero.jpg",
     alt: "Hands working a small round of white cotton on a gold crochet hook, the first rounds already open and lacy.",
     focal: [50, 32],
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["hero"],
   },
   {
     path: "images/experiences/crocheting/crocheting-granny-square.jpg",
     alt: "Hands in a speckled knit sweater starting a pale pink round on a hook, finished granny squares in mustard, green and rust laid out behind.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {
     path: "images/experiences/crocheting/crocheting-blanket.jpg",
     alt: "A granny-square blanket in red, olive green, cream and white, edged in dark teal, with a ball of the teal yarn resting on it.",
-    provenance: "unknown",
+    provenance: "client-supplied",
     tags: ["experience-gallery"],
   },
   {

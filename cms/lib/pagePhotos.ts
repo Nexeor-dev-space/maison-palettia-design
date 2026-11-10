@@ -153,7 +153,20 @@ export async function movePagePhotos(payload: Payload, options: MoveOptions = {}
       pagination: false,
       context: CONTEXT,
     });
-    const live = found.docs[0] as unknown as Doc | undefined;
+    let live = found.docs[0] as unknown as Doc | undefined;
+    if (!live) {
+      const draftFound = await payload.find({
+        collection: "experiences",
+        where: { slug: { equals: seed.slug } },
+        limit: 1,
+        depth: 0,
+        draft: true,
+        overrideAccess: true,
+        pagination: false,
+        context: CONTEXT,
+      });
+      live = draftFound.docs[0] as unknown as Doc | undefined;
+    }
     if (!live) {
       result.absent.push(seed.slug);
       continue;
