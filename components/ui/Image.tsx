@@ -37,15 +37,7 @@ export default function Image({ blur, ...props }: ImageProps & { blur?: ImageBlu
   return (
     <>
       <span aria-hidden data-blur-layer="" className="pointer-events-none absolute inset-0" style={blurBackground(blur, position)} />
-      <NextImage
-        data-blur=""
-        suppressHydrationWarning
-        {...props}
-        onLoad={(e) => {
-          (e.currentTarget as HTMLElement).setAttribute("data-loaded", "");
-          props.onLoad?.(e);
-        }}
-      />
+      <NextImage data-blur="" suppressHydrationWarning {...props} />
     </>
   );
 }
