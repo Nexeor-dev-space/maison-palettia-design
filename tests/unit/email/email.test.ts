@@ -62,7 +62,7 @@ describe("rendering escapes what customers type", () => {
   it("keeps a real link, styles a lone link as a button, and keeps the URL in plain text", () => {
     const { html, text } = render(["Before", "[Download your tickets]({{links.tickets}})"], { links: { tickets: "https://maison.test/t?sig=a&exp=1" } });
     expect(html).toContain('href="https://maison.test/t?sig=a&amp;exp=1"');
-    expect(html).toMatch(/<a[^>]+style="display:inline-block;border:1\.5px solid #2d3748;color:#2d3748;/);
+    expect(html).toMatch(/<a[^>]+style="display:inline-block;background-color:transparent;border:1px solid #2d3748;color:#2d3748;font-weight:700;/);
     expect(text).toContain("Download your tickets: https://maison.test/t?sig=a&exp=1");
   });
 
@@ -111,37 +111,88 @@ describe("layout", () => {
   const layout = (site: EmailSite = { name: "A", url: "https://a.test" }) => renderEmailLayout({ subject: "s", bodyHtml: "<p>body</p>", site });
   const styleBlocks = (html: string) => [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
 
-  it("is one colour, with no second ground for dark mode to split off", () => {
+  it("includes dark-mode meta tags and root styles", () => {
+    const html = layout();
+    expect(html).toContain('<meta name="color-scheme" content="light dark">');
+    expect(html).toContain('<meta name="supported-color-schemes" content="light dark">');
+    expect(html).toContain(":root { color-scheme: light dark; supported-color-schemes: light dark; }");
+  });
+
+  it("is one colour edge to edge, with #efe2ca as the only background and no second background anywhere", () => {
     const html = layout({ name: "A", url: "https://a.test", email: "a@b.test" });
-    expect(html).toContain('<meta name="color-scheme" content="light only">');
-    expect(html).not.toContain("prefers-color-scheme");
-    expect(html).toContain('class="mp-bg" bgcolor="#efe2ca" style="background-color:#efe2ca;background:linear-gradient(#efe2ca,#efe2ca);"');
     expect(html).not.toContain("#9059a4");
-    expect(html.match(/bgcolor="#[0-9a-f]{6}"/g)).toEqual(['bgcolor="#efe2ca"', 'bgcolor="#efe2ca"']);
+    expect(html).toContain('class="mp-bg" bgcolor="#efe2ca" style="background-color:#efe2ca;background-image:linear-gradient(#efe2ca,#efe2ca);"');
+    // Every bgcolor attribute is #efe2ca
+    const bgcolors = html.match(/bgcolor="[^"]*"/g) ?? [];
+    expect(bgcolors.length).toBeGreaterThan(0);
+    expect(bgcolors.every((attr) => attr.toLowerCase() === 'bgcolor="#efe2ca"')).toBe(true);
+    // Every background-color in inline styles is #efe2ca or transparent
+    const bodyOnly = html.replace(/<style>[\s\S]*?<\/style>/g, "");
+    const inlineBgs = [...bodyOnly.matchAll(/background-color:\s*([^;"]+)/g)].map((m) => m[1].trim().toLowerCase());
+    expect(inlineBgs.length).toBeGreaterThan(0);
+    expect(inlineBgs.every((c) => c === "#efe2ca" || c === "transparent")).toBe(true);
+  });
+
+  it("sets all text, links and button colours to #2d3748 inline and includes dark-mode overrides", () => {
+    const html = layout({ name: "A", url: "https://a.test", email: "a@b.test" });
+    // Dark-mode overrides
+    expect(html).toContain("@media (prefers-color-scheme: dark)");
+    expect(html).toContain("[data-ogsb]");
+    expect(html).toContain("[data-ogsc]");
+    // The only colours in visible HTML outside images/base64 are #2d3748 and #efe2ca
     const visible = html.replace(/<style>[\s\S]*?<\/style>/g, "").replace(/;base64,[^"]*/g, "");
-    expect([...new Set(visible.match(/#[0-9a-f]{6}\b/g))].sort()).toEqual(["#2d3748", "#efe2ca"]);
+    expect([...new Set(visible.match(/#[0-9a-f]{6}\b/gi))].sort()).toEqual(["#2d3748", "#efe2ca"]);
   });
 
-  it("keeps Gmail's stylesheet free of anything it would drop the block for", () => {
-    const blocks = styleBlocks(layout());
-    expect(blocks.find((css) => css.includes(".mp-side"))).not.toMatch(/\[|:root|:hover/);
-    const lock = blocks.find((css) => css.includes("linear-gradient"));
-    expect(lock).toMatch(/^\s*@media screen \{/);
-    expect(lock).not.toMatch(/\[|:root|:hover/);
-    expect(layout()).not.toMatch(/style="[^"]*background-image:/);
+  it("asserts outline button styling and that all text and link elements have #2d3748 inline", () => {
+    const { html } = render(
+      [
+        "Hi **Layla**, click [here](https://maison.test/tickets) to view.",
+        "[Download your tickets](https://maison.test/t)",
+      ],
+      {},
+    );
+    expect(html).toContain('style="font-weight:700;color:#2d3748;"');
+    expect(html).toContain('style="color:#2d3748;text-decoration:underline;"');
+    expect(html).toMatch(/<a[^>]+class="mp-button"[^>]*style="display:inline-block;background-color:transparent;border:1px solid #2d3748;color:#2d3748;font-weight:700;text-decoration:none;letter-spacing:0.02em;padding:13px 26px;border-radius:999px;"/);
+
+    const headingHtml = lexicalToEmailHtml({
+      root: {
+        type: "root",
+        children: [{ type: "heading", tag: "h1", children: [{ type: "text", text: "Your seats are booked", version: 1 }], version: 1 }],
+      },
+    });
+    expect(headingHtml).toContain('style="margin:24px 0 12px;font-size:24px;line-height:1.3;color:#2d3748;"');
+    expect(headingHtml).toContain("Your seats are booked");
   });
 
-  it("states the Gmail lock so that it resolves to the two brand colours", () => {
-    const lock = styleBlocks(layout()).find((css) => css.includes("background-blend-mode"));
-    const screen = (...values: number[]) => Math.round(255 * (1 - values.reduce((left, v) => left * (1 - v / 255), 1)));
-    const exclusion = (a: number, b: number) => Math.round(a + b - (2 * a * b) / 255);
-    expect([screen(0x00, 0x00, 0xef), screen(0xaa, 0xa8, 0x00), screen(0x00, 0x00, 0xca)]).toEqual([0xef, 0xe2, 0xca]);
-    expect([exclusion(0xef, 0xde), exclusion(0xe2, 0xdd), exclusion(0xca, 0xdf)]).toEqual([0x2d, 0x37, 0x48]);
-    expect(lock).toContain("linear-gradient(#00aa00, #00aa00), linear-gradient(#00a800, #00a800), linear-gradient(#ef00ca, #ef00ca)");
-    expect(lock).toContain("mix-blend-mode: exclusion !important;");
-    expect(lock).toContain("color: #dedddf !important;");
-    const text = layout({ name: "A", url: "https://a.test", email: "a@b.test" }).split(/<div class="mp-text"/).slice(1).map((part) => part.split("</div>")[0]);
-    expect(text.join("").match(/<strong[^>]*color:/)).toBeNull();
+  it("keeps copy, links and content order completely unchanged", () => {
+    const orderTemplate = DEFAULT_TEMPLATES.find((t) => t.key === "order_confirmation")!;
+    const vars = {
+      customer: { firstName: "Layla" },
+      site: { name: "Maison Palettia" },
+      order: { reference: "MP-20481", summary: "Candle Pouring on Saturday 14 November at 4:00 pm\n2 seats\nTotal AED 380.00", total: "AED 380.00", vat: "AED 18.10" },
+      invoice: { number: "INV-123" },
+      links: { tickets: "https://maison.test/tickets/MP-20481", myBookings: "https://maison.test/my-bookings" },
+    };
+    const state = interpolateLexical(toLexical(orderTemplate.paragraphs) as never, vars);
+    const bodyHtml = lexicalToEmailHtml(state);
+    const bodyText = lexicalToEmailText(state);
+    const fullHtml = renderEmailLayout({
+      subject: interpolate(orderTemplate.subject, vars),
+      preheader: interpolate(orderTemplate.preheader ?? "", vars),
+      bodyHtml,
+      site: { name: "Maison Palettia", url: "https://maisonpalettia.com" },
+    });
+
+    expect(fullHtml).toContain("Hi Layla,");
+    expect(fullHtml).toContain("Booking MP-20481");
+    expect(fullHtml).toContain("Candle Pouring on Saturday 14 November at 4:00 pm");
+    expect(fullHtml).toContain('href="https://maison.test/tickets/MP-20481"');
+    expect(fullHtml).toContain("Download your tickets");
+    expect(fullHtml).toContain('href="https://maison.test/my-bookings"');
+    expect(bodyText).toContain("Download your tickets: https://maison.test/tickets/MP-20481");
+    expect(bodyText).toContain("my bookings: https://maison.test/my-bookings");
   });
 
   it("uses the logo made for light grounds", () => {
