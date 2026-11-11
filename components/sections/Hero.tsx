@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { Fragment } from "react";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { PeelNote } from "@/components/ui/PeelNote";
@@ -256,6 +256,26 @@ export function Hero({
     ...(desktopBlur ? { "--blur-d": blurImage(desktopBlur) } : {}),
   };
 
+  const desktopImgProps = desktop
+    ? getImageProps({
+        src: desktop.src,
+        alt: desktop.alt,
+        fill: true,
+        priority: true,
+        sizes: "(max-width: 1023px) 190vh, 110vw",
+      })
+    : null;
+
+  const mobileImgProps = mobile
+    ? getImageProps({
+        src: mobile.src,
+        alt: mobile.alt,
+        fill: true,
+        priority: true,
+        sizes: "70vh",
+      })
+    : null;
+
   return (
     <section
       data-hero-intro
@@ -318,75 +338,91 @@ export function Hero({
                 beat later than a preload would start it, on the connection
                 that can afford the beat.
               */}
-              {mobile ? (
-              <Image
-                src={mobile.src}
-                alt={mobile.alt}
-                fill
-                priority
-                /*
-                  A WIDTH DERIVED FROM THE HEIGHT, like the landscape file
-                  below — but a much smaller one, because the shape is
-                  different. `sizes` is a WIDTH hint and this picture is
-                  fitted to the window's HEIGHT, so what has to be requested
-                  is 0.558 x that height plus headroom for the 1.06 rest
-                  scale: 70vh, against the 190vh a 1.78:1 file needs. Asking
-                  for 190 here would fetch nearly three times the pixels the
-                  window can show.
-                */
-                sizes="70vh"
-                style={
-                  {
-                    "--pos-m": mobile.position,
-                    "--lift": mobile.lift,
-                  } as Vars
-                }
-                className={cn(styles.cardImage, styles.cardImageMobile)}
-                {...(mobileBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
-              />
-              ) : null}
-
-              {desktop ? (
-              <Image
-                src={desktop.src}
-                alt={desktop.alt}
-                fill
-                loading="lazy"
-                fetchPriority="high"
-                /*
-                  ==========================================================
-                  THE COVER CROP SETS THE WIDTH, NOT THE ELEMENT
-                  ==========================================================
-
-                  `100vw` was wrong by a factor of six on a phone, and it is
-                  the one defect a visitor cannot miss: the card is the full
-                  height of the window, and a 1.78:1 photograph fitted to that
-                  height is rendered about 1800px wide at 320 — of which the
-                  window shows 320. The browser was asked for a 320px-wide
-                  file and it obliged, so the slice it had to draw was scaled
-                  up six times. A blurred half-face, on the first screen of
-                  the site.
-
-                  `sizes` is a WIDTH hint, so the height has to be expressed
-                  through it: the picture needs about 1.78 x the viewport
-                  height, and `vh` is a perfectly good unit here. 190vh is
-                  that with headroom for the 1.06 rest scale.
-
-                  Desktop asks for 110vw rather than 100 for the same reason
-                  in miniature — at 1440x900 the cover render is 1601px wide,
-                  not 1440.
-                */
-                sizes="(max-width: 1023px) 190vh, 110vw"
-                style={
-                  {
-                    "--pos-d": desktop.position.desktop,
-                    "--pos-m": desktop.position.mobile,
-                    "--lift": desktop.lift,
-                  } as Vars
-                }
-                className={cn(styles.cardImage, styles.cardImageDesktop)}
-                {...(desktopBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
-              />
+              {desktopImgProps && mobileImgProps && desktop && mobile ? (
+                <>
+                  <link
+                    rel="preload"
+                    as="image"
+                    href={desktopImgProps.props.src}
+                    imageSrcSet={desktopImgProps.props.srcSet}
+                    imageSizes="(max-width: 1023px) 190vh, 110vw"
+                    media="(min-width: 768px)"
+                    fetchPriority="high"
+                  />
+                  <link
+                    rel="preload"
+                    as="image"
+                    href={mobileImgProps.props.src}
+                    imageSrcSet={mobileImgProps.props.srcSet}
+                    imageSizes="70vh"
+                    media="(max-width: 767px)"
+                    fetchPriority="high"
+                  />
+                  <picture className="contents">
+                    <source
+                      media="(min-width: 768px)"
+                      srcSet={desktopImgProps.props.srcSet}
+                      sizes="(max-width: 1023px) 190vh, 110vw"
+                    />
+                    <source
+                      media="(max-width: 767px)"
+                      srcSet={mobileImgProps.props.srcSet}
+                      sizes="70vh"
+                    />
+                    <img
+                      {...desktopImgProps.props}
+                      alt={desktop.alt}
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
+                      style={
+                        {
+                          ...desktopImgProps.props.style,
+                          "--pos-d": desktop.position.desktop,
+                          "--pos-m": desktop.position.mobile,
+                          "--lift": desktop.lift,
+                        } as Vars
+                      }
+                      className={styles.cardImage}
+                      {...(desktopBlur || mobileBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
+                    />
+                  </picture>
+                </>
+              ) : desktop ? (
+                <Image
+                  src={desktop.src}
+                  alt={desktop.alt}
+                  fill
+                  priority
+                  fetchPriority="high"
+                  sizes="(max-width: 1023px) 190vh, 110vw"
+                  style={
+                    {
+                      "--pos-d": desktop.position.desktop,
+                      "--pos-m": desktop.position.mobile,
+                      "--lift": desktop.lift,
+                    } as Vars
+                  }
+                  className={styles.cardImage}
+                  {...(desktopBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
+                />
+              ) : mobile ? (
+                <Image
+                  src={mobile.src}
+                  alt={mobile.alt}
+                  fill
+                  priority
+                  fetchPriority="high"
+                  sizes="70vh"
+                  style={
+                    {
+                      "--pos-m": mobile.position,
+                      "--lift": mobile.lift,
+                    } as Vars
+                  }
+                  className={styles.cardImage}
+                  {...(mobileBlur ? { "data-blur": "", suppressHydrationWarning: true } : {})}
+                />
               ) : null}
             </div>
             <div aria-hidden data-hero-scrim className={styles.scrim} />

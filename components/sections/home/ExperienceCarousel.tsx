@@ -121,9 +121,8 @@ export function ExperienceCarousel({
         el.dataset.shown = "true";
         io.disconnect();
       },
-      // A little before the rail is properly on screen, so the first card is
-      // already moving by the time it is worth looking at.
-      { rootMargin: "0px 0px -12% 0px" },
+      // Pre-arm before the rail enters the viewport so cards are ready when visible.
+      { rootMargin: "150px 0px 50px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
