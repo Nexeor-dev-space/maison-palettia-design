@@ -238,6 +238,10 @@ const nextConfig: NextConfig = {
         source: "/images/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
       },
+      {
+        source: "/api/media/file/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
       ...NO_REFERRER_ROUTES.map((source) => ({
         source,
         headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
