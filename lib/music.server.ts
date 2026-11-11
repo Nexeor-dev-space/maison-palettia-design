@@ -20,7 +20,8 @@ const toTrack = (doc: MusicTrackDoc): MusicTrack | null => {
   return {
     id: String(doc.id),
     // Versioned so that replacing a track's file reaches browsers holding the old one.
-    src: `${doc.url}?v=${Date.parse(doc.updatedAt)}`,
+    // With object storage on, `doc.url` already carries `?prefix=music`, so join with `&`.
+    src: `${doc.url}${doc.url.includes("?") ? "&" : "?"}v=${Date.parse(doc.updatedAt)}`,
     mimeType: doc.mimeType ?? null,
     title: doc.title,
     artist: doc.artist,
