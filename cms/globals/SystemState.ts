@@ -49,5 +49,8 @@ export const SystemState: GlobalConfig = {
       validate: matches(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD"),
     }),
     { name: "lastInventoryReconcileAt", type: "date", label: "Last inventory reconcile" },
+    // Stamped once by cms/lib/pagePhotos.ts. Until it is set, lib/experiences.ts
+    // keeps the code-held page photographs over the CMS answer (issue #201).
+    { name: "pagePhotosMovedAt", type: "date", label: "Experience page photographs moved into the library at" },
   ],
 };
