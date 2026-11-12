@@ -31,7 +31,7 @@ import { mintReturnK } from "./mamo/returnToken";
 import { formatAed, fromMamoAmount, MIN_REFUND_FILS } from "./money";
 import { adminUrl } from "./notifyStaff";
 import { appendTimeline, canTransition, timelineEntry, timelineOf, transition } from "./orderState";
-import { allocate, assertPayable, quote, reservePassSql, reservePromoSql, restorePassSql, restoreReservations } from "./pricing";
+import { allocate, assertPayable, quote, reserveCreditNoteSql, reservePassSql, reservePromoSql, restorePassSql, restoreReservations } from "./pricing";
 import { mintCreditNoteCode } from "@/cms/collections/commerce/CreditNotes";
 import { DEFAULT_REFERENCE_PREFIX, mintReference } from "./reference";
 import { REPEAT_MAX, repeatDates } from "./sessionSeries";
@@ -351,7 +351,13 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
           },
           lines: priced.lines,
           codes: priced.applied.map((a) => ({ code: a.code, kind: a.kind, purchase: a.purchase, seatsCovered: a.seatsCovered, discountFils: a.discountFils })),
-          promo: priced.promo ? { promoCode: priced.promo.promoCode, code: priced.promo.code, discountFils: priced.promo.discountFils } : undefined,
+          promo: priced.promo
+            ? {
+                promoCode: priced.promo.isCreditNote ? null : priced.promo.promoCode,
+                code: priced.promo.code,
+                discountFils: priced.promo.discountFils,
+              }
+            : undefined,
           creditNoteUsed: priced.promo?.isCreditNote ? priced.promo.creditNoteId : null,
           originalBooking: priced.promo?.isCreditNote ? priced.promo.originalOrderId : null,
           passRedemptions: priced.passRedemptions,
@@ -445,7 +451,9 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
         await markHolds(req, order.id, "consumed");
       }
       await transition(req, order, "confirming", { note: online ? "covered by pass credits / promo" : `desk: ${input.desk?.method ?? "cash"}` });
-      await queueJob(req, "finalize-order", { orderId: order.id }, { workflow: true });
+      await bestEffort(req, "queue finalize-order job", () =>
+        queueJob(req, "finalize-order", { orderId: order.id }, { workflow: true }),
+      );
     });
     return { reference: order.reference, paid: true, k: mintReturnK(order.reference) };
   }
@@ -841,8 +849,12 @@ async function capturedAfterExpiry(req: PayloadRequest, order: Order, payment: P
       credits.push({ passPurchase: id, n: r.n });
     }
   }
-  const promoId = idOf(order.promo?.promoCode);
+  const creditNoteId = (order as { creditNoteUsed?: unknown }).creditNoteUsed
+    ? idOf((order as { creditNoteUsed?: unknown }).creditNoteUsed)
+    : null;
+  const promoId = creditNoteId ? null : idOf(order.promo?.promoCode);
   if (ok && promoId && (await runSql(req, reservePromoSql(promoId))).length === 0) ok = false;
+  if (ok && creditNoteId && (await runSql(req, reserveCreditNoteSql(creditNoteId))).length === 0) ok = false;
 
   if (ok) {
     for (const [sessionId, qty] of taken) await consumeSeats(req, sessionId, qty);
@@ -853,7 +865,7 @@ async function capturedAfterExpiry(req: PayloadRequest, order: Order, payment: P
 
   // Undo the partial re-acquisition, refund in full, tell everyone.
   for (const [sessionId, qty] of taken) await releaseSeats(req, sessionId, qty);
-  await restoreReservations(req, { passRedemptions: credits });
+  await restoreReservations(req, { passRedemptions: credits, promoCodeId: promoId, creditNoteId });
   await flagReview(req, order, "post_expiry", { paymentId: payment.providerPaymentId ?? null });
   const refund = await createDoc<Refund>(req, "refunds", {
     order: order.id,

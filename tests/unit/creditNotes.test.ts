@@ -188,6 +188,32 @@ describe("Credit Note System (FEAT #183)", () => {
         }),
       ).rejects.toThrow("A credit note has already been issued for this booking.");
     });
+
+    it("allows updating credit note status to redeemed without requiring expiresAt in update payload", async () => {
+      const updateData: any = {
+        status: "redeemed",
+        redeemedInOrder: "order-new-123",
+        redeemedAt: new Date().toISOString(),
+        redeemedAmountFils: 25_000,
+      };
+
+      const originalDoc = {
+        id: "cn-12345",
+        code: "CN-TEST01",
+        expiresAt: new Date(Date.now() + 86400000 * 30).toISOString(),
+        status: "available",
+      };
+
+      const prepared = await callPrepareHook({
+        data: updateData,
+        originalDoc,
+        operation: "update",
+      });
+
+      expect(prepared.status).toBe("redeemed");
+      expect(prepared.redeemedInOrder).toBe("order-new-123");
+      expect(prepared.code).toBeUndefined(); // preserves original code, does not re-mint
+    });
   });
 
   describe("3. Credit Application & Pricing Calculation", () => {

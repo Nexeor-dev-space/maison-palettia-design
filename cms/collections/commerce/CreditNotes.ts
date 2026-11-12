@@ -39,17 +39,26 @@ export const normaliseCreditNoteCode = (value: unknown): unknown =>
 export const mintCreditNoteCode = (): string =>
   `CN-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
-export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, req, operation }) => {
+export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, req, operation, originalDoc }) => {
   if (!data) return data;
 
-  if (!data.code || typeof data.code !== "string" || !data.code.trim()) {
-    data.code = mintCreditNoteCode();
-  } else {
-    data.code = normaliseCreditNoteCode(data.code);
-  }
+  if (operation === "create") {
+    if (!data.code || typeof data.code !== "string" || !data.code.trim()) {
+      data.code = mintCreditNoteCode();
+    } else {
+      data.code = normaliseCreditNoteCode(data.code);
+    }
 
-  if (!data.expiresAt) {
-    throw new APIError("Expiry date is mandatory.", 400);
+    if (!data.expiresAt) {
+      throw new APIError("Expiry date is mandatory.", 400);
+    }
+  } else if (operation === "update") {
+    if (data.code && typeof data.code === "string") {
+      data.code = normaliseCreditNoteCode(data.code);
+    }
+    if ("expiresAt" in data && !data.expiresAt && !originalDoc?.expiresAt) {
+      throw new APIError("Expiry date is mandatory.", 400);
+    }
   }
 
   const orderId =
@@ -78,7 +87,7 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
     }
   }
 
-  if (orderId && (!data.customerEmail || !data.customerName || !data.customer)) {
+  if (operation === "create" && orderId && (!data.customerEmail || !data.customerName || !data.customer)) {
     try {
       const order = await req.payload.findByID({
         collection: "orders",
@@ -105,8 +114,10 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
   }
 
   // Auto-expire check
-  if (data.status === "available" && data.expiresAt) {
-    if (new Date(data.expiresAt).getTime() <= Date.now()) {
+  const currentExpiresAt = data.expiresAt || (originalDoc as { expiresAt?: string } | undefined)?.expiresAt;
+  const currentStatus = data.status || (originalDoc as { status?: string } | undefined)?.status;
+  if (currentStatus === "available" && currentExpiresAt) {
+    if (new Date(currentExpiresAt).getTime() <= Date.now()) {
       data.status = "expired";
     }
   }
