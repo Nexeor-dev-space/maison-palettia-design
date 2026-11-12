@@ -72,6 +72,7 @@ export const sessions: Chapter = {
           type: "steps",
           items: [
             "Further down, set the main photograph ((1)). Square works best.",
+            "Under it, the page photograph is the wide picture at the top of the experience's own page. Leave it empty to use the main photograph there too.",
             "The pencil ((2)) edits the photo's alt text and focal point. The [[×]] ((3)) removes it from here only; it stays in Media.",
             "Add up to three gallery photos ((4)) and drag the dots to change their order.",
           ],

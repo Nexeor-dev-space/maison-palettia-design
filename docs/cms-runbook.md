@@ -528,3 +528,27 @@ When a seeded file is missing from `/app/media`, its Payload file URL also
 falls back to the matching committed source in `public/`, including URLs for
 generated renditions. This keeps seeded images available even if automatic
 restoration is interrupted.
+
+### Experience page photographs (one-time move, issue #201)
+
+Each experience page's banner and About cards used to be held in code and
+laid over the CMS, so a photo changed in the admin never showed. They are
+the experience's **Page photograph** and **Gallery** fields now. The 26
+code-held files (`lib/experiencePagePhotos.ts`) are put into the media
+library and onto the seven experiences **once per database** by
+`cms/lib/pagePhotos.ts`, which then stamps `system-state.pagePhotosMovedAt`.
+
+- It runs by itself at the end of `npm run start:prod` (inside
+  `restore-media`). On a server started another way (`scripts/deploy.sh`
+  with systemd) run it once after the deploy: `npm run move:page-photos`.
+  `PAGE_PHOTOS_DRY_RUN=1 npm run move:page-photos` reports without writing.
+- Until the stamp is set the site keeps showing the code-held photographs,
+  so the pages look the same before and after, in any deploy order. After it,
+  the admin decides: an empty Page photograph opens the page on the main one.
+- It skips an experience that already has a Page photograph, never publishes
+  an unpublished draft, and can be run again after a failure.
+- It refuses on a machine with no storage keys that is not the production
+  server, because the uploads would land on that machine's disk.
+- The start log says what it did (`restore-media: page photographs — …`). If
+  an experience page still shows its old photos after an edit in the admin,
+  check that line first: no stamp means the move has not succeeded yet.

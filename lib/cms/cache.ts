@@ -62,7 +62,7 @@ export type CacheTag = (typeof TAGS)[keyof typeof TAGS];
   shape can be read again: the next build and the server after it read
   fresh from the database.
 */
-const CACHE_EPOCH = "2026-10-22-media-blur";
+const CACHE_EPOCH = "2026-11-12-experience-page-photograph";
 
 /**
  * Wraps a getter so its result is cached under `key` and the given tags.
