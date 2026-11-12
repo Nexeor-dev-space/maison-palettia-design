@@ -1,4 +1,4 @@
-import type { ExpressionSpecification, StyleSpecification } from "maplibre-gl";
+import type { ExpressionSpecification, StyleSpecification, VectorSourceSpecification } from "maplibre-gl";
 
 /**
  * The Maison's map, drawn in its own palette.
@@ -43,8 +43,13 @@ import type { ExpressionSpecification, StyleSpecification } from "maplibre-gl";
  * HTML (see <BrandMap>) and is set in the site's type.
  */
 
-const TILES = "https://tiles.openfreemap.org/planet";
-const GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
+export const TILE_HOST = "https://tiles.openfreemap.org";
+/** The TileJSON: names this week's tile build. <BrandMap> fetches it early, alongside the library. */
+export const TILES = `${TILE_HOST}/planet`;
+const GLYPHS = `${TILE_HOST}/fonts/{fontstack}/{range}.pbf`;
+/** The glyph file each font stack's Latin labels come from — what <BrandMap> warms early. */
+export const glyphUrl = (fontstack: string, range = "0-255") =>
+  GLYPHS.replace("{fontstack}", encodeURIComponent(fontstack)).replace("{range}", range);
 
 export const MAP_INK = {
   land: "#F7F0E3",
@@ -72,6 +77,8 @@ const NAME: ExpressionSpecification = ["coalesce", ["get", "name:en"], ["get", "
 const REGULAR = ["Noto Sans Regular"];
 const BOLD = ["Noto Sans Bold"];
 const ITALIC = ["Noto Sans Italic"];
+/** Every font stack a label below uses. */
+export const FONT_STACKS = [REGULAR[0], BOLD[0], ITALIC[0]];
 
 /**
  * Road width by zoom, scaled per class. `edge` widens it for the ink casing
@@ -105,11 +112,19 @@ export const METRO_FILTER: ExpressionSpecification = [
 ];
 const ROUND = { "line-cap": "round", "line-join": "round" } as const;
 
-export function brandMapStyle(): StyleSpecification {
+/**
+ * The tile source as the TileJSON describes it. Handing the map this,
+ * already fetched, saves it a round trip it would otherwise make only once
+ * the library and its worker are up.
+ */
+export type TileSource = Pick<VectorSourceSpecification, "tiles" | "minzoom" | "maxzoom" | "attribution">;
+
+/** `source` is the resolved TileJSON when <BrandMap> has it; without it the map fetches the TileJSON itself. */
+export function brandMapStyle(source?: TileSource | null): StyleSpecification {
   return {
     version: 8,
     glyphs: GLYPHS,
-    sources: { openmaptiles: { type: "vector", url: TILES } },
+    sources: { openmaptiles: source ? { type: "vector", ...source } : { type: "vector", url: TILES } },
     layers: [
       { id: "land", type: "background", paint: { "background-color": MAP_INK.land } },
 

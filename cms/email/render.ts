@@ -176,36 +176,60 @@ export function interpolateLexical(state: LexicalState, vars: TemplateVars): Lex
   return { ...state, root: { ...state.root, children: mapChildren(state.root.children) ?? [] } };
 }
 
-export const lockedBackground = (hex: string) => `background-color:${hex};background:linear-gradient(${hex},${hex});`;
+/** The whole email is these two colours: White Rock and Charcoal Slate. The Gmail lock in layout.ts is worked out from them. */
+export const EMAIL_GROUND = "#efe2ca";
+export const EMAIL_INK = "#2d3748";
+
+export const lockedBackground = (hex: string) => `background-color:${hex};background-image:linear-gradient(${hex},${hex});`;
 
 /* Inline styles: email clients ignore <style> blocks unevenly; the shell sets fonts, these set rhythm. */
-const LINK_STYLE = "color:#efe2ca;text-decoration:underline;";
+const LINK_STYLE = `color:${EMAIL_INK};text-decoration:underline;`;
 const BUTTON_STYLE =
-  `display:inline-block;${lockedBackground("#efe2ca")}color:#9059a4;text-decoration:none;font-weight:600;letter-spacing:0.02em;padding:13px 26px;border-radius:999px;box-shadow:0 8px 18px -10px rgba(45,55,72,0.45);`;
+  `display:inline-block;background-color:transparent;border:1px solid ${EMAIL_INK};color:${EMAIL_INK};font-weight:700;text-decoration:none;letter-spacing:0.02em;padding:13px 26px;border-radius:999px;`;
 
 /**
- * Lexical → email HTML. Payload's default converters, then three inline
- * style passes: paragraph spacing, link colour, and "a paragraph that is
- * only a link becomes a button" — the one layout device editors get without
- * a custom block.
+ * Lexical → email HTML. Payload's default converters, then inline style
+ * passes: paragraph spacing, explicit text/link/button colours, and "a paragraph
+ * that is only a link becomes an outline button" — the one layout device
+ * editors get without a custom block.
+ *
+ * Each top-level block is converted alone so that text is wrapped in `.mp-text`
+ * while a picture or a rule the editor inserted stays outside it.
  */
 export function lexicalToEmailHtml(state: unknown): string {
   if (!isLexicalState(state)) return "";
-  const html = convertLexicalToHTML({
-    data: state as never,
-    disableContainer: true,
-    disableIndent: true,
-    converters: { ...defaultHTMLConverters },
-  });
+  return state.root.children
+    .map((child) => {
+      const html = styleEmailBlock(
+        convertLexicalToHTML({
+          data: { ...state, root: { ...state.root, children: [child] } } as never,
+          disableContainer: true,
+          disableIndent: true,
+          converters: { ...defaultHTMLConverters },
+        }),
+      );
+      return /<(?:img|picture|hr)\b/i.test(html) ? html : `<div class="mp-text" style="color:${EMAIL_INK};">${html}</div>`;
+    })
+    .join("");
+}
+
+function styleEmailBlock(html: string): string {
   return html
     .replace(/<p(\s[^>]*)?>\s*<a([^>]*?)href="([^"]*)"([^>]*)>((?:(?!<a[\s>])[\s\S])*?)<\/a>\s*<\/p>/g, (_m, _pAttrs, before: string, href: string, after: string, label: string) => {
       const rest = `${before}${after}`.replace(/\s(?:style|class)="[^"]*"/g, "");
-      return `<p style="margin:24px 0;"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}"><span class="mp-button-label" style="color:#9059a4 !important;"><span class="mp-button-text">${label}</span></span></a></p>`;
+      return `<p style="margin:24px 0;color:${EMAIL_INK};"><a${rest} href="${href}" class="mp-button" style="${BUTTON_STYLE}">${label}</a></p>`;
     })
-    .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;">`)
+    .replace(/<p(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<p${attrs ?? ""} style="margin:0 0 16px;color:${EMAIL_INK};">`)
+    .replace(/<p style="([^"]*)"/g, (_m, style: string) => (style.includes("color:") ? _m : `<p style="${style};color:${EMAIL_INK};"`))
     .replace(/<a(?![^>]*style=)(\s)/g, `<a class="mp-link" style="${LINK_STYLE}"$1`)
-    .replace(/<(ul|ol)(?![^>]*style=)(\s[^>]*)?>/g, (_m, tag: string, attrs: string | undefined) => `<${tag}${attrs ?? ""} style="margin:0 0 16px;padding-left:22px;">`)
-    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} class="mp-heading" style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:#efe2ca;">`);
+    .replace(/<(ul|ol)(?![^>]*style=)(\s[^>]*)?>/g, (_m, tag: string, attrs: string | undefined) => `<${tag}${attrs ?? ""} style="margin:0 0 16px;padding-left:22px;color:${EMAIL_INK};">`)
+    .replace(/<li(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<li${attrs ?? ""} style="color:${EMAIL_INK};">`)
+    .replace(/<strong(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<strong${attrs ?? ""} style="font-weight:700;color:${EMAIL_INK};">`)
+    .replace(/<b(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<b${attrs ?? ""} style="color:${EMAIL_INK};">`)
+    .replace(/<em(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<em${attrs ?? ""} style="color:${EMAIL_INK};">`)
+    .replace(/<span(?![^>]*style=)(\s[^>]*)?>/g, (_m, attrs: string | undefined) => `<span${attrs ?? ""} style="color:${EMAIL_INK};">`)
+    .replace(/<hr(?![^>]*style=)(\s[^>]*)?>/g, `<hr style="border:0;border-top:1px solid ${EMAIL_INK};margin:24px 0;">`)
+    .replace(/<h([1-6])(?![^>]*style=)(\s[^>]*)?>/g, (_m, level: string, attrs: string | undefined) => `<h${level}${attrs ?? ""} style="margin:24px 0 12px;font-size:${level === "1" ? 24 : level === "2" ? 20 : 17}px;line-height:1.3;color:${EMAIL_INK};">`);
 }
 
 /** Lexical → plain text, keeping link URLs ("Download your tickets: https://…"). */

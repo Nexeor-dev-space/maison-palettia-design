@@ -235,7 +235,18 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
+        // MapLibre's browser build (scripts/vendor-maplibre.mjs). The folder is
+        // the version, so a new release is a new URL; without this every visit
+        // re-checked all three files at ~0.5s each before the map could start.
+        source: "/vendor/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
         source: "/images/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+      {
+        source: "/api/media/file/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
       },
       ...NO_REFERRER_ROUTES.map((source) => ({
@@ -246,4 +257,21 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPayload(nextConfig);
+const config = withPayload(nextConfig);
+
+/*
+  `withPayload` appends `Vary: Sec-CH-Prefers-Color-Scheme` to every path,
+  after the rules above, for the admin's theme. On MapLibre's files that
+  splits the browser cache in two: the page's requests carry the hint, the
+  map's worker's do not, so the worker downloaded the worker script and the
+  shared chunk a second time, one after the other (~1s on the live site's
+  latency). Nothing under /vendor depends on the colour scheme; this rule
+  comes after Payload's, so it is the one that stands.
+*/
+const payloadHeaders = config.headers;
+config.headers = async () => [
+  ...((await payloadHeaders?.()) ?? []),
+  { source: "/vendor/:path*", headers: [{ key: "Vary", value: "Accept-Encoding" }] },
+];
+
+export default config;

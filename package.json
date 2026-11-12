@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev -p 3200",
-    "build": "next build && bash scripts/prune-standalone.sh",
+    "build": "node scripts/check-vendor.mjs && next build && bash scripts/prune-standalone.sh",
     "start": "next start",
     "postinstall": "node scripts/vendor-maplibre.mjs",
     "start:prod": "payload migrate && (payload run cms/scripts/restore-media.ts || echo 'WARNING: media restore did not complete; the site will still start. Run npm run restore:media after startup.') && bash scripts/start-standalone.sh",
