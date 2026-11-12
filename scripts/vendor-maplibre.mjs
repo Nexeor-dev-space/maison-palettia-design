@@ -32,6 +32,7 @@ const out = join(root, "public", "vendor", "maplibre-gl");
 rmSync(out, { recursive: true, force: true });
 mkdirSync(join(out, version), { recursive: true });
 
+// The same list is checked before every build by scripts/check-vendor.mjs — keep the two together.
 for (const file of ["maplibre-gl.mjs", "maplibre-gl-shared.mjs", "maplibre-gl-worker.mjs", "maplibre-gl.css"]) {
   cpSync(join(pkg, "dist", file), join(out, version, file));
 }

@@ -93,6 +93,7 @@ fi
 
 if [ "$RUN_BUILD" = 1 ]; then
   step "next build"
+  node scripts/check-vendor.mjs
   npx next build
   bash scripts/prune-standalone.sh
   for route in robots.txt sitemap.xml; do
