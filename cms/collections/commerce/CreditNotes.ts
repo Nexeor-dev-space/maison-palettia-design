@@ -29,7 +29,8 @@ import { BOOKINGS_GROUP, sidebarFor, systemDate, systemField } from "./shared";
 
 export const CREDIT_NOTE_STATUSES = [
   { label: "Available", value: "available" },
-  { label: "Redeemed", value: "redeemed" },
+  { label: "Partially Redeemed", value: "partially_redeemed" },
+  { label: "Fully Redeemed", value: "redeemed" },
   { label: "Expired", value: "expired" },
 ] as const;
 
@@ -69,7 +70,7 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
         : undefined;
 
   // Prevent duplicate credit note issuance against the same booking
-  if (orderId && operation === "create" && req?.payload?.find) {
+  if (orderId && operation === "create" && req?.payload?.find && !req.context?.issuingCreditNotesBatch) {
     try {
       const existing = await req.payload.find({
         collection: "credit-notes",
@@ -190,7 +191,12 @@ export const CreditNotes: CollectionConfig = {
           index: true,
           maxLength: 40,
           hooks: {
-            beforeValidate: [({ value }) => (typeof value === "string" && value.trim() ? normaliseCreditNoteCode(value) : mintCreditNoteCode())],
+            beforeValidate: [
+              ({ value, operation }) => {
+                if (operation === "update" && (value === undefined || value === null)) return value;
+                return typeof value === "string" && value.trim() ? normaliseCreditNoteCode(value) : mintCreditNoteCode();
+              },
+            ],
           },
           admin: {
             width: "50%",
@@ -208,13 +214,18 @@ export const CreditNotes: CollectionConfig = {
           options: [...CREDIT_NOTE_STATUSES],
           admin: {
             width: "50%",
-            description: "Available, Redeemed, or Expired.",
+            description: "Available, Partially Redeemed, Fully Redeemed, or Expired.",
             components: {
               Cell: {
                 path: "@/cms/components/admin/StatusCell#StatusCell",
                 clientProps: {
-                  labels: { available: "Available", redeemed: "Redeemed", expired: "Expired" },
-                  tones: { available: "ok", redeemed: "lilac", expired: "muted" },
+                  labels: {
+                    available: "Available",
+                    partially_redeemed: "Partially Redeemed",
+                    redeemed: "Fully Redeemed",
+                    expired: "Expired",
+                  },
+                  tones: { available: "ok", partially_redeemed: "lilac", redeemed: "lilac", expired: "muted" },
                 },
               },
             },
@@ -296,7 +307,8 @@ export const CreditNotes: CollectionConfig = {
           label: "Expiry date",
           required: true,
           index: true,
-          validate: (val: unknown) => {
+          validate: (val: unknown, { operation }: { operation?: string }) => {
+            if (operation === "update" && (val === undefined || val === null)) return true;
             if (!val) return "Expiry date is mandatory.";
             return true;
           },

@@ -88,7 +88,7 @@ export function OrderActions() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ tone: "error" | "ok" | "info"; text: string } | null>(null);
   const [pending, setPending] = useState<PendingRefund[]>([]);
-  const [creditNote, setCreditNote] = useState<IssuedCreditNoteInfo | null>(null);
+  const [creditNotes, setCreditNotes] = useState<IssuedCreditNoteInfo[]>([]);
 
   // Credit note form
   const [creditAmount, setCreditAmount] = useState("");
@@ -126,13 +126,13 @@ export function OrderActions() {
     };
   }, [api, id, isAdmin, lastUpdateTime]);
 
-  // Credit note issued on this order (disables duplicate issuance and shows summary).
+  // Credit notes issued on this order (disables duplicate issuance and shows summary).
   useEffect(() => {
     if (!id || !isAdmin) return;
     let cancelled = false;
-    callAction<{ docs: IssuedCreditNoteInfo[] }>(api, `/credit-notes?where[order][equals]=${id}&depth=0&limit=1`)
+    callAction<{ docs: IssuedCreditNoteInfo[] }>(api, `/credit-notes?where[order][equals]=${id}&depth=0&limit=50`)
       .then((res) => {
-        if (!cancelled) setCreditNote(res.docs?.[0] ?? null);
+        if (!cancelled) setCreditNotes(res.docs ?? []);
       })
       .catch(() => undefined);
     return () => {
@@ -239,12 +239,14 @@ export function OrderActions() {
     items.push({ label: "Refund…", icon: "refund", hint: desk ? "Record money handed back at the desk" : isAdmin ? "Full or partial, sent to Mamo Pay" : "Request for an admin to approve", onClick: () => void openDialog("refund") });
   }
   if (isAdmin) {
-    const hasNote = Boolean(creditNote);
+    const hasNote = creditNotes.length > 0;
     items.push({
       label: "Issue credit note…",
       icon: "ticket",
       hint: hasNote
-        ? `Credit note ${creditNote!.code} already issued (${creditNote!.status})`
+        ? creditNotes.length === 1
+          ? `Credit note ${creditNotes[0].code} already issued (${creditNotes[0].status})`
+          : `${creditNotes.length} credit notes already issued (${creditNotes.map((c) => c.code).join(", ")})`
         : !paid
           ? "Only confirmed bookings can be credited"
           : "Issue booking credit for reschedule",
@@ -285,15 +287,16 @@ export function OrderActions() {
       <span className={`mp-chip mp-chip--${STATUS_TONE[order.status] ?? "muted"}`} style={{ marginInlineEnd: 8 }}>
         {STATUS_LABEL[order.status] ?? order.status}
       </span>
-      {creditNote ? (
+      {creditNotes.map((cn) => (
         <span
+          key={cn.id}
           className="mp-chip mp-chip--lilac"
           style={{ marginInlineEnd: 8 }}
-          title={`Credit note ${creditNote.code}: ${aed(creditNote.amountFils)} (${creditNote.status}) · Expires ${fmtDate(creditNote.expiresAt)}`}
+          title={`Credit note ${cn.code}: ${aed(cn.amountFils)} (${cn.status}) · Expires ${fmtDate(cn.expiresAt)}`}
         >
-          Credit note: {creditNote.code} ({creditNote.status})
+          Credit note: {cn.code} ({cn.status})
         </span>
-      ) : null}
+      ))}
       {order.needsReview ? (
         <span className="mp-chip mp-chip--warn" style={{ marginInlineEnd: 8 }}>
           Needs review
@@ -521,7 +524,13 @@ export function OrderActions() {
                   expiresAt: expiryDate ? new Date(expiryDate).toISOString() : "",
                   note: creditNoteNote.trim() || undefined,
                 },
-                (r) => `Credit note issued with promo code ${String((r.creditNote as { code?: string } | undefined)?.code ?? "")}.`,
+                (r) => {
+                  const raw = r as { creditNote?: { code?: string }; creditNotes?: Array<{ code?: string }> };
+                  if (raw.creditNotes && raw.creditNotes.length > 1) {
+                    return `${raw.creditNotes.length} credit notes issued: ${raw.creditNotes.map((c) => c.code).join(", ")}.`;
+                  }
+                  return `Credit note issued with promo code ${String(raw.creditNote?.code ?? "")}.`;
+                },
               )
             }
             confirmLabel="Issue credit note"

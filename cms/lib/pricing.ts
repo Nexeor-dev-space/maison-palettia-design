@@ -431,12 +431,14 @@ async function resolveCodes(
         ?.trim()
         .toLowerCase();
 
+      const currentEmail = email?.trim().toLowerCase();
+
       // Customer validation: Validate that the promo code belongs to the correct customer
-      if (input.channel === "online" && (!email || ownerEmail !== email)) {
-        rejected.push({ code, reason: "invalid" });
+      if (input.channel === "online" && (!currentEmail || (ownerEmail && ownerEmail !== currentEmail))) {
+        rejected.push({ code, reason: "wrong_customer" });
       } else if (cnDoc.status === "expired" || (cnDoc.expiresAt && new Date(cnDoc.expiresAt).getTime() <= Date.now())) {
         rejected.push({ code, reason: "expired" });
-      } else if (cnDoc.status === "redeemed" || Boolean(cnDoc.redeemedInOrder)) {
+      } else if (cnDoc.status === "redeemed" || cnDoc.status === "partially_redeemed" || Boolean(cnDoc.redeemedInOrder)) {
         rejected.push({ code, reason: "exhausted" });
       } else if (cnDoc.status !== "available") {
         rejected.push({ code, reason: "invalid" });

@@ -323,6 +323,10 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
     const priced = await quote(req, { lines: input.lines, email, codes: input.codes, channel: input.channel, desk: input.desk }, { reserve: true });
     assertPayable(priced.totals, input.channel);
 
+    if (online && priced.rejectedCodes.some((r) => r.reason === "wrong_customer")) {
+      throw new CheckoutError("wrong_customer", "This credit note was issued to another customer and cannot be redeemed with this email address.", 400);
+    }
+
     const reference = await uniqueReference(req, prefix);
     const now = new Date();
     const expiresAt = online ? new Date(now.getTime() + holdMinutes * 60_000) : null;
@@ -1774,13 +1778,17 @@ export async function issueCreditNoteForOrder(
     throw new CheckoutError("invalid_expiry", "A future expiry date is mandatory.", 400);
   }
 
-  const code = input.code?.trim().toUpperCase().replace(/\s+/g, "") || mintCreditNoteCode();
   const customerId = idOf(order.customer);
   const customerEmail = (order.contact?.email ?? "").trim().toLowerCase();
   const customerName = [order.contact?.firstName, order.contact?.lastName].filter(Boolean).join(" ");
 
   return withTransaction(req, async () => {
-    // 1. Prevent duplicate credit note issuance against the same booking
+    // 1. Calculate slot count: multi-slot bookings issue one credit note per slot
+    const sessionLines = (order.lines ?? []).filter((l) => l.kind === "session");
+    const totalSlots = sessionLines.reduce((sum, l) => sum + (l.qty ?? 0), 0);
+    const noteCount = Math.max(1, totalSlots);
+
+    // 2. Prevent duplicate credit note issuance against the same booking
     const existing = await req.payload.find({
       collection: "credit-notes" as never,
       where: { order: { equals: order.id } },
@@ -1793,32 +1801,52 @@ export async function issueCreditNoteForOrder(
       throw new CheckoutError("duplicate_credit_note", `A credit note has already been issued for booking ${order.reference}.`, 409);
     }
 
-    // 2. Validate order status - only confirmed/confirming bookings can be credited & cancelled
+    // 3. Validate order status - only confirmed/confirming bookings can be credited & cancelled
     if (!["confirmed", "confirming"].includes(order.status as string)) {
       throw new CheckoutError("not_cancellable", `Credit note cannot be issued: Booking ${order.reference} is ${order.status}.`, 400);
     }
 
-    // 3. Create credit note
-    const doc = (await req.payload.create({
-      collection: "credit-notes" as never,
-      data: {
-        code,
-        status: "available",
-        order: order.id,
-        amountFils: input.amountFils,
-        customer: customerId ?? null,
-        customerEmail,
-        customerName,
-        issuedAt: new Date().toISOString(),
-        expiresAt: new Date(input.expiresAt).toISOString(),
-        notes: input.notes?.slice(0, 1000) ?? null,
-      } as never,
-      depth: 0,
-      overrideAccess: true,
-      req,
-    })) as unknown as Record<string, unknown>;
+    // 4. Create credit notes (split amount evenly across slots, with remainder on last slot)
+    const baseFils = Math.floor(input.amountFils / noteCount);
+    const remainder = input.amountFils - baseFils * noteCount;
+    const createdDocs: Array<Record<string, unknown>> = [];
 
-    // 4. Void active tickets and release seats back to session inventory
+    await withContext(req, { issuingCreditNotesBatch: true }, async (batchContext) => {
+      for (let i = 0; i < noteCount; i++) {
+        const slotAmountFils = baseFils + (i === noteCount - 1 ? remainder : 0);
+        const slotCode =
+          noteCount === 1 && input.code?.trim()
+            ? input.code.trim().toUpperCase().replace(/\s+/g, "")
+            : mintCreditNoteCode();
+
+        const noteDoc = (await req.payload.create({
+          collection: "credit-notes" as never,
+          data: {
+            code: slotCode,
+            status: "available",
+            order: order.id,
+            amountFils: slotAmountFils,
+            customer: customerId ?? null,
+            customerEmail,
+            customerName,
+            issuedAt: new Date().toISOString(),
+            expiresAt: new Date(input.expiresAt).toISOString(),
+            notes:
+              noteCount > 1
+                ? `${input.notes ? `${input.notes} ` : ""}(Slot ${i + 1}/${noteCount})`.trim()
+                : input.notes?.slice(0, 1000) ?? null,
+          } as never,
+          depth: 0,
+          overrideAccess: true,
+          context: batchContext,
+          req,
+        })) as unknown as Record<string, unknown>;
+
+        createdDocs.push(noteDoc);
+      }
+    });
+
+    // 5. Void active tickets and release seats back to session inventory
     const tickets = (await req.payload.find({
       collection: "tickets",
       where: { and: [{ order: { equals: order.id } }, { status: { in: ["valid", "checked_in"] } }] },
@@ -1832,22 +1860,28 @@ export async function issueCreditNoteForOrder(
       await refundSeats(req, s, n);
     }
 
-    // 5. Automatically change the original booking status to Cancelled
+    // 6. Automatically change the original booking status to Cancelled
+    const codes = createdDocs.map((d) => String(d.code));
     if (canTransition(order.status as OrderStatus, "cancelled")) {
       await transition(req, order, "cancelled", {
-        note: `Credit note ${code} (${formatAed(input.amountFils)}) issued for reschedule.`,
-        refs: { creditNote: String(doc.id) },
+        note: `Credit note(s) ${codes.join(", ")} (${formatAed(input.amountFils)}) issued for reschedule.`,
+        refs: { creditNotes: codes.join(", ") },
       });
     }
 
-    // 6. Record timeline entry on the booking
+    // 7. Record timeline entry on the booking
     await appendTimeline(req, order.id, "credit_note_issued", {
-      code,
+      codes,
       amount: formatAed(input.amountFils),
+      count: createdDocs.length,
       expiresAt: new Date(input.expiresAt).toISOString(),
     });
 
-    return doc;
+    return {
+      ...createdDocs[0],
+      creditNote: createdDocs[0],
+      creditNotes: createdDocs,
+    };
   });
 }
 

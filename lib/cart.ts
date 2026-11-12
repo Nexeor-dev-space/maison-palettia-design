@@ -702,7 +702,14 @@ export async function startCheckout(body: StartCheckoutBody): Promise<StartCheck
   return { status: "error" };
 }
 
-export type RejectedCodeReason = "invalid" | "expired" | "exhausted" | "min_spend" | "not_applicable" | "one_promo_only";
+export type RejectedCodeReason =
+  | "invalid"
+  | "expired"
+  | "exhausted"
+  | "min_spend"
+  | "not_applicable"
+  | "one_promo_only"
+  | "wrong_customer";
 
 /** What checkout shows of a server quote: totals in fils, and which codes did not apply and why. */
 export interface QuoteView {

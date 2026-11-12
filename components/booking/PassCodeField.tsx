@@ -185,4 +185,5 @@ const REJECTED: Record<RejectedCodeReason, string> = {
   min_spend: "That code needs a larger booking before it applies.",
   not_applicable: "That code does not apply to anything in this booking.",
   one_promo_only: "Only one promo code can be used per booking.",
+  wrong_customer: "This credit note was issued to another customer and cannot be redeemed with this email address.",
 };

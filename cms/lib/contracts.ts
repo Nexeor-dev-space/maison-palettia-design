@@ -114,7 +114,7 @@ export interface Quote {
     creditNoteId?: string;
     originalOrderId?: string;
   };
-  rejectedCodes: Array<{ code: string; reason: "invalid" | "expired" | "exhausted" | "min_spend" | "not_applicable" | "one_promo_only" }>;
+  rejectedCodes: Array<{ code: string; reason: "invalid" | "expired" | "exhausted" | "min_spend" | "not_applicable" | "one_promo_only" | "wrong_customer" }>;
 }
 // reserve=true runs the atomic UPDATEs (promo `uses`, pass `sessions_remaining`) inside the request's transaction.
 // The returned object is a `Quote` plus the per-line breakdown the checkout stores (`DetailedQuote`).

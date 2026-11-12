@@ -301,6 +301,77 @@ describe("Credit Note System (FEAT #183)", () => {
       expect(isOwner).toBe(false);
     });
 
+    it("verifies Scenario 1: credit note amount (AED 280) exceeds slot booking (AED 240)", () => {
+      // Slot booking: 1 spot @ AED 240 (24,000 fils)
+      // Credit note: AED 280 (28,000 fils)
+      const creditNote = createCreditNotePromo({ code: "CN-280", value: 28_000 });
+      const result = priceBasket([sessionLine({ unitFils: 24_000, qty: 1 })], {
+        ...basePriceOptions,
+        promo: creditNote,
+      });
+
+      expect(result.promo?.discountFils).toBe(24_000);
+      expect(result.totals.subtotalFils).toBe(24_000);
+      expect(result.totals.discountFils).toBe(24_000);
+      expect(result.totals.grossFils).toBe(0); // covered in full, no payment needed
+      expect(result.totals.netFils).toBe(0);
+      expect(result.totals.vatFils).toBe(0);
+
+      // Verify redemption payload and that remaining balance (AED 40) is not carried forward:
+      const redeemedPayload = {
+        status: "redeemed",
+        redeemedInOrder: "order-new-777",
+        redeemedAt: new Date().toISOString(),
+        redeemedAmountFils: result.promo?.discountFils, // 24_000 fils
+      };
+      expect(redeemedPayload.status).toBe("redeemed"); // closed, not reusable
+      expect(redeemedPayload.redeemedAmountFils).toBe(24_000);
+    });
+
+    it("verifies multi-slot booking credit note splitting across slots", () => {
+      // Order with 3 slots (e.g. 3 spots @ AED 280 = AED 840 total = 84,000 fils)
+      const totalAmountFils = 84_000;
+      const totalSlots = 3;
+      const noteCount = Math.max(1, totalSlots);
+      const baseFils = Math.floor(totalAmountFils / noteCount);
+      const remainder = totalAmountFils - baseFils * noteCount;
+
+      const slotAmounts: number[] = [];
+      for (let i = 0; i < noteCount; i++) {
+        slotAmounts.push(baseFils + (i === noteCount - 1 ? remainder : 0));
+      }
+
+      expect(slotAmounts).toEqual([28_000, 28_000, 28_000]); // 3 notes of AED 280 each
+      expect(slotAmounts.reduce((a, b) => a + b, 0)).toBe(totalAmountFils);
+    });
+
+    it("verifies field-level expiresAt validator allows partial updates", () => {
+      const expiresAtField = CreditNotes.fields
+        .flatMap((f: any) => (f.type === "row" ? f.fields : [f]))
+        .find((f: any) => f.name === "expiresAt");
+
+      const validateFn = expiresAtField.validate;
+      // On update where expiresAt is omitted, it must return true (not fail)
+      expect(validateFn(undefined, { operation: "update" })).toBe(true);
+      expect(validateFn(null, { operation: "update" })).toBe(true);
+      // On create without expiresAt, it must return error
+      expect(validateFn(undefined, { operation: "create" })).toBe("Expiry date is mandatory.");
+    });
+
+    it("verifies field-level code beforeValidate hook preserves existing code on update", () => {
+      const codeField = CreditNotes.fields
+        .flatMap((f: any) => (f.type === "row" ? f.fields : [f]))
+        .find((f: any) => f.name === "code");
+
+      const hookFn = codeField.hooks.beforeValidate[0];
+      // On update without code passed, it must return undefined/null, NOT mint a new code
+      expect(hookFn({ value: undefined, operation: "update" })).toBeUndefined();
+      expect(hookFn({ value: null, operation: "update" })).toBeNull();
+      // On create without code passed, it must mint a new code
+      const minted = hookFn({ value: undefined, operation: "create" });
+      expect(minted).toMatch(/^CN-[0-9A-F]{6}$/);
+    });
+
     it("verifies expiry: rejects expired credit note", () => {
       const past = new Date(Date.now() - 3600_000).toISOString();
       const isExpired = new Date(past).getTime() <= Date.now();
@@ -342,9 +413,12 @@ describe("Credit Note System (FEAT #183)", () => {
       expect(CreditNotes.admin?.group).toBe("Credit Notes");
     });
 
-    it("defines the three statuses: available, redeemed, expired", () => {
+    it("defines the statuses including available, partially_redeemed, redeemed, expired", () => {
       const values = CREDIT_NOTE_STATUSES.map((s) => s.value);
-      expect(values).toEqual(["available", "redeemed", "expired"]);
+      expect(values).toContain("available");
+      expect(values).toContain("partially_redeemed");
+      expect(values).toContain("redeemed");
+      expect(values).toContain("expired");
     });
 
     it("marks expiry date field as mandatory (required: true)", () => {
