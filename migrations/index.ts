@@ -17,6 +17,7 @@ import * as migration_20261029_065943_add_clarity_project_id from './20261029_06
 import * as migration_20261030_062557_media_object_storage from './20261030_062557_media_object_storage';
 import * as migration_20261105_123048_implement_credit_notes from './20261105_123048_implement_credit_notes';
 import * as migration_20261108_133808_add_music_object_storage from './20261108_133808_add_music_object_storage';
+import * as migration_20261109_184551_experience_page_photograph from './20261109_184551_experience_page_photograph';
 
 export const migrations = [
   {
@@ -113,5 +114,10 @@ export const migrations = [
     up: migration_20261108_133808_add_music_object_storage.up,
     down: migration_20261108_133808_add_music_object_storage.down,
     name: '20261108_133808_add_music_object_storage',
+  },
+  {
+    up: migration_20261109_184551_experience_page_photograph.up,
+    down: migration_20261109_184551_experience_page_photograph.down,
+    name: '20261109_184551_experience_page_photograph',
   },
 ];

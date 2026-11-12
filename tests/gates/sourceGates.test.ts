@@ -94,6 +94,7 @@ const ALLOWED: Record<string, string[] | "anywhere"> = {
   STORAGE_ACCESS_KEY: ["cms/lib/storage.ts"],
   STORAGE_SECRET_KEY: ["cms/lib/storage.ts"],
   DRY_RUN: ["cms/scripts/upload-media-to-storage.ts"],
+  PAGE_PHOTOS_DRY_RUN: ["cms/scripts/move-page-photos.ts"],
 };
 
 describe("process.env allowlist (SPEC §C.1, §K grep gate)", () => {
