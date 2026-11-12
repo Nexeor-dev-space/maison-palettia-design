@@ -345,6 +345,8 @@ if [ "$SEED" = 1 ]; then
 fi
 
 say "Build: next build"
+# MapLibre's browser files must ship: browsers cache /vendor (404s too) for a year.
+node scripts/check-vendor.mjs || die "public/vendor/maplibre-gl is missing (see scripts/check-vendor.mjs)."
 npx next build
 
 [ -f .next/standalone/server.js ] || die "next build produced no .next/standalone/server.js (is output: \"standalone\" still in next.config.ts?)."

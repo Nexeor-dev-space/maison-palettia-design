@@ -16,6 +16,7 @@ import * as migration_20261021_184845_media_blur_placeholder from './20261021_18
 import * as migration_20261029_065943_add_clarity_project_id from './20261029_065943_add_clarity_project_id';
 import * as migration_20261030_062557_media_object_storage from './20261030_062557_media_object_storage';
 import * as migration_20261108_133808_add_music_object_storage from './20261108_133808_add_music_object_storage';
+import * as migration_20261109_184551_experience_page_photograph from './20261109_184551_experience_page_photograph';
 
 export const migrations = [
   {
@@ -106,6 +107,11 @@ export const migrations = [
   {
     up: migration_20261108_133808_add_music_object_storage.up,
     down: migration_20261108_133808_add_music_object_storage.down,
-    name: '20261108_133808_add_music_object_storage'
+    name: '20261108_133808_add_music_object_storage',
+  },
+  {
+    up: migration_20261109_184551_experience_page_photograph.up,
+    down: migration_20261109_184551_experience_page_photograph.down,
+    name: '20261109_184551_experience_page_photograph'
   },
 ];

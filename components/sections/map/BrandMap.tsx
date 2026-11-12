@@ -3,9 +3,20 @@
 import type { Map as MapLibreMap } from "maplibre-gl";
 import maplibrePkg from "maplibre-gl/package.json";
 import { useEffect, useRef, useState } from "react";
+import { preconnect } from "react-dom";
 
 import { INK } from "@/components/sections/hero/composition";
-import { brandMapStyle, MAP_INK, METRO_FILTER, METRO_ICON } from "@/components/sections/map/brandMapStyle";
+import {
+  brandMapStyle,
+  FONT_STACKS,
+  glyphUrl,
+  MAP_INK,
+  METRO_FILTER,
+  METRO_ICON,
+  TILE_HOST,
+  TILES,
+  type TileSource,
+} from "@/components/sections/map/brandMapStyle";
 import { cn } from "@/lib/utils";
 
 type MapLibre = typeof import("maplibre-gl");
@@ -20,8 +31,13 @@ const ZOOM_NARROW = 13.8;
 /** How far the map will look for "the nearest Metro", and how far out it will zoom to show it. */
 const METRO_REACH_M = 2500;
 const ZOOM_FLOOR = 12.6;
+/** The map opens this far out, then eases in once the nearest-station check has read the tiles. */
+const START_STEP = 1.2;
+/** Vector tiles are 512px squares: a map at zoom 13.2 draws z13 tiles. */
+const TILE_PX = 512;
 
 let loading: Promise<MapLibre> | null = null;
+let tileJson: Promise<TileSource | null> | null = null;
 
 /**
  * The library and its stylesheet, once per page however many maps ask.
@@ -38,6 +54,15 @@ function loadMapLibre(): Promise<MapLibre> {
       link.dataset.maplibre = "";
       document.head.appendChild(link);
     }
+    // The map imports the shared chunk, and starts a worker that imports it
+    // too; announced here, all three come down together instead of one after
+    // the other (and next.config.ts caches /vendor for good).
+    for (const file of ["maplibre-gl-shared.mjs", "maplibre-gl-worker.mjs"]) {
+      const hint = document.createElement("link");
+      hint.rel = "modulepreload";
+      hint.href = `${VENDOR}/${file}`;
+      document.head.appendChild(hint);
+    }
     const url = `${VENDOR}/maplibre-gl.mjs`;
     loading = import(/* webpackIgnore: true */ /* turbopackIgnore: true */ url) as Promise<MapLibre>;
     loading.catch(() => {
@@ -45,6 +70,67 @@ function loadMapLibre(): Promise<MapLibre> {
     });
   }
   return loading;
+}
+
+/**
+ * WARM THE TILE HOST WHILE THE LIBRARY LOADS.
+ *
+ * Left to itself the map asks for the TileJSON only once the library has
+ * downloaded, parsed and started its worker; the tiles only once the TileJSON
+ * is in; the label glyphs only once the tiles are parsed. Every step waited
+ * on the one before, and the map stays hidden until the last (Nov 2026: ~4s
+ * from coming into view to showing, on the live site).
+ *
+ * So all of it starts at once, the moment the frame comes near: the TileJSON
+ * (handed to the style, so the map skips that request), the tiles the first
+ * view covers, and the glyph files the labels use. Both are long-cached and
+ * CORS-open on OpenFreeMap, so the worker's own requests for them are answered
+ * from the browser cache. Nothing here can break the map: a failed warm-up
+ * leaves the map to fetch as it always did.
+ */
+function fetchTileJson(): Promise<TileSource | null> {
+  // A hung request must not hold the map back: past the timeout the map
+  // fetches the TileJSON itself, as it did before.
+  const signal = typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(4000) : undefined;
+  tileJson ??= fetch(TILES, { signal })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((json): TileSource | null =>
+      json && Array.isArray(json.tiles) && json.tiles.length
+        ? { tiles: json.tiles, minzoom: json.minzoom, maxzoom: json.maxzoom, attribution: json.attribution }
+        : null,
+    )
+    .catch(() => null);
+  return tileJson;
+}
+
+/** The tile URLs that cover a `width`×`height` frame centred on `lng, lat` at `zoom`. */
+function coveringTiles(template: string, maxzoom: number, lng: number, lat: number, zoom: number, width: number, height: number) {
+  const z = Math.max(0, Math.min(maxzoom, Math.floor(zoom)));
+  const n = 2 ** z;
+  const x = ((lng + 180) / 360) * n;
+  const rad = (lat * Math.PI) / 180;
+  const y = ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * n;
+  const tilePx = TILE_PX * 2 ** (zoom - z);
+  const dx = width / 2 / tilePx;
+  const dy = height / 2 / tilePx;
+  const urls: string[] = [];
+  for (let tx = Math.floor(x - dx); tx <= Math.floor(x + dx); tx++) {
+    for (let ty = Math.max(0, Math.floor(y - dy)); ty <= Math.min(n - 1, Math.floor(y + dy)); ty++) {
+      urls.push(template.replace("{z}", String(z)).replace("{x}", String(((tx % n) + n) % n)).replace("{y}", String(ty)));
+    }
+  }
+  return urls.slice(0, 16);
+}
+
+/** Start every tile-host download the first view needs; resolves to the TileJSON for the style. */
+function warmTileHost(lng: number, lat: number, zoom: number, width: number, height: number): Promise<TileSource | null> {
+  const warm = (url: string) => void fetch(url).catch(() => {});
+  for (const stack of FONT_STACKS) warm(glyphUrl(stack));
+  return fetchTileJson().then((source) => {
+    const template = source?.tiles?.[0];
+    if (template) for (const url of coveringTiles(template, source.maxzoom ?? 14, lng, lat, zoom, width, height)) warm(url);
+    return source;
+  });
 }
 
 /**
@@ -262,6 +348,9 @@ export function MapClickThrough({ href, label }: { href: string; label: string }
  * scrolling past it.
  */
 export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = true, mapsHref, className }: BrandMapProps) {
+  // Open the connection to the tile host with the page, so the first request
+  // for a tile does not also pay for DNS and TLS.
+  preconnect(TILE_HOST, { crossOrigin: "anonymous" });
   const href = mapsHref ?? `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`;
   const container = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
@@ -277,19 +366,23 @@ export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = tru
 
     const start = async () => {
       try {
-        const maplibre = await loadMapLibre();
+        const zoom = node.clientWidth < 520 ? ZOOM_NARROW : ZOOM;
+        // The library and the tile host at once — see warmTileHost.
+        const [maplibre, source] = await Promise.all([
+          loadMapLibre(),
+          warmTileHost(lng, lat, zoom - START_STEP, node.clientWidth, node.clientHeight),
+        ]);
         if (cancelled) return;
 
         const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const zoom = node.clientWidth < 520 ? ZOOM_NARROW : ZOOM;
         map = new maplibre.Map({
           container: node,
-          style: brandMapStyle(),
+          style: brandMapStyle(source),
           center: [lng, lat],
           // Always start wide: the nearest-station check below reads the tiles
           // the first view loads, and a wider first view is what makes sure the
           // station's tile is among them.
-          zoom: zoom - 1.2,
+          zoom: zoom - START_STEP,
           interactive,
           cooperativeGestures: interactive,
           dragRotate: false,
@@ -356,7 +449,9 @@ export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = tru
           void start();
         }
       },
-      { rootMargin: "100% 0px" },
+      // Two screens ahead: a visitor scrolling at reading pace reaches a map
+      // that has already drawn.
+      { rootMargin: "200% 0px" },
     );
     observer.observe(node);
 
@@ -392,7 +487,7 @@ export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = tru
       aria-label={title}
       style={{ backgroundColor: MAP_INK.land }}
       className={cn(
-        "brand-map absolute inset-0 h-full w-full transition-opacity duration-700",
+        "brand-map absolute inset-0 h-full w-full transition-opacity duration-300",
         ready ? "opacity-100" : "opacity-0",
         className,
       )}

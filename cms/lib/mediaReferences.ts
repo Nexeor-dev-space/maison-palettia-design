@@ -49,6 +49,7 @@ const COLLECTION_REFS: CollectionRefs[] = [
     label: "experience",
     fields: [
       { path: "image", label: "Main photograph" },
+      { path: "pageImage", label: "Page photograph" },
       { path: "gallery", label: "Gallery" },
       SEO_IMAGE,
     ],

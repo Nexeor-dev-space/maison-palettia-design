@@ -86,6 +86,7 @@ export const Experiences: CollectionConfig = {
     beforeValidate: [
       imageryPublishGate([
         { field: "image", noun: "The hero image" },
+        { field: "pageImage", noun: "The page photograph" },
         { field: "gallery", noun: "The gallery image" },
       ]),
     ],
@@ -130,6 +131,13 @@ export const Experiences: CollectionConfig = {
       description: "One row per paragraph; two is the house length. Craft only — no price, age, duration or group size here.",
     }),
     image("image", "Main photograph", "Square works best: menu thumbs are 48 px squares and cards are near-square. At least 1000 px."),
+    // Issue #201: the banner used to be held in code (lib/experiencePagePhotos.ts)
+    // and laid over the CMS answer, so an editor's change never showed.
+    image(
+      "pageImage",
+      "Page photograph",
+      "Optional. Opens this experience's own page and its date pages, and is the preview in the Workshops menu. Leave empty to use the main photograph. Landscape, at least 1600 px wide; set the focal point so a wide crop keeps the subject.",
+    ),
     gallery("gallery", "Gallery (up to 3)", 3, "Fanned beside the About section on the experience page. Must not repeat the main photograph."),
     {
       name: "status",

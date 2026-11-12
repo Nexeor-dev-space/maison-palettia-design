@@ -8,6 +8,7 @@ import { getPayload } from "payload";
 import sharp from "sharp";
 
 import { backfillBlur } from "@/cms/lib/backfillBlur";
+import { describeMove, movePagePhotos } from "@/cms/lib/pagePhotos";
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { STORAGE_ENABLED } from "@/cms/lib/storage";
 import { storedFilename } from "@/cms/seed/media";
@@ -186,6 +187,16 @@ async function main() {
   const blur = await backfillBlur(payload, { dryRun });
   if (blur.made || blur.none || blur.missing.length) {
     console.log(`restore-media: blur — ${verb} ${blur.made} stand-ins, ${blur.none} need none, ${blur.missing.length} without a file here.`);
+  }
+
+  // The experience pages' photographs, out of the code and into the library —
+  // once per database (cms/lib/pagePhotos.ts). A failure here must not undo a
+  // good restore: the site keeps its code-held photographs until it succeeds.
+  try {
+    const move = await movePagePhotos(payload, { dryRun, log: (line) => console.log(`restore-media: page photographs — ${line}`) });
+    if (move.state !== "already-moved") console.log(`restore-media: page photographs — ${describeMove(move)}`);
+  } catch (err) {
+    console.error("restore-media: page photographs — not moved:", err instanceof Error ? err.message : err);
   }
   process.exit(0);
 }
