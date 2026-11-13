@@ -73,6 +73,9 @@ export interface PromoRule {
   experiences: string[];
   sessions: string[];
   minSpendFils?: number | null;
+  isCreditNote?: boolean;
+  creditNoteId?: string;
+  originalOrderId?: string;
 }
 
 export interface PriceOptions {
@@ -106,7 +109,14 @@ export interface PriceResult {
   lines: PricedLine[];
   totals: Totals;
   passRedemptions: Array<{ passPurchase: string; n: number }>;
-  promo?: { promoCode: string; code: string; discountFils: Fils };
+  promo?: {
+    promoCode: string;
+    code: string;
+    discountFils: Fils;
+    isCreditNote?: boolean;
+    creditNoteId?: string;
+    originalOrderId?: string;
+  };
   promoRejected?: RejectReason;
   applied: AppliedCode[];
   deskAdjustmentFils: Fils;
@@ -226,7 +236,14 @@ export function priceBasket(input: PricingLine[], opts: PriceOptions): PriceResu
       const discount =
         promo.type === "percent" ? Math.min(eligibleTotal, Math.round((eligibleTotal * Math.min(100, Math.max(0, promo.value))) / 100)) : Math.min(eligibleTotal, Math.max(0, promo.value));
       allocate(discount, eligible).forEach((part, i) => (lines[i].promoFils += part));
-      promoResult = { promoCode: promo.id, code: promo.code, discountFils: discount };
+      promoResult = {
+        promoCode: promo.id,
+        code: promo.code,
+        discountFils: discount,
+        isCreditNote: promo.isCreditNote,
+        creditNoteId: promo.creditNoteId,
+        originalOrderId: promo.originalOrderId,
+      };
     }
   }
 
@@ -377,6 +394,71 @@ async function resolveCodes(
       continue;
     }
 
+    // Credit notes issued to customers
+    const cnFound = await req.payload.find({
+      collection: "credit-notes" as never,
+      where: { code: { equals: code } },
+      depth: 1,
+      limit: 1,
+      overrideAccess: true,
+      req,
+    });
+    const cnDoc = cnFound.docs[0] as
+      | {
+          id: string;
+          code: string;
+          status: string;
+          amountFils: number;
+          expiresAt?: string | null;
+          customerEmail?: string | null;
+          customer?: unknown;
+          order?: unknown;
+          redeemedInOrder?: unknown;
+        }
+      | undefined;
+
+    if (cnDoc) {
+      if (promo) {
+        rejected.push({ code, reason: "one_promo_only" });
+        continue;
+      }
+      const ownerEmail = (
+        cnDoc.customerEmail ||
+        (typeof cnDoc.customer === "object" && cnDoc.customer !== null && "email" in cnDoc.customer
+          ? String((cnDoc.customer as { email?: string }).email)
+          : undefined)
+      )
+        ?.trim()
+        .toLowerCase();
+
+      const currentEmail = email?.trim().toLowerCase();
+
+      // Customer validation: Validate that the promo code belongs to the correct customer
+      if (input.channel === "online" && (!currentEmail || (ownerEmail && ownerEmail !== currentEmail))) {
+        rejected.push({ code, reason: "wrong_customer" });
+      } else if (cnDoc.status === "expired" || (cnDoc.expiresAt && new Date(cnDoc.expiresAt).getTime() <= Date.now())) {
+        rejected.push({ code, reason: "expired" });
+      } else if (cnDoc.status === "redeemed" || cnDoc.status === "partially_redeemed" || Boolean(cnDoc.redeemedInOrder)) {
+        rejected.push({ code, reason: "exhausted" });
+      } else if (cnDoc.status !== "available") {
+        rejected.push({ code, reason: "invalid" });
+      } else {
+        promo = {
+          id: cnDoc.id,
+          code: cnDoc.code,
+          type: "fixed",
+          value: cnDoc.amountFils,
+          appliesTo: "all",
+          experiences: [],
+          sessions: [],
+          isCreditNote: true,
+          creditNoteId: cnDoc.id,
+          originalOrderId: idOf(cnDoc.order),
+        };
+      }
+      continue;
+    }
+
     if (promo) {
       rejected.push({ code, reason: "one_promo_only" });
       continue;
@@ -434,13 +516,31 @@ export const reservePromoSql = (id: string) => sql`
 export const restorePromoSql = (id: string) => sql`
   UPDATE promo_codes SET uses = greatest(0, uses - 1), updated_at = now() WHERE id = ${id} RETURNING uses`;
 
-/** Gives back what `quote(…, { reserve: true })` took: credits per redemption, one promo use. */
+export const reserveCreditNoteSql = (id: string) => sql`
+  UPDATE credit_notes
+     SET status = 'redeemed', updated_at = now()
+   WHERE id = ${id} AND status = 'available'
+     AND expires_at > now()
+  RETURNING id`;
+
+export const restoreCreditNoteSql = (id: string) => sql`
+  UPDATE credit_notes
+     SET status = 'available', redeemed_in_order_id = NULL, redeemed_at = NULL, redeemed_amount_fils = NULL, updated_at = now()
+   WHERE id = ${id}
+  RETURNING id`;
+
+/** Gives back what `quote(…, { reserve: true })` took: credits per redemption, one promo use or credit note. */
 export async function restoreReservations(
   req: PayloadRequest,
-  input: { passRedemptions?: Array<{ passPurchase: string; n: number }>; promoCodeId?: string | null },
+  input: {
+    passRedemptions?: Array<{ passPurchase: string; n: number }>;
+    promoCodeId?: string | null;
+    creditNoteId?: string | null;
+  },
 ): Promise<void> {
   for (const r of input.passRedemptions ?? []) if (r.n > 0) await runSql(req, restorePassSql(r.passPurchase, r.n));
   if (input.promoCodeId) await runSql(req, restorePromoSql(input.promoCodeId));
+  if (input.creditNoteId) await runSql(req, restoreCreditNoteSql(input.creditNoteId));
 }
 
 /**
@@ -474,11 +574,21 @@ export async function quote(req: PayloadRequest, input: QuoteInput, opts?: { res
       else lost.push(r.passPurchase);
     }
     let promoLost = false;
-    if (priced.promo) promoLost = (await runSql(req, reservePromoSql(priced.promo.promoCode))).length === 0;
+    if (priced.promo) {
+      if (priced.promo.isCreditNote && priced.promo.creditNoteId) {
+        promoLost = (await runSql(req, reserveCreditNoteSql(priced.promo.creditNoteId))).length === 0;
+      } else {
+        promoLost = (await runSql(req, reservePromoSql(priced.promo.promoCode))).length === 0;
+      }
+    }
     if (lost.length === 0 && !promoLost) return toQuote(priced, rejectedCodes);
 
     // Undo this round's successful reservations, then re-price without the losers.
-    await restoreReservations(req, { passRedemptions: taken, promoCodeId: priced.promo && !promoLost ? priced.promo.promoCode : null });
+    await restoreReservations(req, {
+      passRedemptions: taken,
+      promoCodeId: priced.promo && !promoLost && !priced.promo.isCreditNote ? priced.promo.promoCode : null,
+      creditNoteId: priced.promo && !promoLost && priced.promo.isCreditNote ? priced.promo.creditNoteId : null,
+    });
     for (const id of lost) {
       const grant = grants.find((g) => g.passPurchase === id);
       if (grant) rejectedCodes.push({ code: grant.code, reason: "exhausted" });

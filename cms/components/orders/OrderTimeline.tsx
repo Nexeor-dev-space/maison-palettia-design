@@ -76,6 +76,12 @@ export function describe(entry: Entry): { text: string; tone: "ok" | "warn" | "m
       return { text: `Flagged for a look: ${REASON[str(d.reason)] ?? words(str(d.reason) || "something did not add up")}`, tone: "warn" };
     case "review_resolved":
       return { text: withNote("Review marked resolved"), tone: "ok" };
+    case "credit_note_issued":
+      return { text: `Credit note ${str(d.code)} (${str(d.amount)}) issued`, tone: "lilac" };
+    case "credit_note_applied":
+      return { text: `Credit note ${str(d.code)} applied (${str(d.discount)} discount)`, tone: "ok" };
+    case "credit_note_redeemed":
+      return { text: `Credit note ${str(d.code)} redeemed in booking ${str(d.newBooking)} (${str(d.amount)})`, tone: "ok" };
     case "refund_requested":
       return { text: `Refund of ${str(d.amount) || "an amount"} requested${d.reason ? ` (${words(str(d.reason)).toLowerCase()})` : ""}`, tone: "warn" };
     case "refund_approved":

@@ -189,6 +189,38 @@ export const orders: Chapter = {
       ],
     },
     {
+      id: "issue-credit-note",
+      title: "Issue a credit note (reschedule credits)",
+      who: "Admin only",
+      keywords: "credit note reschedule voucher booking credit coupon",
+      blocks: [
+        {
+          type: "paragraph",
+          text: "When a customer wants to reschedule their session rather than take a refund, you can issue credit notes linked to their booking ID.",
+        },
+        {
+          type: "steps",
+          items: [
+            "Open the booking under {{Bookings > Orders}}.",
+            "Press [[Actions]] › [[Issue credit note…]]. The original booking reference and amount are prefilled.",
+            "Choose a mandatory **Expiry date**. Credit notes cannot be redeemed after this date.",
+            "Press [[Issue credit note]]. The booking is automatically cancelled and seats are returned to inventory.",
+            "If the booking had multiple slots (e.g. 3 spots), a separate unique promo code (CN-XXXXXX) is generated for each slot so the customer can redeem each independently.",
+          ],
+        },
+        {
+          type: "info",
+          title: "Credit note redemption rules",
+          text: [
+            "**Customer ownership**: Credit notes are linked to the customer's email. Only that customer can redeem them at checkout.",
+            "**Credit greater than booking**: If a customer uses an AED 280 credit note for an AED 240 booking, AED 240 is applied, the remaining AED 40 is not carried forward, and the credit note is closed.",
+            "**Booking greater than credit**: If the booking is higher than the credit note (e.g. AED 320 booking with AED 240 credit), the credit is deducted and the remaining AED 80 is paid via card through Mamo Pay.",
+            "**Track credit notes**: View and filter all issued credit notes under {{Bookings > Credit notes}}.",
+          ],
+        },
+      ],
+    },
+    {
       id: "approve-refund",
       title: "Approve a refund your team asked for",
       path: "Bookings > Refunds",
