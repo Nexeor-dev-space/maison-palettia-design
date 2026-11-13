@@ -216,6 +216,7 @@ export const CreditNotes: CollectionConfig = {
             width: "50%",
             description: "Available, Partially Redeemed, Fully Redeemed, or Expired.",
             components: {
+              Field: "@/cms/components/fields/CreditNoteStatusField#CreditNoteStatusField",
               Cell: {
                 path: "@/cms/components/admin/StatusCell#StatusCell",
                 clientProps: {

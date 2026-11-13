@@ -727,7 +727,15 @@ export type QuoteOutcome =
   | { status: "rate_limited" }
   | { status: "error" };
 
-const REASONS: ReadonlySet<string> = new Set(["invalid", "expired", "exhausted", "min_spend", "not_applicable", "one_promo_only"]);
+const REASONS: ReadonlySet<string> = new Set([
+  "invalid",
+  "expired",
+  "exhausted",
+  "min_spend",
+  "not_applicable",
+  "one_promo_only",
+  "wrong_customer",
+]);
 
 /**
  * Ask the server what this basket costs with these codes (`POST

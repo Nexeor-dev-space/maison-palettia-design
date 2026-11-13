@@ -43,9 +43,9 @@ export interface Config {
     invoices: Invoice;
     'pass-purchases': PassPurchase;
     'promo-codes': PromoCode;
-    'credit-notes': CreditNote;
     waitlist: Waitlist;
     payments: Payment;
+    'credit-notes': CreditNote;
     enquiries: Enquiry;
     'email-templates': EmailTemplate;
     'notification-log': NotificationLog;
@@ -106,9 +106,9 @@ export interface Config {
     invoices: InvoicesSelect<false> | InvoicesSelect<true>;
     'pass-purchases': PassPurchasesSelect<false> | PassPurchasesSelect<true>;
     'promo-codes': PromoCodesSelect<false> | PromoCodesSelect<true>;
-    'credit-notes': CreditNotesSelect<false> | CreditNotesSelect<true>;
     waitlist: WaitlistSelect<false> | WaitlistSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    'credit-notes': CreditNotesSelect<false> | CreditNotesSelect<true>;
     enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
     'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
     'notification-log': NotificationLogSelect<false> | NotificationLogSelect<true>;
@@ -3043,7 +3043,7 @@ export interface PromoCode {
   createdAt: string;
 }
 /**
- * Credit notes issued to customers for rescheduling or credits. Redeemed at checkout via promo code.
+ * Credit notes issued to customers for rescheduling. Redeemed at checkout via promo code.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "credit-notes".
@@ -3055,9 +3055,9 @@ export interface CreditNote {
    */
   code: string;
   /**
-   * Available, Redeemed, or Expired.
+   * Available, Partially Redeemed, Fully Redeemed, or Expired.
    */
-  status: 'available' | 'redeemed' | 'expired';
+  status: 'available' | 'partially_redeemed' | 'redeemed' | 'expired';
   /**
    * The original booking this credit note is linked to.
    */
@@ -4145,16 +4145,16 @@ export interface PayloadLockedDocument {
         value: string | PromoCode;
       } | null)
     | ({
-        relationTo: 'credit-notes';
-        value: string | CreditNote;
-      } | null)
-    | ({
         relationTo: 'waitlist';
         value: string | Waitlist;
       } | null)
     | ({
         relationTo: 'payments';
         value: string | Payment;
+      } | null)
+    | ({
+        relationTo: 'credit-notes';
+        value: string | CreditNote;
       } | null)
     | ({
         relationTo: 'enquiries';
@@ -6039,27 +6039,6 @@ export interface PromoCodesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "credit-notes_select".
- */
-export interface CreditNotesSelect<T extends boolean = true> {
-  code?: T;
-  status?: T;
-  order?: T;
-  amountFils?: T;
-  customer?: T;
-  customerEmail?: T;
-  customerName?: T;
-  issuedAt?: T;
-  expiresAt?: T;
-  redeemedInOrder?: T;
-  redeemedAt?: T;
-  redeemedAmountFils?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "waitlist_select".
  */
 export interface WaitlistSelect<T extends boolean = true> {
@@ -6121,6 +6100,27 @@ export interface PaymentsSelect<T extends boolean = true> {
   webhookSeenAt?: T;
   verifiedAt?: T;
   linkDeactivatedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "credit-notes_select".
+ */
+export interface CreditNotesSelect<T extends boolean = true> {
+  code?: T;
+  status?: T;
+  order?: T;
+  amountFils?: T;
+  customer?: T;
+  customerEmail?: T;
+  customerName?: T;
+  issuedAt?: T;
+  expiresAt?: T;
+  redeemedInOrder?: T;
+  redeemedAt?: T;
+  redeemedAmountFils?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

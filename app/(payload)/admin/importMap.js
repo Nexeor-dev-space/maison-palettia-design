@@ -49,6 +49,7 @@ import { KeyValueField as KeyValueField_4d88296a43a2269734e7dc78086b01ce } from 
 import { OrdersToolbar as OrdersToolbar_8ac7543e20d6522e4d2eca501fca1caf } from '@/cms/components/orders/OrdersToolbar'
 import { OrderActions as OrderActions_0a212698651fbb5827808482e7f3d9ea } from '@/cms/components/orders/OrderActions'
 import { CustomerActions as CustomerActions_1c82b5e386ffbd754dedb3eaa8e7f944 } from '@/cms/components/orders/CustomerActions'
+import { CreditNoteStatusField as CreditNoteStatusField_c50ab03a0aebca3d6e621112bf9b1e32 } from '@/cms/components/fields/CreditNoteStatusField'
 import { ReplyByEmail as ReplyByEmail_8e58907d8c7db16c51e0dfdec9afbde7 } from '@/cms/components/inbox/ReplyByEmail'
 import { StatusCell as StatusCell_c2d689e03627f330e768b7d1e88b397e } from '@/cms/components/inbox/StatusCell'
 import { StatusChips as StatusChips_9b7b765521eb5dc1286f7afddf2c61e1 } from '@/cms/components/inbox/StatusChips'
@@ -133,6 +134,7 @@ export const importMap = {
   "@/cms/components/orders/OrdersToolbar#OrdersToolbar": OrdersToolbar_8ac7543e20d6522e4d2eca501fca1caf,
   "@/cms/components/orders/OrderActions#OrderActions": OrderActions_0a212698651fbb5827808482e7f3d9ea,
   "@/cms/components/orders/CustomerActions#CustomerActions": CustomerActions_1c82b5e386ffbd754dedb3eaa8e7f944,
+  "@/cms/components/fields/CreditNoteStatusField#CreditNoteStatusField": CreditNoteStatusField_c50ab03a0aebca3d6e621112bf9b1e32,
   "@/cms/components/inbox/ReplyByEmail#ReplyByEmail": ReplyByEmail_8e58907d8c7db16c51e0dfdec9afbde7,
   "@/cms/components/inbox/StatusCell#StatusCell": StatusCell_c2d689e03627f330e768b7d1e88b397e,
   "@/cms/components/inbox/StatusChips#StatusChips": StatusChips_9b7b765521eb5dc1286f7afddf2c61e1,

@@ -154,7 +154,8 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, terms
     if (missing.length > 0) return { status: "error" };
     const result = await requestQuote({ lines: inputs, codes: next, email: currentEmail() });
     if (result.status !== "ok") return result;
-    const rejected = result.quote.rejectedCodes.find((entry) => entry.code.toUpperCase() === code);
+    const target = code.trim().toUpperCase();
+    const rejected = result.quote.rejectedCodes.find((entry) => entry.code.trim().toUpperCase() === target);
     if (rejected) return { status: "rejected", reason: rejected.reason };
     setCodes(next);
     setQuote({ fingerprint, view: result.quote });
