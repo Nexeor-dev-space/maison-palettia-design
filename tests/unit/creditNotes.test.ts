@@ -8,7 +8,21 @@ import {
   normaliseCreditNoteCode,
   prepareCreditNote,
 } from "../../cms/collections/commerce/CreditNotes";
-import { priceBasket, type PricingLine, type PromoRule } from "../../cms/lib/pricing";
+import {
+  creditNoteBalanceFils,
+  priceBasket,
+  reserveCreditNoteSql,
+  restoreCreditNoteSql,
+  type PricingLine,
+  type PromoRule,
+} from "../../cms/lib/pricing";
+
+/** Flattens a drizzle `sql` template into its static text (parameters dropped). */
+const sqlText = (q: { queryChunks: unknown[] }): string =>
+  q.queryChunks
+    .map((c) => (c && typeof c === "object" && "value" in (c as object) ? ((c as { value: unknown }).value as string[]).join("") : ""))
+    .join("")
+    .replace(/\s+/g, " ");
 
 describe("Credit Note System (FEAT #183)", () => {
   const sessionLine = (over: Partial<PricingLine> = {}): PricingLine => ({
@@ -317,15 +331,46 @@ describe("Credit Note System (FEAT #183)", () => {
       expect(result.totals.netFils).toBe(0);
       expect(result.totals.vatFils).toBe(0);
 
-      // Verify redemption payload and that remaining balance (AED 40) is not carried forward:
-      const redeemedPayload = {
-        status: "redeemed",
-        redeemedInOrder: "order-new-777",
-        redeemedAt: new Date().toISOString(),
-        redeemedAmountFils: result.promo?.discountFils, // 24_000 fils
-      };
-      expect(redeemedPayload.status).toBe("redeemed"); // closed, not reusable
-      expect(redeemedPayload.redeemedAmountFils).toBe(24_000);
+      // The remaining AED 40 stays on the note as its balance.
+      const afterFirst = { amountFils: 28_000, redeemedAmountFils: result.promo?.discountFils ?? 0 };
+      expect(creditNoteBalanceFils(afterFirst)).toBe(4_000);
+
+      // The next booking is offered the balance, not the original amount.
+      const second = priceBasket([sessionLine({ unitFils: 24_000, qty: 1 })], {
+        ...basePriceOptions,
+        promo: createCreditNotePromo({ code: "CN-280", value: creditNoteBalanceFils(afterFirst) }),
+      });
+      expect(second.promo?.discountFils).toBe(4_000);
+      expect(second.totals.grossFils).toBe(20_000);
+      expect(creditNoteBalanceFils({ amountFils: 28_000, redeemedAmountFils: 28_000 })).toBe(0);
+    });
+
+    it("computes the balance defensively (never negative, missing redeemed amount = untouched note)", () => {
+      expect(creditNoteBalanceFils({ amountFils: 28_000, redeemedAmountFils: null })).toBe(28_000);
+      expect(creditNoteBalanceFils({ amountFils: 28_000, redeemedAmountFils: 30_000 })).toBe(0);
+    });
+
+    it("reserves by amount and only while enough balance is left", () => {
+      const text = sqlText(reserveCreditNoteSql("cn-1", 24_000));
+      expect(text).toContain("redeemed_amount_fils = coalesce(redeemed_amount_fils, 0) +");
+      expect(text).toContain("status IN ('available', 'partially_redeemed')");
+      expect(text).toContain("amount_fils - coalesce(redeemed_amount_fils, 0) >=");
+      expect(text).toContain("'partially_redeemed'::enum_credit_notes_status");
+      expect(text).toContain("expires_at > now()");
+    });
+
+    it("restores by amount and keeps an expired note expired", () => {
+      const text = sqlText(restoreCreditNoteSql("cn-1", 24_000, "order-1"));
+      expect(text).toContain("WHEN status = 'expired' THEN status");
+      expect(text).toContain("coalesce(redeemed_amount_fils, 0) -");
+      expect(text).not.toContain("SET status = 'available', redeemed_in_order_id = NULL");
+    });
+
+    it("shows the remaining balance as a read-only virtual field", () => {
+      const field = CreditNotes.fields.find((f: any) => f.name === "balanceFils") as any;
+      expect(field.virtual).toBe(true);
+      expect(field.admin.readOnly).toBe(true);
+      expect(field.hooks.afterRead[0]({ siblingData: { amountFils: 28_000, redeemedAmountFils: 24_000 } })).toBe(4_000);
     });
 
     it("verifies multi-slot booking credit note splitting across slots", () => {
@@ -384,15 +429,15 @@ describe("Credit Note System (FEAT #183)", () => {
       expect(isExpired).toBe(false);
     });
 
-    it("verifies redemption status: prevents reuse of redeemed credit note", () => {
-      const statuses = ["available", "redeemed", "expired"];
-      const canRedeem = (status: string, redeemedInOrder?: string) =>
-        status === "available" && !redeemedInOrder;
-
-      expect(canRedeem("available")).toBe(true);
-      expect(canRedeem("redeemed")).toBe(false);
-      expect(canRedeem("available", "order-existing-999")).toBe(false);
-      expect(canRedeem("expired")).toBe(false);
+    it("auto-expires a partly used note once its expiry has passed", async () => {
+      const past = new Date(Date.now() - 3600_000).toISOString();
+      const data = await (prepareCreditNote as any)({
+        data: { expiresAt: past },
+        originalDoc: { status: "partially_redeemed", expiresAt: past },
+        operation: "update",
+        req: { context: {} },
+      });
+      expect(data.status).toBe("expired");
     });
   });
 

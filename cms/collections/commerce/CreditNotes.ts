@@ -19,12 +19,18 @@ import { BOOKINGS_GROUP, sidebarFor, systemDate, systemField } from "./shared";
  * code that the customer can redeem on a future booking.
  *
  * Status:
- *   available → redeemed | expired
+ *   available → partially_redeemed → redeemed | expired
+ *
+ * A note is a balance, not a single-use voucher: a booking takes what it
+ * needs (at most the booking total) and the rest stays on the note for the
+ * next booking. `redeemedAmountFils` is the running total spent, the balance
+ * is `amountFils − redeemedAmountFils`, and a cancellation puts its share
+ * back (cms/lib/pricing.ts reserveCreditNoteSql / restoreCreditNoteSql).
  *
  * Validated at checkout:
  *   - belongs to the matching customer email (online)
  *   - not expired (current time < expiresAt)
- *   - not already redeemed (single-use)
+ *   - has a balance left
  */
 
 export const CREDIT_NOTE_STATUSES = [
@@ -117,7 +123,7 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
   // Auto-expire check
   const currentExpiresAt = data.expiresAt || (originalDoc as { expiresAt?: string } | undefined)?.expiresAt;
   const currentStatus = data.status || (originalDoc as { status?: string } | undefined)?.status;
-  if (currentStatus === "available" && currentExpiresAt) {
+  if ((currentStatus === "available" || currentStatus === "partially_redeemed") && currentExpiresAt) {
     if (new Date(currentExpiresAt).getTime() <= Date.now()) {
       data.status = "expired";
     }
@@ -149,7 +155,7 @@ export const CreditNotes: CollectionConfig = {
   admin: {
     group: "Credit Notes",
     useAsTitle: "code",
-    defaultColumns: ["code", "order", "redeemedInOrder", "customerEmail", "amountFils", "status", "expiresAt", "issuedAt"],
+    defaultColumns: ["code", "order", "redeemedInOrder", "customerEmail", "amountFils", "balanceFils", "status", "expiresAt", "issuedAt"],
     description: "Credit notes issued to customers for rescheduling. Redeemed at checkout via promo code.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["code", "customerEmail", "customerName"],
@@ -328,26 +334,49 @@ export const CreditNotes: CollectionConfig = {
           name: "redeemedInOrder",
           type: "relationship",
           relationTo: "orders",
-          label: "Redeemed in booking",
+          label: "Last redeemed in booking",
           index: true,
           admin: {
             width: "34%",
-            description: "Future booking where this credit note was redeemed.",
+            description: "The most recent booking that used this credit note. Every booking is listed under Bookings that used this note.",
           },
         }),
-        systemDate("redeemedAt", "Redeemed date", {
-          description: "Timestamp when the credit note was redeemed.",
+        systemDate("redeemedAt", "Last redeemed date", {
+          description: "When the credit note was last used.",
         }),
         systemField(
           money("redeemedAmountFils", {
-            label: "Redeemed amount",
+            label: "Redeemed so far",
             admin: {
               width: "33%",
-              description: "Actual discount applied to the new booking.",
+              description: "Total credit used across all bookings.",
             },
           }),
         ),
       ],
+    },
+    systemField(
+      money("balanceFils", {
+        label: "Remaining balance",
+        virtual: true,
+        hooks: {
+          afterRead: [
+            ({ siblingData }) =>
+              Math.max(0, Math.round(Number(siblingData?.amountFils ?? 0)) - Math.round(Number(siblingData?.redeemedAmountFils ?? 0))),
+          ],
+        },
+        admin: {
+          description: "Credit still available for the customer's next booking (credit amount less what has been redeemed).",
+        },
+      }),
+    ),
+    {
+      name: "redemptions",
+      type: "join",
+      collection: "orders",
+      on: "creditNoteUsed",
+      label: "Bookings that used this note",
+      admin: { allowCreate: false, defaultColumns: ["reference", "status", "createdAt"] },
     },
     {
       name: "notes",

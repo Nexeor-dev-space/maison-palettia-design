@@ -81,7 +81,9 @@ export function describe(entry: Entry): { text: string; tone: "ok" | "warn" | "m
     case "credit_note_applied":
       return { text: `Credit note ${str(d.code)} applied (${str(d.discount)} discount)`, tone: "ok" };
     case "credit_note_redeemed":
-      return { text: `Credit note ${str(d.code)} redeemed in booking ${str(d.newBooking)} (${str(d.amount)})`, tone: "ok" };
+      return { text: `Credit note ${str(d.code ?? d.creditNote)} redeemed in booking ${str(d.newBooking)} (${str(d.amount)})`, tone: "ok" };
+    case "credit_note_restored":
+      return { text: `${str(d.amount)} put back on credit note ${str(d.code)}`, tone: "lilac" };
     case "refund_requested":
       return { text: `Refund of ${str(d.amount) || "an amount"} requested${d.reason ? ` (${words(str(d.reason)).toLowerCase()})` : ""}`, tone: "warn" };
     case "refund_approved":

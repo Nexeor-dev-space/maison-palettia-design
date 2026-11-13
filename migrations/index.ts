@@ -18,6 +18,8 @@ import * as migration_20261030_062557_media_object_storage from './20261030_0625
 import * as migration_20261105_123048_implement_credit_notes from './20261105_123048_implement_credit_notes';
 import * as migration_20261108_133808_add_music_object_storage from './20261108_133808_add_music_object_storage';
 import * as migration_20261109_184551_experience_page_photograph from './20261109_184551_experience_page_photograph';
+import * as migration_20261113_142954_credit_note_partial_redemption from './20261113_142954_credit_note_partial_redemption';
+import * as migration_20261113_142955_credit_note_balance_backfill from './20261113_142955_credit_note_balance_backfill';
 
 export const migrations = [
   {
@@ -119,5 +121,15 @@ export const migrations = [
     up: migration_20261109_184551_experience_page_photograph.up,
     down: migration_20261109_184551_experience_page_photograph.down,
     name: '20261109_184551_experience_page_photograph',
+  },
+  {
+    up: migration_20261113_142954_credit_note_partial_redemption.up,
+    down: migration_20261113_142954_credit_note_partial_redemption.down,
+    name: '20261113_142954_credit_note_partial_redemption',
+  },
+  {
+    up: migration_20261113_142955_credit_note_balance_backfill.up,
+    down: migration_20261113_142955_credit_note_balance_backfill.down,
+    name: '20261113_142955_credit_note_balance_backfill',
   },
 ];

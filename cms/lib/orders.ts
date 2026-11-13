@@ -31,7 +31,7 @@ import { mintReturnK } from "./mamo/returnToken";
 import { formatAed, fromMamoAmount, MIN_REFUND_FILS } from "./money";
 import { adminUrl } from "./notifyStaff";
 import { appendTimeline, canTransition, timelineEntry, timelineOf, transition } from "./orderState";
-import { allocate, assertPayable, quote, reserveCreditNoteSql, reservePassSql, reservePromoSql, restorePassSql, restoreReservations } from "./pricing";
+import { allocate, assertPayable, quote, reserveCreditNoteSql, reservePassSql, reservePromoSql, restorePassSql, restoreReservations, type CreditNoteTake } from "./pricing";
 import { mintCreditNoteCode } from "@/cms/collections/commerce/CreditNotes";
 import { DEFAULT_REFERENCE_PREFIX, mintReference } from "./reference";
 import { REPEAT_MAX, repeatDates } from "./sessionSeries";
@@ -393,16 +393,15 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
       await updateDoc(req, "pass-purchases", purchase.id, { redemptions: [...redemptions, { forOrder: order.id, n: r.n, at: now.toISOString(), restored: false }] });
     }
 
-    // Credit note redeemed: link order and update credit note
+    // Credit note redeemed: the balance, running total and status were taken atomically in quote()
+    // (reserveCreditNoteSql); here the note only records the booking that last used it.
     if (priced.promo?.isCreditNote && priced.promo.creditNoteId) {
       await req.payload.update({
         collection: "credit-notes" as never,
         id: priced.promo.creditNoteId,
         data: {
-          status: "redeemed",
           redeemedInOrder: order.id,
           redeemedAt: now.toISOString(),
-          redeemedAmountFils: priced.promo.discountFils,
         } as never,
         depth: 0,
         overrideAccess: true,
@@ -766,13 +765,11 @@ async function cancelledSessionIds(req: PayloadRequest, order: Order): Promise<s
 /** Seats held, credits and the promo use go back (expiry, and a payment for a cancelled session). */
 async function releaseOrderHold(req: PayloadRequest, order: Order): Promise<void> {
   for (const hold of await markHolds(req, order.id, "released")) await releaseSeats(req, hold.session, hold.qty);
-  const creditNoteId = (order as { creditNoteUsed?: unknown }).creditNoteUsed
-    ? idOf((order as { creditNoteUsed?: unknown }).creditNoteUsed)
-    : null;
+  const creditNote = creditNoteTakenBy(order);
   await restoreReservations(req, {
     passRedemptions: (order.passRedemptions ?? []).map((r) => ({ passPurchase: idOf(r.passPurchase) as string, n: r.n })),
-    promoCodeId: creditNoteId ? null : idOf(order.promo?.promoCode) ?? null,
-    creditNoteId,
+    promoCodeId: creditNote ? null : idOf(order.promo?.promoCode) ?? null,
+    creditNote,
   });
   for (const r of order.passRedemptions ?? []) await markRedemptionRestored(req, idOf(r.passPurchase) as string, order.id);
 }
@@ -853,12 +850,20 @@ async function capturedAfterExpiry(req: PayloadRequest, order: Order, payment: P
       credits.push({ passPurchase: id, n: r.n });
     }
   }
-  const creditNoteId = (order as { creditNoteUsed?: unknown }).creditNoteUsed
-    ? idOf((order as { creditNoteUsed?: unknown }).creditNoteUsed)
-    : null;
-  const promoId = creditNoteId ? null : idOf(order.promo?.promoCode);
-  if (ok && promoId && (await runSql(req, reservePromoSql(promoId))).length === 0) ok = false;
-  if (ok && creditNoteId && (await runSql(req, reserveCreditNoteSql(creditNoteId))).length === 0) ok = false;
+  // Only what is actually re-taken here may be given back below: restoring a promo use or credit
+  // note that was never re-taken would hand the customer a second use (a note already spent elsewhere).
+  const creditNote = creditNoteTakenBy(order);
+  const promoId = creditNote ? null : idOf(order.promo?.promoCode);
+  let promoTaken: string | null = null;
+  let noteTaken: CreditNoteTake | null = null;
+  if (ok && promoId) {
+    if ((await runSql(req, reservePromoSql(promoId))).length === 0) ok = false;
+    else promoTaken = promoId;
+  }
+  if (ok && creditNote) {
+    if ((await runSql(req, reserveCreditNoteSql(creditNote.id, creditNote.amountFils))).length === 0) ok = false;
+    else noteTaken = creditNote;
+  }
 
   if (ok) {
     for (const [sessionId, qty] of taken) await consumeSeats(req, sessionId, qty);
@@ -869,7 +874,7 @@ async function capturedAfterExpiry(req: PayloadRequest, order: Order, payment: P
 
   // Undo the partial re-acquisition, refund in full, tell everyone.
   for (const [sessionId, qty] of taken) await releaseSeats(req, sessionId, qty);
-  await restoreReservations(req, { passRedemptions: credits, promoCodeId: promoId, creditNoteId });
+  await restoreReservations(req, { passRedemptions: credits, promoCodeId: promoTaken, creditNote: noteTaken });
   await flagReview(req, order, "post_expiry", { paymentId: payment.providerPaymentId ?? null });
   const refund = await createDoc<Refund>(req, "refunds", {
     order: order.id,
@@ -1273,12 +1278,10 @@ export async function cancelOrder(
     for (const [s, n] of Object.entries(seatsBySession(order.lines ?? []))) await refundSeats(req, s, n);
     if (!input.nonRefundable) {
       await restoreCreditsForLines(req, order, () => true);
-      const creditNoteId = (order as { creditNoteUsed?: unknown }).creditNoteUsed
-        ? idOf((order as { creditNoteUsed?: unknown }).creditNoteUsed)
-        : null;
-      if (creditNoteId) {
-        await restoreReservations(req, { creditNoteId });
-      }
+      // Credit-note balance back, except the share of sessions the studio already cancelled
+      // (cancelSession gave that share back when it cancelled them).
+      const gone = await cancelledSessionIds(req, order);
+      await restoreCreditNoteForLines(req, order, (l) => l.kind !== "session" || !gone.includes(idOf(l.session) as string));
     }
 
     const max = input.nonRefundable ? 0 : await refundableFils(req, order);
@@ -1322,6 +1325,30 @@ async function restoreCreditsForLines(req: PayloadRequest, order: Order, which: 
     restored += n;
   }
   return restored;
+}
+
+/** The credit note an order redeemed, and how much of its balance the order took. */
+function creditNoteTakenBy(order: Order): CreditNoteTake | null {
+  const id = idOf((order as { creditNoteUsed?: unknown }).creditNoteUsed);
+  const amountFils = Math.round(Number(order.promo?.discountFils ?? 0));
+  return id && amountFils > 0 ? { id, amountFils, orderId: order.id } : null;
+}
+
+/**
+ * Gives back the credit-note share of the chosen lines. The note's discount was
+ * spread over the lines in proportion to what was left after pass credits
+ * (priceBasket), so the same split decides each line's share here.
+ */
+async function restoreCreditNoteForLines(req: PayloadRequest, order: Order, which: (line: NonNullable<Order["lines"]>[number]) => boolean): Promise<number> {
+  const note = creditNoteTakenBy(order);
+  if (!note) return 0;
+  const lines = order.lines ?? [];
+  const shares = allocate(note.amountFils, lines.map((l) => Math.max(0, l.lineFils - (l.passCredits ?? 0) * l.unitFils)));
+  const amountFils = lines.reduce((sum, l, i) => (which(l) ? sum + shares[i] : sum), 0);
+  if (amountFils <= 0) return 0;
+  await restoreReservations(req, { creditNote: { ...note, amountFils } });
+  await appendTimeline(req, order.id, "credit_note_restored", { code: order.promo?.code ?? "", amount: formatAed(amountFils) });
+  return amountFils;
 }
 
 /** Clears the review flag with a note (admin). */
@@ -1534,6 +1561,8 @@ export async function cancelSession(req: PayloadRequest, sessionId: string, inpu
       for (const t of tickets.docs) await updateDoc(req, "tickets", t.id, { status: "void" });
       if (qty > 0) await refundSeats(req, sessionId, qty);
       await restoreCreditsForLines(req, order, (l) => l.kind === "session" && idOf(l.session) === sessionId);
+      // The credit-note part of this session goes back on the note; the card part is refunded below.
+      await restoreCreditNoteForLines(req, order, (l) => l.kind === "session" && idOf(l.session) === sessionId);
 
       const amount = Math.min(sessionShareFils(order, sessionId), await refundableFils(req, order));
       let refundId: string | undefined;
