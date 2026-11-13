@@ -140,7 +140,13 @@ export async function queueJob<K extends keyof JobInputs>(
     return false;
   }
   const queue = req.payload.jobs.queue as unknown as (args: Record<string, unknown>) => Promise<unknown>;
-  await queue({ ...(opts.workflow ? { workflow: slug } : { task: slug }), input, req, ...(opts.queue ? { queue: opts.queue } : {}) });
+  await queue({
+    ...(opts.workflow ? { workflow: slug } : { task: slug }),
+    input,
+    req,
+    overrideAccess: true,
+    ...(opts.queue ? { queue: opts.queue } : {}),
+  });
   return true;
 }
 

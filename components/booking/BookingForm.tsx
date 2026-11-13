@@ -331,8 +331,9 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
       email: currentEmail(),
     });
     if (result.status !== "ok") return result;
-    const rejected = nextCodes.length
-      ? result.quote.rejectedCodes.find((entry) => entry.code.toUpperCase() === nextCodes[nextCodes.length - 1])
+    const targetCode = nextCodes[nextCodes.length - 1]?.trim().toUpperCase();
+    const rejected = targetCode
+      ? result.quote.rejectedCodes.find((entry) => entry.code.trim().toUpperCase() === targetCode)
       : undefined;
     if (rejected) return { status: "rejected", reason: rejected.reason };
     setQuote({ quantity, view: result.quote });

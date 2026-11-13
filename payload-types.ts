@@ -45,6 +45,7 @@ export interface Config {
     'promo-codes': PromoCode;
     waitlist: Waitlist;
     payments: Payment;
+    'credit-notes': CreditNote;
     enquiries: Enquiry;
     'email-templates': EmailTemplate;
     'notification-log': NotificationLog;
@@ -72,6 +73,7 @@ export interface Config {
       tickets: 'tickets';
       paymentAttempts: 'payments';
       refunds: 'refunds';
+      creditNotesIssued: 'credit-notes';
     };
     customers: {
       orders: 'orders';
@@ -106,6 +108,7 @@ export interface Config {
     'promo-codes': PromoCodesSelect<false> | PromoCodesSelect<true>;
     waitlist: WaitlistSelect<false> | WaitlistSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    'credit-notes': CreditNotesSelect<false> | CreditNotesSelect<true>;
     enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
     'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
     'notification-log': NotificationLogSelect<false> | NotificationLogSelect<true>;
@@ -2707,6 +2710,14 @@ export interface Order {
     discountFils?: number | null;
   };
   /**
+   * Credit note redeemed to pay for this booking.
+   */
+  creditNoteUsed?: (string | null) | CreditNote;
+  /**
+   * Original booking referenced by the redeemed credit note.
+   */
+  originalBooking?: (string | null) | Order;
+  /**
    * Credits taken from each pass at checkout; restored if the order expires or fails.
    */
   passRedemptions?:
@@ -2768,6 +2779,11 @@ export interface Order {
   };
   refunds?: {
     docs?: (string | Refund)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  creditNotesIssued?: {
+    docs?: (string | CreditNote)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -3023,6 +3039,69 @@ export interface PromoCode {
    * Off: the code is refused at checkout, whatever its dates.
    */
   active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Credit notes issued to customers for rescheduling. Redeemed at checkout via promo code.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "credit-notes".
+ */
+export interface CreditNote {
+  id: string;
+  /**
+   * Unique promo code redeemed by the customer at checkout (auto-generated if left blank).
+   */
+  code: string;
+  /**
+   * Available, Partially Redeemed, Fully Redeemed, or Expired.
+   */
+  status: 'available' | 'partially_redeemed' | 'redeemed' | 'expired';
+  /**
+   * The original booking this credit note is linked to.
+   */
+  order: string | Order;
+  /**
+   * Amount of credit in AED (e.g. 2500 = AED 25.00).
+   */
+  amountFils: number;
+  /**
+   * Auto-populated from the booking.
+   */
+  customer?: (string | null) | Customer;
+  /**
+   * Used to verify customer identity at checkout.
+   */
+  customerEmail: string;
+  /**
+   * Name as booked.
+   */
+  customerName?: string | null;
+  /**
+   * When this credit note was issued.
+   */
+  issuedAt: string;
+  /**
+   * Mandatory expiry date. Cannot be redeemed after this date.
+   */
+  expiresAt: string;
+  /**
+   * Future booking where this credit note was redeemed.
+   */
+  redeemedInOrder?: (string | null) | Order;
+  /**
+   * Timestamp when the credit note was redeemed.
+   */
+  redeemedAt?: string | null;
+  /**
+   * Actual discount applied to the new booking.
+   */
+  redeemedAmountFils?: number | null;
+  /**
+   * Reason for issuing credit note or internal notes for staff.
+   */
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -4072,6 +4151,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'payments';
         value: string | Payment;
+      } | null)
+    | ({
+        relationTo: 'credit-notes';
+        value: string | CreditNote;
       } | null)
     | ({
         relationTo: 'enquiries';
@@ -5703,6 +5786,8 @@ export interface OrdersSelect<T extends boolean = true> {
         code?: T;
         discountFils?: T;
       };
+  creditNoteUsed?: T;
+  originalBooking?: T;
   passRedemptions?:
     | T
     | {
@@ -5733,6 +5818,7 @@ export interface OrdersSelect<T extends boolean = true> {
   tickets?: T;
   paymentAttempts?: T;
   refunds?: T;
+  creditNotesIssued?: T;
   timeline?:
     | T
     | {
@@ -6014,6 +6100,27 @@ export interface PaymentsSelect<T extends boolean = true> {
   webhookSeenAt?: T;
   verifiedAt?: T;
   linkDeactivatedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "credit-notes_select".
+ */
+export interface CreditNotesSelect<T extends boolean = true> {
+  code?: T;
+  status?: T;
+  order?: T;
+  amountFils?: T;
+  customer?: T;
+  customerEmail?: T;
+  customerName?: T;
+  issuedAt?: T;
+  expiresAt?: T;
+  redeemedInOrder?: T;
+  redeemedAt?: T;
+  redeemedAmountFils?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

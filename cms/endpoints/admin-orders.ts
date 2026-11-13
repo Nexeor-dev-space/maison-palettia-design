@@ -6,7 +6,7 @@ import { z } from "zod";
 import { clientIp, ipHash, moveOrder, NotImplemented, quote, rateLimit, SoldOut, startCheckout, type Order } from "@/cms/lib/contracts";
 import { queueJob } from "@/cms/lib/inventory";
 import { issueInvoice } from "@/cms/lib/invoiceNumber";
-import { approveRefund, cancelOrder, markRepaid, refundableFils, requestRefund, resendOrderEmail, resolveReview, signOutEverywhere } from "@/cms/lib/orders";
+import { approveRefund, cancelOrder, issueCreditNoteForOrder, markRepaid, refundableFils, requestRefund, resendOrderEmail, resolveReview, signOutEverywhere } from "@/cms/lib/orders";
 
 import { json, parseBody, requireRole } from "./requireRole";
 
@@ -87,6 +87,14 @@ const refundBody = z.object({
 });
 
 const cancelBody = z.object({ reason: z.string().trim().min(3, "Say why (at least 3 characters).").max(200), note: z.string().trim().max(1000).optional() });
+const creditNoteBody = z.object({
+  amountFils: z.number().int().min(100, "The smallest credit amount is AED 1.00.").max(100_000_000),
+  expiresAt: z.string().trim().refine((val) => !isNaN(new Date(val).getTime()) && new Date(val).getTime() > Date.now(), {
+    message: "A future expiry date is mandatory.",
+  }),
+  code: z.string().trim().max(40).optional(),
+  note: z.string().trim().max(1000).optional(),
+});
 const noteBody = z.object({ note: z.string().trim().max(500).optional() });
 
 /** SoldOut and the checkout's own refusals → a JSON 409 the dialog can show. */
@@ -254,6 +262,23 @@ export const adminOrdersEndpoints: Endpoint[] = [
       const { note } = await parseBody(req, noteBody);
       const order = await resolveReview(req, id, note);
       return json({ ok: true, needsReview: order.needsReview ?? false });
+    },
+  },
+  {
+    path: "/actions/orders/:id/credit-note",
+    method: "post",
+    handler: async (req) => {
+      requireRole(req, ["admin"]);
+      const id = idParam(req.routeParams?.id);
+      const order = await orderRef(req, id);
+      const body = await parseBody(req, creditNoteBody);
+      const creditNote = await issueCreditNoteForOrder(req, order, {
+        amountFils: body.amountFils,
+        expiresAt: body.expiresAt,
+        code: body.code,
+        notes: body.note,
+      });
+      return json({ ok: true, creditNote });
     },
   },
   {

@@ -58,6 +58,7 @@ const MATRIX: Record<string, Role[]> = {
   "POST /actions/orders/:id/refunds/:refundId/approve": A,
   "POST /actions/orders/:id/refunds/:refundId/mark-repaid": A,
   "POST /actions/orders/:id/cancel": A,
+  "POST /actions/orders/:id/credit-note": A,
   "POST /actions/orders/:id/regenerate-invoice": A,
   "POST /actions/orders/:id/resolve-review": A,
   "POST /actions/customers/:id/sign-out-everywhere": A,

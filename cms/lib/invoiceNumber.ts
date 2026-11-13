@@ -107,7 +107,10 @@ const DESK_LABELS: Record<string, string> = {
 /** "Mamo Pay · card ****1157 · ref PAY-…" / "Paid at venue (cash)" / "Complimentary" / "Paid with pass credits". */
 export function paymentLabel(order: Pick<Order, "channel" | "deskPayment" | "totals">, payment?: Pick<Payment, "provider" | "method" | "providerPaymentId"> | null): string {
   if (order.channel === "desk") return DESK_LABELS[order.deskPayment?.method ?? ""] ?? "Paid at the studio";
-  if (order.totals.grossFils === 0) return "Paid with pass credits";
+  if (order.totals.grossFils === 0) {
+    const isCreditNote = Boolean((order as { creditNoteUsed?: unknown }).creditNoteUsed);
+    return isCreditNote ? "Paid with credit note" : "Paid with pass credits";
+  }
   if (!payment || payment.provider !== "mamo") return "Mamo Pay";
   const method = payment.method?.type === "wallet" ? "wallet" : payment.method?.cardLast4 ? `card ****${payment.method.cardLast4}` : "card";
   return [`Mamo Pay · ${method}`, payment.providerPaymentId ? `ref ${payment.providerPaymentId}` : ""].filter(Boolean).join(" · ").slice(0, 120);

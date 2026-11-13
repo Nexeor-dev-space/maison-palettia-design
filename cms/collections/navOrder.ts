@@ -24,7 +24,7 @@ import type { CollectionConfig, GlobalConfig } from "payload";
  * needs (developers have the REST API itself).
  */
 
-const GROUP_RANK = ["Content", "Bookings", "Inbox", "Emails", "Settings", "Settings (admin)", "System"];
+const GROUP_RANK = ["Content", "Bookings", "Credit Notes", "Inbox", "Emails", "Settings", "Settings (admin)", "System"];
 
 const rankOf = (group: unknown): number => {
   const i = typeof group === "string" ? GROUP_RANK.indexOf(group) : -1;
