@@ -24,7 +24,7 @@ import { toPrice } from "@/cms/lib/money";
  * `Partial<NumberField>` because NumberField is a union on `hasMany`, and an
  * amount is always a single value.
  */
-export type MoneyOptions = Pick<NumberField, "access" | "localized" | "index" | "unique" | "custom" | "hooks" | "defaultValue" | "max" | "admin"> & {
+export type MoneyOptions = Pick<NumberField, "access" | "localized" | "index" | "unique" | "custom" | "hooks" | "defaultValue" | "max" | "admin" | "virtual"> & {
   label?: string;
   description?: string;
   required?: boolean;
