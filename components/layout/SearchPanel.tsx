@@ -24,7 +24,7 @@ import {
 } from "@/lib/workshopHelpers";
 import { cn } from "@/lib/utils";
 import type { CreativeExperience } from "@/lib/experiences";
-import type { Workshop } from "@/types";
+import type { HeaderSession } from "@/types";
 
 /** Cards shown at once. The brief's own instruction — do not overwhelm — set
  * against a catalogue that will grow past what a quick-search overlay should
@@ -50,7 +50,7 @@ interface SearchPanelProps {
   /** The trigger button, excluded from the desktop panel's outside-click
    * check — see the note on that effect below. */
   triggerRef: RefObject<HTMLButtonElement | null>;
-  workshops: Workshop[];
+  workshops: HeaderSession[];
   /**
    * The studio's approved activities.
    *
@@ -393,7 +393,7 @@ function SearchExperience({
   placeholder,
 }: {
   onClose: () => void;
-  workshops: Workshop[];
+  workshops: HeaderSession[];
   experiences: readonly CreativeExperience[];
   placeholder: string;
 }) {
@@ -579,7 +579,7 @@ function NoResults({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-function ResultList({ workshops, onNavigate }: { workshops: Workshop[]; onNavigate: () => void }) {
+function ResultList({ workshops, onNavigate }: { workshops: HeaderSession[]; onNavigate: () => void }) {
   return (
     <>
     {/* Labelled now that activities can follow underneath: two unlabelled
@@ -661,7 +661,7 @@ function ActivityResults({
  * accent on the old charcoal panel, all but vanishes on white). White Rock
  * behind the thumbnail, as <WorkshopsMenu> uses for its own.
  */
-function ResultCard({ workshop, onNavigate }: { workshop: Workshop; onNavigate: () => void }) {
+function ResultCard({ workshop, onNavigate }: { workshop: HeaderSession; onNavigate: () => void }) {
   const { eventPage } = useModeCopy();
   const { start } = sessionTimeRange(workshop.startsAt, workshop.durationMinutes);
   /*

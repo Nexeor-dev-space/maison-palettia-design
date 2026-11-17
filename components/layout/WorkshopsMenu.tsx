@@ -10,7 +10,7 @@ import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { cn } from "@/lib/utils";
 import { formatWorkshopDate, isScarce, spotsLabel } from "@/lib/workshopHelpers";
 import type { CreativeExperience } from "@/lib/experiences";
-import type { Workshop } from "@/types";
+import type { HeaderSession } from "@/types";
 
 interface WorkshopsMenuProps {
   label: string;
@@ -38,7 +38,7 @@ interface WorkshopsMenuProps {
    * Once a date has begun (the visitor's clock, through <SessionGate>) its row
    * says "Date passed" and its seat count goes, as the listing's card does.
    */
-  sessions: Workshop[];
+  sessions: HeaderSession[];
   isActive: boolean;
   linkClassName: string;
   /** The swatch behind the trigger word. Null over a dark hero. */

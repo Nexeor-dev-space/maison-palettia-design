@@ -51,17 +51,15 @@ export default async function MyBookingsPage({ searchParams }: { searchParams: P
 
   let customer = null;
   let orders: OrderView[] = [];
+  let gate: Awaited<ReturnType<typeof getBookingGate>> | null = null;
   if (!token) {
     customer = await customerFromSession((await cookies()).get(SESSION_COOKIE)?.value);
     if (customer) {
-      try {
-        orders = await ordersForCustomer(customer);
-      } catch {
-        orders = [];
-      }
+      // Side by side (#216): the gate's copy does not depend on the orders.
+      // A failed orders read still shows an empty list, as before.
+      [orders, gate] = await Promise.all([ordersForCustomer(customer).catch((): OrderView[] => []), getBookingGate()]);
     }
   }
-  const gate = customer ? await getBookingGate() : null;
 
   return (
     <section aria-labelledby="my-bookings-title" className="relative isolate overflow-hidden bg-sage py-[4rem] md:py-section lg:py-section-lg">

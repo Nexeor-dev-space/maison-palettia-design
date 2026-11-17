@@ -104,7 +104,7 @@ function Header({
       <div className="grid grid-cols-12 items-start gap-x-6 gap-y-6 md:gap-y-8 lg:gap-y-10 lg:gap-x-10">
         {image ? (
           <figure className="relative col-span-12 lg:col-span-7">
-            <WorkshopPhoto image={image} aspect="aspect-[4/3] sm:aspect-[3/2]" sizes="(min-width: 1024px) 58vw, 100vw" />
+            <WorkshopPhoto image={image} aspect="aspect-[4/3] sm:aspect-[3/2]" sizes="(min-width: 1024px) 58vw, 100vw" eager />
             {/* The four cut-outs over the photograph's edges that the
                 private-event pages carry; `relative` above is for them. */}
             <BannerMarks />

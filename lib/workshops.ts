@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { findDocs, contentReader } from "@/lib/cms/query";
 import { TAGS } from "@/lib/cms/cache";
 import { toWorkshop } from "@/lib/cms/mappers";
@@ -137,7 +139,10 @@ const PLACEHOLDER_WORKSHOPS: Workshop[] = [
  */
 // The workshop-types tag too: a session's title, excerpt and photograph fall
 // back to its type's, so a type edit must purge this entry as well.
-const readSessions = contentReader("sessions", [TAGS.sessions, TAGS.experiences, TAGS.venues, TAGS.workshopTypes], async (draft) => {
+// The vibes tag too: each session carries its vibes' slugs (toWorkshop), and
+// the event filters match on them (lib/eventFilters.ts), so a renamed or
+// removed vibe must purge this entry (#216).
+const readSessions = contentReader("sessions", [TAGS.sessions, TAGS.experiences, TAGS.venues, TAGS.workshopTypes, TAGS.vibes], async (draft) => {
   const docs = await findDocs("sessions", draft, {
     drafts: true,
     sort: "startsAt",
@@ -154,8 +159,21 @@ const readSessions = contentReader("sessions", [TAGS.sessions, TAGS.experiences,
  * other getter here is a view of it, so the listing, the event page and the
  * menus can never disagree about what exists.
  */
+/*
+  ONCE PER RENDER (#216). One page asks for this list many times — the
+  layout's Book sheet, the header's menus and search, the page itself,
+  generateMetadata, the event-detail getters — and each call re-read and
+  re-parsed the cached depth-2 sessions entry. React's `cache` keeps the
+  first answer for the rest of the request (the same pattern as
+  getModeCopy, lib/modeCopy.server.ts). Draft mode is fixed for a request,
+  so a preview still reads drafts and a public render still reads the
+  shared cache; outside a render it simply does not memoise. The copy and
+  sort below stay per call, so no caller is handed a shared array.
+*/
+const readSessionsOnce = cache(() => readSessions());
+
 export async function getAllWorkshops(): Promise<Workshop[]> {
-  const fromCms = await readSessions();
+  const fromCms = await readSessionsOnce();
   // The placeholders only when the CMS could not be read (null); an empty
   // answer means "nothing scheduled".
   const sessions: readonly Workshop[] = fromCms ?? PLACEHOLDER_WORKSHOPS;
