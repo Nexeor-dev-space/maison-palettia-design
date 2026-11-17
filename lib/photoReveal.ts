@@ -19,8 +19,13 @@
  *      then sets `data-loaded`, which starts the fade.
  *   3. A sweep on DOMContentLoaded and on `pageshow` (a page restored from
  *      the back/forward cache) catches anything already complete.
+ *   4. Insertions after that are swept too, but at most once per frame
+ *      (#216): the observer fires for every parsed chunk and every React
+ *      commit, and a whole-document query each time was main-thread work in
+ *      the load window. The frame callback runs before that frame paints,
+ *      so nothing is shown any later.
  *
  * A picture that fails to load is never marked, so its frame keeps the blur
  * rather than showing a broken image.
  */
-export const PHOTO_REVEAL_SCRIPT = `(function(){var d=document;d.documentElement.setAttribute("data-blur-ready","");function m(i){if(!i||i.hasAttribute("data-loaded"))return;i.setAttribute("data-loaded","")}d.addEventListener("load",function(e){var t=e.target;if(t&&t.nodeName==="IMG"&&t.hasAttribute("data-blur"))m(t)},true);d.addEventListener("error",function(e){var t=e.target;if(t&&t.nodeName==="IMG"&&t.hasAttribute("data-blur"))m(t)},true);function w(){var l=d.querySelectorAll("img[data-blur]:not([data-loaded])");for(var k=0;k<l.length;k++)if(l[k].complete)m(l[k])}d.addEventListener("DOMContentLoaded",w);addEventListener("pageshow",w);if(typeof MutationObserver!=="undefined"){new MutationObserver(function(){w()}).observe(d.documentElement,{childList:true,subtree:true})}})();`;
+export const PHOTO_REVEAL_SCRIPT = `(function(){var d=document;d.documentElement.setAttribute("data-blur-ready","");function m(i){if(!i||i.hasAttribute("data-loaded"))return;i.setAttribute("data-loaded","")}d.addEventListener("load",function(e){var t=e.target;if(t&&t.nodeName==="IMG"&&t.hasAttribute("data-blur"))m(t)},true);d.addEventListener("error",function(e){var t=e.target;if(t&&t.nodeName==="IMG"&&t.hasAttribute("data-blur"))m(t)},true);function w(){var l=d.querySelectorAll("img[data-blur]:not([data-loaded])");for(var k=0;k<l.length;k++)if(l[k].complete)m(l[k])}d.addEventListener("DOMContentLoaded",w);addEventListener("pageshow",w);var q=0;function s(){if(q)return;if(typeof requestAnimationFrame!=="function"){w();return}q=1;requestAnimationFrame(function(){q=0;w()})}if(typeof MutationObserver!=="undefined"){new MutationObserver(s).observe(d.documentElement,{childList:true,subtree:true})}})();`;

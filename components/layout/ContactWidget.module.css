@@ -118,6 +118,23 @@
   }
 }
 
+/*
+  PAUSED WHILE THE HOMEPAGE INTRO HIDES IT (#216). An infinite border-radius
+  morph repaints every frame, and during the intro this element is
+  `visibility: hidden` (the `[data-contact-fab]` rules in globals.css) — so those frames
+  drew nothing and only took main-thread time from the first load. Exactly
+  the states those rules hide it in, no more; a paused animation holds its
+  first frame, which is the resting shape, so it starts from there when the
+  element appears.
+*/
+:global(html:not([data-intro]) body:has([data-hero-intro])) .fab[data-contact-fab],
+:global(html[data-intro="play"] body:has([data-hero-intro])) .fab[data-contact-fab],
+:global(html[data-intro="dots"] body:has([data-hero-intro])) .fab[data-contact-fab],
+:global(html[data-intro="burst"] body:has([data-hero-intro])) .fab[data-contact-fab],
+:global(html[data-intro="settle"] body:has([data-hero-intro])) .fab[data-contact-fab] {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fab {
     animation: none;
