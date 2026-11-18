@@ -8,7 +8,7 @@ export const moreContent: Chapter = {
   blurb: "The rest of the site's content, from birthday parties to your terms.",
   summary: [
     "**Programmes** are your private-event offers: birthdays, corporate, schools and more.",
-    "**Venues** are the places sessions happen; a map pin gives each one a map in the Maison's colours. **FAQs** fill the FAQ page.",
+    "**Venues** are the places sessions happen; a map pin gives each one a map in the Maison's colours. **FAQs** fill the FAQ page, under the headings set in **FAQ sections**.",
     "**Policies** are your terms and privacy pages. Tick where each should appear.",
     "**Passes** are multi-session bundles. **Testimonials** only appear with written permission.",
   ],
@@ -96,7 +96,7 @@ export const moreContent: Chapter = {
       title: "FAQs",
       path: "Content > FAQ",
       who: "Admin · Editor",
-      keywords: "questions answers",
+      keywords: "questions answers sections headings",
       blocks: [
         {
           type: "steps",
@@ -106,7 +106,7 @@ export const moreContent: Chapter = {
           type: "screenshot",
           file: "13-faqs-list.webp",
           width: 1200,
-          height: 833.5,
+          height: 834,
           caption: "Content → FAQ lists every question. Create New adds one; click a question to edit it.",
           title: "FAQs",
           callouts: [
@@ -119,7 +119,7 @@ export const moreContent: Chapter = {
           items: [
             "Write the question ((1)).",
             "Choose where the answer comes from ((2)): written here, or shared wording. Then type the answer ((6)).",
-            "Pick its section of the FAQ page ((3)) and its position ((4)). Lower numbers come first.",
+            "Pick its section of the FAQ page ((3)) from the list in **FAQ sections**, and its position within that section ((4)). Lower numbers come first.",
             "[[Publish changes]] ((5)).",
           ],
         },
@@ -127,16 +127,75 @@ export const moreContent: Chapter = {
           type: "screenshot",
           file: "13-faq-edit.webp",
           width: 1200,
-          height: 466.5,
+          height: 580,
           caption: "An FAQ: the question, its answer, which section of the FAQ page it sits in, and its position. Publish changes to update the site.",
           title: "FAQs",
           callouts: [
             { n: 1, label: "The question" },
             { n: 2, label: "Where the answer comes from — written here, or shared wording" },
-            { n: 3, label: "Section of the FAQ page" },
+            { n: 3, label: "Section of the FAQ page — chosen from FAQ sections" },
             { n: 4, label: "Display order — lower numbers first" },
             { n: 5, label: "Publish changes" },
             { n: 6, label: "The answer — type it here" },
+          ],
+        },
+        { type: "heading", text: "Sections of the FAQ page" },
+        {
+          type: "paragraph",
+          text: "The headings the questions sit under are managed in **Content → FAQ sections**. Every question chooses one of them in its **Section** box.",
+        },
+        {
+          type: "steps",
+          items: [
+            "**Add a section:** [[Create New]] ((1)).",
+            "**Rename or reorder:** click a section ((2)). The list is in page order ((3)).",
+          ],
+        },
+        {
+          type: "screenshot",
+          file: "13-faq-sections-list.webp",
+          width: 1200,
+          height: 640,
+          caption: "Content → FAQ sections lists the headings of the FAQ page in the order they appear.",
+          title: "FAQ sections",
+          callouts: [
+            { n: 1, label: "Create New — add a section" },
+            { n: 2, label: "Click a section to rename it or change its order" },
+            { n: 3, label: "Display order — the order the sections appear on the FAQ page" },
+          ],
+        },
+        {
+          type: "steps",
+          items: [
+            "Type the **Section heading** ((1)) as it should appear on the page.",
+            "Set its **Display order** ((2)). Lower numbers come higher on the page.",
+            "[[Save]] ((3)). The FAQ page updates straight away.",
+            "**Fill it:** open each question that belongs there, choose the section in its **Section** box, then [[Publish changes]].",
+          ],
+        },
+        {
+          type: "screenshot",
+          file: "13-faq-section-edit.webp",
+          width: 1200,
+          height: 480,
+          caption: "A section: its heading on the FAQ page and its position. Save, and the page updates.",
+          title: "FAQ sections",
+          callouts: [
+            { n: 1, label: "Section heading — as it appears on the FAQ page" },
+            { n: 2, label: "Display order — lower numbers come higher on the page" },
+            { n: 3, label: "Save — the FAQ page updates straight away" },
+          ],
+        },
+        {
+          type: "tip",
+          text: [
+            "A new section stays off the page until it has at least one published question, so you can set it up first and publish the questions when they are ready.",
+          ],
+        },
+        {
+          type: "warning",
+          text: [
+            "A section can only be deleted once it is empty. Move its questions to another section first; the admin says how many are still in it.",
           ],
         },
       ],

@@ -29,6 +29,7 @@ export interface Config {
     programmes: Programme;
     policies: Policy;
     faqs: Faq;
+    'faq-sections': FaqSection;
     passes: Pass;
     testimonials: Testimonial;
     vibes: Vibe;
@@ -92,6 +93,7 @@ export interface Config {
     programmes: ProgrammesSelect<false> | ProgrammesSelect<true>;
     policies: PoliciesSelect<false> | PoliciesSelect<true>;
     faqs: FaqsSelect<false> | FaqsSelect<true>;
+    'faq-sections': FaqSectionsSelect<false> | FaqSectionsSelect<true>;
     passes: PassesSelect<false> | PassesSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     vibes: VibesSelect<false> | VibesSelect<true>;
@@ -1134,7 +1136,7 @@ export interface PageHeaderBlock {
  */
 export interface FaqListBlock {
   /**
-   * Each section lists the questions filed under it, in order.
+   * No longer used: the FAQ page's sections and their headings are set in Content → FAQ sections.
    */
   groups?:
     | {
@@ -2304,7 +2306,7 @@ export interface PolicyCalloutBlock {
   blockType: 'callout';
 }
 /**
- * Questions on the FAQ page, filed under three sections. The sections' headings are set on the FAQ page itself.
+ * Questions on the FAQ page. Each is filed under a section; add, rename or reorder sections in FAQ sections.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "faqs".
@@ -2331,7 +2333,11 @@ export interface Faq {
     };
     [k: string]: unknown;
   } | null;
-  group: 'coming' | 'booking' | 'groups';
+  /**
+   * Which heading this question sits under. Manage the list in FAQ sections.
+   */
+  section: string | FaqSection;
+  group?: ('coming' | 'booking' | 'groups') | null;
   /**
    * Reserved: no homepage FAQ section exists yet.
    */
@@ -2343,6 +2349,26 @@ export interface Faq {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * The headings on the FAQ page. Each question chooses one of these. A section only appears on the page once it has a published question.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq-sections".
+ */
+export interface FaqSection {
+  id: string;
+  /**
+   * As it appears on the FAQ page, e.g. Booking a place.
+   */
+  title: string;
+  /**
+   * Position on the FAQ page: lower numbers come first.
+   */
+  order: number;
+  legacyKey?: ('coming' | 'booking' | 'groups') | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Multi-session passes sold on the Passes page. A pass without a price shows as not on sale yet.
@@ -4089,6 +4115,10 @@ export interface PayloadLockedDocument {
         value: string | Faq;
       } | null)
     | ({
+        relationTo: 'faq-sections';
+        value: string | FaqSection;
+      } | null)
+    | ({
         relationTo: 'passes';
         value: string | Pass;
       } | null)
@@ -5579,12 +5609,24 @@ export interface FaqsSelect<T extends boolean = true> {
   question?: T;
   answerSource?: T;
   answer?: T;
+  section?: T;
   group?: T;
   showOnHomepage?: T;
   order?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq-sections_select".
+ */
+export interface FaqSectionsSelect<T extends boolean = true> {
+  title?: T;
+  order?: T;
+  legacyKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

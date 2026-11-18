@@ -119,7 +119,7 @@ export const welcome: Chapter = {
         {
           type: "list",
           items: [
-            "**Content** holds Media, Pages, Experiences, Workshop types, Sessions, Venues, Programmes, Policies, FAQ, Passes, Testimonials, Vibes, Music, Journal, Journal categories and Redirects.",
+            "**Content** holds Media, Pages, Experiences, Workshop types, Sessions, Venues, Programmes, Policies, FAQ, FAQ sections, Passes, Testimonials, Vibes, Music, Journal, Journal categories and Redirects.",
             "**Settings** holds Staff, Site details, Menus & footer, Brand wording, Booking & checkout wording, Page labels, Search & sharing defaults and Music.",
             "The quick actions ((6)) are: Add a session · Desk booking · Check-in · Edit homepage · Write a journal post · Swap a photo · Refund an order · Resend tickets · Invite staff · Mamo Pay mode · Analytics. “Write a journal post” shows for Admin and Editor only.",
           ],

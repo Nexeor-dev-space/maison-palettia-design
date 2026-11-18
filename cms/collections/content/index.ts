@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 
 import { Experiences } from "./Experiences";
 import { Faqs } from "./Faqs";
+import { FaqSections } from "./FaqSections";
 import { MusicTracks } from "./MusicTracks";
 import { Pages } from "./Pages";
 import { Passes } from "./Passes";
@@ -19,6 +20,7 @@ import { WorkshopTypes } from "./WorkshopTypes";
 
 export { Experiences, EXPERIENCE_KINDS } from "./Experiences";
 export { Faqs } from "./Faqs";
+export { FaqSections, questionsInSection } from "./FaqSections";
 export { MusicTracks } from "./MusicTracks";
 export { FIXED_PAGE_SLUGS, isFixedPageSlug, Pages, type FixedPageSlug } from "./Pages";
 export { Passes } from "./Passes";
@@ -54,6 +56,7 @@ export const contentCollections: CollectionConfig[] = [
   Programmes,
   Policies,
   Faqs,
+  FaqSections,
   Passes,
   Testimonials,
   Vibes,

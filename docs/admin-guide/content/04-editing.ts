@@ -23,7 +23,7 @@ export const editing: Chapter = {
     {
       type: "warning",
       text: [
-        "**Settings work differently.** Pages, experiences, workshop types, sessions, journal posts, programmes, FAQs, policies, passes and testimonials have drafts and [[Publish changes]]. Music tracks, journal categories, venues and the pages under **Settings** (Site details, Menus & footer, Brand wording and the rest) have a plain [[Save]], and a save goes live straight away. Read twice, then save.",
+        "**Settings work differently.** Pages, experiences, workshop types, sessions, journal posts, programmes, FAQs, policies, passes and testimonials have drafts and [[Publish changes]]. Music tracks, journal categories, FAQ sections, venues and the pages under **Settings** (Site details, Menus & footer, Brand wording and the rest) have a plain [[Save]], and a save goes live straight away. Read twice, then save.",
       ],
     },
   ],

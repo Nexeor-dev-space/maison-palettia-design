@@ -8,6 +8,7 @@ import { getPayload } from "payload";
 import sharp from "sharp";
 
 import { backfillBlur } from "@/cms/lib/backfillBlur";
+import { describeFaqMove, moveFaqSections } from "@/cms/lib/faqSections";
 import { describeMove, movePagePhotos } from "@/cms/lib/pagePhotos";
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { STORAGE_ENABLED } from "@/cms/lib/storage";
@@ -82,6 +83,18 @@ async function main() {
   sharp.concurrency(1);
   sharp.cache(false);
   const payload = await getPayload({ config });
+
+  // The FAQ page's original sections (cms/lib/faqSections.ts). FIRST, and on
+  // its own: it needs only the database, and a media restore that throws below
+  // must not leave editors with no section to file a question under. It makes
+  // a section only for questions that would otherwise have none, so it is a
+  // no-op on every start after the first.
+  try {
+    const faq = await moveFaqSections(payload, { dryRun });
+    if (faq.state !== "already-moved") console.log(`restore-media: FAQ sections — ${describeFaqMove(faq)}`);
+  } catch (err) {
+    console.error("restore-media: FAQ sections — not moved (tried again at the next start):", err instanceof Error ? err.message : err);
+  }
 
   await fsp.mkdir(MEDIA_DIR, { recursive: true });
 
