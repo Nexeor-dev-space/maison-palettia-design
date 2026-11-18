@@ -21,6 +21,7 @@ import {
   type FaqGroup,
 } from "@/lib/constants";
 import { ENQUIRY_CONFIGURED } from "@/lib/enquiry";
+import { groupFaqsBySection } from "@/lib/faqSections";
 import type { ContactDetails, FaqItem, NavGroup, NavItem, SocialLink } from "@/types";
 
 /**
@@ -302,7 +303,20 @@ const DEFAULT_GROUP_TITLES: Record<FaqGroupKey, string> = {
   groups: FAQ_GROUPS[2]?.title ?? "Groups and passes",
 };
 
-type FaqRow = { group: FaqGroupKey; showOnHomepage: boolean; question: string; answerSource: "text" | "bookingTerms"; answer: string };
+type FaqRow = {
+  /** The FAQ section's id — for a question not saved since sections became editable, the section that replaced its `group`. */
+  section: string | null;
+  group: FaqGroupKey;
+  showOnHomepage: boolean;
+  question: string;
+  answerSource: "text" | "bookingTerms";
+  answer: string;
+};
+
+const idOf = (value: unknown): string | null => {
+  if (value && typeof value === "object" && "id" in value) return String((value as { id: unknown }).id);
+  return typeof value === "string" || typeof value === "number" ? String(value) : null;
+};
 
 /**
  * Every published FAQ in `order`, with its rich-text answer already flattened
@@ -310,10 +324,11 @@ type FaqRow = { group: FaqGroupKey; showOnHomepage: boolean; question: string; a
  * by {@link getBookingTerms}, not cached here, so switching the booking mode
  * changes the FAQ without touching a question.
  */
-const readFaqs = contentReader("faqs", [TAGS.faqs], async (draft) => {
+const readFaqs = contentReader("faqs", [TAGS.faqs, TAGS.faqSections], async (draft) => {
   const docs = await findDocs("faqs", draft, { drafts: true, sort: "order", depth: 0 });
   return docs.map(
     (doc): FaqRow => ({
+      section: idOf(doc.section),
       group: doc.group,
       showOnHomepage: Boolean(doc.showOnHomepage),
       question: doc.question,
@@ -341,6 +356,24 @@ export async function getFaqGroups(titles: Partial<Record<FaqGroupKey, string>> 
     title: titles[key] || DEFAULT_GROUP_TITLES[key],
     items: rows.filter((row) => row.group === key).map((row) => itemOf(row, terms)),
   })).filter((group) => group.items.length > 0);
+}
+
+/** The FAQ sections editors manage (Content → FAQ sections), in page order. */
+const readFaqSections = contentReader("faq-sections", [TAGS.faqSections], async (draft) => {
+  const docs = await findDocs("faq-sections", draft, { drafts: false, sort: "order", depth: 0 });
+  return docs.map((doc) => ({ id: String(doc.id), title: doc.title, legacyKey: doc.legacyKey ?? null }));
+});
+
+/**
+ * The FAQ page's sections as editors set them up, or `null` while there are
+ * none yet (the one-time move, cms/lib/faqSections.ts, has not run against
+ * this database) or the CMS cannot be read — the caller then prints the
+ * sections the old way, so the page is the same either side of the move.
+ */
+export async function getFaqSectionGroups(): Promise<FaqGroup[] | null> {
+  const [sections, rows, terms] = await Promise.all([readFaqSections(), readFaqs(), getBookingTerms()]);
+  if (!sections?.length || !rows) return null;
+  return groupFaqsBySection(sections, rows, (row) => itemOf(row, terms));
 }
 
 /** `HOMEPAGE_FAQ`: the questions ticked "Also show on homepage". */

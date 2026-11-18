@@ -212,7 +212,7 @@ export const glossary: Chapter = {
               blocks: [
                 {
                   type: "paragraph",
-                  text: "Pages, experiences, workshop types, sessions, journal posts, FAQs, policies and the like have drafts, and Publish changes puts them live. Settings pages, music tracks, journal categories and venues have a plain Save, and it goes live straight away.",
+                  text: "Pages, experiences, workshop types, sessions, journal posts, FAQs, policies and the like have drafts, and Publish changes puts them live. Settings pages, music tracks, journal categories, FAQ sections and venues have a plain Save, and it goes live straight away.",
                 },
               ],
             },

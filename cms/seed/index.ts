@@ -1,6 +1,8 @@
 import config from "@payload-config";
 import { getPayload, type CollectionSlug, type Payload } from "payload";
 
+import { describeFaqMove, moveFaqSections } from "@/cms/lib/faqSections";
+
 import { checkSeed } from "./check";
 import { seedContent } from "./content";
 import { seedGlobals } from "./globals";
@@ -86,6 +88,7 @@ const COUNTED: CollectionSlug[] = [
   "programmes",
   "policies",
   "faqs",
+  "faq-sections",
   "passes",
   "pages",
 ];
@@ -170,6 +173,9 @@ async function main() {
     log(`seed: skipping ${[...pagesWithProblems].join(", ")} until the block schema can hold today's copy (see the list above).`);
   }
   await seedPages(payload, tally, media, content, { missingOnly, skip: pagesWithProblems }, log);
+
+  // The FAQ sections, made from the FAQ page just written (once per database).
+  log(`seed: FAQ sections — ${describeFaqMove(await moveFaqSections(payload))}`);
 
   log("");
   tally.print(log);

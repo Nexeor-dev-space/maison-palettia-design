@@ -529,6 +529,32 @@ falls back to the matching committed source in `public/`, including URLs for
 generated renditions. This keeps seeded images available even if automatic
 restoration is interrupted.
 
+### FAQ sections (one-time move, Nov 2026)
+
+The FAQ page's sections used to be three values fixed in code, with their
+headings typed on the page's **FAQ list** block. Editors now manage them in
+**Content → FAQ sections**, and each question picks one. Migration
+`20261118_065421_faq_sections` only adds things (the `faq_sections` table, a
+nullable `section_id` on questions and their versions, a stamp column); it
+must run after PR #215's `20261113_*` migrations, which this branch is built on.
+
+- The three existing sections are created **once per database** by
+  `cms/lib/faqSections.ts`, with the headings and order the published FAQ page
+  was printing, then `system-state.faqSectionsMovedAt` is stamped. It runs by
+  itself at the end of `npm run start:prod` (inside `restore-media`) and at the
+  end of `npm run seed`. On a server started another way run
+  `npm run move:faq-sections` once; `FAQ_SECTIONS_DRY_RUN=1` reports first.
+- **No question is rewritten.** A question saved before the change keeps its
+  old `group`; it is filed under the section that replaced it (`legacyKey`)
+  on the site and in the admin until someone saves it with a section.
+- Until the sections exist, the FAQ page prints the old way from the block,
+  so it looks the same in any deploy order. The block's old **Sections** list
+  is kept read-only; nothing was dropped.
+- The start log says what happened (`restore-media: FAQ sections — …`).
+- A section with questions in it cannot be deleted (409, "Move them to
+  another section first"). A new section stays off the page until it has a
+  published question.
+
 ### Experience page photographs (one-time move, issue #201)
 
 Each experience page's banner and About cards used to be held in code and

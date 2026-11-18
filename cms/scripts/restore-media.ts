@@ -8,6 +8,7 @@ import { getPayload } from "payload";
 import sharp from "sharp";
 
 import { backfillBlur } from "@/cms/lib/backfillBlur";
+import { describeFaqMove, moveFaqSections } from "@/cms/lib/faqSections";
 import { describeMove, movePagePhotos } from "@/cms/lib/pagePhotos";
 import { MEDIA_DIR, PROJECT_ROOT } from "@/cms/lib/paths";
 import { STORAGE_ENABLED } from "@/cms/lib/storage";
@@ -197,6 +198,16 @@ async function main() {
     if (move.state !== "already-moved") console.log(`restore-media: page photographs — ${describeMove(move)}`);
   } catch (err) {
     console.error("restore-media: page photographs — not moved:", err instanceof Error ? err.message : err);
+  }
+
+  // The FAQ page's three sections, out of the code and into FAQ sections —
+  // once per database (cms/lib/faqSections.ts). Until it succeeds the page
+  // keeps printing the sections the old way.
+  try {
+    const faq = await moveFaqSections(payload, { dryRun });
+    if (faq.state !== "already-moved") console.log(`restore-media: FAQ sections — ${describeFaqMove(faq)}`);
+  } catch (err) {
+    console.error("restore-media: FAQ sections — not moved:", err instanceof Error ? err.message : err);
   }
   process.exit(0);
 }
