@@ -39,6 +39,8 @@ const C: Record<string, { create: string; read: string; update: string; delete: 
   programmes: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   policies: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   faqs: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
+  // FAQ sections: no drafts; anyone reads the headings, content staff manage them.
+  "faq-sections": { create: "YY--", read: "YYYY", update: "YY--", delete: "YY--" },
   passes: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   testimonials: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },
   posts: { create: "YY--", read: "YYWW", update: "YY--", delete: "YY--" },

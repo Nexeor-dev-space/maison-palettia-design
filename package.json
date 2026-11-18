@@ -24,6 +24,7 @@
     "restore:media": "payload run cms/scripts/restore-media.ts",
     "upload:media": "payload run cms/scripts/upload-media-to-storage.ts",
     "move:page-photos": "payload run cms/scripts/move-page-photos.ts",
+    "move:faq-sections": "payload run cms/scripts/move-faq-sections.ts",
     "docs:pdf": "node scripts/build-admin-guide-pdf.mjs"
   },
   "dependencies": {
