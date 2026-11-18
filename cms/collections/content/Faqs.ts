@@ -47,6 +47,25 @@ const sectionFromGroup: FieldHook = async ({ value, siblingData, req }) => {
 };
 
 /**
+ * The old value follows the section on every save: the section's `legacyKey`,
+ * or nothing for a section added since. So code from before the change that
+ * still reads `group` (an older container mid-deploy) agrees with the admin,
+ * and a question re-filed under a new section no longer counts as belonging
+ * to its old one.
+ */
+const groupFromSection: FieldHook = async ({ value, siblingData, req }) => {
+  const section = (siblingData as { section?: unknown } | undefined)?.section;
+  const id = section && typeof section === "object" && "id" in section ? (section as { id: string | number }).id : section;
+  if (typeof id !== "string" && typeof id !== "number") return value;
+  try {
+    const doc = (await req.payload.findByID({ collection: "faq-sections", id, depth: 0, overrideAccess: true, req })) as { legacyKey?: string | null };
+    return doc?.legacyKey ?? null;
+  } catch {
+    return value;
+  }
+};
+
+/**
  * Required of editors. The seed is let through: it writes questions before the
  * FAQ page that names the sections exists, files them by `group`, and makes
  * the sections afterwards (cms/lib/faqSections.ts).
@@ -101,14 +120,16 @@ export const Faqs: CollectionConfig = {
       hooks: { afterRead: [sectionFromGroup] },
     },
     {
-      // Superseded by `section` (Nov 2026); kept, hidden, so older questions still know where they belong.
+      // Superseded by `section` (Nov 2026); kept, hidden, so older questions
+      // still know where they belong. No default any more: a new question
+      // that defaulted to "coming" would be filed under that section without
+      // anyone choosing it. Kept in step with the section on every save.
       name: "group",
       type: "select",
       label: "Section (before sections were editable)",
-      required: true,
-      defaultValue: "coming",
       options: [...FAQ_GROUPS],
       admin: { hidden: true },
+      hooks: { beforeChange: [groupFromSection] },
     },
     {
       name: "showOnHomepage",

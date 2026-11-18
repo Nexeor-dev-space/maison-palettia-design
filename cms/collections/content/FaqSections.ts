@@ -33,18 +33,26 @@ export function questionsInSection(id: string | number, legacyKey: string | null
   return { or: [filed, { and: [{ section: { exists: false } }, { group: { equals: legacyKey } }] }] };
 }
 
+/** The same, for questions' latest drafts (autosave writes a published question's edits only to its versions). */
+function draftsInSection(id: string | number, legacyKey: string | null | undefined): Where {
+  const filed: Where = { "version.section": { equals: id } };
+  const inIt: Where = legacyKey
+    ? { or: [filed, { and: [{ "version.section": { exists: false } }, { "version.group": { equals: legacyKey } }] }] }
+    : filed;
+  return { and: [{ latest: { equals: true } }, inIt] };
+}
+
 const refuseDeleteInUse: CollectionBeforeDeleteHook = async ({ id, req }) => {
   if (req.context?.system === true) return;
   const section = (await req.payload.findByID({ collection: "faq-sections", id, depth: 0, overrideAccess: true, req })) as { legacyKey?: string | null };
-  const { totalDocs } = await req.payload.count({
-    collection: "faqs",
-    where: questionsInSection(id, section?.legacyKey),
-    overrideAccess: true,
-    req,
-  });
+  const [live, drafts] = await Promise.all([
+    req.payload.count({ collection: "faqs", where: questionsInSection(id, section?.legacyKey), overrideAccess: true, req }),
+    req.payload.countVersions({ collection: "faqs", where: draftsInSection(id, section?.legacyKey), overrideAccess: true, req }),
+  ]);
+  const totalDocs = Math.max(live.totalDocs, drafts.totalDocs);
   if (totalDocs > 0) {
     throw new APIError(
-      `${totalDocs} ${totalDocs === 1 ? "question is" : "questions are"} filed under this section. Move ${totalDocs === 1 ? "it" : "them"} to another section first.`,
+      `${totalDocs} ${totalDocs === 1 ? "question is" : "questions are"} filed under this section (counting unpublished changes). Move ${totalDocs === 1 ? "it" : "them"} to another section first.`,
       409,
       undefined,
       true,

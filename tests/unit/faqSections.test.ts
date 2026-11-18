@@ -1,5 +1,18 @@
 import type { Payload } from "payload";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const tx = vi.hoisted(() => ({ committed: 0, killed: 0 }));
+vi.mock("payload", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("payload")>()),
+  createLocalReq: async () => ({ context: {} }),
+  initTransaction: async () => true,
+  commitTransaction: async () => {
+    tx.committed++;
+  },
+  killTransaction: async () => {
+    tx.killed++;
+  },
+}));
 
 import { describeFaqMove, moveFaqSections } from "@/cms/lib/faqSections";
 import { groupFaqsBySection } from "@/lib/faqSections";
@@ -34,6 +47,11 @@ describe("groupFaqsBySection", () => {
     ]);
   });
 
+  it("does not file a question added since the change (no old group) anywhere until it has a section", () => {
+    const rows = [{ question: "New draft", section: null, group: null }];
+    expect(groupFaqsBySection(sections, rows, item)).toEqual([]);
+  });
+
   it("files a question with no section by its old group, under the section that replaced it", () => {
     const rows = [{ question: "Old one", section: null, group: "booking" }];
     expect(groupFaqsBySection(sections, rows, item)).toEqual([{ title: "Booking a place", items: [{ question: "Old one", answer: "" }] }]);
@@ -53,37 +71,57 @@ describe("groupFaqsBySection", () => {
   });
 });
 
-/** Just enough of Payload for the move: the FAQ page, faq-sections and system-state. */
-function fakePayload(faqListGroups: { key: string; title?: string }[] | null, existing: { legacyKey: string }[] = []) {
+/**
+ * Just enough of Payload for the move: the FAQ page, faq-sections, and counts
+ * of questions (published and latest drafts) still waiting for each old key.
+ */
+function fakePayload(
+  faqListGroups: { key: string; title?: string }[] | null,
+  options: { legacy?: string[]; waiting?: string[]; waitingDrafts?: string[]; failOn?: number } = {},
+) {
   const created: Record<string, unknown>[] = [];
-  let stamp: string | null = null;
+  const waiting = new Set(options.waiting ?? ["coming", "booking", "groups"]);
+  const waitingDrafts = new Set(options.waitingDrafts ?? []);
+  const keyOf = (where: unknown, field: string) => JSON.stringify(where).match(new RegExp(`"${field}":\\{"equals":"(\\w+)"`))?.[1];
   const payload = {
     find: async ({ collection }: { collection: string }) => {
       if (collection === "pages") {
         return { docs: faqListGroups ? [{ blocks: [{ blockType: "pageHeader" }, { blockType: "faqList", groups: faqListGroups }] }] : [] };
       }
-      if (collection === "faq-sections") return { docs: existing };
+      if (collection === "faq-sections") return { docs: (options.legacy ?? []).map((legacyKey) => ({ legacyKey })) };
       throw new Error(`unexpected find on ${collection}`);
+    },
+    count: async ({ collection, where }: { collection: string; where: unknown }) => {
+      if (collection !== "faqs") throw new Error(`unexpected count on ${collection}`);
+      return { totalDocs: waiting.has(keyOf(where, "group") ?? "") ? 2 : 0 };
+    },
+    countVersions: async ({ collection, where }: { collection: string; where: unknown }) => {
+      if (collection !== "faqs") throw new Error(`unexpected countVersions on ${collection}`);
+      return { totalDocs: waitingDrafts.has(keyOf(where, "version.group") ?? "") ? 1 : 0 };
     },
     create: async ({ collection, data }: { collection: string; data: Record<string, unknown> }) => {
       if (collection !== "faq-sections") throw new Error(`unexpected create on ${collection}`);
+      if (options.failOn === created.length + 1) throw new Error("database went away");
       created.push(data);
       return { id: created.length, ...data };
     },
     update: async () => {
       throw new Error("the move must not write questions");
     },
-    findGlobal: async () => ({ faqSectionsMovedAt: stamp }),
-    updateGlobal: async ({ data }: { data: { faqSectionsMovedAt: string } }) => {
-      stamp = data.faqSectionsMovedAt;
-      return {};
+    updateGlobal: async () => {
+      throw new Error("the move must not write system-state");
     },
   };
-  return { payload: payload as unknown as Payload, created, stamped: () => stamp !== null };
+  return { payload: payload as unknown as Payload, created };
 }
 
 describe("moveFaqSections", () => {
-  it("creates the three sections with the page's headings, in the page's order, and stamps", async () => {
+  beforeEach(() => {
+    tx.committed = 0;
+    tx.killed = 0;
+  });
+
+  it("creates the three sections with the page's headings, in the page's order, in one transaction", async () => {
     const fake = fakePayload([
       { key: "booking", title: "Booking and paying" },
       { key: "coming", title: "Coming to an event" },
@@ -95,7 +133,7 @@ describe("moveFaqSections", () => {
       { title: "Coming to an event", order: 1, legacyKey: "coming" },
       { title: "Groups and passes", order: 2, legacyKey: "groups" },
     ]);
-    expect(fake.stamped()).toBe(true);
+    expect(tx).toEqual({ committed: 1, killed: 0 });
     expect(describeFaqMove(result)).toBe("created 3 FAQ sections (Booking and paying, Coming to an event, Groups and passes).");
   });
 
@@ -111,26 +149,43 @@ describe("moveFaqSections", () => {
     expect(fake.created.map((data) => data.legacyKey)).toEqual(["coming", "booking", "groups"]);
   });
 
-  it("never makes a section twice, so a failed run can simply run again", async () => {
-    const fake = fakePayload(null, [{ legacyKey: "coming" }]);
+  it("does nothing once every question has its section", async () => {
+    const fake = fakePayload(null, { legacy: ["coming", "booking", "groups"] });
     const result = await moveFaqSections(fake.payload);
-    expect(fake.created.map((data) => data.legacyKey)).toEqual(["booking", "groups"]);
-    expect(result.existing).toEqual(["Coming to an event"]);
+    expect(result.state).toBe("already-moved");
+    expect(fake.created).toHaveLength(0);
+    expect(describeFaqMove(result)).toBe("every FAQ question already has its section.");
   });
 
-  it("runs once: after the stamp nothing is created", async () => {
-    const fake = fakePayload(null);
+  it("repairs a missing original section when questions still wait for it, keeping its place on the page", async () => {
+    const fake = fakePayload(null, { legacy: ["coming", "groups"] });
     await moveFaqSections(fake.payload);
-    const again = await moveFaqSections(fake.payload);
-    expect(again.state).toBe("already-moved");
-    expect(fake.created).toHaveLength(3);
+    expect(fake.created).toEqual([{ title: "Booking a place", order: 1, legacyKey: "booking" }]);
+  });
+
+  it("counts a question waiting only in an unpublished draft", async () => {
+    const fake = fakePayload(null, { legacy: ["coming", "booking"], waiting: [], waitingDrafts: ["groups"] });
+    await moveFaqSections(fake.payload);
+    expect(fake.created.map((data) => data.legacyKey)).toEqual(["groups"]);
+  });
+
+  it("does not bring back an original section an editor deleted once nothing needed it", async () => {
+    const fake = fakePayload(null, { legacy: ["coming", "booking"], waiting: ["coming", "booking"] });
+    const result = await moveFaqSections(fake.payload);
+    expect(result.state).toBe("already-moved");
+    expect(fake.created).toHaveLength(0);
+  });
+
+  it("rolls back if a section cannot be made, so the next start tries again", async () => {
+    const fake = fakePayload(null, { failOn: 2 });
+    await expect(moveFaqSections(fake.payload)).rejects.toThrow("database went away");
+    expect(tx).toEqual({ committed: 0, killed: 1 });
   });
 
   it("writes nothing in a dry run", async () => {
     const fake = fakePayload(null);
     const result = await moveFaqSections(fake.payload, { dryRun: true });
-    expect(result.created).toHaveLength(3);
+    expect(result).toEqual({ state: "dry-run", created: ["Coming to an event", "Booking a place", "Groups and passes"] });
     expect(fake.created).toHaveLength(0);
-    expect(fake.stamped()).toBe(false);
   });
 });

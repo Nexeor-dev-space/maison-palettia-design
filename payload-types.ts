@@ -2337,7 +2337,7 @@ export interface Faq {
    * Which heading this question sits under. Manage the list in FAQ sections.
    */
   section: string | FaqSection;
-  group: 'coming' | 'booking' | 'groups';
+  group?: ('coming' | 'booking' | 'groups') | null;
   /**
    * Reserved: no homepage FAQ section exists yet.
    */
@@ -7893,7 +7893,6 @@ export interface SystemState {
   lastDigestDay?: string | null;
   lastInventoryReconcileAt?: string | null;
   pagePhotosMovedAt?: string | null;
-  faqSectionsMovedAt?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -8869,7 +8868,6 @@ export interface SystemStateSelect<T extends boolean = true> {
   lastDigestDay?: T;
   lastInventoryReconcileAt?: T;
   pagePhotosMovedAt?: T;
-  faqSectionsMovedAt?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

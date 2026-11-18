@@ -10,7 +10,7 @@ import type { FaqItem } from "@/types";
  * from before the move has no section yet. A question whose section is not
  * in the list is not printed.
  */
-export function groupFaqsBySection<R extends { section: string | null; group: string }>(
+export function groupFaqsBySection<R extends { section: string | null; group: string | null }>(
   sections: readonly { id: string; title: string; legacyKey?: string | null }[],
   rows: readonly R[],
   item: (row: R) => FaqItem,

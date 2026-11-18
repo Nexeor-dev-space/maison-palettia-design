@@ -25723,8 +25723,7 @@
           "type": "enum_faqs_group",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'coming'"
+          "notNull": false
         },
         "show_on_homepage": {
           "name": "show_on_homepage",
@@ -25894,8 +25893,7 @@
           "type": "enum__faqs_v_version_group",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'coming'"
+          "notNull": false
         },
         "version_show_on_homepage": {
           "name": "version_show_on_homepage",
@@ -44360,12 +44358,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "faq_sections_moved_at": {
-          "name": "faq_sections_moved_at",
-          "type": "timestamp(3) with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp(3) with time zone",
@@ -46226,6 +46218,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "5aeaeec4-c4f8-42ad-9630-6dd29e60dfc1",
+  "id": "2845107c-8315-4b5e-954f-bcfef21377b5",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

@@ -534,26 +534,40 @@ restoration is interrupted.
 The FAQ page's sections used to be three values fixed in code, with their
 headings typed on the page's **FAQ list** block. Editors now manage them in
 **Content → FAQ sections**, and each question picks one. Migration
-`20261118_065421_faq_sections` only adds things (the `faq_sections` table, a
-nullable `section_id` on questions and their versions, a stamp column); it
-must run after PR #215's `20261113_*` migrations, which this branch is built on.
+`20261118_074058_faq_sections` only adds things (the `faq_sections` table and
+a nullable `section_id` on questions and their versions) and drops the old
+`group` column's default; it must run after PR #215's `20261113_*`
+migrations, which this branch is built on.
 
-- The three existing sections are created **once per database** by
-  `cms/lib/faqSections.ts`, with the headings and order the published FAQ page
-  was printing, then `system-state.faqSectionsMovedAt` is stamped. It runs by
-  itself at the end of `npm run start:prod` (inside `restore-media`) and at the
-  end of `npm run seed`. On a server started another way run
-  `npm run move:faq-sections` once; `FAQ_SECTIONS_DRY_RUN=1` reports first.
+- The original three sections are created by `cms/lib/faqSections.ts`, with
+  the headings and order the published FAQ page was printing. It makes an
+  original section only while none exists for it **and** some question
+  (published, or its latest draft) still names it with no section of its own.
+  So it runs in full once, does nothing afterwards, repairs itself if a start
+  ever failed part-way, and never brings back a section an editor deleted.
+  All the sections one run makes are made in one transaction.
+- It runs **first** in `restore-media` (every `npm run start:prod`, before the
+  media restore so a failure there cannot stop it), at the end of
+  `npm run seed`, and by hand with `npm run move:faq-sections`
+  (`FAQ_SECTIONS_DRY_RUN=1` reports first).
 - **No question is rewritten.** A question saved before the change keeps its
   old `group`; it is filed under the section that replaced it (`legacyKey`)
-  on the site and in the admin until someone saves it with a section.
-- Until the sections exist, the FAQ page prints the old way from the block,
-  so it looks the same in any deploy order. The block's old **Sections** list
-  is kept read-only; nothing was dropped.
+  on the site and in the admin until someone saves it, and from then on
+  `group` follows its section. New questions have no `group`, so they appear
+  nowhere until a section is chosen, and cannot be published without one.
+- **Safe in Coolify's order (build, then migrate at start).** While the build
+  reads a database without the new column, the FAQ is read without it and
+  printed from the CMS the old way; nothing is written to `system-state`, so
+  no other page is affected. Until the sections exist the FAQ page prints the
+  old way from the block. The block's old **Sections** list is kept read-only.
 - The start log says what happened (`restore-media: FAQ sections — …`).
-- A section with questions in it cannot be deleted (409, "Move them to
-  another section first"). A new section stays off the page until it has a
-  published question.
+- A section that still has questions in it, published or unpublished, cannot
+  be deleted (409, "Move them to another section first"). A new section stays
+  off the page until it has a published question.
+- **No `migrate:down` for this one.** Like the other generated migrations
+  here, its down step drops the table with `CASCADE` before dropping the
+  constraints, so it fails. Roll back by deploying the previous code: the
+  added table and column are ignored by it.
 
 ### Experience page photographs (one-time move, issue #201)
 

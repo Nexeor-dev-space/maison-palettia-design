@@ -1,4 +1,4 @@
-import type { Payload } from "payload";
+import { commitTransaction, createLocalReq, initTransaction, killTransaction, type Payload } from "payload";
 
 import { FAQ_GROUPS } from "@/cms/blocks/FaqList";
 import { SEED_CONTEXT } from "@/cms/seed/upsert";
@@ -23,16 +23,26 @@ import { SEED_CONTEXT } from "@/cms/seed/upsert";
  * `group`; `faqs.section` reads as the matching section until the question is
  * next saved. So no draft is touched, and no new version is made.
  *
- * ONCE. Then `system-state.faqSectionsMovedAt` is stamped and nothing here
- * runs again, so a section an editor deletes or renames stays that way. A
- * section that already carries a legacy key is never made twice, so a run
- * that fails part-way is simply run again.
+ * ONLY WHERE A QUESTION NEEDS IT. An original section is made only while
+ * there is no section for it yet AND some question (published, or the latest
+ * draft) still names it as its old `group` with no section of its own. So it
+ * runs in full the first time, does nothing on every start after that, and
+ * repairs itself if a run ever failed — even if an editor has meanwhile made
+ * sections of their own. A section an editor deletes is not brought back:
+ * deleting is refused while any question would be left without one. The
+ * sections it makes are made in one transaction, all or none.
+ *
+ * NO STAMP ON `system-state`. A new column there would make every read of
+ * that global fail while a build runs against a database the migration has
+ * not reached yet (Coolify builds before `start:prod` migrates), and the
+ * experience pages read it to decide where their photographs come from.
  *
  * BEFORE IT RUNS, the site prints the sections the old way (from the block),
  * so a deploy looks the same whichever order things happen in.
  *
- * It runs at the end of cms/scripts/restore-media.ts (every `npm run
- * start:prod`, after migrations) and at the end of the seed.
+ * It runs first in cms/scripts/restore-media.ts (every `npm run start:prod`,
+ * after migrations, before the media restore so a failure there cannot stop
+ * it), at the end of the seed, and by hand with `npm run move:faq-sections`.
  */
 
 type Key = (typeof FAQ_GROUPS)[number]["value"];
@@ -41,23 +51,11 @@ export interface FaqMoveResult {
   state: "already-moved" | "dry-run" | "moved";
   /** Sections made (or, in a dry run, that would be), in page order. */
   created: string[];
-  /** Old sections that already had a section document. */
-  existing: string[];
 }
 
 const CONTEXT = { ...SEED_CONTEXT };
 const KEYS = FAQ_GROUPS.map((group) => group.value) as Key[];
 const DEFAULT_TITLES = Object.fromEntries(FAQ_GROUPS.map((group) => [group.value, group.label])) as Record<Key, string>;
-
-/** Has the move run against this database? False when that cannot be read (a database without the column yet). */
-export async function faqSectionsMoved(payload: Payload): Promise<boolean> {
-  try {
-    const state = (await payload.findGlobal({ slug: "system-state", depth: 0, overrideAccess: true, context: CONTEXT })) as { faqSectionsMovedAt?: unknown };
-    return Boolean(state?.faqSectionsMovedAt);
-  } catch {
-    return false;
-  }
-}
 
 /** The headings and order the FAQ page was printing: its published "FAQ list" block. */
 async function pageSections(payload: Payload): Promise<{ key: Key; title: string }[]> {
@@ -84,42 +82,70 @@ async function pageSections(payload: Payload): Promise<{ key: Key; title: string
   return sections;
 }
 
+/** Does any question — published, or its latest draft — still name `key` as its old section, with no section of its own? */
+async function hasQuestionsWaiting(payload: Payload, key: Key): Promise<boolean> {
+  const live = await payload.count({
+    collection: "faqs",
+    where: { and: [{ section: { exists: false } }, { group: { equals: key } }] },
+    overrideAccess: true,
+    context: CONTEXT,
+  });
+  if (live.totalDocs > 0) return true;
+  const drafts = await payload.countVersions({
+    collection: "faqs",
+    where: { and: [{ latest: { equals: true } }, { "version.section": { exists: false } }, { "version.group": { equals: key } }] },
+    overrideAccess: true,
+    context: CONTEXT,
+  });
+  return drafts.totalDocs > 0;
+}
+
 export async function moveFaqSections(payload: Payload, options: { dryRun?: boolean } = {}): Promise<FaqMoveResult> {
   const { dryRun = false } = options;
-  const result: FaqMoveResult = { state: dryRun ? "dry-run" : "moved", created: [], existing: [] };
-  if (await faqSectionsMoved(payload)) return { ...result, state: "already-moved" };
-
-  const sections = await pageSections(payload);
-  const { docs } = await payload.find({ collection: "faq-sections", where: { legacyKey: { exists: true } }, limit: 100, depth: 0, overrideAccess: true, context: CONTEXT });
+  const { docs } = await payload.find({
+    collection: "faq-sections",
+    where: { legacyKey: { exists: true } },
+    limit: 10,
+    depth: 0,
+    overrideAccess: true,
+    context: CONTEXT,
+  });
   const made = new Set(docs.map((doc) => (doc as { legacyKey?: string | null }).legacyKey));
 
-  for (const [index, section] of sections.entries()) {
-    if (made.has(section.key)) {
-      result.existing.push(section.title);
-      continue;
-    }
-    result.created.push(section.title);
-    if (dryRun) continue;
-    await payload.create({
-      collection: "faq-sections",
-      data: { title: section.title, order: index, legacyKey: section.key },
-      depth: 0,
-      overrideAccess: true,
-      context: CONTEXT,
-    });
+  const needed = new Set<Key>();
+  for (const key of KEYS) {
+    if (!made.has(key) && (await hasQuestionsWaiting(payload, key))) needed.add(key);
   }
+  if (!needed.size) return { state: "already-moved", created: [] };
 
-  if (!dryRun) {
-    await payload.updateGlobal({ slug: "system-state", data: { faqSectionsMovedAt: new Date().toISOString() } as never, depth: 0, overrideAccess: true, context: CONTEXT });
+  // In the page's order; `order` is the place each had on the page.
+  const sections = (await pageSections(payload)).map((section, order) => ({ ...section, order })).filter((section) => needed.has(section.key));
+  const created = sections.map((section) => section.title);
+  if (dryRun) return { state: "dry-run", created };
+
+  const req = await createLocalReq({ context: CONTEXT }, payload);
+  const started = await initTransaction(req);
+  try {
+    for (const section of sections) {
+      await payload.create({
+        collection: "faq-sections",
+        data: { title: section.title, order: section.order, legacyKey: section.key },
+        depth: 0,
+        overrideAccess: true,
+        req,
+      });
+    }
+    if (started) await commitTransaction(req);
+  } catch (err) {
+    if (started) await killTransaction(req);
+    throw err;
   }
-  return result;
+  return { state: "moved", created };
 }
 
 /** One line for a start log or a terminal. */
 export function describeFaqMove(result: FaqMoveResult): string {
-  if (result.state === "already-moved") return "the FAQ sections are already in the CMS.";
+  if (result.state === "already-moved") return "every FAQ question already has its section.";
   const verb = result.state === "dry-run" ? "would create" : "created";
-  const parts = [`${verb} ${result.created.length} FAQ section${result.created.length === 1 ? "" : "s"}${result.created.length ? ` (${result.created.join(", ")})` : ""}`];
-  if (result.existing.length) parts.push(`${result.existing.join(", ")} already existed`);
-  return `${parts.join("; ")}.`;
+  return `${verb} ${result.created.length} FAQ section${result.created.length === 1 ? "" : "s"}${result.created.length ? ` (${result.created.join(", ")})` : ""}.`;
 }

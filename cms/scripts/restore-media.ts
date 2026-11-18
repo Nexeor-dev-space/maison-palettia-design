@@ -84,6 +84,18 @@ async function main() {
   sharp.cache(false);
   const payload = await getPayload({ config });
 
+  // The FAQ page's original sections (cms/lib/faqSections.ts). FIRST, and on
+  // its own: it needs only the database, and a media restore that throws below
+  // must not leave editors with no section to file a question under. It makes
+  // a section only for questions that would otherwise have none, so it is a
+  // no-op on every start after the first.
+  try {
+    const faq = await moveFaqSections(payload, { dryRun });
+    if (faq.state !== "already-moved") console.log(`restore-media: FAQ sections — ${describeFaqMove(faq)}`);
+  } catch (err) {
+    console.error("restore-media: FAQ sections — not moved (tried again at the next start):", err instanceof Error ? err.message : err);
+  }
+
   await fsp.mkdir(MEDIA_DIR, { recursive: true });
 
   const rows: MediaRow[] = [];
@@ -198,16 +210,6 @@ async function main() {
     if (move.state !== "already-moved") console.log(`restore-media: page photographs — ${describeMove(move)}`);
   } catch (err) {
     console.error("restore-media: page photographs — not moved:", err instanceof Error ? err.message : err);
-  }
-
-  // The FAQ page's three sections, out of the code and into FAQ sections —
-  // once per database (cms/lib/faqSections.ts). Until it succeeds the page
-  // keeps printing the sections the old way.
-  try {
-    const faq = await moveFaqSections(payload, { dryRun });
-    if (faq.state !== "already-moved") console.log(`restore-media: FAQ sections — ${describeFaqMove(faq)}`);
-  } catch (err) {
-    console.error("restore-media: FAQ sections — not moved:", err instanceof Error ? err.message : err);
   }
   process.exit(0);
 }

@@ -52,7 +52,5 @@ export const SystemState: GlobalConfig = {
     // Stamped once by cms/lib/pagePhotos.ts. Until it is set, lib/experiences.ts
     // keeps the code-held page photographs over the CMS answer (issue #201).
     { name: "pagePhotosMovedAt", type: "date", label: "Experience page photographs moved into the library at" },
-    // Stamped once by cms/lib/faqSections.ts when the three code-fixed FAQ sections became FAQ section documents.
-    { name: "faqSectionsMovedAt", type: "date", label: "FAQ sections moved into the CMS at" },
   ],
 };

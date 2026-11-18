@@ -306,7 +306,8 @@ const DEFAULT_GROUP_TITLES: Record<FaqGroupKey, string> = {
 type FaqRow = {
   /** The FAQ section's id — for a question not saved since sections became editable, the section that replaced its `group`. */
   section: string | null;
-  group: FaqGroupKey;
+  /** The old fixed section; empty for a question added since sections became editable. */
+  group: FaqGroupKey | null;
   showOnHomepage: boolean;
   question: string;
   answerSource: "text" | "bookingTerms";
@@ -324,12 +325,24 @@ const idOf = (value: unknown): string | null => {
  * by {@link getBookingTerms}, not cached here, so switching the booking mode
  * changes the FAQ without touching a question.
  */
+/**
+ * Every field the site reads except `section`. Asked for on its own when the
+ * full read fails because the database has no `section` column yet: Coolify
+ * builds (and prerenders /faq) before `start:prod` runs the migration, and
+ * without this the build would print the in-file copy instead of the CMS's
+ * wording. Without a section, every question is filed by its `group`.
+ */
+const FAQ_FIELDS_BEFORE_SECTIONS = { question: true, answerSource: true, answer: true, group: true, showOnHomepage: true, order: true } as const;
+
 const readFaqs = contentReader("faqs", [TAGS.faqs, TAGS.faqSections], async (draft) => {
-  const docs = await findDocs("faqs", draft, { drafts: true, sort: "order", depth: 0 });
+  const options = { drafts: true, sort: "order", depth: 0 } as const;
+  const docs = await findDocs("faqs", draft, options).catch(() =>
+    findDocs("faqs", draft, { ...options, select: FAQ_FIELDS_BEFORE_SECTIONS }),
+  );
   return docs.map(
     (doc): FaqRow => ({
       section: idOf(doc.section),
-      group: doc.group,
+      group: doc.group ?? null,
       showOnHomepage: Boolean(doc.showOnHomepage),
       question: doc.question,
       answerSource: doc.answerSource,
@@ -361,7 +374,11 @@ export async function getFaqGroups(titles: Partial<Record<FaqGroupKey, string>> 
 /** The FAQ sections editors manage (Content → FAQ sections), in page order. */
 const readFaqSections = contentReader("faq-sections", [TAGS.faqSections], async (draft) => {
   const docs = await findDocs("faq-sections", draft, { drafts: false, sort: "order", depth: 0 });
-  return docs.map((doc) => ({ id: String(doc.id), title: doc.title, legacyKey: doc.legacyKey ?? null }));
+  // Equal order numbers (a new section keeps the default 0) fall back to the older first, so the page never reshuffles them.
+  const time = (doc: (typeof docs)[number]) => Date.parse(doc.createdAt);
+  return [...docs]
+    .sort((a, b) => a.order - b.order || time(a) - time(b))
+    .map((doc) => ({ id: String(doc.id), title: doc.title, legacyKey: doc.legacyKey ?? null }));
 });
 
 /**
