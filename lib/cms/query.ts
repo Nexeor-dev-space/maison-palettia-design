@@ -74,6 +74,8 @@ export interface FindOptions {
   sort?: string;
   /** Relationship depth. 1 populates uploads and direct relations; sessions need 2 (session → experience → image). */
   depth?: number;
+  /** Only these fields (Payload `select`): the query then names only their columns. */
+  select?: Record<string, true>;
 }
 
 /**
@@ -83,20 +85,14 @@ export interface FindOptions {
 export async function findDocs<S extends ContentCollection>(
   collection: S,
   draft: boolean,
-  { drafts, where, sort, depth = 1 }: FindOptions,
+  { drafts, where, sort, depth = 1, select }: FindOptions,
 ): Promise<DocOf<S>[]> {
   const payload = await getCms();
   const published: Where | undefined = drafts && !draft ? { _status: { equals: "published" } } : undefined;
   const filter: Where | undefined = where && published ? { and: [where, published] } : (where ?? published);
-  const result = await payload.find({
-    collection,
-    where: filter,
-    sort,
-    depth,
-    pagination: false,
-    draft,
-    overrideAccess: draft,
-  });
+  const args = { collection, where: filter, sort, depth, pagination: false, draft, overrideAccess: draft } as const;
+  // `select` widens Payload's result type past what TypeScript can represent; the docs are cast below either way.
+  const result = select ? await payload.find({ ...args, select } as never) : await payload.find(args);
   return result.docs as DocOf<S>[];
 }
 

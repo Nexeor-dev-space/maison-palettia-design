@@ -26,6 +26,7 @@ export const TAGS = {
   programmes: "collection:programmes",
   policies: "collection:policies",
   faqs: "collection:faqs",
+  faqSections: "collection:faq-sections",
   passes: "collection:passes",
   pages: "collection:pages",
   vibes: "collection:vibes",
@@ -62,7 +63,7 @@ export type CacheTag = (typeof TAGS)[keyof typeof TAGS];
   shape can be read again: the next build and the server after it read
   fresh from the database.
 */
-const CACHE_EPOCH = "2026-11-12-experience-page-photograph";
+const CACHE_EPOCH = "2026-11-18-faq-sections";
 
 /**
  * Wraps a getter so its result is cached under `key` and the given tags.
