@@ -554,6 +554,16 @@ export interface ExperienceCarouselBlock {
    * In the order they should appear.
    */
   experiences?: (string | Experience)[] | null;
+  /**
+   * Optional. Pick an experience and the photograph its card shows in this section. Cards not listed here use the experience's Main photograph.
+   */
+  cardPhotos?:
+    | {
+        experience: string | Experience;
+        photo: string | Media;
+        id?: string | null;
+      }[]
+    | null;
   cardCta?: string | null;
   id?: string | null;
   blockName?: string | null;
@@ -4525,6 +4535,13 @@ export interface ExperienceCarouselBlockSelect<T extends boolean = true> {
   standfirst?: T;
   source?: T;
   experiences?: T;
+  cardPhotos?:
+    | T
+    | {
+        experience?: T;
+        photo?: T;
+        id?: T;
+      };
   cardCta?: T;
   id?: T;
   blockName?: T;
