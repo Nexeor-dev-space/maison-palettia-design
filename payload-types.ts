@@ -824,6 +824,10 @@ export interface TwoWaysBlock {
         title: string;
         line: string;
         /**
+         * Optional. Leave blank to use the main photograph of the first walk-in activity (terracotta card) or the first scheduled one (lilac card).
+         */
+        photo?: (string | null) | Media;
+        /**
          * Short facts under the title. The venue and the next date are added automatically.
          */
         facts?:
@@ -4581,6 +4585,7 @@ export interface TwoWaysBlockSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         line?: T;
+        photo?: T;
         facts?:
           | T
           | {
