@@ -2,7 +2,7 @@ import type { Block } from "payload";
 
 import { cta } from "@/cms/fields";
 
-import { eyebrow, lead, pick, text } from "./shared";
+import { eyebrow, lead, pick, picture, text } from "./shared";
 
 /**
  * `twoWays` → components/sections/home/TwoWaysToCreate.tsx (home). SPEC §E.1.
@@ -10,8 +10,9 @@ import { eyebrow, lead, pick, text } from "./shared";
  * Two "roads" — Create Anytime and Create Together — each with a short set
  * of facts. The current venue's name and the next session's date are derived
  * by the renderer (01 §5.1: "home" was hard-coded), so the facts here are
- * only the typed ones; the plates are the first walk-in and first scheduled
- * experience's photographs.
+ * only the typed ones. Each card's photograph is picked here; left blank, it
+ * is the first walk-in (terracotta) or first scheduled (lilac) experience's
+ * main photograph, which is what the cards showed before the field existed.
  */
 export const TwoWaysBlock: Block = {
   slug: "twoWays",
@@ -35,6 +36,10 @@ export const TwoWaysBlock: Block = {
         { ...text("eyebrow", "Eyebrow", 24, { required: true }), admin: { hidden: true } },
         text("title", "Title", 24, { required: true }),
         text("line", "Line", 80, { required: true }),
+        picture("photo", "Photograph", {
+          description:
+            "Optional. Leave blank to use the main photograph of the first walk-in activity (terracotta card) or the first scheduled one (lilac card).",
+        }),
         {
           name: "facts",
           type: "array",

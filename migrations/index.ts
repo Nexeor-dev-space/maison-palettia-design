@@ -19,6 +19,8 @@ import * as migration_20261105_123048_implement_credit_notes from './20261105_12
 import * as migration_20261108_133808_add_music_object_storage from './20261108_133808_add_music_object_storage';
 import * as migration_20261109_184551_experience_page_photograph from './20261109_184551_experience_page_photograph';
 import * as migration_20261118_074058_faq_sections from './20261118_074058_faq_sections';
+import * as migration_20261119_072156_two_ways_card_photos from './20261119_072156_two_ways_card_photos';
+import * as migration_20261119_072919_experience_carousel_card_photos from './20261119_072919_experience_carousel_card_photos';
 
 export const migrations = [
   {
@@ -124,6 +126,16 @@ export const migrations = [
   {
     up: migration_20261118_074058_faq_sections.up,
     down: migration_20261118_074058_faq_sections.down,
-    name: '20261118_074058_faq_sections'
+    name: '20261118_074058_faq_sections',
+  },
+  {
+    up: migration_20261119_072156_two_ways_card_photos.up,
+    down: migration_20261119_072156_two_ways_card_photos.down,
+    name: '20261119_072156_two_ways_card_photos',
+  },
+  {
+    up: migration_20261119_072919_experience_carousel_card_photos.up,
+    down: migration_20261119_072919_experience_carousel_card_photos.down,
+    name: '20261119_072919_experience_carousel_card_photos'
   },
 ];

@@ -1,11 +1,16 @@
 import type { Block } from "payload";
 
-import { eyebrow, heading, pick, standfirst, text, whenIs } from "./shared";
+import { eyebrow, heading, pick, picture, standfirst, text, whenIs } from "./shared";
 
 /**
  * `experienceCarousel` → components/sections/home/ExperienceDiscovery.tsx +
  * ExperienceCarousel.tsx + components/events/ExperienceCard.tsx (home).
  * SPEC §E.1. Cards print the experience's name, photograph and status.
+ *
+ * A card's photograph is the experience's Main photograph unless this block
+ * lists that experience under "Card photographs", which changes the picture
+ * in this section only: /events, the menus and the experience's own page
+ * keep the Main photograph.
  */
 export const ExperienceCarouselBlock: Block = {
   slug: "experienceCarousel",
@@ -34,6 +39,24 @@ export const ExperienceCarouselBlock: Block = {
       hasMany: true,
       label: "Experiences",
       admin: { condition: whenIs("source", "manual"), description: "In the order they should appear." },
+    },
+    {
+      name: "cardPhotos",
+      type: "array",
+      label: "Card photographs",
+      labels: { singular: "Card photograph", plural: "Card photographs" },
+      admin: {
+        description:
+          "Optional. Pick an experience and the photograph its card shows in this section. Cards not listed here use the experience's Main photograph. A row missing either one is ignored.",
+      },
+      // Both optional on purpose: the foreign keys are ON DELETE set null, so
+      // deleting the photo or experience empties the field. Required fields
+      // would then block every later save of the page with an error buried in
+      // this block. The adapter skips incomplete rows.
+      fields: [
+        { name: "experience", type: "relationship", relationTo: "experiences", label: "Experience" },
+        picture("photo", "Photograph"),
+      ],
     },
     text("cardCta", "Card button text", 24, { defaultValue: "View details" }),
   ],
