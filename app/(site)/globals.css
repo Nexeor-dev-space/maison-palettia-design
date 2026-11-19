@@ -882,6 +882,21 @@
        says so itself.
        ---------------------------------------------------------------------- */
     overflow-x: clip;
+
+    /* ----------------------------------------------------------------------
+       THE SCROLLBAR'S SPACE IS ALWAYS KEPT (#216).
+
+       The homepage intro, the search panel, the booking sheet, the gallery,
+       the mobile menu and the page loader all hold the page still with
+       `overflow: hidden`. Where scrollbars take up width (desktop Windows and
+       Linux), that removed the scrollbar and the page got 15px wider, then
+       15px narrower again when it was released — measured on the homepage at
+       1440: the hero text went 1400 -> 1385px wide as the intro handed over,
+       a 0.04 layout shift in every run. Keeping the gutter reserved means the
+       width never changes. No effect where scrollbars overlay the page
+       (phones, macOS by default).
+       ---------------------------------------------------------------------- */
+    scrollbar-gutter: stable;
   }
 
   body {
