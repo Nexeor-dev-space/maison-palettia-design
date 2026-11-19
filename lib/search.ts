@@ -33,7 +33,14 @@ function readsAsWeekend(query: string): boolean {
 }
 
 /** True for a session that falls on a Saturday or Sunday, studio time. */
-export function isWeekendWorkshop(workshop: Workshop): boolean {
+/*
+  Only the fields search reads (#216), so the header's slim sessions
+  (`HeaderSession`) and full `Workshop`s both fit; `searchWorkshops` hands
+  back whichever it was given.
+*/
+type SearchableWorkshop = Pick<Workshop, "title" | "category" | "excerpt" | "venue" | "startsAt">;
+
+export function isWeekendWorkshop(workshop: Pick<Workshop, "startsAt">): boolean {
   const { weekday } = sessionDateParts(workshop.startsAt);
   return weekday === "Sat" || weekday === "Sun";
 }
@@ -48,7 +55,7 @@ export function isWeekendWorkshop(workshop: Workshop): boolean {
  * think to type. Nothing here is invented for search: every field already
  * ships to the page a visitor would land on.
  */
-function haystack(workshop: Workshop): string {
+function haystack(workshop: SearchableWorkshop): string {
   return [workshop.title, workshop.category, workshop.excerpt, workshop.venue?.name, workshop.venue?.locality]
     .filter(Boolean)
     .join(" ")
@@ -71,7 +78,7 @@ function haystack(workshop: Workshop): string {
  * sessions, so anything cleverer is complexity spent on a scale that will
  * never feel it.
  */
-export function searchWorkshops(workshops: Workshop[], rawQuery: string): Workshop[] {
+export function searchWorkshops<T extends SearchableWorkshop>(workshops: T[], rawQuery: string): T[] {
   const query = rawQuery.trim().toLowerCase();
   if (!query) return [];
 
@@ -167,7 +174,7 @@ export function searchExperiences(
  * never the ones cut, and the first few localities carry whatever is left.
  */
 export function getPopularSearches(
-  workshops: Workshop[],
+  workshops: Pick<Workshop, "category" | "venue" | "startsAt">[],
   experiences: readonly CreativeExperience[] = [],
 ): string[] {
   const categories = [...new Set(workshops.map((workshop) => workshop.category))];

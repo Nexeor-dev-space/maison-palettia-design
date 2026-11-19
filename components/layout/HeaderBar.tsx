@@ -18,7 +18,7 @@ import { useSiteChrome } from "@/components/layout/SiteChrome";
 import { pauseScroller, resumeScroller } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
 import type { CreativeExperience } from "@/lib/experiences";
-import type { Workshop } from "@/types";
+import type { HeaderSession } from "@/types";
 
 /**
  * Shared by the nav links and the menu trigger so the two are one row of type.
@@ -152,7 +152,7 @@ export function HeaderBar({
   workshops,
 }: {
   experiences: CreativeExperience[];
-  workshops: Workshop[];
+  workshops: HeaderSession[];
 }) {
   const pathname = usePathname();
   // Menus and Site details (the hero routes), from the layout — see SiteChrome.

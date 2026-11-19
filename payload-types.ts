@@ -554,6 +554,16 @@ export interface ExperienceCarouselBlock {
    * In the order they should appear.
    */
   experiences?: (string | Experience)[] | null;
+  /**
+   * Optional. Pick an experience and the photograph its card shows in this section. Cards not listed here use the experience's Main photograph. A row missing either one is ignored.
+   */
+  cardPhotos?:
+    | {
+        experience?: (string | null) | Experience;
+        photo?: (string | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
   cardCta?: string | null;
   id?: string | null;
   blockName?: string | null;
@@ -823,6 +833,10 @@ export interface TwoWaysBlock {
         eyebrow: string;
         title: string;
         line: string;
+        /**
+         * Optional. Leave blank to use the main photograph of the first walk-in activity (terracotta card) or the first scheduled one (lilac card).
+         */
+        photo?: (string | null) | Media;
         /**
          * Short facts under the title. The venue and the next date are added automatically.
          */
@@ -4521,6 +4535,13 @@ export interface ExperienceCarouselBlockSelect<T extends boolean = true> {
   standfirst?: T;
   source?: T;
   experiences?: T;
+  cardPhotos?:
+    | T
+    | {
+        experience?: T;
+        photo?: T;
+        id?: T;
+      };
   cardCta?: T;
   id?: T;
   blockName?: T;
@@ -4581,6 +4602,7 @@ export interface TwoWaysBlockSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         line?: T;
+        photo?: T;
         facts?:
           | T
           | {

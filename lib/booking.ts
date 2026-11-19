@@ -207,6 +207,10 @@ export async function getCheckoutCatalogue(): Promise<CheckoutCatalogue> {
         depth: 0,
         pagination: false,
         select: { slug: true },
+        // Read as the public (same rows: the access rule is `_status = published`,
+        // filtered above too). As a system read it made the seat hook look up the
+        // counters of every upcoming session for a slug-only answer (#216).
+        overrideAccess: false,
       }),
       payload.find({
         collection: "passes",

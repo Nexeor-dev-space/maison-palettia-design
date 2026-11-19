@@ -308,6 +308,13 @@ export interface BrandMapProps {
    * Google is pointed at the pin's coordinates.
    */
   mapsHref?: string;
+  /**
+   * Open the connection to the tile host with the page (the default). False
+   * where the map sits far below the fold — the homepage's — so that
+   * connection does not compete with the banner on a phone's first load;
+   * the tile host is still warmed when the map comes within reach (#216).
+   */
+  preconnectTiles?: boolean;
   className?: string;
 }
 
@@ -347,10 +354,20 @@ export function MapClickThrough({ href, label }: { href: string; label: string }
  * move the map; ctrl/⌘ + wheel zooms — so the map cannot trap a visitor
  * scrolling past it.
  */
-export function BrandMap({ lat, lng, name, title, fallbackSrc, interactive = true, mapsHref, className }: BrandMapProps) {
+export function BrandMap({
+  lat,
+  lng,
+  name,
+  title,
+  fallbackSrc,
+  interactive = true,
+  mapsHref,
+  preconnectTiles = true,
+  className,
+}: BrandMapProps) {
   // Open the connection to the tile host with the page, so the first request
   // for a tile does not also pay for DNS and TLS.
-  preconnect(TILE_HOST, { crossOrigin: "anonymous" });
+  if (preconnectTiles) preconnect(TILE_HOST, { crossOrigin: "anonymous" });
   const href = mapsHref ?? `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`;
   const container = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);

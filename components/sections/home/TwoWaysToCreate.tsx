@@ -114,16 +114,18 @@ import type { ImageAsset } from "@/types";
 /*
   WHAT THE CMS SUPPLIES (the `twoWays` block, components/blocks/TwoWays.tsx):
   the eyebrow, the heading, the lead and the two roads — each road's eyebrow,
-  title, line, its own facts and its button. Two facts are never typed: the
-  walk-in road's last chip is where the studio is (the current venue) and the
-  booked road's is the next date with a seat, both worked out below, and each
-  road's photograph is the first activity of its kind. Left out, every prop
-  is the launch wording.
+  title, line, its own facts, its button and its photograph. Two facts are
+  never typed: the walk-in road's last chip is where the studio is (the
+  current venue) and the booked road's is the next date with a seat, both
+  worked out below. A road with no photograph of its own shows the first
+  activity of its kind. Left out, every prop is the launch wording.
 */
 export interface TwoWaysRoad {
   ground: "terracotta" | "lilac";
   title: string;
   line: string;
+  /** The editor's photograph for this card; null (blank) uses the first activity of its kind. */
+  photo?: ImageAsset | null;
   facts: string[];
   action: { label: string; href: string } | null;
 }
@@ -266,7 +268,7 @@ export async function TwoWaysToCreate({
                 ground={road.ground}
                 title={road.title}
                 footnote={warm ? null : labels.bookedOnline}
-                plate={warm ? walkInPlate : scheduledPlate}
+                plate={road.photo ?? (warm ? walkInPlate : scheduledPlate)}
                 line={road.line}
                 facts={[...road.facts, warm ? home : nextDate]}
                 action={road.action ? { ...road.action, tone: warm ? "sage" : "cream" } : null}

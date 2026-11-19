@@ -62,8 +62,9 @@ export default async function PaymentSuccessPage({ searchParams }: { searchParam
   const k = one(params.k);
   const transactionId = one(params.transactionId);
 
-  const gate = await getBookingGate();
-  let order = reference ? await findOrderByReference(reference) : null;
+  // Independent reads, side by side (#216): the gate is cached copy, the order a lookup by reference.
+  const [gate, found] = await Promise.all([getBookingGate(), reference ? findOrderByReference(reference) : null]);
+  let order = found;
   const keyValid = Boolean(order && reference && verifyReturnKey(order.reference, k));
 
   if (order && keyValid && transactionId) {

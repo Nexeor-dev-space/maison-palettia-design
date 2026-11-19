@@ -2,7 +2,7 @@ import { ExperienceDiscovery } from "@/components/sections/home/ExperienceDiscov
 import { getCreativeExperiences, type CreativeExperience } from "@/lib/experiences";
 import type { Experience } from "@/payload-types";
 
-import { doc, lines, stored, text } from "./helpers";
+import { doc, imageOf, lines, stored, text } from "./helpers";
 import type { AdapterProps } from "./types";
 
 /**
@@ -13,19 +13,33 @@ import type { AdapterProps } from "./types";
  * walk-in or only the dated ones, or a hand-picked list in the editor's
  * order. The cards themselves are the site's `CreativeExperience` records
  * from the data layer (lib/experiences.ts), so a card shows exactly what it
- * shows on /events — the block chooses which, never what they say.
+ * shows on /events — the block chooses which, never what they say. The one
+ * exception is the photograph: "Card photographs" can give a card a picture
+ * of its own for this section. An experience listed there whose photo has
+ * been deleted keeps its Main photograph rather than going blank.
  */
 export async function ExperienceCarouselAdapter({ block }: AdapterProps<"experienceCarousel">) {
   const b = stored(block);
   if (!b) return <ExperienceDiscovery />;
 
   const all = await getCreativeExperiences();
+  const photos = new Map<string, NonNullable<ReturnType<typeof imageOf>>>();
+  for (const row of b.cardPhotos ?? []) {
+    const slug = doc(row.experience)?.slug;
+    const photo = imageOf(row.photo);
+    if (slug && photo && !photos.has(slug)) photos.set(slug, photo);
+  }
+  const experiences = choose(all, b.source, b.experiences).map((experience) => {
+    const photo = photos.get(experience.slug);
+    return photo ? { ...experience, image: photo } : experience;
+  });
+
   return (
     <ExperienceDiscovery
       eyebrow={text(b.eyebrow)}
       lines={lines(b.headingLines)}
       standfirst={text(b.standfirst)}
-      experiences={choose(all, b.source, b.experiences)}
+      experiences={experiences}
       cardAction={text(b.cardCta) ?? undefined}
     />
   );

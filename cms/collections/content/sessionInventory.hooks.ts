@@ -114,6 +114,20 @@ const people = (n: number) => (n === 1 ? "1 person holds a ticket" : `${n} peopl
 export const addSeatVirtuals: CollectionAfterReadHook = async ({ doc, overrideAccess, req }) => {
   if (!doc || typeof doc !== "object" || !doc.id) return doc;
 
+  /*
+    NOTHING TO ANSWER, NO QUERY (#216). The counts feed two things only: the
+    availability below, which needs `seatsTotal`, and the staff-only raw
+    counts. A public read whose `select` left out capacity (the checkout
+    catalogue reads every session for its slug alone) can use neither, so it
+    used to pay one lookup per session for a result it then dropped. The
+    output is unchanged; the only thing skipped is the `inventorySeen` hint,
+    which `ensureInventoryRow` treats as optional and replaces with its own
+    lookup.
+  */
+  const role = roleOf(req);
+  const staff = overrideAccess === true || role === "admin" || role === "front-desk";
+  if (!staff && typeof doc.seatsTotal !== "number") return doc;
+
   // Use the join when this read already populated it (staff, depth ≥ 1); otherwise one indexed lookup.
   const joined = (doc.inventory as { docs?: unknown[] } | undefined)?.docs?.[0];
   let counts: SeatCounts;
@@ -131,8 +145,7 @@ export const addSeatVirtuals: CollectionAfterReadHook = async ({ doc, overrideAc
     doc.isFullyBooked = available === 0;
   }
 
-  const role = roleOf(req);
-  if (overrideAccess === true || role === "admin" || role === "front-desk") {
+  if (staff) {
     doc.seatsSold = counts.seatsSold;
     doc.seatsHeld = counts.seatsHeld;
   }

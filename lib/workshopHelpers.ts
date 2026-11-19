@@ -1,4 +1,4 @@
-import type { Price, Venue, Workshop } from "@/types";
+import type { HeaderSession, Price, Venue, Workshop } from "@/types";
 
 /**
  * The helpers that render a workshop — dates, times, prices, seats, links.
@@ -38,7 +38,40 @@ const LOW_SEAT_THRESHOLD = 4;
  * public — routes, headings, buttons, metadata — says event. /workshops still
  * resolves, via a permanent redirect in next.config.ts.
  */
-export function workshopHref(workshop: Workshop): string {
+/*
+  The seat helpers and the link take only the fields they read (#216), so the
+  header's slim sessions (`HeaderSession`) and full `Workshop`s both fit.
+*/
+type SeatState = Pick<Workshop, "status" | "seatsAvailable">;
+
+/**
+ * A session cut down to what the site header reads (#216; see
+ * `HeaderSession` in types/index.ts). <Header> hands its list to the client
+ * bar on every page, so the gallery, price, format, vibes and the rest stay
+ * on the server. Optional fields are copied only when present, so the header
+ * sees the same values as before.
+ */
+export function toHeaderSession(workshop: Workshop): HeaderSession {
+  const { image } = workshop;
+  return {
+    slug: workshop.slug,
+    title: workshop.title,
+    category: workshop.category,
+    excerpt: workshop.excerpt,
+    startsAt: workshop.startsAt,
+    durationMinutes: workshop.durationMinutes,
+    ...(workshop.venue ? { venue: workshop.venue } : {}),
+    status: workshop.status,
+    seatsAvailable: workshop.seatsAvailable,
+    image: {
+      src: image.src,
+      ...(image.position !== undefined ? { position: image.position } : {}),
+      ...(image.blur !== undefined ? { blur: image.blur } : {}),
+    },
+  };
+}
+
+export function workshopHref(workshop: Pick<Workshop, "slug">): string {
   return `/events/${workshop.slug}`;
 }
 
@@ -47,7 +80,7 @@ export function workshopHref(workshop: Workshop): string {
  * while seats remain, and a seat count can reach zero before anyone updates
  * the status.
  */
-export function isFullyBooked(workshop: Workshop): boolean {
+export function isFullyBooked(workshop: SeatState): boolean {
   return workshop.status === "fully-booked" || workshop.seatsAvailable <= 0;
 }
 
@@ -265,7 +298,7 @@ export function formatVenueLine(venue: Venue): string {
  * Every number here comes from `seatsAvailable`, which the data has always
  * carried. Nothing is estimated and nothing is invented.
  */
-export function spotsLabel(workshop: Workshop): string {
+export function spotsLabel(workshop: SeatState): string {
   if (isFullyBooked(workshop)) return "Fully booked";
   if (workshop.status === "waitlist") return "Waitlist only";
   const spots = workshop.seatsAvailable;
@@ -274,7 +307,7 @@ export function spotsLabel(workshop: Workshop): string {
 }
 
 /** True when the session is nearly gone — the one case that takes the accent. */
-export function isScarce(workshop: Workshop): boolean {
+export function isScarce(workshop: SeatState): boolean {
   return (
     !isFullyBooked(workshop) &&
     workshop.status === "open" &&
