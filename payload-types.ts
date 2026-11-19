@@ -555,12 +555,12 @@ export interface ExperienceCarouselBlock {
    */
   experiences?: (string | Experience)[] | null;
   /**
-   * Optional. Pick an experience and the photograph its card shows in this section. Cards not listed here use the experience's Main photograph.
+   * Optional. Pick an experience and the photograph its card shows in this section. Cards not listed here use the experience's Main photograph. A row missing either one is ignored.
    */
   cardPhotos?:
     | {
-        experience: string | Experience;
-        photo: string | Media;
+        experience?: (string | null) | Experience;
+        photo?: (string | null) | Media;
         id?: string | null;
       }[]
     | null;

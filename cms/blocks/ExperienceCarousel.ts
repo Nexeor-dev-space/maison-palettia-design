@@ -47,11 +47,15 @@ export const ExperienceCarouselBlock: Block = {
       labels: { singular: "Card photograph", plural: "Card photographs" },
       admin: {
         description:
-          "Optional. Pick an experience and the photograph its card shows in this section. Cards not listed here use the experience's Main photograph.",
+          "Optional. Pick an experience and the photograph its card shows in this section. Cards not listed here use the experience's Main photograph. A row missing either one is ignored.",
       },
+      // Both optional on purpose: the foreign keys are ON DELETE set null, so
+      // deleting the photo or experience empties the field. Required fields
+      // would then block every later save of the page with an error buried in
+      // this block. The adapter skips incomplete rows.
       fields: [
-        { name: "experience", type: "relationship", relationTo: "experiences", required: true, label: "Experience" },
-        picture("photo", "Photograph", { required: true }),
+        { name: "experience", type: "relationship", relationTo: "experiences", label: "Experience" },
+        picture("photo", "Photograph"),
       ],
     },
     text("cardCta", "Card button text", 24, { defaultValue: "View details" }),
