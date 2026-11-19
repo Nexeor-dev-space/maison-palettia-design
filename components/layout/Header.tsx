@@ -1,5 +1,6 @@
 import { HeaderBar } from "@/components/layout/HeaderBar";
 import { getCreativeExperiences } from "@/lib/experiences";
+import { toHeaderSession } from "@/lib/workshopHelpers";
 import { getAllWorkshops } from "@/lib/workshops";
 
 /**
@@ -25,5 +26,5 @@ export async function Header() {
   */
   const [experiences, workshops] = await Promise.all([getCreativeExperiences(), getAllWorkshops()]);
 
-  return <HeaderBar experiences={experiences} workshops={workshops} />;
+  return <HeaderBar experiences={experiences} workshops={workshops.map(toHeaderSession)} />;
 }

@@ -4,13 +4,22 @@ import { useModeCopy } from "@/components/layout/SiteChrome";
 import { useId, useState } from "react";
 
 import { SessionGate } from "@/components/booking/SessionClock";
-import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/components/layout/MenuCard";
+import {
+  MENU_PREVIEW_IMAGE_SIZES,
+  MENU_ROW_IMAGE_SIZES,
+  MenuCard,
+  MenuDoor,
+  MenuPreview,
+  MenuRailGroup,
+  MenuRailRow,
+} from "@/components/layout/MenuCard";
+import { useWarmImages } from "@/components/layout/useWarmImages";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { cn } from "@/lib/utils";
 import { formatWorkshopDate, isScarce, spotsLabel } from "@/lib/workshopHelpers";
 import type { CreativeExperience } from "@/lib/experiences";
-import type { Workshop } from "@/types";
+import type { HeaderSession } from "@/types";
 
 interface WorkshopsMenuProps {
   label: string;
@@ -38,7 +47,7 @@ interface WorkshopsMenuProps {
    * Once a date has begun (the visitor's clock, through <SessionGate>) its row
    * says "Date passed" and its seat count goes, as the listing's card does.
    */
-  sessions: Workshop[];
+  sessions: HeaderSession[];
   isActive: boolean;
   linkClassName: string;
   /** The swatch behind the trigger word. Null over a dark hero. */
@@ -153,6 +162,21 @@ export function WorkshopsMenu({
   */
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const active = ordered.find((item) => item.slug === activeSlug) ?? ordered[0];
+
+  /*
+    THE FIRST OPEN WAS BLURRY: the panel's pictures only start downloading
+    when it first mounts. What that first open shows — every row's thumbnail
+    and the first preview — is fetched at idle instead; the other previews,
+    once the menu has been opened, before a row is hovered. See useWarmImages.
+  */
+  const pictureOf = (experience: CreativeExperience) => (experience.pageImage ?? experience.image)?.src;
+  const firstOpen = [
+    ...ordered.map((experience) => ({ src: pictureOf(experience), sizes: MENU_ROW_IMAGE_SIZES })),
+    { src: ordered[0] ? pictureOf(ordered[0]) : undefined, sizes: MENU_PREVIEW_IMAGE_SIZES },
+  ];
+  useWarmImages(firstOpen, firstOpen.map((image) => image.src ?? "").join("|"));
+  const previews = ordered.map((experience) => ({ src: pictureOf(experience), sizes: MENU_PREVIEW_IMAGE_SIZES }));
+  useWarmImages(previews, mounted ? previews.map((image) => image.src ?? "").join("|") : "");
 
   const sessionFor = (slug: string) => sessions.find((session) => session.slug === slug);
   const activeSession = active ? sessionFor(active.slug) : undefined;

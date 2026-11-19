@@ -223,15 +223,27 @@ export function AutoReveal() {
       for (const el of held.keys()) io.observe(el);
     };
 
-    // Two frames: the new page is laid out and painted before anything is measured.
+    /*
+      After a frame, so the new page is laid out and painted before anything
+      is measured; then AT IDLE (#216). The sweep reads every candidate in
+      <main> in one task — hundreds on the homepage — and in the second
+      frame that task landed in the middle of hydration and the intro. It
+      only ever hides what is below the fold, and it re-reads the fold when
+      it runs, so starting it later shows nothing differently; the timeout
+      keeps a busy page from waiting on it indefinitely. Safari has no
+      `requestIdleCallback`, so there it keeps the second frame.
+    */
     let second = 0;
+    let idle = 0;
     const first = requestAnimationFrame(() => {
-      second = requestAnimationFrame(start);
+      if (typeof window.requestIdleCallback === "function") idle = window.requestIdleCallback(start, { timeout: 1000 });
+      else second = requestAnimationFrame(start);
     });
 
     return () => {
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
+      if (idle) window.cancelIdleCallback(idle);
       io?.disconnect();
       // Leaving a page, or a development remount: everything shows, as it was.
       for (const el of [...held.keys()]) release(el);

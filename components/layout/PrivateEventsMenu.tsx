@@ -2,7 +2,16 @@
 
 import { useId, useState } from "react";
 
-import { MenuCard, MenuDoor, MenuPreview, MenuRailGroup, MenuRailRow } from "@/components/layout/MenuCard";
+import {
+  MENU_PREVIEW_IMAGE_SIZES,
+  MENU_ROW_IMAGE_SIZES,
+  MenuCard,
+  MenuDoor,
+  MenuPreview,
+  MenuRailGroup,
+  MenuRailRow,
+} from "@/components/layout/MenuCard";
+import { useWarmImages } from "@/components/layout/useWarmImages";
 import { NavLabel } from "@/components/layout/NavLabel";
 import { useMenuDisclosure } from "@/components/layout/useMenuDisclosure";
 import { PRIVATE_EVENT_ENQUIRY_HREF } from "@/lib/privateEvents";
@@ -72,6 +81,17 @@ export function PrivateEventsMenu({
 
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const active = items.find((item) => item.slug === activeSlug) ?? items[0];
+
+  /* The first open's pictures at idle, the other previews once it has been
+     opened — the same as the Experiences menu; see useWarmImages. */
+  const pictureOf = (audience: (typeof items)[number]) => (audience.pageImage ?? audience.image)?.src;
+  const firstOpen = [
+    ...items.map((audience) => ({ src: pictureOf(audience), sizes: MENU_ROW_IMAGE_SIZES })),
+    { src: items[0] ? pictureOf(items[0]) : undefined, sizes: MENU_PREVIEW_IMAGE_SIZES },
+  ];
+  useWarmImages(firstOpen, firstOpen.map((image) => image.src ?? "").join("|"));
+  const previews = items.map((audience) => ({ src: pictureOf(audience), sizes: MENU_PREVIEW_IMAGE_SIZES }));
+  useWarmImages(previews, mounted ? previews.map((image) => image.src ?? "").join("|") : "");
 
   return (
     <div {...regionProps} className="static flex h-full items-center">

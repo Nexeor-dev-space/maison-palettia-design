@@ -10,6 +10,12 @@ import { DoodleMark } from "@/components/ui/DoodleMark";
 import { cn } from "@/lib/utils";
 import type { ImageAsset } from "@/types";
 
+/* The `sizes` of a rail row's thumbnail and of the preview's photograph.
+   Shared with useWarmImages, which fetches the same files before the first
+   open — a different `sizes` there would warm a file this never asks for. */
+export const MENU_ROW_IMAGE_SIZES = "44px";
+export const MENU_PREVIEW_IMAGE_SIZES = "(min-width: 1024px) 30vw, 90vw";
+
 /**
  * ==========================================================================
  * THE SHAPE EVERY MENU THAT DROPS OUT OF THE BAR NOW TAKES
@@ -248,7 +254,7 @@ export function MenuRailRow({
               blur={image.blur}
               alt=""
               fill
-              sizes="44px"
+              sizes={MENU_ROW_IMAGE_SIZES}
               style={{ objectPosition: image.position ?? "50% 50%" }}
               className="object-cover"
             />
@@ -363,7 +369,7 @@ export function MenuPreview({
             alt={image.alt}
             fill
             /* The preview is four of twelve columns now, not five. */
-            sizes="(min-width: 1024px) 30vw, 90vw"
+            sizes={MENU_PREVIEW_IMAGE_SIZES}
             style={{ objectPosition: image.position ?? "50% 50%" }}
             className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.04]"
           />
