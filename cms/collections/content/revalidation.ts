@@ -107,6 +107,8 @@ export const CONTENT_REVALIDATION = {
     layout: true, // the footer's legal row lists policies
   },
   faqs: { tags: [TAGS.faqs], paths: () => ["/faq", "/"] },
+  // Questions are read under both tags: an older question is filed by its section's legacy key.
+  "faq-sections": { tags: [TAGS.faqSections, TAGS.faqs], paths: () => ["/faq", "/"] },
   passes: { tags: [TAGS.passes], paths: () => ["/loyalty", "/checkout"] },
   testimonials: { tags: [TAGS.testimonials], paths: () => ["/", "/events"] },
   vibes: { tags: [TAGS.vibes], paths: () => ["/events", "/"] },

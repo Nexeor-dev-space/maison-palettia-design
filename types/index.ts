@@ -254,6 +254,23 @@ export interface Workshop {
 }
 
 /**
+ * A session as the site header carries it (#216) — the header's menus and
+ * search panel are on every page, so the full {@link Workshop} list was in
+ * every page's payload, gallery and all. This is exactly what
+ * <HeaderBar>, <SearchPanel> and <WorkshopsMenu> read: the link, the words
+ * search matches on (`excerpt` is matched, never shown), the date and seat
+ * label, and the result thumbnail (`alt` is not read: the thumbnail is
+ * decorative). A field a header component starts reading must be added here,
+ * and in `toHeaderSession` (lib/workshopHelpers.ts), or it fails to type.
+ */
+export type HeaderSession = Pick<
+  Workshop,
+  "slug" | "title" | "category" | "excerpt" | "startsAt" | "durationMinutes" | "venue" | "status" | "seatsAvailable"
+> & {
+  image: Pick<ImageAsset, "src" | "position" | "blur">;
+};
+
+/**
  * One creative strand — a way of making, rather than a scheduled session.
  *
  * Disciplines are the doors into the programme; a {@link Workshop} is one date

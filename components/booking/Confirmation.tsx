@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { BookingSummaryCard, type StatusCopy } from "@/components/booking/BookingSummaryCard";
-import { displayStatus, parseOrderView, type DisplayStatus, type OrderView } from "@/components/booking/orderView";
+import { displayStatus, pollAction, statusPollUrl, type DisplayStatus, type OrderView } from "@/components/booking/orderView";
 import { Reveal } from "@/components/motion/Reveal";
 import { BlobButton } from "@/components/ui/BlobButton";
 import { completeBooking, pendingPaymentReference } from "@/lib/cart";
@@ -28,7 +28,7 @@ const LINK_LINE =
  * payment id — applies that payment before rendering, so most customers
  * land straight on "Confirmed". This component is what happens when the
  * payment is still being confirmed: it asks
- * `GET /api/site/orders/{ref}/status?k=` every 3 seconds for up to 3 minutes,
+ * `GET /api/site/orders/{ref}/status` (state only, no `k`) every 3 seconds for up to 3 minutes,
  * and when the state moves it re-renders the page on the server
  * (`router.refresh`), which is where the lines, tickets and invoice are read.
  * If the status route cannot answer, the refresh itself is the poll.
@@ -45,7 +45,6 @@ const LINK_LINE =
  */
 export function Confirmation({
   reference,
-  k,
   view,
   keyValid,
   statusCopy,
@@ -53,6 +52,7 @@ export function Confirmation({
   terms,
 }: {
   reference: string | null;
+  /** The return key. No longer sent by the status poll (#216, `pollAction`); kept so the page's props are unchanged. */
   k: string | null;
   /** The server's reading of the order, or null when there is no such reference. */
   view: OrderView | null;
@@ -64,7 +64,7 @@ export function Confirmation({
   terms: string;
 }) {
   const status = view ? displayStatus(view.status, view.isRescheduled) : null;
-  const polling = usePollWhileProcessing(reference, k, view?.status ?? null, status === "processing");
+  const polling = usePollWhileProcessing(reference, view?.status ?? null, status === "processing");
 
   // Paid for (captured counts — `confirming` is only the tickets being issued):
   // forget the basket this order was made from.
@@ -151,7 +151,6 @@ const HEADINGS: Record<DisplayStatus, string> = {
  */
 function usePollWhileProcessing(
   reference: string | null,
-  k: string | null,
   shown: OrderView["status"] | null,
   active: boolean,
 ): "idle" | "polling" | "gave_up" {
@@ -177,15 +176,11 @@ function usePollWhileProcessing(
       }
       if (document.visibilityState !== "visible") return;
       try {
-        const query = k ? `?k=${encodeURIComponent(k)}` : "";
-        const response = await fetch(`/api/site/orders/${encodeURIComponent(reference)}/status${query}`, { cache: "no-store" });
-        if (!response.ok) {
-          // The status route is not answering: the server render is the poll.
-          router.refresh();
-          return;
-        }
-        const next = parseOrderView(await response.json());
-        if (next && next.status !== shownRef.current) router.refresh();
+        // Without `k`: the poll only compares the state (see `pollAction`).
+        const response = await fetch(statusPollUrl(reference), { cache: "no-store" });
+        const body = response.ok ? await response.json() : null;
+        // A non-OK reply other than 429 refreshes, as before: the server render is then the poll.
+        if (pollAction(response, body, reference, shownRef.current) === "refresh") router.refresh();
       } catch {
         // Offline for a moment; the next tick tries again.
       }
@@ -196,7 +191,7 @@ function usePollWhileProcessing(
       stopped = true;
       window.clearInterval(timer);
     };
-  }, [active, reference, k, router]);
+  }, [active, reference, router]);
 
   return active ? phase : "idle";
 }

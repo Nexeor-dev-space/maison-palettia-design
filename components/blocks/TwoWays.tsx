@@ -1,6 +1,6 @@
 import { TwoWaysToCreate, type TwoWaysRoad } from "@/components/sections/home/TwoWaysToCreate";
 
-import { cta, stored, text } from "./helpers";
+import { cta, imageOf, stored, text } from "./helpers";
 import type { AdapterProps } from "./types";
 
 /**
@@ -8,9 +8,10 @@ import type { AdapterProps } from "./types";
  *
  * The two roads in the editor's order. Each road's `ground` says which it
  * is — terracotta the walk-in road, lilac the booked one — and that decides
- * the photograph and the one fact the component works out for itself (where
- * the studio is / the next date with a seat), so the block holds only the
- * words a person writes.
+ * the one fact the component works out for itself (where the studio is / the
+ * next date with a seat). The photograph is the card's own upload; a blank
+ * one is `null` here, and the component then uses the first activity of that
+ * road's kind, as it always did.
  */
 export function TwoWaysAdapter({ block }: AdapterProps<"twoWays">) {
   const b = stored(block);
@@ -20,6 +21,7 @@ export function TwoWaysAdapter({ block }: AdapterProps<"twoWays">) {
     ground: road.ground,
     title: road.title,
     line: road.line,
+    photo: imageOf(road.photo),
     facts: (road.facts ?? []).map((fact) => fact.text).filter(Boolean),
     action: cta(road.cta),
   }));

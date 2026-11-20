@@ -10,6 +10,14 @@ interface WorkshopPhotoProps {
   /** Rendered width at each breakpoint, so the browser fetches one size only. */
   sizes: string;
   className?: string;
+  /**
+   * Set only where this photograph opens the page (the event page's first
+   * screen), where it is the Largest Contentful Paint: fetched eagerly at
+   * high priority instead of waiting for lazy loading to notice it. Next 16
+   * deprecates `priority`; its docs recommend `loading="eager"` plus
+   * `fetchPriority="high"` instead of a `preload` link.
+   */
+  eager?: boolean;
 }
 
 /**
@@ -40,7 +48,7 @@ interface WorkshopPhotoProps {
  * unaffected, so the section keeps the page's motion language where failure
  * would only cost a flourish.
  */
-export function WorkshopPhoto({ image, aspect, sizes, className }: WorkshopPhotoProps) {
+export function WorkshopPhoto({ image, aspect, sizes, className, eager = false }: WorkshopPhotoProps) {
   return (
     <div className={cn("relative w-full overflow-hidden rounded-sm bg-surface-alt", aspect, className)}>
       <Image
@@ -49,6 +57,7 @@ export function WorkshopPhoto({ image, aspect, sizes, className }: WorkshopPhoto
         alt={image.alt}
         fill
         sizes={sizes}
+        {...(eager ? { loading: "eager" as const, fetchPriority: "high" as const } : {})}
         style={{ objectPosition: image.position ?? "50% 50%" }}
         className="object-cover transition-transform duration-[1200ms] ease-editorial motion-safe:group-hover:scale-[1.035] motion-safe:group-focus-within:scale-[1.035]"
       />

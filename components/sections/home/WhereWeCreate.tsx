@@ -330,6 +330,7 @@ export async function WhereWeCreate({
                       fallbackSrc={embedSrc(home)}
                       interactive={false}
                       mapsHref={home.locationHref}
+                      preconnectTiles={false}
                     />
                   ) : (
                     <iframe

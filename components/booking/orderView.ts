@@ -248,6 +248,43 @@ function flatDetail(order: Bag): Bag {
   };
 }
 
+/**
+ * The confirmation page's status poll (<Confirmation>, SPEC §H.5).
+ *
+ * ASKS WITHOUT `k` (#216). The poll only compares the state, and the status
+ * route answers a caller without `k` with exactly that — `{ status,
+ * holdExpiresAt }` from the same `minimalStatus` the full view is built on —
+ * instead of reading tickets, invoice and payment every 3 seconds. The full
+ * view is still read by the server render the poll triggers.
+ */
+export function statusPollUrl(reference: string): string {
+  return `/api/site/orders/${encodeURIComponent(reference)}/status`;
+}
+
+/**
+ * What one poll tick does with the status route's reply:
+ *
+ *   "wait"     rate limited (429) — the next tick asks again. Refreshing here
+ *              would re-render the whole page every 3 s while the limiter
+ *              is refusing, the opposite of backing off.
+ *   "refresh"  any other non-OK reply (the server render is then the poll,
+ *              as before), or the state moved from the one on screen.
+ *   "none"     the state is unchanged, or the reply could not be read.
+ *
+ * `reference` is passed to the parser because the minimal reply has none.
+ */
+export function pollAction(
+  response: { ok: boolean; status: number },
+  body: unknown,
+  reference: string,
+  shown: OrderStatus | null,
+): "wait" | "refresh" | "none" {
+  if (response.status === 429) return "wait";
+  if (!response.ok) return "refresh";
+  const next = parseOrderView(body, reference);
+  return next && next.status !== shown ? "refresh" : "none";
+}
+
 /** "AED 320.00" from fils — the house format of the emails and invoices. */
 export function formatFils(fils: number, currency = "AED"): string {
   const amount = new Intl.NumberFormat("en-AE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(fils / 100);
