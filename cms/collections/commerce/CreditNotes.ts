@@ -129,8 +129,42 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
     }
   }
 
+  // After auto-expiry, so a lapsed note becomes Expired rather than being refused.
+  const mismatch = statusBalanceMismatch(data, originalDoc, operation);
+  if (mismatch) throw new APIError(mismatch, 400);
+
   return data;
 };
+
+/**
+ * The status an admin picks must agree with the balance (#214 QA: a spent note
+ * set back to "Available" by hand showed as usable but had nothing left).
+ * Checked only on create or when the status changes, so unrelated edits to an
+ * older row still save. Expired is always allowed (it withdraws a note). The
+ * checkout's atomic SQL bypasses hooks and keeps status and balance in step.
+ */
+function statusBalanceMismatch(
+  data: Record<string, unknown>,
+  originalDoc: Record<string, unknown> | undefined,
+  operation: string,
+): string | null {
+  const status = (data.status ?? originalDoc?.status) as string | undefined;
+  if (!status || status === "expired") return null;
+  if (operation === "update" && status === originalDoc?.status) return null;
+
+  const amountFils = Number(data.amountFils ?? originalDoc?.amountFils);
+  if (!Number.isFinite(amountFils) || amountFils <= 0) return null;
+  const redeemedFils = Math.max(0, Math.round(Number(data.redeemedAmountFils ?? originalDoc?.redeemedAmountFils ?? 0)) || 0);
+  const balanceFils = Math.max(0, Math.round(amountFils) - redeemedFils);
+
+  if ((status === "available" || status === "partially_redeemed") && balanceFils <= 0) {
+    return `This credit note has no balance left (${formatAed(redeemedFils)} of ${formatAed(amountFils)} already used), so it cannot be Available or Partially Redeemed. Keep it Fully Redeemed, or set it to Expired.`;
+  }
+  if (status === "redeemed" && balanceFils > 0) {
+    return `This credit note still has ${formatAed(balanceFils)} left, so it cannot be Fully Redeemed. Keep it Available or Partially Redeemed, or set it to Expired to withdraw it.`;
+  }
+  return null;
+}
 
 export const creditNoteAfterChange: CollectionAfterChangeHook = async ({ doc, operation, req }) => {
   if (operation === "create" && doc.order) {

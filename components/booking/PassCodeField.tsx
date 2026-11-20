@@ -12,6 +12,8 @@ export type CodeOutcome =
   | { status: "unavailable" }
   | { status: "rate_limited" }
   | { status: "too_many" }
+  | { status: "invalid_email" }
+  | { status: "bad_request" }
   | { status: "error" };
 
 /**
@@ -160,7 +162,8 @@ export function PassCodeField({
   );
 }
 
-function messageFor(outcome: CodeOutcome): string {
+/** Exported for tests: the generic line is kept for 5xx and network failures only. */
+export function messageFor(outcome: CodeOutcome): string {
   switch (outcome.status) {
     case "applied":
       return outcome.message ?? "Code applied. Your total below has been updated.";
@@ -172,6 +175,10 @@ function messageFor(outcome: CodeOutcome): string {
       return "Several codes have been tried from this connection. Please wait a minute and try again.";
     case "too_many":
       return "Up to three codes can be used on one booking.";
+    case "invalid_email":
+      return "Check the email address in your details; credit notes are matched to it.";
+    case "bad_request":
+      return "That code could not be checked against this booking. Refresh the page and try again; your total is unchanged.";
     default:
       return "We could not check that code just now. Your total is unchanged; please try again.";
   }
@@ -186,4 +193,5 @@ const REJECTED: Record<RejectedCodeReason, string> = {
   not_applicable: "That code does not apply to anything in this booking.",
   one_promo_only: "Only one promo code can be used per booking.",
   wrong_customer: "This credit note is linked to a different email address.",
+  email_required: "Enter the email address the credit note was issued to in your details, then apply the code.",
 };

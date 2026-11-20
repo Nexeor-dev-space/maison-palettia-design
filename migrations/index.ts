@@ -23,6 +23,7 @@ import * as migration_20261113_142955_credit_note_balance_backfill from './20261
 import * as migration_20261118_074058_faq_sections from './20261118_074058_faq_sections';
 import * as migration_20261119_072156_two_ways_card_photos from './20261119_072156_two_ways_card_photos';
 import * as migration_20261119_072919_experience_carousel_card_photos from './20261119_072919_experience_carousel_card_photos';
+import * as migration_20261120_113005_credit_note_status_reconcile from './20261120_113005_credit_note_status_reconcile';
 
 export const migrations = [
   {
@@ -149,5 +150,10 @@ export const migrations = [
     up: migration_20261119_072919_experience_carousel_card_photos.up,
     down: migration_20261119_072919_experience_carousel_card_photos.down,
     name: '20261119_072919_experience_carousel_card_photos',
+  },
+  {
+    up: migration_20261120_113005_credit_note_status_reconcile.up,
+    down: migration_20261120_113005_credit_note_status_reconcile.down,
+    name: '20261120_113005_credit_note_status_reconcile',
   },
 ];
