@@ -30,6 +30,7 @@ import {
   type BookingDetails,
   type QuoteView,
 } from "@/lib/cart";
+import { isValidEmail } from "@/lib/fieldValidation";
 import { cn, formatMoney } from "@/lib/utils";
 import type { Workshop } from "@/types";
 
@@ -320,21 +321,30 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
   /* -- codes ----------------------------------------------------------- */
 
   // The email the server checks pass credits against: what is in the field now.
-  const currentEmail = () =>
-    formRef.current?.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || values.email.trim() || undefined;
+  const typedEmail = () =>
+    formRef.current?.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || values.email.trim() || "";
+  // Sent only when it would pass the server's check (as in Checkout.tsx).
+  const currentEmail = () => {
+    const email = typedEmail();
+    return email && isValidEmail(email) ? email : undefined;
+  };
 
   async function priceWith(nextCodes: string[]): Promise<CodeOutcome> {
     if (!sessionId) return { status: "error" };
+    const email = currentEmail();
     const result = await requestQuote({
       lines: [{ kind: "session", id: sessionId, qty: quantity }],
       codes: nextCodes,
-      email: currentEmail(),
+      email,
     });
     if (result.status !== "ok") return result;
     const targetCode = nextCodes[nextCodes.length - 1]?.trim().toUpperCase();
     const rejected = targetCode
       ? result.quote.rejectedCodes.find((entry) => entry.code.trim().toUpperCase() === targetCode)
       : undefined;
+    if (rejected?.reason === "wrong_customer" && !email) {
+      return typedEmail() ? { status: "invalid_email" } : { status: "rejected", reason: "email_required" };
+    }
     if (rejected) return { status: "rejected", reason: rejected.reason };
     setQuote({ quantity, view: result.quote });
     return { status: "applied" };

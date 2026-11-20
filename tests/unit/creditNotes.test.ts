@@ -1,4 +1,4 @@
-import type { CollectionBeforeValidateHook } from "payload";
+import type { CollectionBeforeValidateHook, PayloadRequest } from "payload";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -8,7 +8,22 @@ import {
   normaliseCreditNoteCode,
   prepareCreditNote,
 } from "../../cms/collections/commerce/CreditNotes";
-import { priceBasket, type PricingLine, type PromoRule } from "../../cms/lib/pricing";
+import {
+  creditNoteBalanceFils,
+  priceBasket,
+  quote,
+  reserveCreditNoteSql,
+  restoreCreditNoteSql,
+  type PricingLine,
+  type PromoRule,
+} from "../../cms/lib/pricing";
+
+/** Flattens a drizzle `sql` template into its static text (parameters dropped). */
+const sqlText = (q: { queryChunks: unknown[] }): string =>
+  q.queryChunks
+    .map((c) => (c && typeof c === "object" && "value" in (c as object) ? ((c as { value: unknown }).value as string[]).join("") : ""))
+    .join("")
+    .replace(/\s+/g, " ");
 
 describe("Credit Note System (FEAT #183)", () => {
   const sessionLine = (over: Partial<PricingLine> = {}): PricingLine => ({
@@ -317,15 +332,46 @@ describe("Credit Note System (FEAT #183)", () => {
       expect(result.totals.netFils).toBe(0);
       expect(result.totals.vatFils).toBe(0);
 
-      // Verify redemption payload and that remaining balance (AED 40) is not carried forward:
-      const redeemedPayload = {
-        status: "redeemed",
-        redeemedInOrder: "order-new-777",
-        redeemedAt: new Date().toISOString(),
-        redeemedAmountFils: result.promo?.discountFils, // 24_000 fils
-      };
-      expect(redeemedPayload.status).toBe("redeemed"); // closed, not reusable
-      expect(redeemedPayload.redeemedAmountFils).toBe(24_000);
+      // The remaining AED 40 stays on the note as its balance.
+      const afterFirst = { amountFils: 28_000, redeemedAmountFils: result.promo?.discountFils ?? 0 };
+      expect(creditNoteBalanceFils(afterFirst)).toBe(4_000);
+
+      // The next booking is offered the balance, not the original amount.
+      const second = priceBasket([sessionLine({ unitFils: 24_000, qty: 1 })], {
+        ...basePriceOptions,
+        promo: createCreditNotePromo({ code: "CN-280", value: creditNoteBalanceFils(afterFirst) }),
+      });
+      expect(second.promo?.discountFils).toBe(4_000);
+      expect(second.totals.grossFils).toBe(20_000);
+      expect(creditNoteBalanceFils({ amountFils: 28_000, redeemedAmountFils: 28_000 })).toBe(0);
+    });
+
+    it("computes the balance defensively (never negative, missing redeemed amount = untouched note)", () => {
+      expect(creditNoteBalanceFils({ amountFils: 28_000, redeemedAmountFils: null })).toBe(28_000);
+      expect(creditNoteBalanceFils({ amountFils: 28_000, redeemedAmountFils: 30_000 })).toBe(0);
+    });
+
+    it("reserves by amount and only while enough balance is left", () => {
+      const text = sqlText(reserveCreditNoteSql("cn-1", 24_000));
+      expect(text).toContain("redeemed_amount_fils = coalesce(redeemed_amount_fils, 0) +");
+      expect(text).toContain("status IN ('available', 'partially_redeemed')");
+      expect(text).toContain("amount_fils - coalesce(redeemed_amount_fils, 0) >=");
+      expect(text).toContain("'partially_redeemed'::enum_credit_notes_status");
+      expect(text).toContain("expires_at > now()");
+    });
+
+    it("restores by amount and keeps an expired note expired", () => {
+      const text = sqlText(restoreCreditNoteSql("cn-1", 24_000, "order-1"));
+      expect(text).toContain("WHEN status = 'expired' THEN status");
+      expect(text).toContain("coalesce(redeemed_amount_fils, 0) -");
+      expect(text).not.toContain("SET status = 'available', redeemed_in_order_id = NULL");
+    });
+
+    it("shows the remaining balance as a read-only virtual field", () => {
+      const field = CreditNotes.fields.find((f: any) => f.name === "balanceFils") as any;
+      expect(field.virtual).toBe(true);
+      expect(field.admin.readOnly).toBe(true);
+      expect(field.hooks.afterRead[0]({ siblingData: { amountFils: 28_000, redeemedAmountFils: 24_000 } })).toBe(4_000);
     });
 
     it("verifies multi-slot booking credit note splitting across slots", () => {
@@ -384,15 +430,161 @@ describe("Credit Note System (FEAT #183)", () => {
       expect(isExpired).toBe(false);
     });
 
-    it("verifies redemption status: prevents reuse of redeemed credit note", () => {
-      const statuses = ["available", "redeemed", "expired"];
-      const canRedeem = (status: string, redeemedInOrder?: string) =>
-        status === "available" && !redeemedInOrder;
+    it("auto-expires a partly used note once its expiry has passed", async () => {
+      const past = new Date(Date.now() - 3600_000).toISOString();
+      const data = await (prepareCreditNote as any)({
+        data: { expiresAt: past },
+        originalDoc: { status: "partially_redeemed", expiresAt: past },
+        operation: "update",
+        req: { context: {} },
+      });
+      expect(data.status).toBe("expired");
+    });
+  });
 
-      expect(canRedeem("available")).toBe(true);
-      expect(canRedeem("redeemed")).toBe(false);
-      expect(canRedeem("available", "order-existing-999")).toBe(false);
-      expect(canRedeem("expired")).toBe(false);
+  describe("5a. Status must agree with the balance (#214 QA: CN-713877)", () => {
+    const future = () => new Date(Date.now() + 86400000 * 30).toISOString();
+    const past = () => new Date(Date.now() - 3600_000).toISOString();
+    const edit = (data: Record<string, unknown>, originalDoc: Record<string, unknown>) =>
+      callPrepareHook({ data, originalDoc, operation: "update", req: { context: {} } });
+
+    it("refuses Available on a note whose whole amount has been spent", async () => {
+      const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expect(edit({ ...spent, status: "available" }, spent)).rejects.toThrow(/no balance left/);
+    });
+
+    it("refuses Partially Redeemed on a spent note", async () => {
+      const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expect(edit({ ...spent, status: "partially_redeemed" }, spent)).rejects.toThrow(/no balance left/);
+    });
+
+    it("refuses Fully Redeemed while credit remains", async () => {
+      const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expect(edit({ ...partly, status: "redeemed" }, partly)).rejects.toThrow(/AED 40\.00 left/);
+      const untouched = { status: "available", amountFils: 24_000, redeemedAmountFils: null, expiresAt: future() };
+      await expect(edit({ ...untouched, status: "redeemed" }, untouched)).rejects.toThrow(/AED 240\.00 left/);
+    });
+
+    it("allows the statuses that match the balance", async () => {
+      const partly = { status: "available", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expect(edit({ ...partly, status: "partially_redeemed" }, partly)).resolves.toMatchObject({ status: "partially_redeemed" });
+      const fresh = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: null, expiresAt: future() };
+      await expect(edit({ ...fresh, status: "available" }, fresh)).resolves.toMatchObject({ status: "available" });
+    });
+
+    it("lets any note be withdrawn as Expired, and auto-expiry wins over the guard", async () => {
+      const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expect(edit({ ...partly, status: "expired" }, partly)).resolves.toMatchObject({ status: "expired" });
+      const spentLapsed = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: past() };
+      await expect(edit({ ...spentLapsed, status: "available" }, spentLapsed)).resolves.toMatchObject({ status: "expired" });
+    });
+
+    it("does not block unrelated edits to a note whose status is unchanged", async () => {
+      // The one row like this today (CN-713877) is fixed by the reconcile migration; a notes edit must still save.
+      const inconsistent = { status: "available", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expect(edit({ ...inconsistent, notes: "Spoke to customer" }, inconsistent)).resolves.toMatchObject({ notes: "Spoke to customer" });
+    });
+
+    it("allows a new note to be created Available", async () => {
+      await expect(
+        callPrepareHook({ data: { code: "CN-NEW", amountFils: 24_000, expiresAt: future(), status: "available" }, operation: "create", req: { context: {} } }),
+      ).resolves.toMatchObject({ status: "available" });
+    });
+  });
+
+  describe("5b. Checkout pricing per QA scenario (balance → discount)", () => {
+    const quoteWith = (amountFils: number, redeemedAmountFils: number | null, seats: number, unitFils = 24_000) =>
+      priceBasket([sessionLine({ unitFils, qty: seats })], {
+        ...basePriceOptions,
+        promo: createCreditNotePromo({ value: creditNoteBalanceFils({ amountFils, redeemedAmountFils }) }),
+      });
+
+    it("AED 240 note on a 2-spot AED 480 basket leaves AED 240 payable", () => {
+      const r = quoteWith(24_000, null, 2);
+      expect(r.totals.subtotalFils).toBe(48_000);
+      expect(r.totals.discountFils).toBe(24_000);
+      expect(r.totals.grossFils).toBe(24_000);
+    });
+
+    it("partly used AED 280 note offers its AED 40 balance", () => {
+      const r = quoteWith(28_000, 24_000, 1);
+      expect(r.totals.discountFils).toBe(4_000);
+      expect(r.totals.grossFils).toBe(20_000);
+    });
+
+    it("a note larger than the booking covers it and is capped at the total", () => {
+      const r = quoteWith(84_000, null, 1);
+      expect(r.totals.discountFils).toBe(24_000);
+      expect(r.totals.grossFils).toBe(0);
+    });
+
+    it("null redeemed amount is an untouched note, never NaN", () => {
+      const balance = creditNoteBalanceFils({ amountFils: 24_000, redeemedAmountFils: null });
+      expect(balance).toBe(24_000);
+      expect(Number.isNaN(creditNoteBalanceFils({ amountFils: 24_000, redeemedAmountFils: undefined }))).toBe(false);
+      expect(Number.isNaN(creditNoteBalanceFils({ amountFils: null, redeemedAmountFils: null }))).toBe(false);
+    });
+  });
+
+  describe("5c. quote() answers per credit-note state (online, 2 spots @ AED 240)", () => {
+    const owner = "owner@example.com";
+    const reqWith = (note: Record<string, unknown>) =>
+      ({
+        payload: {
+          findGlobal: async () => ({ vatRateBps: 500, pricesIncludeVat: true }),
+          findByID: async () => ({
+            id: "s1",
+            _status: "published",
+            priceFils: 24_000,
+            title: "Sculptural Forms",
+            experience: "e1",
+            startsAt: "2030-01-01T10:00:00Z",
+            durationMinutes: 120,
+          }),
+          find: async ({ collection }: { collection: string }) =>
+            collection === "credit-notes"
+              ? { docs: [{ id: "cn-1", code: "CN-TEST", customerEmail: owner, expiresAt: "2030-06-01T00:00:00Z", ...note }] }
+              : { docs: [] },
+        },
+      }) as unknown as PayloadRequest;
+    const run = (note: Record<string, unknown>, email?: string) =>
+      quote(reqWith(note), { lines: [{ kind: "session", id: "s1", qty: 2 }], codes: ["CN-TEST"], email, channel: "online" }, { reserve: false });
+
+    it("an Available AED 240 note brings AED 480 down to AED 240", async () => {
+      const q = await run({ status: "available", amountFils: 24_000, redeemedAmountFils: null }, owner);
+      expect(q.rejectedCodes).toEqual([]);
+      expect(q.totals.discountFils).toBe(24_000);
+      expect(q.totals.grossFils).toBe(24_000);
+    });
+
+    it("a partly used AED 280 note takes its AED 40 balance", async () => {
+      const q = await run({ status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000 }, owner);
+      expect(q.totals.discountFils).toBe(4_000);
+      expect(q.totals.grossFils).toBe(44_000);
+    });
+
+    it("a fully redeemed note, or one marked Available with nothing left, is 'exhausted'", async () => {
+      for (const note of [
+        { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000 },
+        { status: "available", amountFils: 24_000, redeemedAmountFils: 24_000 }, // CN-713877's shape
+      ]) {
+        const q = await run(note, owner);
+        expect(q.rejectedCodes).toEqual([{ code: "CN-TEST", reason: "exhausted" }]);
+        expect(q.totals.grossFils).toBe(48_000);
+      }
+    });
+
+    it("an expired note is 'expired'", async () => {
+      const q = await run({ status: "available", amountFils: 24_000, redeemedAmountFils: null, expiresAt: "2020-01-01T00:00:00Z" }, owner);
+      expect(q.rejectedCodes).toEqual([{ code: "CN-TEST", reason: "expired" }]);
+    });
+
+    it("no email, or another email, is 'wrong_customer' and never throws", async () => {
+      for (const email of [undefined, "someone@example.com"]) {
+        const q = await run({ status: "available", amountFils: 24_000, redeemedAmountFils: null }, email);
+        expect(q.rejectedCodes).toEqual([{ code: "CN-TEST", reason: "wrong_customer" }]);
+        expect(q.totals.grossFils).toBe(48_000);
+      }
     });
   });
 

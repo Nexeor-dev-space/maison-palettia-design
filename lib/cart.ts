@@ -709,7 +709,9 @@ export type RejectedCodeReason =
   | "min_spend"
   | "not_applicable"
   | "one_promo_only"
-  | "wrong_customer";
+  | "wrong_customer"
+  /** Client-side only: a credit note answered `wrong_customer` and no email was sent (components/booking/Checkout.tsx). */
+  | "email_required";
 
 /** What checkout shows of a server quote: totals in fils, and which codes did not apply and why. */
 export interface QuoteView {
@@ -725,6 +727,11 @@ export type QuoteOutcome =
   | { status: "ok"; quote: QuoteView }
   | { status: "unavailable" }
   | { status: "rate_limited" }
+  /** 400 on the email in the details form: say so, rather than "could not check". */
+  | { status: "invalid_email" }
+  /** Any other refused request (4xx): not a temporary failure, so not the generic message. */
+  | { status: "bad_request" }
+  /** 5xx, a proxy page or no answer at all. */
   | { status: "error" };
 
 const REASONS: ReadonlySet<string> = new Set([
@@ -750,6 +757,8 @@ export async function requestQuote(body: { lines: CheckoutLineInput[]; codes: st
   const { response, json } = result;
   if (response.status === 429) return { status: "rate_limited" };
   if (response.status === 404 || response.status === 501 || response.status === 503) return { status: "unavailable" };
+  if (response.status === 400 && (json.field === "email" || text(json.message)?.startsWith("email:"))) return { status: "invalid_email" };
+  if (response.status >= 400 && response.status < 500) return { status: "bad_request" };
   if (!response.ok) return { status: "error" };
 
   const totals = (json.totals ?? {}) as Json;
