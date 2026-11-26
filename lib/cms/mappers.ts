@@ -345,6 +345,8 @@ export function toPolicy(doc: CmsPolicy, ageTables: AgeTables): Policy {
       heading: section.heading,
       blocks: (section.blocks ?? []).map(block),
     })),
+    group: doc.footerGroup ?? "none",
+    effectiveDate: doc.effectiveDate ?? null,
   };
 }
 

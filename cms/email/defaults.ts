@@ -52,6 +52,7 @@ export const DEFAULT_TEMPLATES: DefaultTemplate[] = [
       "**Booking {{order.reference}}**\n{{order.summary}}\nTotal paid: **{{order.total}}** (includes VAT of {{order.vat}})",
       "Your tickets and your receipt ({{invoice.number}}) are attached to this email. Show the QR code on your phone or on paper when you arrive.",
       "[Download your tickets]({{links.tickets}})",
+      "Need to change plans? With at least 24 hours' notice before your session, you can reschedule or receive a credit note for the amount you paid. Later cancellations and no-shows are non-refundable. [Our cancellation policy]({{site.url}}/policies/cancellation-rescheduling-and-refunds)",
       "You can see all your bookings at any time: [my bookings]({{links.myBookings}}). Questions? Just reply to this email.",
       SIGN_OFF,
     ],

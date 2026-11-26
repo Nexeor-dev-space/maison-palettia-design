@@ -405,7 +405,7 @@ export const Navigation: GlobalConfig = {
               [copy("label", "Label", { max: 24, required: true }), link({ name: "link", label: "Destination" })],
               {
                 description:
-                  "Add Privacy / Terms here once those policies exist — usually a link to a Policy marked “Show in legal row”.",
+                  "Add Privacy / Terms here once those policies exist — a Policy is usually listed through its Group instead (Policies → Group).",
                 maxRows: 4,
               },
             ),

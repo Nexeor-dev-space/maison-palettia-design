@@ -244,6 +244,22 @@ export const SiteSettings: GlobalConfig = {
               required: true,
               defaultValue: "Maison Palettia Events L.L.C.",
             }),
+            {
+              type: "row",
+              fields: [
+                copy("licenceNumber", "Commercial licence number", {
+                  description: "Printed in the footer's © line and on every policy page, e.g. “Commercial Licence No. 1626148”. Leave blank to leave it out.",
+                  max: 40,
+                  admin: { width: "50%" },
+                }),
+                copy("registeredIn", "Registered in", {
+                  description: "The place printed after the licence, e.g. “Dubai, UAE”.",
+                  max: 40,
+                  defaultValue: "Dubai, UAE",
+                  admin: { width: "50%" },
+                }),
+              ],
+            },
             prose("tagline", "Search tagline", {
               description:
                 "One plain sentence used as the default meta description. Not the script tagline — that is Brand wording → Script tagline.",
@@ -335,18 +351,20 @@ export const SiteSettings: GlobalConfig = {
                   label: "Public email",
                   admin: { description: "Shown on the contact page and in the footer when set." },
                 },
-                copy("phone", "Public phone", {
-                  description: "Printed as typed; the call link strips spaces. Include the country code.",
+                copy("phone", "Call number", {
+                  description:
+                    "Shown as “Call” with a tap-to-call link in the footer, on the Contact page, in emails and on PDFs. Printed as typed; include the country code, e.g. +971 50 474 7762.",
                   max: 24,
                   validate: matches(/^\+?[\d\s()-]{7,22}$/, "Digits, spaces and a leading + only, e.g. +971 4 000 0000."),
                 }),
-                copy("whatsappNumber", "WhatsApp business number", {
+                copy("whatsappNumber", "WhatsApp number", {
                   description:
-                    "Digits only, country code first (9715XXXXXXXX). Leave blank to keep WhatsApp off the site.",
+                    "Digits only, country code first (971554966116). Shown as “WhatsApp +971 55 496 6116” with a wa.me chat link in the footer, on the Contact page, in emails and on PDFs. Leave blank to keep WhatsApp off the site.",
                   max: 15,
                   validate: matches(/^\d{10,15}$/, "Digits only, country code first — 10 to 15 digits."),
                 }),
                 copy("whatsappGreeting", "WhatsApp pre-filled message", {
+                  description: "Not used yet: the WhatsApp link opens an empty chat.",
                   max: 200,
                   defaultValue: "Hello! I would like to ask about an upcoming event.",
                 }),

@@ -91,6 +91,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
               requireTerms={settings.requireTerms}
               consents={settings.consents}
               captureNote={settings.captureNote}
+              cancellationSummary={settings.cancellationSummary}
               terms={gate.terms}
               retryReference={retryReference}
             />

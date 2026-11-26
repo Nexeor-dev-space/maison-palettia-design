@@ -50,6 +50,23 @@ describe("isExcludedPath", () => {
     expect(shared.isExcludedPath("/events/candle-x", ["/events/candle*"])).toBe(true);
     expect(shared.isExcludedPath("/events", ["/events/candle*"])).toBe(false);
   });
+
+  it("treats an interior * as exactly one path segment", () => {
+    expect(shared.isExcludedPath("/events/crochet-beginners-2026-11-29-1100/book", ["/events/*/book"])).toBe(true);
+    expect(shared.isExcludedPath("/events/candle-making", ["/events/*/book"])).toBe(false);
+    expect(shared.isExcludedPath("/events/book", ["/events/*/book"])).toBe(false);
+    expect(shared.isExcludedPath("/events/a/b/book", ["/events/*/book"])).toBe(false);
+    expect(shared.isExcludedPath("/events/a/bookish", ["/events/*/book"])).toBe(false);
+  });
+
+  it("keeps third-party tags off the booking forms but leaves the beacon counting them", () => {
+    const tags = shared.tagExcludePaths([...shared.SENSITIVE_PATHS]);
+    expect(shared.isExcludedPath("/events/crochet-beginners-2026-11-29-1100/book", tags)).toBe(true);
+    expect(shared.isExcludedPath("/private-events/book", tags)).toBe(true);
+    expect(shared.isExcludedPath("/checkout", tags)).toBe(true);
+    expect(shared.isExcludedPath("/events/crochet-beginners-2026-11-29-1100", tags)).toBe(false);
+    expect(shared.isExcludedPath("/events/crochet-beginners-2026-11-29-1100/book", [...shared.SENSITIVE_PATHS])).toBe(false);
+  });
 });
 
 describe("routeFor", () => {

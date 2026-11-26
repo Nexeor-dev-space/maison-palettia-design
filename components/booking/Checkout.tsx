@@ -59,6 +59,8 @@ export interface CheckoutProps {
   consents: CheckoutConsent[];
   /** The line under the Pay button. */
   captureNote: string;
+  /** The one-line cancellation rule above Pay (Booking & checkout wording); empty prints nothing. */
+  cancellationSummary: string;
   /** The "what a booking is" sentence. */
   terms: string;
   /** `/checkout?ref&payment=failed`: the customer is back from a declined or abandoned payment. */
@@ -93,7 +95,7 @@ export interface CheckoutProps {
  * form of its own, and forms do not nest — Enter in the code box would
  * otherwise press Pay.
  */
-export function Checkout({ catalogue, requireTerms, consents, captureNote, terms, retryReference }: CheckoutProps) {
+export function Checkout({ catalogue, requireTerms, consents, captureNote, cancellationSummary, terms, retryReference }: CheckoutProps) {
   const { lines, setQuantity, remove, subtotal, places, currency } = useCart();
   const hydrated = useCartHydrated();
   const details = useBookingDetails();
@@ -194,7 +196,7 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, terms
     const next = validateBookingDetails(submitted);
     const needsConsent = requireTerms && consents.length > 0;
     if (needsConsent && data.get("consent") !== "yes") {
-      next.consent = "Please confirm you have read and agree to the terms.";
+      next.consent = "Please tick the box to agree to the terms and policies before paying.";
     }
     setErrors(next);
     if (Object.keys(next).length > 0) {
@@ -331,6 +333,7 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, terms
           formError={formError}
           hasFieldErrors={Object.keys(errors).length > 0}
           captureNote={captureNote}
+          cancellationSummary={cancellationSummary}
           terms={terms}
         />
       </form>
@@ -465,21 +468,25 @@ export function Consent({
           form={form}
           type="checkbox"
           value="yes"
+          aria-required="true"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
           className="mt-1 size-5 shrink-0 accent-[var(--color-primary)]"
         />
         <label htmlFor={id} className="text-body text-text">
-          I have read and agree to the{" "}
+          I agree to{" "}
           {consents.map((consent, index) => (
             <span key={consent.policy}>
               {index > 0 ? (index === consents.length - 1 ? " and " : ", ") : null}
+              the{" "}
               <Link
                 href={consent.href}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="border-b border-terracotta/50 pb-0.5 transition-colors duration-300 ease-soft hover:border-terracotta"
               >
                 {consent.title}
+                <span className="sr-only"> (opens in a new tab)</span>
               </Link>
             </span>
           ))}
@@ -495,6 +502,16 @@ export function Consent({
   );
 }
 
+/**
+ * The cancellation rule in one line, said above Pay so it is read before the
+ * press (Booking & checkout wording → Checkout page → Cancellation summary).
+ * The full policy is linked from the agreement box above it.
+ */
+export function CancellationNote({ text, className = "mb-6" }: { text: string; className?: string }) {
+  if (!text) return null;
+  return <p className={`max-w-[40rem] text-fine leading-[1.8] text-text/80 ${className}`}>{text}</p>;
+}
+
 /** The last action: the total, Pay, and what Pay does — said before it is pressed. */
 function Complete({
   submitting,
@@ -504,6 +521,7 @@ function Complete({
   formError,
   hasFieldErrors,
   captureNote,
+  cancellationSummary,
   terms,
 }: {
   submitting: boolean;
@@ -514,6 +532,7 @@ function Complete({
   formError: string | null;
   hasFieldErrors: boolean;
   captureNote: string;
+  cancellationSummary: string;
   terms: string;
 }) {
   const blocked = blockReason !== null;
@@ -535,6 +554,8 @@ function Complete({
           </p>
         ) : null}
       </div>
+
+      <CancellationNote text={cancellationSummary} />
 
       <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-6">
         <p className="text-body text-text/80">
