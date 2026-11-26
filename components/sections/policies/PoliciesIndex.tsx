@@ -4,7 +4,7 @@ import { groundShapes } from "@/components/motion/groundShapes";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { Container } from "@/components/ui/Container";
-import type { Policy } from "@/lib/policies";
+import { groupPolicies, type Policy } from "@/lib/policies";
 
 /* ==========================================================================
    THE MARKS
@@ -45,6 +45,12 @@ const POLICY_SHAPES: readonly ShapePlan[] = groundShapes("cream");
  * the `policies` collection in its `order`, handed in by the adapter.
  */
 export function PoliciesIndex({ policies }: { policies: readonly Policy[] }) {
+  const grouped = groupPolicies(policies);
+  // Nothing filed yet (every policy in House rules) reads as one plain run, as before.
+  const groups =
+    grouped.length > 1 || (grouped.length === 1 && grouped[0].key !== "none")
+      ? grouped
+      : [{ key: "all", title: null as string | null, policies: [...policies] }];
   return (
     <>
       {/* ---- the index --------------------------------------------------- */}
@@ -62,54 +68,73 @@ export function PoliciesIndex({ policies }: { policies: readonly Policy[] }) {
             top to bottom in the order the studio would explain itself, and
             scans in one pass on a phone.
           */}
-          <ul className="mx-auto max-w-[44rem]">
-            {policies.map((policy, index) => (
-              <li key={policy.slug}>
-                <Reveal delay={index * 0.04}>
-                  <Link
-                    href={`/policies/${policy.slug}`}
-                    /*
-                      THE WHOLE ROW IS THE TARGET, which is the point of
-                      putting the link outside the heading rather than around
-                      the title alone: a 20px title is a 20px target, and the
-                      row is 100 tall. `block` plus the padding does it with
-                      no absolute overlay and no nested interactive elements.
-                    */
-                    className="group block border-t border-text/15 py-7 transition-colors duration-300 ease-soft hover:bg-sage/40 md:py-8"
-                  >
-                    <div className="flex items-start justify-between gap-6">
-                      <div className="min-w-0">
-                        <h2 className="text-h4 font-semibold text-text">
-                          {policy.title}
-                        </h2>
-                        <p className="mt-2 max-w-[42ch] text-body text-text/85">
-                          {policy.summary}
-                        </p>
-                      </div>
-
-                      {/* The arrow is the only thing that moves. Decorative:
-                          the link's own text already says where it goes. */}
-                      <span
-                        aria-hidden
-                        className="mt-1 shrink-0 text-text/60 transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+          {groups.map((group, groupIndex) => {
+            // Under a group heading a title is an h3; in the plain run it is the h2 it always was.
+            const PolicyTitle = group.title ? "h3" : "h2";
+            return (
+            <div
+              key={group.key}
+              className={`mx-auto max-w-[44rem] ${groupIndex === 0 ? "" : "mt-14 md:mt-16"}`}
+            >
+              {/*
+                GROUPED AS THE FOOTER IS — Legal & Policies, Customer
+                Support, then the house rules (policies.footerGroup) — so the
+                page a footer link lands near is filed under the same name.
+                Before any policy is filed, there is one untitled run.
+              */}
+              {group.title ? (
+                <h2
+                  id={`policies-${group.key}`}
+                  className="mb-5 text-label font-medium uppercase tracking-eyebrow text-text/75"
+                >
+                  {group.title}
+                </h2>
+              ) : null}
+              <ul aria-labelledby={group.title ? `policies-${group.key}` : undefined}>
+                {group.policies.map((policy, index) => (
+                  <li key={policy.slug}>
+                    <Reveal delay={index * 0.04}>
+                      <Link
+                        href={`/policies/${policy.slug}`}
+                        /*
+                          THE WHOLE ROW IS THE TARGET, which is the point of
+                          putting the link outside the heading rather than around
+                          the title alone: a 20px title is a 20px target, and the
+                          row is 100 tall. `block` plus the padding does it with
+                          no absolute overlay and no nested interactive elements.
+                        */
+                        className="group block border-t border-text/15 py-7 transition-colors duration-300 ease-soft hover:bg-sage/40 md:py-8"
                       >
-                        &#8594;
-                      </span>
-                    </div>
-                  </Link>
-                </Reveal>
-              </li>
-            ))}
-          </ul>
+                        <div className="flex items-start justify-between gap-6">
+                          <div className="min-w-0">
+                            <PolicyTitle className="text-h4 font-semibold text-text">{policy.title}</PolicyTitle>
+                            <p className="mt-2 max-w-[42ch] text-body text-text/85">{policy.summary}</p>
+                          </div>
 
-          {/*
-            THE RULE UNDER THE LAST ROW. Each row draws its own top border, so
-            without this the run ends on an open edge while every other row
-            is closed above. One empty element rather than a bottom border on
-            the last row, which would need a `last:` variant doing the same
-            job less obviously.
-          */}
-          <div className="mx-auto max-w-[44rem] border-t border-text/15" />
+                          {/* The arrow is the only thing that moves. Decorative:
+                              the link's own text already says where it goes. */}
+                          <span
+                            aria-hidden
+                            className="mt-1 shrink-0 text-text/60 transition-transform duration-500 ease-editorial motion-safe:group-hover:translate-x-1"
+                          >
+                            &#8594;
+                          </span>
+                        </div>
+                      </Link>
+                    </Reveal>
+                  </li>
+                ))}
+              </ul>
+
+              {/*
+                THE RULE UNDER THE LAST ROW. Each row draws its own top border, so
+                without this the run ends on an open edge while every other row
+                is closed above.
+              */}
+              <div className="border-t border-text/15" />
+            </div>
+            );
+          })}
         </Container>
       </section>
     </>

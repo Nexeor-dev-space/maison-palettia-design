@@ -55,6 +55,22 @@ export const ANALYTICS_GROUP = "System";
  */
 export const SENSITIVE_PATHS = ["/checkout", "/payment-success", "/my-bookings", "/booking-status", "/dev"] as const;
 
+/**
+ * The booking forms: the session booking step (details form, the policy
+ * tick and Pay) and the private-event request. Third-party tags (and so the
+ * consent banner) are never mounted on them either, so no session recorder
+ * or ad pixel ever runs beside a name, email or phone field; the published
+ * Cookie and Privacy policies promise exactly that. The first-party beacon
+ * still counts a view of them (path only, no cookie, nothing typed), which
+ * the booking funnel's "book_view" step needs.
+ */
+export const BOOKING_FORM_PATHS = ["/events/*/book", "/private-events/book"] as const;
+
+/** Where third-party tags and the consent banner stay off: the beacon's list plus the booking forms. */
+export function tagExcludePaths(beaconExcludePaths: readonly string[]): string[] {
+  return [...new Set([...beaconExcludePaths, ...BOOKING_FORM_PATHS])];
+}
+
 /** `localStorage` key holding the visitor's consent choice ("granted" | "denied"), SPEC §C.3. */
 export const CONSENT_STORAGE_KEY = "mp_consent";
 /** The window event the banner fires when the choice changes, so the tags load without a reload. */
@@ -90,13 +106,24 @@ export function normalisePath(raw: string): string | null {
 /**
  * Whether `path` falls under one of `patterns`. An entry matches itself and
  * everything beneath it ("/dev" covers "/dev/mamo-mock/pay/1"); a trailing
- * `*` matches any continuation ("/events/candle*").
+ * `*` matches any continuation ("/events/candle*"); a `*` anywhere else
+ * stands for exactly one path segment ("/events/*\/book" covers
+ * "/events/candle-making/book" but not "/events/book").
  */
 export function isExcludedPath(path: string, patterns: readonly string[]): boolean {
   const p = path.toLowerCase();
   return patterns.some((raw) => {
     const pattern = raw.trim().toLowerCase().replace(/\/+$/, "");
     if (!pattern) return false;
+    if (/\*(?!$)/.test(pattern)) {
+      const trailing = pattern.endsWith("*");
+      const core = trailing ? pattern.slice(0, -1) : pattern;
+      const body = core
+        .split("*")
+        .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+        .join("[^/]+");
+      return new RegExp(`^${body}${trailing ? "" : "(?:/|$)"}`).test(p);
+    }
     if (pattern.endsWith("*")) return p.startsWith(pattern.slice(0, -1));
     return p === pattern || p.startsWith(`${pattern}/`);
   });
@@ -143,6 +170,6 @@ export const DEFAULT_SITE_ANALYTICS: SiteAnalyticsConfig = {
     bannerText: "We use analytics cookies to understand how the site is used. Nothing is loaded until you accept.",
     acceptLabel: "Accept",
     declineLabel: "Decline",
-    policyHref: "/policies",
+    policyHref: "/policies/cookie-policy",
   },
 };

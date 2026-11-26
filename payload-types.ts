@@ -2240,11 +2240,15 @@ export interface Policy {
    */
   slug: string;
   /**
-   * Optional. Printed as “Effective from …” when set.
+   * Printed under the title as “Effective 27 November 2026”, with the company's legal name and licence (Site details).
    */
   effectiveDate?: string | null;
   /**
-   * For Privacy and Terms when written; the other policies live in the footer's Policies column.
+   * Where the policy is listed. Legal & Policies and Customer Support each get a column in the footer; every policy is listed on the Policies page under its group.
+   */
+  footerGroup: 'legal' | 'support' | 'none';
+  /**
+   * Usually off: the Group above already puts the policy in the footer. On adds a second link beside the © line.
    */
   showInLegalRow?: boolean | null;
   /**
@@ -5566,6 +5570,7 @@ export interface PoliciesSelect<T extends boolean = true> {
       };
   slug?: T;
   effectiveDate?: T;
+  footerGroup?: T;
   showInLegalRow?: T;
   requiresCheckoutConsent?: T;
   version?: T;
@@ -6519,6 +6524,14 @@ export interface SiteSetting {
    */
   legalName: string;
   /**
+   * Printed in the footer's © line and on every policy page, e.g. “Commercial Licence No. 1626148”. Leave blank to leave it out.
+   */
+  licenceNumber?: string | null;
+  /**
+   * The place printed after the licence, e.g. “Dubai, UAE”.
+   */
+  registeredIn?: string | null;
+  /**
    * One plain sentence used as the default meta description. Not the script tagline — that is Brand wording → Script tagline.
    */
   tagline: string;
@@ -6558,13 +6571,16 @@ export interface SiteSetting {
      */
     email?: string | null;
     /**
-     * Printed as typed; the call link strips spaces. Include the country code.
+     * Shown as “Call” with a tap-to-call link in the footer, on the Contact page, in emails and on PDFs. Printed as typed; include the country code, e.g. +971 50 474 7762.
      */
     phone?: string | null;
     /**
-     * Digits only, country code first (9715XXXXXXXX). Leave blank to keep WhatsApp off the site.
+     * Digits only, country code first (971554966116). Shown as “WhatsApp +971 55 496 6116” with a wa.me chat link in the footer, on the Contact page, in emails and on PDFs. Leave blank to keep WhatsApp off the site.
      */
     whatsappNumber?: string | null;
+    /**
+     * Not used yet: the WhatsApp link opens an empty chat.
+     */
     whatsappGreeting?: string | null;
     /**
      * e.g. “Sat–Thu” / “10:00–22:00”. Reserved for the venue plate and footer; nothing prints it yet.
@@ -6872,7 +6888,7 @@ export interface Navigation {
     backToTop?: string | null;
   };
   /**
-   * Add Privacy / Terms here once those policies exist — usually a link to a Policy marked “Show in legal row”.
+   * Add Privacy / Terms here once those policies exist — a Policy is usually listed through its Group instead (Policies → Group).
    */
   legal?:
     | {
@@ -7141,6 +7157,10 @@ export interface BookingSetting {
     carriedOverNote?: string | null;
     confirmLabel?: string | null;
     confirmingLabel?: string | null;
+    /**
+     * One line printed above the Pay button on checkout and the booking step, under the agreement box. Keep it to the rule itself; the full policy is linked from the box.
+     */
+    cancellationSummary?: string | null;
     emptyTitle?: string | null;
     emptyBody?: string | null;
     emptyCta?: string | null;
@@ -7879,6 +7899,9 @@ export interface AnalyticsSetting {
     bannerText?: string | null;
     acceptLabel?: string | null;
     declineLabel?: string | null;
+    /**
+     * Leave empty to link the Cookie Policy (/policies/cookie-policy). The link reads "Privacy policy" when it points at a privacy page, otherwise "Cookie policy".
+     */
     policyLink: {
       type: 'internal' | 'external';
       url?: string | null;
@@ -7943,6 +7966,8 @@ export interface PayloadJobsStat {
 export interface SiteSettingsSelect<T extends boolean = true> {
   name?: T;
   legalName?: T;
+  licenceNumber?: T;
+  registeredIn?: T;
   tagline?: T;
   logoOnDark?: T;
   logoOnDarkInk?:
@@ -8386,6 +8411,7 @@ export interface BookingSettingsSelect<T extends boolean = true> {
         carriedOverNote?: T;
         confirmLabel?: T;
         confirmingLabel?: T;
+        cancellationSummary?: T;
         emptyTitle?: T;
         emptyBody?: T;
         emptyCta?: T;

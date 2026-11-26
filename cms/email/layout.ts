@@ -1,5 +1,6 @@
 import { doodleImg } from "./doodles";
 import { EMAIL_GROUND, EMAIL_INK, escapeHtml, lockedBackground } from "./render";
+import { telHref } from "@/lib/contact";
 
 /**
  * ==========================================================================
@@ -43,7 +44,10 @@ export interface EmailSite {
   logoDarkUrl?: string | null;
   addressLines?: string[];
   email?: string | null;
+  /** The Call number, as typed in Site details. */
   phone?: string | null;
+  /** The WhatsApp number, formatted ("+971 55 496 6116"), and its wa.me link. */
+  whatsapp?: { display: string; href: string } | null;
 }
 
 export interface EmailLayoutInput {
@@ -67,7 +71,10 @@ export function renderEmailLayout({ subject, preheader, bodyHtml, site }: EmailL
   const contactBits = [
     ...(site.addressLines ?? []).filter(Boolean).map(escapeHtml),
     site.email ? `<a href="mailto:${escapeHtml(site.email)}" style="color:${INK};text-decoration:underline;">${escapeHtml(site.email)}</a>` : "",
-    site.phone ? escapeHtml(site.phone) : "",
+    site.phone ? `Call <a href="${escapeHtml(telHref(site.phone))}" style="color:${INK};text-decoration:underline;">${escapeHtml(site.phone)}</a>` : "",
+    site.whatsapp
+      ? `WhatsApp <a href="${escapeHtml(site.whatsapp.href)}" style="color:${INK};text-decoration:underline;">${escapeHtml(site.whatsapp.display)}</a>`
+      : "",
   ].filter(Boolean);
 
   // The preheader is followed by zero-width padding so clients do not pull
@@ -177,6 +184,15 @@ ${preheaderHtml}
 
 /** The plain-text alternative: the message, then the same footer as lines. */
 export function renderEmailText({ bodyText, site }: { bodyText: string; site: EmailSite }): string {
-  const footer = [site.name, ...(site.addressLines ?? []), site.email, site.phone, site.url].filter(Boolean).join("\n");
+  const footer = [
+    site.name,
+    ...(site.addressLines ?? []),
+    site.email,
+    site.phone ? `Call ${site.phone}` : null,
+    site.whatsapp ? `WhatsApp ${site.whatsapp.display} (${site.whatsapp.href})` : null,
+    site.url,
+  ]
+    .filter(Boolean)
+    .join("\n");
   return `${bodyText.trim()}\n\n--\n${footer}\n`;
 }

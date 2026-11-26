@@ -12,7 +12,9 @@ import { PeelNote } from "@/components/ui/PeelNote";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
 import { labelLines, loadTemplateCopy, policyCopy } from "@/components/blocks/templateCopy";
 import { redirectOr404 } from "@/lib/cms/redirects";
-import { getPolicies, getPolicyBySlug } from "@/lib/policies";
+import { legalEntityParts } from "@/lib/contact";
+import { getSite } from "@/lib/constants.server";
+import { formatEffectiveDate, getPolicies, getPolicyBySlug } from "@/lib/policies";
 import { getMetadata } from "@/lib/seo";
 
 /**
@@ -83,8 +85,10 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
   // A renamed policy's old address redirects; anything else is the 404.
   if (!policy) return redirectOr404(`/policies/${slug}`);
 
-  await loadTemplateCopy();
+  const [site] = await Promise.all([getSite(), loadTemplateCopy()]);
   const copy = policyCopy();
+  const effective = formatEffectiveDate(policy.effectiveDate);
+  const issuer = legalEntityParts(site);
 
   return (
     <>
@@ -140,6 +144,11 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
             <Reveal delay={0.15} className="col-span-12 lg:col-span-5 lg:pb-3">
               {/* No `max-w`: the column is the measure — see <ExperienceDiscovery>. */}
               <p className="text-statement text-text/85">{policy.summary}</p>
+              {effective ? (
+                <p className="mt-5 text-label font-medium uppercase tracking-eyebrow text-text/75">
+                  Effective <time dateTime={effective.day}>{effective.label}</time>
+                </p>
+              ) : null}
             </Reveal>
           </div>
         </Container>
@@ -154,6 +163,12 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
 
         <Container className="relative">
           <PolicyBody sections={policy.sections} />
+
+          {/* Who the policy is between: the company, as licensed (Site details). */}
+          <p className="mx-auto mt-14 max-w-[34rem] border-t border-text/15 pt-8 text-fine leading-[1.8] text-text/75 md:mt-16">
+            {effective ? <>Effective {effective.label}. </> : null}
+            Issued by {issuer.join(" · ")}.
+          </p>
         </Container>
       </section>
 

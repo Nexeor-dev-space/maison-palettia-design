@@ -7,6 +7,7 @@ import { escapeHtml, interpolate, interpolateLexical, isLexicalState, lexicalToE
 import type { TemplateKey } from "@/cms/lib/contracts";
 import { publicUrl } from "@/cms/lib/publicUrl";
 import type { EmailTemplate, Media, SiteSetting } from "@/payload-types";
+import { whatsappOf } from "@/lib/contact";
 
 /**
  * ==========================================================================
@@ -125,7 +126,8 @@ export async function emailSite(req?: PayloadRequest): Promise<EmailSite> {
       logoDarkUrl,
       addressLines: (site.contact?.addressLines ?? []).map((row) => row.line).filter(Boolean),
       email: site.contact?.email ?? null,
-      phone: site.contact?.phone ?? null,
+      phone: site.contact?.phone?.trim() || null,
+      whatsapp: whatsappOf(site.contact?.whatsappNumber),
     };
   } catch (error) {
     req.payload.logger.warn({ err: error }, "templates: could not read site-settings for the email shell");
@@ -137,7 +139,16 @@ const absolute = (origin: string, path: string) => (/^https?:\/\//.test(path) ? 
 
 /** The `site.*` variables every template may use (cms/email/variables.ts COMMON_VARIABLES). */
 export function siteVariables(site: EmailSite): TemplateVars {
-  return { site: { name: site.name, url: site.url, email: site.email ?? "", phone: site.phone ?? "" } };
+  return {
+    site: {
+      name: site.name,
+      url: site.url,
+      email: site.email ?? "",
+      phone: site.phone ?? "",
+      whatsapp: site.whatsapp?.display ?? "",
+      whatsappUrl: site.whatsapp?.href ?? "",
+    },
+  };
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */

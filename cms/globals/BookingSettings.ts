@@ -259,6 +259,13 @@ export const BookingSettings: GlobalConfig = {
                   }),
                 ],
               },
+              prose("cancellationSummary", "Cancellation summary (beside Pay)", {
+                description:
+                  "One line printed above the Pay button on checkout and the booking step, under the agreement box. Keep it to the rule itself; the full policy is linked from the box.",
+                max: 240,
+                defaultValue:
+                  "Reschedule or get a credit note with at least 24 hours' notice. Later cancellations and no-shows are non-refundable.",
+              }),
               copy("emptyTitle", "Empty basket — title", { max: 60, defaultValue: "Nothing to confirm yet" }),
               prose("emptyBody", "Empty basket — body", {
                 max: 200,

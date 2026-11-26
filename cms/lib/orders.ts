@@ -286,6 +286,39 @@ async function retireCurrentLink(req: PayloadRequest, gateway: PaymentGateway | 
 }
 
 /**
+ * An online order must carry agreement to every published policy flagged
+ * "Require agreement at checkout" (while Payments → Checkout → "Require
+ * terms" is on). The checkout box already insists; this is the same rule
+ * where it cannot be skipped, and it catches a page loaded before a policy
+ * was flagged — that customer has not seen the box name it. The version
+ * sent is recorded as sent (`consentedPolicyVersions`): it is the wording
+ * the page showed, which may be one publish older than the live one.
+ */
+async function assertConsented(req: PayloadRequest, input: StartCheckoutInput, paymentSettings: Settings): Promise<void> {
+  const requireTerms = (paymentSettings.checkout as { requireTerms?: unknown } | undefined)?.requireTerms !== false;
+  if (!requireTerms) return;
+  const required = await req.payload.find({
+    collection: "policies",
+    where: { and: [{ requiresCheckoutConsent: { equals: true } }, { _status: { equals: "published" } }] },
+    depth: 0,
+    pagination: false,
+    overrideAccess: true,
+    select: { slug: true },
+    req,
+  });
+  const given = new Set((input.consents ?? []).map((consent) => consent.policy));
+  const missing = required.docs.map((doc) => doc.slug).filter((slug): slug is string => Boolean(slug) && !given.has(slug as string));
+  if (missing.length > 0) {
+    throw new CheckoutError(
+      "consent_required",
+      "Our terms have just been updated. Please reload the page, tick the agreement box and pay again. Nothing has been charged.",
+      400,
+      { missing },
+    );
+  }
+}
+
+/**
  * §H.3 steps 1–5 (route-level zod validation and rate limiting are the
  * caller's). Online and desk share this path; the desk differs only in
  * skipping the hold (seats go straight to sold) and recording a desk
@@ -306,6 +339,8 @@ export async function startCheckout(req: PayloadRequest, input: StartCheckoutInp
     gateway = g;
   }
   const mode: Mode = gateway?.mode ?? ((paymentSettings.mode as Mode | undefined) ?? "test");
+
+  if (online) await assertConsented(req, input, paymentSettings);
 
   // Basket reuse: a double-submit of the same basket re-uses the open order instead of holding seats twice.
   if (online && gateway && email && input.basketId) {

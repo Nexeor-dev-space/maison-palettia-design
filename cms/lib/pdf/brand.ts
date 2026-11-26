@@ -7,6 +7,7 @@ import sharp from "sharp";
 import { PROJECT_ROOT } from "@/cms/lib/paths";
 import { readMediaFile } from "@/cms/lib/storage";
 import type { InvoiceSetting, Media, SiteSetting } from "@/payload-types";
+import { whatsappOf } from "@/lib/contact";
 
 /**
  * ==========================================================================
@@ -68,10 +69,15 @@ export async function loadBrand(req: PayloadRequest): Promise<PdfBrand> {
   }
 
   const contact = site?.contact;
+  const whatsapp = whatsappOf(contact?.whatsappNumber);
   return {
     name: site?.name || "Maison Palettia",
     logo,
-    contactLines: [contact?.email, contact?.phone].filter((line): line is string => Boolean(line)),
+    contactLines: [
+      contact?.email,
+      contact?.phone?.trim() ? `Call ${contact.phone.trim()}` : null,
+      whatsapp ? `WhatsApp ${whatsapp.display}` : null,
+    ].filter((line): line is string => Boolean(line)),
     url: site?.publicUrl ?? "",
   };
 }

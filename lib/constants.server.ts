@@ -20,6 +20,7 @@ import {
   SOCIAL_LINKS,
   type FaqGroup,
 } from "@/lib/constants";
+import { whatsappOf } from "@/lib/contact";
 import { ENQUIRY_CONFIGURED } from "@/lib/enquiry";
 import { groupFaqsBySection } from "@/lib/faqSections";
 import type { ContactDetails, FaqItem, NavGroup, NavItem, SocialLink } from "@/types";
@@ -56,6 +57,10 @@ import type { ContactDetails, FaqItem, NavGroup, NavItem, SocialLink } from "@/t
 export interface SiteIdentity {
   name: string;
   legalName: string;
+  /** Site details → Commercial licence number, or null when not set. */
+  licenceNumber: string | null;
+  /** Site details → Registered in ("Dubai, UAE"), or null when cleared. */
+  registeredIn: string | null;
   tagline: string;
   locale: string;
   /** Absolute origin, no trailing slash — `metadataBase`, sitemap and robots. */
@@ -79,6 +84,8 @@ export async function getSite(): Promise<SiteIdentity> {
   return {
     name: settings?.name || SITE.name,
     legalName: settings?.legalName || SITE.legalName,
+    licenceNumber: settings?.licenceNumber?.trim() || null,
+    registeredIn: settings ? settings.registeredIn?.trim() || null : "Dubai, UAE",
     tagline: settings?.tagline || SITE.tagline,
     locale: settings?.locale || SITE.locale,
     url: SITE.url,
@@ -134,7 +141,7 @@ export async function getBrandLogo(): Promise<BrandLogo> {
   };
 }
 
-/** `CONTACT`: the address lines, public email and phone from Site details. */
+/** `CONTACT`: the address lines, public email, Call number and WhatsApp number from Site details. */
 export async function getContact(): Promise<ContactDetails> {
   const contact = (await getGlobal("site-settings", 0))?.contact;
   if (!contact) return { ...CONTACT, addressLines: [...CONTACT.addressLines] };
@@ -142,7 +149,8 @@ export async function getContact(): Promise<ContactDetails> {
   return {
     addressLines: lines,
     email: contact.email || null,
-    phone: contact.phone || null,
+    phone: contact.phone?.trim() || null,
+    whatsapp: whatsappOf(contact.whatsappNumber),
   };
 }
 
@@ -264,7 +272,7 @@ export async function getLegalNav(): Promise<NavItem[]> {
  */
 export async function getReferenceChannelSet(): Promise<boolean> {
   const contact = await getContact();
-  return Boolean(contact.email || contact.phone || ENQUIRY_CONFIGURED);
+  return Boolean(contact.email || contact.phone || contact.whatsapp || ENQUIRY_CONFIGURED);
 }
 
 /**
