@@ -86,7 +86,10 @@ export interface SocialLink {
 export interface ContactDetails {
   addressLines: string[];
   email: string | null;
+  /** The Call number, printed as typed ("+971 50 474 7762"); link it with `telHref` (lib/contact.ts). */
   phone: string | null;
+  /** Site details → WhatsApp number, formatted and linked (`whatsappOf`, lib/contact.ts). */
+  whatsapp?: { display: string; href: string } | null;
 }
 
 /** Per-page SEO overrides passed to `buildMetadata`. */

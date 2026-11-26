@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 
-import { Consent, refusalMessage, type CheckoutConsent } from "@/components/booking/Checkout";
+import { CancellationNote, Consent, refusalMessage, type CheckoutConsent } from "@/components/booking/Checkout";
 import { PassCodeField, type CodeOutcome } from "@/components/booking/PassCodeField";
 import { PaintedField, type FieldStatus } from "@/components/booking/PaintedField";
 import { PlaceCard, PlaceCardStub } from "@/components/booking/PlaceCard";
@@ -86,6 +86,8 @@ export interface BookingCheckout {
   consents: CheckoutConsent[];
   /** The line under the Pay button. */
   captureNote: string;
+  /** The one-line cancellation rule above Pay; empty prints nothing. */
+  cancellationSummary: string;
   /** The "what a booking is" sentence. */
   terms: string;
 }
@@ -376,7 +378,7 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
     const found = validateBookingDetails(details);
     const bad = BOOKING_FIELD_ORDER.filter((k) => found[k]);
     const consentMissing = needsConsent && data.get("consent") !== "yes";
-    setConsentError(consentMissing ? "Please confirm you have read and agree to the terms." : undefined);
+    setConsentError(consentMissing ? "Please tick the box to agree to the terms and policies before paying." : undefined);
 
     if (bad.length > 0) {
       /*
@@ -664,6 +666,8 @@ export function BookingForm({ workshop, sessionId, intro, summary, strip, scarce
                 </p>
               ) : null}
             </div>
+
+            <CancellationNote text={checkout.cancellationSummary} className="mt-4" />
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-x-8 gap-y-6">
               {/*

@@ -11,6 +11,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionShapes, type ShapePlan } from "@/components/motion/SectionShapes";
 import { groundShapes } from "@/components/motion/groundShapes";
 import { CONTACT, SOCIAL_LINKS } from "@/lib/constants";
+import { telHref } from "@/lib/contact";
 import { getGlobal } from "@/lib/cms/query";
 import type { ContactDetails, ImageAsset, SocialLink } from "@/types";
 
@@ -437,7 +438,7 @@ function Details({ words }: { words: ContactWords }) {
     findUsHeading = "Find Us",
     whereTerm = "Where",
     emailTerm = "Email",
-    phoneTerm = "Phone",
+    phoneTerm = "Call",
     followTerm = "Follow",
     venuesLinkLabel = "Venues are listed with each event",
     venuesLink = "/events",
@@ -447,7 +448,7 @@ function Details({ words }: { words: ContactWords }) {
   const hasAddress = contact.addressLines.length > 0;
   const social = links.filter((link) => link.href);
 
-  if (!hasAddress && !contact.email && !contact.phone && social.length === 0) return null;
+  if (!hasAddress && !contact.email && !contact.phone && !contact.whatsapp && social.length === 0) return null;
 
   return (
     <aside aria-labelledby="contact-find-us" className="relative mt-14 md:mt-16">
@@ -519,10 +520,26 @@ function Details({ words }: { words: ContactWords }) {
           {contact.phone ? (
             <Block term={phoneTerm}>
               <a
-                href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                href={telHref(contact.phone)}
                 className="border-b border-line pb-1 transition-colors duration-300 ease-soft hover:border-terracotta"
               >
                 {contact.phone}
+              </a>
+            </Block>
+          ) : null}
+
+          {/* WhatsApp is its own line: a chat, not a call, on another number. */}
+          {contact.whatsapp ? (
+            <Block term="WhatsApp">
+              <a
+                href={contact.whatsapp.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 border-b border-line pb-1 transition-colors duration-300 ease-soft hover:border-terracotta"
+              >
+                <SocialGlyph name="WhatsApp" className="size-4 shrink-0" />
+                {contact.whatsapp.display}
+                <span className="sr-only">(opens WhatsApp in a new tab)</span>
               </a>
             </Block>
           ) : null}

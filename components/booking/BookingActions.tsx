@@ -446,21 +446,17 @@ export function BookingActions({
                   {/* Policy Outcome Callout */}
                   <div
                     className={`mt-5 rounded-xl p-5 border ${
-                      cancelPolicy.refundEligible
+                      cancelPolicy.creditNoteEligible
                         ? "border-primary/40 bg-primary/5"
                         : "border-terracotta/50 bg-terracotta/10"
                     }`}
                   >
                     <p
                       className={`text-label font-medium uppercase tracking-eyebrow ${
-                        cancelPolicy.refundEligible ? "text-primary" : "text-terracotta"
+                        cancelPolicy.creditNoteEligible ? "text-primary" : "text-terracotta"
                       }`}
                     >
-                      {cancelPolicy.refundEligible
-                        ? cancelPolicy.window === "over_48h"
-                          ? "Eligible for full refund"
-                          : "Eligible for refund (24h+ notice)"
-                        : "Non-refundable cancellation (< 24h notice)"}
+                      {cancelPolicy.creditNoteEligible ? "Credit note (24h+ notice)" : "Non-refundable cancellation (< 24h notice)"}
                     </p>
                     <p className="mt-2 text-body text-text/90 leading-relaxed">{cancelPolicy.message}</p>
                     {cancelPolicy.exceptionNote ? (
@@ -468,24 +464,26 @@ export function BookingActions({
                     ) : null}
                   </div>
 
-                  {/* Optional reason */}
-                  <div className="mt-6">
-                    <label
-                      htmlFor={`${cancelDialogId}-reason`}
-                      className="block text-label font-medium uppercase tracking-eyebrow text-text/75"
-                    >
-                      Reason for cancellation (optional)
-                    </label>
-                    <input
-                      id={`${cancelDialogId}-reason`}
-                      type="text"
-                      value={cancelReason}
-                      onChange={(e) => setCancelReason(e.target.value)}
-                      placeholder="e.g. Change of plans, illness"
-                      maxLength={200}
-                      className="mt-2 w-full border-0 border-b border-line bg-transparent px-0 py-2.5 text-body text-text placeholder:text-text/40 focus:border-primary focus:outline-none"
-                    />
-                  </div>
+                  {/* Optional reason (only when the cancellation is completed online) */}
+                  {cancelPolicy.selfServe ? (
+                    <div className="mt-6">
+                      <label
+                        htmlFor={`${cancelDialogId}-reason`}
+                        className="block text-label font-medium uppercase tracking-eyebrow text-text/75"
+                      >
+                        Reason for cancellation (optional)
+                      </label>
+                      <input
+                        id={`${cancelDialogId}-reason`}
+                        type="text"
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                        placeholder="e.g. Change of plans, illness"
+                        maxLength={200}
+                        className="mt-2 w-full border-0 border-b border-line bg-transparent px-0 py-2.5 text-body text-text placeholder:text-text/40 focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                  ) : null}
 
                   {cancelError ? (
                     <p role="alert" className="mt-4 border-l-2 border-terracotta pl-4 text-fine text-terracotta">
@@ -505,14 +503,23 @@ export function BookingActions({
                     Keep booking
                   </button>
 
-                  <button
-                    type="button"
-                    disabled={cancelling}
-                    onClick={handleConfirmCancel}
-                    className="inline-flex items-center justify-center rounded-full bg-terracotta px-6 py-3 text-action font-medium uppercase tracking-eyebrow text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                  >
-                    {cancelling ? "Cancelling…" : "Confirm cancellation"}
-                  </button>
+                  {cancelPolicy.selfServe ? (
+                    <button
+                      type="button"
+                      disabled={cancelling}
+                      onClick={handleConfirmCancel}
+                      className="inline-flex items-center justify-center rounded-full bg-terracotta px-6 py-3 text-action font-medium uppercase tracking-eyebrow text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                    >
+                      {cancelling ? "Cancelling…" : "Confirm cancellation"}
+                    </button>
+                  ) : (
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-action font-medium uppercase tracking-eyebrow text-white transition-opacity hover:opacity-90"
+                    >
+                      Contact our team
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>,
@@ -577,14 +584,6 @@ export function BookingActions({
                       {sessionLine.venueName ? ` · ${sessionLine.venueName}` : ""}
                     </p>
                   </div>
-
-                  {/* Policy note */}
-                  {hoursUntil >= 24 && hoursUntil < 48 ? (
-                    <p className="mt-4 text-fine text-text/80 bg-sage/30 p-3 rounded-lg border border-line/50">
-                      <span className="font-medium text-primary">Notice window:</span> We kindly ask for 48 hours&apos;
-                      notice, but as your session is more than 24 hours away, rescheduling is free and eligible.
-                    </p>
-                  ) : null}
 
                   {/* Available alternative dates */}
                   <div className="mt-6">

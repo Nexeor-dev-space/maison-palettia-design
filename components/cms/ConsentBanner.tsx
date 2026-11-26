@@ -108,7 +108,7 @@ export function ConsentBanner({
       <p className="text-fine">
         {consent.bannerText}{" "}
         <Link href={consent.policyHref} className="underline underline-offset-2 hover:text-primary">
-          Privacy policy
+          {consent.policyHref.includes("privacy") ? "Privacy policy" : "Cookie policy"}
         </Link>
       </p>
       <div className="mt-4 flex gap-3">

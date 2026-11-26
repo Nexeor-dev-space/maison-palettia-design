@@ -149,6 +149,7 @@ export default async function BookSessionPage({ params }: { params: Promise<{ sl
     requireTerms: settings.requireTerms,
     consents: settings.consents,
     captureNote: settings.captureNote,
+    cancellationSummary: settings.cancellationSummary,
     terms: gate.terms,
   };
 

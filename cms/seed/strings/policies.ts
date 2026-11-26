@@ -1,114 +1,341 @@
 import type { PolicySeed } from "../types";
 
 /**
- * The eight studio policies, from lib/policies.ts POLICIES, sections and
- * blocks 1:1 (the policy prose is the client's own document — never
- * paraphrased; docs/policy-content-audit.md). Age tables carry `source`
- * ("diy" for DIY_AGE_GUIDANCE, "workshop" for WORKSHOP_AGE_GUIDANCE — SPEC
- * §F.5) AND the rows exactly as printed today, so a renderer that reads
- * the rows prints the same table, in the same order and wording, as the
- * code did.
+ * The published studio policies, in order, as they stand in the CMS since the
+ * legal pack of 27 November 2026 (lib/policies.ts POLICIES holds the same
+ * wording as the code fallback). Age tables carry `source` ("diy" reads
+ * DIY_AGE_GUIDANCE, "workshop" WORKSHOP_AGE_GUIDANCE — SPEC §F.5) and the
+ * rows as printed, so a renderer that reads the rows prints the same table.
+ * The withdrawn Cancellation & Rescheduling, Refund & Exchange and Safety &
+ * Children policies are not seeded: their addresses redirect to the new ones.
  */
 
 export const POLICIES: PolicySeed[] = [
   {
-    title: "General Customer Policy", // lib/policies.ts:164
-    navLabel: "General customer policy", // lib/policies.ts:165
-    slug: "general-customer-policy", // lib/policies.ts:163
-    summary: "What applies to every visit, whatever you have come to make.", // lib/policies.ts:166
+    title: "Terms & Conditions",
+    navLabel: "Terms & Conditions",
+    slug: "terms-and-conditions",
+    summary: "The agreement between you and Maison Palettia when you use our website, book an experience or buy from us.",
+    footerGroup: "legal",
+    requiresCheckoutConsent: true,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "A space for everyone", // lib/policies.ts:169
+        heading: "About these terms",
+        blocks: [
+          { blockType: "text", body: "Welcome to Maison Palettia. These Terms & Conditions govern your use of our website (maisonpalettia.com), your bookings and purchases, and your participation in our creative experiences, whether you book online, through an approved booking platform or at our studio." },
+          { blockType: "text", body: "By using our website, making a booking or buying any product or service from Maison Palettia, you agree to these Terms & Conditions and to the policies they refer to. Please read them before you pay. If you do not agree with them, please do not book or buy from us." },
+          { blockType: "text", body: "In these terms, \"Maison Palettia\", \"we\", \"us\" and \"our\" mean Maison Palettia Events L.L.C., and \"you\" means the person using our website, making a booking or buying from us." },
+        ],
+      },
+      {
+        heading: "Who we are",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia Events L.L.C. is a Limited Liability Company licensed by the Dubai Department of Economy and Tourism under Commercial Licence No. 1626148." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Address: Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates" },
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
+            ],
+          },
+          { blockType: "text", body: "Maison Palettia is a creative recreational space offering interactive creative activities, DIY experiences, guided workshops, craft products and related retail items. Our experiences are designed to encourage creativity, enjoyment and personal expression for individuals, families and groups." },
+        ],
+      },
+      {
+        heading: "Who can book",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:172
-            body: "Maison Palettia is a creative space designed for everyone to explore, create and enjoy.", // lib/policies.ts:173
-          },
-          {
-            blockType: "text", // lib/policies.ts:176
-            body: "By purchasing a product, participating in a DIY activity, or booking a scheduled session, customers agree to follow Maison Palettia's policies and the instructions provided by our team.", // lib/policies.ts:177
-          },
-          {
-            blockType: "text", // lib/policies.ts:180
-            body: "Customers are expected to treat the retail store, equipment, materials, staff and other guests with care and respect.", // lib/policies.ts:181
+            blockType: "list",
+            items: [
+              { text: "You must be at least 18 years old, and able to enter into a binding agreement, to make a booking or a purchase on our website." },
+              { text: "Children and young people are welcome at many of our experiences, but their places must be booked by a parent, legal guardian or another responsible adult, who accepts these terms on their behalf." },
+              { text: "If you book for other people, you confirm that you are allowed to do so and that you will share these terms, and any age or safety guidance, with everyone in your booking." },
+              { text: "You are responsible for giving us accurate and complete contact and booking details, and for checking the date, time, experience and number of participants in your booking confirmation." },
+            ],
           },
         ],
       },
       {
-        heading: "Following the instructions", // lib/policies.ts:186
+        heading: "Bookings and reservations",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:189
-            body: "Activities must be performed according to the instructions provided by Maison Palettia.", // lib/policies.ts:190
-          },
-          {
-            blockType: "text", // lib/policies.ts:193
-            body: "Some materials, tools, paints, glues, candles, glass, ceramics and other craft supplies may require additional care or supervision.", // lib/policies.ts:194
-          },
-          {
-            blockType: "text", // lib/policies.ts:197
-            body: "Maison Palettia reserves the right to stop an activity if a customer's conduct creates a safety risk or causes significant disruption to others.", // lib/policies.ts:198
-          },
-          {
-            blockType: "text", // lib/policies.ts:201
-            body: "Parents and guardians are responsible for supervising children where required.", // lib/policies.ts:202
+            blockType: "list",
+            items: [
+              { text: "Bookings may be made through our website, approved booking platforms or in person at our studio, subject to availability." },
+              { text: "When you go to payment, we hold your places for a short time while you pay and release them if the payment is not completed. An online booking is confirmed only once your payment has been successfully processed and we have sent you a booking confirmation." },
+              { text: "Session availability, durations and what is included vary by experience and are shown on each experience's page before you book." },
+              { text: "We may adjust session schedules, activities or arrangements where reasonably necessary. If a change materially affects your booking, the section \"If we cancel or change your booking\" in our Cancellation, Rescheduling & Refund Policy applies." },
+              { text: "Walk-in Create Anytime (DIY) activities do not need to be booked in advance. They are paid for and enjoyed in the studio, subject to available space and materials." },
+            ],
           },
         ],
       },
       {
-        heading: "Your belongings", // lib/policies.ts:207
+        heading: "Prices and payment",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:210
-            body: "Customers are responsible for their personal belongings while visiting Maison Palettia. We recommend that valuable or fragile personal items are not brought into the activity area.", // lib/policies.ts:211
-          },
-          {
-            blockType: "text", // lib/policies.ts:214
-            body: "Customers may not bring outside craft materials, chemicals, paints, fragrances or other supplies into the retail store without prior approval.", // lib/policies.ts:215
+            blockType: "list",
+            items: [
+              { text: "All prices are shown in UAE Dirhams (AED) and include VAT where applicable, unless we clearly state otherwise." },
+              { text: "Online payments are processed securely by our payment provider, Mamo Pay, on its own secure payment page. You can pay with Visa or Mastercard credit and debit cards, and with any other payment method shown on the Mamo Pay payment page." },
+              { text: "Your card details are entered on Mamo Pay's page and handled by Mamo Pay. Maison Palettia never receives or stores your full card number or security code. We receive only the payment status, a transaction reference and limited details such as the type of card and its last four digits." },
+              { text: "Our merchant country is the United Arab Emirates and all online transactions are processed in AED. If your card was issued outside the UAE, your bank may apply its own exchange rate or foreign transaction fees, which are outside our control." },
+              { text: "Purchases in the studio can be paid for using the payment methods available there." },
+              { text: "Please keep a copy of your booking confirmation, invoice and transaction records for your own reference." },
+            ],
           },
         ],
       },
       {
-        heading: "Food and drinks", // lib/policies.ts:220
+        heading: "Booking confirmation, e-tickets and invoices",
+        blocks: [
+          { blockType: "text", body: "As soon as your online payment is successful, we email you, at the address you gave at checkout:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "A booking confirmation with your booking reference and the details of your experience" },
+              { text: "Your e-ticket or e-tickets, each with a unique QR code that we scan when you arrive" },
+              { text: "Your invoice for the payment" },
+            ],
+          },
+          { blockType: "text", body: "You can show your e-ticket on your phone or on paper. If the email has not arrived within a few minutes, please check your spam or junk folder, then contact us and we will send it again." },
+          { blockType: "text", body: "Walk-in DIY activities and studio purchases are paid for and delivered in the studio, and you receive your receipt at the time of purchase." },
+        ],
+      },
+      {
+        heading: "Cancellation, rescheduling and refunds",
+        blocks: [
+          { blockType: "text", body: "Please contact us as early as possible if your plans change. In summary:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "With at least 24 hours' notice before your session starts, you may reschedule to another available date or receive a credit note for the full amount you paid." },
+              { text: "We do not give cash or card refunds when you cancel a booking yourself. A cancellation made with enough notice is always settled with a credit note." },
+              { text: "With less than 24 hours' notice, or if you do not attend, the booking is non-refundable and no credit note is issued." },
+              { text: "If we cancel or materially change your booking, we will offer you a new date or a credit note, and a refund to your original payment method if you do not accept either, or where UAE consumer protection law requires it. Where we choose, we may instead refund you in full straight away." },
+              { text: "Group, private and special-event bookings and promotional offers may have their own conditions, which we will tell you before you pay." },
+            ],
+          },
+          { blockType: "text", body: "The full rules are in our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, which forms part of these terms." },
+        ],
+      },
+      {
+        heading: "Late arrivals",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:223
-            body: "Food and beverages are permitted only in designated areas. Drinks should be kept away from craft materials, equipment and customer projects.", // lib/policies.ts:224
+            blockType: "list",
+            items: [
+              { text: "Please arrive about 10 minutes before your session starts." },
+              { text: "Late arrival may reduce the time you have to complete your activity, as sessions finish at their scheduled time." },
+              { text: "Where scheduling, capacity or safety requires it, we may not be able to admit customers who arrive significantly late. A booking you cannot take part in because you arrived too late is treated as a no-show." },
+              { text: "We will always make reasonable efforts to accommodate late arrivals where we can." },
+            ],
           },
         ],
       },
       {
-        heading: "Conduct", // lib/policies.ts:229
+        heading: "Activities and creative experiences",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:232
-            body: "Maison Palettia is a welcoming creative environment. We expect customers to treat our team and fellow creators with courtesy and respect. Harassment, abusive language, threatening behaviour, intentional damage or disruptive conduct will not be tolerated.", // lib/policies.ts:233
-          },
-          {
-            blockType: "text", // lib/policies.ts:236
-            body: "Maison Palettia may refuse service or ask a customer to leave where necessary to protect the safety and wellbeing of customers, staff or property.", // lib/policies.ts:237
+            blockType: "list",
+            items: [
+              { text: "Our activities are intended for recreational, creative and experiential purposes." },
+              { text: "Please follow the instructions given by Maison Palettia staff throughout your experience." },
+              { text: "Use materials, tools and equipment responsibly and only for their intended purpose." },
+              { text: "Some activities have age requirements, need additional supervision or call for specific safety precautions. These are shown on the experience's page and explained on the day." },
+              { text: "Handmade and creative work varies by nature, so individual results will differ. Minor variations in colour, texture, finish or appearance are part of handmade work and are not in themselves a defect." },
+            ],
           },
         ],
       },
       {
-        heading: "If something has not gone as expected", // lib/policies.ts:242
+        heading: "Children and parental responsibility",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:245
-            body: "We want every visit to Maison Palettia to be a positive experience. If something hasn't gone as expected, please speak with our team as soon as possible so that we have an opportunity to assist.", // lib/policies.ts:246
+            blockType: "list",
+            items: [
+              { text: "Children taking part in an activity must meet the age requirement given for that activity." },
+              { text: "Parents, guardians or accompanying adults are responsible for supervising children where supervision is required." },
+              { text: "Maison Palettia staff facilitate creative experiences. They are not childcare providers." },
+              { text: "Please tell our staff about any safety concern or assistance a child needs before the activity starts." },
+              { text: "Children must follow the safety instructions throughout their experience." },
+            ],
           },
+          { blockType: "text", body: "Age and supervision guidance for each activity is set out in our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines." },
+        ],
+      },
+      {
+        heading: "Safety and materials",
+        blocks: [
           {
-            blockType: "text", // lib/policies.ts:249
-            body: "Complaints relating to a session, product or completed project should ideally be raised at the time of the visit or within a reasonable period thereafter.", // lib/policies.ts:250
+            blockType: "list",
+            items: [
+              { text: "Some activities involve materials such as paints, wax, glass, adhesives, embellishments, tools or other creative supplies." },
+              { text: "Please follow all safety instructions and use materials responsibly." },
+              { text: "Do not misuse, remove or damage our equipment, tools, furniture or materials." },
+              { text: "Report any incident, injury, spill or damage to a member of staff immediately." },
+              { text: "Maison Palettia takes reasonable measures to provide a safe and properly managed environment." },
+            ],
+          },
+          { blockType: "text", body: "Please read our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines before your visit." },
+        ],
+      },
+      {
+        heading: "Your creations and collection",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "You are responsible for your creation during the activity, with reasonable help from our staff." },
+              { text: "Some creations need drying, curing, firing, finishing or other processing before they are ready." },
+              { text: "We will tell you when and how to collect your creation where collection applies, and we ask you to follow those instructions." },
+              { text: "We make reasonable efforts to look after creations awaiting collection." },
+            ],
+          },
+          { blockType: "text", body: "Collection periods, and what happens to creations that are not collected, are set out in Your Finished Projects at maisonpalettia.com/policies/finished-projects." },
+        ],
+      },
+      {
+        heading: "Retail products and DIY kits",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Product descriptions, availability and prices may change and are subject to availability." },
+              { text: "Use DIY kits, materials and products in line with the instructions supplied with them." },
+              { text: "Returns, exchanges and refunds of products are covered by our Retail Returns & Refund Policy at maisonpalettia.com/policies/retail-returns-and-refunds and by UAE consumer protection law." },
+            ],
           },
         ],
       },
       {
-        heading: "Changes to these policies", // lib/policies.ts:255
+        heading: "Passes, gift cards, vouchers and credit notes",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:258
-            body: "Maison Palettia may update its policies from time to time. The applicable policy will be the policy in effect at the time of the booking or purchase.", // lib/policies.ts:259
+            blockType: "list",
+            items: [
+              { text: "Passes, gift cards, vouchers, promotional codes and credit notes are subject to the terms stated when they are bought or issued, including their validity period and any restrictions." },
+              { text: "They can be redeemed only against bookings or purchases at Maison Palettia, subject to availability, and only within their validity period." },
+              { text: "A credit note is linked to the email address of the booking it was issued for, and each credit note can be used once." },
+              { text: "They cannot be exchanged for cash unless UAE law requires it." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Pricing and description errors",
+        blocks: [
+          { blockType: "text", body: "We take care to make sure that prices and descriptions on our website are accurate. If we find an obvious error in the price or description of something you have booked or bought, we will contact you as soon as possible and let you choose between continuing at the correct price or cancelling for a full refund to your original payment method. We are not obliged to provide a booking or product at an obviously incorrect price." },
+        ],
+      },
+      {
+        heading: "Events beyond our control",
+        blocks: [
+          { blockType: "text", body: "We are not responsible for a delay or failure to provide a booking that is caused by events beyond our reasonable control, such as severe weather, power or utility failures, public health measures, instructions from the authorities or the closure of a venue." },
+          { blockType: "text", body: "If this happens, we will tell you as soon as we can and treat your booking as cancelled or changed by us, so you will be offered a new date, a credit note or a refund as described in our Cancellation, Rescheduling & Refund Policy." },
+        ],
+      },
+      {
+        heading: "Photography and media",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia may take photographs or videos of its premises, activities or events for promotional purposes." },
+          { blockType: "text", body: "Identifiable images of customers are used for promotional or marketing purposes only with appropriate consent and in line with applicable privacy requirements. We always ask a parent or guardian before using an identifiable image of a child." },
+          { blockType: "text", body: "Please contact us with any photography or media concern. See also our Photography & Media policy at maisonpalettia.com/policies/photography-and-media and our Privacy Policy at maisonpalettia.com/policies/privacy-policy." },
+        ],
+      },
+      {
+        heading: "Using our website",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Please use our website only for lawful purposes, such as finding out about our experiences, booking and managing your bookings." },
+              { text: "Do not try to gain unauthorised access to the website or its systems, introduce malicious code, or interfere with how the website works." },
+              { text: "We try to keep the website available and accurate, but we cannot guarantee that it will always be uninterrupted or free from errors." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Website content and intellectual property",
+        blocks: [
+          { blockType: "text", body: "All website content, including branding, artwork, graphics, text, images, designs and other materials, is owned by or licensed to Maison Palettia, unless stated otherwise." },
+          { blockType: "text", body: "Content may not be reproduced, distributed, modified or used commercially without our prior written permission. You may share links to our pages and keep copies of your own tickets and invoices for personal use." },
+        ],
+      },
+      {
+        heading: "Limitation of liability",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia shall take reasonable measures to provide its experiences, products and services in a safe and professional manner." },
+          { blockType: "text", body: "Customers are expected to exercise reasonable care, follow instructions and use materials and equipment responsibly." },
+          { blockType: "text", body: "Nothing in these Terms & Conditions shall exclude or limit any liability that cannot legally be excluded or limited under applicable UAE laws." },
+        ],
+      },
+      {
+        heading: "Complaints",
+        blocks: [
+          { blockType: "text", body: "We want every visit to be a good one. If something has not gone as expected, please tell a member of our team during your visit so that we can try to put it right straight away." },
+          { blockType: "text", body: "Otherwise, email us at info@maisonpalettia.com or call +971 50 474 7762 with your booking reference or proof of purchase and a short description of the problem. We aim to respond within 2 working days, and to resolve every complaint fairly and as quickly as we can." },
+          { blockType: "text", body: "This does not affect your right to contact the relevant UAE consumer protection authority." },
+        ],
+      },
+      {
+        heading: "Sanctions",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia will not trade with, or provide any services or products to, OFAC-sanctioned countries or persons, or any other person, entity or country subject to sanctions, in accordance with the laws of the United Arab Emirates and the requirements of our payment providers." },
+          { blockType: "text", body: "We may refuse or cancel a booking or order, and refund any payment received, where we are required to do so." },
+        ],
+      },
+      {
+        heading: "Our other policies",
+        blocks: [
+          { blockType: "text", body: "These policies form part of these Terms & Conditions:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "Cancellation, Rescheduling & Refund Policy: maisonpalettia.com/policies/cancellation-rescheduling-and-refunds" },
+              { text: "Privacy Policy: maisonpalettia.com/policies/privacy-policy" },
+              { text: "Cookie Policy: maisonpalettia.com/policies/cookie-policy" },
+              { text: "Customer Safety & Activity Guidelines: maisonpalettia.com/policies/safety-guidelines" },
+              { text: "Retail Returns & Refund Policy: maisonpalettia.com/policies/retail-returns-and-refunds" },
+              { text: "Service Delivery Policy: maisonpalettia.com/policies/service-delivery" },
+              { text: "Our house rules for visits, DIY experiences, scheduled workshops, finished projects and photography: maisonpalettia.com/policies" },
+            ],
+          },
+          { blockType: "text", body: "If one of them conflicts with these Terms & Conditions, these Terms & Conditions apply. Nothing in any of them limits your rights under UAE consumer protection law." },
+        ],
+      },
+      {
+        heading: "Changes to these terms",
+        blocks: [
+          { blockType: "text", body: "We may update these Terms & Conditions from time to time. The updated version will be published on this page with its new effective date. The terms that apply to a booking or purchase are the ones in effect when you made it." },
+        ],
+      },
+      {
+        heading: "Governing law and jurisdiction",
+        blocks: [
+          { blockType: "text", body: "These Terms & Conditions, and any dispute arising from them or from a booking or purchase, are governed by the laws of the United Arab Emirates as applied in the Emirate of Dubai, and are subject to the jurisdiction of the competent courts of Dubai." },
+          { blockType: "text", body: "If any part of these terms is found to be invalid or unenforceable, the rest of them remains in effect." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { blockType: "text", body: "For booking, product or policy enquiries, please contact us:" },
+          { blockType: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
+            ],
           },
         ],
       },
@@ -116,106 +343,183 @@ export const POLICIES: PolicySeed[] = [
     order: 1,
   },
   {
-    title: "DIY Experience Policy", // lib/policies.ts:279
-    navLabel: "DIY experience policy", // lib/policies.ts:280
-    slug: "diy-experience-policy", // lib/policies.ts:278
-    summary: "For Create Anytime activities, the ones with nothing to book.", // lib/policies.ts:281
+    title: "Cancellation, Rescheduling & Refund Policy",
+    navLabel: "Cancellation & Refunds",
+    slug: "cancellation-rescheduling-and-refunds",
+    summary: "What happens if your plans change, or ours do, and how credit notes and refunds work.",
+    footerGroup: "support",
+    requiresCheckoutConsent: true,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "What a DIY session is", // lib/policies.ts:284
+        heading: "About this policy",
         blocks: [
-          {
-            blockType: "text", // lib/policies.ts:287
-            body: "Create Anytime activities are DIY sessions: you choose a project when you arrive and make it at your own pace, with our team on hand. Children below the age of 10 may take part under adult supervision only.", // lib/policies.ts:288
-          },
+          { blockType: "text", body: "At Maison Palettia, we prepare materials, set up creative spaces and reserve time for every experience. This policy explains what happens if you need to cancel or reschedule a booking, what happens if we have to, and how credit notes and refunds work." },
+          { blockType: "text", body: "It forms part of our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions." },
         ],
       },
       {
-        heading: "Age guidance by activity", // lib/policies.ts:293
+        heading: "At a glance",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:296
-            body: "Age requirements and supervision requirements vary by activity. Please check the guidance for the activity you have in mind before you come.", // lib/policies.ts:297
-          },
-          {
-            blockType: "ages", // lib/policies.ts:299
-            source: "diy", // lib/policies.ts:271
-            rows: [
-              {
-                activity: "Ceramic painting", // lib/policies.ts:133
-                guidance: "5 years and over. Ages 5–10 under the close supervision of a parent.", // lib/policies.ts:133
-              },
-              {
-                activity: "Bedazzling", // lib/policies.ts:134
-                guidance: "Ages 5–10 for Mini Bedazzling. Age 11 and over for Creative Bedazzling.", // lib/policies.ts:134
-              },
-              {
-                activity: "Tote bag painting", // lib/policies.ts:135
-                guidance: "Ages 5–10 for stencils and easy painting. Age 11 and over for creative designs.", // lib/policies.ts:135
-              },
-              {
-                activity: "Glass painting", // lib/policies.ts:136
-                guidance: "Age 12 and over.", // lib/policies.ts:136
-              },
-              {
-                activity: "Mandala painting", // lib/policies.ts:137
-                guidance: "Age 12 and over.", // lib/policies.ts:136
-              },
-            ],
-          },
-        ],
-      },
-      {
-        heading: "How a DIY session runs", // lib/policies.ts:303
-        blocks: [
-          {
-            blockType: "list", // lib/policies.ts:306
+            blockType: "list",
             items: [
-              {
-                text: "DIY sessions are subject to available space, materials and retail store capacity.", // lib/policies.ts:308
-              },
-              {
-                text: "Customers select their project from the options available at the time of their visit.", // lib/policies.ts:309
-              },
-              {
-                text: "The price of a DIY session states what is included.", // lib/policies.ts:310
-              },
-              {
-                text: "Standard materials required for the selected project are included unless specifically stated otherwise.", // lib/policies.ts:311
-              },
-              {
-                text: "Additional materials, upgrades or premium items may be available for an additional charge.", // lib/policies.ts:312
-              },
-              {
-                text: "Customers are responsible for following the instructions provided by the Maison Palettia team.", // lib/policies.ts:313
-              },
-              {
-                text: "Once a project has been started, changing to a different project may be subject to an additional charge.", // lib/policies.ts:314
-              },
-              {
-                text: "Completed projects should be collected within the timeframe communicated by the team, particularly where drying, curing or firing is required.", // lib/policies.ts:315
-              },
+              { text: "24 hours' notice or more: reschedule to another available date, or receive a credit note for the full amount you paid." },
+              { text: "Less than 24 hours' notice, or a no-show: non-refundable, and no credit note is issued." },
+              { text: "Cancellations by customers are always settled with a credit note. We do not give cash or card refunds when you cancel." },
+              { text: "If we cancel or materially change your booking: a new date or a credit note, or a refund to your original payment method if neither suits you or where the law requires it." },
             ],
           },
         ],
       },
       {
-        heading: "Ceramics and glass", // lib/policies.ts:321
+        heading: "Booking confirmation",
+        blocks: [
+          { blockType: "text", body: "Your booking is confirmed once your payment has been successfully processed and we have emailed you your booking confirmation, e-tickets and invoice. These are sent straight after your payment goes through." },
+          { blockType: "text", body: "Please check the date, time, experience and number of participants as soon as you receive them, and tell us straight away if anything is wrong. These cancellation and rescheduling terms are shown before you pay, and you agree to them at checkout." },
+        ],
+      },
+      {
+        heading: "How to cancel or reschedule",
+        blocks: [
+          { blockType: "text", body: "Please contact us as early as possible, quoting your booking reference:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+            ],
+          },
+          { blockType: "text", body: "Notice is counted from the time we receive your message to the start time of your session shown on your booking confirmation, in Dubai time." },
+        ],
+      },
+      {
+        heading: "Rescheduling",
         blocks: [
           {
-            blockType: "callout", // lib/policies.ts:324
-            title: "Important for ceramics and glass", // lib/policies.ts:325
-            body: "Maison Palettia takes reasonable care when handling customer projects. However, handmade and painted items may occasionally experience minor imperfections, colour variations, breakage, cracking or other changes during drying, curing or firing. We will do our best to handle every project with care but cannot guarantee that every finished piece will be completely free from such imperfections.", // lib/policies.ts:326
+            blockType: "list",
+            items: [
+              { text: "With at least 24 hours' notice before your session starts, you may move your booking to another available date or time, at no extra charge." },
+              { text: "Rescheduling is subject to availability. If no suitable date is available, we will issue you a credit note for the full amount you paid instead." },
+              { text: "With less than 24 hours' notice, a booking cannot be rescheduled." },
+            ],
           },
         ],
       },
       {
-        heading: "Creative results may vary", // lib/policies.ts:331
+        heading: "Cancelling your booking",
         blocks: [
           {
-            blockType: "callout", // lib/policies.ts:334
-            title: "Every creation is uniquely yours", // lib/policies.ts:335
-            body: "Because Maison Palettia is a hands-on creative experience, finished projects may vary from examples shown in-store or online. Differences in colour, placement, technique, materials and individual skill are part of the creative process.", // lib/policies.ts:336
+            blockType: "list",
+            items: [
+              { text: "With at least 24 hours' notice before your session starts, you will receive a credit note for the full amount you paid for the cancelled booking. Contact us as described above and our team will cancel the booking and issue your credit note." },
+              { text: "We do not give cash or card refunds for cancellations made by customers. A cancellation made in good time is always settled with a credit note." },
+              { text: "With less than 24 hours' notice, the booking is non-refundable and no credit note is issued." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Late arrivals and no-shows",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Please arrive about 10 minutes before your session starts." },
+              { text: "If you arrive late, your activity time may be shorter, as sessions finish at their scheduled time, and we cannot always repeat the part you missed." },
+              { text: "If you do not attend without having told us at least 24 hours before the session, or arrive too late to take part, the booking is treated as a no-show." },
+              { text: "No-shows are non-refundable and no credit note is issued." },
+            ],
+          },
+          { blockType: "text", body: "If something serious and unexpected stops you from attending, please contact us. Any exception is at our discretion." },
+        ],
+      },
+      {
+        heading: "If we cancel or change your booking",
+        blocks: [
+          { blockType: "text", body: "Occasionally we may need to cancel or materially change a session, for example because of an instructor's illness, a problem at the venue or events beyond our control. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "A new date or time, subject to availability; or" },
+              { text: "A credit note for the full amount you paid." },
+            ],
+          },
+          { blockType: "text", body: "If you do not wish to accept either option, or where UAE consumer protection law requires it, we will refund the full amount you paid to your original payment method." },
+          { blockType: "text", body: "Where we choose, for example when a whole session is cancelled, we may instead refund the full amount you paid to your original payment method straight away, and we will tell you so in our message." },
+        ],
+      },
+      {
+        heading: "How credit notes work",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Our team issues your credit note for the full amount you paid for the cancelled booking and sends it to the email address on your booking, with a unique code and its validity period." },
+              { text: "For a booking of more than one place, the amount is split into one credit note per place, each with its own code." },
+              { text: "You can redeem a credit note against a future booking or purchase at Maison Palettia, online by entering its code at checkout or in the studio, within the validity period stated on it." },
+              { text: "Each credit note can be used once, and one code can be used per booking. If the new booking costs more, you pay the difference; if it costs less, the unused balance is not carried over." },
+              { text: "It is linked to the email address of the original booking." },
+              { text: "It is not exchangeable for cash unless UAE law requires it. A credit note not used by the end of its validity period expires." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "When a refund applies",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Refunds apply where we cancel or materially change a booking and you do not accept a new date or a credit note, or we choose to refund you straight away, where we make a pricing error, or where UAE consumer protection law requires a refund." },
+              { text: "Refunds are made in AED to the original payment method, through Mamo Pay for online payments. We cannot refund to a different card or account." },
+              { text: "We process approved refunds as soon as possible. Depending on your bank or card issuer, a refund can take 5 to 10 working days to appear on your statement." },
+              { text: "We are not responsible for exchange-rate differences or fees charged by your bank." },
+              { text: "When a refund is processed, we email you a confirmation, with a document recording the refund for your records. That document is an accounting record of the refund, not store credit." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Create Anytime (DIY) walk-ins",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Walk-in DIY activities are paid for in the studio." },
+              { text: "Once materials have been prepared or your project has been started, a DIY activity is non-refundable." },
+              { text: "Changing to a different project after you have started may be subject to an additional charge." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Special events, private and group bookings",
+        blocks: [
+          { blockType: "text", body: "Private events, corporate bookings, parties, group bookings, special events and promotional offers may carry their own conditions, such as deposits, minimum numbers or different notice periods. We will tell you those conditions before you confirm and pay, and where they differ from this policy, the conditions given for that booking apply." },
+        ],
+      },
+      {
+        heading: "Your statutory rights",
+        blocks: [
+          { blockType: "text", body: "Nothing in this policy limits any right you have under UAE consumer protection law." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { blockType: "text", body: "To cancel or reschedule, or with any question about this policy, please contact us:" },
+          { blockType: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
+            ],
           },
         ],
       },
@@ -223,142 +527,212 @@ export const POLICIES: PolicySeed[] = [
     order: 2,
   },
   {
-    title: "Scheduled Workshop Policy", // lib/policies.ts:357
-    navLabel: "Scheduled workshop policy", // lib/policies.ts:358
-    slug: "scheduled-workshop-policy", // lib/policies.ts:356
-    summary: "For Create Together sessions, the guided ones you book onto a date.", // lib/policies.ts:359
+    title: "Privacy Policy",
+    navLabel: "Privacy Policy",
+    slug: "privacy-policy",
+    summary: "What we collect when you browse or book, why, who sees it, and how to change or delete it.",
+    footerGroup: "legal",
+    requiresCheckoutConsent: true,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "The workshops", // lib/policies.ts:362
+        heading: "Who we are",
         blocks: [
+          { blockType: "text", body: "Maison Palettia respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, share and protect personal information when you visit our website, make a booking, buy a product or otherwise deal with us." },
+          { blockType: "text", body: "Maison Palettia Events L.L.C. (\"Maison Palettia\", \"we\", \"us\"), a Limited Liability Company licensed by the Dubai Department of Economy and Tourism under Commercial Licence No. 1626148, runs creative art and craft experiences in Dubai, United Arab Emirates. We are the controller responsible for the personal data described in this policy." },
           {
-            blockType: "text", // lib/policies.ts:365
-            body: "Create Together sessions are guided workshops that run to a set date and time. Additional workshops will be introduced later.", // lib/policies.ts:366
-          },
-          {
-            blockType: "ages", // lib/policies.ts:368
-            source: "workshop", // lib/policies.ts:366
-            rows: [
-              {
-                activity: "Candle making", // lib/policies.ts:405
-                guidance: "Age 14 and over.", // lib/policies.ts:148
-              },
-              {
-                activity: "Crocheting", // lib/policies.ts:149
-                guidance: "Age 14 and over.", // lib/policies.ts:148
-              },
-            ],
-          },
-        ],
-      },
-      {
-        heading: "Making a booking", // lib/policies.ts:372
-        blocks: [
-          {
-            blockType: "text", // lib/policies.ts:374
-            body: "Bookings may be made in-store, or through the Maison Palettia online booking system.", // lib/policies.ts:374
-          },
-          {
-            blockType: "text", // lib/policies.ts:374
-            body: "A booking is considered confirmed once the required payment or deposit has been received and the customer has received a booking confirmation.", // lib/policies.ts:377
-          },
-          {
-            blockType: "text", // lib/policies.ts:379
-            body: "Your confirmation will set out:", // lib/policies.ts:379
-          },
-          {
-            blockType: "list", // lib/policies.ts:381
+            blockType: "list",
             items: [
-              {
-                text: "The activity", // lib/policies.ts:383
-              },
-              {
-                text: "The date", // lib/policies.ts:384
-              },
-              {
-                text: "The start time", // lib/policies.ts:385
-              },
-              {
-                text: "The duration", // lib/policies.ts:386
-              },
-              {
-                text: "The number of participants", // lib/policies.ts:387
-              },
-              {
-                text: "The price", // lib/policies.ts:388
-              },
-              {
-                text: "Any special requirements", // lib/policies.ts:389
-              },
-              {
-                text: "Cancellation and rescheduling information", // lib/policies.ts:390
-              },
+              { text: "Address: Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates" },
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
             ],
           },
+          { blockType: "text", body: "We follow the UAE Personal Data Protection Law (Federal Decree-Law No. 45 of 2021). We also offer the rights described under \"Your rights\" to every customer, wherever they live." },
         ],
       },
       {
-        heading: "Arriving", // lib/policies.ts:396
+        heading: "Information we collect",
         blocks: [
+          { blockType: "text", body: "When you book an experience, buy a pass, or use a pass, voucher or credit note:" },
           {
-            blockType: "text", // lib/policies.ts:399
-            body: "Customers are requested to arrive 10 minutes before their scheduled session. Late arrival may reduce the customer's activity time where the session must finish at the scheduled time. For safety and operational reasons, significantly late customers may not be able to participate.", // lib/policies.ts:400
-          },
-        ],
-      },
-      {
-        heading: "Candle making", // lib/policies.ts:405
-        blocks: [
-          {
-            blockType: "text", // lib/policies.ts:408
-            body: "Candle-making involves hot wax, fragrance oils, containers and other materials that require care. Participants must follow all safety instructions provided by Maison Palettia staff.", // lib/policies.ts:409
-          },
-          {
-            blockType: "list", // lib/policies.ts:412
+            blockType: "list",
             items: [
-              {
-                text: "Children should participate only where the specific session is designed for their age group.", // lib/policies.ts:414
-              },
-              {
-                text: "Hot wax and heating equipment should be handled only by participants and staff according to the retail store safety instructions.", // lib/policies.ts:415
-              },
-              {
-                text: "Customers should not bring their own fragrance oils, wax, containers or other materials unless specifically approved.", // lib/policies.ts:416
-              },
-              {
-                text: "Finished candles should be allowed to cool and set for the recommended period before collection or use.", // lib/policies.ts:417
-              },
-              {
-                text: "Customers receive appropriate candle-burning and safety instructions with their finished product.", // lib/policies.ts:418
-              },
+              { text: "Your first and last name, email address and mobile number" },
+              { text: "What you booked: the experience, the date, how many places, and the names on the tickets" },
+              { text: "Your payment status, transaction references, invoices, refunds, credit notes and any pass balance" },
+              { text: "Notes you add to your booking, such as allergies, accessibility needs or a celebration we should know about" },
+              { text: "Whether you agreed to receive news and offers from us, and which versions of our terms and policies you agreed to at checkout" },
             ],
           },
+          { blockType: "text", body: "When you send an enquiry (private events, corporate bookings, general questions) or join a waitlist: your name, email address and phone number, and anything you tell us in your message." },
+          { blockType: "text", body: "When you sign in to see your bookings: your email address, and a record of the one-time sign-in link we email you." },
+          { blockType: "text", body: "When you buy something in the studio: the details of your purchase and, if you give them to us, your name and contact details." },
+          { blockType: "text", body: "When you visit the website: which pages you viewed, which website sent you here, your device type, your browser and your country. Your IP address is used only to create the anonymous daily code described under \"Cookies and website technologies\" and to protect the website from abuse, and is never stored in readable form." },
+          { blockType: "text", body: "We collect only the information we reasonably need to run our studio and provide our services." },
+          { blockType: "callout", title: "We never see your card", body: "Online payments are handled by Mamo Pay on its own secure payment page. Your full card number and security code never reach our systems." },
         ],
       },
       {
-        heading: "Crochet", // lib/policies.ts:424
+        heading: "How we use your information",
         blocks: [
           {
-            blockType: "list", // lib/policies.ts:427
+            blockType: "list",
             items: [
-              {
-                text: "The materials included are stated in the workshop description.", // lib/policies.ts:429
-              },
-              {
-                text: "Customers may keep the project and materials specified in the workshop description.", // lib/policies.ts:430
-              },
-              {
-                text: "If customers miss part of the workshop because of late arrival, Maison Palettia cannot guarantee that the instructor can repeat the missed portion individually.", // lib/policies.ts:431
-              },
-              {
-                text: "Workshop outcomes may vary according to individual skill level.", // lib/policies.ts:432
-              },
+              { text: "To deliver your booking. This covers confirming your place, sending your e-tickets and invoice, reminding you before your session, checking you in on the day, and handling rescheduling, cancellations, credit notes and refunds. We need this information to fulfil our agreement with you." },
+              { text: "To process payments and purchases, and to prevent fraud." },
+              { text: "To answer you. When you send an enquiry or join a waitlist, we use your details to reply and to offer you a place if one opens up." },
+              { text: "To keep proper records. UAE tax law requires us to keep invoices and payment records, and we keep records of the terms you agreed to." },
+              { text: "To keep the studio safe. We use the notes you give us about allergies, age or accessibility needs to plan your session, and we protect our customers, staff and premises." },
+              { text: "To improve our website, services and customer experience. We use visit statistics to understand which pages help people and which don't." },
+              { text: "To send news and offers, only if you said yes. We email you about new experiences and offers only if you ticked the box to receive them. Every such email has an unsubscribe link." },
+              { text: "To meet our legal, regulatory, accounting and tax obligations." },
             ],
           },
+          { blockType: "text", body: "We do not sell your personal data. We do not use it for automated decisions that have legal or similarly significant effects on you." },
+        ],
+      },
+      {
+        heading: "Payment information",
+        blocks: [
+          { blockType: "text", body: "Online payments are processed by our payment provider, Mamo Pay. You enter your card details on Mamo Pay's secure payment page, and Mamo Pay handles them under its own security and privacy practices." },
+          { blockType: "text", body: "We receive the payment status, the amount, a transaction reference and limited card details, such as the type of card, the last four digits and whether it was issued in the UAE, so that we can confirm your booking, issue your invoice and process any refund. We do not store complete card details on our systems." },
+        ],
+      },
+      {
+        heading: "Who we share it with",
+        blocks: [
+          { blockType: "text", body: "We share personal data only with the service providers that help us run the studio, and only as much as each one needs:" },
           {
-            blockType: "callout", // lib/policies.ts:436
-            title: "Designed to teach and inspire", // lib/policies.ts:437
-            body: "Our workshops are designed to teach and inspire, not to produce identical results. Every creation is unique, and that's part of the Maison Palettia experience.", // lib/policies.ts:438
+            blockType: "list",
+            items: [
+              { text: "Mamo Pay: processes online payments and refunds." },
+              { text: "Resend: delivers our emails, including booking confirmations, e-tickets, invoices, reminders and, for those who opted in, news and offers." },
+              { text: "Our website hosting and cloud storage providers: run the website and store its database and files securely on our behalf." },
+              { text: "Google, Meta and Microsoft: only if you accept the cookie banner (see \"Cookies and website technologies\")." },
+              { text: "WhatsApp (Meta): if you choose to contact us on WhatsApp, that conversation is handled under WhatsApp's terms." },
+              { text: "Professional advisers, such as accountants, auditors and lawyers, where we need their advice." },
+            ],
+          },
+          { blockType: "text", body: "We may also share information when the law requires it, for example with UAE tax or other authorities, or to protect our customers, staff or studio. Any sharing is limited to what is reasonably necessary and handled in line with applicable data protection requirements." },
+        ],
+      },
+      {
+        heading: "Marketing communications",
+        blocks: [
+          { blockType: "text", body: "We send news, offers and updates about new experiences and events only where you have agreed to receive them and the law allows. You can opt out at any time with the unsubscribe link in any marketing email, or by contacting us." },
+          { blockType: "text", body: "We will still send you messages about your bookings and purchases, such as confirmations, e-tickets, reminders and changes, because they are part of the service you asked for." },
+        ],
+      },
+      {
+        heading: "Cookies and website technologies",
+        blocks: [
+          { blockType: "text", body: "Our own visitor statistics use no cookies. We count visits on our own server. We never store your IP address or browser details. Instead, they are turned into a one-way code that changes every day, so a visitor cannot be followed from one day to the next. If your browser sends a \"Do Not Track\" or Global Privacy Control signal, we respect it." },
+          { blockType: "text", body: "Optional analytics and advertising tools load only if you accept them in the cookie banner. Depending on the tools we use at the time, these may include:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "Google Analytics 4 (Google): measures how visitors use the site. Sets cookies such as _ga." },
+              { text: "Meta Pixel (Meta Platforms): measures how our Instagram and Facebook adverts perform. Sets cookies such as _fbp." },
+              { text: "Microsoft Clarity (Microsoft): records anonymised page interactions such as clicks and scrolling, so we can find confusing parts of the site. Sets cookies such as _clck." },
+            ],
+          },
+          { blockType: "text", body: "These providers handle the data under their own privacy policies. If you decline, none of them load, and they never load on our checkout, payment and booking pages. To change your choice, clear this website's cookies and site data in your browser settings, and the banner will ask you again." },
+          { blockType: "text", body: "Your browser also stores:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "Your basket and the checkout details you've typed. These are kept only while the tab is open and cleared when you close it." },
+              { text: "Your cookie banner choice, so we don't ask you again." },
+              { text: "If you sign in to see your bookings, a secure sign-in cookie that keeps you signed in for up to 30 days." },
+            ],
+          },
+          { blockType: "text", body: "Full details are in our Cookie Policy at maisonpalettia.com/policies/cookie-policy." },
+        ],
+      },
+      {
+        heading: "Keeping it safe",
+        blocks: [
+          { blockType: "text", body: "We use reasonable technical and organisational measures to protect your personal information. Access to customer data is limited to the staff who need it, and every account is password-protected. Tickets carry signed QR codes, so they can't be forged. IP addresses are stored only as one-way codes, never in readable form." },
+          { blockType: "text", body: "No internet transmission or electronic storage system can be guaranteed to be completely secure, but if we ever learn of a breach that affects you, we'll tell you and the relevant authorities as the law requires." },
+        ],
+      },
+      {
+        heading: "How long we keep it",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Bookings, invoices and payment records: at least five years, as UAE tax law requires." },
+              { text: "Copies of the emails we send you: cleared after 30 days. We keep a record that each email was sent with your booking." },
+              { text: "Detailed website visit records: 90 days. After that we keep only anonymous daily totals." },
+              { text: "Enquiries and waitlist requests: for as long as we need them to answer you, arrange your booking or event and deal with any follow-up." },
+              { text: "Your marketing preference: until you unsubscribe or ask us to delete it." },
+            ],
+          },
+          { blockType: "text", body: "Otherwise, we keep personal information only for as long as reasonably necessary for the purposes in this policy, including customer support, legal compliance and accounting." },
+        ],
+      },
+      {
+        heading: "Your rights",
+        blocks: [
+          { blockType: "text", body: "Subject to applicable law, you can ask us to:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "Give you a copy of the personal data we hold about you, and information about how we use it" },
+              { text: "Correct anything that's wrong or incomplete" },
+              { text: "Delete your data, unless we're legally required to keep it (for example, invoices)" },
+              { text: "Stop or limit how we use it, or object to a particular use" },
+              { text: "Send your data to you, or to another organisation, in a common format" },
+              { text: "Stop marketing emails. You can also use the unsubscribe link in any of them." },
+              { text: "Withdraw consent you've given, such as for cookies or marketing. Withdrawing consent doesn't affect anything we did before." },
+            ],
+          },
+          { blockType: "text", body: "To use any of these rights, contact us using the details below. We may ask you to confirm your identity first, and we'll reply within 30 days." },
+        ],
+      },
+      {
+        heading: "Children",
+        blocks: [
+          { blockType: "text", body: "Many of our experiences welcome children, subject to their age requirements and supervision by a parent or guardian, but bookings must be made by a parent, guardian or other adult. If a child's name appears on a ticket, it is because the booking adult gave it to us. We use it only to run that session." },
+          { blockType: "text", body: "We do not knowingly collect personal data directly from anyone under 18, and we handle children's information in line with UAE data protection requirements. Photographs taken at our experiences are covered separately in our Photography & Media policy at maisonpalettia.com/policies/photography-and-media." },
+        ],
+      },
+      {
+        heading: "Third-party websites",
+        blocks: [
+          { blockType: "text", body: "Our website links to services run by others, such as Mamo Pay's payment page, WhatsApp, Instagram and other social networks, and online maps. We are not responsible for their privacy practices, so please read their own policies when you use them." },
+        ],
+      },
+      {
+        heading: "Data stored outside the UAE",
+        blocks: [
+          { blockType: "text", body: "Some of the providers above process or store data outside the United Arab Emirates. When that happens, we rely on the safeguards the PDPL allows, such as the provider's contractual data protection commitments, so that your data stays protected to the standard this policy describes." },
+        ],
+      },
+      {
+        heading: "Changes to this policy",
+        blocks: [
+          { blockType: "text", body: "We may update this policy when our services or the law change. The effective date on this page shows when it last changed. If we make a significant change, we'll show a notice on the website or email customers who have booked with us." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { blockType: "text", body: "For questions about this policy or your data, or to use any of your rights, please contact us:" },
+          { blockType: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
+            ],
           },
         ],
       },
@@ -366,35 +740,112 @@ export const POLICIES: PolicySeed[] = [
     order: 3,
   },
   {
-    title: "Cancellation & Rescheduling", // lib/policies.ts:475
-    navLabel: "Cancellation & rescheduling", // lib/policies.ts:476
-    slug: "cancellation-and-rescheduling", // lib/policies.ts:474
-    summary: "The notice we ask for, and what happens if plans change.", // lib/policies.ts:477
+    title: "Cookie Policy",
+    navLabel: "Cookie Policy",
+    slug: "cookie-policy",
+    summary: "The cookies and browser storage our website uses, why we use them, and how you can control them.",
+    footerGroup: "legal",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "If your plans change", // lib/policies.ts:480
+        heading: "What cookies are",
         blocks: [
+          { blockType: "text", body: "Cookies are small text files that a website saves on your device. Websites can also keep small amounts of information in your browser's own storage, known as local storage and session storage. This policy covers both, and calls them cookies and similar technologies." },
+          { blockType: "text", body: "It explains what our website at maisonpalettia.com uses and how you can control it. Please read it together with our Privacy Policy at maisonpalettia.com/policies/privacy-policy." },
+          { blockType: "callout", title: "Nothing optional without your say-so", body: "We use only what the website needs to work, and our own visitor statistics use no cookies at all. Optional analytics tools load only after you accept them, and never on our checkout, payment and booking pages." },
+        ],
+      },
+      {
+        heading: "Strictly necessary",
+        blocks: [
+          { blockType: "text", body: "These make the website work. They do not track you, and they are not affected by the cookie banner." },
           {
-            blockType: "text", // lib/policies.ts:483
-            body: "We understand that plans can change. We kindly ask customers to provide at least 48 hours' notice if they need to cancel or reschedule. Cancellations or rescheduling requests made less than 24 hours before the session, as well as no-shows, may be treated as non-refundable. Maison Palettia may make reasonable exceptions in genuine circumstances at management discretion.", // lib/policies.ts:484
+            blockType: "list",
+            items: [
+              { text: "Your booking basket and the details you type at checkout (session storage). Kept only while the tab is open and cleared when you close it." },
+              { text: "The email address you used to look up a booking on the Check a booking page (session storage), for that tab only." },
+              { text: "Your cookie choice (local storage, mp_consent). Remembers whether you accepted or declined optional analytics, so we do not ask on every page. Kept until you clear this website's data in your browser." },
+              { text: "Booking sign-in (cookie __Host-mp_session). Set only if you sign in from an emailed link to see your bookings. Keeps you signed in for up to 30 days, is sent only over a secure connection and cannot be read by scripts on the page." },
+              { text: "Staff sign-in and preview (cookies such as payload-token). Used only by Maison Palettia staff who sign in to manage the website." },
+            ],
           },
         ],
       },
       {
-        heading: "Rescheduling", // lib/policies.ts:489
+        heading: "Preferences",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:492
-            body: "Where notice is given in good time, rescheduling is free and subject to availability. Customers may instead request a store credit note.", // lib/policies.ts:493
+            blockType: "list",
+            items: [
+              { text: "Background music (session storage). Remembers, for the current tab only, whether you paused the music and where the track had reached, so it does not restart on every page." },
+            ],
           },
         ],
       },
       {
-        heading: "Late cancellations and no-shows", // lib/policies.ts:498
+        heading: "Our own visitor statistics (no cookies)",
+        blocks: [
+          { blockType: "text", body: "We count visits on our own server, without cookies and without storing anything on your device. Your IP address and browser details are turned into a one-way code that changes every day, so a visitor cannot be followed from one day to the next, and they are never stored in readable form." },
+          { blockType: "text", body: "We record which page was viewed, the website that sent you, your device type, browser and country. Detailed records are kept for 90 days, after which only anonymous daily totals remain. Visits to our checkout, payment and booking-status pages are never recorded. On a booking page we count only that the page was viewed, never anything you type into it. If your browser sends a \"Do Not Track\" or Global Privacy Control signal, your visit is not counted." },
+        ],
+      },
+      {
+        heading: "Optional analytics and marketing",
+        blocks: [
+          { blockType: "text", body: "These load only if you click Accept in the cookie banner. Depending on the tools we use at the time, they may include:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "Google Analytics 4 (Google): measures how visitors use the site. Sets cookies such as _ga and _ga_ followed by an ID, kept for up to 2 years." },
+              { text: "Microsoft Clarity (Microsoft): records anonymised page interactions such as clicks and scrolling, so we can find confusing parts of the site. Sets cookies such as _clck (up to 1 year) and _clsk (1 day)." },
+              { text: "Meta Pixel (Meta Platforms): measures how our Instagram and Facebook adverts perform. Sets cookies such as _fbp, kept for up to 3 months." },
+            ],
+          },
+          { blockType: "text", body: "These providers handle the data under their own privacy policies. If you click Decline, or do not answer, none of them load. They never load on our checkout, payment and booking pages, even if you accepted." },
+        ],
+      },
+      {
+        heading: "Changing your choice",
+        blocks: [
+          { blockType: "text", body: "When the banner first appears you can choose Accept or Decline. Both are equally easy, and the website works fully either way." },
+          { blockType: "text", body: "To change your mind later, clear this website's cookies and site data in your browser settings. The banner will appear again on your next visit and you can choose afresh. Clearing site data also removes any cookies the optional tools had set on our website." },
+          { blockType: "text", body: "You can also block or delete cookies through your browser settings, or use private browsing. If you block strictly necessary storage, parts of the website, such as booking and checkout, may not work." },
+        ],
+      },
+      {
+        heading: "Third-party services",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:501
-            body: "A booking cancelled less than 24 hours before the session, or missed without notice, becomes non-refundable and non-transferable.", // lib/policies.ts:502
+            blockType: "list",
+            items: [
+              { text: "When you pay online, you leave our website for Mamo Pay's secure payment page. Mamo Pay uses its own cookies to process your payment securely and prevent fraud, under its own policies." },
+              { text: "Our location maps are drawn from map images supplied by OpenFreeMap, which your browser requests directly, so OpenFreeMap receives your IP address to deliver them." },
+              { text: "Links to WhatsApp, Instagram, Facebook, TikTok, Pinterest, LinkedIn and Google Maps take you to those services, which use their own cookies under their own policies." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Changes to this policy",
+        blocks: [
+          { blockType: "text", body: "We will update this policy if we change the cookies or tools our website uses. The effective date on this page shows when it last changed." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { blockType: "text", body: "For any question about cookies or this policy, please contact us:" },
+          { blockType: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
+            ],
           },
         ],
       },
@@ -402,21 +853,105 @@ export const POLICIES: PolicySeed[] = [
     order: 4,
   },
   {
-    title: "Refund & Exchange", // lib/policies.ts:523
-    navLabel: "Refund & exchange", // lib/policies.ts:524
-    slug: "refund-and-exchange", // lib/policies.ts:522
-    summary: "Where a session can be refunded, and where it cannot.", // lib/policies.ts:525
+    title: "Retail Returns & Refund Policy",
+    navLabel: "Retail Returns",
+    slug: "retail-returns-and-refunds",
+    summary: "Returns, exchanges and refunds for products bought from our studio, including craft kits and gifts.",
+    footerGroup: "support",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "Creative sessions", // lib/policies.ts:528
+        heading: "What this policy covers",
+        blocks: [
+          { blockType: "text", body: "This policy applies to retail purchases from Maison Palettia, including craft kits, handmade gifts, souvenirs, candles, home décor, DIY materials and other products bought in our studio." },
+          { blockType: "text", body: "Bookings for experiences and workshops are covered by our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds." },
+        ],
+      },
+      {
+        heading: "Before you buy",
+        blocks: [
+          { blockType: "text", body: "Products are subject to availability. Please inspect products and read their descriptions before you buy, and ask our team if you have any question about a product." },
+        ],
+      },
+      {
+        heading: "Damaged or defective products",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:531
-            body: "DIY activities are generally non-refundable once materials have been prepared or the project has been started.", // lib/policies.ts:532
+            blockType: "list",
+            items: [
+              { text: "If a product is damaged, defective or not as described, please contact us as soon as reasonably possible after you notice the problem." },
+              { text: "Bring the product to the studio, or send us clear photos of the problem, together with your proof of purchase." },
+              { text: "Once we have assessed it, we will provide an appropriate remedy in line with the UAE Consumer Protection Law (Federal Law No. 15 of 2020), such as a repair, a replacement, an exchange or a refund to your original payment method, depending on the problem and what the law requires." },
+              { text: "For a damaged or defective product, you will never be asked to accept a credit note in place of a remedy you are entitled to by law." },
+            ],
           },
+        ],
+      },
+      {
+        heading: "Returns and exchanges for a change of mind",
+        blocks: [
           {
-            blockType: "text", // lib/policies.ts:535
-            body: "For scheduled workshops, the Cancellation & Rescheduling policy applies.", // lib/policies.ts:536
+            blockType: "list",
+            items: [
+              { text: "We are not obliged to accept returns of products that are not damaged or defective, but we will consider a change-of-mind return or exchange if you contact us as soon as possible after your purchase." },
+              { text: "The product must be unused and in its original condition and packaging, and returned with your proof of purchase." },
+              { text: "Accepted change-of-mind returns are settled with an exchange or a credit note for the amount you paid. They are not refunded in cash or to your card." },
+              { text: "Personalised or custom-made items, products that have been used, DIY kits and materials that have been opened, candles that have been lit, and items sold as final sale cannot be returned for a change of mind." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Proof of purchase",
+        blocks: [
+          { blockType: "text", body: "We may ask for your receipt, invoice or other proof of purchase before we process a return, exchange or refund. Without it, we may not be able to help." },
+        ],
+      },
+      {
+        heading: "Handmade and creative products",
+        blocks: [
+          { blockType: "text", body: "Handmade and creative products vary by nature. Minor variations in colour, texture, finish or appearance are part of their character and are not in themselves a defect." },
+        ],
+      },
+      {
+        heading: "DIY kits and materials",
+        blocks: [
+          { blockType: "text", body: "Please use DIY kits and materials only as intended, following the instructions and safety guidance supplied with them. The finished result depends on your own work, so a result that differs from the example shown is not a defect." },
+        ],
+      },
+      {
+        heading: "Refunds and credit notes",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Where a refund is due, it is made in AED to the original payment method. Card refunds can take 5 to 10 working days to appear on your statement, depending on your bank." },
+              { text: "A credit note can be redeemed against future bookings or purchases at Maison Palettia within the validity period stated on it, and is not exchangeable for cash unless UAE law requires it." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Your statutory rights",
+        blocks: [
+          { blockType: "text", body: "Nothing in this policy limits your rights under the UAE Consumer Protection Law (Federal Law No. 15 of 2020) and its implementing regulations." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { blockType: "text", body: "For any question about a product, a return or a refund, please contact us:" },
+          { blockType: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
+            ],
           },
         ],
       },
@@ -424,86 +959,131 @@ export const POLICIES: PolicySeed[] = [
     order: 5,
   },
   {
-    title: "Safety & Children", // lib/policies.ts:549
-    navLabel: "Safety & children", // lib/policies.ts:550
-    slug: "safety-and-children", // lib/policies.ts:548
-    summary: "How we keep the studio safe, and what supervision each activity needs.", // lib/policies.ts:551
+    title: "Customer Safety & Activity Guidelines",
+    navLabel: "Safety Guidelines",
+    slug: "safety-guidelines",
+    summary: "How we keep the studio safe, what we ask of every participant, and the age and supervision each activity needs.",
+    footerGroup: "support",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "Safety comes first", // lib/policies.ts:554
+        heading: "Safety comes first",
         blocks: [
-          {
-            blockType: "text", // lib/policies.ts:557
-            body: "Safety comes first at Maison Palettia. Customers must follow all instructions provided by Maison Palettia staff. Running, unsafe use of equipment, intentional misuse of materials, or behaviour that could endanger another customer or team member is not permitted.", // lib/policies.ts:558
-          },
-          {
-            blockType: "text", // lib/policies.ts:561
-            body: "Maison Palettia reserves the right to stop participation where a customer does not follow reasonable safety instructions.", // lib/policies.ts:562
-          },
+          { blockType: "text", body: "Maison Palettia is committed to providing a welcoming, enjoyable and safe creative environment. Our activities are for recreational and creative enjoyment, and we ask every participant to follow staff instructions and use materials and equipment responsibly." },
+          { blockType: "text", body: "Running, unsafe use of equipment, intentional misuse of materials, or behaviour that could endanger another customer or team member is not permitted. Maison Palettia reserves the right to stop participation where a customer does not follow reasonable safety instructions." },
         ],
       },
       {
-        heading: "Children, parents and guardians", // lib/policies.ts:567
+        heading: "Your responsibilities as a participant",
         blocks: [
           {
-            blockType: "text", // lib/policies.ts:570
-            body: "Age requirements and supervision requirements may vary depending on the activity. Customers should check the age recommendation for each session before booking.", // lib/policies.ts:571
-          },
-          {
-            blockType: "text", // lib/policies.ts:574
-            body: "For activities requiring adult supervision, the parent or legal guardian is responsible for supervising the child throughout the session and ensuring that the child follows Maison Palettia's safety instructions.", // lib/policies.ts:575
-          },
-        ],
-      },
-      {
-        heading: "Age guidance", // lib/policies.ts:580
-        blocks: [
-          {
-            blockType: "text", // lib/policies.ts:583
-            body: "Create Anytime activities: children below the age of 10 may take part under adult supervision only.", // lib/policies.ts:584
-          },
-          {
-            blockType: "ages", // lib/policies.ts:586
-            source: "diy", // lib/policies.ts:271
-            rows: [
-              {
-                activity: "Ceramic painting", // lib/policies.ts:133
-                guidance: "5 years and over. Ages 5–10 under the close supervision of a parent.", // lib/policies.ts:133
-              },
-              {
-                activity: "Bedazzling", // lib/policies.ts:134
-                guidance: "Ages 5–10 for Mini Bedazzling. Age 11 and over for Creative Bedazzling.", // lib/policies.ts:134
-              },
-              {
-                activity: "Tote bag painting", // lib/policies.ts:135
-                guidance: "Ages 5–10 for stencils and easy painting. Age 11 and over for creative designs.", // lib/policies.ts:135
-              },
-              {
-                activity: "Glass painting", // lib/policies.ts:136
-                guidance: "Age 12 and over.", // lib/policies.ts:136
-              },
-              {
-                activity: "Mandala painting", // lib/policies.ts:137
-                guidance: "Age 12 and over.", // lib/policies.ts:136
-              },
+            blockType: "list",
+            items: [
+              { text: "Follow the instructions given by Maison Palettia staff." },
+              { text: "Use tools, equipment and materials only for their intended purpose." },
+              { text: "Help keep the environment safe and respectful for everyone." },
+              { text: "Avoid interfering with other participants' activities or creations." },
+              { text: "Report any accident, injury, spill or damage to a member of staff immediately." },
+              { text: "Follow any safety requirements specific to your activity." },
             ],
           },
+        ],
+      },
+      {
+        heading: "Materials and equipment",
+        blocks: [
+          { blockType: "text", body: "Activities may involve paints, adhesives, wax, glass, embellishments, craft tools or other materials. Please follow the instructions and precautions given for each one." },
           {
-            blockType: "text", // lib/policies.ts:587
-            body: "Create Together workshops.", // lib/policies.ts:587
+            blockType: "list",
+            items: [
+              { text: "Materials must not be eaten, swallowed or misused, or applied to the skin or body, unless an activity specifically intends it and our staff have approved it." },
+              { text: "Hot wax, heating equipment, glass and sharp tools are used only in the way our staff show you." },
+              { text: "Please do not bring your own craft materials, chemicals, paints or fragrances into the studio without our prior approval." },
+              { text: "Finished items such as candles should be allowed to cool and set for the time we recommend before you use them." },
+            ],
           },
+        ],
+      },
+      {
+        heading: "Children and supervision",
+        blocks: [
           {
-            blockType: "ages", // lib/policies.ts:588
-            source: "workshop", // lib/policies.ts:587
+            blockType: "list",
+            items: [
+              { text: "Children must meet the age requirement for each activity. Please check the age guidance before you book or visit." },
+              { text: "For activities that need adult supervision, the parent or legal guardian is responsible for supervising the child throughout the session and making sure the child follows our safety instructions." },
+              { text: "Our staff are creative experience facilitators, not childcare providers." },
+              { text: "Please tell our staff about any safety concern or assistance a child needs before the activity starts." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Age guidance",
+        blocks: [
+          { blockType: "text", body: "Create Anytime activities: children below the age of 10 may take part under adult supervision only." },
+          {
+            blockType: "ages",
+            source: "diy",
             rows: [
-              {
-                activity: "Candle making", // lib/policies.ts:148
-                guidance: "Age 14 and over.", // lib/policies.ts:148
-              },
-              {
-                activity: "Crocheting", // lib/policies.ts:149
-                guidance: "Age 14 and over.", // lib/policies.ts:148
-              },
+              { activity: "Ceramic painting", guidance: "5 years and over. Ages 5–10 under the close supervision of a parent." },
+              { activity: "Bedazzling", guidance: "Ages 5–10 for Mini Bedazzling. Age 11 and over for Creative Bedazzling." },
+              { activity: "Tote bag painting", guidance: "Ages 5–10 for stencils and easy painting. Age 11 and over for creative designs." },
+              { activity: "Glass painting", guidance: "Age 12 and over." },
+              { activity: "Mandala painting", guidance: "Age 12 and over." },
+            ],
+          },
+          { blockType: "text", body: "Create Together workshops:" },
+          {
+            blockType: "ages",
+            source: "workshop",
+            rows: [
+              { activity: "Candle making", guidance: "Age 14 and over." },
+              { activity: "Crocheting", guidance: "Age 14 and over." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Allergies and sensitivities",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "Please tell our staff about any allergy, sensitivity or medical condition that could be affected by the materials before you take part." },
+              { text: "Avoid handling any material that may cause you an adverse reaction." },
+              { text: "Ask our staff for help or an alternative if you are unsure about a material." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Personal belongings",
+        blocks: [
+          { blockType: "text", body: "You are responsible for your personal belongings during your visit. We take reasonable measures to look after our space, but we cannot guarantee the security of personal belongings, so please keep valuables with you and avoid bringing fragile items into the activity area." },
+        ],
+      },
+      {
+        heading: "Respect for the space",
+        blocks: [
+          { blockType: "text", body: "Please treat our premises, equipment, furniture, materials, staff and other participants with care and respect." },
+          { blockType: "text", body: "Maison Palettia may step in where behaviour creates a safety concern or materially disrupts an experience, including by stopping an activity or asking a customer to leave, always fairly and in line with applicable law." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { blockType: "text", body: "If you have a safety question before your visit, please contact us:" },
+          { blockType: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
             ],
           },
         ],
@@ -512,34 +1092,73 @@ export const POLICIES: PolicySeed[] = [
     order: 6,
   },
   {
-    title: "Your Finished Projects", // lib/policies.ts:609
-    navLabel: "Finished projects", // lib/policies.ts:610
-    slug: "finished-projects", // lib/policies.ts:608
-    summary: "Collecting what you have made, and what happens if something breaks.", // lib/policies.ts:611
+    title: "Service Delivery Policy",
+    navLabel: "Service Delivery",
+    slug: "service-delivery",
+    summary: "How and when you receive your booking confirmation, e-tickets and invoice after you pay online.",
+    footerGroup: "support",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "Collecting your project", // lib/policies.ts:614
+        heading: "What we deliver",
         blocks: [
-          {
-            blockType: "text", // lib/policies.ts:617
-            body: "Customers will be notified when their project is ready for collection. Finished projects should be collected within 30 days of notification. Maison Palettia may contact customers regarding projects that remain uncollected. Projects left uncollected beyond the applicable collection period may be subject to disposal or other handling in accordance with Maison Palettia's policy.", // lib/policies.ts:618
-          },
-          {
-            blockType: "text", // lib/policies.ts:621
-            body: "Firing and finishing times are estimates and may vary depending on studio workload and the nature of the project.", // lib/policies.ts:622
-          },
+          { blockType: "text", body: "Maison Palettia sells creative experiences, such as scheduled workshops and DIY sessions, and products bought in our studio. We do not currently ship products. An online booking is delivered to you electronically, as described below, and the experience itself takes place at our studio on the date and time you booked." },
         ],
       },
       {
-        heading: "Damage and breakage", // lib/policies.ts:627
+        heading: "When you receive your booking",
         blocks: [
+          { blockType: "text", body: "As soon as your online payment is successful, we email you, at the address you gave at checkout:" },
           {
-            blockType: "text", // lib/policies.ts:630
-            body: "Maison Palettia takes reasonable care of customer projects and equipment. However, craft materials and handmade items can be fragile. Maison Palettia is not responsible for damage resulting from improper handling by the customer or from the inherent nature of the materials.", // lib/policies.ts:631
+            blockType: "list",
+            items: [
+              { text: "A booking confirmation with your booking reference and the details of your experience" },
+              { text: "Your e-ticket or e-tickets, each with a unique QR code that we scan when you arrive" },
+              { text: "Your invoice for the payment" },
+            ],
           },
+          { blockType: "text", body: "There is no delivery charge. Prices are in UAE Dirhams (AED) and online payments are processed by our payment provider, Mamo Pay." },
+        ],
+      },
+      {
+        heading: "If your email has not arrived",
+        blocks: [
+          { blockType: "text", body: "Please check your spam or junk folder first. If the email is not there within a few minutes of paying, contact us with your name and the email address you used, and we will send it again. You can also look up your booking on our website with your booking reference and email address." },
+        ],
+      },
+      {
+        heading: "On the day",
+        blocks: [
+          { blockType: "text", body: "Show your e-ticket on your phone or on paper when you arrive, and please arrive about 10 minutes before your session starts. Late arrivals are covered by our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions." },
+        ],
+      },
+      {
+        heading: "Walk-ins and studio purchases",
+        blocks: [
+          { blockType: "text", body: "Walk-in DIY activities and products bought in the studio are paid for and handed over in the studio, and you receive your receipt at the time of purchase." },
+        ],
+      },
+      {
+        heading: "Changes and cancellations",
+        blocks: [
+          { blockType: "text", body: "If we need to change or cancel your booking, we will contact you using the details in your booking. Your options, and what happens if you need to change your plans, are set out in our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { blockType: "text", body: "If anything about the delivery of your booking is not right, please contact us:" },
+          { blockType: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
           {
-            blockType: "text", // lib/policies.ts:634
-            body: "Where something has gone wrong with a project in our care, remedies are handled on a case-by-case basis. Please speak with our team.", // lib/policies.ts:635
+            blockType: "list",
+            items: [
+              { text: "Email: info@maisonpalettia.com" },
+              { text: "Call: +971 50 474 7762" },
+              { text: "WhatsApp: +971 55 496 6116" },
+              { text: "Website: maisonpalettia.com" },
+            ],
           },
         ],
       },
@@ -547,21 +1166,269 @@ export const POLICIES: PolicySeed[] = [
     order: 7,
   },
   {
-    title: "Photography & Media", // lib/policies.ts:657
-    navLabel: "Photography & media", // lib/policies.ts:658
-    slug: "photography-and-media", // lib/policies.ts:656
-    summary: "When we photograph what you have made, and when we ask first.", // lib/policies.ts:659
+    title: "General Customer Policy",
+    navLabel: "General customer policy",
+    slug: "general-customer-policy",
+    summary: "What applies to every visit, whatever you have come to make.",
+    footerGroup: "none",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
-        heading: "Photography in the studio", // lib/policies.ts:662
+        heading: "A space for everyone",
         blocks: [
-          {
-            blockType: "text", // lib/policies.ts:665
-            body: "Maison Palettia may photograph or display completed projects for promotional, educational or social media purposes. Where identifiable customers, particularly children, are included in promotional photography, Maison Palettia will obtain the appropriate consent.", // lib/policies.ts:666
-          },
+          { blockType: "text", body: "Maison Palettia is a creative space designed for everyone to explore, create and enjoy." },
+          { blockType: "text", body: "By purchasing a product, participating in a DIY activity, or booking a scheduled session, customers agree to follow Maison Palettia's policies and the instructions provided by our team." },
+          { blockType: "text", body: "Customers are expected to treat the retail store, equipment, materials, staff and other guests with care and respect." },
+          { blockType: "text", body: "These house rules apply together with our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions and our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines." },
+        ],
+      },
+      {
+        heading: "Following the instructions",
+        blocks: [
+          { blockType: "text", body: "Activities must be performed according to the instructions provided by Maison Palettia." },
+          { blockType: "text", body: "Some materials, tools, paints, glues, candles, glass, ceramics and other craft supplies may require additional care or supervision." },
+          { blockType: "text", body: "Maison Palettia reserves the right to stop an activity if a customer's conduct creates a safety risk or causes significant disruption to others." },
+          { blockType: "text", body: "Parents and guardians are responsible for supervising children where required." },
+        ],
+      },
+      {
+        heading: "Your belongings",
+        blocks: [
+          { blockType: "text", body: "Customers are responsible for their personal belongings while visiting Maison Palettia. We recommend that valuable or fragile personal items are not brought into the activity area." },
+          { blockType: "text", body: "Customers may not bring outside craft materials, chemicals, paints, fragrances or other supplies into the retail store without prior approval." },
+        ],
+      },
+      {
+        heading: "Food and drinks",
+        blocks: [
+          { blockType: "text", body: "Food and beverages are permitted only in designated areas. Drinks should be kept away from craft materials, equipment and customer projects." },
+        ],
+      },
+      {
+        heading: "Conduct",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia is a welcoming creative environment. We expect customers to treat our team and fellow creators with courtesy and respect. Harassment, abusive language, threatening behaviour, intentional damage or disruptive conduct will not be tolerated." },
+          { blockType: "text", body: "Maison Palettia may refuse service or ask a customer to leave where necessary to protect the safety and wellbeing of customers, staff or property." },
+        ],
+      },
+      {
+        heading: "If something has not gone as expected",
+        blocks: [
+          { blockType: "text", body: "We want every visit to Maison Palettia to be a positive experience. If something hasn't gone as expected, please speak with our team as soon as possible so that we have an opportunity to assist." },
+          { blockType: "text", body: "Complaints relating to a session, product or completed project should ideally be raised at the time of the visit or within a reasonable period thereafter." },
+          { blockType: "text", body: "You can also email us at info@maisonpalettia.com or call +971 50 474 7762. We aim to respond within 2 working days. Our complaints process is set out in our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions." },
+        ],
+      },
+      {
+        heading: "Changes to these policies",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia may update its policies from time to time. The applicable policy will be the policy in effect at the time of the booking or purchase." },
         ],
       },
     ],
-    order: 8,
+    order: 10,
+  },
+  {
+    title: "DIY Experience Policy",
+    navLabel: "DIY experience policy",
+    slug: "diy-experience-policy",
+    summary: "For Create Anytime activities, the ones with nothing to book.",
+    footerGroup: "none",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
+    sections: [
+      {
+        heading: "What a DIY session is",
+        blocks: [
+          { blockType: "text", body: "Create Anytime activities are DIY sessions: you choose a project when you arrive and make it at your own pace, with our team on hand. Children below the age of 10 may take part under adult supervision only." },
+        ],
+      },
+      {
+        heading: "Age guidance by activity",
+        blocks: [
+          { blockType: "text", body: "Age requirements and supervision requirements vary by activity. Please check the guidance for the activity you have in mind before you come." },
+          {
+            blockType: "ages",
+            source: "diy",
+            rows: [
+              { activity: "Ceramic painting", guidance: "5 years and over. Ages 5–10 under the close supervision of a parent." },
+              { activity: "Bedazzling", guidance: "Ages 5–10 for Mini Bedazzling. Age 11 and over for Creative Bedazzling." },
+              { activity: "Tote bag painting", guidance: "Ages 5–10 for stencils and easy painting. Age 11 and over for creative designs." },
+              { activity: "Glass painting", guidance: "Age 12 and over." },
+              { activity: "Mandala painting", guidance: "Age 12 and over." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "How a DIY session runs",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "DIY sessions are subject to available space, materials and retail store capacity." },
+              { text: "Customers select their project from the options available at the time of their visit." },
+              { text: "The price of a DIY session states what is included." },
+              { text: "Standard materials required for the selected project are included unless specifically stated otherwise." },
+              { text: "Additional materials, upgrades or premium items may be available for an additional charge." },
+              { text: "Customers are responsible for following the instructions provided by the Maison Palettia team." },
+              { text: "Once a project has been started, changing to a different project may be subject to an additional charge." },
+              { text: "Completed projects should be collected within the timeframe communicated by the team, particularly where drying, curing or firing is required." },
+            ],
+          },
+          { blockType: "text", body: "DIY activities are paid for in the studio and are non-refundable once materials have been prepared or your project has been started. See our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds." },
+        ],
+      },
+      {
+        heading: "Ceramics and glass",
+        blocks: [
+          { blockType: "callout", title: "Important for ceramics and glass", body: "Maison Palettia takes reasonable care when handling customer projects. However, handmade and painted items may occasionally experience minor imperfections, colour variations, breakage, cracking or other changes during drying, curing or firing. We will do our best to handle every project with care but cannot guarantee that every finished piece will be completely free from such imperfections." },
+        ],
+      },
+      {
+        heading: "Creative results may vary",
+        blocks: [
+          { blockType: "callout", title: "Every creation is uniquely yours", body: "Because Maison Palettia is a hands-on creative experience, finished projects may vary from examples shown in-store or online. Differences in colour, placement, technique, materials and individual skill are part of the creative process." },
+        ],
+      },
+    ],
+    order: 11,
+  },
+  {
+    title: "Scheduled Workshop Policy",
+    navLabel: "Scheduled workshop policy",
+    slug: "scheduled-workshop-policy",
+    summary: "For Create Together sessions, the guided ones you book onto a date.",
+    footerGroup: "none",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
+    sections: [
+      {
+        heading: "The workshops",
+        blocks: [
+          { blockType: "text", body: "Create Together sessions are guided workshops that run to a set date and time. Additional workshops will be introduced later." },
+          {
+            blockType: "ages",
+            source: "workshop",
+            rows: [
+              { activity: "Candle making", guidance: "Age 14 and over." },
+              { activity: "Crocheting", guidance: "Age 14 and over." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Making a booking",
+        blocks: [
+          { blockType: "text", body: "Bookings may be made in-store, or through the Maison Palettia online booking system." },
+          { blockType: "text", body: "A booking is considered confirmed once the required payment or deposit has been received and the customer has received a booking confirmation." },
+          { blockType: "text", body: "Your confirmation will set out:" },
+          {
+            blockType: "list",
+            items: [
+              { text: "The activity" },
+              { text: "The date" },
+              { text: "The start time" },
+              { text: "The duration" },
+              { text: "The number of participants" },
+              { text: "The price" },
+              { text: "Any special requirements" },
+              { text: "Cancellation and rescheduling information" },
+            ],
+          },
+          { blockType: "text", body: "If your plans change, our Cancellation, Rescheduling & Refund Policy applies: with at least 24 hours' notice before your session you may reschedule or receive a credit note for the amount you paid. With less notice, or if you do not attend, the booking is non-refundable. Full details are at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds." },
+        ],
+      },
+      {
+        heading: "Arriving",
+        blocks: [
+          { blockType: "text", body: "Customers are requested to arrive 10 minutes before their scheduled session. Late arrival may reduce the customer's activity time where the session must finish at the scheduled time. For safety and operational reasons, significantly late customers may not be able to participate." },
+          { blockType: "text", body: "A booking you cannot take part in because you arrived too late is treated as a no-show and is non-refundable." },
+        ],
+      },
+      {
+        heading: "Candle making",
+        blocks: [
+          { blockType: "text", body: "Candle-making involves hot wax, fragrance oils, containers and other materials that require care. Participants must follow all safety instructions provided by Maison Palettia staff." },
+          {
+            blockType: "list",
+            items: [
+              { text: "Children should participate only where the specific session is designed for their age group." },
+              { text: "Hot wax and heating equipment should be handled only by participants and staff according to the retail store safety instructions." },
+              { text: "Customers should not bring their own fragrance oils, wax, containers or other materials unless specifically approved." },
+              { text: "Finished candles should be allowed to cool and set for the recommended period before collection or use." },
+              { text: "Customers receive appropriate candle-burning and safety instructions with their finished product." },
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Crochet",
+        blocks: [
+          {
+            blockType: "list",
+            items: [
+              { text: "The materials included are stated in the workshop description." },
+              { text: "Customers may keep the project and materials specified in the workshop description." },
+              { text: "If customers miss part of the workshop because of late arrival, Maison Palettia cannot guarantee that the instructor can repeat the missed portion individually." },
+              { text: "Workshop outcomes may vary according to individual skill level." },
+            ],
+          },
+          { blockType: "callout", title: "Designed to teach and inspire", body: "Our workshops are designed to teach and inspire, not to produce identical results. Every creation is unique, and that's part of the Maison Palettia experience." },
+        ],
+      },
+    ],
+    order: 12,
+  },
+  {
+    title: "Your Finished Projects",
+    navLabel: "Finished projects",
+    slug: "finished-projects",
+    summary: "Collecting what you have made, and what happens if something breaks.",
+    footerGroup: "none",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
+    sections: [
+      {
+        heading: "Collecting your project",
+        blocks: [
+          { blockType: "text", body: "Customers will be notified when their project is ready for collection. Finished projects should be collected within 30 days of notification. Maison Palettia may contact customers regarding projects that remain uncollected. Projects left uncollected beyond the applicable collection period may be subject to disposal or other handling in accordance with Maison Palettia's policy." },
+          { blockType: "text", body: "Firing and finishing times are estimates and may vary depending on studio workload and the nature of the project." },
+        ],
+      },
+      {
+        heading: "Damage and breakage",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia takes reasonable care of customer projects and equipment. However, craft materials and handmade items can be fragile. Maison Palettia is not responsible for damage resulting from improper handling by the customer or from the inherent nature of the materials." },
+          { blockType: "text", body: "Where something has gone wrong with a project in our care, remedies are handled on a case-by-case basis. Please speak with our team." },
+        ],
+      },
+    ],
+    order: 13,
+  },
+  {
+    title: "Photography & Media",
+    navLabel: "Photography & media",
+    slug: "photography-and-media",
+    summary: "When we photograph what you have made, and when we ask first.",
+    footerGroup: "none",
+    requiresCheckoutConsent: false,
+    showInLegalRow: false,
+    effectiveDate: "2026-11-27T08:00:00.000Z",
+    sections: [
+      {
+        heading: "Photography in the studio",
+        blocks: [
+          { blockType: "text", body: "Maison Palettia may photograph or display completed projects for promotional, educational or social media purposes. Where identifiable customers, particularly children, are included in promotional photography, Maison Palettia will obtain the appropriate consent." },
+          { blockType: "text", body: "If you have any concern about photography, please tell our team or contact us at info@maisonpalettia.com. How we handle photographs and other personal data is explained in our Privacy Policy at maisonpalettia.com/policies/privacy-policy." },
+        ],
+      },
+    ],
+    order: 14,
   },
 ];

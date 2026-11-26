@@ -24,6 +24,25 @@ export function SocialGlyph({ name, className }: { name: string; className?: str
     className: cn("size-5", className),
   } as const;
 
+  if (key === "whatsapp") {
+    /* The speech bubble with its tail at the bottom left, and the handset in it. */
+    return (
+      <svg {...props}>
+        <path
+          d="M12 3.2a8.8 8.8 0 0 0-7.6 13.2L3.3 20.7l4.4-1.1A8.8 8.8 0 1 0 12 3.2Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M15.9 13.9c-.2-.1-1.3-.6-1.5-.7s-.35-.1-.5.1-.55.7-.7.85-.25.15-.45.05a5.9 5.9 0 0 1-2.9-2.55c-.25-.35.2-.35.6-1.15a.45.45 0 0 0 0-.35l-.7-1.6c-.2-.45-.35-.35-.55-.35h-.45a.85.85 0 0 0-.6.3 2.6 2.6 0 0 0-.8 1.95 4.6 4.6 0 0 0 1 2.4 10.4 10.4 0 0 0 4 3.5c1.5.6 2 .7 2.7.55a2.4 2.4 0 0 0 1.6-1.15 1.9 1.9 0 0 0 .15-1.15c-.05-.1-.25-.15-.45-.25Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+  }
+
   if (key === "instagram") {
     return (
       <svg {...props}>

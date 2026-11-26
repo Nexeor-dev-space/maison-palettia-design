@@ -128,7 +128,10 @@ export async function drawTickets(views: TicketView[], sources: FontSources, bra
     const footer = [brand.name, ...brand.contactLines].filter(Boolean).join("  ·  ");
     const bottomMargin = doc.page.margins.bottom;
     doc.page.margins.bottom = 0;
-    doc.font(fonts.body).fontSize(7.5).fillColor(COLORS.muted).text(t(footer), left, doc.page.height - 26, { width, align: "center", lineBreak: false });
+    // One line, so a long one (email, Call and WhatsApp) is set smaller rather than run off the page.
+    doc.font(fonts.body).fontSize(7.5);
+    const footerSize = Math.max(6, Math.min(7.5, (7.5 * width) / Math.max(1, doc.widthOfString(t(footer)))));
+    doc.fontSize(footerSize).fillColor(COLORS.muted).text(t(footer), left, doc.page.height - 26, { width, align: "center", lineBreak: false });
     doc.page.margins.bottom = bottomMargin;
   });
 

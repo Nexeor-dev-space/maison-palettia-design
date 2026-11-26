@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { getBookingOptions } from "@/lib/bookingOptions";
 
-import { hasExternalTags } from "@/cms/collections/analytics/shared";
+import { hasExternalTags, tagExcludePaths } from "@/cms/collections/analytics/shared";
 import { getSiteAnalyticsConfig } from "@/cms/lib/analytics";
 import { AnalyticsBeacon } from "@/components/cms/AnalyticsBeacon";
 import { ClickToEdit } from "@/components/cms/ClickToEdit";
@@ -244,7 +244,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             previewing is not a visitor). Third-party tags load only after
             the banner's Accept, and both they and the banner stay silent on
             the booking pages (/checkout, /payment-success, /my-bookings,
-            /booking-status, /dev) — the components check the path on every
+            /booking-status, /dev, and the booking forms /events/<slug>/book
+            and /private-events/book, see BOOKING_FORM_PATHS) — the components check the path on every
             navigation, since a layout cannot know its page. Settings live in
             Analytics & tracking; see cms/lib/analytics.ts.
           */}
@@ -252,12 +253,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ExternalAnalytics
             external={analytics.external}
             consentRequired={analytics.consent.required}
-            excludePaths={analytics.beacon.excludePaths}
+            excludePaths={tagExcludePaths(analytics.beacon.excludePaths)}
           />
           <ConsentBanner
             consent={analytics.consent}
             active={hasExternalTags(analytics)}
-            excludePaths={analytics.beacon.excludePaths}
+            excludePaths={tagExcludePaths(analytics.beacon.excludePaths)}
           />
 
           {/*

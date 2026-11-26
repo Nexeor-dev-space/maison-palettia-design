@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import { Reveal } from "@/components/motion/Reveal";
 import type { PolicyBlock, PolicySection } from "@/lib/policies";
+import { policyTextParts } from "@/lib/policyLinks";
 
 /**
  * ==========================================================================
@@ -60,6 +63,31 @@ export function PolicyBody({ sections }: { sections: readonly PolicySection[] })
   );
 }
 
+/**
+ * Policy prose with its cross-references and email addresses as links
+ * (lib/policyLinks.ts says what counts). The link keeps the text exactly as
+ * written; only the address it opens is added.
+ */
+function Linked({ text }: { text: string }) {
+  return (
+    <>
+      {policyTextParts(text).map((part, index) =>
+        !part.href ? (
+          part.text
+        ) : part.href.startsWith("mailto:") ? (
+          <a key={index} href={part.href} className="break-words underline underline-offset-2 transition-colors hover:text-primary">
+            {part.text}
+          </a>
+        ) : (
+          <Link key={index} href={part.href} className="break-words underline underline-offset-2 transition-colors hover:text-primary">
+            {part.text}
+          </Link>
+        ),
+      )}
+    </>
+  );
+}
+
 /** "Following the instructions" -> "following-the-instructions". */
 function sectionId(heading: string): string {
   return heading
@@ -81,7 +109,9 @@ function Block({ block, first }: { block: PolicyBlock; first: boolean }) {
           {/* 1.85 leading and full-strength charcoal. A policy is the one
               kind of page where ink at 85% is a real cost: it is read once,
               carefully, often on a phone in a mall. 10.6:1 on White Rock. */}
-          <p className={`${top} text-body text-text/90`}>{block.body}</p>
+          <p className={`${top} text-body text-text/90`}>
+            <Linked text={block.body} />
+          </p>
         </Reveal>
       );
 
@@ -98,7 +128,7 @@ function Block({ block, first }: { block: PolicyBlock; first: boolean }) {
           <ul className={`${top} list-disc space-y-3 pl-5 marker:text-terracotta`}>
             {block.items.map((item) => (
               <li key={item} className="text-body text-text/90">
-                {item}
+                <Linked text={item} />
               </li>
             ))}
           </ul>
@@ -171,7 +201,9 @@ function Block({ block, first }: { block: PolicyBlock; first: boolean }) {
             <p className="text-label font-medium uppercase tracking-eyebrow text-text">
               {block.title}
             </p>
-            <p className="mt-3 text-body text-text/90">{block.body}</p>
+            <p className="mt-3 text-body text-text/90">
+              <Linked text={block.body} />
+            </p>
           </div>
         </Reveal>
       );

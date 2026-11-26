@@ -30,8 +30,12 @@ import { CONTENT_GROUP, contentDrafts, draftedContentAccess, orderField, preview
  * consent can record which wording was agreed to; `requiresCheckoutConsent`
  * puts the policy behind the "I have read and agree" box.
  *
+ * `footerGroup` files the policy under Legal & Policies, Customer Support
+ * (both footer columns) or House rules (the Policies page only); the
+ * Policies page lists every group.
+ *
  * Publishing purges /policies, the policy's page, /faq, /checkout and the
- * layout — the footer's legal row lists policies (./revalidation.ts).
+ * layout — the footer's groups list policies (./revalidation.ts).
  */
 
 const PolicyText: Block = {
@@ -168,7 +172,7 @@ export const Policies: CollectionConfig = {
           type: "text",
           label: "Title",
           required: true,
-          maxLength: 40,
+          maxLength: 60,
           admin: { width: "60%", description: "The page title and the list entry. In the large heading the words after “ & ” (or else the last word) are set in the script face." },
         },
         {
@@ -198,7 +202,7 @@ export const Policies: CollectionConfig = {
       minRows: 1,
       admin: { description: "Each section has a heading and one or more paragraphs, lists, age tables or callouts." },
       fields: [
-        { name: "heading", type: "text", label: "Heading", required: true, maxLength: 48, admin: { description: "A label, never a claim." } },
+        { name: "heading", type: "text", label: "Heading", required: true, maxLength: 80, admin: { description: "A label, never a claim." } },
         {
           name: "blocks",
           type: "blocks",
@@ -213,14 +217,38 @@ export const Policies: CollectionConfig = {
       name: "effectiveDate",
       type: "date",
       label: "Effective from",
-      admin: { position: "sidebar", date: { displayFormat: "d MMM yyyy" }, description: "Optional. Printed as “Effective from …” when set." },
+      admin: {
+        position: "sidebar",
+        date: { pickerAppearance: "dayOnly", displayFormat: "d MMM yyyy" },
+        description: "Printed under the title as “Effective 27 November 2026”, with the company's legal name and licence (Site details).",
+      },
+    },
+    {
+      name: "footerGroup",
+      type: "select",
+      label: "Group",
+      required: true,
+      defaultValue: "none",
+      options: [
+        { label: "Legal & Policies (footer + Policies page)", value: "legal" },
+        { label: "Customer Support (footer + Policies page)", value: "support" },
+        { label: "House rules (Policies page only)", value: "none" },
+      ],
+      admin: {
+        position: "sidebar",
+        description:
+          "Where the policy is listed. Legal & Policies and Customer Support each get a column in the footer; every policy is listed on the Policies page under its group.",
+      },
     },
     {
       name: "showInLegalRow",
       type: "checkbox",
-      label: "Show in footer legal row",
+      label: "Also repeat in the footer's bottom row",
       defaultValue: false,
-      admin: { position: "sidebar", description: "For Privacy and Terms when written; the other policies live in the footer's Policies column." },
+      admin: {
+        position: "sidebar",
+        description: "Usually off: the Group above already puts the policy in the footer. On adds a second link beside the © line.",
+      },
     },
     {
       name: "requiresCheckoutConsent",
