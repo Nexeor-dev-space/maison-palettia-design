@@ -205,7 +205,19 @@ export const POLICIES: readonly Policy[] = [
      after the legal pack (Terms & Conditions, Privacy, Cookie, Cancellation,
      Rescheduling & Refund, Safety Guidelines, Service Delivery) and the
      Birthday Party, Private Events and Group Booking policies were published.
-     Same order and wording as the CMS. */
+     Updated again the same day: birthday parties, private events and group
+     bookings now follow the adviser's event booking terms (50% advance,
+     balance 5 days or 48 hours before, a full refund or free rescheduling
+     with 7 days' notice, set cancellation charges after that, refunds to the
+     original payment method) instead of credit notes, while places on
+     scheduled sessions keep the 24-hour credit-note rule; gift vouchers are
+     back in the Terms & Conditions and Privacy Policy; the Terms list the
+     services (birthday parties, team building, brand activations and
+     entertainment, at the studio and partner venues); and a credit note is
+     issued against the original invoice. The Terms' Complaints section and
+     the Cancellation policy's Your statutory rights section also point to
+     Dubai Consumer Rights and Federal Law No. 15 of 2020 (written as
+     [label](url) links). Same order and wording as the CMS. */
   {
     slug: "terms-and-conditions",
     title: "Terms & Conditions",
@@ -236,7 +248,7 @@ export const POLICIES: readonly Policy[] = [
               "Website: maisonpalettia.com",
             ],
           },
-          { type: "text", body: "Maison Palettia is a creative recreational space offering interactive creative activities, DIY experiences, guided workshops. Our experiences are designed to encourage creativity, enjoyment and personal expression for individuals, families and groups." },
+          { type: "text", body: "Maison Palettia is a creative recreational space offering interactive creative activities, DIY experiences and guided workshops, together with birthday parties for children, corporate team-building activities, brand activations and entertainment, at our studio and at partner venues such as malls and retail spaces. Our experiences are designed to encourage creativity, enjoyment and personal expression for individuals, families and groups." },
         ],
       },
       {
@@ -307,12 +319,12 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "With at least 24 hours' notice before your session starts, you may reschedule to another available date or receive a credit note for the full amount you paid.",
-              "We do not give cash or card refunds when you cancel a booking yourself. A cancellation made with enough notice is always settled with a credit note.",
+              "For places booked on a scheduled session, with at least 24 hours' notice before your session starts, you may reschedule to another available date or receive a credit note for the full amount you paid.",
+              "We do not give cash or card refunds when you cancel a place on a scheduled session yourself. A cancellation made with enough notice is always settled with a credit note.",
               "With less than 24 hours' notice, or if you do not attend, the booking is non-refundable and no credit note is issued.",
-              "If we cancel or materially change your booking, we will offer you a new date or a credit note, and a refund to your original payment method if you do not accept either, or where UAE consumer protection law requires it. Where we choose, we may instead refund you in full straight away.",
+              "If we cancel or materially change a scheduled session you have booked, we will offer you a new date or a credit note, and a refund to your original payment method if you do not accept either, or where UAE consumer protection law requires it. Where we choose, we may instead refund you in full straight away.",
               "Birthday parties, private events and group bookings arranged with our team follow their own booking policies, described below. Places booked online for a scheduled public session follow the Cancellation, Rescheduling & Refund Policy, however many places are booked. Promotional offers may have their own conditions, which we will tell you before you pay.",
-              "Birthday parties, private events and group bookings of 6 or more arranged with our team need a 50% advance payment to confirm, with the balance paid before the event. With at least 7 days' notice (72 hours for group bookings) you receive a credit note for the value of your advance payment; with less notice, the advance payment is non-refundable and no credit note is issued.",
+              "Birthday parties, private events and group bookings of 6 or more arranged with our team need a 50% advance payment to confirm, with the balance paid before the event. With at least 7 days' notice, you can choose a full refund or reschedule free of charge. With less notice, cancellation charges apply, as set out in their booking policies.",
             ],
           },
           { type: "text", body: "The full rules are in our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, which forms part of these terms." },
@@ -396,12 +408,12 @@ export const POLICIES: readonly Policy[] = [
         ],
       },
       {
-        heading: "Passes, vouchers and credit notes",
+        heading: "Passes, gift vouchers and credit notes",
         blocks: [
           {
             type: "list",
             items: [
-              "Passes, vouchers, promotional codes and credit notes are subject to the terms stated when they are issued, including their validity period and any restrictions.",
+              "Passes, gift vouchers, vouchers, promotional codes and credit notes are subject to the terms stated when they are bought or issued, including their validity period and any restrictions.",
               "They can be redeemed only against bookings and services at Maison Palettia, subject to availability, and only within their validity period.",
               "A credit note is linked to the email address of the booking it was issued for, and each credit note can be used once.",
               "They cannot be exchanged for cash unless UAE law requires it.",
@@ -419,7 +431,7 @@ export const POLICIES: readonly Policy[] = [
         heading: "Events beyond our control",
         blocks: [
           { type: "text", body: "We are not responsible for a delay or failure to provide a booking that is caused by events beyond our reasonable control, such as severe weather, power or utility failures, public health measures, instructions from the authorities or the closure of a venue." },
-          { type: "text", body: "If this happens, we will tell you as soon as we can and treat your booking as cancelled or changed by us, so you will be offered a new date, a credit note or a refund as described in our Cancellation, Rescheduling & Refund Policy." },
+          { type: "text", body: "If this happens, we will tell you as soon as we can and treat your booking as cancelled or changed by us, so you will be offered a new date, a credit note or a refund as described in our Cancellation, Rescheduling & Refund Policy or, for birthday parties, private events and group bookings, in their own booking policy." },
         ],
       },
       {
@@ -463,7 +475,7 @@ export const POLICIES: readonly Policy[] = [
         blocks: [
           { type: "text", body: "We want every visit to be a good one. If something has not gone as expected, please tell a member of our team during your visit so that we can try to put it right straight away." },
           { type: "text", body: "Otherwise, email us at info@maisonpalettia.com or call +971 50 474 7762 with your booking reference or receipt and a short description of the problem. We aim to respond within 2 working days, and to resolve every complaint fairly and as quickly as we can." },
-          { type: "text", body: "This does not affect your right to contact the relevant UAE consumer protection authority." },
+          { type: "text", body: "If we cannot resolve your complaint, you can contact [Dubai Consumer Rights](https://consumerrights.ae/en/Pages/default.aspx) at the Department of Economy and Tourism, which also accepts [consumer complaints online](https://consumerrights.ae/en/pages/consumer-complaint.aspx), or refer to the [UAE Federal Consumer Protection Law (Federal Law No. 15 of 2020)](https://www.moet.gov.ae/en/federal-law-no-15-of-2020-on-consumer-protection)." },
         ],
       },
       {
@@ -548,7 +560,7 @@ export const POLICIES: readonly Policy[] = [
             items: [
               "24 hours' notice or more: reschedule to another available date, or receive a credit note for the full amount you paid.",
               "Less than 24 hours' notice, or a no-show: non-refundable, and no credit note is issued.",
-              "Cancellations by customers are always settled with a credit note. We do not give cash or card refunds when you cancel.",
+              "For places on scheduled sessions, cancellations by customers are always settled with a credit note, and we do not give cash or card refunds when you cancel. Birthday parties, private events and group bookings follow their own booking policies, which include refunds.",
               "If we cancel or materially change your booking: a new date or a credit note, or a refund to your original payment method if neither suits you or where the law requires it.",
             ],
           },
@@ -596,7 +608,7 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "With at least 24 hours' notice before your session starts, you will receive a credit note for the full amount you paid for the cancelled booking. Contact us as described above and our team will cancel the booking and issue your credit note.",
-              "We do not give cash or card refunds for cancellations made by customers. A cancellation made in good time is always settled with a credit note.",
+              "We do not give cash or card refunds when you cancel a place on a scheduled session. A cancellation made in good time is always settled with a credit note.",
               "With less than 24 hours' notice, the booking is non-refundable and no credit note is issued.",
             ],
           },
@@ -638,7 +650,7 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Our team issues your credit note for the full amount you paid for the cancelled booking and sends it to the email address on your booking, with a unique code and its validity period.",
+              "Our team issues your credit note against your original invoice, for the full amount you paid for the cancelled booking, and sends it to the email address on your booking, with a unique code and its validity period.",
               "For a booking of more than one place, the amount is split into one credit note per place, each with its own code.",
               "You can redeem a credit note against a future booking at Maison Palettia, online by entering its code at checkout or in the studio, within the validity period stated on it.",
               "Each credit note can be used once, and one code can be used per booking. If the new booking costs more, you pay the difference; if it costs less, the unused balance is not carried over.",
@@ -679,7 +691,7 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "Birthday parties, private events and group bookings",
         blocks: [
-          { type: "text", body: "Birthday parties, private events and group bookings arranged with our team have their own booking policies, with their own advance payment, notice periods and credit note terms:" },
+          { type: "text", body: "Birthday parties, private events and group bookings arranged with our team follow their own booking policies. These include a full refund, or free rescheduling, with at least 7 days' notice, and set out the cancellation charges that apply with less notice:" },
           {
             type: "list",
             items: [
@@ -696,6 +708,7 @@ export const POLICIES: readonly Policy[] = [
         heading: "Your statutory rights",
         blocks: [
           { type: "text", body: "Nothing in this policy limits any right you have under UAE consumer protection law." },
+          { type: "text", body: "If we cannot resolve your complaint, you can contact [Dubai Consumer Rights](https://consumerrights.ae/en/Pages/default.aspx) at the Department of Economy and Tourism, which also accepts [consumer complaints online](https://consumerrights.ae/en/pages/consumer-complaint.aspx), or refer to the [UAE Federal Consumer Protection Law (Federal Law No. 15 of 2020)](https://www.moet.gov.ae/en/federal-law-no-15-of-2020-on-consumer-protection)." },
         ],
       },
       {
@@ -745,7 +758,7 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "Information we collect",
         blocks: [
-          { type: "text", body: "When you book an experience, buy a pass, or use a pass, voucher or credit note:" },
+          { type: "text", body: "When you book an experience, buy a pass or gift voucher, or use a pass, voucher or credit note:" },
           {
             type: "list",
             items: [
@@ -1255,9 +1268,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "A 50% advance payment is required to secure your booking.",
+              "A 50% advance payment is required to confirm and reserve your booking.",
               "The advance payment and the remaining balance are paid through a secure payment link sent by our team, processed by our payment provider Mamo Pay, or at the studio. All prices are in UAE Dirhams (AED).",
-              "The remaining balance must be paid at least 48 hours before the party.",
+              "The remaining balance must be paid at least 5 days before the party.",
+              "Your booking is confirmed only once we have received your advance payment and confirmed your booking in writing.",
               "Any additional services, participants or special requests are charged separately, as agreed with you.",
             ],
           },
@@ -1269,9 +1283,9 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Please confirm the final number of children and accompanying adults at least 48 hours before the party.",
-              "Additional participants are subject to space and activity availability.",
-              "An increase in guest numbers may involve additional charges.",
+              "Please confirm the final number of children and accompanying adults at least 72 hours before the party.",
+              "Additional guests are subject to space and activity availability, and to additional charges.",
+              "If you reduce your confirmed guest numbers after this deadline, the reduction may not qualify for a refund.",
             ],
           },
         ],
@@ -1282,9 +1296,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "With at least 7 days' notice before the party, you will receive a credit note for the value of your advance payment.",
-              "We do not give cash or card refunds when you cancel. A cancellation made in good time is always settled with a credit note.",
-              "With less than 7 days' notice, the advance payment is non-refundable and no credit note is issued.",
+              "With at least 7 days' notice before the party, you can choose a full refund of the amount you have paid, or move your party to a new date free of charge, as set out under Rescheduling below.",
+              "With less than 7 days' but at least 48 hours' notice, the advance payment may be retained to cover reasonable cancellation costs. Any balance you have already paid is refunded.",
+              "With less than 48 hours' notice, a cancellation charge of up to the full booking value may apply, subject to applicable consumer protection requirements.",
+              "If you do not attend without having cancelled (a no-show), there is no automatic refund.",
               "These terms are subject to your statutory rights under UAE law.",
             ],
           },
@@ -1297,7 +1312,9 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "You may reschedule your party once, with at least 72 hours' notice before the party, subject to availability.",
+              "You may make one rescheduling request without an administration fee, at least 72 hours before the party.",
+              "A new date is subject to availability.",
+              "Any difference in package price must be settled by you.",
               "With less than 72 hours' notice, a party cannot be rescheduled.",
             ],
           },
@@ -1306,30 +1323,25 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "If we cancel or cannot deliver your party",
         blocks: [
-          { type: "text", body: "Occasionally we may need to cancel a confirmed party, or may be unable to deliver it as agreed, for example because of an instructor's illness, a problem at the venue or events beyond our control. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
+          { type: "text", body: "Occasionally we may need to cancel a confirmed party, or may be unable to deliver it as agreed, for example because of an instructor's illness or a problem at the venue. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
           {
             type: "list",
             items: [
               "An alternative date, subject to availability; or",
-              "A credit note for the full amount you paid.",
+              "A full refund for the affected services.",
             ],
           },
-          { type: "text", body: "If you do not wish to accept either option, or where UAE consumer protection law requires it, we will refund the full amount you paid to your original payment method." },
-          { type: "text", body: "Where we choose, we may instead refund the full amount you paid to your original payment method straight away, and we will tell you so in our message." },
+          { type: "text", body: "In exceptional circumstances beyond our reasonable control, we will work with you to find a suitable alternative arrangement." },
         ],
       },
       {
-        heading: "How credit notes work",
+        heading: "Refunds",
         blocks: [
-          { type: "text", body: "A credit note under this policy is for the amount set out above: the value of your advance payment when you cancel in good time, or the full amount you paid when we cancel. Otherwise, credit notes are issued and used as set out in our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds. In short:" },
           {
             type: "list",
             items: [
-              "Our team issues your credit note and sends it to the email address on your booking, with a unique code and its validity period.",
-              "You can redeem it against a future booking at Maison Palettia, online by entering its code at checkout or in the studio, within the validity period stated on it.",
-              "Each credit note can be used once, and one code can be used per booking. If the new booking costs more, you pay the difference; if it costs less, the unused balance is not carried over.",
-              "It is linked to the email address of the original booking.",
-              "It is not exchangeable for cash unless UAE law requires it. A credit note not used by the end of its validity period expires.",
+              "Approved refunds are made to your original payment method wherever possible.",
+              "We normally start an approved refund within 7 to 14 working days, subject to payment provider and bank processing times.",
             ],
           },
         ],
@@ -1341,7 +1353,9 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "Please arrive 15 minutes before the scheduled start time.",
-              "The party finishes at the agreed time.",
+              "A 15-minute grace period is allowed for late arrival.",
+              "Late arrival may mean a shorter activity, so that later bookings are not affected.",
+              "The party finishes at the original booked end time, unless we agree otherwise.",
               "Additional time may be arranged, subject to availability and additional charges.",
             ],
           },
@@ -1353,9 +1367,9 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Food, beverages, cakes and decorations must be agreed with our team in advance.",
-              "Outside food is subject to our prior approval.",
-              "Please tell us about any special setup or decoration requirements before the party.",
+              "Food, beverages, birthday cakes, decorations and any external entertainment must be approved by our team in advance.",
+              "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
+              "Please tell us about any special setup, decoration or other requirements before the party, so that they can be agreed in advance.",
               "Candles on the birthday cake may be lit and put out under the supervision of our team.",
               "No other open flames, sparklers, confetti cannons, glitter bombs, hazardous materials or decorations that could damage the premises are permitted.",
             ],
@@ -1368,8 +1382,8 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Parents or guardians are responsible for supervising children throughout the party.",
-              "Our creative team will guide participants through the selected activities. Our team are creative facilitators, not childcare providers.",
+              "Parents, guardians or designated responsible adults must supervise children throughout the party.",
+              "Our creative team will guide participants through the selected activities. Our team are creative facilitators, not childcare providers, and do not replace parental supervision.",
               "Please tell us in advance about any allergies, sensitivities or special requirements.",
               "Each activity has its own age and supervision guidance, set out in our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines.",
             ],
@@ -1385,8 +1399,17 @@ export const POLICIES: readonly Policy[] = [
               "Standard materials for the selected activities are provided.",
               "Special requests and customised activities may involve additional charges.",
               "Participants are asked to follow the safety instructions of our team.",
+              "Please respect the premises, furniture, equipment and creative materials.",
+              "You may be held responsible for damage caused intentionally or through negligence by you or your guests, subject to applicable law.",
             ],
           },
+        ],
+      },
+      {
+        heading: "Acceptance of this policy",
+        blocks: [
+          { type: "text", body: "By confirming your booking and making payment, you acknowledge and agree to the booking conditions and cancellation terms in this policy, as communicated to you when you reserve your party." },
+          { type: "text", body: "We will review individual requests fairly and in accordance with applicable UAE consumer protection laws." },
         ],
       },
       {
@@ -1448,9 +1471,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "A 50% advance payment is required to confirm your booking.",
+              "A 50% advance payment is required to confirm and reserve your booking.",
               "The advance payment and the remaining balance are paid through a secure payment link sent by our team, processed by our payment provider Mamo Pay, or at the studio. All prices are in UAE Dirhams (AED).",
-              "The remaining balance must be paid at least 48 hours before the event.",
+              "The remaining balance must be paid at least 5 days before the event.",
+              "Your booking is confirmed only once we have received your advance payment and confirmed your booking in writing.",
               "Additional services, customised activities and special arrangements are quoted separately.",
             ],
           },
@@ -1462,8 +1486,9 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Please confirm the agreed number of participants at least 48 hours before the event.",
-              "Additional participants are subject to capacity and availability.",
+              "Please confirm the final number of participants at least 72 hours before the event.",
+              "Additional participants are subject to capacity and availability, and to additional charges.",
+              "If you reduce your confirmed numbers after this deadline, the reduction may not qualify for a refund.",
               "Our studio is inside Times Square Center. A reserved area or an exclusive session can be arranged on request, subject to Times Square Center and operational approval. What is reserved for you is confirmed in writing.",
             ],
           },
@@ -1475,9 +1500,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "With at least 7 days' notice before the event, you will receive a credit note for the value of your advance payment.",
-              "We do not give cash or card refunds when you cancel. A cancellation made in good time is always settled with a credit note.",
-              "With less than 7 days' notice, the advance payment is non-refundable and no credit note is issued.",
+              "With at least 7 days' notice before the event, you can choose a full refund of the amount you have paid, or move your event to a new date free of charge, as set out under Rescheduling below.",
+              "With less than 7 days' but at least 48 hours' notice, the advance payment may be retained to cover reasonable cancellation costs. Any balance you have already paid is refunded.",
+              "With less than 48 hours' notice, a cancellation charge of up to the full booking value may apply, subject to applicable consumer protection requirements.",
+              "If you do not attend without having cancelled (a no-show), there is no automatic refund.",
               "These terms are subject to your statutory rights under UAE law.",
             ],
           },
@@ -1490,7 +1516,9 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "You may reschedule your event once, with at least 72 hours' notice before the event, subject to availability.",
+              "You may make one rescheduling request without an administration fee, at least 72 hours before the event.",
+              "A new date is subject to availability.",
+              "Any difference in package price must be settled by you.",
               "With less than 72 hours' notice, an event cannot be rescheduled.",
             ],
           },
@@ -1499,30 +1527,25 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "If we cancel or cannot deliver your event",
         blocks: [
-          { type: "text", body: "Occasionally we may need to cancel a confirmed event, or may be unable to deliver it as agreed, for example because of an instructor's illness, a problem at the venue or events beyond our control. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
+          { type: "text", body: "Occasionally we may need to cancel a confirmed event, or may be unable to deliver it as agreed, for example because of an instructor's illness or a problem at the venue. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
           {
             type: "list",
             items: [
               "An alternative date, subject to availability; or",
-              "A credit note for the full amount you paid.",
+              "A full refund for the affected services.",
             ],
           },
-          { type: "text", body: "If you do not wish to accept either option, or where UAE consumer protection law requires it, we will refund the full amount you paid to your original payment method." },
-          { type: "text", body: "Where we choose, we may instead refund the full amount you paid to your original payment method straight away, and we will tell you so in our message." },
+          { type: "text", body: "In exceptional circumstances beyond our reasonable control, we will work with you to find a suitable alternative arrangement." },
         ],
       },
       {
-        heading: "How credit notes work",
+        heading: "Refunds",
         blocks: [
-          { type: "text", body: "A credit note under this policy is for the amount set out above: the value of your advance payment when you cancel in good time, or the full amount you paid when we cancel. Otherwise, credit notes are issued and used as set out in our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds. In short:" },
           {
             type: "list",
             items: [
-              "Our team issues your credit note and sends it to the email address on your booking, with a unique code and its validity period.",
-              "You can redeem it against a future booking at Maison Palettia, online by entering its code at checkout or in the studio, within the validity period stated on it.",
-              "Each credit note can be used once, and one code can be used per booking. If the new booking costs more, you pay the difference; if it costs less, the unused balance is not carried over.",
-              "It is linked to the email address of the original booking.",
-              "It is not exchangeable for cash unless UAE law requires it. A credit note not used by the end of its validity period expires.",
+              "Approved refunds are made to your original payment method wherever possible.",
+              "We normally start an approved refund within 7 to 14 working days, subject to payment provider and bank processing times.",
             ],
           },
         ],
@@ -1534,7 +1557,9 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "Please arrive 15 minutes before the scheduled start time.",
-              "Events must finish within the agreed booking duration.",
+              "A 15-minute grace period is allowed for late arrival.",
+              "Late arrival may mean a shorter activity, so that later bookings are not affected.",
+              "Your event finishes at the original booked end time, unless we agree otherwise.",
               "Extensions may be arranged, subject to availability and additional charges.",
             ],
           },
@@ -1546,8 +1571,9 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Catering, beverages, decorations and any external suppliers must be approved by our team in advance.",
-              "Please tell us about any special setup requirements before the event.",
+              "Catering, beverages, celebration cakes, decorations, external entertainment and any external suppliers must be approved by our team in advance.",
+              "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
+              "Please tell us about any special setup or other requirements before the event, so that they can be agreed in advance.",
               "Additional setup, cleaning or external supplier charges may apply, where agreed with you.",
               "Candles on a celebration cake may be lit and put out under the supervision of our team.",
               "No other open flames, sparklers, confetti cannons, glitter bombs, hazardous materials or decorations that could damage the premises are permitted.",
@@ -1574,9 +1600,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "All guests are expected to respect the premises, equipment and materials, and to follow the instructions of our team.",
+              "All guests are expected to respect the premises, furniture, equipment and materials, and to follow the instructions of our team.",
               "The booking organiser is responsible for sharing the agreed arrangements with all participants.",
-              "Any damage caused through negligence or misuse may be subject to reasonable recovery costs, in line with applicable law.",
+              "Where children attend, parents, guardians or designated responsible adults must supervise them. Our team facilitate the creative activities but do not replace parental supervision.",
+              "You may be held responsible for damage caused intentionally, or through negligence or misuse, by you or your guests, subject to applicable law.",
             ],
           },
         ],
@@ -1585,6 +1612,13 @@ export const POLICIES: readonly Policy[] = [
         heading: "Special arrangements",
         blocks: [
           { type: "text", body: "Corporate branding, customised creative sessions, team-building activities and special event setups can be arranged on request." },
+        ],
+      },
+      {
+        heading: "Acceptance of this policy",
+        blocks: [
+          { type: "text", body: "By confirming your booking and making payment, you acknowledge and agree to the booking conditions and cancellation terms in this policy, as communicated to you when you reserve your event." },
+          { type: "text", body: "We will review individual requests fairly and in accordance with applicable UAE consumer protection laws." },
         ],
       },
       {
@@ -1710,8 +1744,9 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "Group bookings are available for groups of 6 or more participants.",
-              "Please confirm the final number of participants at least 24 hours before the scheduled session.",
-              "Any additional participants are subject to availability.",
+              "Please confirm the final number of participants at least 72 hours before the scheduled session, or when you book if you book later than that.",
+              "Additional participants are subject to availability and to additional charges.",
+              "If you reduce your confirmed numbers after this deadline, the reduction may not qualify for a refund.",
             ],
           },
         ],
@@ -1722,9 +1757,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "A 50% advance payment is required to confirm a group booking.",
+              "A 50% advance payment is required to confirm and reserve a group booking.",
               "The advance payment and the remaining balance are paid through a secure payment link sent by our team, processed by our payment provider Mamo Pay, or at the studio. All prices are in UAE Dirhams (AED).",
-              "The remaining balance must be paid before the activity begins.",
+              "The remaining balance must be paid at least 48 hours before the scheduled session, or when you book if you book later than that.",
+              "Your booking is confirmed only once we have received your advance payment and confirmed your booking in writing.",
               "All applicable prices and charges are communicated clearly at the time of booking.",
             ],
           },
@@ -1736,9 +1772,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "With at least 72 hours' notice before the booking, you will receive a credit note for the value of your advance payment.",
-              "We do not give cash or card refunds when you cancel. A cancellation made in good time is always settled with a credit note.",
-              "With less than 72 hours' notice, the advance payment is non-refundable and no credit note is issued.",
+              "With at least 7 days' notice before the booking, you can choose a full refund of the amount you have paid, or move your booking to a new date free of charge, as set out under Rescheduling below.",
+              "With less than 7 days' but at least 48 hours' notice, a cancellation charge of up to 50% of the booking value may apply, subject to the reasonable costs we have incurred.",
+              "With less than 48 hours' notice, the cancellation charge may be up to the full booking value, where this is justified by the costs we have committed and the lost booking opportunity.",
+              "If your group does not attend without having cancelled (a no-show), there is no automatic refund.",
               "These terms are subject to your statutory rights under UAE law.",
             ],
           },
@@ -1751,8 +1788,10 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "You may reschedule your group booking once, with at least 48 hours' notice before the booking, subject to availability.",
-              "With less than 48 hours' notice, a group booking cannot be rescheduled.",
+              "You may make one rescheduling request without an administration fee, at least 72 hours before the booking.",
+              "A new date is subject to availability.",
+              "Any difference in package price must be settled by you.",
+              "With less than 72 hours' notice, a group booking cannot be rescheduled.",
             ],
           },
         ],
@@ -1760,30 +1799,25 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "If we cancel or cannot deliver your booking",
         blocks: [
-          { type: "text", body: "Occasionally we may need to cancel a confirmed booking, or may be unable to deliver it as agreed, for example because of an instructor's illness, a problem at the venue or events beyond our control. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
+          { type: "text", body: "Occasionally we may need to cancel a confirmed booking, or may be unable to deliver it as agreed, for example because of an instructor's illness or a problem at the venue. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
           {
             type: "list",
             items: [
               "An alternative date, subject to availability; or",
-              "A credit note for the full amount you paid.",
+              "A full refund for the affected services.",
             ],
           },
-          { type: "text", body: "If you do not wish to accept either option, or where UAE consumer protection law requires it, we will refund the full amount you paid to your original payment method." },
-          { type: "text", body: "Where we choose, we may instead refund the full amount you paid to your original payment method straight away, and we will tell you so in our message." },
+          { type: "text", body: "In exceptional circumstances beyond our reasonable control, we will work with you to find a suitable alternative arrangement." },
         ],
       },
       {
-        heading: "How credit notes work",
+        heading: "Refunds",
         blocks: [
-          { type: "text", body: "A credit note under this policy is for the amount set out above: the value of your advance payment when you cancel in good time, or the full amount you paid when we cancel. Otherwise, credit notes are issued and used as set out in our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds. In short:" },
           {
             type: "list",
             items: [
-              "Our team issues your credit note and sends it to the email address on your booking, with a unique code and its validity period.",
-              "You can redeem it against a future booking at Maison Palettia, online by entering its code at checkout or in the studio, within the validity period stated on it.",
-              "Each credit note can be used once, and one code can be used per booking. If the new booking costs more, you pay the difference; if it costs less, the unused balance is not carried over.",
-              "It is linked to the email address of the original booking.",
-              "It is not exchangeable for cash unless UAE law requires it. A credit note not used by the end of its validity period expires.",
+              "Approved refunds are made to your original payment method wherever possible.",
+              "We normally start an approved refund within 7 to 14 working days, subject to payment provider and bank processing times.",
             ],
           },
         ],
@@ -1795,8 +1829,9 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "Please arrive 10–15 minutes before your scheduled session.",
-              "Late arrivals may reduce the available activity time.",
-              "Sessions finish at the scheduled time, unless an extension has been agreed and is available.",
+              "A 15-minute grace period is allowed for late arrival.",
+              "Late arrival may mean a shorter activity, so that later bookings are not affected.",
+              "Sessions finish at the original booked end time, unless an extension has been agreed and is available.",
             ],
           },
         ],
@@ -1807,7 +1842,8 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Children must be supervised by a parent, guardian or responsible accompanying adult, as required for the activity.",
+              "Children must be supervised by a parent, guardian or designated responsible adult, as required for the activity.",
+              "Our creative team facilitate the activities but do not replace parental supervision.",
               "Please tell our team about any relevant allergies, sensitivities or special requirements before the session.",
               "Each activity has its own age and supervision guidance, set out in our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines.",
             ],
@@ -1822,6 +1858,8 @@ export const POLICIES: readonly Policy[] = [
             items: [
               "All standard materials required for the selected activity are provided.",
               "Participants are asked to follow the instructions of our creative team and to handle all materials responsibly.",
+              "Please respect the premises, furniture, equipment and creative materials.",
+              "You may be held responsible for damage caused intentionally or through negligence by you or members of your group, subject to applicable law.",
               "Any special materials or customisation requests should be discussed and agreed in advance.",
             ],
           },
@@ -1831,6 +1869,21 @@ export const POLICIES: readonly Policy[] = [
         heading: "Special requests",
         blocks: [
           { type: "text", body: "School visits, celebrations and other group experiences can be tailored on request, subject to availability and applicable charges." },
+          {
+            type: "list",
+            items: [
+              "Food, cakes, decorations and any external entertainment must be approved by our team in advance.",
+              "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
+              "Any additional requirements must be agreed with our team before the booking.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Acceptance of this policy",
+        blocks: [
+          { type: "text", body: "By confirming your booking and making payment, you acknowledge and agree to the booking conditions and cancellation terms in this policy, as communicated to you when you make your booking." },
+          { type: "text", body: "We will review individual requests fairly and in accordance with applicable UAE consumer protection laws." },
         ],
       },
       {

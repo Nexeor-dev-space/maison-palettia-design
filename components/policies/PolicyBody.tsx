@@ -74,6 +74,17 @@ function Linked({ text }: { text: string }) {
       {policyTextParts(text).map((part, index) =>
         !part.href ? (
           part.text
+        ) : part.external ? (
+          <a
+            key={index}
+            href={part.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-words underline underline-offset-2 transition-colors hover:text-primary"
+          >
+            {part.text}
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
         ) : part.href.startsWith("mailto:") ? (
           <a key={index} href={part.href} className="break-words underline underline-offset-2 transition-colors hover:text-primary">
             {part.text}
