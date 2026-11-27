@@ -79,6 +79,9 @@ export interface Config {
     customers: {
       orders: 'orders';
     };
+    'credit-notes': {
+      redemptions: 'orders';
+    };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
     };
@@ -3139,17 +3142,26 @@ export interface CreditNote {
    */
   expiresAt: string;
   /**
-   * Future booking where this credit note was redeemed.
+   * The most recent booking that used this credit note. Every booking is listed under Bookings that used this note.
    */
   redeemedInOrder?: (string | null) | Order;
   /**
-   * Timestamp when the credit note was redeemed.
+   * When the credit note was last used.
    */
   redeemedAt?: string | null;
   /**
-   * Actual discount applied to the new booking.
+   * Total credit used across all bookings.
    */
   redeemedAmountFils?: number | null;
+  /**
+   * Credit still available for the customer's next booking (credit amount less what has been redeemed).
+   */
+  balanceFils?: number | null;
+  redemptions?: {
+    docs?: (string | Order)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   /**
    * Reason for issuing credit note or internal notes for staff.
    */
@@ -6199,6 +6211,8 @@ export interface CreditNotesSelect<T extends boolean = true> {
   redeemedInOrder?: T;
   redeemedAt?: T;
   redeemedAmountFils?: T;
+  balanceFils?: T;
+  redemptions?: T;
   notes?: T;
   updatedAt?: T;
   createdAt?: T;

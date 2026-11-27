@@ -30,9 +30,20 @@ export async function POST(request: Request): Promise<Response> {
   const raw = await readJson(request);
   if (raw === null) return json({ reason: "invalid", message: "The request body is not valid JSON." }, 400);
   const parsed = checkoutQuoteSchema.safeParse(raw);
-  if (!parsed.success) return json({ reason: "invalid", message: firstIssue(parsed.error) }, 400);
+  if (!parsed.success) {
+    // `field` lets checkout say which input was refused (an email → "check the email address").
+    const field = parsed.error.issues[0]?.path[0];
+    return json({ reason: "invalid", ...(typeof field === "string" ? { field } : {}), message: firstIssue(parsed.error) }, 400);
+  }
 
   const req = await siteRequest(request);
+  // What a failed quote is logged with: never the email itself, only whether one was sent.
+  const context = {
+    codes: parsed.data.codes,
+    sessionIds: parsed.data.lines.filter((line) => line.kind === "session").map((line) => line.id),
+    passIds: parsed.data.lines.filter((line) => line.kind === "pass").map((line) => line.id),
+    hasEmail: Boolean(parsed.data.email),
+  };
   try {
     const result = await quote(req, { ...parsed.data, channel: "online" }, { reserve: false });
     return json({
@@ -42,6 +53,7 @@ export async function POST(request: Request): Promise<Response> {
       rejectedCodes: result.rejectedCodes,
     });
   } catch (error) {
-    return checkoutErrorResponse(error, (message) => req.payload.logger.warn({ msg: "checkout/quote failed", err: message }));
+    // checkoutErrorResponse calls this only for real failures (5xx), never for a refused code.
+    return checkoutErrorResponse(error, (message) => req.payload.logger.error({ msg: "checkout/quote failed", err: message, ...context }));
   }
 }

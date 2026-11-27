@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { APIError, type CollectionAfterChangeHook, type CollectionBeforeValidateHook, type CollectionConfig } from "payload";
+import { APIError, ValidationError, type CollectionAfterChangeHook, type CollectionBeforeValidateHook, type CollectionConfig } from "payload";
 
 import { isAdmin, isStaff } from "@/cms/access/roles";
 import { money } from "@/cms/fields";
@@ -19,12 +19,18 @@ import { BOOKINGS_GROUP, sidebarFor, systemDate, systemField } from "./shared";
  * code that the customer can redeem on a future booking.
  *
  * Status:
- *   available → redeemed | expired
+ *   available → partially_redeemed → redeemed | expired
+ *
+ * A note is a balance, not a single-use voucher: a booking takes what it
+ * needs (at most the booking total) and the rest stays on the note for the
+ * next booking. `redeemedAmountFils` is the running total spent, the balance
+ * is `amountFils − redeemedAmountFils`, and a cancellation puts its share
+ * back (cms/lib/pricing.ts reserveCreditNoteSql / restoreCreditNoteSql).
  *
  * Validated at checkout:
  *   - belongs to the matching customer email (online)
  *   - not expired (current time < expiresAt)
- *   - not already redeemed (single-use)
+ *   - has a balance left
  */
 
 export const CREDIT_NOTE_STATUSES = [
@@ -40,6 +46,22 @@ export const normaliseCreditNoteCode = (value: unknown): unknown =>
 export const mintCreditNoteCode = (): string =>
   `CN-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
+/**
+ * A refusal the admin can read. Payload's ValidationError puts our text only on the field and
+ * toasts "The following field is invalid: …"; the toast reads `message`, so it carries ours too.
+ * `name` is set explicitly: the production build strips class names (Turbopack emits anonymous
+ * class expressions, see cms/endpoints/requireRole.ts withPublicErrors), and Payload's formatErrors
+ * keeps a message only when the error has `data` (instanceof) or a `name`. If `instanceof` ever
+ * fails, formatErrors keeps only the message (the toast), not `data`, so the inline field error is
+ * lost. No ':' in messages — the toast splits on the first one.
+ */
+const fieldRefusal = (path: string, label: string, message: string, t?: ConstructorParameters<typeof ValidationError>[1]) => {
+  const error = new ValidationError({ collection: "credit-notes", errors: [{ path, label, message }] }, t);
+  error.message = message;
+  error.name = "ValidationError";
+  return error;
+};
+
 export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, req, operation, originalDoc }) => {
   if (!data) return data;
 
@@ -51,14 +73,14 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
     }
 
     if (!data.expiresAt) {
-      throw new APIError("Expiry date is mandatory.", 400);
+      throw fieldRefusal("expiresAt", "Expiry date", "Expiry date is mandatory.", req?.t);
     }
   } else if (operation === "update") {
     if (data.code && typeof data.code === "string") {
       data.code = normaliseCreditNoteCode(data.code);
     }
     if ("expiresAt" in data && !data.expiresAt && !originalDoc?.expiresAt) {
-      throw new APIError("Expiry date is mandatory.", 400);
+      throw fieldRefusal("expiresAt", "Expiry date", "Expiry date is mandatory.", req?.t);
     }
   }
 
@@ -81,7 +103,7 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
         req,
       });
       if (existing.docs.length > 0) {
-        throw new APIError("A credit note has already been issued for this booking.", 409);
+        throw fieldRefusal("order", "Original booking ID", "A credit note has already been issued for this booking.", req?.t);
       }
     } catch (err) {
       if (err instanceof APIError) throw err;
@@ -117,14 +139,71 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
   // Auto-expire check
   const currentExpiresAt = data.expiresAt || (originalDoc as { expiresAt?: string } | undefined)?.expiresAt;
   const currentStatus = data.status || (originalDoc as { status?: string } | undefined)?.status;
-  if (currentStatus === "available" && currentExpiresAt) {
+  if ((currentStatus === "available" || currentStatus === "partially_redeemed") && currentExpiresAt) {
     if (new Date(currentExpiresAt).getTime() <= Date.now()) {
       data.status = "expired";
     }
   }
 
+  // After auto-expiry, so a lapsed note becomes Expired rather than being refused.
+  const mismatch = statusBalanceMismatch(data, originalDoc, operation);
+  if (mismatch) throw fieldRefusal(mismatch.path, mismatch.label, mismatch.message, req?.t);
+
   return data;
 };
+
+/**
+ * The status an admin picks must agree with the balance (#214 QA: a spent note
+ * set back to "Available" by hand showed as usable but had nothing left).
+ * Checked only on create or when the status or amount changes, so unrelated
+ * edits to an older row still save. Expired is always allowed (it withdraws a
+ * note). A note with any credit used can never go back to Available. The
+ * error sits on `amountFils` when only the amount changed, else on `status`.
+ * The checkout's atomic SQL bypasses hooks and keeps status and balance in step.
+ * Messages name the amounts involved and contain no ':' (see fieldRefusal).
+ */
+function statusBalanceMismatch(
+  data: Record<string, unknown>,
+  originalDoc: Record<string, unknown> | undefined,
+  operation: string,
+): { path: string; label: string; message: string } | null {
+  const status = (data.status ?? originalDoc?.status) as string | undefined;
+  if (!status || status === "expired") return null;
+  const statusChanged = operation !== "update" || !originalDoc || status !== originalDoc.status;
+  const amountChanged =
+    operation === "update" && (!originalDoc || Number(data.amountFils ?? originalDoc.amountFils) !== Number(originalDoc.amountFils));
+  if (!statusChanged && !amountChanged) return null;
+  const path = statusChanged ? "status" : "amountFils";
+
+  const amountFils = Number(data.amountFils ?? originalDoc?.amountFils);
+  if (!Number.isFinite(amountFils) || amountFils <= 0) return null;
+  const redeemedFils = Math.max(0, Math.round(Number(data.redeemedAmountFils ?? originalDoc?.redeemedAmountFils ?? 0)) || 0);
+  const balanceFils = Math.max(0, Math.round(amountFils) - redeemedFils);
+
+  const used = formatAed(redeemedFils);
+  const amount = formatAed(amountFils);
+  const left = formatAed(balanceFils);
+  const statusLabel = ({ available: "Available", partially_redeemed: "Partially Redeemed", redeemed: "Fully Redeemed" } as Record<string, string>)[status] ?? status;
+  const keep = redeemedFils > 0 ? "Partially Redeemed" : "Available";
+
+  let message: string | null = null;
+  if ((status === "available" || status === "partially_redeemed") && balanceFils <= 0) {
+    message = statusChanged
+      ? `This credit note has already been fully redeemed (${used} of ${amount} used). Its status cannot be changed to ${statusLabel}.`
+      : `${used} of this credit note has already been used, so its credit amount must be more than ${used} while it is ${statusLabel}. Enter a higher amount, or change the status to Fully Redeemed.`;
+  } else if (status === "available" && redeemedFils > 0) {
+    message = statusChanged
+      ? `This credit note has already been partially redeemed (${left} of ${amount} left). Its status cannot be changed to Available.`
+      : `With a credit amount of ${amount}, ${left} would be left after ${used} already used, so it cannot stay Available. Change the status to Partially Redeemed.`;
+  } else if (status === "redeemed" && balanceFils > 0) {
+    message = statusChanged
+      ? `This credit note still has ${left} of ${amount} left, so its status cannot be changed to Fully Redeemed. Change the status to ${keep}, or set it to Expired to withdraw it.`
+      : redeemedFils > 0
+        ? `This credit note is Fully Redeemed and ${used} of it has been used, so its credit amount cannot be raised above ${used}. Keep it at ${used}, or change the status to Partially Redeemed.`
+        : `No credit has been recorded as used on this note, so it cannot stay Fully Redeemed with a credit amount of ${amount}. Change the status to Available, or set it to Expired to withdraw it.`;
+  }
+  return message ? { path, label: statusChanged ? "Status" : "Credit amount", message } : null;
+}
 
 export const creditNoteAfterChange: CollectionAfterChangeHook = async ({ doc, operation, req }) => {
   if (operation === "create" && doc.order) {
@@ -149,7 +228,7 @@ export const CreditNotes: CollectionConfig = {
   admin: {
     group: "Credit Notes",
     useAsTitle: "code",
-    defaultColumns: ["code", "order", "redeemedInOrder", "customerEmail", "amountFils", "status", "expiresAt", "issuedAt"],
+    defaultColumns: ["code", "order", "redeemedInOrder", "customerEmail", "amountFils", "balanceFils", "status", "expiresAt", "issuedAt"],
     description: "Credit notes issued to customers for rescheduling. Redeemed at checkout via promo code.",
     hidden: sidebarFor("admin", "front-desk"),
     listSearchableFields: ["code", "customerEmail", "customerName"],
@@ -328,26 +407,49 @@ export const CreditNotes: CollectionConfig = {
           name: "redeemedInOrder",
           type: "relationship",
           relationTo: "orders",
-          label: "Redeemed in booking",
+          label: "Last redeemed in booking",
           index: true,
           admin: {
             width: "34%",
-            description: "Future booking where this credit note was redeemed.",
+            description: "The most recent booking that used this credit note. Every booking is listed under Bookings that used this note.",
           },
         }),
-        systemDate("redeemedAt", "Redeemed date", {
-          description: "Timestamp when the credit note was redeemed.",
+        systemDate("redeemedAt", "Last redeemed date", {
+          description: "When the credit note was last used.",
         }),
         systemField(
           money("redeemedAmountFils", {
-            label: "Redeemed amount",
+            label: "Redeemed so far",
             admin: {
               width: "33%",
-              description: "Actual discount applied to the new booking.",
+              description: "Total credit used across all bookings.",
             },
           }),
         ),
       ],
+    },
+    systemField(
+      money("balanceFils", {
+        label: "Remaining balance",
+        virtual: true,
+        hooks: {
+          afterRead: [
+            ({ siblingData }) =>
+              Math.max(0, Math.round(Number(siblingData?.amountFils ?? 0)) - Math.round(Number(siblingData?.redeemedAmountFils ?? 0))),
+          ],
+        },
+        admin: {
+          description: "Credit still available for the customer's next booking (credit amount less what has been redeemed).",
+        },
+      }),
+    ),
+    {
+      name: "redemptions",
+      type: "join",
+      collection: "orders",
+      on: "creditNoteUsed",
+      label: "Bookings that used this note",
+      admin: { allowCreate: false, defaultColumns: ["reference", "status", "createdAt"] },
     },
     {
       name: "notes",

@@ -213,9 +213,10 @@ export const orders: Chapter = {
           title: "Credit note redemption rules",
           text: [
             "**Customer ownership**: Credit notes are linked to the customer's email. Only that customer can redeem them at checkout.",
-            "**Credit greater than booking**: If a customer uses an AED 280 credit note for an AED 240 booking, AED 240 is applied, the remaining AED 40 is not carried forward, and the credit note is closed.",
+            "**Credit greater than booking**: If a customer uses an AED 280 credit note for an AED 240 booking, AED 240 is applied and the remaining AED 40 stays on the same code. The note shows as **Partially Redeemed** with a remaining balance of AED 40 until it is used up or expires.",
             "**Booking greater than credit**: If the booking is higher than the credit note (e.g. AED 320 booking with AED 240 credit), the credit is deducted and the remaining AED 80 is paid via card through Mamo Pay.",
-            "**Track credit notes**: View and filter all issued credit notes under {{Bookings > Credit notes}}.",
+            "**Cancellations**: If a booking paid partly with a credit note is cancelled (by the customer or because the studio cancels the session), the credit-note part goes back onto the note and only the card part is refunded.",
+            "**Track credit notes**: View and filter all issued credit notes under {{Bookings > Credit notes}}. Each note shows its remaining balance and every booking that used it.",
           ],
         },
       ],

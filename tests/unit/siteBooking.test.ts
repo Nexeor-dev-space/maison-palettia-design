@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { displayStatus, parseOrderView } from "@/components/booking/orderView";
+import { messageFor, type CodeOutcome } from "@/components/booking/PassCodeField";
 import { basketFingerprint, basketIdFor, readWaitlistToken, requestQuote, saveWaitlistToken, startCheckout, type CartLine } from "@/lib/cart";
 import { sendEnquiry } from "@/lib/enquiry";
 
@@ -185,6 +186,48 @@ describe("requestQuote", () => {
   it("says codes cannot be checked when the route is absent", async () => {
     stubFetch(404, {});
     await expect(requestQuote({ lines: [], codes: ["A"] })).resolves.toEqual({ status: "unavailable" });
+  });
+
+  // #214 QA: a 400 for a half-typed email showed "We could not check that code just now".
+  const GENERIC = "We could not check that code just now. Your total is unchanged; please try again.";
+  const body = { lines: [{ kind: "session" as const, id: "x", qty: 2 }], codes: ["CN-4831EF"], email: "ani@" };
+
+  it("names the email when the server refuses it (field or message), not the generic failure", async () => {
+    for (const reply of [
+      { reason: "invalid", field: "email", message: "email: Invalid email address" },
+      { reason: "invalid", message: "email: Invalid email address" },
+    ]) {
+      stubFetch(400, reply);
+      const outcome = await requestQuote(body);
+      expect(outcome).toEqual({ status: "invalid_email" });
+      expect(messageFor(outcome as CodeOutcome)).toBe("Check the email address in your details; credit notes are matched to it.");
+    }
+  });
+
+  it("any other refused request is not called a temporary failure", async () => {
+    stubFetch(400, { reason: "invalid", field: "lines", message: "lines.0.qty: Too big" });
+    const outcome = await requestQuote(body);
+    expect(outcome).toEqual({ status: "bad_request" });
+    expect(messageFor(outcome as CodeOutcome)).not.toBe(GENERIC);
+  });
+
+  it("keeps the generic message for server errors and network failures only", async () => {
+    stubFetch(500, { reason: "error" });
+    const serverError = await requestQuote(body);
+    expect(serverError).toEqual({ status: "error" });
+    expect(messageFor(serverError as CodeOutcome)).toBe(GENERIC);
+
+    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))));
+    const offline = await requestQuote(body);
+    expect(offline).toEqual({ status: "error" });
+    expect(messageFor(offline as CodeOutcome)).toBe(GENERIC);
+  });
+
+  it("asks for the email when a credit note is tried without one", () => {
+    expect(messageFor({ status: "rejected", reason: "email_required" })).toBe(
+      "Enter the email address the credit note was issued to in your details, then apply the code.",
+    );
+    expect(messageFor({ status: "rejected", reason: "wrong_customer" })).toBe("This credit note is linked to a different email address.");
   });
 });
 

@@ -409,6 +409,7 @@ async function resolveCodes(
           code: string;
           status: string;
           amountFils: number;
+          redeemedAmountFils?: number | null;
           expiresAt?: string | null;
           customerEmail?: string | null;
           customer?: unknown;
@@ -432,22 +433,24 @@ async function resolveCodes(
         .toLowerCase();
 
       const currentEmail = email?.trim().toLowerCase();
+      // What is left on the note: a partly used note keeps its balance for the next booking.
+      const balanceFils = creditNoteBalanceFils(cnDoc);
 
       // Customer validation: Validate that the promo code belongs to the correct customer
       if (input.channel === "online" && (!currentEmail || (ownerEmail && ownerEmail !== currentEmail))) {
         rejected.push({ code, reason: "wrong_customer" });
       } else if (cnDoc.status === "expired" || (cnDoc.expiresAt && new Date(cnDoc.expiresAt).getTime() <= Date.now())) {
         rejected.push({ code, reason: "expired" });
-      } else if (cnDoc.status === "redeemed" || cnDoc.status === "partially_redeemed" || Boolean(cnDoc.redeemedInOrder)) {
+      } else if (cnDoc.status === "redeemed" || balanceFils <= 0) {
         rejected.push({ code, reason: "exhausted" });
-      } else if (cnDoc.status !== "available") {
+      } else if (cnDoc.status !== "available" && cnDoc.status !== "partially_redeemed") {
         rejected.push({ code, reason: "invalid" });
       } else {
         promo = {
           id: cnDoc.id,
           code: cnDoc.code,
           type: "fixed",
-          value: cnDoc.amountFils,
+          value: balanceFils,
           appliesTo: "all",
           experiences: [],
           sessions: [],
@@ -516,31 +519,68 @@ export const reservePromoSql = (id: string) => sql`
 export const restorePromoSql = (id: string) => sql`
   UPDATE promo_codes SET uses = greatest(0, uses - 1), updated_at = now() WHERE id = ${id} RETURNING uses`;
 
-export const reserveCreditNoteSql = (id: string) => sql`
+/** Credit still unspent on a note: the issued amount less everything redeemed so far. */
+export const creditNoteBalanceFils = (note: { amountFils?: number | null; redeemedAmountFils?: number | null }): number =>
+  Math.max(0, Math.round(Number(note.amountFils ?? 0)) - Math.round(Number(note.redeemedAmountFils ?? 0)));
+
+/**
+ * Takes `amountFils` off a note's balance, atomically. `redeemed_amount_fils`
+ * is the running total spent; the note is `redeemed` once nothing is left and
+ * `partially_redeemed` while a balance remains. No row back = the note was
+ * spent, expired or short of balance in the meantime.
+ */
+export const reserveCreditNoteSql = (id: string, amountFils: number) => sql`
   UPDATE credit_notes
-     SET status = 'redeemed', updated_at = now()
-   WHERE id = ${id} AND status = 'available'
+     SET redeemed_amount_fils = coalesce(redeemed_amount_fils, 0) + ${amountFils},
+         status = CASE WHEN amount_fils - (coalesce(redeemed_amount_fils, 0) + ${amountFils}) <= 0
+                       THEN 'redeemed'::enum_credit_notes_status
+                       ELSE 'partially_redeemed'::enum_credit_notes_status END,
+         updated_at = now()
+   WHERE id = ${id} AND status IN ('available', 'partially_redeemed')
      AND expires_at > now()
+     AND ${amountFils} > 0
+     AND amount_fils - coalesce(redeemed_amount_fils, 0) >= ${amountFils}
   RETURNING id`;
 
-export const restoreCreditNoteSql = (id: string) => sql`
+/**
+ * Gives `amountFils` back to a note's balance (expiry, cancellation). An
+ * expired note keeps its status; the "last redeemed in" link is cleared only
+ * when it points at the order giving the credit back.
+ */
+export const restoreCreditNoteSql = (id: string, amountFils: number, orderId?: string | null) => sql`
   UPDATE credit_notes
-     SET status = 'available', redeemed_in_order_id = NULL, redeemed_at = NULL, redeemed_amount_fils = NULL, updated_at = now()
-   WHERE id = ${id}
+     SET redeemed_amount_fils = CASE WHEN coalesce(redeemed_amount_fils, 0) - ${amountFils} <= 0 THEN NULL
+                                     ELSE coalesce(redeemed_amount_fils, 0) - ${amountFils} END,
+         status = CASE WHEN status = 'expired' THEN status
+                       WHEN coalesce(redeemed_amount_fils, 0) - ${amountFils} <= 0 THEN 'available'::enum_credit_notes_status
+                       ELSE 'partially_redeemed'::enum_credit_notes_status END,
+         redeemed_in_order_id = CASE WHEN redeemed_in_order_id = ${orderId ?? null}::uuid THEN NULL ELSE redeemed_in_order_id END,
+         redeemed_at = CASE WHEN redeemed_in_order_id = ${orderId ?? null}::uuid THEN NULL ELSE redeemed_at END,
+         updated_at = now()
+   WHERE id = ${id} AND ${amountFils} > 0
   RETURNING id`;
 
-/** Gives back what `quote(…, { reserve: true })` took: credits per redemption, one promo use or credit note. */
+/** A credit note amount taken by (or to give back to) one order. */
+export interface CreditNoteTake {
+  id: string;
+  amountFils: number;
+  orderId?: string | null;
+}
+
+/** Gives back what `quote(…, { reserve: true })` took: credits per redemption, one promo use, or credit-note balance. */
 export async function restoreReservations(
   req: PayloadRequest,
   input: {
     passRedemptions?: Array<{ passPurchase: string; n: number }>;
     promoCodeId?: string | null;
-    creditNoteId?: string | null;
+    creditNote?: CreditNoteTake | null;
   },
 ): Promise<void> {
   for (const r of input.passRedemptions ?? []) if (r.n > 0) await runSql(req, restorePassSql(r.passPurchase, r.n));
   if (input.promoCodeId) await runSql(req, restorePromoSql(input.promoCodeId));
-  if (input.creditNoteId) await runSql(req, restoreCreditNoteSql(input.creditNoteId));
+  if (input.creditNote && input.creditNote.amountFils > 0) {
+    await runSql(req, restoreCreditNoteSql(input.creditNote.id, input.creditNote.amountFils, input.creditNote.orderId));
+  }
 }
 
 /**
@@ -576,7 +616,7 @@ export async function quote(req: PayloadRequest, input: QuoteInput, opts?: { res
     let promoLost = false;
     if (priced.promo) {
       if (priced.promo.isCreditNote && priced.promo.creditNoteId) {
-        promoLost = (await runSql(req, reserveCreditNoteSql(priced.promo.creditNoteId))).length === 0;
+        promoLost = (await runSql(req, reserveCreditNoteSql(priced.promo.creditNoteId, priced.promo.discountFils))).length === 0;
       } else {
         promoLost = (await runSql(req, reservePromoSql(priced.promo.promoCode))).length === 0;
       }
@@ -587,7 +627,10 @@ export async function quote(req: PayloadRequest, input: QuoteInput, opts?: { res
     await restoreReservations(req, {
       passRedemptions: taken,
       promoCodeId: priced.promo && !promoLost && !priced.promo.isCreditNote ? priced.promo.promoCode : null,
-      creditNoteId: priced.promo && !promoLost && priced.promo.isCreditNote ? priced.promo.creditNoteId : null,
+      creditNote:
+        priced.promo && !promoLost && priced.promo.isCreditNote && priced.promo.creditNoteId
+          ? { id: priced.promo.creditNoteId, amountFils: priced.promo.discountFils }
+          : null,
     });
     for (const id of lost) {
       const grant = grants.find((g) => g.passPurchase === id);

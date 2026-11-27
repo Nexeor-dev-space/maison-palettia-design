@@ -29,6 +29,7 @@ import {
   type QuoteView,
   type StartCheckoutOutcome,
 } from "@/lib/cart";
+import { isValidEmail } from "@/lib/fieldValidation";
 import { cn, formatMoney } from "@/lib/utils";
 
 const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text/75";
@@ -137,8 +138,14 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, cance
   const totalAed = freshQuote ? freshQuote.totals.grossFils / 100 : subtotal;
   const resolved = resolveLines(lines, catalogue);
 
-  const currentEmail = () =>
-    formRef.current?.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || details?.email || undefined;
+  const typedEmail = () =>
+    formRef.current?.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || details?.email?.trim() || "";
+  // Sent with a quote only when it would pass the server's check, so a half-typed
+  // address gets the code's own answer rather than a refused request.
+  const currentEmail = () => {
+    const email = typedEmail();
+    return email && isValidEmail(email) ? email : undefined;
+  };
 
   async function priceWith(nextCodes: string[], basket: readonly CartLine[] = lines): Promise<CodeOutcome> {
     const { inputs, missing } = resolveLines(basket, catalogue);
@@ -154,10 +161,15 @@ export function Checkout({ catalogue, requireTerms, consents, captureNote, cance
     const next = [...codes, code];
     const { inputs, missing } = resolveLines(lines, catalogue);
     if (missing.length > 0) return { status: "error" };
-    const result = await requestQuote({ lines: inputs, codes: next, email: currentEmail() });
+    const email = currentEmail();
+    const result = await requestQuote({ lines: inputs, codes: next, email });
     if (result.status !== "ok") return result;
     const target = code.trim().toUpperCase();
     const rejected = result.quote.rejectedCodes.find((entry) => entry.code.trim().toUpperCase() === target);
+    // "Linked to a different email" is wrong when no email was sent: ask for it, or to fix it.
+    if (rejected?.reason === "wrong_customer" && !email) {
+      return typedEmail() ? { status: "invalid_email" } : { status: "rejected", reason: "email_required" };
+    }
     if (rejected) return { status: "rejected", reason: rejected.reason };
     setCodes(next);
     setQuote({ fingerprint, view: result.quote });
