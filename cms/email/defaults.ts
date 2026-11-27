@@ -105,7 +105,7 @@ export const DEFAULT_TEMPLATES: DefaultTemplate[] = [
     paragraphs: [
       "Hi {{customer.firstName}},",
       "Your booking {{order.reference}} has been cancelled. {{reason}}",
-      "Any refund due ({{refund.amount}}) is returned {{refund.where}}; you'll receive a separate confirmation when it is processed.",
+      "{{refund.summary}}",
       SIGN_OFF,
     ],
   },
