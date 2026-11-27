@@ -28,3 +28,36 @@ describe("policyTextParts", () => {
     expect(policyTextParts("Call: +971 50 474 7762")).toEqual([{ text: "Call: +971 50 474 7762" }]);
   });
 });
+
+describe("policyTextParts — links to official pages", () => {
+  it("turns [label](https://…) into the label, linking out", () => {
+    const parts = policyTextParts(
+      "contact [Dubai Consumer Rights](https://consumerrights.ae/en/Pages/default.aspx) or email info@maisonpalettia.com.",
+    );
+    expect(parts).toEqual([
+      { text: "contact " },
+      { text: "Dubai Consumer Rights", href: "https://consumerrights.ae/en/Pages/default.aspx", external: true },
+      { text: " or email " },
+      { text: "info@maisonpalettia.com", href: "mailto:info@maisonpalettia.com" },
+      { text: "." },
+    ]);
+  });
+
+  it("keeps a label with brackets and numbers, and the full stop outside the link", () => {
+    const parts = policyTextParts(
+      "refer to the [UAE Federal Consumer Protection Law (Federal Law No. 15 of 2020)](https://www.moet.gov.ae/en/federal-law-no-15-of-2020-on-consumer-protection).",
+    );
+    expect(parts[1]).toEqual({
+      text: "UAE Federal Consumer Protection Law (Federal Law No. 15 of 2020)",
+      href: "https://www.moet.gov.ae/en/federal-law-no-15-of-2020-on-consumer-protection",
+      external: true,
+    });
+    expect(parts[2]).toEqual({ text: "." });
+  });
+
+  it("leaves non-https targets as plain text", () => {
+    for (const text of ["[x](javascript:alert(1))", "[x](http://example.com)"]) {
+      expect(policyTextParts(text).every((part) => !part.href)).toBe(true);
+    }
+  });
+});
