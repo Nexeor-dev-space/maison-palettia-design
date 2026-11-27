@@ -23,8 +23,12 @@ import { withStaticBlurs } from "@/lib/staticBlur";
  * props from a server parent.
  */
 
-/** Published programmes in display order (`order`), the ink key turned into the renderer's hex. */
-const readProgrammes = contentReader("programmes", [TAGS.programmes], async (draft) => {
+/**
+ * Published programmes in display order (`order`), the ink key turned into the renderer's hex.
+ * Tagged with policies too: each carries its linked booking policy's title and slug, so a
+ * renamed or re-slugged policy must refresh this read (the policies hook purges the layout).
+ */
+const readProgrammes = contentReader("programmes", [TAGS.programmes, TAGS.policies], async (draft) => {
   const docs = await findDocs("programmes", draft, { drafts: true, sort: "order", depth: 1 });
   return docs.map(toAudience);
 });

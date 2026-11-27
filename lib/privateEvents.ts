@@ -143,7 +143,69 @@ export interface PrivateEventAudience {
    * once it renders from CMS data (2D).
    */
   tone?: "lavender" | "charcoal" | "sage" | "lilac";
+  /**
+   * The booking policy this programme's bookings follow (the programme's
+   * `bookingPolicy` relationship): its title for the link's words and its
+   * slug for /policies/{slug}. Linked under the enquiry button on the
+   * programme's page and under Send on the enquiry form. Unset when no
+   * published policy is linked.
+   */
+  bookingPolicy?: BookingPolicyLink;
+  /**
+   * Printed instead of a policy link when there is none, e.g. "Quoted under
+   * a separate written agreement" for activations. Never shown beside a
+   * linked policy.
+   */
+  bookingPolicyNote?: string;
 }
+
+/** Just enough of a policy to link to it. */
+export interface BookingPolicyLink {
+  slug: string;
+  title: string;
+}
+
+/** Where a booking policy is read. */
+export const policyHref = (policy: BookingPolicyLink) => `/policies/${policy.slug}`;
+
+/**
+ * The line under the enquiry form's Send button when no programme is chosen
+ * ("Not decided yet", "Something else", or a programme with no policy or
+ * note), linking the Policies page.
+ */
+export const GENERIC_BOOKING_POLICY_LINE = {
+  /** Read as one sentence: `${lead} ${link}.`, the link's words being the last ones. */
+  lead: "Birthday parties, private events and group bookings each follow",
+  link: "their own booking policy",
+  href: "/policies",
+} as const;
+
+/**
+ * The hint beside Preferred date when Birthday Parties is the event type.
+ * A constant, not CMS copy: the form's labels and hints live in code (the
+ * `enquiryForm` block's words are not read by the form yet — see
+ * components/blocks/EnquiryForm.tsx). It mirrors the Birthday Party Booking
+ * Policy's 7-day advance booking recommendation; change the two together.
+ */
+export const BIRTHDAY_DATE_HINT = "Birthday parties are best booked at least 7 days ahead.";
+
+/** The programme slug the birthday-only questions key on (children, adults, the date hint). */
+export const BIRTHDAY_PROGRAMME_SLUG = "birthday-parties";
+
+/**
+ * What the enquiry form needs to know about each programme it offers as an
+ * event type: the name it lists, the slug it keys on, and the booking terms
+ * it names under Send. Built on the server (the form is a client component)
+ * from the CMS programmes.
+ */
+export type EnquiryProgramme = Pick<PrivateEventAudience, "slug" | "name" | "bookingPolicy" | "bookingPolicyNote">;
+
+export const toEnquiryProgramme = ({ slug, name, bookingPolicy, bookingPolicyNote }: PrivateEventAudience): EnquiryProgramme => ({
+  slug,
+  name,
+  ...(bookingPolicy ? { bookingPolicy } : {}),
+  ...(bookingPolicyNote ? { bookingPolicyNote } : {}),
+});
 
 /**
  * Where "Book a private event" goes, everywhere it is offered.
@@ -228,6 +290,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
     },
     mark: { name: "splash", color: INK_MARK.lavender },
     inPrivateEventsMenu: true,
+    bookingPolicy: { slug: "birthday-parties", title: "Birthday Party Booking Policy" },
   },
   {
     slug: "corporate-events",
@@ -248,6 +311,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
     },
     mark: { name: "starburst", color: INK_MARK.lilac },
     inPrivateEventsMenu: true,
+    bookingPolicy: { slug: "private-events", title: "Private Events Booking Policy" },
   },
   {
     slug: "school-programs",
@@ -266,6 +330,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
     },
     mark: { name: "starleaf", color: INK_MARK.terracotta },
     inPrivateEventsMenu: true,
+    bookingPolicy: { slug: "group-bookings", title: "Group Booking Policy" },
   },
   {
     slug: "mall-and-community-activations",
@@ -305,6 +370,7 @@ export const PRIVATE_EVENT_AUDIENCES: readonly PrivateEventAudience[] = [
        the description already written for it, a photograph, and a page of its
        own at /private-events/mall-and-community-activations. */
     inPrivateEventsMenu: true,
+    bookingPolicyNote: "Quoted under a separate written agreement — ask our team.",
   },
 ] as const;
 

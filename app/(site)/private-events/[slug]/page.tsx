@@ -9,6 +9,7 @@ import { BlobButton } from "@/components/ui/BlobButton";
 import { Container } from "@/components/ui/Container";
 import type { DoodleName } from "@/components/sections/hero/doodles";
 import { ActivityPlate } from "@/components/private-events/ActivityPlate";
+import { BookingPolicyLine } from "@/components/private-events/BookingPolicyLine";
 import { BannerMarks } from "@/components/ui/BannerMarks";
 import { DoodleMark } from "@/components/ui/DoodleMark";
 import { DisplayHeading, Eyebrow } from "@/components/ui/SectionHeader";
@@ -246,7 +247,7 @@ export default async function PrivateEventProgrammePage({
       <Masthead audience={audience} />
       <Activities experiences={experiences} />
       <HowItWorks steps={steps} />
-      <Enquiry />
+      <Enquiry audience={audience} />
     </>
   );
 }
@@ -818,7 +819,7 @@ function HowItWorks({ steps }: { steps: readonly PrivateEventStep[] }) {
  * Deep Lilac on all four pages rather than the programme's own field: see
  * the note on the section. It takes no `tone` for that reason.
  */
-function Enquiry() {
+function Enquiry({ audience }: { audience: PrivateEventAudience }) {
   return (
     <section
       aria-label="Enquire about a private event"
@@ -830,7 +831,11 @@ function Enquiry() {
       className="relative isolate overflow-clip bg-primary"
     >
       <SectionShapes plan={groundShapes("lilac")} />
-      <Container className="relative py-[4.5rem] text-center md:py-section lg:py-[6.5rem]">
+      {/* `pb-[7rem]` on a phone: the splash mark sits 2.5rem up from the
+          foot and is 4.5rem tall, and the booking-policy line under the
+          button runs wide enough to reach it. Clearing its top keeps the two
+          apart without moving the mark. */}
+      <Container className="relative pt-[4.5rem] pb-[7rem] text-center md:py-section lg:py-[6.5rem]">
         <span
           aria-hidden
           className="pointer-events-none absolute left-[5%] top-10 deco-mark w-[5rem] rotate-[-10deg]"
@@ -878,6 +883,15 @@ function Enquiry() {
               {programmeCopy().ctaSecondaryLabel}
             </BlobButton>
           </div>
+          {/*
+            THE TERMS THIS BOOKING FOLLOWS, under the door rather than in the
+            masthead: it answers "and if plans change?", which is asked at the
+            point of enquiring, not on arrival. The programme's linked booking
+            policy (Programmes → Booking policy), its note where there is no
+            policy, or the generic line. `on-primary` because small type on
+            Deep Lilac needs it (see <BookingPolicyLine>).
+          */}
+          <BookingPolicyLine programme={audience} tone="onPrimary" className="mx-auto mt-7 max-w-[44ch] text-balance" />
         </Reveal>
       </Container>
     </section>

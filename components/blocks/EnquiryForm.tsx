@@ -1,5 +1,7 @@
 import { EnquiryLayout } from "@/components/sections/private-events/EnquiryLayout";
 import { getCreativeExperiences } from "@/lib/experiences";
+import { toEnquiryProgramme } from "@/lib/privateEvents";
+import { getPrivateEventAudiences } from "@/lib/privateEvents.server";
 
 import { imageOf, stored, text } from "./helpers";
 import { headerWords } from "./PageHeader";
@@ -28,9 +30,13 @@ export async function EnquiryFormAdapter({ block, ctx, header }: AdapterProps<"e
     known about; offering it unmarked would imply it can be had next month. The
     flag in the label is the only version of this that is true.
   */
-  const activities = (await getCreativeExperiences()).map((experience) =>
+  const [experiences, audiences] = await Promise.all([getCreativeExperiences(), getPrivateEventAudiences()]);
+  const activities = experiences.map((experience) =>
     experience.status ? `${experience.name} (${experience.status})` : experience.name,
   );
+  /* The event types are the CMS programmes, each with the booking policy
+     named under Send once it is chosen (Programmes → Booking policy). */
+  const programmes = audiences.map(toEnquiryProgramme);
 
   const words = headerWords(header, ctx);
   const h = header ? stored(header) : null;
@@ -44,6 +50,7 @@ export async function EnquiryFormAdapter({ block, ctx, header }: AdapterProps<"e
   return (
     <EnquiryLayout
       activities={activities}
+      programmes={programmes}
       eyebrow={words.eyebrow}
       heading={words.lines.join(" ")}
       lead={words.standfirst}

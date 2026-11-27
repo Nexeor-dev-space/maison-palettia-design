@@ -140,6 +140,26 @@ export const Programmes: CollectionConfig = {
       ],
     },
     {
+      name: "bookingPolicy",
+      type: "relationship",
+      relationTo: "policies",
+      label: "Booking policy",
+      admin: {
+        description:
+          "The policy this programme's bookings follow. Linked under the enquiry button on the programme's page and under Send on the enquiry form when this programme is the chosen event type. Leave empty when none applies.",
+      },
+    },
+    {
+      name: "bookingPolicyNote",
+      type: "text",
+      label: "Booking terms note",
+      maxLength: 120,
+      admin: {
+        description:
+          "Shown instead of a policy link when no booking policy is linked, e.g. “Quoted under a separate written agreement”. Ignored while a policy is linked.",
+      },
+    },
+    {
       name: "inPrivateEventsMenu",
       type: "checkbox",
       label: "Show in Private events menu",
