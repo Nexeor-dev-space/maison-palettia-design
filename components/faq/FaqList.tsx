@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 
 import { PaintStroke } from "@/components/layout/PaintStroke";
 import { Reveal } from "@/components/motion/Reveal";
 import type { FaqGroup } from "@/lib/constants";
+import { policyTextParts } from "@/lib/policyLinks";
 import { cn } from "@/lib/utils";
 
 /**
@@ -244,7 +246,7 @@ export function FaqList({ groups }: { groups: readonly FaqGroup[] }) {
 
                   <div id={`${id}-panel`} hidden={!isOpen}>
                     <p className="max-w-[58ch] px-6 pb-6 text-body text-text/85 md:px-8 md:pb-7">
-                      {item.answer}
+                      <LinkedAnswer text={item.answer} />
                     </p>
                   </div>
                 </li>
@@ -254,5 +256,43 @@ export function FaqList({ groups }: { groups: readonly FaqGroup[] }) {
         </section>
       ))}
     </div>
+  );
+}
+
+/**
+ * An answer with its policy addresses and email addresses as links — the
+ * same rule as policy prose (lib/policyLinks.ts): the words stay exactly as
+ * written, so "maisonpalettia.com/policies/birthday-parties" reads the same
+ * and now opens that page. Answers are plain text (lexicalToText), so this
+ * is the only place a link can come from.
+ */
+function LinkedAnswer({ text }: { text: string }) {
+  return (
+    <>
+      {policyTextParts(text).map((part, index) =>
+        !part.href ? (
+          part.text
+        ) : part.external ? (
+          <a
+            key={index}
+            href={part.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-words underline underline-offset-2 transition-colors hover:text-primary"
+          >
+            {part.text}
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        ) : part.href.startsWith("mailto:") ? (
+          <a key={index} href={part.href} className="break-words underline underline-offset-2 transition-colors hover:text-primary">
+            {part.text}
+          </a>
+        ) : (
+          <Link key={index} href={part.href} className="break-words underline underline-offset-2 transition-colors hover:text-primary">
+            {part.text}
+          </Link>
+        ),
+      )}
+    </>
   );
 }

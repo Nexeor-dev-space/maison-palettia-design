@@ -25,6 +25,7 @@ import * as migration_20261119_072156_two_ways_card_photos from './20261119_0721
 import * as migration_20261119_072919_experience_carousel_card_photos from './20261119_072919_experience_carousel_card_photos';
 import * as migration_20261120_113005_credit_note_status_reconcile from './20261120_113005_credit_note_status_reconcile';
 import * as migration_20261126_190328_legal_pack_contact_and_policy_groups from './20261126_190328_legal_pack_contact_and_policy_groups';
+import * as migration_20261127_100022_programme_booking_policy from './20261127_100022_programme_booking_policy';
 
 export const migrations = [
   {
@@ -161,5 +162,10 @@ export const migrations = [
     up: migration_20261126_190328_legal_pack_contact_and_policy_groups.up,
     down: migration_20261126_190328_legal_pack_contact_and_policy_groups.down,
     name: '20261126_190328_legal_pack_contact_and_policy_groups',
+  },
+  {
+    up: migration_20261127_100022_programme_booking_policy.up,
+    down: migration_20261127_100022_programme_booking_policy.down,
+    name: '20261127_100022_programme_booking_policy',
   },
 ];

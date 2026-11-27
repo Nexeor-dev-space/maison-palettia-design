@@ -5,8 +5,21 @@ import { BlobButton } from "@/components/ui/BlobButton";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { EnquiryOutcome, Honeypot } from "@/components/contact/EnquiryOutcome";
-import { sendEnquiry, type EnquiryResult } from "@/lib/enquiry";
-import { PRIVATE_EVENT_AUDIENCES } from "@/lib/privateEvents";
+import {
+  ENQUIRY_DETAIL_LABELS,
+  enquiryDetailErrors,
+  REQUIREMENTS_MAX_LENGTH,
+  sendEnquiry,
+  type EnquiryResult,
+} from "@/lib/enquiry";
+import {
+  BIRTHDAY_DATE_HINT,
+  BIRTHDAY_PROGRAMME_SLUG,
+  PRIVATE_EVENT_AUDIENCES,
+  toEnquiryProgramme,
+  type EnquiryProgramme,
+} from "@/lib/privateEvents";
+import { BookingPolicyLine } from "@/components/private-events/BookingPolicyLine";
 import { PaintChoice } from "@/components/booking/PaintChoice";
 import cardStyles from "@/components/booking/PaintBooking.module.css";
 import { EnquiryStub } from "@/components/private-events/EnquiryStub";
@@ -58,12 +71,18 @@ const LABEL = "block text-label font-medium uppercase tracking-eyebrow text-text
 const UNDECIDED = "Not decided yet";
 
 /** The order errors are read in, so focus lands on the first one down the page. */
-const FIELD_ORDER = ["name", "email", "phone", "date", "guests", "message"] as const;
+const FIELD_ORDER = ["name", "email", "phone", "date", "guests", "children", "adults", "requirements", "message"] as const;
+
+/** The head counts, which swap when the event type does — their errors go with them. */
+const HEADCOUNT_FIELDS = ["guests", "children", "adults"] as const;
+
+/** The in-file programmes, for a render with no CMS answer handed down. */
+const FALLBACK_PROGRAMMES: readonly EnquiryProgramme[] = PRIVATE_EVENT_AUDIENCES.map(toEnquiryProgramme);
 
 const LIVE_FIELDS = ["name", "email", "phone"] as const;
 type LiveField = (typeof LIVE_FIELDS)[number];
 const isLiveField = (name: string): name is LiveField => (LIVE_FIELDS as readonly string[]).includes(name);
-const BLANK_VALUES = { name: "", email: "", phone: "", date: "", guests: "", message: "" };
+const BLANK_VALUES = { name: "", email: "", phone: "", date: "", guests: "", children: "", adults: "", requirements: "", message: "" };
 const liveFieldError = (name: LiveField, value: string) => validate({ ...BLANK_VALUES, [name]: value.trim() })[name];
 
 /**
@@ -76,11 +95,17 @@ const liveFieldError = (name: LiveField, value: string) => validate({ ...BLANK_V
  * flow is touched, imported or altered by this file — it writes to the enquiry
  * seam in lib/enquiry.ts, the one the contact form already uses.
  *
- * WHAT IT ASKS. Nine fields, and no more: who you are and how to reach you,
- * then the five things the studio would have to ask before it could answer,
- * then a message. No company name, no budget band, no "how did you hear about
- * us", no marketing consent — every extra field on an enquiry form is a person
- * who decided not to bother.
+ * WHAT IT ASKS. Ten fields, and no more: who you are and how to reach you,
+ * then the six things the studio would have to ask before it could answer
+ * (allergies or special requirements joined them in Nov 2026, with the
+ * booking policies), then a message. Birthday Parties asks children and
+ * adults in place of one guest estimate. No company name, no budget band, no
+ * "how did you hear about us", no marketing consent — every extra field on an
+ * enquiry form is a person who decided not to bother.
+ *
+ * UNDER SEND, the booking policy the chosen event type follows (the
+ * programme's `bookingPolicy` in the CMS), or a generic line while none is
+ * chosen — see <BookingPolicyLine>.
  *
  * Three are required: name, email and phone. Everything about the event itself
  * is optional and every select offers a way out, because somebody at the "I
@@ -114,10 +139,18 @@ const liveFieldError = (name: LiveField, value: string) => validate({ ...BLANK_V
  */
 export function PrivateEventEnquiry({
   activities,
+  programmes = FALLBACK_PROGRAMMES,
   intro,
   face,
 }: {
   activities: readonly string[];
+  /**
+   * The programmes offered as event types, from the CMS (the server page
+   * reads them), each with the booking policy it follows — named under Send
+   * once it is chosen. Birthday Parties also swaps the head count for
+   * children and adults and adds the date hint.
+   */
+  programmes?: readonly EnquiryProgramme[];
   /**
    * The masthead, and the ticket's face. Both are static and both belong to
    * the server page — but the GRID that places them has to live here, for
@@ -227,7 +260,10 @@ export function PrivateEventEnquiry({
       activity: get("activity"),
       date: get("date"),
       guests: get("guests"),
+      children: get("children"),
+      adults: get("adults"),
       location: get("location"),
+      requirements: get("requirements"),
       message: get("message"),
       website: get("website"),
     };
@@ -251,8 +287,13 @@ export function PrivateEventEnquiry({
       { label: "Event type", value: values.occasion },
       { label: "Creative activity", value: values.activity },
       { label: "Preferred date", value: values.date },
-      { label: "Estimated guests", value: values.guests },
+      /* One head count or the other pair, never both: only the fields on
+         screen are in the form, so the hidden ones read as blank. */
+      { label: ENQUIRY_DETAIL_LABELS.guests, value: values.guests },
+      { label: ENQUIRY_DETAIL_LABELS.children, value: values.children },
+      { label: ENQUIRY_DETAIL_LABELS.adults, value: values.adults },
       { label: "Preferred location", value: values.location },
+      { label: ENQUIRY_DETAIL_LABELS.requirements, value: values.requirements },
     ].filter((entry) => entry.value !== "" && entry.value !== UNDECIDED);
 
     setSubmitting(true);
@@ -330,6 +371,14 @@ export function PrivateEventEnquiry({
 
 
   const errorCount = Object.keys(errors).length;
+
+  /*
+    The chosen event type, as a programme — or nothing for "Not decided yet"
+    and "Something else". Read from `watched`, which the radios' own `input`
+    events and <PaintChoice>'s `onChoose` keep current.
+  */
+  const programme = programmes.find((entry) => entry.name === watched.occasion) ?? null;
+  const isBirthday = programme?.slug === BIRTHDAY_PROGRAMME_SLUG;
 
   const stub = (
     <EnquiryStub
@@ -461,11 +510,18 @@ export function PrivateEventEnquiry({
             name="occasion"
             legend="Event type"
             defaultValue={UNDECIDED}
-            options={[
-              UNDECIDED,
-              ...PRIVATE_EVENT_AUDIENCES.map((audience) => audience.name),
-              "Something else",
-            ]}
+            options={[UNDECIDED, ...programmes.map((entry) => entry.name), "Something else"]}
+            onChoose={(value) => {
+              setWatched((prev) => ({ ...prev, occasion: value }));
+              /* The head-count fields swap with the type; a message left on
+                 one that has gone would be counted and could not be fixed. */
+              setErrors((prev) => {
+                if (!HEADCOUNT_FIELDS.some((name) => prev[name])) return prev;
+                const next = { ...prev };
+                HEADCOUNT_FIELDS.forEach((name) => delete next[name]);
+                return next;
+              });
+            }}
           />
 
           {/*
@@ -497,6 +553,9 @@ export function PrivateEventEnquiry({
             type="date"
             error={errors.date}
             optional
+            /* Birthday Parties only — the policy's notice period, said where
+               the date is chosen. Announced politely as it appears. */
+            hint={isBirthday ? BIRTHDAY_DATE_HINT : null}
           />
 
           {/*
@@ -506,15 +565,51 @@ export function PrivateEventEnquiry({
             chrome. No min, no max and no suggested range: the studio has not
             published a capacity and this field must not imply one.
           */}
-          <Field
-            id={`${ids}-guests`}
-            name="guests"
-            label="Estimated guests"
-            inputMode="numeric"
-            autoComplete="off"
-            error={errors.guests}
-            optional
-          />
+          {/*
+            BIRTHDAYS ASK CHILDREN AND ADULTS SEPARATELY — a party is planned
+            around the children making things and the grown-ups who come with
+            them, so one number is the wrong question there. Every other type
+            keeps the one estimate. Both are optional, and both travel as
+            `details` rows the server checks (lib/enquiry.ts). The region is
+            polite-live so a screen reader hears the fields change.
+          */}
+          <div aria-live="polite">
+            {isBirthday ? (
+              <div className="grid grid-cols-2 gap-x-6">
+                <Field
+                  key="children"
+                  id={`${ids}-children`}
+                  name="children"
+                  label={ENQUIRY_DETAIL_LABELS.children}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  error={errors.children}
+                  optional
+                />
+                <Field
+                  key="adults"
+                  id={`${ids}-adults`}
+                  name="adults"
+                  label={ENQUIRY_DETAIL_LABELS.adults}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  error={errors.adults}
+                  optional
+                />
+              </div>
+            ) : (
+              <Field
+                key="guests"
+                id={`${ids}-guests`}
+                name="guests"
+                label={ENQUIRY_DETAIL_LABELS.guests}
+                inputMode="numeric"
+                autoComplete="off"
+                error={errors.guests}
+                optional
+              />
+            )}
+          </div>
 
           <div className="sm:col-span-2">
             {/*
@@ -529,6 +624,40 @@ export function PrivateEventEnquiry({
               autoComplete="off"
               optional
             />
+          </div>
+
+          {/*
+            For every event type: what the studio has to know before it can
+            plan the table — allergies to materials or food, access, anything
+            a child needs. Optional, 500 characters (the Inbox's answer
+            column), checked again on the server.
+          */}
+          <div
+            className={cn(styles.field, "sm:col-span-2")}
+            data-status={errors.requirements ? "error" : "idle"}
+          >
+            <label htmlFor={`${ids}-requirements`} className={LABEL}>
+              {ENQUIRY_DETAIL_LABELS.requirements}
+              <span className="ml-2 normal-case tracking-normal text-text/70">optional</span>
+            </label>
+            <div className="relative">
+              <textarea
+                id={`${ids}-requirements`}
+                name="requirements"
+                rows={2}
+                maxLength={REQUIREMENTS_MAX_LENGTH}
+                aria-invalid={errors.requirements ? true : undefined}
+                aria-describedby={errors.requirements ? `${ids}-requirements-error` : undefined}
+                className={cn(FIELD, "resize-y block")}
+              />
+              <span aria-hidden className={cn("dab", styles.stroke)} />
+            </div>
+            {errors.requirements ? (
+              <p id={`${ids}-requirements-error`} className="mt-2 text-fine text-text">
+                <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-terracotta align-middle" />
+                {errors.requirements}
+              </p>
+            ) : null}
           </div>
 
           <div
@@ -584,6 +713,16 @@ export function PrivateEventEnquiry({
       >
         {submitting ? "Sending" : "Send enquiry"}
       </BlobButton>
+
+      {/*
+        THE TERMS THE BOOKING WILL FOLLOW, named for the chosen event type
+        (that programme's booking policy, or its note), or the generic line
+        while none is chosen. Polite-live, so changing the type is heard.
+        A new tab, so reading the policy cannot cost the typed answers.
+      */}
+      <div aria-live="polite" className="mt-6 max-w-[36rem]">
+        <BookingPolicyLine programme={programme} newTab />
+      </div>
 
       {/* Every answer that is not "stored" — see <EnquiryOutcome>. */}
       {result ? (
@@ -705,6 +844,9 @@ function validate(v: {
   phone: string;
   date: string;
   guests: string;
+  children: string;
+  adults: string;
+  requirements: string;
   message: string;
 }): Record<string, string> {
   const errors: Record<string, string> = {};
@@ -731,12 +873,11 @@ function validate(v: {
     }
   }
 
-  // A whole number, and nothing beyond that. No upper bound: the studio has
-  // published no capacity, so there is no number this form is entitled to
-  // call too many.
-  if (v.guests && !/^\d{1,5}$/.test(v.guests.replace(/[\s,]/g, ""))) {
-    errors.guests = "Please give this as a number, or leave it blank.";
-  }
+  // Head counts are whole numbers and nothing beyond that — the bound in
+  // HEADCOUNT_MAX is a typo guard, not a capacity: the studio has published
+  // none. Allergies or special requirements stays under the Inbox's 500.
+  // The server applies the same function (lib/enquiry.ts).
+  Object.assign(errors, enquiryDetailErrors(v));
 
   if (!v.message) errors.message = "Please add a little about what you have in mind.";
 
@@ -761,6 +902,7 @@ function Field({
   autoComplete,
   error,
   optional,
+  hint,
 }: {
   ref?: React.Ref<HTMLInputElement>;
   id: string;
@@ -772,7 +914,14 @@ function Field({
   error?: string;
   /** Marks the label rather than the input: the field simply is not required. */
   optional?: boolean;
+  /**
+   * A line under the field that comes and goes (`null` while absent). Passing
+   * it at all — `null` included — keeps a polite live region in place, so
+   * the line is announced when it appears.
+   */
+  hint?: string | null;
 }) {
+  const describedBy = [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className={styles.field} data-status={error ? "error" : "idle"}>
       <label htmlFor={id} className={LABEL}>
@@ -790,11 +939,20 @@ function Field({
           inputMode={inputMode}
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${id}-error` : undefined}
+          aria-describedby={describedBy}
           className={FIELD}
         />
         <span aria-hidden className={cn("dab", styles.stroke)} />
       </div>
+      {hint !== undefined ? (
+        <div aria-live="polite">
+          {hint ? (
+            <p id={`${id}-hint`} className="mt-2 text-fine leading-[1.7] text-text/75">
+              {hint}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       {error ? (
         <p id={`${id}-error`} className="mt-2 text-fine text-text">
           <span aria-hidden className="mr-2 inline-block size-1.5 rounded-full bg-terracotta align-middle" />

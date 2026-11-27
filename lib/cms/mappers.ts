@@ -16,7 +16,7 @@ import type { CreativeExperience } from "@/lib/experiences";
 import type { PartnerRecord } from "@/lib/partners";
 import type { Policy, PolicyBlock } from "@/lib/policies";
 import type { WorkshopType } from "@/lib/workshopTypes";
-import { INK_MARK, type PrivateEventAudience } from "@/lib/privateEvents";
+import { INK_MARK, type BookingPolicyLink, type PrivateEventAudience } from "@/lib/privateEvents";
 import type { Vibe, VibeSlug } from "@/lib/vibes";
 import type {
   Experience as CmsExperience,
@@ -301,6 +301,7 @@ export function toPartner(doc: CmsVenue): PartnerRecord {
 export function toAudience(doc: CmsProgramme): PrivateEventAudience {
   const image = imageOf(doc.image);
   const mark = doc.mark?.name && doc.mark.color ? { name: doc.mark.name, color: INK_MARK[doc.mark.color] } : undefined;
+  const bookingPolicy = bookingPolicyOf(doc.bookingPolicy);
   return {
     slug: doc.slug,
     name: doc.name,
@@ -310,7 +311,20 @@ export function toAudience(doc: CmsProgramme): PrivateEventAudience {
     ...(mark ? { mark } : {}),
     inPrivateEventsMenu: doc.inPrivateEventsMenu ?? true,
     ...(doc.tone && doc.tone !== "default" ? { tone: doc.tone } : {}),
+    ...(bookingPolicy ? { bookingPolicy } : {}),
+    ...(!bookingPolicy && doc.bookingPolicyNote?.trim() ? { bookingPolicyNote: doc.bookingPolicyNote.trim() } : {}),
   };
+}
+
+/**
+ * A programme's `bookingPolicy`, populated (depth ≥ 1), as a link. A bare id
+ * means this request may not read the policy — for the public, one that has
+ * never been published (policies' read access is published-or-editor) — so
+ * no link rather than a link to a 404.
+ */
+function bookingPolicyOf(value: CmsProgramme["bookingPolicy"]): BookingPolicyLink | undefined {
+  if (!value || typeof value !== "object" || !value.slug || !value.title) return undefined;
+  return { slug: value.slug, title: value.title };
 }
 
 export type AgeRow = { activity: string; guidance: string };

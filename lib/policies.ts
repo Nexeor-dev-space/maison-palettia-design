@@ -201,25 +201,37 @@ export const WORKSHOP_AGE_GUIDANCE: readonly { activity: string; guidance: strin
    is the source; see FROM THE CMS at the foot. Read only when the CMS cannot
    answer at all (a build without the database), and by the sync `getPolicy`. */
 export const POLICIES: readonly Policy[] = [
-  /* Regenerated from the published `policies` collection on 27 November 2026,
-     when the legal pack (Terms & Conditions, Privacy, Cookie, Cancellation,
-     Rescheduling & Refund, Retail Returns, Safety Guidelines, Service Delivery) was published
-     and Cancellation & Rescheduling, Refund & Exchange and Safety & Children
-     were withdrawn in its favour. Same order and wording as the CMS. */
+  /* Regenerated from the published `policies` collection on 27 November 2026 (services-only wording: no product sales, no retail),
+     after the legal pack (Terms & Conditions, Privacy, Cookie, Cancellation,
+     Rescheduling & Refund, Safety Guidelines, Service Delivery) and the
+     Birthday Party, Private Events and Group Booking policies were published.
+     Updated again the same day: birthday parties, private events and group
+     bookings now follow the adviser's event booking terms (50% advance,
+     balance 5 days or 48 hours before, a full refund or free rescheduling
+     with 7 days' notice, set cancellation charges after that, refunds to the
+     original payment method) instead of credit notes, while places on
+     scheduled sessions keep the 24-hour credit-note rule; gift vouchers are
+     back in the Terms & Conditions and Privacy Policy; the Terms list the
+     services (birthday parties, team building, brand activations and
+     entertainment, at the studio and partner venues); and a credit note is
+     issued against the original invoice. The Terms' Complaints section and
+     the Cancellation policy's Your statutory rights section also point to
+     Dubai Consumer Rights and Federal Law No. 15 of 2020 (written as
+     [label](url) links). Same order and wording as the CMS. */
   {
     slug: "terms-and-conditions",
     title: "Terms & Conditions",
     navLabel: "Terms & Conditions",
-    summary: "The agreement between you and Maison Palettia when you use our website, book an experience or buy from us.",
+    summary: "The agreement between you and Maison Palettia when you use our website or book an experience with us.",
     group: "legal",
     effectiveDate: "2026-11-27T08:00:00.000Z",
     sections: [
       {
         heading: "About these terms",
         blocks: [
-          { type: "text", body: "Welcome to Maison Palettia. These Terms & Conditions govern your use of our website (maisonpalettia.com), your bookings and purchases, and your participation in our creative experiences, whether you book online, through an approved booking platform or at our studio." },
-          { type: "text", body: "By using our website, making a booking or buying any product or service from Maison Palettia, you agree to these Terms & Conditions and to the policies they refer to. Please read them before you pay. If you do not agree with them, please do not book or buy from us." },
-          { type: "text", body: "In these terms, \"Maison Palettia\", \"we\", \"us\" and \"our\" mean Maison Palettia Events L.L.C., and \"you\" means the person using our website, making a booking or buying from us." },
+          { type: "text", body: "Welcome to Maison Palettia. These Terms & Conditions govern your use of our website (maisonpalettia.com), your bookings and your participation in our creative experiences, whether you book online, through an approved booking platform or at our studio." },
+          { type: "text", body: "By using our website or making a booking with Maison Palettia, you agree to these Terms & Conditions and to the policies they refer to. Please read them before you pay. If you do not agree with them, please do not book with us." },
+          { type: "text", body: "In these terms, \"Maison Palettia\", \"we\", \"us\" and \"our\" mean Maison Palettia Events L.L.C., and \"you\" means the person using our website or making a booking with us." },
         ],
       },
       {
@@ -236,7 +248,7 @@ export const POLICIES: readonly Policy[] = [
               "Website: maisonpalettia.com",
             ],
           },
-          { type: "text", body: "Maison Palettia is a creative recreational space offering interactive creative activities, DIY experiences, guided workshops, craft products and related retail items. Our experiences are designed to encourage creativity, enjoyment and personal expression for individuals, families and groups." },
+          { type: "text", body: "Maison Palettia is a creative recreational space offering interactive creative activities, DIY experiences and guided workshops, together with birthday parties for children, corporate team-building activities, brand activations and entertainment, at our studio and at partner venues such as malls and retail spaces. Our experiences are designed to encourage creativity, enjoyment and personal expression for individuals, families and groups." },
         ],
       },
       {
@@ -245,7 +257,7 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "You must be at least 18 years old, and able to enter into a binding agreement, to make a booking or a purchase on our website.",
+              "You must be at least 18 years old, and able to enter into a binding agreement, to make a booking or a purchase of services on our website.",
               "Children and young people are welcome at many of our experiences, but their places must be booked by a parent, legal guardian or another responsible adult, who accepts these terms on their behalf.",
               "If you book for other people, you confirm that you are allowed to do so and that you will share these terms, and any age or safety guidance, with everyone in your booking.",
               "You are responsible for giving us accurate and complete contact and booking details, and for checking the date, time, experience and number of participants in your booking confirmation.",
@@ -278,7 +290,7 @@ export const POLICIES: readonly Policy[] = [
               "Online payments are processed securely by our payment provider, Mamo Pay, on its own secure payment page. You can pay with Visa or Mastercard credit and debit cards, and with any other payment method shown on the Mamo Pay payment page.",
               "Your card details are entered on Mamo Pay's page and handled by Mamo Pay. Maison Palettia never receives or stores your full card number or security code. We receive only the payment status, a transaction reference and limited details such as the type of card and its last four digits.",
               "Our merchant country is the United Arab Emirates and all online transactions are processed in AED. If your card was issued outside the UAE, your bank may apply its own exchange rate or foreign transaction fees, which are outside our control.",
-              "Purchases in the studio can be paid for using the payment methods available there.",
+              "Bookings and walk-in activities paid for in the studio can be paid using the payment methods available there.",
               "Please keep a copy of your booking confirmation, invoice and transaction records for your own reference.",
             ],
           },
@@ -297,7 +309,7 @@ export const POLICIES: readonly Policy[] = [
             ],
           },
           { type: "text", body: "You can show your e-ticket on your phone or on paper. If the email has not arrived within a few minutes, please check your spam or junk folder, then contact us and we will send it again." },
-          { type: "text", body: "Walk-in DIY activities and studio purchases are paid for and delivered in the studio, and you receive your receipt at the time of purchase." },
+          { type: "text", body: "Walk-in DIY activities are paid for and enjoyed in the studio, and you receive your receipt when you pay." },
         ],
       },
       {
@@ -307,14 +319,16 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "With at least 24 hours' notice before your session starts, you may reschedule to another available date or receive a credit note for the full amount you paid.",
-              "We do not give cash or card refunds when you cancel a booking yourself. A cancellation made with enough notice is always settled with a credit note.",
+              "For places booked on a scheduled session, with at least 24 hours' notice before your session starts, you may reschedule to another available date or receive a credit note for the full amount you paid.",
+              "We do not give cash or card refunds when you cancel a place on a scheduled session yourself. A cancellation made with enough notice is always settled with a credit note.",
               "With less than 24 hours' notice, or if you do not attend, the booking is non-refundable and no credit note is issued.",
-              "If we cancel or materially change your booking, we will offer you a new date or a credit note, and a refund to your original payment method if you do not accept either, or where UAE consumer protection law requires it. Where we choose, we may instead refund you in full straight away.",
-              "Group, private and special-event bookings and promotional offers may have their own conditions, which we will tell you before you pay.",
+              "If we cancel or materially change a scheduled session you have booked, we will offer you a new date or a credit note, and a refund to your original payment method if you do not accept either, or where UAE consumer protection law requires it. Where we choose, we may instead refund you in full straight away.",
+              "Birthday parties, private events and group bookings arranged with our team follow their own booking policies, described below. Places booked online for a scheduled public session follow the Cancellation, Rescheduling & Refund Policy, however many places are booked. Promotional offers may have their own conditions, which we will tell you before you pay.",
+              "Birthday parties, private events and group bookings of 6 or more arranged with our team need a 50% advance payment to confirm, with the balance paid before the event. With at least 7 days' notice, you can choose a full refund or reschedule free of charge. With less notice, cancellation charges apply, as set out in their booking policies.",
             ],
           },
           { type: "text", body: "The full rules are in our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, which forms part of these terms." },
+          { type: "text", body: "Our Birthday Party Booking Policy at maisonpalettia.com/policies/birthday-parties applies to every birthday party, whatever the size of the group. Our Private Events Booking Policy at maisonpalettia.com/policies/private-events applies to corporate and team events, adult and family celebrations and other private or exclusive gatherings. Our Group Booking Policy at maisonpalettia.com/policies/group-bookings applies to other groups of 6 or more arranged with our team, such as families, friends and school visits. Each forms part of these terms. Mall and community activations are quoted under a separate written agreement." },
         ],
       },
       {
@@ -394,26 +408,13 @@ export const POLICIES: readonly Policy[] = [
         ],
       },
       {
-        heading: "Retail products and DIY kits",
+        heading: "Passes, gift vouchers and credit notes",
         blocks: [
           {
             type: "list",
             items: [
-              "Product descriptions, availability and prices may change and are subject to availability.",
-              "Use DIY kits, materials and products in line with the instructions supplied with them.",
-              "Returns, exchanges and refunds of products are covered by our Retail Returns & Refund Policy at maisonpalettia.com/policies/retail-returns-and-refunds and by UAE consumer protection law.",
-            ],
-          },
-        ],
-      },
-      {
-        heading: "Passes, gift cards, vouchers and credit notes",
-        blocks: [
-          {
-            type: "list",
-            items: [
-              "Passes, gift cards, vouchers, promotional codes and credit notes are subject to the terms stated when they are bought or issued, including their validity period and any restrictions.",
-              "They can be redeemed only against bookings or purchases at Maison Palettia, subject to availability, and only within their validity period.",
+              "Passes, gift vouchers, vouchers, promotional codes and credit notes are subject to the terms stated when they are bought or issued, including their validity period and any restrictions.",
+              "They can be redeemed only against bookings and services at Maison Palettia, subject to availability, and only within their validity period.",
               "A credit note is linked to the email address of the booking it was issued for, and each credit note can be used once.",
               "They cannot be exchanged for cash unless UAE law requires it.",
             ],
@@ -423,14 +424,14 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "Pricing and description errors",
         blocks: [
-          { type: "text", body: "We take care to make sure that prices and descriptions on our website are accurate. If we find an obvious error in the price or description of something you have booked or bought, we will contact you as soon as possible and let you choose between continuing at the correct price or cancelling for a full refund to your original payment method. We are not obliged to provide a booking or product at an obviously incorrect price." },
+          { type: "text", body: "We take care to make sure that prices and descriptions on our website are accurate. If we find an obvious error in the price or description of something you have booked, we will contact you as soon as possible and let you choose between continuing at the correct price or cancelling for a full refund to your original payment method. We are not obliged to provide a booking at an obviously incorrect price." },
         ],
       },
       {
         heading: "Events beyond our control",
         blocks: [
           { type: "text", body: "We are not responsible for a delay or failure to provide a booking that is caused by events beyond our reasonable control, such as severe weather, power or utility failures, public health measures, instructions from the authorities or the closure of a venue." },
-          { type: "text", body: "If this happens, we will tell you as soon as we can and treat your booking as cancelled or changed by us, so you will be offered a new date, a credit note or a refund as described in our Cancellation, Rescheduling & Refund Policy." },
+          { type: "text", body: "If this happens, we will tell you as soon as we can and treat your booking as cancelled or changed by us, so you will be offered a new date, a credit note or a refund as described in our Cancellation, Rescheduling & Refund Policy or, for birthday parties, private events and group bookings, in their own booking policy." },
         ],
       },
       {
@@ -464,7 +465,7 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "Limitation of liability",
         blocks: [
-          { type: "text", body: "Maison Palettia shall take reasonable measures to provide its experiences, products and services in a safe and professional manner." },
+          { type: "text", body: "Maison Palettia shall take reasonable measures to provide its experiences and services in a safe and professional manner." },
           { type: "text", body: "Customers are expected to exercise reasonable care, follow instructions and use materials and equipment responsibly." },
           { type: "text", body: "Nothing in these Terms & Conditions shall exclude or limit any liability that cannot legally be excluded or limited under applicable UAE laws." },
         ],
@@ -473,14 +474,14 @@ export const POLICIES: readonly Policy[] = [
         heading: "Complaints",
         blocks: [
           { type: "text", body: "We want every visit to be a good one. If something has not gone as expected, please tell a member of our team during your visit so that we can try to put it right straight away." },
-          { type: "text", body: "Otherwise, email us at info@maisonpalettia.com or call +971 50 474 7762 with your booking reference or proof of purchase and a short description of the problem. We aim to respond within 2 working days, and to resolve every complaint fairly and as quickly as we can." },
-          { type: "text", body: "This does not affect your right to contact the relevant UAE consumer protection authority." },
+          { type: "text", body: "Otherwise, email us at info@maisonpalettia.com or call +971 50 474 7762 with your booking reference or receipt and a short description of the problem. We aim to respond within 2 working days, and to resolve every complaint fairly and as quickly as we can." },
+          { type: "text", body: "If we cannot resolve your complaint, you can contact [Dubai Consumer Rights](https://consumerrights.ae/en/Pages/default.aspx) at the Department of Economy and Tourism, which also accepts [consumer complaints online](https://consumerrights.ae/en/pages/consumer-complaint.aspx), or refer to the [UAE Federal Consumer Protection Law (Federal Law No. 15 of 2020)](https://www.moet.gov.ae/en/federal-law-no-15-of-2020-on-consumer-protection)." },
         ],
       },
       {
         heading: "Sanctions",
         blocks: [
-          { type: "text", body: "Maison Palettia will not trade with, or provide any services or products to, OFAC-sanctioned countries or persons, or any other person, entity or country subject to sanctions, in accordance with the laws of the United Arab Emirates and the requirements of our payment providers." },
+          { type: "text", body: "Maison Palettia will not trade with, or provide any services to, OFAC-sanctioned countries or persons, or any other person, entity or country subject to sanctions, in accordance with the laws of the United Arab Emirates and the requirements of our payment providers." },
           { type: "text", body: "We may refuse or cancel a booking or order, and refund any payment received, where we are required to do so." },
         ],
       },
@@ -495,8 +496,10 @@ export const POLICIES: readonly Policy[] = [
               "Privacy Policy: maisonpalettia.com/policies/privacy-policy",
               "Cookie Policy: maisonpalettia.com/policies/cookie-policy",
               "Customer Safety & Activity Guidelines: maisonpalettia.com/policies/safety-guidelines",
-              "Retail Returns & Refund Policy: maisonpalettia.com/policies/retail-returns-and-refunds",
               "Service Delivery Policy: maisonpalettia.com/policies/service-delivery",
+              "Birthday Party Booking Policy: maisonpalettia.com/policies/birthday-parties",
+              "Private Events Booking Policy: maisonpalettia.com/policies/private-events",
+              "Group Booking Policy: maisonpalettia.com/policies/group-bookings",
               "Our house rules for visits, DIY experiences, scheduled workshops, finished projects and photography: maisonpalettia.com/policies",
             ],
           },
@@ -506,20 +509,20 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "Changes to these terms",
         blocks: [
-          { type: "text", body: "We may update these Terms & Conditions from time to time. The updated version will be published on this page with its new effective date. The terms that apply to a booking or purchase are the ones in effect when you made it." },
+          { type: "text", body: "We may update these Terms & Conditions from time to time. The updated version will be published on this page with its new effective date. The terms that apply to a booking are the ones in effect when you made it." },
         ],
       },
       {
         heading: "Governing law and jurisdiction",
         blocks: [
-          { type: "text", body: "These Terms & Conditions, and any dispute arising from them or from a booking or purchase, are governed by the laws of the United Arab Emirates as applied in the Emirate of Dubai, and are subject to the jurisdiction of the competent courts of Dubai." },
+          { type: "text", body: "These Terms & Conditions, and any dispute arising from them or from a booking, are governed by the laws of the United Arab Emirates as applied in the Emirate of Dubai, and are subject to the jurisdiction of the competent courts of Dubai." },
           { type: "text", body: "If any part of these terms is found to be invalid or unenforceable, the rest of them remains in effect." },
         ],
       },
       {
         heading: "Contact us",
         blocks: [
-          { type: "text", body: "For booking, product or policy enquiries, please contact us:" },
+          { type: "text", body: "For booking or policy enquiries, please contact us:" },
           { type: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
           {
             type: "list",
@@ -557,7 +560,7 @@ export const POLICIES: readonly Policy[] = [
             items: [
               "24 hours' notice or more: reschedule to another available date, or receive a credit note for the full amount you paid.",
               "Less than 24 hours' notice, or a no-show: non-refundable, and no credit note is issued.",
-              "Cancellations by customers are always settled with a credit note. We do not give cash or card refunds when you cancel.",
+              "For places on scheduled sessions, cancellations by customers are always settled with a credit note, and we do not give cash or card refunds when you cancel. Birthday parties, private events and group bookings follow their own booking policies, which include refunds.",
               "If we cancel or materially change your booking: a new date or a credit note, or a refund to your original payment method if neither suits you or where the law requires it.",
             ],
           },
@@ -605,7 +608,7 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "With at least 24 hours' notice before your session starts, you will receive a credit note for the full amount you paid for the cancelled booking. Contact us as described above and our team will cancel the booking and issue your credit note.",
-              "We do not give cash or card refunds for cancellations made by customers. A cancellation made in good time is always settled with a credit note.",
+              "We do not give cash or card refunds when you cancel a place on a scheduled session. A cancellation made in good time is always settled with a credit note.",
               "With less than 24 hours' notice, the booking is non-refundable and no credit note is issued.",
             ],
           },
@@ -647,9 +650,9 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "Our team issues your credit note for the full amount you paid for the cancelled booking and sends it to the email address on your booking, with a unique code and its validity period.",
+              "Our team issues your credit note against your original invoice, for the full amount you paid for the cancelled booking, and sends it to the email address on your booking, with a unique code and its validity period.",
               "For a booking of more than one place, the amount is split into one credit note per place, each with its own code.",
-              "You can redeem a credit note against a future booking or purchase at Maison Palettia, online by entering its code at checkout or in the studio, within the validity period stated on it.",
+              "You can redeem a credit note against a future booking at Maison Palettia, online by entering its code at checkout or in the studio, within the validity period stated on it.",
               "Each credit note can be used once, and one code can be used per booking. If the new booking costs more, you pay the difference; if it costs less, the unused balance is not carried over.",
               "It is linked to the email address of the original booking.",
               "It is not exchangeable for cash unless UAE law requires it. A credit note not used by the end of its validity period expires.",
@@ -686,15 +689,26 @@ export const POLICIES: readonly Policy[] = [
         ],
       },
       {
-        heading: "Special events, private and group bookings",
+        heading: "Birthday parties, private events and group bookings",
         blocks: [
-          { type: "text", body: "Private events, corporate bookings, parties, group bookings, special events and promotional offers may carry their own conditions, such as deposits, minimum numbers or different notice periods. We will tell you those conditions before you confirm and pay, and where they differ from this policy, the conditions given for that booking apply." },
+          { type: "text", body: "Birthday parties, private events and group bookings arranged with our team follow their own booking policies. These include a full refund, or free rescheduling, with at least 7 days' notice, and set out the cancellation charges that apply with less notice:" },
+          {
+            type: "list",
+            items: [
+              "Birthday Party Booking Policy, for every birthday party, whatever the size of the group: maisonpalettia.com/policies/birthday-parties",
+              "Private Events Booking Policy, for corporate and team events, adult and family celebrations and other private or exclusive gatherings: maisonpalettia.com/policies/private-events",
+              "Group Booking Policy, for other groups of 6 or more arranged with our team, such as families, friends and school visits: maisonpalettia.com/policies/group-bookings",
+            ],
+          },
+          { type: "text", body: "Places booked online for a scheduled public session always follow this policy, including its 24-hour notice period, however many places are booked. Mall and community activations are quoted under a separate written agreement." },
+          { type: "text", body: "Other special events and promotional offers may carry their own conditions, such as minimum numbers or different notice periods. We will tell you those conditions before you confirm and pay, and where they differ from this policy, the conditions given for that booking apply." },
         ],
       },
       {
         heading: "Your statutory rights",
         blocks: [
           { type: "text", body: "Nothing in this policy limits any right you have under UAE consumer protection law." },
+          { type: "text", body: "If we cannot resolve your complaint, you can contact [Dubai Consumer Rights](https://consumerrights.ae/en/Pages/default.aspx) at the Department of Economy and Tourism, which also accepts [consumer complaints online](https://consumerrights.ae/en/pages/consumer-complaint.aspx), or refer to the [UAE Federal Consumer Protection Law (Federal Law No. 15 of 2020)](https://www.moet.gov.ae/en/federal-law-no-15-of-2020-on-consumer-protection)." },
         ],
       },
       {
@@ -726,7 +740,7 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "Who we are",
         blocks: [
-          { type: "text", body: "Maison Palettia respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, share and protect personal information when you visit our website, make a booking, buy a product or otherwise deal with us." },
+          { type: "text", body: "Maison Palettia respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, share and protect personal information when you visit our website, make a booking or otherwise deal with us." },
           { type: "text", body: "Maison Palettia Events L.L.C. (\"Maison Palettia\", \"we\", \"us\"), a Limited Liability Company licensed by the Dubai Department of Economy and Tourism under Commercial Licence No. 1626148, runs creative art and craft experiences in Dubai, United Arab Emirates. We are the controller responsible for the personal data described in this policy." },
           {
             type: "list",
@@ -744,7 +758,7 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "Information we collect",
         blocks: [
-          { type: "text", body: "When you book an experience, buy a pass, or use a pass, voucher or credit note:" },
+          { type: "text", body: "When you book an experience, buy a pass or gift voucher, or use a pass, voucher or credit note:" },
           {
             type: "list",
             items: [
@@ -757,7 +771,7 @@ export const POLICIES: readonly Policy[] = [
           },
           { type: "text", body: "When you send an enquiry (private events, corporate bookings, general questions) or join a waitlist: your name, email address and phone number, and anything you tell us in your message." },
           { type: "text", body: "When you sign in to see your bookings: your email address, and a record of the one-time sign-in link we email you." },
-          { type: "text", body: "When you buy something in the studio: the details of your purchase and, if you give them to us, your name and contact details." },
+          { type: "text", body: "When you pay for a walk-in activity in the studio: the details of your payment and, if you give them to us, your name and contact details." },
           { type: "text", body: "When you visit the website: which pages you viewed, which website sent you here, your device type, your browser and your country. Your IP address is used only to create the anonymous daily code described under \"Cookies and website technologies\" and to protect the website from abuse, and is never stored in readable form." },
           { type: "text", body: "We collect only the information we reasonably need to run our studio and provide our services." },
           { type: "callout", title: "We never see your card", body: "Online payments are handled by Mamo Pay on its own secure payment page. Your full card number and security code never reach our systems." },
@@ -770,7 +784,7 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "To deliver your booking. This covers confirming your place, sending your e-tickets and invoice, reminding you before your session, checking you in on the day, and handling rescheduling, cancellations, credit notes and refunds. We need this information to fulfil our agreement with you.",
-              "To process payments and purchases, and to prevent fraud.",
+              "To process payments and to prevent fraud.",
               "To answer you. When you send an enquiry or join a waitlist, we use your details to reply and to offer you a place if one opens up.",
               "To keep proper records. UAE tax law requires us to keep invoices and payment records, and we keep records of the terms you agreed to.",
               "To keep the studio safe. We use the notes you give us about allergies, age or accessibility needs to plan your session, and we protect our customers, staff and premises.",
@@ -811,7 +825,7 @@ export const POLICIES: readonly Policy[] = [
         heading: "Marketing communications",
         blocks: [
           { type: "text", body: "We send news, offers and updates about new experiences and events only where you have agreed to receive them and the law allows. You can opt out at any time with the unsubscribe link in any marketing email, or by contacting us." },
-          { type: "text", body: "We will still send you messages about your bookings and purchases, such as confirmations, e-tickets, reminders and changes, because they are part of the service you asked for." },
+          { type: "text", body: "We will still send you messages about your bookings, such as confirmations, e-tickets, reminders and changes, because they are part of the service you asked for." },
         ],
       },
       {
@@ -887,6 +901,7 @@ export const POLICIES: readonly Policy[] = [
         blocks: [
           { type: "text", body: "Many of our experiences welcome children, subject to their age requirements and supervision by a parent or guardian, but bookings must be made by a parent, guardian or other adult. If a child's name appears on a ticket, it is because the booking adult gave it to us. We use it only to run that session." },
           { type: "text", body: "We do not knowingly collect personal data directly from anyone under 18, and we handle children's information in line with UAE data protection requirements. Photographs taken at our experiences are covered separately in our Photography & Media policy at maisonpalettia.com/policies/photography-and-media." },
+          { type: "text", body: "Any allergy or dietary details you choose to share when you book or enquire, including for children, are collected only to keep participants safe during our sessions. They are seen only by authorised Maison Palettia staff, and are never sold or shared with anyone else, other than the service providers that host our website and send our emails on our behalf." },
         ],
       },
       {
@@ -1036,109 +1051,6 @@ export const POLICIES: readonly Policy[] = [
     ],
   },
   {
-    slug: "retail-returns-and-refunds",
-    title: "Retail Returns & Refund Policy",
-    navLabel: "Retail Returns",
-    summary: "Returns, exchanges and refunds for products bought from our studio, including craft kits and gifts.",
-    group: "support",
-    effectiveDate: "2026-11-27T08:00:00.000Z",
-    sections: [
-      {
-        heading: "What this policy covers",
-        blocks: [
-          { type: "text", body: "This policy applies to retail purchases from Maison Palettia, including craft kits, handmade gifts, souvenirs, candles, home décor, DIY materials and other products bought in our studio." },
-          { type: "text", body: "Bookings for experiences and workshops are covered by our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds." },
-        ],
-      },
-      {
-        heading: "Before you buy",
-        blocks: [
-          { type: "text", body: "Products are subject to availability. Please inspect products and read their descriptions before you buy, and ask our team if you have any question about a product." },
-        ],
-      },
-      {
-        heading: "Damaged or defective products",
-        blocks: [
-          {
-            type: "list",
-            items: [
-              "If a product is damaged, defective or not as described, please contact us as soon as reasonably possible after you notice the problem.",
-              "Bring the product to the studio, or send us clear photos of the problem, together with your proof of purchase.",
-              "Once we have assessed it, we will provide an appropriate remedy in line with the UAE Consumer Protection Law (Federal Law No. 15 of 2020), such as a repair, a replacement, an exchange or a refund to your original payment method, depending on the problem and what the law requires.",
-              "For a damaged or defective product, you will never be asked to accept a credit note in place of a remedy you are entitled to by law.",
-            ],
-          },
-        ],
-      },
-      {
-        heading: "Returns and exchanges for a change of mind",
-        blocks: [
-          {
-            type: "list",
-            items: [
-              "We are not obliged to accept returns of products that are not damaged or defective, but we will consider a change-of-mind return or exchange if you contact us as soon as possible after your purchase.",
-              "The product must be unused and in its original condition and packaging, and returned with your proof of purchase.",
-              "Accepted change-of-mind returns are settled with an exchange or a credit note for the amount you paid. They are not refunded in cash or to your card.",
-              "Personalised or custom-made items, products that have been used, DIY kits and materials that have been opened, candles that have been lit, and items sold as final sale cannot be returned for a change of mind.",
-            ],
-          },
-        ],
-      },
-      {
-        heading: "Proof of purchase",
-        blocks: [
-          { type: "text", body: "We may ask for your receipt, invoice or other proof of purchase before we process a return, exchange or refund. Without it, we may not be able to help." },
-        ],
-      },
-      {
-        heading: "Handmade and creative products",
-        blocks: [
-          { type: "text", body: "Handmade and creative products vary by nature. Minor variations in colour, texture, finish or appearance are part of their character and are not in themselves a defect." },
-        ],
-      },
-      {
-        heading: "DIY kits and materials",
-        blocks: [
-          { type: "text", body: "Please use DIY kits and materials only as intended, following the instructions and safety guidance supplied with them. The finished result depends on your own work, so a result that differs from the example shown is not a defect." },
-        ],
-      },
-      {
-        heading: "Refunds and credit notes",
-        blocks: [
-          {
-            type: "list",
-            items: [
-              "Where a refund is due, it is made in AED to the original payment method. Card refunds can take 5 to 10 working days to appear on your statement, depending on your bank.",
-              "A credit note can be redeemed against future bookings or purchases at Maison Palettia within the validity period stated on it, and is not exchangeable for cash unless UAE law requires it.",
-            ],
-          },
-        ],
-      },
-      {
-        heading: "Your statutory rights",
-        blocks: [
-          { type: "text", body: "Nothing in this policy limits your rights under the UAE Consumer Protection Law (Federal Law No. 15 of 2020) and its implementing regulations." },
-        ],
-      },
-      {
-        heading: "Contact us",
-        blocks: [
-          { type: "text", body: "For any question about a product, a return or a refund, please contact us:" },
-          { type: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
-          {
-            type: "list",
-            items: [
-              "Email: info@maisonpalettia.com",
-              "Call: +971 50 474 7762",
-              "WhatsApp: +971 55 496 6116",
-              "Website: maisonpalettia.com",
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
     slug: "safety-guidelines",
     title: "Customer Safety & Activity Guidelines",
     navLabel: "Safety Guidelines",
@@ -1214,6 +1126,7 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "Please tell our staff about any allergy, sensitivity or medical condition that could be affected by the materials before you take part.",
+              "We handle these details as described in our Privacy Policy at maisonpalettia.com/policies/privacy-policy.",
               "Avoid handling any material that may cause you an adverse reaction.",
               "Ask our staff for help or an alternative if you are unsure about a material.",
             ],
@@ -1231,6 +1144,7 @@ export const POLICIES: readonly Policy[] = [
         blocks: [
           { type: "text", body: "Please treat our premises, equipment, furniture, materials, staff and other participants with care and respect." },
           { type: "text", body: "Maison Palettia may step in where behaviour creates a safety concern or materially disrupts an experience, including by stopping an activity or asking a customer to leave, always fairly and in line with applicable law." },
+          { type: "text", body: "At celebrations, standard wax candles on a cake may be lit only under the supervision of our team, where Times Square Center permits it. Sparklers, fountain candles, smoke-producing items and anything that could set off the mall's fire alarm are strictly prohibited, in line with Dubai Civil Defence rules and the mall's safety guidelines." },
         ],
       },
       {
@@ -1262,7 +1176,7 @@ export const POLICIES: readonly Policy[] = [
       {
         heading: "What we deliver",
         blocks: [
-          { type: "text", body: "Maison Palettia sells creative experiences, such as scheduled workshops and DIY sessions, and products bought in our studio. We do not currently ship products. An online booking is delivered to you electronically, as described below, and the experience itself takes place at our studio on the date and time you booked." },
+          { type: "text", body: "Maison Palettia provides creative experiences, such as scheduled workshops and DIY sessions. We do not sell or ship products. An online booking is delivered to you electronically, as described below, and the experience itself takes place at our studio on the date and time you booked." },
         ],
       },
       {
@@ -1293,9 +1207,9 @@ export const POLICIES: readonly Policy[] = [
         ],
       },
       {
-        heading: "Walk-ins and studio purchases",
+        heading: "Walk-in DIY activities",
         blocks: [
-          { type: "text", body: "Walk-in DIY activities and products bought in the studio are paid for and handed over in the studio, and you receive your receipt at the time of purchase." },
+          { type: "text", body: "Walk-in DIY activities are paid for and enjoyed in the studio, and you receive your receipt when you pay." },
         ],
       },
       {
@@ -1323,6 +1237,419 @@ export const POLICIES: readonly Policy[] = [
     ],
   },
   {
+    slug: "birthday-parties",
+    title: "Birthday Party Booking Policy",
+    navLabel: "Birthday Parties",
+    summary: "Celebrate. Create. Make Memories! How birthday parties at Maison Palettia are booked, paid for and hosted.",
+    group: "support",
+    effectiveDate: "2026-11-27T08:00:00.000Z",
+    sections: [
+      {
+        heading: "Birthday parties at Maison Palettia",
+        blocks: [
+          { type: "text", body: "Make your special day extra creative at Maison Palettia! From colourful activities to memorable experiences, we make birthdays fun for everyone. This policy explains how birthday parties are reserved, paid for and hosted at our studio." },
+          { type: "text", body: "Which policy applies: this policy applies to every birthday party arranged with our team, whatever the size of the group. Corporate and team events, adult and family celebrations and other private or exclusive gatherings follow our Private Events Booking Policy at maisonpalettia.com/policies/private-events, and other groups of 6 or more follow our Group Booking Policy at maisonpalettia.com/policies/group-bookings. Places booked online for a scheduled public session always follow our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, however many places are booked. Mall and community activations are quoted under a separate written agreement." },
+        ],
+      },
+      {
+        heading: "Reservations",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Please make your birthday party booking at least 7 days in advance where possible.",
+              "All bookings are subject to availability and to our confirmation.",
+              "Your package, activity and number of participants must be agreed with our team before your booking is confirmed.",
+              "A reserved area or an exclusive session can be arranged on request, subject to Times Square Center and operational approval. What is reserved for you is confirmed in writing.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Booking and payment",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "A 50% advance payment is required to confirm and reserve your booking.",
+              "The advance payment and the remaining balance are paid through a secure payment link sent by our team, processed by our payment provider Mamo Pay, or at the studio. All prices are in UAE Dirhams (AED).",
+              "The remaining balance must be paid at least 5 days before the party.",
+              "Your booking is confirmed only once we have received your advance payment and confirmed your booking in writing.",
+              "Any additional services, participants or special requests are charged separately, as agreed with you.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Guest count",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Please confirm the final number of children and accompanying adults at least 72 hours before the party.",
+              "Additional guests are subject to space and activity availability, and to additional charges.",
+              "If you reduce your confirmed guest numbers after this deadline, the reduction may not qualify for a refund.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Cancelling your party",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "With at least 7 days' notice before the party, you can choose a full refund of the amount you have paid, or move your party to a new date free of charge, as set out under Rescheduling below.",
+              "With less than 7 days' but at least 48 hours' notice, the advance payment may be retained to cover reasonable cancellation costs. Any balance you have already paid is refunded.",
+              "With less than 48 hours' notice, a cancellation charge of up to the full booking value may apply, subject to applicable consumer protection requirements.",
+              "If you do not attend without having cancelled (a no-show), there is no automatic refund.",
+              "These terms are subject to your statutory rights under UAE law.",
+            ],
+          },
+          { type: "text", body: "To cancel or reschedule, please contact us as early as possible, quoting your booking reference, using the details at the end of this policy. Notice is counted from the time we receive your message to the agreed start time, in Dubai time." },
+        ],
+      },
+      {
+        heading: "Rescheduling",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "You may make one rescheduling request without an administration fee, at least 72 hours before the party.",
+              "A new date is subject to availability.",
+              "Any difference in package price must be settled by you.",
+              "With less than 72 hours' notice, a party cannot be rescheduled.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "If we cancel or cannot deliver your party",
+        blocks: [
+          { type: "text", body: "Occasionally we may need to cancel a confirmed party, or may be unable to deliver it as agreed, for example because of an instructor's illness or a problem at the venue. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
+          {
+            type: "list",
+            items: [
+              "An alternative date, subject to availability; or",
+              "A full refund for the affected services.",
+            ],
+          },
+          { type: "text", body: "In exceptional circumstances beyond our reasonable control, we will work with you to find a suitable alternative arrangement." },
+        ],
+      },
+      {
+        heading: "Refunds",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Approved refunds are made to your original payment method wherever possible.",
+              "We normally start an approved refund within 7 to 14 working days, subject to payment provider and bank processing times.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Arrival and party duration",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Please arrive 15 minutes before the scheduled start time.",
+              "A 15-minute grace period is allowed for late arrival.",
+              "Late arrival may mean a shorter activity, so that later bookings are not affected.",
+              "The party finishes at the original booked end time, unless we agree otherwise.",
+              "Additional time may be arranged, subject to availability and additional charges.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Food, cake and decorations",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Food, beverages, birthday cakes, decorations and any external entertainment must be approved by our team in advance.",
+              "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
+              "Please tell us about any special setup, decoration or other requirements before the party, so that they can be agreed in advance.",
+              "Standard wax candles on the birthday cake may be lit and put out only under the supervision of our team, where Times Square Center permits it, and subject to Dubai Civil Defence rules and the mall's safety guidelines.",
+              "Sparklers, fountain candles, smoke-producing items and anything that could set off the mall's fire alarm are strictly prohibited, as are other open flames, confetti cannons, glitter bombs, hazardous materials and decorations that could damage the premises.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Children and supervision",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Parents, guardians or designated responsible adults must supervise children throughout the party.",
+              "Our creative team will guide participants through the selected activities. Our team are creative facilitators, not childcare providers, and do not replace parental supervision.",
+              "Please tell us in advance about any allergies, sensitivities or special requirements.",
+              "Each activity has its own age and supervision guidance, set out in our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Creative activities and materials",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Standard materials for the selected activities are provided.",
+              "Special requests and customised activities may involve additional charges.",
+              "Participants are asked to follow the safety instructions of our team.",
+              "Please respect the premises, furniture, equipment and creative materials.",
+              "You may be held responsible for damage caused intentionally or through negligence by you or your guests, subject to applicable law.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Acceptance of this policy",
+        blocks: [
+          { type: "text", body: "By confirming your booking and making payment, you acknowledge and agree to the booking conditions and cancellation terms in this policy, as communicated to you when you reserve your party." },
+          { type: "text", body: "We will review individual requests fairly and in accordance with applicable UAE consumer protection laws." },
+        ],
+      },
+      {
+        heading: "How this policy fits with our other policies",
+        blocks: [
+          { type: "text", body: "This policy forms part of our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions, and our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines apply during every party. Where this policy differs from our Cancellation, Rescheduling & Refund Policy, this policy applies to your party. Places booked online for a scheduled public session always follow our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, however many places are booked." },
+          { type: "text", body: "Nothing in this policy limits your statutory rights under UAE law." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { type: "text", body: "Let's make your birthday a colourful celebration! For birthday packages and reservations, contact the Maison Palettia team:" },
+          { type: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            type: "list",
+            items: [
+              "Call: +971 50 474 7762",
+              "WhatsApp: +971 55 496 6116",
+              "Email: info@maisonpalettia.com",
+              "Website: maisonpalettia.com",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "private-events",
+    title: "Private Events Booking Policy",
+    navLabel: "Private Events",
+    summary: "Your Gathering. Your Creativity. Your Experience. How private events at Maison Palettia are booked and hosted.",
+    group: "support",
+    effectiveDate: "2026-11-27T08:00:00.000Z",
+    sections: [
+      {
+        heading: "Private events at Maison Palettia",
+        blocks: [
+          { type: "text", body: "Whether it's a corporate team gathering, a private get-together, a family celebration or a special occasion, Maison Palettia offers a creative space to bring people together. This policy explains how private events are reserved, paid for and hosted at our studio." },
+          { type: "text", body: "Which policy applies: this policy applies to corporate and team events, adult and family celebrations other than birthday parties, and other private or exclusive gatherings arranged with our team. Every birthday party, whatever the size of the group, follows our Birthday Party Booking Policy at maisonpalettia.com/policies/birthday-parties, and other groups of 6 or more, such as families, friends and school visits, follow our Group Booking Policy at maisonpalettia.com/policies/group-bookings. Places booked online for a scheduled public session always follow our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, however many places are booked. Mall and community activations are quoted under a separate written agreement." },
+        ],
+      },
+      {
+        heading: "Reservations",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Please send your private event enquiry at least 7 days in advance where possible.",
+              "All bookings are subject to availability and to our confirmation.",
+              "Your event requirements, duration, activities and setup must be agreed with our team before your booking is confirmed.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Booking and payment",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "A 50% advance payment is required to confirm and reserve your booking.",
+              "The advance payment and the remaining balance are paid through a secure payment link sent by our team, processed by our payment provider Mamo Pay, or at the studio. All prices are in UAE Dirhams (AED).",
+              "The remaining balance must be paid at least 5 days before the event.",
+              "Your booking is confirmed only once we have received your advance payment and confirmed your booking in writing.",
+              "Additional services, customised activities and special arrangements are quoted separately.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Guest count and space",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Please confirm the final number of participants at least 72 hours before the event.",
+              "Additional participants are subject to capacity and availability, and to additional charges.",
+              "If you reduce your confirmed numbers after this deadline, the reduction may not qualify for a refund.",
+              "Our studio is inside Times Square Center. A reserved area or an exclusive session can be arranged on request, subject to Times Square Center and operational approval. What is reserved for you is confirmed in writing.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Cancelling your event",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "With at least 7 days' notice before the event, you can choose a full refund of the amount you have paid, or move your event to a new date free of charge, as set out under Rescheduling below.",
+              "With less than 7 days' but at least 48 hours' notice, the advance payment may be retained to cover reasonable cancellation costs. Any balance you have already paid is refunded.",
+              "With less than 48 hours' notice, a cancellation charge of up to the full booking value may apply, subject to applicable consumer protection requirements.",
+              "If you do not attend without having cancelled (a no-show), there is no automatic refund.",
+              "These terms are subject to your statutory rights under UAE law.",
+            ],
+          },
+          { type: "text", body: "To cancel or reschedule, please contact us as early as possible, quoting your booking reference, using the details at the end of this policy. Notice is counted from the time we receive your message to the agreed start time, in Dubai time." },
+        ],
+      },
+      {
+        heading: "Rescheduling",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "You may make one rescheduling request without an administration fee, at least 72 hours before the event.",
+              "A new date is subject to availability.",
+              "Any difference in package price must be settled by you.",
+              "With less than 72 hours' notice, an event cannot be rescheduled.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "If we cancel or cannot deliver your event",
+        blocks: [
+          { type: "text", body: "Occasionally we may need to cancel a confirmed event, or may be unable to deliver it as agreed, for example because of an instructor's illness or a problem at the venue. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
+          {
+            type: "list",
+            items: [
+              "An alternative date, subject to availability; or",
+              "A full refund for the affected services.",
+            ],
+          },
+          { type: "text", body: "In exceptional circumstances beyond our reasonable control, we will work with you to find a suitable alternative arrangement." },
+        ],
+      },
+      {
+        heading: "Refunds",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Approved refunds are made to your original payment method wherever possible.",
+              "We normally start an approved refund within 7 to 14 working days, subject to payment provider and bank processing times.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Event timing",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Please arrive 15 minutes before the scheduled start time.",
+              "A 15-minute grace period is allowed for late arrival.",
+              "Late arrival may mean a shorter activity, so that later bookings are not affected.",
+              "Your event finishes at the original booked end time, unless we agree otherwise.",
+              "Extensions may be arranged, subject to availability and additional charges.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Food, beverages and decorations",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Catering, beverages, celebration cakes, decorations, external entertainment and any external suppliers must be approved by our team in advance.",
+              "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
+              "Please tell us about any special setup or other requirements before the event, so that they can be agreed in advance.",
+              "Additional setup, cleaning or external supplier charges may apply, where agreed with you.",
+              "Standard wax candles on a celebration cake may be lit and put out only under the supervision of our team, where Times Square Center permits it, and subject to Dubai Civil Defence rules and the mall's safety guidelines.",
+              "Sparklers, fountain candles, smoke-producing items and anything that could set off the mall's fire alarm are strictly prohibited, as are other open flames, confetti cannons, glitter bombs, hazardous materials and decorations that could damage the premises.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Activities and materials",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Creative activities are selected and agreed with you before the event.",
+              "Standard materials for the selected activities are provided.",
+              "Special materials, customised experiences or additional activities may involve extra charges.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Conduct and responsibility",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "All guests are expected to respect the premises, furniture, equipment and materials, and to follow the instructions of our team.",
+              "The booking organiser is responsible for sharing the agreed arrangements with all participants.",
+              "Where children attend, parents, guardians or designated responsible adults must supervise them. Our team facilitate the creative activities but do not replace parental supervision.",
+              "You may be held responsible for damage caused intentionally, or through negligence or misuse, by you or your guests, subject to applicable law.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Special arrangements",
+        blocks: [
+          { type: "text", body: "Corporate branding, customised creative sessions, team-building activities and special event setups can be arranged on request." },
+        ],
+      },
+      {
+        heading: "Acceptance of this policy",
+        blocks: [
+          { type: "text", body: "By confirming your booking and making payment, you acknowledge and agree to the booking conditions and cancellation terms in this policy, as communicated to you when you reserve your event." },
+          { type: "text", body: "We will review individual requests fairly and in accordance with applicable UAE consumer protection laws." },
+        ],
+      },
+      {
+        heading: "How this policy fits with our other policies",
+        blocks: [
+          { type: "text", body: "This policy forms part of our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions, and our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines apply during every event. Where this policy differs from our Cancellation, Rescheduling & Refund Policy, this policy applies to your event. Places booked online for a scheduled public session always follow our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, however many places are booked." },
+          { type: "text", body: "Nothing in this policy limits your statutory rights under UAE law." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { type: "text", body: "Let's create an experience worth remembering! For private event enquiries, contact the Maison Palettia team:" },
+          { type: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            type: "list",
+            items: [
+              "Call: +971 50 474 7762",
+              "WhatsApp: +971 55 496 6116",
+              "Email: info@maisonpalettia.com",
+              "Website: maisonpalettia.com",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
     slug: "general-customer-policy",
     title: "General Customer Policy",
     navLabel: "General customer policy",
@@ -1334,8 +1661,8 @@ export const POLICIES: readonly Policy[] = [
         heading: "A space for everyone",
         blocks: [
           { type: "text", body: "Maison Palettia is a creative space designed for everyone to explore, create and enjoy." },
-          { type: "text", body: "By purchasing a product, participating in a DIY activity, or booking a scheduled session, customers agree to follow Maison Palettia's policies and the instructions provided by our team." },
-          { type: "text", body: "Customers are expected to treat the retail store, equipment, materials, staff and other guests with care and respect." },
+          { type: "text", body: "By participating in a DIY activity or booking a scheduled session, customers agree to follow Maison Palettia's policies and the instructions provided by our team." },
+          { type: "text", body: "Customers are expected to treat the studio, equipment, materials, staff and other guests with care and respect." },
           { type: "text", body: "These house rules apply together with our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions and our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines." },
         ],
       },
@@ -1352,7 +1679,7 @@ export const POLICIES: readonly Policy[] = [
         heading: "Your belongings",
         blocks: [
           { type: "text", body: "Customers are responsible for their personal belongings while visiting Maison Palettia. We recommend that valuable or fragile personal items are not brought into the activity area." },
-          { type: "text", body: "Customers may not bring outside craft materials, chemicals, paints, fragrances or other supplies into the retail store without prior approval." },
+          { type: "text", body: "Customers may not bring outside craft materials, chemicals, paints, fragrances or other supplies into the studio without prior approval." },
         ],
       },
       {
@@ -1372,14 +1699,217 @@ export const POLICIES: readonly Policy[] = [
         heading: "If something has not gone as expected",
         blocks: [
           { type: "text", body: "We want every visit to Maison Palettia to be a positive experience. If something hasn't gone as expected, please speak with our team as soon as possible so that we have an opportunity to assist." },
-          { type: "text", body: "Complaints relating to a session, product or completed project should ideally be raised at the time of the visit or within a reasonable period thereafter." },
+          { type: "text", body: "Complaints relating to a session or completed project should ideally be raised at the time of the visit or within a reasonable period thereafter." },
           { type: "text", body: "You can also email us at info@maisonpalettia.com or call +971 50 474 7762. We aim to respond within 2 working days. Our complaints process is set out in our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions." },
         ],
       },
       {
         heading: "Changes to these policies",
         blocks: [
-          { type: "text", body: "Maison Palettia may update its policies from time to time. The applicable policy will be the policy in effect at the time of the booking or purchase." },
+          { type: "text", body: "Maison Palettia may update its policies from time to time. The applicable policy will be the policy in effect at the time of the booking." },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "group-bookings",
+    title: "Group Booking Policy",
+    navLabel: "Group Bookings",
+    summary: "Create Together. Enjoy Together. How group bookings of 6 or more at Maison Palettia are arranged.",
+    group: "support",
+    effectiveDate: "2026-11-27T08:00:00.000Z",
+    sections: [
+      {
+        heading: "Group bookings at Maison Palettia",
+        blocks: [
+          { type: "text", body: "At Maison Palettia, we love bringing people together through creativity! Whether you are planning a family gathering, a get-together with friends or a school visit, we are happy to make your experience special." },
+          { type: "text", body: "Which policy applies: this policy applies to groups of 6 or more participants arranged with our team, such as families, friends and school visits. Every birthday party, whatever the size of the group, follows our Birthday Party Booking Policy at maisonpalettia.com/policies/birthday-parties, and corporate and team events, adult and family celebrations and other private or exclusive gatherings follow our Private Events Booking Policy at maisonpalettia.com/policies/private-events. Places booked online for a scheduled public session always follow our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, however many places are booked. Mall and community activations are quoted under a separate written agreement." },
+        ],
+      },
+      {
+        heading: "Advance reservations",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "We recommend making your group booking at least 48 hours in advance.",
+              "Bookings are subject to availability and to our confirmation.",
+              "When you enquire, please share your preferred activity, date, time and number of participants.",
+              "If you would like a private or exclusive experience for your group, our team will be happy to discuss it with you. Private and exclusive gatherings follow our Private Events Booking Policy at maisonpalettia.com/policies/private-events.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Group size",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Group bookings are available for groups of 6 or more participants.",
+              "Please confirm the final number of participants at least 72 hours before the scheduled session, or when you book if you book later than that.",
+              "Additional participants are subject to availability and to additional charges.",
+              "If you reduce your confirmed numbers after this deadline, the reduction may not qualify for a refund.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Booking and payment",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "A 50% advance payment is required to confirm and reserve a group booking.",
+              "The advance payment and the remaining balance are paid through a secure payment link sent by our team, processed by our payment provider Mamo Pay, or at the studio. All prices are in UAE Dirhams (AED).",
+              "The remaining balance must be paid at least 48 hours before the scheduled session, or when you book if you book later than that.",
+              "Your booking is confirmed only once we have received your advance payment and confirmed your booking in writing.",
+              "All applicable prices and charges are communicated clearly at the time of booking.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Cancelling your booking",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "With at least 7 days' notice before the booking, you can choose a full refund of the amount you have paid, or move your booking to a new date free of charge, as set out under Rescheduling below.",
+              "With less than 7 days' but at least 48 hours' notice, a cancellation charge of up to 50% of the booking value may apply, subject to the reasonable costs we have incurred.",
+              "With less than 48 hours' notice, the cancellation charge may be up to the full booking value, where this is justified by the costs we have committed and the lost booking opportunity.",
+              "If your group does not attend without having cancelled (a no-show), there is no automatic refund.",
+              "These terms are subject to your statutory rights under UAE law.",
+            ],
+          },
+          { type: "text", body: "To cancel or reschedule, please contact us as early as possible, quoting your booking reference, using the details at the end of this policy. Notice is counted from the time we receive your message to the agreed start time, in Dubai time." },
+        ],
+      },
+      {
+        heading: "Rescheduling",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "You may make one rescheduling request without an administration fee, at least 72 hours before the booking.",
+              "A new date is subject to availability.",
+              "Any difference in package price must be settled by you.",
+              "With less than 72 hours' notice, a group booking cannot be rescheduled.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "If we cancel or cannot deliver your booking",
+        blocks: [
+          { type: "text", body: "Occasionally we may need to cancel a confirmed booking, or may be unable to deliver it as agreed, for example because of an instructor's illness or a problem at the venue. If this happens, we will tell you as soon as we can, using the contact details in your booking, and offer you:" },
+          {
+            type: "list",
+            items: [
+              "An alternative date, subject to availability; or",
+              "A full refund for the affected services.",
+            ],
+          },
+          { type: "text", body: "In exceptional circumstances beyond our reasonable control, we will work with you to find a suitable alternative arrangement." },
+        ],
+      },
+      {
+        heading: "Refunds",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Approved refunds are made to your original payment method wherever possible.",
+              "We normally start an approved refund within 7 to 14 working days, subject to payment provider and bank processing times.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Arrival and session timing",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Please arrive 10–15 minutes before your scheduled session.",
+              "A 15-minute grace period is allowed for late arrival.",
+              "Late arrival may mean a shorter activity, so that later bookings are not affected.",
+              "Sessions finish at the original booked end time, unless an extension has been agreed and is available.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Children and supervision",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "Children must be supervised by a parent, guardian or designated responsible adult, as required for the activity.",
+              "Our creative team facilitate the activities but do not replace parental supervision.",
+              "Please tell our team about any relevant allergies, sensitivities or special requirements before the session.",
+              "Each activity has its own age and supervision guidance, set out in our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Materials and safety",
+        blocks: [
+          {
+            type: "list",
+            items: [
+              "All standard materials required for the selected activity are provided.",
+              "Participants are asked to follow the instructions of our creative team and to handle all materials responsibly.",
+              "Please respect the premises, furniture, equipment and creative materials.",
+              "You may be held responsible for damage caused intentionally or through negligence by you or members of your group, subject to applicable law.",
+              "Any special materials or customisation requests should be discussed and agreed in advance.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Special requests",
+        blocks: [
+          { type: "text", body: "School visits, celebrations and other group experiences can be tailored on request, subject to availability and applicable charges." },
+          {
+            type: "list",
+            items: [
+              "Food, cakes, decorations and any external entertainment must be approved by our team in advance.",
+              "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
+              "Any additional requirements must be agreed with our team before the booking.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Acceptance of this policy",
+        blocks: [
+          { type: "text", body: "By confirming your booking and making payment, you acknowledge and agree to the booking conditions and cancellation terms in this policy, as communicated to you when you make your booking." },
+          { type: "text", body: "We will review individual requests fairly and in accordance with applicable UAE consumer protection laws." },
+        ],
+      },
+      {
+        heading: "How this policy fits with our other policies",
+        blocks: [
+          { type: "text", body: "This policy forms part of our Terms & Conditions at maisonpalettia.com/policies/terms-and-conditions, and our Customer Safety & Activity Guidelines at maisonpalettia.com/policies/safety-guidelines apply during every group booking. Where this policy differs from our Cancellation, Rescheduling & Refund Policy, this policy applies to your group booking. Places booked online for a scheduled public session always follow our Cancellation, Rescheduling & Refund Policy at maisonpalettia.com/policies/cancellation-rescheduling-and-refunds, however many places are booked." },
+          { type: "text", body: "Nothing in this policy limits your statutory rights under UAE law." },
+        ],
+      },
+      {
+        heading: "Contact us",
+        blocks: [
+          { type: "text", body: "Let's make something memorable together! For group bookings and enquiries, please contact the Maison Palettia team:" },
+          { type: "text", body: "Maison Palettia Events L.L.C., Unit F-26, First Floor (next to Picnic Square), Times Square Center, Sheikh Zayed Road, Al Quoz Industrial Area 1, Dubai, United Arab Emirates." },
+          {
+            type: "list",
+            items: [
+              "Call: +971 50 474 7762",
+              "WhatsApp: +971 55 496 6116",
+              "Email: info@maisonpalettia.com",
+              "Website: maisonpalettia.com",
+            ],
+          },
         ],
       },
     ],
@@ -1411,7 +1941,7 @@ export const POLICIES: readonly Policy[] = [
           {
             type: "list",
             items: [
-              "DIY sessions are subject to available space, materials and retail store capacity.",
+              "DIY sessions are subject to available space, materials and studio capacity.",
               "Customers select their project from the options available at the time of their visit.",
               "The price of a DIY session states what is included.",
               "Standard materials required for the selected project are included unless specifically stated otherwise.",
@@ -1490,10 +2020,10 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "Children should participate only where the specific session is designed for their age group.",
-              "Hot wax and heating equipment should be handled only by participants and staff according to the retail store safety instructions.",
+              "Hot wax and heating equipment should be handled only by participants and staff according to the studio's safety instructions.",
               "Customers should not bring their own fragrance oils, wax, containers or other materials unless specifically approved.",
               "Finished candles should be allowed to cool and set for the recommended period before collection or use.",
-              "Customers receive appropriate candle-burning and safety instructions with their finished product.",
+              "Customers receive appropriate candle-burning and safety instructions with their finished candle.",
             ],
           },
         ],

@@ -11,16 +11,21 @@
  * copy-paste, an older deploy, a screen reader's plain-text mode) and needs
  * no markup an editor could get wrong.
  *
- * Two things become links, and nothing else:
+ * Three things become links, and nothing else:
  *   · `maisonpalettia.com` (with or without `www.`) and any path after it →
  *     that path on this site, e.g. `/policies/privacy-policy`;
- *   · an email address → `mailto:`.
+ *   · an email address → `mailto:`;
+ *   · `[label](https://…)` → the label, linking to that address in a new tab.
+ *     Only for pages on other sites — the official consumer-rights pages the
+ *     Terms point to — where printing the address would be unreadable. Only
+ *     `https:` addresses are accepted, so a typed `javascript:` stays text.
  * A trailing full stop or comma is never part of the link.
  */
 
-export type PolicyTextPart = { text: string; href?: string };
+export type PolicyTextPart = { text: string; href?: string; external?: boolean };
 
-const LINKABLE = /([A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})|((?:www\.)?maisonpalettia\.com((?:\/[a-z0-9-]+)*))/g;
+const LINKABLE =
+  /\[([^\]\n]+)\]\((https:\/\/[^\s)]+)\)|([A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})|((?:www\.)?maisonpalettia\.com((?:\/[a-z0-9-]+)*))/g;
 
 export function policyTextParts(text: string): PolicyTextPart[] {
   const parts: PolicyTextPart[] = [];
@@ -28,8 +33,9 @@ export function policyTextParts(text: string): PolicyTextPart[] {
   for (const match of text.matchAll(LINKABLE)) {
     const index = match.index ?? 0;
     if (index > last) parts.push({ text: text.slice(last, index) });
-    const [whole, email, , path] = match;
-    parts.push({ text: whole, href: email ? `mailto:${email}` : path || "/" });
+    const [whole, label, url, email, , path] = match;
+    if (label && url) parts.push({ text: label, href: url, external: true });
+    else parts.push({ text: whole, href: email ? `mailto:${email}` : path || "/" });
     last = index + whole.length;
   }
   if (last < text.length) parts.push({ text: text.slice(last) });
