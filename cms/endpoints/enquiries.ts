@@ -4,7 +4,7 @@ import { z } from "zod";
 import { AFTER_COMMIT } from "@/cms/collections/inbox/hooks";
 import { refererPath } from "@/cms/collections/inbox/shared";
 import { clientIp, ipHash, rateLimit } from "@/cms/lib/contracts";
-import { ENQUIRY_TOPICS, type EnquiryTopic } from "@/lib/enquiry";
+import { ENQUIRY_DETAIL_LABELS, ENQUIRY_TOPICS, enquiryDetailErrors, type EnquiryDetailField, type EnquiryTopic } from "@/lib/enquiry";
 
 import { json, parseBody, requireRole } from "./requireRole";
 
@@ -71,11 +71,12 @@ const clean = (value: string) =>
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-const line = (max: number) =>
+/** One line: line breaks (and the spaces around them) become a single space. */
+const line = (max: number, tooLong?: string) =>
   z
     .string()
-    .transform((value) => clean(value).replace(/\n/g, " "))
-    .pipe(z.string().max(max));
+    .transform((value) => clean(value).replace(/\s*\n\s*/g, " "))
+    .pipe(z.string().max(max, tooLong));
 
 /** The public body — `EnquiryRequest` + where it came from + the honeypot. */
 export const PublicEnquirySchema = z.object({
@@ -96,13 +97,40 @@ export const PublicEnquirySchema = z.object({
     .transform(clean)
     .pipe(z.string().min(1, "Please write a message.").max(5000, "Please keep your message under 5,000 characters.")),
   details: z
-    .array(z.object({ label: line(80).pipe(z.string().min(1)), value: line(500).pipe(z.string().min(1)) }))
+    .array(
+      z.object({
+        label: line(80).pipe(z.string().min(1)),
+        value: line(500, "Please keep each answer under 500 characters.").pipe(z.string().min(1)),
+      }),
+    )
     .max(20)
     .optional(),
   /** The honeypot. Humans never see it; anything in it means a script filled the form. */
   website: z.string().max(500).optional(),
   /** The page the form sits on, when the browser sent no Referer. */
   page: z.string().max(300).optional(),
+}).superRefine((body, ctx) => {
+  /*
+    The answers the private-event form counts or describes (guests, children,
+    adults, allergies or special requirements) are checked by their label —
+    the same rules the form applies before sending (lib/enquiry.ts). The issue
+    is filed under the form's own field name, so the form marks that field.
+  */
+  const byLabel = new Map<string, EnquiryDetailField>(
+    Object.entries(ENQUIRY_DETAIL_LABELS).map(([field, label]) => [label, field as EnquiryDetailField]),
+  );
+  const seen = new Set<string>();
+  for (const { label, value } of body.details ?? []) {
+    const field = byLabel.get(label);
+    if (!field) continue;
+    if (seen.has(field)) {
+      ctx.addIssue({ code: "custom", path: [field], message: "Please send each answer once." });
+      return;
+    }
+    seen.add(field);
+    const message = enquiryDetailErrors({ [field]: value })[field];
+    if (message) ctx.addIssue({ code: "custom", path: [field], message });
+  }
 });
 export type PublicEnquiryBody = z.input<typeof PublicEnquirySchema>;
 
