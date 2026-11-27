@@ -901,6 +901,7 @@ export const POLICIES: readonly Policy[] = [
         blocks: [
           { type: "text", body: "Many of our experiences welcome children, subject to their age requirements and supervision by a parent or guardian, but bookings must be made by a parent, guardian or other adult. If a child's name appears on a ticket, it is because the booking adult gave it to us. We use it only to run that session." },
           { type: "text", body: "We do not knowingly collect personal data directly from anyone under 18, and we handle children's information in line with UAE data protection requirements. Photographs taken at our experiences are covered separately in our Photography & Media policy at maisonpalettia.com/policies/photography-and-media." },
+          { type: "text", body: "Any allergy or dietary details you choose to share when you book or enquire, including for children, are collected only to keep participants safe during our sessions. They are seen only by authorised Maison Palettia staff, and are never sold or shared with anyone else, other than the service providers that host our website and send our emails on our behalf." },
         ],
       },
       {
@@ -1125,6 +1126,7 @@ export const POLICIES: readonly Policy[] = [
             type: "list",
             items: [
               "Please tell our staff about any allergy, sensitivity or medical condition that could be affected by the materials before you take part.",
+              "We handle these details as described in our Privacy Policy at maisonpalettia.com/policies/privacy-policy.",
               "Avoid handling any material that may cause you an adverse reaction.",
               "Ask our staff for help or an alternative if you are unsure about a material.",
             ],
@@ -1142,6 +1144,7 @@ export const POLICIES: readonly Policy[] = [
         blocks: [
           { type: "text", body: "Please treat our premises, equipment, furniture, materials, staff and other participants with care and respect." },
           { type: "text", body: "Maison Palettia may step in where behaviour creates a safety concern or materially disrupts an experience, including by stopping an activity or asking a customer to leave, always fairly and in line with applicable law." },
+          { type: "text", body: "At celebrations, standard wax candles on a cake may be lit only under the supervision of our team, where Times Square Center permits it. Sparklers, fountain candles, smoke-producing items and anything that could set off the mall's fire alarm are strictly prohibited, in line with Dubai Civil Defence rules and the mall's safety guidelines." },
         ],
       },
       {
@@ -1370,8 +1373,8 @@ export const POLICIES: readonly Policy[] = [
               "Food, beverages, birthday cakes, decorations and any external entertainment must be approved by our team in advance.",
               "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
               "Please tell us about any special setup, decoration or other requirements before the party, so that they can be agreed in advance.",
-              "Candles on the birthday cake may be lit and put out under the supervision of our team.",
-              "No other open flames, sparklers, confetti cannons, glitter bombs, hazardous materials or decorations that could damage the premises are permitted.",
+              "Standard wax candles on the birthday cake may be lit and put out only under the supervision of our team, where Times Square Center permits it, and subject to Dubai Civil Defence rules and the mall's safety guidelines.",
+              "Sparklers, fountain candles, smoke-producing items and anything that could set off the mall's fire alarm are strictly prohibited, as are other open flames, confetti cannons, glitter bombs, hazardous materials and decorations that could damage the premises.",
             ],
           },
         ],
@@ -1575,8 +1578,8 @@ export const POLICIES: readonly Policy[] = [
               "Please make sure that any external arrangements do not interfere with the activities or with other customers.",
               "Please tell us about any special setup or other requirements before the event, so that they can be agreed in advance.",
               "Additional setup, cleaning or external supplier charges may apply, where agreed with you.",
-              "Candles on a celebration cake may be lit and put out under the supervision of our team.",
-              "No other open flames, sparklers, confetti cannons, glitter bombs, hazardous materials or decorations that could damage the premises are permitted.",
+              "Standard wax candles on a celebration cake may be lit and put out only under the supervision of our team, where Times Square Center permits it, and subject to Dubai Civil Defence rules and the mall's safety guidelines.",
+              "Sparklers, fountain candles, smoke-producing items and anything that could set off the mall's fire alarm are strictly prohibited, as are other open flames, confetti cannons, glitter bombs, hazardous materials and decorations that could damage the premises.",
             ],
           },
         ],
