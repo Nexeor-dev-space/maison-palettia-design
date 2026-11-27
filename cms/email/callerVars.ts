@@ -127,11 +127,22 @@ export function mergeVars(...parts: Array<Record<string, unknown>>): Record<stri
 /* ────────────────────────────────────────────────────────────────────────── */
 
 /** order_cancelled (cancelOrder): the staff's reason, an optional note, and what comes back. */
-export const orderCancelledVars = (order: OrderForVars, input: { reason: string; note?: string; refundFils: number }) => ({
-  reason: input.reason,
-  note: input.note ?? "",
-  ...refundVars(order, input.refundFils),
-});
+export const orderCancelledVars = (order: OrderForVars, input: { reason: string; note?: string; refundFils: number }) =>
+  mergeVars({ reason: input.reason, note: input.note ?? "" }, refundVars(order, input.refundFils), {
+    refund: { summary: cancellationRefundSummary(order, input.refundFils) },
+  });
+
+/**
+ * The refund sentence of order_cancelled, whole. A late cancellation or a
+ * no-show refunds nothing, and "Any refund due (AED 0.00)" read as a promise
+ * of money that never comes; the template has no conditionals, so the caller
+ * picks the sentence.
+ */
+export function cancellationRefundSummary(order: Pick<OrderForVars, "channel">, refundFils: number): string {
+  if (refundFils <= 0) return "No refund is due for this cancellation under our Cancellation, Rescheduling & Refund Policy.";
+  const { amount, where } = refundVars(order, refundFils).refund;
+  return `Your refund of ${amount} is returned ${where}; you'll receive a separate confirmation when it is processed.`;
+}
 
 /** session_cancelled (cancelSession, and a payment that arrived for a cancelled session): THAT session, and its share back. */
 export const sessionCancelledVars = (order: OrderForVars, sessionId: string, input: { reason?: string; message?: string; refundFils: number }) => ({

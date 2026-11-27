@@ -138,7 +138,18 @@ export const TEMPLATE_VARIABLES: Record<EmailTemplateKey, TemplateVariable[]> = 
     v("creditNote.number", "Credit note number", "MP-CN-2026-000007"),
     myBookings,
   ],
-  order_cancelled: [...customer, orderRef, v("reason", "Why the booking was cancelled", "The session could not go ahead."), refundAmount, refundWhere],
+  order_cancelled: [
+    ...customer,
+    orderRef,
+    v("reason", "Why the booking was cancelled", "The session could not go ahead."),
+    v(
+      "refund.summary",
+      "The whole refund sentence: the amount and where it goes back, or that no refund is due",
+      "Your refund of AED 240.00 is returned to the card you paid with; you'll receive a separate confirmation when it is processed.",
+    ),
+    refundAmount,
+    refundWhere,
+  ],
   order_moved: [
     ...customer,
     orderRef,
