@@ -7,7 +7,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionShapes } from "@/components/motion/SectionShapes";
 import { PrivateEventEnquiry } from "@/components/private-events/PrivateEventEnquiry";
 import { Container } from "@/components/ui/Container";
-import { PRIVATE_EVENT_IMAGES, PRIVATE_EVENT_STEPS } from "@/lib/privateEvents";
+import { PRIVATE_EVENT_IMAGES, PRIVATE_EVENT_STEPS, type EnquiryProgramme } from "@/lib/privateEvents";
 import type { ImageAsset } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +62,7 @@ export interface EnquiryWords {
 
 export function EnquiryLayout({
   activities,
+  programmes,
   eyebrow = "Private events",
   heading = "Plan Your Private Experience.",
   lead = "Tell us when, who\u2019s coming and what you\u2019d like to make. We\u2019ll help turn the idea into an experience made for your group.",
@@ -75,6 +76,8 @@ export function EnquiryLayout({
    * (Coming soon)") — see components/blocks/EnquiryForm.tsx.
    */
   activities: string[];
+  /** The event types, with the booking policy each follows (components/blocks/EnquiryForm.tsx). */
+  programmes?: readonly EnquiryProgramme[];
 }) {
   return (
     <div className="relative isolate overflow-clip">
@@ -114,6 +117,7 @@ export function EnquiryLayout({
         <div className="mt-12 md:mt-16">
           <PrivateEventEnquiry
             activities={activities}
+            programmes={programmes}
             intro={
               <Reveal>
                 {eyebrow ? (

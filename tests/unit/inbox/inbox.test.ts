@@ -309,6 +309,71 @@ describe("handlePublicEnquiry", () => {
     expect(calls).toEqual([]);
   });
 
+  describe("private-event answers in details (children, adults, allergies or special requirements)", () => {
+    const privateEvent = { ...valid, source: "private-event", topic: "private", phone: "+971 50 123 4567" };
+
+    it("stores them as details rows, in the order sent, for the Inbox and the staff email", async () => {
+      const { payload, created } = fakePayload();
+      const details = [
+        { label: "Event type", value: "Birthday Parties" },
+        { label: "Children", value: "12" },
+        { label: "Adults", value: "4" },
+        { label: "Allergies or special requirements", value: "Nut   allergy,\n one guest uses a wheelchair" },
+      ];
+      const res = await handlePublicEnquiry(post({ ...privateEvent, details }, freshIp()), { getPayload: async () => payload as never });
+      expect(res.status).toBe(200);
+      const { data } = created[0] as { data: { details: Array<{ label: string; value: string }> } };
+      expect(data.details).toEqual([
+        { label: "Event type", value: "Birthday Parties" },
+        { label: "Children", value: "12" },
+        { label: "Adults", value: "4" },
+        { label: "Allergies or special requirements", value: "Nut allergy, one guest uses a wheelchair" },
+      ]);
+      expect(contracts.notifyStaff.mock.calls[0]?.[2 as never]).toMatchObject({ details: data.details });
+    });
+
+    it.each([
+      ["Children", "children", "twelve"],
+      ["Children", "children", "1000"],
+      ["Adults", "adults", "-3"],
+      ["Adults", "adults", "2.5"],
+      ["Estimated guests", "guests", "100000"],
+    ])("refuses %s = %j, naming the form field %s, storing nothing", async (label, field, value) => {
+      const { payload, created } = fakePayload();
+      const res = await handlePublicEnquiry(post({ ...privateEvent, details: [{ label, value }] }, freshIp()), { getPayload: async () => payload as never });
+      expect(res.status).toBe(400);
+      expect(await res.json()).toMatchObject({ status: "invalid", field });
+      expect(created).toHaveLength(0);
+    });
+
+    it("accepts a head count written with spaces or a thousands comma, and zero", async () => {
+      const { payload } = fakePayload();
+      const details = [
+        { label: "Children", value: "0" },
+        { label: "Estimated guests", value: "1,200" },
+      ];
+      const res = await handlePublicEnquiry(post({ ...privateEvent, details }, freshIp()), { getPayload: async () => payload as never });
+      expect(res.status).toBe(200);
+    });
+
+    it("refuses an answer over 500 characters, and the same question sent twice", async () => {
+      const { payload, created } = fakePayload();
+      const deps = { getPayload: async () => payload as never };
+      const long = await handlePublicEnquiry(
+        post({ ...privateEvent, details: [{ label: "Allergies or special requirements", value: "x".repeat(501) }] }, freshIp()),
+        deps,
+      );
+      expect(long.status).toBe(400);
+      expect(await long.json()).toMatchObject({ status: "invalid", message: "Please keep each answer under 500 characters." });
+      const twice = await handlePublicEnquiry(
+        post({ ...privateEvent, details: [{ label: "Adults", value: "2" }, { label: "Adults", value: "3" }] }, freshIp()),
+        deps,
+      );
+      expect(await twice.json()).toMatchObject({ status: "invalid", field: "adults" });
+      expect(created).toHaveLength(0);
+    });
+  });
+
   it("generic REST cannot create: access.create is false without the endpoint's context flag", async () => {
     const create = Enquiries.access!.create as (a: unknown) => unknown;
     expect(await create({ req: { context: {} } })).toBe(false);

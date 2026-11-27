@@ -785,6 +785,14 @@ export interface Programme {
       | null;
     color?: ('lilac' | 'lavender' | 'terracotta' | 'cream') | null;
   };
+  /**
+   * The policy this programme's bookings follow. Linked under the enquiry button on the programme's page and under Send on the enquiry form when this programme is the chosen event type. Leave empty when none applies.
+   */
+  bookingPolicy?: (string | null) | Policy;
+  /**
+   * Shown instead of a policy link when no booking policy is linked, e.g. “Quoted under a separate written agreement”. Ignored while a policy is linked.
+   */
+  bookingPolicyNote?: string | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -813,6 +821,136 @@ export interface Programme {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * The studio policies, reproduced as written. Do not paraphrase: a policy restated in nicer words is a different policy.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "policies".
+ */
+export interface Policy {
+  id: string;
+  /**
+   * The page title and the list entry. In the large heading the words after “ & ” (or else the last word) are set in the script face.
+   */
+  title: string;
+  navLabel: string;
+  /**
+   * One line on the Policies page and the standfirst on the policy's own. Describes the page; never adds a rule to it.
+   */
+  summary: string;
+  /**
+   * Each section has a heading and one or more paragraphs, lists, age tables or callouts.
+   */
+  sections?:
+    | {
+        /**
+         * A label, never a claim.
+         */
+        heading: string;
+        blocks?: (PolicyTextBlock | PolicyListBlock | PolicyAgesBlock | PolicyCalloutBlock)[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
+     */
+    image?: (string | null) | Media;
+    /**
+     * Adds a noindex tag. The page stays reachable by its address and from links.
+     */
+    noindex?: boolean | null;
+  };
+  /**
+   * The address: /policies/{slug}. A change on a published policy creates a redirect.
+   */
+  slug: string;
+  /**
+   * Printed under the title as “Effective 27 November 2026”, with the company's legal name and licence (Site details).
+   */
+  effectiveDate?: string | null;
+  /**
+   * Where the policy is listed. Legal & Policies and Customer Support each get a column in the footer; every policy is listed on the Policies page under its group.
+   */
+  footerGroup: 'legal' | 'support' | 'none';
+  /**
+   * Usually off: the Group above already puts the policy in the footer. On adds a second link beside the © line.
+   */
+  showInLegalRow?: boolean | null;
+  /**
+   * Adds the policy to the “I have read and agree” box; the agreed version is stored on the order.
+   */
+  requiresCheckoutConsent?: boolean | null;
+  /**
+   * Counts publishes. Orders record the version agreed to.
+   */
+  version?: number | null;
+  /**
+   * Position in lists: lower numbers come first.
+   */
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyTextBlock".
+ */
+export interface PolicyTextBlock {
+  body: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'text';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyListBlock".
+ */
+export interface PolicyListBlock {
+  items?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'list';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyAgesBlock".
+ */
+export interface PolicyAgesBlock {
+  /**
+   * DIY and Workshop read each experience's Age guidance, so an age is edited once.
+   */
+  source: 'diy' | 'workshop' | 'custom';
+  rows?:
+    | {
+        activity: string;
+        guidance: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'ages';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PolicyCalloutBlock".
+ */
+export interface PolicyCalloutBlock {
+  title: string;
+  body: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'callout';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2192,136 +2330,6 @@ export interface SessionInventory {
   seatsHeld: number;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * The studio policies, reproduced as written. Do not paraphrase: a policy restated in nicer words is a different policy.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "policies".
- */
-export interface Policy {
-  id: string;
-  /**
-   * The page title and the list entry. In the large heading the words after “ & ” (or else the last word) are set in the script face.
-   */
-  title: string;
-  navLabel: string;
-  /**
-   * One line on the Policies page and the standfirst on the policy's own. Describes the page; never adds a rule to it.
-   */
-  summary: string;
-  /**
-   * Each section has a heading and one or more paragraphs, lists, age tables or callouts.
-   */
-  sections?:
-    | {
-        /**
-         * A label, never a claim.
-         */
-        heading: string;
-        blocks?: (PolicyTextBlock | PolicyListBlock | PolicyAgesBlock | PolicyCalloutBlock)[] | null;
-        id?: string | null;
-      }[]
-    | null;
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    /**
-     * The picture shown when this page is shared in a message or on social media. Leave empty to use the site's default share image (Settings → Search & sharing defaults).
-     */
-    image?: (string | null) | Media;
-    /**
-     * Adds a noindex tag. The page stays reachable by its address and from links.
-     */
-    noindex?: boolean | null;
-  };
-  /**
-   * The address: /policies/{slug}. A change on a published policy creates a redirect.
-   */
-  slug: string;
-  /**
-   * Printed under the title as “Effective 27 November 2026”, with the company's legal name and licence (Site details).
-   */
-  effectiveDate?: string | null;
-  /**
-   * Where the policy is listed. Legal & Policies and Customer Support each get a column in the footer; every policy is listed on the Policies page under its group.
-   */
-  footerGroup: 'legal' | 'support' | 'none';
-  /**
-   * Usually off: the Group above already puts the policy in the footer. On adds a second link beside the © line.
-   */
-  showInLegalRow?: boolean | null;
-  /**
-   * Adds the policy to the “I have read and agree” box; the agreed version is stored on the order.
-   */
-  requiresCheckoutConsent?: boolean | null;
-  /**
-   * Counts publishes. Orders record the version agreed to.
-   */
-  version?: number | null;
-  /**
-   * Position in lists: lower numbers come first.
-   */
-  order: number;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "PolicyTextBlock".
- */
-export interface PolicyTextBlock {
-  body: string;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'text';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "PolicyListBlock".
- */
-export interface PolicyListBlock {
-  items?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'list';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "PolicyAgesBlock".
- */
-export interface PolicyAgesBlock {
-  /**
-   * DIY and Workshop read each experience's Age guidance, so an age is edited once.
-   */
-  source: 'diy' | 'workshop' | 'custom';
-  rows?:
-    | {
-        activity: string;
-        guidance: string;
-        id?: string | null;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'ages';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "PolicyCalloutBlock".
- */
-export interface PolicyCalloutBlock {
-  title: string;
-  body: string;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'callout';
 }
 /**
  * Questions on the FAQ page. Each is filed under a section; add, rename or reorder sections in FAQ sections.
@@ -5522,6 +5530,8 @@ export interface ProgrammesSelect<T extends boolean = true> {
         name?: T;
         color?: T;
       };
+  bookingPolicy?: T;
+  bookingPolicyNote?: T;
   meta?:
     | T
     | {

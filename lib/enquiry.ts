@@ -83,6 +83,66 @@ export const ENQUIRY_TOPICS: { value: EnquiryTopic; label: string }[] = [
  */
 export const ENQUIRY_CONFIGURED = true;
 
+/* ==========================================================================
+   THE PRIVATE-EVENT FORM'S COUNTED AND FREE-TEXT ANSWERS
+
+   They travel as ordinary `details` rows (label + value), so staff read them
+   in the Inbox and the staff email with no new column. The labels are named
+   here because the server checks the rows by label: the form writes them,
+   cms/endpoints/enquiries.ts validates them, and a label typed twice is a
+   check that silently stops applying the first time one copy is edited.
+   ========================================================================== */
+
+/** The form field each checked answer comes from → the label its `details` row carries. */
+export const ENQUIRY_DETAIL_LABELS = {
+  guests: "Estimated guests",
+  children: "Children",
+  adults: "Adults",
+  requirements: "Allergies or special requirements",
+} as const;
+export type EnquiryDetailField = keyof typeof ENQUIRY_DETAIL_LABELS;
+
+/**
+ * The most a head count may say. A sanity bound against typos and scripts,
+ * NOT a capacity: the studio publishes none, and no copy reads these as one.
+ * Estimated guests keeps the five digits the form always allowed.
+ */
+export const HEADCOUNT_MAX = { guests: 99_999, children: 999, adults: 999 } as const;
+
+/** Allergies or special requirements; the `details` value column holds 500. */
+export const REQUIREMENTS_MAX_LENGTH = 500;
+
+/** A whole number from 0 to `max`; spaces and thousands commas are ignored ("1,200"). */
+export function isValidHeadcount(value: string, max: number): boolean {
+  const digits = value.replace(/[\s,]/g, "");
+  return /^\d+$/.test(digits) && digits.length <= String(max).length && Number(digits) <= max;
+}
+
+const HEADCOUNT_MESSAGE: Record<keyof typeof HEADCOUNT_MAX, string> = {
+  guests: "Please give this as a number, or leave it blank.",
+  children: "Please give the number of children as a whole number, or leave it blank.",
+  adults: "Please give the number of adults as a whole number, or leave it blank.",
+};
+
+/**
+ * The rules for the counted and free-text answers, shared by the form (as it
+ * validates before sending) and the server (which validates again, because a
+ * browser's checks are a courtesy). Blank is always fine; only a given answer
+ * is checked. Returns the customer-facing message per field that fails.
+ */
+export function enquiryDetailErrors(values: Partial<Record<EnquiryDetailField, string>>): Partial<Record<EnquiryDetailField, string>> {
+  const errors: Partial<Record<EnquiryDetailField, string>> = {};
+  for (const field of Object.keys(HEADCOUNT_MAX) as (keyof typeof HEADCOUNT_MAX)[]) {
+    const value = values[field]?.trim();
+    if (value && !isValidHeadcount(value, HEADCOUNT_MAX[field])) errors[field] = HEADCOUNT_MESSAGE[field];
+  }
+  const requirements = values.requirements?.trim();
+  if (requirements && requirements.length > REQUIREMENTS_MAX_LENGTH) {
+    errors.requirements = `Please keep this under ${REQUIREMENTS_MAX_LENGTH} characters.`;
+  }
+  return errors;
+}
+
 export type EnquiryResult =
   /** Stored in the Inbox. */
   | { status: "ok" }
