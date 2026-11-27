@@ -1,4 +1,4 @@
-import { ValidationError, type CollectionBeforeValidateHook, type PayloadRequest } from "payload";
+import { ValidationError, formatErrors, type CollectionBeforeValidateHook, type PayloadRequest } from "payload";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -87,22 +87,29 @@ describe("Credit Note System (FEAT #183)", () => {
       ...args,
     } as Parameters<CollectionBeforeValidateHook>[0]);
 
-  /**
-   * Matches a Payload ValidationError carrying one field error. Its `.message`
-   * is the generic "The following field is invalid: <path>"; the admin shows
-   * `data.errors[].message` under the field, so that is what we assert.
-   */
-  const fieldError = (path: string, message: string | RegExp) =>
-    expect.objectContaining({
-      data: expect.objectContaining({
-        errors: [expect.objectContaining({ path, message: typeof message === "string" ? message : expect.stringMatching(message) })],
-      }),
-    });
+  /** Settles a promise that should reject and returns what it rejected with (undefined if it resolved). */
+  const rejection = (promise: Promise<unknown>) =>
+    promise.then(
+      () => undefined,
+      (e: unknown) => e,
+    );
 
-  const expectFieldError = async (promise: Promise<unknown>, path: string, message: string | RegExp) => {
-    const settled = promise.catch((err: unknown) => err);
-    await expect(promise).rejects.toBeInstanceOf(ValidationError);
-    expect(await settled).toEqual(fieldError(path, message));
+  /**
+   * Asserts a Payload ValidationError carrying one field error. The admin shows
+   * `data.errors[].message` under the field and the error's own `message` in the
+   * toast, so both must be our text (not "The following field is invalid ...")
+   * and contain no ':' (the toast splits on the first one).
+   */
+  const expectFieldError = async (promise: Promise<unknown>, path: string, label: string, message: string) => {
+    const err = await rejection(promise);
+    expect(err).toBeInstanceOf(ValidationError);
+    const error = err as ValidationError;
+    expect(error.message).toBe(message);
+    expect(error.name).toBe("ValidationError");
+    expect(error.data.errors).toEqual([expect.objectContaining({ path, label, message })]);
+    expect(error.message).not.toContain(":");
+    expect(error.data.errors[0].message).not.toContain(":");
+    return error;
   };
 
   describe("2. Mandatory Expiry Date & BeforeValidate Hook", () => {
@@ -118,6 +125,7 @@ describe("Credit Note System (FEAT #183)", () => {
           operation: "create",
         }),
         "expiresAt",
+        "Expiry date",
         "Expiry date is mandatory.",
       );
     });
@@ -222,6 +230,7 @@ describe("Credit Note System (FEAT #183)", () => {
           operation: "create",
         }),
         "order",
+        "Original booking ID",
         "A credit note has already been issued for this booking.",
       );
     });
@@ -470,23 +479,26 @@ describe("Credit Note System (FEAT #183)", () => {
     const edit = (data: Record<string, unknown>, originalDoc: Record<string, unknown>) =>
       callPrepareHook({ data, originalDoc, operation: "update", req: { context: {} } });
 
-    const FULLY_AVAILABLE = "This credit note has already been fully redeemed. Its status cannot be changed to Available.";
-    const PARTLY_AVAILABLE = "This credit note has already been partially redeemed. Its status cannot be changed to Available.";
-    const FULLY_PARTIAL = "This credit note has already been fully redeemed. Its status cannot be changed to Partially Redeemed.";
+    const FULLY_AVAILABLE =
+      "This credit note has already been fully redeemed (AED 240.00 of AED 240.00 used). Its status cannot be changed to Available.";
+    const PARTLY_AVAILABLE =
+      "This credit note has already been partially redeemed (AED 40.00 of AED 280.00 left). Its status cannot be changed to Available.";
+    const FULLY_PARTIAL =
+      "This credit note has already been fully redeemed (AED 240.00 of AED 240.00 used). Its status cannot be changed to Partially Redeemed.";
 
     it("refuses Available on a note whose whole amount has been spent (Redeemed → Available)", async () => {
       const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
-      await expectFieldError(edit({ ...spent, status: "available" }, spent), "status", FULLY_AVAILABLE);
+      await expectFieldError(edit({ ...spent, status: "available" }, spent), "status", "Status", FULLY_AVAILABLE);
     });
 
     it("refuses Partially Redeemed on a spent note (Redeemed → Partially Redeemed)", async () => {
       const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
-      await expectFieldError(edit({ ...spent, status: "partially_redeemed" }, spent), "status", FULLY_PARTIAL);
+      await expectFieldError(edit({ ...spent, status: "partially_redeemed" }, spent), "status", "Status", FULLY_PARTIAL);
     });
 
     it("refuses Available on a partly used note (Partially Redeemed → Available, the QA case)", async () => {
       const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
-      await expectFieldError(edit({ ...partly, status: "available" }, partly), "status", PARTLY_AVAILABLE);
+      await expectFieldError(edit({ ...partly, status: "available" }, partly), "status", "Status", PARTLY_AVAILABLE);
     });
 
     it("refuses Fully Redeemed while credit remains", async () => {
@@ -494,19 +506,118 @@ describe("Credit Note System (FEAT #183)", () => {
       await expectFieldError(
         edit({ ...partly, status: "redeemed" }, partly),
         "status",
-        "This credit note still has AED 40.00 left, so it cannot be Fully Redeemed. Keep it Partially Redeemed, or set it to Expired to withdraw it.",
+        "Status",
+        "This credit note still has AED 40.00 of AED 280.00 left, so its status cannot be changed to Fully Redeemed. Change the status to Partially Redeemed, or set it to Expired to withdraw it.",
       );
       const untouched = { status: "available", amountFils: 24_000, redeemedAmountFils: null, expiresAt: future() };
       await expectFieldError(
         edit({ ...untouched, status: "redeemed" }, untouched),
         "status",
-        "This credit note still has AED 240.00 left, so it cannot be Fully Redeemed. Keep it Available, or set it to Expired to withdraw it.",
+        "Status",
+        "This credit note still has AED 240.00 of AED 240.00 left, so its status cannot be changed to Fully Redeemed. Change the status to Available, or set it to Expired to withdraw it.",
       );
     });
 
     it("puts the error on amountFils when only the amount changes (lowering a partly used note to what was spent)", async () => {
       const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
-      await expectFieldError(edit({ ...partly, amountFils: 24_000 }, partly), "amountFils", FULLY_PARTIAL);
+      await expectFieldError(
+        edit({ ...partly, amountFils: 24_000 }, partly),
+        "amountFils",
+        "Credit amount",
+        "AED 240.00 of this credit note has already been used, so its credit amount must be more than AED 240.00 while it is Partially Redeemed. Enter a higher amount, or change the status to Fully Redeemed.",
+      );
+    });
+
+    it("words the legacy Available amount-only refusal for the proposed amount", async () => {
+      const legacy = { status: "available", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expectFieldError(
+        edit({ ...legacy, amountFils: 30_000 }, legacy),
+        "amountFils",
+        "Credit amount",
+        "With a credit amount of AED 300.00, AED 60.00 would be left after AED 240.00 already used, so it cannot stay Available. Change the status to Partially Redeemed.",
+      );
+    });
+
+    it("refuses raising the amount of a Fully Redeemed note above what was used", async () => {
+      const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expectFieldError(
+        edit({ ...spent, amountFils: 28_000 }, spent),
+        "amountFils",
+        "Credit amount",
+        "This credit note is Fully Redeemed and AED 240.00 of it has been used, so its credit amount cannot be raised above AED 240.00. Keep it at AED 240.00, or change the status to Partially Redeemed.",
+      );
+    });
+
+    it("refuses an amount edit on a Fully Redeemed note with nothing recorded as used", async () => {
+      const unused = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: null, expiresAt: future() };
+      await expectFieldError(
+        edit({ ...unused, amountFils: 28_000 }, unused),
+        "amountFils",
+        "Credit amount",
+        "No credit has been recorded as used on this note, so it cannot stay Fully Redeemed with a credit amount of AED 280.00. Change the status to Available, or set it to Expired to withdraw it.",
+      );
+    });
+
+    it("never puts ':' in any refusal message, including large amounts with thousand separators", async () => {
+      const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      const legacy = { status: "available", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      const untouched = { status: "available", amountFils: 24_000, redeemedAmountFils: null, expiresAt: future() };
+      const unusedRedeemed = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: null, expiresAt: future() };
+      const big = { status: "redeemed", amountFils: 123_456_789, redeemedAmountFils: 123_456_789, expiresAt: future() };
+      const duplicateReq = { context: {}, payload: { find: async () => ({ docs: [{ id: "existing" }] }) } };
+      const refusals: Promise<unknown>[] = [
+        // status changes
+        edit({ ...spent, status: "available" }, spent),
+        edit({ ...spent, status: "partially_redeemed" }, spent),
+        edit({ ...partly, status: "available" }, partly),
+        edit({ ...partly, status: "redeemed" }, partly),
+        edit({ ...untouched, status: "redeemed" }, untouched),
+        edit({ ...big, status: "available" }, big),
+        // amount-only changes
+        edit({ ...partly, amountFils: 24_000 }, partly),
+        edit({ ...legacy, amountFils: 30_000 }, legacy),
+        edit({ ...legacy, amountFils: 24_000 }, legacy),
+        edit({ ...spent, amountFils: 28_000 }, spent),
+        edit({ ...unusedRedeemed, amountFils: 28_000 }, unusedRedeemed),
+        // expiry (create and update) and duplicate issuance
+        callPrepareHook({ data: { order: "order-001", amountFils: 10_000 }, operation: "create", req: { context: {} } }),
+        edit({ expiresAt: null }, { status: "available", amountFils: 24_000 }),
+        callPrepareHook({ data: { order: "order-001", amountFils: 10_000, expiresAt: future() }, operation: "create", req: duplicateReq }),
+      ];
+      const messages: string[] = [];
+      for (const refusal of refusals) {
+        const err = await rejection(refusal);
+        expect(err).toBeInstanceOf(ValidationError);
+        const { message, data } = err as ValidationError;
+        expect(message).not.toContain(":");
+        expect(data.errors[0].message).toBe(message);
+        messages.push(message);
+      }
+      expect(new Set(messages).size).toBe(messages.length - 1); // only the two expiry refusals share a message
+      expect(messages[5]).toContain("AED 1,234,567.89");
+    });
+
+    it("keeps our message and field data through Payload's formatErrors", async () => {
+      const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      const err = await expectFieldError(edit({ ...partly, status: "available" }, partly), "status", "Status", PARTLY_AVAILABLE);
+      const formatted = formatErrors(err) as { errors: { message: string; data?: { errors: { path: string }[] } }[] };
+      expect(formatted.errors[0].message).toBe(PARTLY_AVAILABLE);
+      expect(formatted.errors[0].data?.errors[0].path).toBe("status");
+    });
+
+    it("documents Payload's formatErrors fallback when instanceof fails (why fieldRefusal sets name)", () => {
+      type FormatErrorsInput = Parameters<typeof formatErrors>[0];
+      // Payload's behaviour, not proof of our code: an error that fails instanceof keeps
+      // its message only when it has a name, and loses `data` either way.
+      const named = Object.assign(new Error(PARTLY_AVAILABLE), { name: "ValidationError", data: { errors: [] }, status: 400 });
+      expect(named).not.toBeInstanceOf(ValidationError);
+      expect(formatErrors(named as unknown as FormatErrorsInput).errors).toEqual([{ message: PARTLY_AVAILABLE }]);
+
+      const plain = new ValidationError({ collection: "credit-notes", errors: [{ path: "status", message: "x" }] });
+      plain.name = "";
+      const unnamed = Object.assign(new Error(plain.message), { name: plain.name, data: plain.data, status: 400 });
+      expect(formatErrors(unnamed as unknown as FormatErrorsInput).errors[0].message).toBe("An unknown error occurred.");
     });
 
     it("still saves an unrelated edit on a partly used note (status and amount unchanged)", async () => {
