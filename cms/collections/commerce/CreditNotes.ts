@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { APIError, type CollectionAfterChangeHook, type CollectionBeforeValidateHook, type CollectionConfig } from "payload";
+import { APIError, ValidationError, type CollectionAfterChangeHook, type CollectionBeforeValidateHook, type CollectionConfig } from "payload";
 
 import { isAdmin, isStaff } from "@/cms/access/roles";
 import { money } from "@/cms/fields";
@@ -57,14 +57,14 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
     }
 
     if (!data.expiresAt) {
-      throw new APIError("Expiry date is mandatory.", 400);
+      throw new ValidationError({ collection: "credit-notes", errors: [{ path: "expiresAt", message: "Expiry date is mandatory." }] }, req?.t);
     }
   } else if (operation === "update") {
     if (data.code && typeof data.code === "string") {
       data.code = normaliseCreditNoteCode(data.code);
     }
     if ("expiresAt" in data && !data.expiresAt && !originalDoc?.expiresAt) {
-      throw new APIError("Expiry date is mandatory.", 400);
+      throw new ValidationError({ collection: "credit-notes", errors: [{ path: "expiresAt", message: "Expiry date is mandatory." }] }, req?.t);
     }
   }
 
@@ -87,7 +87,10 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
         req,
       });
       if (existing.docs.length > 0) {
-        throw new APIError("A credit note has already been issued for this booking.", 409);
+        throw new ValidationError(
+          { collection: "credit-notes", errors: [{ path: "order", message: "A credit note has already been issued for this booking." }] },
+          req?.t,
+        );
       }
     } catch (err) {
       if (err instanceof APIError) throw err;
@@ -131,7 +134,7 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
 
   // After auto-expiry, so a lapsed note becomes Expired rather than being refused.
   const mismatch = statusBalanceMismatch(data, originalDoc, operation);
-  if (mismatch) throw new APIError(mismatch, 400);
+  if (mismatch) throw new ValidationError({ collection: "credit-notes", errors: [mismatch] }, req?.t);
 
   return data;
 };
@@ -139,31 +142,42 @@ export const prepareCreditNote: CollectionBeforeValidateHook = async ({ data, re
 /**
  * The status an admin picks must agree with the balance (#214 QA: a spent note
  * set back to "Available" by hand showed as usable but had nothing left).
- * Checked only on create or when the status changes, so unrelated edits to an
- * older row still save. Expired is always allowed (it withdraws a note). The
- * checkout's atomic SQL bypasses hooks and keeps status and balance in step.
+ * Checked only on create or when the status or amount changes, so unrelated
+ * edits to an older row still save. Expired is always allowed (it withdraws a
+ * note). A note with any credit used can never go back to Available. The
+ * error sits on `amountFils` when only the amount changed, else on `status`.
+ * The checkout's atomic SQL bypasses hooks and keeps status and balance in step.
  */
 function statusBalanceMismatch(
   data: Record<string, unknown>,
   originalDoc: Record<string, unknown> | undefined,
   operation: string,
-): string | null {
+): { path: string; message: string } | null {
   const status = (data.status ?? originalDoc?.status) as string | undefined;
   if (!status || status === "expired") return null;
-  if (operation === "update" && status === originalDoc?.status) return null;
+  const statusChanged = operation !== "update" || !originalDoc || status !== originalDoc.status;
+  const amountChanged =
+    operation === "update" && (!originalDoc || Number(data.amountFils ?? originalDoc.amountFils) !== Number(originalDoc.amountFils));
+  if (!statusChanged && !amountChanged) return null;
+  const path = statusChanged ? "status" : "amountFils";
 
   const amountFils = Number(data.amountFils ?? originalDoc?.amountFils);
   if (!Number.isFinite(amountFils) || amountFils <= 0) return null;
   const redeemedFils = Math.max(0, Math.round(Number(data.redeemedAmountFils ?? originalDoc?.redeemedAmountFils ?? 0)) || 0);
   const balanceFils = Math.max(0, Math.round(amountFils) - redeemedFils);
 
-  if ((status === "available" || status === "partially_redeemed") && balanceFils <= 0) {
-    return `This credit note has no balance left (${formatAed(redeemedFils)} of ${formatAed(amountFils)} already used), so it cannot be Available or Partially Redeemed. Keep it Fully Redeemed, or set it to Expired.`;
+  let message: string | null = null;
+  if (status === "available" && balanceFils <= 0) {
+    message = "This credit note has already been fully redeemed. Its status cannot be changed to Available.";
+  } else if (status === "available" && redeemedFils > 0) {
+    message = "This credit note has already been partially redeemed. Its status cannot be changed to Available.";
+  } else if (status === "partially_redeemed" && balanceFils <= 0) {
+    message = "This credit note has already been fully redeemed. Its status cannot be changed to Partially Redeemed.";
+  } else if (status === "redeemed" && balanceFils > 0) {
+    const keep = redeemedFils > 0 ? "Keep it Partially Redeemed" : "Keep it Available";
+    message = `This credit note still has ${formatAed(balanceFils)} left, so it cannot be Fully Redeemed. ${keep}, or set it to Expired to withdraw it.`;
   }
-  if (status === "redeemed" && balanceFils > 0) {
-    return `This credit note still has ${formatAed(balanceFils)} left, so it cannot be Fully Redeemed. Keep it Available or Partially Redeemed, or set it to Expired to withdraw it.`;
-  }
-  return null;
+  return message ? { path, message } : null;
 }
 
 export const creditNoteAfterChange: CollectionAfterChangeHook = async ({ doc, operation, req }) => {

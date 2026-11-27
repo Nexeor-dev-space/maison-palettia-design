@@ -1,4 +1,4 @@
-import type { CollectionBeforeValidateHook, PayloadRequest } from "payload";
+import { ValidationError, type CollectionBeforeValidateHook, type PayloadRequest } from "payload";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -87,9 +87,27 @@ describe("Credit Note System (FEAT #183)", () => {
       ...args,
     } as Parameters<CollectionBeforeValidateHook>[0]);
 
+  /**
+   * Matches a Payload ValidationError carrying one field error. Its `.message`
+   * is the generic "The following field is invalid: <path>"; the admin shows
+   * `data.errors[].message` under the field, so that is what we assert.
+   */
+  const fieldError = (path: string, message: string | RegExp) =>
+    expect.objectContaining({
+      data: expect.objectContaining({
+        errors: [expect.objectContaining({ path, message: typeof message === "string" ? message : expect.stringMatching(message) })],
+      }),
+    });
+
+  const expectFieldError = async (promise: Promise<unknown>, path: string, message: string | RegExp) => {
+    const settled = promise.catch((err: unknown) => err);
+    await expect(promise).rejects.toBeInstanceOf(ValidationError);
+    expect(await settled).toEqual(fieldError(path, message));
+  };
+
   describe("2. Mandatory Expiry Date & BeforeValidate Hook", () => {
     it("throws an error when expiry date is missing", async () => {
-      await expect(
+      await expectFieldError(
         callPrepareHook({
           data: {
             order: "order-001",
@@ -99,7 +117,9 @@ describe("Credit Note System (FEAT #183)", () => {
           req: {} as any,
           operation: "create",
         }),
-      ).rejects.toThrow("Expiry date is mandatory.");
+        "expiresAt",
+        "Expiry date is mandatory.",
+      );
     });
 
     it("auto-generates code if not provided", async () => {
@@ -190,7 +210,7 @@ describe("Credit Note System (FEAT #183)", () => {
         },
       } as any;
 
-      await expect(
+      await expectFieldError(
         callPrepareHook({
           data: {
             code: "CN-NEW001",
@@ -201,7 +221,9 @@ describe("Credit Note System (FEAT #183)", () => {
           req: mockReq,
           operation: "create",
         }),
-      ).rejects.toThrow("A credit note has already been issued for this booking.");
+        "order",
+        "A credit note has already been issued for this booking.",
+      );
     });
 
     it("allows updating credit note status to redeemed without requiring expiresAt in update payload", async () => {
@@ -448,21 +470,57 @@ describe("Credit Note System (FEAT #183)", () => {
     const edit = (data: Record<string, unknown>, originalDoc: Record<string, unknown>) =>
       callPrepareHook({ data, originalDoc, operation: "update", req: { context: {} } });
 
-    it("refuses Available on a note whose whole amount has been spent", async () => {
+    const FULLY_AVAILABLE = "This credit note has already been fully redeemed. Its status cannot be changed to Available.";
+    const PARTLY_AVAILABLE = "This credit note has already been partially redeemed. Its status cannot be changed to Available.";
+    const FULLY_PARTIAL = "This credit note has already been fully redeemed. Its status cannot be changed to Partially Redeemed.";
+
+    it("refuses Available on a note whose whole amount has been spent (Redeemed → Available)", async () => {
       const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
-      await expect(edit({ ...spent, status: "available" }, spent)).rejects.toThrow(/no balance left/);
+      await expectFieldError(edit({ ...spent, status: "available" }, spent), "status", FULLY_AVAILABLE);
     });
 
-    it("refuses Partially Redeemed on a spent note", async () => {
+    it("refuses Partially Redeemed on a spent note (Redeemed → Partially Redeemed)", async () => {
       const spent = { status: "redeemed", amountFils: 24_000, redeemedAmountFils: 24_000, expiresAt: future() };
-      await expect(edit({ ...spent, status: "partially_redeemed" }, spent)).rejects.toThrow(/no balance left/);
+      await expectFieldError(edit({ ...spent, status: "partially_redeemed" }, spent), "status", FULLY_PARTIAL);
+    });
+
+    it("refuses Available on a partly used note (Partially Redeemed → Available, the QA case)", async () => {
+      const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expectFieldError(edit({ ...partly, status: "available" }, partly), "status", PARTLY_AVAILABLE);
     });
 
     it("refuses Fully Redeemed while credit remains", async () => {
       const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
-      await expect(edit({ ...partly, status: "redeemed" }, partly)).rejects.toThrow(/AED 40\.00 left/);
+      await expectFieldError(
+        edit({ ...partly, status: "redeemed" }, partly),
+        "status",
+        "This credit note still has AED 40.00 left, so it cannot be Fully Redeemed. Keep it Partially Redeemed, or set it to Expired to withdraw it.",
+      );
       const untouched = { status: "available", amountFils: 24_000, redeemedAmountFils: null, expiresAt: future() };
-      await expect(edit({ ...untouched, status: "redeemed" }, untouched)).rejects.toThrow(/AED 240\.00 left/);
+      await expectFieldError(
+        edit({ ...untouched, status: "redeemed" }, untouched),
+        "status",
+        "This credit note still has AED 240.00 left, so it cannot be Fully Redeemed. Keep it Available, or set it to Expired to withdraw it.",
+      );
+    });
+
+    it("puts the error on amountFils when only the amount changes (lowering a partly used note to what was spent)", async () => {
+      const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expectFieldError(edit({ ...partly, amountFils: 24_000 }, partly), "amountFils", FULLY_PARTIAL);
+    });
+
+    it("still saves an unrelated edit on a partly used note (status and amount unchanged)", async () => {
+      const partly = { status: "partially_redeemed", amountFils: 28_000, redeemedAmountFils: 24_000, expiresAt: future() };
+      await expect(edit({ ...partly, notes: "Called customer" }, partly)).resolves.toMatchObject({
+        status: "partially_redeemed",
+        notes: "Called customer",
+      });
+    });
+
+    it("leaves the restore SQL path untouched (cancellation can still return a note to Available)", () => {
+      const text = sqlText(restoreCreditNoteSql("cn-1", 24_000, "order-1"));
+      expect(text).toContain("'available'::enum_credit_notes_status");
+      expect(text).toContain("WHEN status = 'expired' THEN status");
     });
 
     it("allows the statuses that match the balance", async () => {
