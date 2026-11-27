@@ -106,6 +106,11 @@ export interface PolicySeed {
   summary: string;
   sections: Array<{ heading: string; blocks: PolicyBlockSeed[] }>;
   order: number;
+  footerGroup?: "legal" | "support" | "none";
+  requiresCheckoutConsent?: boolean;
+  showInLegalRow?: boolean;
+  /** ISO date-time, printed as "Effective 27 November 2026". */
+  effectiveDate?: string;
 }
 
 export interface FaqSeed {

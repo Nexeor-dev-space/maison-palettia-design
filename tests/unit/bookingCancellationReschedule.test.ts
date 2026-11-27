@@ -28,26 +28,32 @@ describe("Cancellation Policy Validation", () => {
     expect(getNoticeWindow(72)).toBe("over_48h");
   });
 
-  it("eligible for full refund when notice is 48+ hours", () => {
+  it("settles a 48h+ cancellation with a credit note, completed by the team, never a card refund", () => {
     const sessionTime = new Date("2026-10-22T12:00:00.000Z"); // 50h notice
     const res = checkCancellationPolicy(sessionTime, baseTime);
 
     expect(res.eligible).toBe(true);
-    expect(res.refundEligible).toBe(true);
+    expect(res.creditNoteEligible).toBe(true);
+    expect(res.selfServe).toBe(false);
     expect(res.window).toBe("over_48h");
-    expect(res.policyNote).toContain("48+ hours notice");
-    expect(res.message).toContain("full refund");
+    expect(res.policyNote).toContain("24+ hours' notice");
+    expect(res.policyNote).toContain("credit note");
+    expect(res.message).toContain("credit note");
+    expect(res.message).toContain("do not give cash or card refunds");
+    expect(res.message).not.toContain("full refund");
   });
 
-  it("eligible for refund when notice is between 24 and 48 hours", () => {
+  it("settles a 24–48h cancellation with a credit note too", () => {
     const sessionTime = new Date("2026-10-21T16:00:00.000Z"); // 30h notice
     const res = checkCancellationPolicy(sessionTime, baseTime);
 
     expect(res.eligible).toBe(true);
-    expect(res.refundEligible).toBe(true);
+    expect(res.creditNoteEligible).toBe(true);
+    expect(res.selfServe).toBe(false);
     expect(res.window).toBe("between_24h_48h");
-    expect(res.policyNote).toContain("24–48 hours notice");
+    expect(res.policyNote).toContain("24+ hours' notice");
     expect(res.message).toContain("more than 24 hours before the session");
+    expect(res.message).not.toContain("48");
   });
 
   it("applies non-refundable outcome when notice is less than 24 hours", () => {
@@ -55,10 +61,12 @@ describe("Cancellation Policy Validation", () => {
     const res = checkCancellationPolicy(sessionTime, baseTime);
 
     expect(res.eligible).toBe(true);
-    expect(res.refundEligible).toBe(false);
+    expect(res.creditNoteEligible).toBe(false);
+    expect(res.selfServe).toBe(true);
     expect(res.window).toBe("under_24h");
     expect(res.policyNote).toContain("Non-refundable");
     expect(res.message).toContain("non-refundable");
+    expect(res.message).toContain("no credit note");
     expect(res.exceptionNote).toContain("management discretion");
   });
 
@@ -67,7 +75,8 @@ describe("Cancellation Policy Validation", () => {
     const res = checkCancellationPolicy(sessionTime, baseTime);
 
     expect(res.eligible).toBe(false);
-    expect(res.refundEligible).toBe(false);
+    expect(res.creditNoteEligible).toBe(false);
+    expect(res.selfServe).toBe(false);
     expect(res.window).toBe("passed");
     expect(res.message).toContain("already taken place");
   });
@@ -82,18 +91,19 @@ describe("Reschedule Policy Validation", () => {
 
     expect(res.eligible).toBe(true);
     expect(res.window).toBe("over_48h");
-    expect(res.policyNote).toContain("48+ hours notice");
+    expect(res.policyNote).toContain("24+ hours' notice");
     expect(res.message).toContain("Rescheduling is free");
   });
 
-  it("allows rescheduling when notice is between 24 and 48 hours with 48h preference notice", () => {
+  it("allows rescheduling when notice is between 24 and 48 hours, with no 48-hour wording", () => {
     const sessionTime = new Date("2026-10-21T18:00:00.000Z"); // 32h notice
     const res = checkReschedulePolicy(sessionTime, baseTime);
 
     expect(res.eligible).toBe(true);
     expect(res.window).toBe("between_24h_48h");
-    expect(res.message).toContain("48 hours' notice");
-    expect(res.policyNote).toContain("24–48 hours notice");
+    expect(res.message).toContain("at least 24 hours' notice");
+    expect(res.message).not.toContain("48");
+    expect(res.policyNote).toContain("24+ hours' notice");
   });
 
   it("restricts rescheduling when notice is less than 24 hours", () => {

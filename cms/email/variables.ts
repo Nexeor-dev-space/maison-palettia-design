@@ -73,7 +73,9 @@ export const COMMON_VARIABLES: TemplateVariable[] = [
   v("site.name", "The studio's name (Site details)", "Maison Palettia"),
   v("site.url", "The site's address", "https://www.maisonpalettia.com"),
   v("site.email", "Contact email (Site details)", "hello@maisonpalettia.com"),
-  v("site.phone", "Contact phone (Site details)", "+971 50 000 0000"),
+  v("site.phone", "Call number (Site details)", "+971 50 000 0000"),
+  v("site.whatsapp", "WhatsApp number (Site details)", "+971 55 000 0000"),
+  v("site.whatsappUrl", "WhatsApp chat link (Site details)", "https://wa.me/971550000000"),
 ];
 
 // ── shared groups ─────────────────────────────────────────────────────────

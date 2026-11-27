@@ -24,6 +24,7 @@ import * as migration_20261118_074058_faq_sections from './20261118_074058_faq_s
 import * as migration_20261119_072156_two_ways_card_photos from './20261119_072156_two_ways_card_photos';
 import * as migration_20261119_072919_experience_carousel_card_photos from './20261119_072919_experience_carousel_card_photos';
 import * as migration_20261120_113005_credit_note_status_reconcile from './20261120_113005_credit_note_status_reconcile';
+import * as migration_20261126_190328_legal_pack_contact_and_policy_groups from './20261126_190328_legal_pack_contact_and_policy_groups';
 
 export const migrations = [
   {
@@ -155,5 +156,10 @@ export const migrations = [
     up: migration_20261120_113005_credit_note_status_reconcile.up,
     down: migration_20261120_113005_credit_note_status_reconcile.down,
     name: '20261120_113005_credit_note_status_reconcile',
+  },
+  {
+    up: migration_20261126_190328_legal_pack_contact_and_policy_groups.up,
+    down: migration_20261126_190328_legal_pack_contact_and_policy_groups.down,
+    name: '20261126_190328_legal_pack_contact_and_policy_groups',
   },
 ];

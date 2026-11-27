@@ -13,7 +13,8 @@ import { PaintStroke, linkPaint } from "@/components/layout/PaintStroke";
 import { getBrandCopy } from "@/lib/brand.server";
 import { getBrandLogo, getContact, getFooterNav, getLegalNav, getSite, getSocialLinks } from "@/lib/constants.server";
 import { getMusicConfig } from "@/lib/music.server";
-import { getPolicies } from "@/lib/policies";
+import { getPolicies, groupPolicies } from "@/lib/policies";
+import { legalEntityParts, telHref } from "@/lib/contact";
 import { getMallPartners } from "@/lib/partners";
 
 /*
@@ -202,6 +203,14 @@ export async function Footer() {
   const socials = socialLinks.filter((link): link is typeof link & { href: string } =>
     Boolean(link.href),
   );
+
+  // The plate's columns: the footer groups, or — before any policy is filed
+  // in one — every policy in a single untitled column, as it always was.
+  const grouped = groupPolicies(policies, { footerOnly: true });
+  const policyColumns: { key: string; title: string | null; policies: typeof policies }[] = grouped.length
+    ? grouped
+    : [{ key: "all", title: null, policies }];
+  const legalLine = legalEntityParts(site);
 
   return (
     /*
@@ -687,8 +696,9 @@ export async function Footer() {
                 </span>
               ))}
             </address>
+            <div className="mt-2 flex flex-col items-center gap-y-3.5 sm:items-start">
             {contact.email ? (
-              <a href={`mailto:${contact.email}`} className={`${LINK} mt-2 items-center gap-2`}>
+              <a href={`mailto:${contact.email}`} className={`${LINK} items-center gap-2`}>
                 <Mail
                   aria-hidden
                   size={15}
@@ -698,20 +708,39 @@ export async function Footer() {
                 {contact.email}
               </a>
             ) : null}
+            {/* Call and WhatsApp, each named, because two bare numbers do
+                not say which one answers a chat. */}
             {contact.phone ? (
-              <a
-                href={`tel:${contact.phone.replace(/\s/g, "")}`}
-                className={`${LINK} items-center gap-2`}
-              >
+              <a href={telHref(contact.phone)} className={`${LINK} items-center gap-2`}>
                 <Phone
                   aria-hidden
                   size={15}
                   strokeWidth={1.9}
                   className="shrink-0 text-primary transition-transform duration-300 ease-editorial motion-safe:group-hover/link:-translate-y-px"
                 />
-                {contact.phone}
+                <span>
+                  <span className="text-text/70">Call</span> {contact.phone}
+                </span>
               </a>
             ) : null}
+            {contact.whatsapp ? (
+              <a
+                href={contact.whatsapp.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${LINK} items-center gap-2`}
+              >
+                <SocialGlyph
+                  name="WhatsApp"
+                  className="size-[15px] shrink-0 text-primary transition-transform duration-300 ease-editorial motion-safe:group-hover/link:-translate-y-px"
+                />
+                <span>
+                  <span className="text-text/70">WhatsApp</span> {contact.whatsapp.display}
+                </span>
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            ) : null}
+            </div>
           </div>
 
           {/*
@@ -935,122 +964,75 @@ export async function Footer() {
             </div>
 
           {/*
-            `gap-y-3.5` FOR THE REASON THE GROUPS ABOVE TAKE `space-y-3.5`.
-            Each link is a 45.25px box that occupies 33.25 of flow, because
-            `-my-1.5` pulls 6px off each end; at a 10px gap the rows pitch at
-            43.25 and every box overlaps the one above it. 14px pitches them
-            at 47.25 and clears by 2. The full arithmetic is on `LINK`.
+            TWO COLUMNS FROM THE CMS, AS THE CLIENT LAID THEM OUT — "Legal &
+            Policies" and "Customer Support" — each the policies whose Group
+            (`policies.footerGroup`) names it, in their `order`. House rules
+            are listed on /policies only; the "All policies" link below
+            reaches them. Until any policy is filed in a footer group, every
+            policy is listed in one column, as the plate always did, so the
+            footer is never left with no policies at all.
+
+            `gap-y-1` between links and not more: each link is a 33.25px box
+            in flow (see `LINK`), and the arrow is the affordance.
           */}
-            <ul className="relative col-span-12 grid grid-cols-1 gap-x-7 gap-y-1 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3 xl:col-span-9">
-            {policies.map((policy) => {
-              return (
-                <li key={policy.slug}>
-                  <Link
-                    href={`/policies/${policy.slug}`}
-                    prefetch={false}
-                    /*
-                      ==================================================
-                      `text-body`, THE SAME SIZE AS THE NAVIGATION ABOVE
-                      ==================================================
-
-                      These were `text-fine` — 13px, on the reasonable-sounding
-                      argument that reference links should be quieter than
-                      navigation. Rendered, the swatch underneath them was not
-                      there at all, and the reason is arithmetic rather than
-                      taste: <PaintStroke> sizes its blot to the span it sits
-                      in and scales it by `--swell`. A 16px link gives it a
-                      35.5px box and inks 7.1px of paint in the leading below
-                      the word. A 13px link gives it 20.9px, inks 4.2px — and
-                      at that size the masked brush, which tapers at both
-                      ends, is drawn almost entirely BEHIND the glyphs, because
-                      a 13px line box has about 3px under its baseline to put
-                      anything in.
-
-                      Forcing the swell back up was tried and is the wrong
-                      repair: it inks the right number of pixels in the wrong
-                      place, through the type.
-
-                      So the type takes the footer's own body size and the
-                      swatch needs no tuning at all — it is the navigation's
-                      swatch, drawn the way the navigation draws it. The
-                      hierarchy is carried by the GROUND instead, which is
-                      what the plate is for: these are plainly the quieter
-                      list because they sit on a panel of their own, not
-                      because their labels were shrunk until their paint
-                      stopped working.
-
-                      `inline-flex` and not `flex`: the swatch is drawn to the
-                      span's box, and a full-width cell would stretch a blot
-                      meant for a word across an empty track.
-                    */
-                    /* NO `leading-snug`, which was the last thing keeping the
-                       swatch invisible after the size was fixed. The blot is
-                       drawn to the span's box and inked in the leading BELOW
-                       the word; snug leading on a 16px label gives a 22px box
-                       where the groups above get 33, and the paint goes back
-                       behind the glyphs. The footer's own 1.65 is the number
-                       the swatch was tuned against. */
-                    className="group/link flex items-baseline gap-2.5 py-1.5 text-fine text-text/90 transition-colors duration-300 ease-soft hover:text-primary"
-                  >
-                    {/*
-                      ====================================================
-                      `isolate`, AND WITHOUT IT THE PAINT IS UNDER THE PLATE
-                      ====================================================
-
-                      <PaintStroke> draws its swatch at `z-index: -1` so the
-                      word sits on top of its own paint. A negative z-index
-                      paints behind the BACKGROUND of its stacking context's
-                      element, and the nearest stacking context here is not
-                      this link, or the panel — it is the <footer>, which
-                      carries `isolate` for the wave. So the swatch was being
-                      painted behind the footer's own content and the sage
-                      plate's background was then laid straight over it.
-
-                      Every measurement said the paint was fine — right box,
-                      right 7.1px of ink, right colour, `visibility: visible`,
-                      identical in every computed value to the navigation's.
-                      It was simply underneath the panel. The groups above
-                      never showed this because nothing is painted over them.
-
-                      `isolate` on the span gives the -1 somewhere local to
-                      resolve, so it lands behind the word and in front of the
-                      plate. Same trap, same fix, as the `-z-10` note on
-                      <SectionShapes>.
-                    */}
-                    {/*
-                      AN ARROW, NOT A PAINTED SWATCH, AND THAT IS WHY THESE
-                      COULD FINALLY GET SMALLER.
-
-                      The long note above explains why these links were set
-                      at the navigation's size: <PaintStroke> inks its blot
-                      into the leading UNDER the word, a 13px line box has
-                      about 3px to put it in, and below 16px the brush is
-                      drawn through the glyphs instead of beneath them. So
-                      the type could not come down while the paint stayed.
-
-                      The client's note is that these are too big — they are
-                      eight legal links and they were the same size as the
-                      footer's primary navigation. Swapping the affordance
-                      resolves the conflict rather than fighting it: the
-                      paint stays where it works, on the navigation, and the
-                      quiet list is marked the way a quiet list should be,
-                      with a small lilac arrow that travels on hover and a
-                      rule that only appears when you are on the link.
-                    */}
-                    <span
-                      aria-hidden
-                      className="shrink-0 text-primary/70 transition-transform duration-300 ease-editorial motion-safe:group-hover/link:translate-x-0.5"
+            <div className="col-span-12 grid grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2 lg:col-span-8 xl:col-span-9">
+              {policyColumns.map((column) => (
+                <div key={column.key}>
+                  {column.title ? (
+                    <h3
+                      id={`footer-policies-${column.key}`}
+                      className="text-label font-medium uppercase tracking-eyebrow text-text/75"
                     >
-                      &#8594;
-                    </span>
-                    <span className="underline decoration-transparent decoration-[1.5px] underline-offset-[5px] transition-colors duration-300 ease-soft group-hover/link:decoration-primary/55">
-                      {policy.navLabel}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-            </ul>
+                      {column.title}
+                    </h3>
+                  ) : null}
+                  <ul
+                    aria-labelledby={column.title ? `footer-policies-${column.key}` : undefined}
+                    className={`grid grid-cols-1 gap-y-1 ${column.title ? "mt-2.5" : ""}`}
+                  >
+                    {column.policies.map((policy) => (
+                      <li key={policy.slug}>
+                        <FooterPolicyLink href={`/policies/${policy.slug}`} label={policy.navLabel} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/*
+            The client's contact line under the policies: "Dubai, UAE |
+            Contact | WhatsApp", with the way to every policy at its end.
+            The numbers themselves are in "The studio" column above.
+          */}
+          <div className="relative mt-7 flex flex-col items-center gap-y-3 border-t border-text/15 pt-5 text-fine text-text/85 sm:flex-row sm:justify-between">
+            <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-start">
+              {site.registeredIn ? (
+                <>
+                  <span>{site.registeredIn}</span>
+                  <span aria-hidden className="text-text/40">|</span>
+                </>
+              ) : null}
+              <Link href="/contact" prefetch={false} className="py-1.5 underline decoration-text/30 underline-offset-[5px] transition-colors duration-300 ease-soft hover:text-primary hover:decoration-primary/55">
+                Contact
+              </Link>
+              {contact.whatsapp ? (
+                <>
+                  <span aria-hidden className="text-text/40">|</span>
+                  <a
+                    href={contact.whatsapp.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-1.5 underline decoration-text/30 underline-offset-[5px] transition-colors duration-300 ease-soft hover:text-primary hover:decoration-primary/55"
+                  >
+                    WhatsApp
+                    <span className="sr-only"> {contact.whatsapp.display} (opens in a new tab)</span>
+                  </a>
+                </>
+              ) : null}
+            </p>
+            <FooterPolicyLink href="/policies" label="All policies" />
           </div>
         </nav>
 
@@ -1071,8 +1053,15 @@ export async function Footer() {
                 height={24}
                 className="size-6 shrink-0"
               />
+              {/* Each part unbroken, so a narrow screen wraps between them, never inside "Licence No. 1626148". */}
               <span>
-                &copy; {year} {site.legalName}
+                &copy; {year}{" "}
+                {legalLine.map((part, index) => (
+                  <span key={part}>
+                    {index > 0 ? " · " : null}
+                    <span className="whitespace-nowrap">{part}</span>
+                  </span>
+                ))}
               </span>
             </p>
             {/* "Music credits" joins the legal row while the player is on:
@@ -1161,6 +1150,32 @@ export async function Footer() {
   Deep Lilac throughout: 3.83:1 on the sage plate and 4.90 on the cream, and
   it is the colour every other mark in this footer is already drawn in.
 */
+/**
+ * One link in the policies plate: a small lilac arrow that travels on hover
+ * and a rule that appears only on the link — the quiet list's affordance
+ * (the navigation above keeps the painted swatch; see the note in the
+ * plate). Centred with the plate below `sm`, flush left from there.
+ */
+function FooterPolicyLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className="group/link flex items-baseline justify-center gap-2.5 py-1.5 text-fine text-text/90 transition-colors duration-300 ease-soft hover:text-primary sm:justify-start"
+    >
+      <span
+        aria-hidden
+        className="shrink-0 text-primary/70 transition-transform duration-300 ease-editorial motion-safe:group-hover/link:translate-x-0.5"
+      >
+        &#8594;
+      </span>
+      <span className="underline decoration-transparent decoration-[1.5px] underline-offset-[5px] transition-colors duration-300 ease-soft group-hover/link:decoration-primary/55">
+        {label}
+      </span>
+    </Link>
+  );
+}
+
 function FooterHeading({
   id,
   mark,

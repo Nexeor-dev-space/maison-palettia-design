@@ -222,7 +222,7 @@ export const AnalyticsSettings: GlobalConfig = {
             copy("declineLabel", "Decline button", { max: 20, defaultValue: "Decline", admin: { width: "50%" } }),
           ],
         },
-        link({ name: "policyLink", label: "Privacy policy link" }),
+        link({ name: "policyLink", label: "Cookie policy link", description: "Leave empty to link the Cookie Policy (/policies/cookie-policy). The link reads \"Privacy policy\" when it points at a privacy page, otherwise \"Cookie policy\"." }),
       ],
       { description: "Shown once; the choice is remembered in the visitor's browser." },
     ),

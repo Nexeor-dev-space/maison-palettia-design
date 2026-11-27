@@ -73,20 +73,29 @@ export async function POST(
     );
   }
 
-  const isNonRefundable = !policy.refundEligible;
+  // A customer cancellation is never refunded to the card. With 24h+ notice it
+  // is settled with a credit note, which our team issues (with its validity
+  // period) from the admin, so it is not completed online. See lib/bookingPolicy.ts.
+  if (!policy.selfServe) {
+    return json(
+      {
+        reason: "contact_team",
+        message: policy.message,
+        creditNoteEligible: policy.creditNoteEligible,
+      },
+      409,
+    );
+  }
+
   const reasonText =
-    typeof body.reason === "string" && body.reason.trim()
-      ? body.reason.trim()
-      : isNonRefundable
-        ? "Customer cancelled online (< 24h notice)"
-        : "Customer cancelled online";
+    typeof body.reason === "string" && body.reason.trim() ? body.reason.trim() : "Customer cancelled online (< 24h notice)";
   const noteText = typeof body.note === "string" ? body.note.trim() : undefined;
 
   try {
-    const result = await cancelOrder(req, order.id, {
+    await cancelOrder(req, order.id, {
       reason: reasonText,
       note: noteText,
-      nonRefundable: isNonRefundable,
+      nonRefundable: true,
       actor: "customer",
     });
 
@@ -97,10 +106,9 @@ export async function POST(
       ok: true,
       reference,
       status: "cancelled",
-      refundStatus: isNonRefundable ? "non_refundable" : result.refundId ? "refunded" : "none",
-      message: isNonRefundable
-        ? "Your booking has been cancelled. As this request was made less than 24 hours before the session, it is non-refundable under our Cancellation & Rescheduling policy."
-        : "Your booking has been cancelled and a full refund has been requested to your original payment method.",
+      refundStatus: "non_refundable",
+      message:
+        "Your booking has been cancelled. As this request was made less than 24 hours before the session, it is non-refundable and no credit note is issued, under our Cancellation, Rescheduling & Refund Policy.",
       orderView: updatedView,
     });
   } catch (error) {

@@ -129,8 +129,14 @@ export interface CheckoutSettings {
   consents: ConsentPolicy[];
   /** The line under the Pay button ("You will be taken to Mamo Pay…"). */
   captureNote: string;
+  /** `booking-settings.checkout.cancellationSummary`: the one-line cancellation rule above Pay. */
+  cancellationSummary: string;
   holdMinutes: number;
 }
+
+/** The cancellation line before an admin has saved one (the migration also stores it as the column default). */
+export const DEFAULT_CANCELLATION_SUMMARY =
+  "Reschedule or get a credit note with at least 24 hours' notice. Later cancellations and no-shows are non-refundable.";
 
 /**
  * The wording-only part of `payment-settings` (an admin-only global: read
@@ -144,13 +150,21 @@ export async function getCheckoutSettings(): Promise<CheckoutSettings> {
     requireTerms: true,
     consents: [],
     captureNote: "You will be taken to Mamo Pay to complete payment securely.",
+    cancellationSummary: DEFAULT_CANCELLATION_SUMMARY,
     holdMinutes: 15,
   };
   try {
     const payload = await getCms();
-    const payment = (await payload.findGlobal({ slug: "payment-settings", depth: 0, select: { checkout: true } })) as {
-      checkout?: { requireTerms?: boolean | null; captureNote?: string | null; holdMinutes?: number | null };
-    };
+    const [payment, booking] = await Promise.all([
+      payload.findGlobal({ slug: "payment-settings", depth: 0, select: { checkout: true } }) as Promise<{
+        checkout?: { requireTerms?: boolean | null; captureNote?: string | null; holdMinutes?: number | null };
+      }>,
+      (
+        payload.findGlobal({ slug: "booking-settings", depth: 0, select: { checkout: { cancellationSummary: true } } }) as Promise<{
+          checkout?: { cancellationSummary?: string | null };
+        }>
+      ).catch(() => null),
+    ]);
     const checkout = payment?.checkout ?? {};
     const requireTerms = checkout.requireTerms !== false;
     const policies = requireTerms
@@ -159,19 +173,24 @@ export async function getCheckoutSettings(): Promise<CheckoutSettings> {
           where: { and: [{ requiresCheckoutConsent: { equals: true } }, { _status: { equals: "published" } }] },
           depth: 0,
           pagination: false,
+          sort: "order",
           select: { slug: true, title: true, navLabel: true, version: true },
         })
       : { docs: [] };
+    // An empty saved line is a choice (no summary); unset (`undefined`) is the default's.
+    const summary = booking?.checkout?.cancellationSummary;
     return {
       requireTerms,
       captureNote: checkout.captureNote?.trim() || fallback.captureNote,
+      cancellationSummary: typeof summary === "string" ? summary.trim() : fallback.cancellationSummary,
       holdMinutes: typeof checkout.holdMinutes === "number" ? checkout.holdMinutes : fallback.holdMinutes,
       consents: policies.docs
         .filter((doc) => typeof doc.slug === "string" && doc.slug)
         .map((doc) => ({
           policy: doc.slug as string,
           version: typeof doc.version === "number" && doc.version > 0 ? doc.version : 1,
-          title: (doc.navLabel || doc.title || doc.slug) as string,
+          // The full title — "the Terms & Conditions, the Cancellation, Rescheduling & Refund Policy…".
+          title: (doc.title || doc.navLabel || doc.slug) as string,
           href: `/policies/${doc.slug}`,
         })),
     };
